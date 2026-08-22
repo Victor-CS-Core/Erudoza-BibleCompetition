@@ -89,6 +89,8 @@ export const api = {
   completeSession: (sessionId: string) =>
     request<SessionSummary>(`/api/v1/study/sessions/${sessionId}/complete`, { method: "POST" }),
   progress: () => request<Progress>("/api/v1/progress/me"),
+  studentProgress: (orgId: string, seasonId: string, studentId: string) =>
+    request<Progress>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/progress`),
   coverage: (orgId: string, seasonId: string) =>
     request<SeasonCoverage>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/coverage`),
   generationJobs: (orgId: string, seasonId: string) =>

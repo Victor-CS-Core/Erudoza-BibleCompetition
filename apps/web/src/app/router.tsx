@@ -51,6 +51,7 @@ export const router = createBrowserRouter([
       { path: "seasons/:seasonId", element: <SeasonWizardPage /> },
       { path: "students", element: <StudentsPage /> },
       { path: "assignments", element: <AssignmentsPage /> },
+      { path: "seasons/:seasonId/students/:studentId/progress", element: <ProgressPage /> },
       { path: "content", element: <ContentPage /> },
       { path: "questions", element: <QuestionsPage /> },
     ],

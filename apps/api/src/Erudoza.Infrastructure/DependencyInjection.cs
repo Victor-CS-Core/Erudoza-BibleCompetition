@@ -4,6 +4,7 @@ using Erudoza.Application.Competitions;
 using Erudoza.Application.Content;
 using Erudoza.Application.Generation;
 using Erudoza.Application.Identity;
+using Erudoza.Application.Progress;
 using Erudoza.Application.Study;
 using Erudoza.Infrastructure.Generation;
 using Erudoza.Infrastructure.Persistence;
@@ -44,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<ContentImportService>();
         services.AddScoped<SeasonWorkflowService>();
         services.AddScoped<SeasonCoverageService>();
+        services.AddScoped<ProgressQueryService>();
         services.AddScoped<StudentDirectoryService>();
         services.AddScoped<IActivityProvider, MissingWordsActivityProvider>();
         services.AddScoped<IActivityProvider, VerseBuilderActivityProvider>();
