@@ -37,6 +37,34 @@ export type ContentPack = {
   unitCount: number;
 };
 
+export type SourceUnit = {
+  id: string;
+  citation: string;
+  bookKey: string;
+  chapter: number;
+  verse: number;
+  ordinal: number;
+  canonicalText: string;
+};
+
+export type ImportContentPackRequest = {
+  packKey: string;
+  version: number;
+  locale: string;
+  sourceType: string;
+  documents: {
+    name: string;
+    units: {
+      citation: string;
+      bookKey: string;
+      chapter: number;
+      verse: number;
+      ordinal: number;
+      text: string;
+    }[];
+  }[];
+};
+
 export type Assignment = {
   id: string;
   studentUserId: string;

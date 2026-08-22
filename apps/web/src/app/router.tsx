@@ -3,9 +3,9 @@ import { useAuth } from "../auth/AuthContext";
 import type { ReactNode } from "react";
 import { AdminHomePage } from "../features/admin/AdminHomePage";
 import { SeasonWizardPage } from "../features/admin/SeasonWizardPage";
+import { ContentPage } from "../features/admin/ContentPage";
 import {
   AssignmentsPage,
-  ContentPage,
   QuestionsPage,
   SeasonsListPage,
   StudentsPage,

@@ -104,3 +104,9 @@ Review sessions refuse to start without a due passage and then draw only from du
 Date: 2026-08-22
 
 True/False is a deterministic activity. Simulation allows at most 10% True/False cards. False statements reuse another stored verse; they do not invent Scripture wording.
+
+## Milestone K — Content pack import
+
+Date: 2026-08-22
+
+Coaches can import a versioned synthetic content pack, browse stored verses, and select that pack when defining season scope. Students cannot import. Changed wording at the same pack version is rejected.
