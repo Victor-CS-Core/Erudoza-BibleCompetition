@@ -103,7 +103,9 @@ public sealed record AssignmentDto(
     int StartChapter,
     int StartVerse,
     int EndChapter,
-    int EndVerse);
+    int EndVerse,
+    string? StudentDisplayName = null,
+    string? StudentUserName = null);
 
 public sealed record ActivationResultDto(bool Activated, IReadOnlyList<string> BlockingProblems);
 

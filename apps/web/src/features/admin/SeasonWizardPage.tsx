@@ -19,6 +19,7 @@ export function SeasonWizardPage() {
   const [endVerse, setEndVerse] = useState(4);
   const [packId, setPackId] = useState("");
   const [studentId, setStudentId] = useState("");
+  const [tab, setTab] = useState<"setup" | "roster">("setup");
   const [message, setMessage] = useState<string | null>(null);
 
   const packs = useQuery({ queryKey: ["packs", orgId], queryFn: () => api.contentPacks(orgId) });
@@ -26,6 +27,11 @@ export function SeasonWizardPage() {
   const season = useQuery({
     queryKey: ["season", orgId, seasonId],
     queryFn: () => api.season(orgId, seasonId!),
+    enabled: !!seasonId,
+  });
+  const assignments = useQuery({
+    queryKey: ["assignments", orgId, seasonId],
+    queryFn: () => api.assignments(orgId, seasonId!),
     enabled: !!seasonId,
   });
   const selectedPackId = packId || packs.data?.[0]?.id || "";
@@ -57,7 +63,10 @@ export function SeasonWizardPage() {
         contentPackId: selectedPackId,
         range: { bookKey, startChapter: 1, startVerse, endChapter: 1, endVerse },
       }),
-    onSuccess: () => setMessage("Assignment saved."),
+    onSuccess: () => {
+      setMessage("Assignment saved.");
+      void queryClient.invalidateQueries({ queryKey: ["assignments", orgId, seasonId] });
+    },
   });
 
   const activate = useMutation({
@@ -76,8 +85,8 @@ export function SeasonWizardPage() {
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
-        <ChapterTab label="Setup" active />
-        <ChapterTab label="Roster" />
+        <ChapterTab label="Setup" active={tab === "setup"} testId="chapter-tab-setup" onClick={() => setTab("setup")} />
+        <ChapterTab label="Roster" active={tab === "roster"} testId="chapter-tab-roster" onClick={() => setTab("roster")} />
       </div>
       <PaperSurface>
         <h1 className="text-2xl font-semibold">{season.data?.name ?? "Create a season"}</h1>
@@ -113,6 +122,38 @@ export function SeasonWizardPage() {
               Save season
             </button>
           </form>
+        ) : tab === "roster" ? (
+          <div className="mt-5">
+            <h2 className="text-xl font-semibold">Assigned students</h2>
+            {assignments.data?.length ? (
+              <table className="mt-4 w-full text-left text-sm" data-testid="season-roster">
+                <thead>
+                  <tr className="border-b border-[var(--er-border)]">
+                    <th className="py-2">Student</th>
+                    <th>Type</th>
+                    <th>Scope</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assignments.data.map((item) => (
+                    <tr key={item.id} className="border-b border-[var(--er-border)]">
+                      <td className="py-2">
+                        {item.studentDisplayName} · {item.studentUserName}
+                      </td>
+                      <td>{item.type}</td>
+                      <td>
+                        {item.bookKey} {item.startChapter}:{item.startVerse}–{item.endChapter}:{item.endVerse}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="mt-4 text-[var(--er-graphite)]" data-testid="season-roster">
+                No assignments yet. Create one on Setup.
+              </p>
+            )}
+          </div>
         ) : (
           <div className="mt-5 space-y-4">
             <label className="block text-sm font-medium">
@@ -173,7 +214,10 @@ export function SeasonWizardPage() {
                       contentPackId: selectedPackId,
                       range: { bookKey, startChapter: 1, startVerse, endChapter: 1, endVerse },
                     })
-                    .then(() => setMessage("Required coverage saved."))
+                    .then(() => {
+                      setMessage("Required coverage saved.");
+                      void queryClient.invalidateQueries({ queryKey: ["assignments", orgId, seasonId] });
+                    })
                 }
               >
                 Create required coverage

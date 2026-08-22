@@ -27,7 +27,7 @@ public static class DtoMapper
     public static StudentDto ToStudentDto(ApplicationUser user) =>
         new(user.Id, user.UserName, user.DisplayName, user.Email);
 
-    public static AssignmentDto ToAssignmentDto(Assignment assignment)
+    public static AssignmentDto ToAssignmentDto(Assignment assignment, ApplicationUser? student = null)
     {
         var scope = assignment.Scopes.First();
         return new AssignmentDto(
@@ -38,7 +38,9 @@ public static class DtoMapper
             scope.StartChapter,
             scope.StartVerse,
             scope.EndChapter,
-            scope.EndVerse);
+            scope.EndVerse,
+            student?.DisplayName,
+            student?.UserName);
     }
 
     public static ChallengeCardDto ToChallengeCardDto(

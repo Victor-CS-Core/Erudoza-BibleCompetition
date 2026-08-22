@@ -74,6 +74,8 @@ export type Assignment = {
   startVerse: number;
   endChapter: number;
   endVerse: number;
+  studentDisplayName?: string | null;
+  studentUserName?: string | null;
 };
 
 export type ChallengeCard = {

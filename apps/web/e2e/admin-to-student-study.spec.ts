@@ -20,6 +20,9 @@ test("admin can activate a season and the student can study missing words", asyn
   await expect(page.getByText("Scope saved.")).toBeVisible();
   await page.getByTestId("assign-student").click();
   await expect(page.getByText("Assignment saved.")).toBeVisible();
+  await page.getByTestId("chapter-tab-roster").click();
+  await expect(page.getByTestId("season-roster")).toContainText("daniel.student");
+  await page.getByTestId("chapter-tab-setup").click();
   await page.getByTestId("activate-season").click();
   await expect(page.getByTestId("season-status")).toHaveText("Active");
   await page.getByTestId("logout").click();

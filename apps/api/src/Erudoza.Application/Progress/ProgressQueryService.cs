@@ -63,7 +63,7 @@ public sealed class ProgressQueryService(IErudozaDbContext db, IClock clock)
             season.Id,
             season.Name,
             season.Status.ToString(),
-            assignments.Select(DtoMapper.ToAssignmentDto).ToList(),
+            assignments.Select(item => DtoMapper.ToAssignmentDto(item)).ToList(),
             mastery.Count(item => item.Level is MasteryLevel.Strong or MasteryLevel.Mastered),
             reviews.Count(item => item.DueAtUtc <= now),
             attempts,
