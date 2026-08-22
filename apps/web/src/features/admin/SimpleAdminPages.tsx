@@ -77,27 +77,6 @@ export function StudentsPage() {
   );
 }
 
-export function ContentPage() {
-  const { me } = useAuth();
-  const packs = useQuery({
-    queryKey: ["packs", me?.organizationId],
-    queryFn: () => api.contentPacks(me!.organizationId),
-    enabled: !!me,
-  });
-  return (
-    <PaperSurface>
-      <h1 className="text-2xl font-semibold">Content packs</h1>
-      <ul className="mt-4">
-        {packs.data?.map((pack) => (
-          <li key={pack.id} data-testid="content-pack">
-            {pack.packKey} v{pack.version} · {pack.unitCount} units · {pack.licensingStatus}
-          </li>
-        ))}
-      </ul>
-    </PaperSurface>
-  );
-}
-
 export function AssignmentsPage() {
   const { me } = useAuth();
   const seasons = useQuery({

@@ -1,0 +1,37 @@
+{
+  "packKey": "dev-joshua",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "documents": [
+    {
+      "name": "Joshua",
+      "units": [
+        {
+          "citation": "Joshua 1:1",
+          "bookKey": "JOS",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 1,
+          "text": "Development sample: Joshua rose early."
+        },
+        {
+          "citation": "Joshua 1:2",
+          "bookKey": "JOS",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 2,
+          "text": "Development sample: Moses is mentioned as servant."
+        },
+        {
+          "citation": "Joshua 1:3",
+          "bookKey": "JOS",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 3,
+          "text": "Development sample: Every place your foot treads."
+        }
+      ]
+    }
+  ]
+}

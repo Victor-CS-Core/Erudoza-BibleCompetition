@@ -17,6 +17,8 @@ export function SeasonWizardPage() {
   const [bookKey, setBookKey] = useState("DAN");
   const [startVerse, setStartVerse] = useState(1);
   const [endVerse, setEndVerse] = useState(4);
+  const [packId, setPackId] = useState("");
+  const [studentId, setStudentId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
 
   const packs = useQuery({ queryKey: ["packs", orgId], queryFn: () => api.contentPacks(orgId) });
@@ -26,8 +28,8 @@ export function SeasonWizardPage() {
     queryFn: () => api.season(orgId, seasonId!),
     enabled: !!seasonId,
   });
-  const selectedPackId = packs.data?.[0]?.id ?? "";
-  const selectedStudentId = students.data?.[0]?.userId ?? "";
+  const selectedPackId = packId || packs.data?.[0]?.id || "";
+  const selectedStudentId = studentId || students.data?.[0]?.userId || "";
 
   const create = useMutation({
     mutationFn: () => api.createSeason(orgId, { name, yearLabel, ruleProfileKey: "PBE_STYLE_V1" }),
@@ -119,7 +121,7 @@ export function SeasonWizardPage() {
                 data-testid="select-content-pack"
                 className="mt-1 w-full rounded-[var(--er-radius-control)] border border-[var(--er-border)] px-3"
                 value={selectedPackId}
-                onChange={() => undefined}
+                onChange={(event) => setPackId(event.target.value)}
               >
                 {packs.data?.map((pack) => (
                   <option key={pack.id} value={pack.id}>
@@ -147,7 +149,7 @@ export function SeasonWizardPage() {
             </button>
             <label className="block text-sm font-medium">
               Assign student
-              <select data-testid="assign-student-select" className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3" value={selectedStudentId} onChange={() => undefined}>
+              <select data-testid="assign-student-select" className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3" value={selectedStudentId} onChange={(event) => setStudentId(event.target.value)}>
                 {students.data?.map((student) => (
                   <option key={student.userId} value={student.userId}>
                     {student.displayName}

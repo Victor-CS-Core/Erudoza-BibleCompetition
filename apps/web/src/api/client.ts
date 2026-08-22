@@ -2,6 +2,7 @@ import type {
   AttemptResult,
   ChallengeCard,
   ContentPack,
+  ImportContentPackRequest,
   Me,
   GenerationJob,
   Organization,
@@ -11,6 +12,7 @@ import type {
   SeasonCoverage,
   Session,
   SessionSummary,
+  SourceUnit,
   Student,
 } from "./types";
 
@@ -56,6 +58,13 @@ export const api = {
   createStudent: (orgId: string, body: { userName: string; displayName: string; password: string }) =>
     request<Student>(`/api/v1/organizations/${orgId}/students`, { method: "POST", body: JSON.stringify(body) }),
   contentPacks: (orgId: string) => request<ContentPack[]>(`/api/v1/organizations/${orgId}/content-packs`),
+  sourceUnits: (orgId: string, contentPackId: string) =>
+    request<SourceUnit[]>(`/api/v1/organizations/${orgId}/content-packs/${contentPackId}/source-units`),
+  importContentPack: (orgId: string, body: ImportContentPackRequest) =>
+    request<ContentPack>(`/api/v1/organizations/${orgId}/content-packs/import`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   defineScope: (
     orgId: string,
     seasonId: string,

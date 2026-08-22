@@ -46,7 +46,7 @@ dotnet test apps/api/Erudoza.sln
 
 ## Notes
 
-- Canonical Scripture is stored in the relational content model. The development pack is synthetic sample text.
+- Canonical Scripture is stored in the relational content model. The development pack is synthetic sample text. Coaches can import another versioned pack from `/admin/content`; changed wording requires a new version.
 - Study activities in this slice: Missing Words, Verse Builder, Reference Match, and What Comes Next. All are deterministic and use stored verse text.
 - Competition simulation uses the season rule profile. `PBE_STYLE_V1` forbids multiple-choice in simulation.
 - OpenAI is optional. Leave `OpenAI__Enabled=false` unless `OPENAI_API_KEY` is set. Generation still cannot bypass the question validator or coach approval.
