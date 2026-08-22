@@ -34,7 +34,7 @@ public sealed class DeterministicActivityTests
         var unit = Sample("Development sample: The official gave them new names for the season.");
         unit.CitationLabel = "Daniel 1:7";
         var generated = ReferenceMatchGenerator.Create(unit, ["Daniel 1:1", "Daniel 1:2"], seed: 3, allowChoices: false);
-        generated.Payload.Choices.Should().BeEmpty();
+        generated.Payload.Choices.Should().BeNull();
         ActivitySerialization.ReadAnswerKey(generated.AnswerKeyJson).CanonicalAnswer.Should().Be("Daniel 1:7");
     }
 
