@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Erudoza.Application.Abstractions;
 using Erudoza.Application.Contracts;
 using Erudoza.Domain;
@@ -83,8 +82,7 @@ public sealed class StudySessionService(
             throw new DomainException("Challenge card does not belong to this session.");
         }
 
-        var answerKey = JsonSerializer.Deserialize<MissingWordsAnswerKey>(card.AnswerKeyJson)
-            ?? throw new DomainException("Challenge card is missing an answer key.");
+        var answerKey = ActivitySerialization.ReadAnswerKey(card.AnswerKeyJson);
         var evaluation = ExactTextEvaluator.Evaluate(request.SubmittedAnswer, answerKey.CanonicalAnswer);
 
         var attempt = new Attempt
@@ -162,7 +160,7 @@ public sealed class StudySessionService(
                 && item.SeasonId == attempt.SeasonId
                 && item.KnowledgeUnitId == card.KnowledgeUnitId,
             cancellationToken);
-        var answerKey = JsonSerializer.Deserialize<MissingWordsAnswerKey>(card.AnswerKeyJson);
+        var answerKey = ActivitySerialization.ReadAnswerKey(card.AnswerKeyJson);
 
         return new AttemptResultDto(
             attempt.Id,

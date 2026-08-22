@@ -118,7 +118,8 @@ public sealed record ChallengeCardDto(
     IReadOnlyList<ChallengeTokenDto> Tokens,
     int Sequence,
     int Total,
-    string? DebugAnswer);
+    string? DebugAnswer,
+    IReadOnlyList<string>? Choices = null);
 
 public sealed record ChallengeTokenDto(string Display, bool Hidden, int Index);
 

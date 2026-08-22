@@ -58,6 +58,7 @@ export type ChallengeCard = {
   sequence: number;
   total: number;
   debugAnswer?: string | null;
+  choices?: string[] | null;
 };
 
 export type AttemptResult = {

@@ -21,7 +21,10 @@ public sealed record ActivityRequest(
     SourceUnit SourceUnit,
     RuleProfileSnapshot RuleProfile,
     int Difficulty,
-    int Sequence);
+    int Sequence,
+    SourceUnit? NextSourceUnit = null,
+    IReadOnlyList<string>? DistractorCitations = null,
+    IReadOnlyCollection<string>? UsedActivityTypes = null);
 
 public interface IActivityProvider
 {
@@ -103,6 +106,7 @@ public sealed record RuleProfileSnapshot(
             return false;
         }
 
-        return activityType is "MissingWords" or "ShortAnswer" or "TrueFalse" || !isMultipleChoice;
+        return activityType is "MissingWords" or "VerseBuilder" or "WhatComesNext" or "ReferenceMatch" or "ShortAnswer" or "TrueFalse"
+            || !isMultipleChoice;
     }
 }

@@ -7,6 +7,7 @@ using Erudoza.Application.Identity;
 using Erudoza.Application.Study;
 using Erudoza.Infrastructure.Persistence;
 using Erudoza.Infrastructure.Security;
+using Erudoza.Infrastructure.Generation;
 using Erudoza.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -44,13 +45,18 @@ public static class DependencyInjection
         services.AddScoped<SeasonWorkflowService>();
         services.AddScoped<StudentDirectoryService>();
         services.AddScoped<IActivityProvider, MissingWordsActivityProvider>();
+        services.AddScoped<IActivityProvider, VerseBuilderActivityProvider>();
+        services.AddScoped<IActivityProvider, ReferenceMatchActivityProvider>();
+        services.AddScoped<IActivityProvider, WhatComesNextActivityProvider>();
         services.AddScoped<IStudyEngine>(sp => new StudyEngine(
             sp.GetRequiredService<IErudozaDbContext>(),
             sp.GetRequiredService<IStudentStudyScopeService>(),
             sp.GetServices<IActivityProvider>().ToList()));
         services.AddScoped<IMasteryService, MasteryService>();
         services.AddScoped<StudySessionService>();
-        services.AddScoped<IGenerativeQuestionService, FakeGenerativeQuestionService>();
+        services.AddHttpClient("openai");
+        services.AddScoped<FakeGenerativeQuestionService>();
+        services.AddScoped<IGenerativeQuestionService, OpenAiGenerativeQuestionService>();
         services.AddScoped<IQuestionCandidateValidator, QuestionCandidateValidator>();
         services.AddScoped<IQuestionLifecycleService, QuestionLifecycleService>();
         return services;
