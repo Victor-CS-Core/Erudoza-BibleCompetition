@@ -66,4 +66,11 @@ Evidence:
 - Playwright `e2e/brand-shell.spec.ts` covers the landing wordmark and paper shell.
 - Production web build and Bicep compile are part of CI.
 
-Result: recorded after the local Gauntlet run.
+Result: PASS
+
+Local evidence from this revision:
+
+- Playwright `e2e/admin-to-student-study.spec.ts` passed on desktop Chromium and Pixel 7.
+- Playwright `e2e/brand-shell.spec.ts` passed on desktop Chromium and Pixel 7.
+- `dotnet test apps/api/Erudoza.sln` — 21 passing.
+- `npm run typecheck:web`, `lint:web`, `test:web`, and `build:web` succeed.

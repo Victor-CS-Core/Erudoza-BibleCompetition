@@ -1,6 +1,8 @@
 targetScope = 'resourceGroup'
 
 @description('Globally unique prefix for Erudoza resources.')
+@minLength(3)
+@maxLength(12)
 param namePrefix string
 
 @description('Azure region.')
