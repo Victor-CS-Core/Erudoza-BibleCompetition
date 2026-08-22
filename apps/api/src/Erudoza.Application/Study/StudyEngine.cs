@@ -1,6 +1,7 @@
 using Erudoza.Application.Abstractions;
 using Erudoza.Application.Competitions;
 using Erudoza.Domain;
+using Erudoza.Domain.Study;
 using Microsoft.EntityFrameworkCore;
 
 namespace Erudoza.Application.Study;
@@ -90,16 +91,33 @@ public sealed class StudyEngine(
             throw new DomainException("Cannot create a challenge from a source outside the student assignment.");
         }
 
+        context = context with { Mode = session.Mode };
         var snapshot = RuleProfileReader.Read(season.RuleProfile!);
+        var nextUnit = knowledgeUnits
+            .Select(item => item.SourceUnit)
+            .Where(unit => unit is not null && unit.ContentPackId == selected.SourceUnit.ContentPackId && unit.Ordinal == selected.SourceUnit.Ordinal + 1)
+            .Cast<SourceUnit>()
+            .FirstOrDefault();
+        var distractors = knowledgeUnits
+            .Select(item => item.SourceUnit!.CitationLabel)
+            .Where(citation => citation != selected.SourceUnit.CitationLabel)
+            .Distinct()
+            .Take(6)
+            .ToList();
+        var usedTypes = session.Cards.Select(card => card.ActivityType).ToList();
         var request = new ActivityRequest(
             context,
             selected,
             selected.SourceUnit,
             snapshot,
-            Difficulty: 1,
-            Sequence: session.Cards.Count + 1);
+            Difficulty: session.Cards.Count >= session.TargetCardCount - 1 ? 3 : 1,
+            Sequence: session.Cards.Count + 1,
+            nextUnit,
+            distractors,
+            usedTypes);
 
-        var provider = providers.FirstOrDefault(item => item.CanHandle(request))
+        var eligible = providers.Where(item => item.CanHandle(request)).ToList();
+        var provider = ChooseProvider(eligible, usedTypes, request.Sequence)
             ?? throw new DomainException("No activity provider is available for the current rule profile and mode.");
 
         var card = await provider.CreateAsync(request, cancellationToken);
@@ -107,5 +125,27 @@ public sealed class StudyEngine(
         session.Status = StudySessionStatus.Active;
         await db.SaveChangesAsync(cancellationToken);
         return card;
+    }
+
+    private static IActivityProvider? ChooseProvider(
+        IReadOnlyList<IActivityProvider> eligible,
+        IReadOnlyCollection<string> usedTypes,
+        int sequence)
+    {
+        if (eligible.Count == 0)
+        {
+            return null;
+        }
+
+        if (sequence == 1)
+        {
+            return eligible.FirstOrDefault(item => item.ActivityType == MissingWordsGenerator.ActivityType)
+                ?? eligible[0];
+        }
+
+        return eligible
+            .OrderBy(item => usedTypes.Count(type => type == item.ActivityType))
+            .ThenBy(item => usedTypes.LastOrDefault() == item.ActivityType ? 1 : 0)
+            .First();
     }
 }

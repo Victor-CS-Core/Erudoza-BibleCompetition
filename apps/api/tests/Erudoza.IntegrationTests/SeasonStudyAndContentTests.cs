@@ -257,6 +257,82 @@ public sealed class SeasonStudyAndContentTests(ErudozaApiFactory factory) : ICla
     }
 
     [Fact]
+    public async Task Simulation_session_uses_stored_mode_and_never_returns_choices()
+    {
+        var (_, seasonId) = await ActivateFreshSeason("Simulation Meet");
+        var student = await TestHttp.LoginAsync(factory, "daniel.student", "DevStudent!234");
+        var started = await student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId, mode = "Simulation" });
+        started.EnsureSuccessStatusCode();
+        var session = await started.Content.ReadFromJsonAsync<SessionDto>();
+        session!.Mode.Should().Be("Simulation");
+        session.TargetCardCount.Should().Be(10);
+
+        using var firstDoc = JsonDocument.Parse(await (await student.GetAsync($"/api/v1/study/sessions/{session.Id}/next")).Content.ReadAsStringAsync());
+        firstDoc.RootElement.GetProperty("activityType").GetString().Should().Be("MissingWords");
+        if (firstDoc.RootElement.TryGetProperty("choices", out var firstChoices)
+            && firstChoices.ValueKind == JsonValueKind.Array)
+        {
+            firstChoices.GetArrayLength().Should().Be(0);
+        }
+
+        var firstAnswer = firstDoc.RootElement.GetProperty("debugAnswer").GetString();
+        (await student.PostAsJsonAsync($"/api/v1/study/sessions/{session.Id}/attempts", new
+        {
+            clientSubmissionId = "sim-1",
+            challengeCardId = firstDoc.RootElement.GetProperty("id").GetGuid(),
+            submittedAnswer = firstAnswer,
+            responseTimeMs = 800,
+            hintsUsed = false
+        })).EnsureSuccessStatusCode();
+
+        using var secondDoc = JsonDocument.Parse(await (await student.GetAsync($"/api/v1/study/sessions/{session.Id}/next")).Content.ReadAsStringAsync());
+        if (secondDoc.RootElement.TryGetProperty("choices", out var secondChoices) && secondChoices.ValueKind == JsonValueKind.Array)
+        {
+            secondChoices.GetArrayLength().Should().Be(0);
+        }
+
+        (await student.PostAsJsonAsync($"/api/v1/study/sessions/{session.Id}/attempts", new
+        {
+            clientSubmissionId = "sim-2",
+            challengeCardId = secondDoc.RootElement.GetProperty("id").GetGuid(),
+            submittedAnswer = secondDoc.RootElement.GetProperty("debugAnswer").GetString(),
+            responseTimeMs = 700,
+            hintsUsed = false
+        })).EnsureSuccessStatusCode();
+
+        var completed = await student.PostAsync($"/api/v1/study/sessions/{session.Id}/complete", null);
+        completed.EnsureSuccessStatusCode();
+        var summary = await completed.Content.ReadFromJsonAsync<SessionSummaryDto>();
+        summary!.Mode.Should().Be("Simulation");
+        summary.Attempted.Should().Be(2);
+        summary.Status.Should().Be("Completed");
+    }
+
+    [Fact]
+    public async Task Coach_coverage_lists_assigned_student_progress()
+    {
+        var (admin, seasonId) = await ActivateFreshSeason("Coverage Season");
+        var student = await TestHttp.LoginAsync(factory, "daniel.student", "DevStudent!234");
+        var session = await (await student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId, mode = "Practice" }))
+            .Content.ReadFromJsonAsync<SessionDto>();
+        using var cardDoc = JsonDocument.Parse(await (await student.GetAsync($"/api/v1/study/sessions/{session!.Id}/next")).Content.ReadAsStringAsync());
+        (await student.PostAsJsonAsync($"/api/v1/study/sessions/{session.Id}/attempts", new
+        {
+            clientSubmissionId = "cov-1",
+            challengeCardId = cardDoc.RootElement.GetProperty("id").GetGuid(),
+            submittedAnswer = cardDoc.RootElement.GetProperty("debugAnswer").GetString(),
+            responseTimeMs = 500,
+            hintsUsed = false
+        })).EnsureSuccessStatusCode();
+
+        var coverage = await admin.GetFromJsonAsync<SeasonCoverageDto>(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/coverage");
+        coverage.Should().NotBeNull();
+        coverage!.Students.Should().ContainSingle(item => item.UserName == "daniel.student" && item.AttemptCount >= 1);
+        coverage.Students[0].EligibleUnitCount.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
     public async Task Assignment_of_another_student_does_not_leak()
     {
         var (_, seasonId) = await ActivateFreshSeason("Isolation Assign");

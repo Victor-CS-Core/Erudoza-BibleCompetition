@@ -322,6 +322,21 @@ public static class ApiEndpoints
             return result.Activated ? Results.Ok(result) : Results.BadRequest(result);
         }).RequireAuthorization("CanManageSeason");
 
+        org.MapGet("/seasons/{seasonId:guid}/coverage", async (
+            Guid orgId,
+            Guid seasonId,
+            ICurrentUser current,
+            SeasonCoverageService coverage,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            return Results.Ok(await coverage.GetAsync(orgId, seasonId, cancellationToken));
+        }).RequireAuthorization("CanManageSeason");
+
         var study = app.MapGroup("/api/v1/study").RequireAuthorization("CanStudy");
 
         study.MapPost("/sessions", async (
@@ -342,12 +357,20 @@ public static class ApiEndpoints
             IConfiguration configuration,
             CancellationToken cancellationToken) =>
         {
+            var session = await db.StudySessions.SingleAsync(
+                item => item.Id == sessionId
+                    && item.OrganizationId == current.OrganizationId
+                    && item.StudentUserId == current.UserId,
+                cancellationToken);
+            var season = await db.Seasons.Include(item => item.RuleProfile)
+                .SingleAsync(item => item.Id == session.SeasonId && item.OrganizationId == current.OrganizationId, cancellationToken);
+            var snapshot = RuleProfileReader.Read(season.RuleProfile!);
             var card = await sessions.NextAsync(
-                new StudyContext(current.OrganizationId, current.UserId, await SeasonForSession(db, sessionId, current, cancellationToken), sessionId, StudyMode.Practice),
+                new StudyContext(current.OrganizationId, current.UserId, session.SeasonId, sessionId, session.Mode),
                 cancellationToken);
             var source = await db.SourceUnits.SingleAsync(item => item.Id == card.SourceUnitId, cancellationToken);
-            var session = await db.StudySessions.SingleAsync(item => item.Id == sessionId, cancellationToken);
-            return Results.Ok(DtoMapper.ToChallengeCardDto(card, source, session.TargetCardCount, ExposeDebug(configuration)));
+            var showCitation = session.Mode != StudyMode.Simulation || snapshot.ShowReference;
+            return Results.Ok(DtoMapper.ToChallengeCardDto(card, source, session.TargetCardCount, ExposeDebug(configuration), showCitation));
         });
 
         study.MapPost("/sessions/{sessionId:guid}/attempts", async (
@@ -374,8 +397,8 @@ public static class ApiEndpoints
             StudySessionService sessions,
             CancellationToken cancellationToken) =>
         {
-            await sessions.CompleteAsync(current.OrganizationId, current.UserId, sessionId, cancellationToken);
-            return Results.NoContent();
+            var summary = await sessions.CompleteAsync(current.OrganizationId, current.UserId, sessionId, cancellationToken);
+            return Results.Ok(summary);
         });
 
         app.MapGet("/api/v1/progress/me", async (ICurrentUser current, IErudozaDbContext db, CancellationToken cancellationToken) =>
@@ -434,14 +457,6 @@ public static class ApiEndpoints
 
     private static bool ExposeDebug(IConfiguration configuration) =>
         configuration.GetValue("ExposeDebugAnswers", false);
-
-    private static async Task<Guid> SeasonForSession(IErudozaDbContext db, Guid sessionId, ICurrentUser current, CancellationToken cancellationToken)
-    {
-        var session = await db.StudySessions.AsNoTracking().SingleAsync(
-            item => item.Id == sessionId && item.OrganizationId == current.OrganizationId && item.StudentUserId == current.UserId,
-            cancellationToken);
-        return session.SeasonId;
-    }
 
     private static async Task<SeasonDto> MapSeason(
         IErudozaDbContext db,

@@ -45,6 +45,9 @@ export function AppShell({ variant }: { variant: "admin" | "student" }) {
                 <NavLink className={navClass(false)} to="/student/study">
                   Study
                 </NavLink>
+                <NavLink className={navClass(false)} to="/student/study?mode=Simulation">
+                  Simulate
+                </NavLink>
                 <NavLink className={navClass(false)} to="/student/progress">
                   Progress
                 </NavLink>

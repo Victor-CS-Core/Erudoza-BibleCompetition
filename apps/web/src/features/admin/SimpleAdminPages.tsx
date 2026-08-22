@@ -99,10 +99,59 @@ export function ContentPage() {
 }
 
 export function AssignmentsPage() {
+  const { me } = useAuth();
+  const seasons = useQuery({
+    queryKey: ["seasons", me?.organizationId],
+    queryFn: () => api.seasons(me!.organizationId),
+    enabled: !!me,
+  });
+  const season = seasons.data?.find((item) => item.status === "Active") ?? seasons.data?.[0];
+  const coverage = useQuery({
+    queryKey: ["coverage", me?.organizationId, season?.id],
+    queryFn: () => api.coverage(me!.organizationId, season!.id),
+    enabled: !!me && !!season,
+  });
+
   return (
     <PaperSurface>
-      <h1 className="text-2xl font-semibold">Assignments</h1>
-      <p className="mt-2 text-[var(--er-graphite)]">Open a season to create specialist and required coverage assignments.</p>
+      <h1 className="text-2xl font-semibold">Coverage</h1>
+      <p className="mt-2 text-[var(--er-graphite)]">
+        {coverage.data
+          ? `${coverage.data.seasonName} · ${coverage.data.seasonStatus}`
+          : "Open a season to create specialist and required coverage assignments."}
+      </p>
+      {coverage.data?.students.length ? (
+        <table className="mt-4 w-full text-left text-sm" data-testid="coverage-table">
+          <thead>
+            <tr className="border-b border-[var(--er-border)]">
+              <th className="py-2">Student</th>
+              <th>Assignment</th>
+              <th>Scope</th>
+              <th>Mastered</th>
+              <th>Due</th>
+              <th>Attempts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {coverage.data.students.map((student) => (
+              <tr key={student.studentUserId} className="border-b border-[var(--er-border)]">
+                <td className="py-2">
+                  {student.displayName} · {student.userName}
+                </td>
+                <td>{student.assignmentType}</td>
+                <td>
+                  {student.bookKey} {student.startChapter}:{student.startVerse}–{student.endChapter}:{student.endVerse} · {student.eligibleUnitCount} units
+                </td>
+                <td>{student.masteredCount}</td>
+                <td>{student.reviewDueCount}</td>
+                <td>{student.attemptCount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p className="mt-4 text-[var(--er-graphite)]">No assigned students yet.</p>
+      )}
     </PaperSurface>
   );
 }

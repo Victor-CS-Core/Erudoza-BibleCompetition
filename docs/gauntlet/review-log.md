@@ -74,3 +74,15 @@ Local evidence from this revision:
 - Playwright `e2e/brand-shell.spec.ts` passed on desktop Chromium and Pixel 7.
 - `dotnet test apps/api/Erudoza.sln` — 21 passing.
 - `npm run typecheck:web`, `lint:web`, `test:web`, and `build:web` succeed.
+
+## Milestone F — Deterministic activity library
+
+Date: 2026-08-22
+
+Adds Verse Builder, Reference Match, and What Comes Next behind the same Study Engine. The first card in a session remains Missing Words so the vertical-slice Playwright path stays stable. OpenAI is wired as an optional server-side adapter and still cannot bypass validation.
+
+## Milestone G — Simulation and coverage
+
+Date: 2026-08-22
+
+Competition simulation uses the stored session mode and `PBE_STYLE_V1` (no multiple-choice). Coach coverage lists assigned students, scope, mastery, due reviews, and attempts. The OpenAI adapter parses a real chat completion when enabled and still falls back when the key or payload is missing.

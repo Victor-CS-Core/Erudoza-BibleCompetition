@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Erudoza.Application.Contracts;
 using Erudoza.Domain;
 using Erudoza.Domain.Study;
@@ -42,23 +41,33 @@ public static class DtoMapper
             scope.EndVerse);
     }
 
-    public static ChallengeCardDto ToChallengeCardDto(ChallengeCard card, SourceUnit source, int total, bool exposeDebug)
+    public static ChallengeCardDto ToChallengeCardDto(
+        ChallengeCard card,
+        SourceUnit source,
+        int total,
+        bool exposeDebug,
+        bool showCitation = true)
     {
-        var payload = JsonSerializer.Deserialize<MissingWordsPayload>(card.PayloadJson)
-            ?? throw new DomainException("Challenge payload is invalid.");
-        var answer = exposeDebug
-            ? JsonSerializer.Deserialize<MissingWordsAnswerKey>(card.AnswerKeyJson)?.CanonicalAnswer
-            : null;
+        var payload = ActivitySerialization.ReadPayload(card.PayloadJson);
+        var answer = exposeDebug ? ActivitySerialization.ReadAnswerKey(card.AnswerKeyJson).CanonicalAnswer : null;
+        var prompt = card.ActivityType == ReferenceMatchGenerator.ActivityType
+            ? source.CanonicalText
+            : payload.Prompt;
+        if (card.ActivityType == WhatComesNextGenerator.ActivityType)
+        {
+            prompt = $"{payload.Prompt} {source.CanonicalText}";
+        }
 
         return new ChallengeCardDto(
             card.Id,
             card.SessionId,
             card.ActivityType,
-            source.CitationLabel,
-            payload.Prompt,
+            showCitation ? source.CitationLabel : "Assigned passage",
+            prompt,
             payload.Tokens.Select(token => new ChallengeTokenDto(token.Hidden ? "____" : token.Text, token.Hidden, token.Index)).ToList(),
             card.Sequence,
             total,
-            answer);
+            answer,
+            payload.Choices is { Count: > 0 } ? payload.Choices : null);
     }
 }
