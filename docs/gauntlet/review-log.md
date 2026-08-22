@@ -1,0 +1,69 @@
+# Erudoza Gauntlet Review Log
+
+## Milestone A — Foundation
+
+Date: 2026-08-22
+Tasks: 1–6
+
+Evidence:
+
+- `dotnet build apps/api/Erudoza.sln` succeeds.
+- Organization, membership, season, content, and study entities are organization-scoped.
+- Cookie authentication rejects unauthenticated `/api/v1/me`.
+- Integration tests reject student season creation and cross-organization reads.
+
+Result: PASS
+
+## Milestone B — Competition Core
+
+Date: 2026-08-22
+Tasks: 7–10
+
+Evidence:
+
+- Built-in `PBE_STYLE_V1` is versioned JSON stored on the season.
+- Development content pack uses structured locators (`DAN`, chapter, verse, ordinal).
+- Include/exclude scope resolver is covered by integration tests.
+- Specialist assignments do not leak to another student.
+
+Result: PASS
+
+## Milestone C — Study Core
+
+Date: 2026-08-22
+Tasks: 11–14
+
+Evidence:
+
+- `MissingWordsActivityProvider` is deterministic and does not call OpenAI.
+- Attempt submission is idempotent on `clientSubmissionId`.
+- Mastery algorithm `v1-scaffold` updates scores and review due dates in the same transaction.
+
+Result: PASS
+
+## Milestone D — AI Boundary
+
+Date: 2026-08-22
+Task: 15
+
+Evidence:
+
+- `FakeGenerativeQuestionService` is the only registered generator.
+- Out-of-scope and mismatched evidence fail validation.
+- `QuestionLifecycleService` is the only promotion path to playable questions.
+- API starts with `OpenAI__Enabled=false` and an empty key.
+
+Result: PASS
+
+## Milestone E — Full Vertical Slice
+
+Date: 2026-08-22
+Tasks: 16–21
+
+Evidence:
+
+- Playwright `e2e/admin-to-student-study.spec.ts` covers admin setup through student mastery.
+- Playwright `e2e/brand-shell.spec.ts` covers the landing wordmark and paper shell.
+- Production web build and Bicep compile are part of CI.
+
+Result: recorded after the local Gauntlet run.

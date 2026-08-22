@@ -1,0 +1,33 @@
+:root {
+  --er-ink-navy: #0d1b3d;
+  --er-teal: #14b8a6;
+  --er-learning-blue: #4da6ff;
+  --er-coral: #ff8a65;
+
+  --er-paper: #fafaf7;
+  --er-card: #ffffff;
+  --er-parchment: #f3ebdd;
+  --er-kraft: #c8a978;
+  --er-kraft-dark: #9d7b4f;
+  --er-graphite: #4d4a45;
+  --er-border: #dce2e9;
+  --er-muted-ink: #626c80;
+  --er-deep-table: #071126;
+
+  --er-success-ink: #0f766e;
+  --er-action-blue: #1d4ed8;
+  --er-stamp-red: #b94d3d;
+
+  --er-radius-card: 18px;
+  --er-radius-sheet: 14px;
+  --er-radius-control: 12px;
+  --er-focus: 0 0 0 3px color-mix(in srgb, var(--er-action-blue) 35%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --er-paper: #10203f;
+    --er-card: #f7f1e6;
+    --er-parchment: #e8dcc6;
+  }
+}

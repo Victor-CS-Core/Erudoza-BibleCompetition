@@ -1,0 +1,72 @@
+.er-canvas {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--er-parchment) 70%, white), transparent 42%),
+    var(--er-paper);
+  color: var(--er-ink-navy);
+}
+
+.er-sheet,
+.er-study-card,
+.er-kraft-board {
+  position: relative;
+  border: 1px solid var(--er-border);
+  box-shadow: 0 10px 30px rgba(13, 27, 61, 0.06);
+}
+
+.er-sheet {
+  background: var(--er-card);
+  border-radius: var(--er-radius-sheet);
+}
+
+.er-study-card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), transparent 28%),
+    var(--er-parchment);
+  border-radius: var(--er-radius-card);
+  border-color: color-mix(in srgb, var(--er-kraft-dark) 35%, var(--er-border));
+}
+
+.er-kraft-board {
+  background: color-mix(in srgb, var(--er-kraft) 38%, var(--er-parchment));
+  border-radius: var(--er-radius-sheet);
+  border-color: var(--er-kraft-dark);
+}
+
+.er-ink-panel {
+  background: var(--er-ink-navy);
+  color: var(--er-card);
+}
+
+.er-scripture {
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+}
+
+.er-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0.2rem 0.55rem;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--er-focus);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

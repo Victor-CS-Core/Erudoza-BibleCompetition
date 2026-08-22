@@ -1,0 +1,38 @@
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./materials.css";
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: "Source Serif 4", Literata, Georgia, serif;
+  --color-ink: var(--er-ink-navy);
+  --color-paper: var(--er-paper);
+  --color-teal: var(--er-teal);
+  --color-action: var(--er-action-blue);
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--er-paper);
+  color: var(--er-ink-navy);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  min-height: 44px;
+}
+
+button,
+[role="button"] {
+  cursor: pointer;
+}

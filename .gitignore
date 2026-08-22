@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+bin/
+obj/
+.nuget/
+
+# Build
+dist/
+coverage/
+TestResults/
+*.trx
+
+# Local data
+*.db
+*.db-shm
+*.db-wal
+erudoza.*.db
+
+# Secrets
+.env
+.env.local
+appsettings.Local.json
+*.user
+secrets.json
+
+# IDE
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Playwright
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/blob-report/
+apps/web/playwright/.cache/
+
+# Logs
+*.log
+npm-debug.log*
