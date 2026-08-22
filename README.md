@@ -6,6 +6,8 @@ Erudoza is a Scripture competition learning engine. The first scaffold proves on
 
 Primary public origin: https://erudoza.com
 
+Current Spark host: https://erudoza.web.app
+
 ## Stack
 
 - SPA: React 19, TypeScript, Vite 8, Tailwind CSS 4

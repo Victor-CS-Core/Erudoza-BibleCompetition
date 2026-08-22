@@ -23,7 +23,13 @@ npx firebase-tools deploy --only hosting
 
 If `erudoza` is taken, set the project id in `.firebaserc` and create that project instead.
 
-The site URL is `https://<project-id>.web.app` until `erudoza.com` is attached in the Firebase Hosting console.
+Live Spark site: https://erudoza.web.app
+
+Console: https://console.firebase.google.com/project/erudoza/overview
+
+This project is `erudoza`. Do not deploy Erudoza into the Filosage Firebase project (`teachapp-d73c3`).
+
+`erudoza.com` can be attached in the Firebase Hosting console when you are ready.
 
 ## Custom domain
 
