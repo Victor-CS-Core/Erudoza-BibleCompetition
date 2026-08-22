@@ -112,11 +112,12 @@ public sealed class QuestionReviewService(
         Guid seasonId,
         CancellationToken cancellationToken)
     {
-        var candidates = await db.QuestionCandidates.AsNoTracking()
+        var candidates = (await db.QuestionCandidates.AsNoTracking()
             .Include(item => item.Evidence)
             .Where(item => item.OrganizationId == organizationId && item.SeasonId == seasonId)
+            .ToListAsync(cancellationToken))
             .OrderByDescending(item => item.CreatedAtUtc)
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         var sourceIds = candidates.SelectMany(item => item.Evidence).Select(item => item.SourceUnitId).Distinct().ToList();
         var sources = await db.SourceUnits.AsNoTracking()
@@ -149,10 +150,11 @@ public sealed class QuestionReviewService(
         Guid seasonId,
         CancellationToken cancellationToken)
     {
-        var jobs = await db.GenerationJobs.AsNoTracking()
+        var jobs = (await db.GenerationJobs.AsNoTracking()
             .Where(item => item.OrganizationId == organizationId && item.SeasonId == seasonId)
+            .ToListAsync(cancellationToken))
             .OrderByDescending(item => item.CreatedAtUtc)
-            .ToListAsync(cancellationToken);
+            .ToList();
         var result = new List<GenerationJobDto>();
         foreach (var job in jobs)
         {

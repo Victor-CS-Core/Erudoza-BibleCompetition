@@ -125,11 +125,17 @@ public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
         modelBuilder.Entity<QuestionCandidate>(entity =>
         {
             entity.HasIndex(item => new { item.OrganizationId, item.Status });
+            entity.HasMany(item => item.Evidence)
+                .WithOne(item => item.QuestionCandidate)
+                .HasForeignKey(item => item.QuestionCandidateId);
         });
 
         modelBuilder.Entity<PlayableQuestion>(entity =>
         {
             entity.HasIndex(item => new { item.OrganizationId, item.Status });
+            entity.HasOne(item => item.QuestionCandidate)
+                .WithMany()
+                .HasForeignKey(item => item.QuestionCandidateId);
         });
 
         modelBuilder.Entity<StudySession>(entity =>
