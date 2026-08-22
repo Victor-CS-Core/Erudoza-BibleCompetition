@@ -10,8 +10,9 @@ async function login(page: Page, identifier: string, password: string) {
 test("coach can import a synthetic pack and browse stored verses", async ({ page }) => {
   const packKey = `dev-joshua-${Date.now()}`;
   await login(page, "admin@erudoza.local", "DevAdmin!234");
-  await page.goto("/admin/content");
-  await page.getByTestId("load-sample-pack").click();
+  await expect(page.getByTestId("organization-name")).toBeVisible();
+  await page.getByRole("link", { name: "Content" }).click();
+  await expect(page.getByTestId("load-sample-pack")).toBeVisible();
   const json = JSON.parse(await page.getByTestId("import-pack-json").inputValue()) as { packKey: string };
   json.packKey = packKey;
   await page.getByTestId("import-pack-json").fill(JSON.stringify(json));
