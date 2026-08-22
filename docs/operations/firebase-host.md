@@ -29,8 +29,8 @@ Console: https://console.firebase.google.com/project/erudoza/overview
 
 This project is `erudoza`. Do not deploy Erudoza into the Filosage Firebase project (`teachapp-d73c3`).
 
-`erudoza.com` can be attached in the Firebase Hosting console when you are ready.
+Custom domains `erudoza.com` and `www.erudoza.com` are attached on this Hosting site. `www` redirects to the apex. DNS and SSL are documented in `docs/operations/custom-domain.md`.
 
 ## Custom domain
 
-In Firebase Hosting, add `erudoza.com` and `www.erudoza.com`. Use the A / CNAME records Firebase shows. Do not share a GoDaddy password.
+GoDaddy nameservers already serve `erudoza.com`. Add the A / TXT / CNAME records in `docs/operations/custom-domain.md`, or run `python3 scripts/connect-godaddy-dns.py` with `GODADDY_API_KEY` and `GODADDY_API_SECRET`. Do not share a GoDaddy password.
