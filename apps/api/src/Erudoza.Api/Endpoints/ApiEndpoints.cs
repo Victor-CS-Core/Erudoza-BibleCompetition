@@ -189,6 +189,23 @@ public static class ApiEndpoints
             return Results.Created($"/api/v1/organizations/{orgId}/students/{student.Id}", DtoMapper.ToStudentDto(student));
         }).RequireAuthorization("CanManageStudents");
 
+        org.MapPost("/students/{studentId:guid}/password", async (
+            Guid orgId,
+            Guid studentId,
+            ResetStudentPasswordRequest request,
+            ICurrentUser current,
+            StudentDirectoryService directory,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            await directory.ResetPasswordAsync(orgId, studentId, request, cancellationToken);
+            return Results.NoContent();
+        }).RequireAuthorization("CanManageStudents");
+
         org.MapGet("/content-packs", async (Guid orgId, ICurrentUser current, IErudozaDbContext db, CancellationToken cancellationToken) =>
         {
             if (ForbidAdmin(orgId, current) is { } forbidden)

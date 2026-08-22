@@ -20,4 +20,4 @@ Authentication uses ASP.NET Core Identity cookie sessions (`SameSite=Lax`, HTTP-
 
 ## Consequences
 
-Child accounts do not require public-facing email. Organization admins can reset student credentials.
+Child accounts do not require public-facing email. Organization admins reset student credentials from the Students page. There is no email-based forgot-password flow for students.

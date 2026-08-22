@@ -40,6 +40,10 @@ export function StudentsPage() {
   const [userName, setUserName] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("DevStudent!234");
+  const [resetStudentId, setResetStudentId] = useState<string | null>(null);
+  const [resetPassword, setResetPassword] = useState("");
+  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const students = useQuery({
     queryKey: ["students", me?.organizationId],
     queryFn: () => api.students(me!.organizationId),
@@ -47,7 +51,22 @@ export function StudentsPage() {
   });
   const create = useMutation({
     mutationFn: () => api.createStudent(me!.organizationId, { userName, displayName, password }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["students"] }),
+    onSuccess: () => {
+      setError(null);
+      setStatus("Student added.");
+      void queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Unable to add student."),
+  });
+  const reset = useMutation({
+    mutationFn: () => api.resetStudentPassword(me!.organizationId, resetStudentId!, resetPassword),
+    onSuccess: () => {
+      setError(null);
+      setStatus("Password updated.");
+      setResetStudentId(null);
+      setResetPassword("");
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Unable to reset password."),
   });
 
   const onSubmit = (event: FormEvent) => {
@@ -55,24 +74,100 @@ export function StudentsPage() {
     create.mutate();
   };
 
+  const onReset = (event: FormEvent) => {
+    event.preventDefault();
+    reset.mutate();
+  };
+
   return (
     <PaperSurface>
       <h1 className="text-2xl font-semibold">Students</h1>
-      <ul className="mt-4 space-y-1" data-testid="student-list">
+      <p className="mt-2 text-sm text-[var(--er-graphite)]">
+        Students sign in with a username. Coaches reset passwords here because student accounts do not require email.
+      </p>
+      <ul className="mt-4 space-y-2" data-testid="student-list">
         {students.data?.map((student) => (
-          <li key={student.userId}>
-            {student.displayName} · {student.userName}
+          <li key={student.userId} className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--er-border)] pt-2">
+            <span>
+              {student.displayName} · {student.userName}
+            </span>
+            <button
+              type="button"
+              data-testid={`reset-password-${student.userName}`}
+              className="rounded-[var(--er-radius-control)] border px-3 text-sm"
+              onClick={() => {
+                setResetStudentId(student.userId);
+                setResetPassword("");
+                setStatus(null);
+                setError(null);
+              }}
+            >
+              Reset password
+            </button>
           </li>
         ))}
       </ul>
+      {resetStudentId ? (
+        <form className="mt-4 grid gap-3" onSubmit={onReset}>
+          <label className="text-sm font-medium">
+            New password
+            <input
+              data-testid="reset-password-input"
+              type="password"
+              className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
+              value={resetPassword}
+              onChange={(event) => setResetPassword(event.target.value)}
+              autoComplete="new-password"
+              required
+              minLength={8}
+            />
+          </label>
+          <button
+            data-testid="reset-password-save"
+            className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] text-[var(--er-card)]"
+            type="submit"
+            disabled={reset.isPending}
+          >
+            Save password
+          </button>
+        </form>
+      ) : null}
       <form className="mt-6 grid gap-3" onSubmit={onSubmit}>
-        <input className="rounded-[var(--er-radius-control)] border px-3" placeholder="Username" value={userName} onChange={(e) => setUserName(e.target.value)} />
-        <input className="rounded-[var(--er-radius-control)] border px-3" placeholder="Display name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-        <input className="rounded-[var(--er-radius-control)] border px-3" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] text-[var(--er-card)]" type="submit">
+        <input
+          data-testid="student-username"
+          className="rounded-[var(--er-radius-control)] border px-3"
+          placeholder="Username"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+        />
+        <input
+          data-testid="student-display-name"
+          className="rounded-[var(--er-radius-control)] border px-3"
+          placeholder="Display name"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+        />
+        <input
+          data-testid="student-password"
+          className="rounded-[var(--er-radius-control)] border px-3"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button
+          data-testid="add-student"
+          className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] text-[var(--er-card)]"
+          type="submit"
+        >
           Add student
         </button>
       </form>
+      {status ? (
+        <p className="mt-4 text-sm text-[var(--er-success-ink)]" data-testid="reset-password-status">
+          {status}
+        </p>
+      ) : null}
+      {error ? <p className="mt-4 text-sm text-[var(--er-stamp-red)]">{error}</p> : null}
     </PaperSurface>
   );
 }

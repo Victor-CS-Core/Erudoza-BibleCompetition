@@ -57,6 +57,11 @@ export const api = {
   students: (orgId: string) => request<Student[]>(`/api/v1/organizations/${orgId}/students`),
   createStudent: (orgId: string, body: { userName: string; displayName: string; password: string }) =>
     request<Student>(`/api/v1/organizations/${orgId}/students`, { method: "POST", body: JSON.stringify(body) }),
+  resetStudentPassword: (orgId: string, studentId: string, password: string) =>
+    request<void>(`/api/v1/organizations/${orgId}/students/${studentId}/password`, {
+      method: "POST",
+      body: JSON.stringify({ password }),
+    }),
   contentPacks: (orgId: string) => request<ContentPack[]>(`/api/v1/organizations/${orgId}/content-packs`),
   sourceUnits: (orgId: string, contentPackId: string) =>
     request<SourceUnit[]>(`/api/v1/organizations/${orgId}/content-packs/${contentPackId}/source-units`),

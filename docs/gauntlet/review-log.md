@@ -110,3 +110,9 @@ True/False is a deterministic activity. Simulation allows at most 10% True/False
 Date: 2026-08-22
 
 Coaches can import a versioned synthetic content pack, browse stored verses, and select that pack when defining season scope. Students cannot import. Changed wording at the same pack version is rejected.
+
+## Milestone L — Student password reset
+
+Date: 2026-08-22
+
+Coaches can reset a student password from the Students page. Students cannot reset credentials. Adult accounts cannot be reset through the student endpoint. New passwords must be at least eight characters.
