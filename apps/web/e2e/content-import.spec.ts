@@ -41,6 +41,14 @@ function samplePack(packKey: string) {
             ordinal: 3,
             text: "Development sample: Every place your foot treads.",
           },
+          {
+            citation: "Joshua 2:1",
+            bookKey: "JOS",
+            chapter: 2,
+            verse: 1,
+            ordinal: 4,
+            text: "Development sample: Joshua sent two men to Jericho.",
+          },
         ],
       },
     ],
@@ -72,4 +80,16 @@ test("coach can import a synthetic pack and browse stored verses", async ({ page
     .getAttribute("value");
   await page.getByTestId("select-content-pack").selectOption(packValue!);
   await expect(page.getByTestId("select-content-pack")).toHaveValue(packValue!);
+  await page.getByTestId("scope-book").fill("JOS");
+  await page.getByTestId("scope-start-chapter").fill("2");
+  await page.getByTestId("scope-start").fill("1");
+  await page.getByTestId("scope-end-chapter").fill("2");
+  await page.getByTestId("scope-end").fill("1");
+  await page.getByTestId("save-scope").click();
+  await expect(page.getByText("Scope saved.")).toBeVisible();
+  await page.getByTestId("assign-student-select").selectOption({ label: "Daniel Student" });
+  await page.getByTestId("assign-student").click();
+  await expect(page.getByText("Assignment saved.")).toBeVisible();
+  await page.getByTestId("chapter-tab-roster").click();
+  await expect(page.getByTestId("season-roster")).toContainText("JOS 2:1");
 });
