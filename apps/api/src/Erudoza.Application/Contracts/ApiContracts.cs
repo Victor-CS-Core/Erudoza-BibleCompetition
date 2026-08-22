@@ -40,6 +40,8 @@ public sealed record StudentDto(Guid UserId, string UserName, string DisplayName
 
 public sealed record CreateStudentRequest(string UserName, string DisplayName, string Password);
 
+public sealed record ResetStudentPasswordRequest(string Password);
+
 public sealed record ContentPackDto(
     Guid Id,
     string PackKey,

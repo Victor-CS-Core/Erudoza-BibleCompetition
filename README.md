@@ -33,7 +33,7 @@ Open http://localhost:5173
 | Admin   | admin@erudoza.local  | DevAdmin!234    |
 | Student | daniel.student       | DevStudent!234  |
 
-Student accounts do not require email.
+Student accounts do not require email. Coaches reset student passwords from `/admin/students`.
 
 ## Commands
 

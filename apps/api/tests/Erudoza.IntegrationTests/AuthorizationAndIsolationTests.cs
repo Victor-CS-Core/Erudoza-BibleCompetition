@@ -53,6 +53,16 @@ public sealed class AuthorizationAndIsolationTests(ErudozaApiFactory factory) : 
     }
 
     [Fact]
+    public async Task Student_cannot_reset_another_student_password()
+    {
+        var client = await TestHttp.LoginAsync(factory, "daniel.student", "DevStudent!234");
+        var response = await client.PostAsJsonAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/students/{SeedIdentifiers.StudentUserId}/password",
+            new { password = "Hacked!234" });
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
     public async Task Admin_in_org_a_cannot_read_org_b()
     {
         var client = await TestHttp.LoginAsync(factory, "admin@erudoza.local", "DevAdmin!234");
