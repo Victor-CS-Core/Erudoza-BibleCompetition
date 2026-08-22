@@ -2,7 +2,7 @@
 
 Do not share a GoDaddy username or password with the implementation agent.
 
-`erudoza.com` can be attached only after a live host exists. The scaffold is not yet deployed.
+`erudoza.com` can be attached only after a live host exists. Provision that host with `docs/operations/azure-host.md` into resource group `rg-erudoza` (never a Filosage group).
 
 ## Required records (once a host exists)
 

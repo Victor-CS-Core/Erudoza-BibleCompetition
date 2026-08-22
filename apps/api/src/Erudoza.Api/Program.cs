@@ -27,6 +27,7 @@ builder.Services.AddAuthentication(ApiEndpoints.CookieScheme)
         options.Cookie.Name = "erudoza.auth";
         options.Cookie.HttpOnly = true;
         options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.SlidingExpiration = true;
         options.ExpireTimeSpan = TimeSpan.FromHours(12);
         options.Events.OnRedirectToLogin = context =>
@@ -68,6 +69,16 @@ var app = builder.Build();
 app.UseMiddleware<CorrelationMiddleware>();
 app.UseMiddleware<ExceptionMappingMiddleware>();
 app.UseCors("spa");
+
+var webRoot = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+var spaIndex = Path.Combine(webRoot, "index.html");
+var serveSpa = File.Exists(spaIndex);
+if (serveSpa)
+{
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -90,6 +101,10 @@ if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Dat
 
 app.MapOpenApi().AllowAnonymous();
 app.MapErudozaApi();
+if (serveSpa)
+{
+    app.MapFallbackToFile("index.html").AllowAnonymous();
+}
 app.Run();
 
 public partial class Program;

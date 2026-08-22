@@ -22,6 +22,9 @@ erudoza.*.db
 appsettings.Local.json
 *.user
 secrets.json
+.azure/*
+!.azure/deployment-plan.md
+infra/bicep/*.local.json
 
 # IDE
 .vs/

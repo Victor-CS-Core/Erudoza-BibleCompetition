@@ -3,6 +3,7 @@ using 'main.bicep'
 param namePrefix = 'erudozadev'
 param location = 'eastus'
 param publicOrigin = 'https://erudoza.com'
+param projectTag = 'erudoza'
 
-// The password is a non-production placeholder for `az bicep lint` / build validation only.
-param sqlAdminPassword = 'ValidationOnly!234'
+// OpenAI key is optional for `az bicep lint` / compile validation only.
+param openAiApiKey = ''
