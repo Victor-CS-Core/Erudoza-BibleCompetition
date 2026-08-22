@@ -42,3 +42,6 @@ apps/web/playwright/.cache/
 # Logs
 *.log
 npm-debug.log*
+firebase-debug.log
+firebase-debug.*.log
+.firebase/

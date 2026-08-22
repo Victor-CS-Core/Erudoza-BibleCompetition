@@ -15,9 +15,10 @@ import type {
   SourceUnit,
   Student,
 } from "./types";
+import { apiUrl } from "./url";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
+  const response = await fetch(apiUrl(path), {
     credentials: "include",
     headers: {
       "Content-Type": "application/json",

@@ -2,21 +2,35 @@
 
 Do not share a GoDaddy username or password with the implementation agent.
 
-`erudoza.com` can be attached only after a live host exists. The scaffold is not yet deployed.
+Host the public SPA on Firebase Spark. See `docs/operations/firebase-host.md`. Do not point the domain at a paid Azure App Service.
 
-## Required records (once a host exists)
+## Live status
 
-At GoDaddy DNS for `erudoza.com`:
+- **https://erudoza.com** serves the Spark Hosting site (SSL from Google Trust Services).
+- **https://erudoza.web.app** remains the default Hosting URL.
+- `www.erudoza.com` is attached on the same site and redirects to the apex. GoDaddy already has `CNAME www → erudoza.web.app`. Some resolvers may still cache the previous ChatGPT custom-domain CNAME for up to an hour.
 
-- Apex `A` or `ALIAS` to the static SPA host
-- `www` `CNAME` to the SPA host
-- `api` `CNAME` to the Azure API host, or a reverse-proxy path on the same origin
+Firebase Hosting has custom domains `erudoza.com` and `www.erudoza.com`. Nameservers stay on GoDaddy (`ns29.domaincontrol.com` / `ns30.domaincontrol.com`).
 
-The SPA `PUBLIC_ORIGIN` must be `https://erudoza.com`.
+## Required GoDaddy DNS
+
+These records are already written. Re-run `python3 scripts/connect-godaddy-dns.py` (or `npm run connect:domain`) only if they drift. The script needs `GODADDY_API_KEY` / `GODADDY_API_SECRET`.
+
+| Type | Name | Value | Notes |
+|------|------|-------|-------|
+| A | `@` | `199.36.158.100` | Firebase Hosting |
+| TXT | `@` | `hosting-site=erudoza` | Keep existing Apple and SPF TXT records |
+| TXT | `_acme-challenge` | value from Firebase | SSL ownership for the apex |
+| CNAME | `www` | `erudoza.web.app` | Replaces `custom-domains.chatgpt.site` |
+| TXT | `_acme-challenge.www` | value from Firebase | SSL ownership for www |
+
+Leave the existing apex TXT records `apple-domain=…` and `v=spf1 include:icloud.com ~all` in place. ACME TXT values rotate; the script reads the live values from Firebase before writing DNS.
+
+The SPA `PUBLIC_ORIGIN` / `VITE_PUBLIC_ORIGIN` should be `https://erudoza.com` if a later build needs an absolute public origin.
 
 ## Safer credential path
 
-1. Add `OPENAI_API_KEY` as an environment secret. Keep `OpenAI__Enabled=false` until generation jobs are reviewed. Study and simulation work without OpenAI.
-2. If DNS should be automated later, create GoDaddy API keys at https://developer.godaddy.com and store `GODADDY_API_KEY` / `GODADDY_API_SECRET`. Do not use the account password.
-3. Authenticate Vercel in Cursor if the SPA should be hosted there, or provide Azure credentials for the API + SQL path in `infra/bicep/main.bicep`.
-4. After a host exists, point apex `A`/`ALIAS` and `www` to the SPA, then set `PUBLIC_ORIGIN=https://erudoza.com`.
+1. Add `OPENAI_API_KEY` as an environment secret only if generation jobs will run on a later API host. Study and simulation work without OpenAI.
+2. Create GoDaddy **API keys** (not the account password) at https://developer.godaddy.com/keys and store `GODADDY_API_KEY` / `GODADDY_API_SECRET`.
+3. Authenticate the Firebase CLI (`npx firebase-tools login --no-localhost`) to deploy Hosting and attach domains.
+4. After DNS propagates, confirm `https://erudoza.com` returns the Erudoza landing page.
