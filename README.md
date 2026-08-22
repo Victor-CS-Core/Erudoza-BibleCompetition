@@ -53,5 +53,5 @@ dotnet test apps/api/Erudoza.sln
 - Study activities in this slice: Missing Words, Verse Builder, Reference Match, and What Comes Next. All are deterministic and use stored verse text.
 - Competition simulation uses the season rule profile. `PBE_STYLE_V1` forbids multiple-choice in simulation.
 - OpenAI is optional. Leave `OpenAI__Enabled=false` unless `OPENAI_API_KEY` is set. Generation still cannot bypass the question validator or coach approval.
-- `erudoza.com` is attached on Firebase Hosting (Spark). See `docs/operations/firebase-host.md`. Firebase Spark cannot run the .NET API. Do not share a GoDaddy password.
+- `https://erudoza.com` is the public Spark Hosting origin. See `docs/operations/firebase-host.md`. Firebase Spark cannot run the .NET API. Do not share a GoDaddy password.
 - The final logo is a separate approval artifact. The UI uses a replaceable Erudoza wordmark.

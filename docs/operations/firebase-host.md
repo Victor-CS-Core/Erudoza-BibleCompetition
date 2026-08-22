@@ -25,6 +25,8 @@ If `erudoza` is taken, set the project id in `.firebaserc` and create that proje
 
 Live Spark site: https://erudoza.web.app
 
+Custom domain: https://erudoza.com
+
 Console: https://console.firebase.google.com/project/erudoza/overview
 
 This project is `erudoza`. Do not deploy Erudoza into the Filosage Firebase project (`teachapp-d73c3`).
@@ -33,4 +35,4 @@ Custom domains `erudoza.com` and `www.erudoza.com` are attached on this Hosting 
 
 ## Custom domain
 
-GoDaddy nameservers already serve `erudoza.com`. Add the A / TXT / CNAME records in `docs/operations/custom-domain.md`, or run `python3 scripts/connect-godaddy-dns.py` with `GODADDY_API_KEY` and `GODADDY_API_SECRET`. Do not share a GoDaddy password.
+GoDaddy nameservers already serve `erudoza.com`. The A / TXT / CNAME records in `docs/operations/custom-domain.md` are in place. Re-run `python3 scripts/connect-godaddy-dns.py` with `GODADDY_API_KEY` and `GODADDY_API_SECRET` only if they drift. Do not share a GoDaddy password.
