@@ -17,7 +17,7 @@ param publicOrigin string = 'https://erudoza.com'
 
 var sqlName = '${namePrefix}sql'
 var apiName = '${namePrefix}api'
-var storageName = replace('${namePrefix}data', '-', '')
+var storageName = take('eru${replace(namePrefix, '-', '')}data', 24)
 var insightsName = '${namePrefix}insights'
 var vaultName = '${namePrefix}kv'
 
@@ -43,7 +43,7 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01' = {
 }
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
-  name: take(toLower(storageName), 24)
+  name: toLower(storageName)
   location: location
   sku: {
     name: 'Standard_LRS'
