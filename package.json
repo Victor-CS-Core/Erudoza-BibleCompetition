@@ -10,7 +10,8 @@
     "test:web": "npm --workspace apps/web run test",
     "test:e2e": "npm --workspace apps/web run test:e2e",
     "lint:web": "npm --workspace apps/web run lint",
-    "typecheck:web": "npm --workspace apps/web run typecheck"
+    "typecheck:web": "npm --workspace apps/web run typecheck",
+    "deploy:hosting": "npm run build:web && npx firebase-tools deploy --only hosting"
   },
   "engines": {
     "node": ">=22"

@@ -10,7 +10,8 @@ Primary public origin: https://erudoza.com
 
 - SPA: React 19, TypeScript, Vite 8, Tailwind CSS 4
 - API: .NET 10, ASP.NET Core, EF Core
-- Data: Azure SQL in production; SQLite for local/test without Docker
+- Data: SQLite for local/test without Docker
+- Public host: Firebase Hosting on the Spark (no-cost) plan
 - Local optional dependencies: SQL Server + Azurite via `infra/local/compose.yaml`
 
 ## Quick start
@@ -50,5 +51,5 @@ dotnet test apps/api/Erudoza.sln
 - Study activities in this slice: Missing Words, Verse Builder, Reference Match, and What Comes Next. All are deterministic and use stored verse text.
 - Competition simulation uses the season rule profile. `PBE_STYLE_V1` forbids multiple-choice in simulation.
 - OpenAI is optional. Leave `OpenAI__Enabled=false` unless `OPENAI_API_KEY` is set. Generation still cannot bypass the question validator or coach approval.
-- `erudoza.com` is attached after a live host exists. See `docs/operations/custom-domain.md`. Do not share a GoDaddy password.
+- `erudoza.com` is attached on Firebase Hosting (Spark). See `docs/operations/firebase-host.md`. Firebase Spark cannot run the .NET API. Do not share a GoDaddy password.
 - The final logo is a separate approval artifact. The UI uses a replaceable Erudoza wordmark.
