@@ -49,7 +49,7 @@ public sealed class MissingWordsAndMasteryTests
         var afterWrong = ScaffoldMasteryRules.Apply(current, false, false, MissingWordsGenerator.ActivityType);
         afterWrong.ExactWording.Should().BeGreaterThanOrEqualTo(0);
         ScaffoldMasteryRules.NextReview(DateTimeOffset.Parse("2026-08-22T00:00:00Z"), false)
-            .Should().Be(DateTimeOffset.Parse("2026-08-22T01:00:00Z"));
+            .Should().Be(DateTimeOffset.Parse("2026-08-22T00:00:00Z"));
 
         var afterEasy = ScaffoldMasteryRules.Apply(current, true, true, "SelectedChoice");
         var afterExact = ScaffoldMasteryRules.Apply(current, true, false, MissingWordsGenerator.ActivityType);

@@ -412,6 +412,65 @@ public sealed class SeasonStudyAndContentTests(ErudozaApiFactory factory) : ICla
     }
 
     [Fact]
+    public async Task Review_session_requires_due_passages_and_then_draws_from_them()
+    {
+        var (_, seasonId) = await ActivateFreshSeason("Review Due");
+        var student = await TestHttp.LoginAsync(factory, "daniel.student", "DevStudent!234");
+        var empty = await student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId, mode = "Review" });
+        empty.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
+        var practice = await (await student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId, mode = "Practice" }))
+            .Content.ReadFromJsonAsync<SessionDto>();
+        using var cardDoc = JsonDocument.Parse(await (await student.GetAsync($"/api/v1/study/sessions/{practice!.Id}/next")).Content.ReadAsStringAsync());
+        (await student.PostAsJsonAsync($"/api/v1/study/sessions/{practice.Id}/attempts", new
+        {
+            clientSubmissionId = "miss-1",
+            challengeCardId = cardDoc.RootElement.GetProperty("id").GetGuid(),
+            submittedAnswer = "not the hidden phrase",
+            responseTimeMs = 400,
+            hintsUsed = false
+        })).EnsureSuccessStatusCode();
+
+        var review = await student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId, mode = "Review" });
+        review.EnsureSuccessStatusCode();
+        var session = await review.Content.ReadFromJsonAsync<SessionDto>();
+        session!.Mode.Should().Be("Review");
+        session.TargetCardCount.Should().BeGreaterThan(0);
+
+        using var reviewCard = JsonDocument.Parse(await (await student.GetAsync($"/api/v1/study/sessions/{session.Id}/next")).Content.ReadAsStringAsync());
+        reviewCard.RootElement.GetProperty("activityType").GetString().Should().Be("MissingWords");
+        reviewCard.RootElement.GetProperty("citation").GetString().Should().Be(cardDoc.RootElement.GetProperty("citation").GetString());
+    }
+
+    [Fact]
+    public async Task Coach_can_read_student_progress_and_student_cannot()
+    {
+        var (admin, seasonId) = await ActivateFreshSeason("Coach Progress");
+        var student = await TestHttp.LoginAsync(factory, "daniel.student", "DevStudent!234");
+        var session = await (await student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId, mode = "Practice" }))
+            .Content.ReadFromJsonAsync<SessionDto>();
+        using var cardDoc = JsonDocument.Parse(await (await student.GetAsync($"/api/v1/study/sessions/{session!.Id}/next")).Content.ReadAsStringAsync());
+        (await student.PostAsJsonAsync($"/api/v1/study/sessions/{session.Id}/attempts", new
+        {
+            clientSubmissionId = "coach-1",
+            challengeCardId = cardDoc.RootElement.GetProperty("id").GetGuid(),
+            submittedAnswer = cardDoc.RootElement.GetProperty("debugAnswer").GetString(),
+            responseTimeMs = 500,
+            hintsUsed = false
+        })).EnsureSuccessStatusCode();
+
+        var progress = await admin.GetFromJsonAsync<ProgressDto>(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/students/{SeedIdentifiers.StudentUserId}/progress");
+        progress!.AttemptCount.Should().BeGreaterThan(0);
+        progress.StudentDisplayName.Should().NotBeNullOrWhiteSpace();
+        progress.StudentUserId.Should().Be(SeedIdentifiers.StudentUserId);
+
+        var forbidden = await student.GetAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/students/{SeedIdentifiers.StudentUserId}/progress");
+        forbidden.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
     public async Task Assignment_of_another_student_does_not_leak()
     {
         var (_, seasonId) = await ActivateFreshSeason("Isolation Assign");

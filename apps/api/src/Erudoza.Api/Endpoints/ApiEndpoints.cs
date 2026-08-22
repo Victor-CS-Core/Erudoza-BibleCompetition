@@ -6,6 +6,7 @@ using Erudoza.Application.Contracts;
 using Erudoza.Application.Generation;
 using Erudoza.Application.Identity;
 using Erudoza.Application.Mapping;
+using Erudoza.Application.Progress;
 using Erudoza.Application.Study;
 using Erudoza.Domain;
 using Microsoft.AspNetCore.Authentication;
@@ -479,58 +480,31 @@ public static class ApiEndpoints
             return Results.Ok(summary);
         });
 
-        app.MapGet("/api/v1/progress/me", async (ICurrentUser current, IErudozaDbContext db, CancellationToken cancellationToken) =>
+        app.MapGet("/api/v1/progress/me", async (ICurrentUser current, ProgressQueryService progress, CancellationToken cancellationToken) =>
         {
             if (!current.IsStudent && !current.IsAdmin)
             {
                 return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Progress is limited to the signed-in student.");
             }
 
-            var studentId = current.UserId;
-            var season = (await db.Seasons.AsNoTracking()
-                .Where(item => item.OrganizationId == current.OrganizationId && item.Status == SeasonStatus.Active)
-                .ToListAsync(cancellationToken))
-                .OrderByDescending(item => item.ActivatedAtUtc)
-                .FirstOrDefault();
+            return Results.Ok(await progress.GetAsync(current.OrganizationId, current.UserId, seasonId: null, cancellationToken));
+        }).RequireAuthorization("CanViewOwnProgress");
 
-            if (season is null)
+        org.MapGet("/seasons/{seasonId:guid}/students/{studentId:guid}/progress", async (
+            Guid orgId,
+            Guid seasonId,
+            Guid studentId,
+            ICurrentUser current,
+            ProgressQueryService progress,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
             {
-                return Results.Ok(new ProgressDto(Guid.Empty, string.Empty, "None", [], 0, 0, 0, []));
+                return forbidden;
             }
 
-            var assignments = await db.Assignments.AsNoTracking()
-                .Include(item => item.Scopes)
-                .Where(item => item.OrganizationId == current.OrganizationId && item.SeasonId == season.Id && item.StudentUserId == studentId)
-                .ToListAsync(cancellationToken);
-            var mastery = await db.MasteryStates.AsNoTracking()
-                .Where(item => item.OrganizationId == current.OrganizationId && item.StudentUserId == studentId && item.SeasonId == season.Id)
-                .ToListAsync(cancellationToken);
-            var reviews = await db.ReviewSchedules.AsNoTracking()
-                .Where(item => item.OrganizationId == current.OrganizationId && item.StudentUserId == studentId && item.SeasonId == season.Id)
-                .ToListAsync(cancellationToken);
-            var knowledge = await db.KnowledgeUnits.AsNoTracking()
-                .Where(item => item.OrganizationId == current.OrganizationId)
-                .ToDictionaryAsync(item => item.Id, cancellationToken);
-            var attempts = await db.Attempts.CountAsync(
-                item => item.OrganizationId == current.OrganizationId && item.StudentUserId == studentId && item.SeasonId == season.Id,
-                cancellationToken);
-
-            return Results.Ok(new ProgressDto(
-                season.Id,
-                season.Name,
-                season.Status.ToString(),
-                assignments.Select(DtoMapper.ToAssignmentDto).ToList(),
-                mastery.Count(item => item.Level is MasteryLevel.Strong or MasteryLevel.Mastered),
-                reviews.Count(item => item.DueAtUtc <= DateTimeOffset.UtcNow),
-                attempts,
-                mastery.Select(item => new MasteryRowDto(
-                    item.KnowledgeUnitId,
-                    knowledge.TryGetValue(item.KnowledgeUnitId, out var unit) ? unit.Title : "Passage",
-                    item.Level.ToString(),
-                    item.ExactWordingScore,
-                    item.RecognitionScore,
-                    reviews.FirstOrDefault(review => review.KnowledgeUnitId == item.KnowledgeUnitId)?.DueAtUtc)).ToList()));
-        }).RequireAuthorization("CanViewOwnProgress");
+            return Results.Ok(await progress.GetAsync(orgId, studentId, seasonId, cancellationToken));
+        }).RequireAuthorization("CanManageSeason");
     }
 
     private static bool ExposeDebug(IConfiguration configuration) =>

@@ -19,6 +19,8 @@ AI is not on the study path until a coach approves a validated candidate. `Quest
 
 Competition simulation obeys the season's stored rule-profile version. `PBE_STYLE_V1` forbids multiple-choice in simulation.
 
+Review mode draws only from knowledge units whose review schedule is due. A missed attempt is due immediately.
+
 ## Consequences
 
 Student study continues when OpenAI is disabled or unavailable. The first playable activity never reconstructs Scripture from a model.

@@ -31,6 +31,23 @@ public sealed class StudySessionService(
             throw new DomainException("The student has no assigned study scope.");
         }
 
+        var targetCardCount = request.Mode == StudyMode.Simulation ? 10 : 8;
+        if (request.Mode == StudyMode.Review)
+        {
+            var dueCount = (await db.ReviewSchedules.AsNoTracking()
+                .Where(item => item.OrganizationId == organizationId
+                    && item.StudentUserId == studentId
+                    && item.SeasonId == season.Id)
+                .ToListAsync(cancellationToken))
+                .Count(item => item.DueAtUtc <= clock.UtcNow);
+            if (dueCount == 0)
+            {
+                throw new DomainException("There are no passages due for review.");
+            }
+
+            targetCardCount = Math.Min(8, dueCount);
+        }
+
         var session = new StudySession
         {
             Id = Guid.NewGuid(),
@@ -39,7 +56,7 @@ public sealed class StudySessionService(
             StudentUserId = studentId,
             Mode = request.Mode,
             Status = StudySessionStatus.Created,
-            TargetCardCount = request.Mode == StudyMode.Simulation ? 10 : 8,
+            TargetCardCount = targetCardCount,
             CreatedAtUtc = clock.UtcNow
         };
         db.StudySessions.Add(session);

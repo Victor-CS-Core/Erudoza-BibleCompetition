@@ -44,7 +44,7 @@ public static class ScaffoldMasteryRules
 
     public static DateTimeOffset NextReview(DateTimeOffset nowUtc, bool isCorrect)
     {
-        return isCorrect ? nowUtc.AddDays(2) : nowUtc.AddHours(1);
+        return isCorrect ? nowUtc.AddDays(2) : nowUtc;
     }
 
     public static int Bound(int value) => Math.Clamp(value, 0, 100);

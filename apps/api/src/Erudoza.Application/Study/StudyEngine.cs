@@ -77,6 +77,15 @@ public sealed class StudyEngine(
                 && item.Kind == KnowledgeUnitKind.ExactVerseText)
             .ToListAsync(cancellationToken);
 
+        if (session.Mode == StudyMode.Review)
+        {
+            knowledgeUnits = knowledgeUnits.Where(item => due.Contains(item.Id)).ToList();
+            if (knowledgeUnits.Count == 0)
+            {
+                throw new DomainException("There are no passages due for review.");
+            }
+        }
+
         var selected = knowledgeUnits
             .OrderBy(item => usedKnowledge.Contains(item.Id))
             .ThenBy(item => due.Contains(item.Id) ? 0 : 1)

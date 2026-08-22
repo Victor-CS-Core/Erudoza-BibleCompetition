@@ -200,7 +200,9 @@ public sealed record ProgressDto(
     int MasteredCount,
     int ReviewDueCount,
     int AttemptCount,
-    IReadOnlyList<MasteryRowDto> Mastery);
+    IReadOnlyList<MasteryRowDto> Mastery,
+    Guid StudentUserId = default,
+    string StudentDisplayName = "");
 
 public sealed record MasteryRowDto(
     Guid KnowledgeUnitId,

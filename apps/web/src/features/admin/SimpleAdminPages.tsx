@@ -136,7 +136,15 @@ export function AssignmentsPage() {
             {coverage.data.students.map((student) => (
               <tr key={student.studentUserId} className="border-b border-[var(--er-border)]">
                 <td className="py-2">
-                  {student.displayName} · {student.userName}
+                  {season ? (
+                    <Link className="text-[var(--er-action-blue)]" to={`/admin/seasons/${season.id}/students/${student.studentUserId}/progress`}>
+                      {student.displayName} · {student.userName}
+                    </Link>
+                  ) : (
+                    <>
+                      {student.displayName} · {student.userName}
+                    </>
+                  )}
                 </td>
                 <td>{student.assignmentType}</td>
                 <td>

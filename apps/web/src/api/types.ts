@@ -82,6 +82,8 @@ export type Progress = {
   masteredCount: number;
   reviewDueCount: number;
   attemptCount: number;
+  studentUserId?: string;
+  studentDisplayName?: string;
   mastery: {
     knowledgeUnitId: string;
     title: string;

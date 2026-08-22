@@ -92,3 +92,9 @@ Competition simulation uses the stored session mode and `PBE_STYLE_V1` (no multi
 Date: 2026-08-22
 
 Coaches can enqueue a generation job against season scope. Candidates are stored as Validated or Rejected after evidence checks. Approve is the only path to a playable short-answer card. Students still cannot generate or promote questions.
+
+## Milestone I — Review mode and coach progress
+
+Date: 2026-08-22
+
+Review sessions refuse to start without a due passage and then draw only from due knowledge units. Coaches can open a student's progress from coverage. Missed attempts are due immediately.
