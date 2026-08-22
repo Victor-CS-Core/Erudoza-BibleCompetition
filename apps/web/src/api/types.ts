@@ -1,0 +1,100 @@
+export type Me = {
+  userId: string;
+  organizationId: string;
+  organizationName: string;
+  displayName: string;
+  userName: string;
+  email: string | null;
+  kind: "Adult" | "Student";
+  role: "Owner" | "Admin" | "Student";
+};
+
+export type Organization = { id: string; name: string; slug: string };
+
+export type Season = {
+  id: string;
+  organizationId: string;
+  name: string;
+  yearLabel: string;
+  status: string;
+  ruleProfileKey: string;
+  ruleProfileVersion: number;
+  startDate: string | null;
+  targetCompetitionDate: string | null;
+  scopeUnitCount: number;
+  assignmentCount: number;
+};
+
+export type Student = { userId: string; userName: string; displayName: string; email: string | null };
+
+export type ContentPack = {
+  id: string;
+  packKey: string;
+  version: number;
+  locale: string;
+  sourceType: string;
+  licensingStatus: string;
+  unitCount: number;
+};
+
+export type Assignment = {
+  id: string;
+  studentUserId: string;
+  type: string;
+  bookKey: string;
+  startChapter: number;
+  startVerse: number;
+  endChapter: number;
+  endVerse: number;
+};
+
+export type ChallengeCard = {
+  id: string;
+  sessionId: string;
+  activityType: string;
+  citation: string;
+  prompt: string;
+  tokens: { display: string; hidden: boolean; index: number }[];
+  sequence: number;
+  total: number;
+  debugAnswer?: string | null;
+};
+
+export type AttemptResult = {
+  attemptId: string;
+  isCorrect: boolean;
+  evaluationResult: string;
+  canonicalAnswer: string;
+  citation: string;
+  sourceText: string;
+  masteryLevel: string;
+  exactWordingScore: number;
+  reviewDueAtUtc: string | null;
+  alreadyProcessed: boolean;
+};
+
+export type Progress = {
+  seasonId: string;
+  seasonName: string;
+  seasonStatus: string;
+  assignments: Assignment[];
+  masteredCount: number;
+  reviewDueCount: number;
+  attemptCount: number;
+  mastery: {
+    knowledgeUnitId: string;
+    title: string;
+    level: string;
+    exactWordingScore: number;
+    recognitionScore: number;
+    reviewDueAtUtc: string | null;
+  }[];
+};
+
+export type Session = {
+  id: string;
+  seasonId: string;
+  status: string;
+  mode: string;
+  targetCardCount: number;
+};
