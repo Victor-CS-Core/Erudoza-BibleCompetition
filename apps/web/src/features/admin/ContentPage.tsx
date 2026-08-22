@@ -12,6 +12,10 @@ export function ContentPage() {
   const [draft, setDraft] = useState("");
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [translationId, setTranslationId] = useState("web");
+  const [catalogBook, setCatalogBook] = useState("DAN");
+  const [catalogStart, setCatalogStart] = useState(1);
+  const [catalogEnd, setCatalogEnd] = useState(1);
   const packs = useQuery({
     queryKey: ["packs", me?.organizationId],
     queryFn: () => api.contentPacks(me!.organizationId),
@@ -21,6 +25,27 @@ export function ContentPage() {
     queryKey: ["source-units", me?.organizationId, selectedPackId],
     queryFn: () => api.sourceUnits(me!.organizationId, selectedPackId!),
     enabled: !!me && !!selectedPackId,
+  });
+  const catalog = useQuery({
+    queryKey: ["scripture-catalog", me?.organizationId],
+    queryFn: () => api.scriptureCatalog(me!.organizationId),
+    enabled: !!me,
+  });
+  const importCatalog = useMutation({
+    mutationFn: () =>
+      api.importFromCatalog(me!.organizationId, {
+        translationId,
+        bookKey: catalogBook,
+        startChapter: catalogStart,
+        endChapter: catalogEnd,
+      }),
+    onSuccess: (pack) => {
+      setError(null);
+      setSelectedPackId(pack.id);
+      void queryClient.invalidateQueries({ queryKey: ["packs"] });
+      void queryClient.invalidateQueries({ queryKey: ["source-units"] });
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Unable to import translation."),
   });
   const importPack = useMutation({
     mutationFn: (body: ReturnType<typeof parseContentPackImport>) => api.importContentPack(me!.organizationId, body),
@@ -48,8 +73,8 @@ export function ContentPage() {
       <PaperSurface>
         <h1 className="text-2xl font-semibold">Content packs</h1>
         <p className="mt-2 text-sm text-[var(--er-graphite)]">
-          Import only text this organization is licensed to store. Development samples are synthetic and are not a
-          copyrighted Bible translation.
+          Import only text this organization is licensed to store. The catalog below is public-domain English text.
+          Copyrighted translations such as NIV or ESV are not fetched or bundled.
         </p>
         <ul className="mt-4 space-y-2">
           {packs.data?.map((pack) => (
@@ -72,6 +97,80 @@ export function ContentPage() {
           </ul>
         </PaperSurface>
       ) : null}
+      <PaperSurface>
+        <h2 className="text-xl font-semibold">Import a public-domain translation</h2>
+        <p className="mt-2 text-sm text-[var(--er-muted-ink)]">
+          Stored verses become the season pack. Study games use that text directly, so OpenAI never writes Scripture.
+        </p>
+        <form
+          className="mt-4 grid gap-3 md:grid-cols-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            importCatalog.mutate();
+          }}
+        >
+          <label className="text-sm font-medium">
+            Translation
+            <select
+              data-testid="catalog-translation"
+              className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
+              value={translationId}
+              onChange={(event) => setTranslationId(event.target.value)}
+            >
+              {catalog.data?.translations.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm font-medium">
+            Book
+            <select
+              data-testid="catalog-book"
+              className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
+              value={catalogBook}
+              onChange={(event) => setCatalogBook(event.target.value)}
+            >
+              {catalog.data?.books.map((item) => (
+                <option key={item.bookKey} value={item.bookKey}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm font-medium">
+            Start chapter
+            <input
+              data-testid="catalog-start-chapter"
+              type="number"
+              min={1}
+              className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
+              value={catalogStart}
+              onChange={(event) => setCatalogStart(Number(event.target.value))}
+            />
+          </label>
+          <label className="text-sm font-medium">
+            End chapter
+            <input
+              data-testid="catalog-end-chapter"
+              type="number"
+              min={1}
+              className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
+              value={catalogEnd}
+              onChange={(event) => setCatalogEnd(Number(event.target.value))}
+            />
+          </label>
+          <button
+            data-testid="import-catalog-submit"
+            className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-4 text-[var(--er-card)] md:col-span-4"
+            type="submit"
+            disabled={importCatalog.isPending}
+          >
+            Import translation
+          </button>
+        </form>
+      </PaperSurface>
       <PaperSurface>
         <h2 className="text-xl font-semibold">Import a versioned pack</h2>
         <p className="mt-2 text-sm text-[var(--er-muted-ink)]">

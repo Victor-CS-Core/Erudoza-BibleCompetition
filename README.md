@@ -52,6 +52,6 @@ dotnet test apps/api/Erudoza.sln
 - Canonical Scripture is stored in the relational content model. The development pack is synthetic sample text. Coaches can import another versioned pack from `/admin/content`; changed wording requires a new version.
 - Study activities in this slice: Missing Words, Verse Builder, Reference Match, and What Comes Next. All are deterministic and use stored verse text.
 - Competition simulation uses the season rule profile. `PBE_STYLE_V1` forbids multiple-choice in simulation.
-- OpenAI is optional. Leave `OpenAI__Enabled=false` unless `OPENAI_API_KEY` is set. Generation still cannot bypass the question validator or coach approval.
+- OpenAI is optional. Set `OPENAI_API_KEY` to draft short-answer candidates from stored verses. Study games still run without it. Generation cannot bypass the question validator or coach approval. See `docs/operations/openai-and-scripture.md`.
 - `https://erudoza.com` is the public Spark Hosting origin. See `docs/operations/firebase-host.md`. Firebase Spark cannot run the .NET API. Do not share a GoDaddy password.
 - The final logo is a separate approval artifact. The UI uses a replaceable Erudoza wordmark.

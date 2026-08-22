@@ -8,6 +8,8 @@ import type {
   Organization,
   Progress,
   QuestionReview,
+  GenerationStatus,
+  ScriptureCatalog,
   Season,
   SeasonCoverage,
   Session,
@@ -71,6 +73,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  scriptureCatalog: (orgId: string) => request<ScriptureCatalog>(`/api/v1/organizations/${orgId}/scripture-catalog`),
+  importFromCatalog: (
+    orgId: string,
+    body: { translationId: string; bookKey: string; startChapter: number; endChapter: number },
+  ) =>
+    request<ContentPack>(`/api/v1/organizations/${orgId}/content-packs/import-from-catalog`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  generationStatus: (orgId: string) => request<GenerationStatus>(`/api/v1/organizations/${orgId}/generation-status`),
   defineScope: (
     orgId: string,
     seasonId: string,

@@ -17,14 +17,7 @@ public sealed class OpenAiGenerativeQuestionService(
         QuestionGenerationContext context,
         CancellationToken cancellationToken)
     {
-        var enabled = configuration.GetValue("OpenAI:Enabled", false);
-        var apiKey = configuration["OpenAI:ApiKey"];
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            apiKey = configuration["OPENAI_API_KEY"];
-        }
-
-        if (!enabled || string.IsNullOrWhiteSpace(apiKey))
+        if (!OpenAiOptions.TryResolve(configuration, out var apiKey, out var model))
         {
             return await fallback.GenerateAsync(context, cancellationToken);
         }
@@ -41,7 +34,7 @@ public sealed class OpenAiGenerativeQuestionService(
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
         var request = new
         {
-            model = configuration["OpenAI:Model"] ?? "gpt-4.1-mini",
+            model,
             response_format = new { type = "json_object" },
             messages = new object[]
             {

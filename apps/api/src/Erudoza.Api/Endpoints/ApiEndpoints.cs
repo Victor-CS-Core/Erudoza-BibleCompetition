@@ -9,6 +9,7 @@ using Erudoza.Application.Mapping;
 using Erudoza.Application.Progress;
 using Erudoza.Application.Study;
 using Erudoza.Domain;
+using Erudoza.Infrastructure.Generation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -244,6 +245,51 @@ public static class ApiEndpoints
             var count = await db.SourceUnits.CountAsync(item => item.ContentPackId == pack.Id, cancellationToken);
             return Results.Ok(new ContentPackDto(pack.Id, pack.PackKey, pack.Version, pack.Locale, pack.SourceType.ToString(), pack.LicensingStatus, count));
         }).RequireAuthorization("CanManageContent");
+
+        org.MapGet("/scripture-catalog", (
+            Guid orgId,
+            ICurrentUser current,
+            ScriptureCatalogService catalog) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            return Results.Ok(catalog.List());
+        }).RequireAuthorization("CanManageContent");
+
+        org.MapPost("/content-packs/import-from-catalog", async (
+            Guid orgId,
+            ImportScriptureCatalogRequest request,
+            ICurrentUser current,
+            ScriptureCatalogService catalog,
+            IErudozaDbContext db,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            var pack = await catalog.ImportAsync(orgId, request, cancellationToken);
+            var count = await db.SourceUnits.CountAsync(item => item.ContentPackId == pack.Id, cancellationToken);
+            return Results.Ok(new ContentPackDto(pack.Id, pack.PackKey, pack.Version, pack.Locale, pack.SourceType.ToString(), pack.LicensingStatus, count));
+        }).RequireAuthorization("CanManageContent");
+
+        org.MapGet("/generation-status", (
+            Guid orgId,
+            ICurrentUser current,
+            IConfiguration configuration) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            var ready = OpenAiOptions.TryResolve(configuration, out _, out var model);
+            return Results.Ok(new GenerationStatusDto(ready, model, ready ? "openai-chat-v1" : "fake-generative-v1"));
+        }).RequireAuthorization("CanManageSeason");
 
         org.MapGet("/content-packs/{contentPackId:guid}/source-units", async (
             Guid orgId,

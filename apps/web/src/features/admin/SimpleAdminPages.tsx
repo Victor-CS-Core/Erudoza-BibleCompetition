@@ -257,6 +257,11 @@ export function QuestionsPage() {
     queryFn: () => api.generationJobs(me!.organizationId, season!.id),
     enabled: !!me && !!season,
   });
+  const generationStatus = useQuery({
+    queryKey: ["generation-status", me?.organizationId],
+    queryFn: () => api.generationStatus(me!.organizationId),
+    enabled: !!me,
+  });
   const generate = useMutation({
     mutationFn: () => api.runGenerationJob(me!.organizationId, season!.id),
     onSuccess: () => {
@@ -281,6 +286,13 @@ export function QuestionsPage() {
           <p className="mt-2 text-[var(--er-graphite)]">
             {season ? `${season.name} · generated questions stay off the study path until you approve them.` : "Create a season to generate review questions."}
           </p>
+          {generationStatus.data ? (
+            <p className="mt-2 text-sm text-[var(--er-muted-ink)]" data-testid="generation-provider">
+              {generationStatus.data.openAiEnabled
+                ? `OpenAI ${generationStatus.data.model} writes short-answer drafts from stored verses.`
+                : "Local fallback is active until OPENAI_API_KEY is set. Study games still run without OpenAI."}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"

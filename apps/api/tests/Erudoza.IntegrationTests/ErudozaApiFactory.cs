@@ -1,10 +1,12 @@
 using System.Net.Http.Json;
+using Erudoza.Application.Abstractions;
 using Erudoza.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
 namespace Erudoza.IntegrationTests;
@@ -39,6 +41,8 @@ public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
             }
 
             services.AddDbContext<ErudozaDbContext>(options => options.UseSqlite($"Data Source={_dbPath}"));
+            services.RemoveAll<IBibleTextClient>();
+            services.AddSingleton<IBibleTextClient, FakeBibleTextClient>();
         });
     }
 

@@ -6,6 +6,7 @@ using Erudoza.Application.Generation;
 using Erudoza.Application.Identity;
 using Erudoza.Application.Progress;
 using Erudoza.Application.Study;
+using Erudoza.Infrastructure.Content;
 using Erudoza.Infrastructure.Generation;
 using Erudoza.Infrastructure.Persistence;
 using Erudoza.Infrastructure.Security;
@@ -60,6 +61,13 @@ public static class DependencyInjection
         services.AddScoped<IMasteryService, MasteryService>();
         services.AddScoped<StudySessionService>();
         services.AddHttpClient("openai");
+        services.AddHttpClient("bible-api", client =>
+        {
+            client.BaseAddress = new Uri("https://bible-api.com/");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+        services.AddScoped<IBibleTextClient, BibleApiTextClient>();
+        services.AddScoped<ScriptureCatalogService>();
         services.AddScoped<FakeGenerativeQuestionService>();
         services.AddScoped<IGenerativeQuestionService, OpenAiGenerativeQuestionService>();
         services.AddScoped<IQuestionCandidateValidator, QuestionCandidateValidator>();

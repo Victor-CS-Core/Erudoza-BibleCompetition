@@ -47,6 +47,17 @@ export type SourceUnit = {
   canonicalText: string;
 };
 
+export type ScriptureCatalog = {
+  translations: { id: string; name: string; license: string; language: string }[];
+  books: { bookKey: string; name: string }[];
+};
+
+export type GenerationStatus = {
+  openAiEnabled: boolean;
+  model: string;
+  generator: string;
+};
+
 export type ImportContentPackRequest = {
   packKey: string;
   version: number;

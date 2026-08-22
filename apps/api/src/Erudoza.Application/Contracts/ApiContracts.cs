@@ -75,7 +75,10 @@ public sealed record ImportContentPackRequest(
     int Version,
     string Locale,
     string SourceType,
-    IReadOnlyList<ImportDocumentDto> Documents);
+    IReadOnlyList<ImportDocumentDto> Documents,
+    string? LicensingStatus = null);
+
+public sealed record GenerationStatusDto(bool OpenAiEnabled, string Model, string Generator);
 
 public sealed record ScopeRangeDto(
     string BookKey,

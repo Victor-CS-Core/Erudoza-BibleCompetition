@@ -35,7 +35,9 @@ public sealed class ContentImportService(IErudozaDbContext db, IClock clock)
             Version = request.Version,
             Locale = request.Locale,
             SourceType = Enum.Parse<SourceType>(request.SourceType, true),
-            LicensingStatus = "development-sample",
+            LicensingStatus = string.IsNullOrWhiteSpace(request.LicensingStatus)
+                ? "development-sample"
+                : request.LicensingStatus,
             IsActive = true,
             CreatedAtUtc = clock.UtcNow
         };
@@ -68,7 +70,7 @@ public sealed class ContentImportService(IErudozaDbContext db, IClock clock)
                     ContentHash = hash,
                     CitationLabel = unitDto.Citation,
                     Locale = request.Locale,
-                    LicensingMetadata = "development-sample",
+                    LicensingMetadata = pack.LicensingStatus,
                     IsActive = true,
                     BookKey = unitDto.BookKey,
                     Chapter = unitDto.Chapter,
