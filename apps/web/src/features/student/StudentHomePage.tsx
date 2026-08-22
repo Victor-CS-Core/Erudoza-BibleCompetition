@@ -22,13 +22,24 @@ export function StudentHomePage() {
           </div>
           {data?.seasonStatus === "Active" ? <Stamp label="DUE" tone="due" /> : null}
         </div>
-        <Link
-          to="/student/study"
-          data-testid="start-todays-deck"
-          className="mt-5 inline-flex items-center rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-5 text-[var(--er-card)]"
-        >
-          Start today's deck
-        </Link>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link
+            to="/student/study"
+            data-testid="start-todays-deck"
+            className="inline-flex items-center rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-5 text-[var(--er-card)]"
+          >
+            Start today's deck
+          </Link>
+          {data?.seasonStatus === "Active" ? (
+            <Link
+              to="/student/study?mode=Simulation"
+              data-testid="start-simulation"
+              className="inline-flex items-center rounded-[var(--er-radius-control)] border px-5"
+            >
+              Start competition simulation
+            </Link>
+          ) : null}
+        </div>
       </PaperSurface>
       <DeckStack due={data?.reviewDueCount ?? 0} next={data?.assignments.length ?? 0} review={data?.reviewDueCount ?? 0} />
       <PaperSurface data-testid="assignment-packet">

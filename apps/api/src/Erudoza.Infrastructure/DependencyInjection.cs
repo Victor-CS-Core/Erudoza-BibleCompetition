@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<IStudentStudyScopeService, StudentStudyScopeService>();
         services.AddScoped<ContentImportService>();
         services.AddScoped<SeasonWorkflowService>();
+        services.AddScoped<SeasonCoverageService>();
         services.AddScoped<StudentDirectoryService>();
         services.AddScoped<IActivityProvider, MissingWordsActivityProvider>();
         services.AddScoped<IActivityProvider, VerseBuilderActivityProvider>();

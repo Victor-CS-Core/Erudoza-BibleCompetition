@@ -99,3 +99,35 @@ export type Session = {
   mode: string;
   targetCardCount: number;
 };
+
+export type SessionSummary = {
+  sessionId: string;
+  mode: string;
+  attempted: number;
+  correct: number;
+  targetCardCount: number;
+  status: string;
+};
+
+export type CoverageStudent = {
+  studentUserId: string;
+  displayName: string;
+  userName: string;
+  assignmentType: string;
+  bookKey: string;
+  startChapter: number;
+  startVerse: number;
+  endChapter: number;
+  endVerse: number;
+  eligibleUnitCount: number;
+  masteredCount: number;
+  reviewDueCount: number;
+  attemptCount: number;
+};
+
+export type SeasonCoverage = {
+  seasonId: string;
+  seasonName: string;
+  seasonStatus: string;
+  students: CoverageStudent[];
+};

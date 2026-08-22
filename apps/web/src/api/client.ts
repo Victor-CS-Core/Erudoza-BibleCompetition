@@ -6,7 +6,9 @@ import type {
   Organization,
   Progress,
   Season,
+  SeasonCoverage,
   Session,
+  SessionSummary,
   Student,
 } from "./types";
 
@@ -75,13 +77,16 @@ export const api = {
   ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body) }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
-  startSession: (seasonId: string) =>
-    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode: "Practice" }) }),
+  startSession: (seasonId: string, mode: "Practice" | "Simulation" = "Practice") =>
+    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode }) }),
   nextCard: (sessionId: string) => request<ChallengeCard>(`/api/v1/study/sessions/${sessionId}/next`),
   submitAttempt: (
     sessionId: string,
     body: { clientSubmissionId: string; challengeCardId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean },
   ) => request<AttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`, { method: "POST", body: JSON.stringify(body) }),
-  completeSession: (sessionId: string) => request<void>(`/api/v1/study/sessions/${sessionId}/complete`, { method: "POST" }),
+  completeSession: (sessionId: string) =>
+    request<SessionSummary>(`/api/v1/study/sessions/${sessionId}/complete`, { method: "POST" }),
   progress: () => request<Progress>("/api/v1/progress/me"),
+  coverage: (orgId: string, seasonId: string) =>
+    request<SeasonCoverage>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/coverage`),
 };

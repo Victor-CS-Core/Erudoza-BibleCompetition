@@ -91,6 +91,7 @@ public sealed class StudyEngine(
             throw new DomainException("Cannot create a challenge from a source outside the student assignment.");
         }
 
+        context = context with { Mode = session.Mode };
         var snapshot = RuleProfileReader.Read(season.RuleProfile!);
         var nextUnit = knowledgeUnits
             .Select(item => item.SourceUnit)

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import type { ChallengeCard } from "../../api/types";
 import { PaperSurface } from "../../components/material/PaperSurface";
@@ -9,6 +9,8 @@ import { StudyCard } from "../../components/material/StudyCard";
 
 export function StudyPage() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const mode = params.get("mode") === "Simulation" ? "Simulation" : "Practice";
   const queryClient = useQueryClient();
   const progress = useQuery({ queryKey: ["progress"], queryFn: () => api.progress() });
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -18,7 +20,7 @@ export function StudyPage() {
   const startedAt = useRef(Date.now());
 
   const start = useMutation({
-    mutationFn: () => api.startSession(progress.data!.seasonId),
+    mutationFn: () => api.startSession(progress.data!.seasonId, mode),
     onSuccess: async (session) => {
       setSessionId(session.id);
       await queryClient.invalidateQueries({ queryKey: ["card"] });
@@ -98,12 +100,25 @@ export function StudyPage() {
           <p className="text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
             {current?.activityType ?? "MissingWords"} · {current?.citation ?? "Loading"}
           </p>
-          <p data-testid="card-progress">{current ? `${current.sequence} / ${current.total}` : "…"}</p>
+          <div className="flex items-center gap-2">
+            {mode === "Simulation" ? <Stamp label="Simulation" tone="simulation" /> : null}
+            <p data-testid="card-progress">{current ? `${current.sequence} / ${current.total}` : "…"}</p>
+          </div>
         </div>
         <p className="er-scripture mt-6 text-2xl leading-relaxed" data-testid="challenge-prompt">
           {current?.prompt ?? "Drawing today's challenge card…"}
         </p>
-        {current ? <ChallengeInput card={current} answer={answer} chunks={chunks} onAnswer={setAnswer} onMove={moveChunk} locked={submit.isSuccess} /> : null}
+        {current ? (
+          <ChallengeInput
+            card={current}
+            answer={answer}
+            chunks={chunks}
+            onAnswer={setAnswer}
+            onMove={moveChunk}
+            locked={submit.isSuccess}
+            allowChoices={mode !== "Simulation"}
+          />
+        ) : null}
         {current?.debugAnswer ? (
           <p className="sr-only" data-testid="debug-answer">
             {current.debugAnswer}
@@ -168,6 +183,7 @@ function ChallengeInput({
   onAnswer,
   onMove,
   locked,
+  allowChoices,
 }: {
   card: ChallengeCard;
   answer: string;
@@ -175,6 +191,7 @@ function ChallengeInput({
   onAnswer: (value: string) => void;
   onMove: (index: number, direction: -1 | 1) => void;
   locked: boolean;
+  allowChoices: boolean;
 }) {
   if (card.activityType === "VerseBuilder") {
     return (
@@ -195,7 +212,7 @@ function ChallengeInput({
     );
   }
 
-  if (card.choices && card.choices.length > 0) {
+  if (allowChoices && card.choices && card.choices.length > 0) {
     return (
       <fieldset className="mt-6">
         <legend className="text-sm font-medium">Choose the reference</legend>

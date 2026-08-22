@@ -109,6 +109,35 @@ public sealed record StartSessionRequest(Guid SeasonId, StudyMode Mode);
 
 public sealed record SessionDto(Guid Id, Guid SeasonId, string Status, string Mode, int TargetCardCount);
 
+public sealed record SessionSummaryDto(
+    Guid SessionId,
+    string Mode,
+    int Attempted,
+    int Correct,
+    int TargetCardCount,
+    string Status);
+
+public sealed record CoverageStudentDto(
+    Guid StudentUserId,
+    string DisplayName,
+    string UserName,
+    string AssignmentType,
+    string BookKey,
+    int StartChapter,
+    int StartVerse,
+    int EndChapter,
+    int EndVerse,
+    int EligibleUnitCount,
+    int MasteredCount,
+    int ReviewDueCount,
+    int AttemptCount);
+
+public sealed record SeasonCoverageDto(
+    Guid SeasonId,
+    string SeasonName,
+    string SeasonStatus,
+    IReadOnlyList<CoverageStudentDto> Students);
+
 public sealed record ChallengeCardDto(
     Guid Id,
     Guid SessionId,

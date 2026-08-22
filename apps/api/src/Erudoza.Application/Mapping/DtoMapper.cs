@@ -41,7 +41,12 @@ public static class DtoMapper
             scope.EndVerse);
     }
 
-    public static ChallengeCardDto ToChallengeCardDto(ChallengeCard card, SourceUnit source, int total, bool exposeDebug)
+    public static ChallengeCardDto ToChallengeCardDto(
+        ChallengeCard card,
+        SourceUnit source,
+        int total,
+        bool exposeDebug,
+        bool showCitation = true)
     {
         var payload = ActivitySerialization.ReadPayload(card.PayloadJson);
         var answer = exposeDebug ? ActivitySerialization.ReadAnswerKey(card.AnswerKeyJson).CanonicalAnswer : null;
@@ -57,12 +62,12 @@ public static class DtoMapper
             card.Id,
             card.SessionId,
             card.ActivityType,
-            source.CitationLabel,
+            showCitation ? source.CitationLabel : "Assigned passage",
             prompt,
             payload.Tokens.Select(token => new ChallengeTokenDto(token.Hidden ? "____" : token.Text, token.Hidden, token.Index)).ToList(),
             card.Sequence,
             total,
             answer,
-            payload.Choices);
+            payload.Choices is { Count: > 0 } ? payload.Choices : null);
     }
 }

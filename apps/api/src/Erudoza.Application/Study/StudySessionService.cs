@@ -39,7 +39,7 @@ public sealed class StudySessionService(
             StudentUserId = studentId,
             Mode = request.Mode,
             Status = StudySessionStatus.Created,
-            TargetCardCount = 8,
+            TargetCardCount = request.Mode == StudyMode.Simulation ? 10 : 8,
             CreatedAtUtc = clock.UtcNow
         };
         db.StudySessions.Add(session);
@@ -126,13 +126,17 @@ public sealed class StudySessionService(
         return await ToResultAsync(attempt, alreadyProcessed: false, exposeDebugAnswer, cancellationToken);
     }
 
-    public async Task CompleteAsync(Guid organizationId, Guid studentId, Guid sessionId, CancellationToken cancellationToken)
+    public async Task<SessionSummaryDto> CompleteAsync(Guid organizationId, Guid studentId, Guid sessionId, CancellationToken cancellationToken)
     {
         var session = await db.StudySessions.SingleOrDefaultAsync(
             item => item.Id == sessionId && item.OrganizationId == organizationId && item.StudentUserId == studentId,
             cancellationToken) ?? throw new DomainException("Study session was not found.");
 
-        if (!await db.Attempts.AnyAsync(item => item.SessionId == sessionId, cancellationToken))
+        var attempts = await db.Attempts
+            .AsNoTracking()
+            .Where(item => item.SessionId == sessionId)
+            .ToListAsync(cancellationToken);
+        if (attempts.Count == 0)
         {
             throw new DomainException("A session cannot be completed without a persisted attempt.");
         }
@@ -140,6 +144,13 @@ public sealed class StudySessionService(
         session.Status = StudySessionStatus.Completed;
         session.CompletedAtUtc = clock.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
+        return new SessionSummaryDto(
+            session.Id,
+            session.Mode.ToString(),
+            attempts.Count,
+            attempts.Count(item => item.IsCorrect),
+            session.TargetCardCount,
+            session.Status.ToString());
     }
 
     private async Task<AttemptResultDto> ToResultAsync(
