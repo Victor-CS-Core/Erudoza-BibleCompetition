@@ -2,12 +2,14 @@ type Props = {
   label: string;
   active?: boolean;
   onClick?: () => void;
+  testId?: string;
 };
 
-export function ChapterTab({ label, active = false, onClick }: Props) {
+export function ChapterTab({ label, active = false, onClick, testId }: Props) {
   return (
     <button
       type="button"
+      data-testid={testId}
       onClick={onClick}
       className={`rounded-t-lg border px-4 text-sm ${
         active

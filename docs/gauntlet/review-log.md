@@ -116,3 +116,9 @@ Coaches can import a versioned synthetic content pack, browse stored verses, and
 Date: 2026-08-22
 
 Coaches can reset a student password from the Students page. Students cannot reset credentials. Adult accounts cannot be reset through the student endpoint. New passwords must be at least eight characters.
+
+## Milestone M — Season roster
+
+Date: 2026-08-22
+
+The season wizard Roster tab lists assigned students, assignment type, and scope. Coaches and the assigned student can read the roster. Setup still holds scope, assignment creation, and activation.

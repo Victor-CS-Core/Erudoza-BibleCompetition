@@ -303,7 +303,18 @@ public static class ApiEndpoints
             }
 
             var assignments = await query.ToListAsync(cancellationToken);
-            return Results.Ok(assignments.Select(DtoMapper.ToAssignmentDto));
+            if (assignments.Count == 0)
+            {
+                return Results.Ok(Array.Empty<AssignmentDto>());
+            }
+
+            var userIds = assignments.Select(item => item.StudentUserId).Distinct().ToList();
+            var users = await db.Users.AsNoTracking()
+                .Where(item => userIds.Contains(item.Id))
+                .ToListAsync(cancellationToken);
+            var byId = users.ToDictionary(item => item.Id);
+            return Results.Ok(assignments.Select(item =>
+                DtoMapper.ToAssignmentDto(item, byId.GetValueOrDefault(item.StudentUserId))));
         });
 
         org.MapPost("/seasons/{seasonId:guid}/assignments", async (
