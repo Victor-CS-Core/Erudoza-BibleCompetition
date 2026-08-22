@@ -10,9 +10,10 @@ public sealed class FakeGenerativeQuestionService(IErudozaDbContext db) : IGener
         QuestionGenerationContext context,
         CancellationToken cancellationToken)
     {
-        var unit = await db.SourceUnits.AsNoTracking().SingleAsync(
-            item => item.OrganizationId == context.OrganizationId && context.SourceUnitIds.Contains(item.Id),
-            cancellationToken);
+        var unit = await db.SourceUnits.AsNoTracking()
+            .Where(item => item.OrganizationId == context.OrganizationId && context.SourceUnitIds.Contains(item.Id))
+            .OrderBy(item => item.Ordinal)
+            .FirstAsync(cancellationToken);
 
         return new QuestionCandidateData(
             "1",

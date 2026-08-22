@@ -15,7 +15,7 @@ First vertical slice:
 - Idempotent attempts via `clientSubmissionId`
 - Mastery algorithm `v1-scaffold`
 
-AI is not on the study path. `QuestionLifecycleService` is the only application service that can promote a generated candidate to a playable question.
+AI is not on the study path until a coach approves a validated candidate. `QuestionLifecycleService` is the only application service that can promote a generated candidate to a playable question. Approved short-answer cards may then appear after the first deterministic Missing Words card.
 
 Competition simulation obeys the season's stored rule-profile version. `PBE_STYLE_V1` forbids multiple-choice in simulation.
 

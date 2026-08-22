@@ -155,9 +155,28 @@ export function SeasonWizardPage() {
                 ))}
               </select>
             </label>
-            <button data-testid="assign-student" type="button" className="rounded-[var(--er-radius-control)] border px-4" onClick={() => assign.mutate()}>
-              Create specialist assignment
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button data-testid="assign-student" type="button" className="rounded-[var(--er-radius-control)] border px-4" onClick={() => assign.mutate()}>
+                Create specialist assignment
+              </button>
+              <button
+                data-testid="assign-coverage"
+                type="button"
+                className="rounded-[var(--er-radius-control)] border px-4"
+                onClick={() =>
+                  api
+                    .assign(orgId, seasonId!, {
+                      studentUserId: selectedStudentId,
+                      type: "RequiredCoverage",
+                      contentPackId: selectedPackId,
+                      range: { bookKey, startChapter: 1, startVerse, endChapter: 1, endVerse },
+                    })
+                    .then(() => setMessage("Required coverage saved."))
+                }
+              >
+                Create required coverage
+              </button>
+            </div>
             <button
               data-testid="activate-season"
               type="button"

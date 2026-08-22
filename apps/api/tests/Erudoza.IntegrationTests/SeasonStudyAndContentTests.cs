@@ -333,6 +333,85 @@ public sealed class SeasonStudyAndContentTests(ErudozaApiFactory factory) : ICla
     }
 
     [Fact]
+    public async Task Generation_job_stores_validated_candidates_and_only_admin_can_approve()
+    {
+        var (admin, seasonId) = await ActivateFreshSeason("Generation Review");
+        var student = await TestHttp.LoginAsync(factory, "daniel.student", "DevStudent!234");
+        var forbidden = await student.PostAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/generation-jobs",
+            null);
+        forbidden.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        var job = await admin.PostAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/generation-jobs",
+            null);
+        job.EnsureSuccessStatusCode();
+        var created = await job.Content.ReadFromJsonAsync<GenerationJobDto>();
+        created!.Status.Should().Be("Completed");
+        created.CandidateCount.Should().BeGreaterThan(0);
+
+        var questions = await admin.GetFromJsonAsync<List<QuestionReviewDto>>(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/questions");
+        questions.Should().NotBeEmpty();
+        var validated = questions!.First(item => item.Status == "Validated");
+        validated.Evidence.Should().NotBeEmpty();
+
+        var approveForbidden = await student.PostAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/questions/{validated.Id}/approve",
+            null);
+        approveForbidden.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        var approved = await admin.PostAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/questions/{validated.Id}/approve",
+            null);
+        approved.EnsureSuccessStatusCode();
+
+        var after = await admin.GetFromJsonAsync<List<QuestionReviewDto>>(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/questions");
+        after!.Single(item => item.Id == validated.Id).Status.Should().Be("Playable");
+    }
+
+    [Fact]
+    public async Task Rejected_or_invalid_candidates_cannot_become_playable()
+    {
+        var (admin, seasonId) = await ActivateFreshSeason("Reject Review");
+        (await admin.PostAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/generation-jobs",
+            null)).EnsureSuccessStatusCode();
+        var questions = await admin.GetFromJsonAsync<List<QuestionReviewDto>>(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/questions");
+        var candidateId = questions![0].Id;
+
+        (await admin.PostAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/questions/{candidateId}/reject",
+            null)).EnsureSuccessStatusCode();
+        var rejected = await admin.GetFromJsonAsync<List<QuestionReviewDto>>(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/questions");
+        rejected!.Single(item => item.Id == candidateId).Status.Should().Be("Rejected");
+
+        using var scope = factory.Services.CreateScope();
+        var lifecycle = scope.ServiceProvider.GetRequiredService<IQuestionLifecycleService>();
+        var unit = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>().SourceUnits
+            .First(item => item.OrganizationId == SeedIdentifiers.OrganizationId);
+        var invalid = new QuestionCandidateData(
+            "1",
+            "ShortFact",
+            "Who?",
+            "ShortFact",
+            "Daniel",
+            ["Daniel"],
+            [new QuestionEvidenceItem(Guid.NewGuid(), unit.CanonicalText)],
+            1,
+            null,
+            "fake");
+        var promote = async () => await lifecycle.PromoteValidatedCandidateAsync(
+            invalid,
+            new QuestionValidationContext(SeedIdentifiers.OrganizationId, seasonId, new HashSet<Guid> { unit.Id }),
+            CancellationToken.None);
+        await promote.Should().ThrowAsync<DomainException>();
+    }
+
+    [Fact]
     public async Task Assignment_of_another_student_does_not_leak()
     {
         var (_, seasonId) = await ActivateFreshSeason("Isolation Assign");

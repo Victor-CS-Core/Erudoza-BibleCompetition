@@ -3,8 +3,10 @@ import type {
   ChallengeCard,
   ContentPack,
   Me,
+  GenerationJob,
   Organization,
   Progress,
+  QuestionReview,
   Season,
   SeasonCoverage,
   Session,
@@ -77,7 +79,7 @@ export const api = {
   ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body) }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
-  startSession: (seasonId: string, mode: "Practice" | "Simulation" = "Practice") =>
+  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice") =>
     request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode }) }),
   nextCard: (sessionId: string) => request<ChallengeCard>(`/api/v1/study/sessions/${sessionId}/next`),
   submitAttempt: (
@@ -89,4 +91,14 @@ export const api = {
   progress: () => request<Progress>("/api/v1/progress/me"),
   coverage: (orgId: string, seasonId: string) =>
     request<SeasonCoverage>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/coverage`),
+  generationJobs: (orgId: string, seasonId: string) =>
+    request<GenerationJob[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/generation-jobs`),
+  runGenerationJob: (orgId: string, seasonId: string) =>
+    request<GenerationJob>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/generation-jobs`, { method: "POST" }),
+  questions: (orgId: string, seasonId: string) =>
+    request<QuestionReview[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/questions`),
+  approveQuestion: (orgId: string, candidateId: string) =>
+    request<{ playableQuestionId: string }>(`/api/v1/organizations/${orgId}/questions/${candidateId}/approve`, { method: "POST" }),
+  rejectQuestion: (orgId: string, candidateId: string) =>
+    request<void>(`/api/v1/organizations/${orgId}/questions/${candidateId}/reject`, { method: "POST" }),
 };

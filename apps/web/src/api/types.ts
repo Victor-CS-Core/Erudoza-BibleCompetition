@@ -125,6 +125,27 @@ export type CoverageStudent = {
   attemptCount: number;
 };
 
+export type GenerationJob = {
+  id: string;
+  seasonId: string | null;
+  status: string;
+  error: string | null;
+  createdAtUtc: string;
+  candidateCount: number;
+};
+
+export type QuestionReview = {
+  id: string;
+  seasonId: string | null;
+  prompt: string;
+  canonicalAnswer: string;
+  status: string;
+  questionType: string;
+  generatorVersion: string;
+  explanation: string | null;
+  evidence: { sourceUnitId: string; citation: string; evidenceText: string }[];
+};
+
 export type SeasonCoverage = {
   seasonId: string;
   seasonName: string;

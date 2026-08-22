@@ -51,4 +51,14 @@ public interface IQuestionLifecycleService
         QuestionCandidateData candidate,
         QuestionValidationContext context,
         CancellationToken cancellationToken);
+
+    Task<Guid> ApproveStoredCandidateAsync(
+        Guid organizationId,
+        Guid candidateId,
+        CancellationToken cancellationToken);
+
+    Task RejectStoredCandidateAsync(
+        Guid organizationId,
+        Guid candidateId,
+        CancellationToken cancellationToken);
 }

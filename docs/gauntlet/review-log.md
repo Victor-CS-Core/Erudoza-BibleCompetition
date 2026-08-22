@@ -86,3 +86,9 @@ Adds Verse Builder, Reference Match, and What Comes Next behind the same Study E
 Date: 2026-08-22
 
 Competition simulation uses the stored session mode and `PBE_STYLE_V1` (no multiple-choice). Coach coverage lists assigned students, scope, mastery, due reviews, and attempts. The OpenAI adapter parses a real chat completion when enabled and still falls back when the key or payload is missing.
+
+## Milestone H — Question review pipeline
+
+Date: 2026-08-22
+
+Coaches can enqueue a generation job against season scope. Candidates are stored as Validated or Rejected after evidence checks. Approve is the only path to a playable short-answer card. Students still cannot generate or promote questions.
