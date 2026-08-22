@@ -98,3 +98,9 @@ Coaches can enqueue a generation job against season scope. Candidates are stored
 Date: 2026-08-22
 
 Review sessions refuse to start without a due passage and then draw only from due knowledge units. Coaches can open a student's progress from coverage. Missed attempts are due immediately.
+
+## Milestone J — True/False under PBE_STYLE_V1
+
+Date: 2026-08-22
+
+True/False is a deterministic activity. Simulation allows at most 10% True/False cards. False statements reuse another stored verse; they do not invent Scripture wording.

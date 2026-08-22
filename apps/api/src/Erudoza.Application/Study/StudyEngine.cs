@@ -107,6 +107,11 @@ public sealed class StudyEngine(
             .Where(unit => unit is not null && unit.ContentPackId == selected.SourceUnit.ContentPackId && unit.Ordinal == selected.SourceUnit.Ordinal + 1)
             .Cast<SourceUnit>()
             .FirstOrDefault();
+        var alternate = knowledgeUnits
+            .Select(item => item.SourceUnit)
+            .Where(unit => unit is not null && unit.Id != selected.SourceUnit.Id)
+            .Cast<SourceUnit>()
+            .FirstOrDefault();
         var distractors = knowledgeUnits
             .Select(item => item.SourceUnit!.CitationLabel)
             .Where(citation => citation != selected.SourceUnit.CitationLabel)
@@ -130,8 +135,10 @@ public sealed class StudyEngine(
             Difficulty: session.Cards.Count >= session.TargetCardCount - 1 ? 3 : 1,
             Sequence: session.Cards.Count + 1,
             nextUnit,
+            alternate,
             distractors,
             usedTypes,
+            session.TargetCardCount,
             playable);
 
         var eligible = providers.Where(item => item.CanHandle(request)).ToList();

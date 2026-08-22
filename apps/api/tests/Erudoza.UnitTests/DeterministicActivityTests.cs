@@ -39,6 +39,25 @@ public sealed class DeterministicActivityTests
     }
 
     [Fact]
+    public void True_false_uses_only_stored_verse_wording()
+    {
+        var current = Sample("Development sample: First verse.");
+        current.CitationLabel = "Daniel 1:1";
+        var other = Sample("Development sample: Second verse.");
+        other.CitationLabel = "Daniel 1:2";
+
+        var truth = TrueFalseGenerator.Create(current, other, seed: 2);
+        ActivitySerialization.ReadAnswerKey(truth.AnswerKeyJson).CanonicalAnswer.Should().Be("True");
+        truth.Payload.Prompt.Should().Contain(current.CitationLabel);
+        truth.Payload.Prompt.Should().Contain(current.CanonicalText);
+
+        var falsehood = TrueFalseGenerator.Create(current, other, seed: 1);
+        ActivitySerialization.ReadAnswerKey(falsehood.AnswerKeyJson).CanonicalAnswer.Should().Be("False");
+        falsehood.Payload.Prompt.Should().Contain(other.CanonicalText);
+        falsehood.Payload.Prompt.Should().NotContain("invented");
+    }
+
+    [Fact]
     public void Short_answer_uses_the_approved_prompt_and_stored_answer()
     {
         var unit = Sample("Development sample: Daniel purposed in his heart.");
