@@ -214,6 +214,25 @@ function ChallengeInput({
     );
   }
 
+  if (card.activityType === "TrueFalse") {
+    return (
+      <div className="mt-6 flex flex-wrap gap-3" aria-label="True or false">
+        {["True", "False"].map((choice) => (
+          <button
+            key={choice}
+            type="button"
+            data-testid={`true-false-${choice.toLowerCase()}`}
+            className={`rounded-[var(--er-radius-control)] border px-5 ${answer === choice ? "bg-[var(--er-ink-navy)] text-[var(--er-card)]" : ""}`}
+            onClick={() => onAnswer(choice)}
+            disabled={locked}
+          >
+            {choice}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
   if (allowChoices && card.choices && card.choices.length > 0) {
     return (
       <fieldset className="mt-6">

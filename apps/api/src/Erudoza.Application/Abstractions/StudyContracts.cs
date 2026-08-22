@@ -23,8 +23,10 @@ public sealed record ActivityRequest(
     int Difficulty,
     int Sequence,
     SourceUnit? NextSourceUnit = null,
+    SourceUnit? AlternateSourceUnit = null,
     IReadOnlyList<string>? DistractorCitations = null,
     IReadOnlyCollection<string>? UsedActivityTypes = null,
+    int TargetCardCount = 8,
     PlayableQuestion? PlayableQuestion = null);
 
 public interface IActivityProvider
@@ -93,7 +95,8 @@ public sealed record RuleProfileSnapshot(
     bool SimulationAllowMultipleChoice,
     bool SimulationAllowTrueFalse,
     bool PreferShortAnswer,
-    bool ShowReference)
+    bool ShowReference,
+    double TrueFalseMaxRatio = 0.10)
 {
     public bool AllowsActivity(StudyMode mode, string activityType, bool isMultipleChoice)
     {
@@ -107,7 +110,28 @@ public sealed record RuleProfileSnapshot(
             return false;
         }
 
-        return activityType is "MissingWords" or "VerseBuilder" or "WhatComesNext" or "ReferenceMatch" or "ShortAnswer" or "TrueFalse"
+        if (activityType == "TrueFalse")
+        {
+            return SimulationAllowTrueFalse;
+        }
+
+        return activityType is "MissingWords" or "VerseBuilder" or "WhatComesNext" or "ReferenceMatch" or "ShortAnswer"
             || !isMultipleChoice;
+    }
+
+    public bool AllowsAnotherTrueFalse(StudyMode mode, int alreadyUsed, int targetCardCount)
+    {
+        if (!AllowsActivity(mode, "TrueFalse", isMultipleChoice: false))
+        {
+            return false;
+        }
+
+        if (mode != StudyMode.Simulation)
+        {
+            return true;
+        }
+
+        var maxAllowed = (int)Math.Floor(Math.Max(1, targetCardCount) * TrueFalseMaxRatio + 1e-9);
+        return alreadyUsed < maxAllowed;
     }
 }

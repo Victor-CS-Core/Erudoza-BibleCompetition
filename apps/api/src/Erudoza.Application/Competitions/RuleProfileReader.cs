@@ -39,6 +39,7 @@ public static class RuleProfileReader
             simulation.GetProperty("allowMultipleChoice").GetBoolean(),
             simulation.GetProperty("allowTrueFalse").GetBoolean(),
             simulation.GetProperty("preferShortAnswer").GetBoolean(),
-            simulation.GetProperty("showReference").GetBoolean());
+            simulation.GetProperty("showReference").GetBoolean(),
+            simulation.GetProperty("trueFalseMaxRatio").GetDouble());
     }
 }

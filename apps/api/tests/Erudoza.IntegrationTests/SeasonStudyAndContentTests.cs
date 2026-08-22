@@ -443,6 +443,43 @@ public sealed class SeasonStudyAndContentTests(ErudozaApiFactory factory) : ICla
     }
 
     [Fact]
+    public async Task Simulation_true_false_stays_within_pbe_ratio()
+    {
+        var (_, seasonId) = await ActivateFreshSeason("True False Cap");
+        var student = await TestHttp.LoginAsync(factory, "daniel.student", "DevStudent!234");
+        var session = await (await student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId, mode = "Simulation" }))
+            .Content.ReadFromJsonAsync<SessionDto>();
+        var types = new List<string>();
+        for (var index = 0; index < session!.TargetCardCount; index++)
+        {
+            var next = await student.GetAsync($"/api/v1/study/sessions/{session.Id}/next");
+            if (!next.IsSuccessStatusCode)
+            {
+                break;
+            }
+
+            using var card = JsonDocument.Parse(await next.Content.ReadAsStringAsync());
+            types.Add(card.RootElement.GetProperty("activityType").GetString() ?? string.Empty);
+            if (card.RootElement.TryGetProperty("choices", out var choices) && choices.ValueKind == JsonValueKind.Array)
+            {
+                choices.GetArrayLength().Should().Be(0);
+            }
+
+            (await student.PostAsJsonAsync($"/api/v1/study/sessions/{session.Id}/attempts", new
+            {
+                clientSubmissionId = $"tf-{index}",
+                challengeCardId = card.RootElement.GetProperty("id").GetGuid(),
+                submittedAnswer = card.RootElement.GetProperty("debugAnswer").GetString(),
+                responseTimeMs = 300,
+                hintsUsed = false
+            })).EnsureSuccessStatusCode();
+        }
+
+        types[0].Should().Be("MissingWords");
+        types.Count(item => item == "TrueFalse").Should().BeLessThanOrEqualTo(1);
+    }
+
+    [Fact]
     public async Task Coach_can_read_student_progress_and_student_cannot()
     {
         var (admin, seasonId) = await ActivateFreshSeason("Coach Progress");

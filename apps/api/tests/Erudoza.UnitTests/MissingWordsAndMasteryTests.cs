@@ -69,6 +69,9 @@ public sealed class MissingWordsAndMasteryTests
         var snapshot = RuleProfileReader.Read(profile);
         snapshot.AllowsActivity(StudyMode.Practice, "SelectedChoice", isMultipleChoice: true).Should().BeTrue();
         snapshot.AllowsActivity(StudyMode.Simulation, "SelectedChoice", isMultipleChoice: true).Should().BeFalse();
+        snapshot.TrueFalseMaxRatio.Should().Be(0.10);
+        snapshot.AllowsAnotherTrueFalse(StudyMode.Simulation, alreadyUsed: 0, targetCardCount: 10).Should().BeTrue();
+        snapshot.AllowsAnotherTrueFalse(StudyMode.Simulation, alreadyUsed: 1, targetCardCount: 10).Should().BeFalse();
         snapshot.Version.Should().Be(1);
     }
 }
