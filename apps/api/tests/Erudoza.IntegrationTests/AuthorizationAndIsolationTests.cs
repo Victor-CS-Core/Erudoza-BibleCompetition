@@ -61,6 +61,9 @@ public sealed class AuthorizationAndIsolationTests(ErudozaApiFactory factory) : 
             new { password = "Hacked!234" });
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
+
+    [Fact]
+    public async Task Admin_in_org_a_cannot_read_org_b()
     {
         var client = await TestHttp.LoginAsync(factory, "admin@erudoza.local", "DevAdmin!234");
         var response = await client.GetAsync($"/api/v1/organizations/{SeedIdentifiers.IsolationOrganizationId}");
