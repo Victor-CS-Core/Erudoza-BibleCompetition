@@ -1,16 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 import { api } from "../../api/client";
+import type { SessionSummary } from "../../api/types";
 import { PaperSurface } from "../../components/material/PaperSurface";
 import { Stamp } from "../../components/material/Stamp";
 
 export function ProgressPage() {
   const progress = useQuery({ queryKey: ["progress"], queryFn: () => api.progress() });
   const data = progress.data;
+  const summary = useLocation().state as SessionSummary | null;
 
   return (
     <PaperSurface>
       <h1 className="text-2xl font-semibold">Progress</h1>
       <p className="mt-2 text-[var(--er-muted-ink)]">{data?.seasonName}</p>
+      {summary ? (
+        <p className="mt-3 text-sm" data-testid="session-summary">
+          Last {summary.mode.toLowerCase()} session: {summary.correct} / {summary.attempted} exact
+        </p>
+      ) : null}
       <dl className="mt-5 grid gap-3 md:grid-cols-3">
         <div>
           <dt className="text-sm text-[var(--er-muted-ink)]">Attempts</dt>

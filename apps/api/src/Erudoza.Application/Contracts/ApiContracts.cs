@@ -132,6 +132,27 @@ public sealed record CoverageStudentDto(
     int ReviewDueCount,
     int AttemptCount);
 
+public sealed record GenerationJobDto(
+    Guid Id,
+    Guid? SeasonId,
+    string Status,
+    string? Error,
+    DateTimeOffset CreatedAtUtc,
+    int CandidateCount);
+
+public sealed record QuestionEvidenceDto(Guid SourceUnitId, string Citation, string EvidenceText);
+
+public sealed record QuestionReviewDto(
+    Guid Id,
+    Guid? SeasonId,
+    string Prompt,
+    string CanonicalAnswer,
+    string Status,
+    string QuestionType,
+    string GeneratorVersion,
+    string? Explanation,
+    IReadOnlyList<QuestionEvidenceDto> Evidence);
+
 public sealed record SeasonCoverageDto(
     Guid SeasonId,
     string SeasonName,

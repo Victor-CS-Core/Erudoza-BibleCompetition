@@ -10,7 +10,8 @@ import { StudyCard } from "../../components/material/StudyCard";
 export function StudyPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const mode = params.get("mode") === "Simulation" ? "Simulation" : "Practice";
+  const requested = params.get("mode");
+  const mode = requested === "Simulation" || requested === "Review" ? requested : "Practice";
   const queryClient = useQueryClient();
   const progress = useQuery({ queryKey: ["progress"], queryFn: () => api.progress() });
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -64,9 +65,9 @@ export function StudyPage() {
 
   const complete = useMutation({
     mutationFn: () => api.completeSession(sessionId!),
-    onSuccess: () => {
+    onSuccess: (summary) => {
       void queryClient.invalidateQueries({ queryKey: ["progress"] });
-      navigate("/student/progress");
+      navigate("/student/progress", { state: summary });
     },
   });
 
@@ -102,6 +103,7 @@ export function StudyPage() {
           </p>
           <div className="flex items-center gap-2">
             {mode === "Simulation" ? <Stamp label="Simulation" tone="simulation" /> : null}
+            {mode === "Review" ? <Stamp label="Review" tone="review" /> : null}
             <p data-testid="card-progress">{current ? `${current.sequence} / ${current.total}` : "…"}</p>
           </div>
         </div>
@@ -230,7 +232,13 @@ function ChallengeInput({
 
   return (
     <label className="mt-6 block text-sm font-medium">
-      {card.activityType === "WhatComesNext" ? "Type the next verse" : card.activityType === "ReferenceMatch" ? "Type the reference" : "Type the missing phrase"}
+      {card.activityType === "WhatComesNext"
+        ? "Type the next verse"
+        : card.activityType === "ReferenceMatch"
+          ? "Type the reference"
+          : card.activityType === "ShortAnswer"
+            ? "Type the short answer"
+            : "Type the missing phrase"}
       <input
         data-testid="missing-words-answer"
         className="mt-2 w-full rounded-[var(--er-radius-control)] border border-[var(--er-border)] bg-white px-3"

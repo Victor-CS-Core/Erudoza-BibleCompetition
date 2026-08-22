@@ -49,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IActivityProvider, VerseBuilderActivityProvider>();
         services.AddScoped<IActivityProvider, ReferenceMatchActivityProvider>();
         services.AddScoped<IActivityProvider, WhatComesNextActivityProvider>();
+        services.AddScoped<IActivityProvider, PlayableShortAnswerActivityProvider>();
         services.AddScoped<IStudyEngine>(sp => new StudyEngine(
             sp.GetRequiredService<IErudozaDbContext>(),
             sp.GetRequiredService<IStudentStudyScopeService>(),
@@ -60,6 +61,7 @@ public static class DependencyInjection
         services.AddScoped<IGenerativeQuestionService, OpenAiGenerativeQuestionService>();
         services.AddScoped<IQuestionCandidateValidator, QuestionCandidateValidator>();
         services.AddScoped<IQuestionLifecycleService, QuestionLifecycleService>();
+        services.AddScoped<QuestionReviewService>();
         return services;
     }
 }

@@ -3,6 +3,7 @@ using Erudoza.Application.Abstractions;
 using Erudoza.Application.Competitions;
 using Erudoza.Application.Content;
 using Erudoza.Application.Contracts;
+using Erudoza.Application.Generation;
 using Erudoza.Application.Identity;
 using Erudoza.Application.Mapping;
 using Erudoza.Application.Study;
@@ -335,6 +336,83 @@ public static class ApiEndpoints
             }
 
             return Results.Ok(await coverage.GetAsync(orgId, seasonId, cancellationToken));
+        }).RequireAuthorization("CanManageSeason");
+
+        org.MapGet("/seasons/{seasonId:guid}/generation-jobs", async (
+            Guid orgId,
+            Guid seasonId,
+            ICurrentUser current,
+            QuestionReviewService review,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            return Results.Ok(await review.ListJobsAsync(orgId, seasonId, cancellationToken));
+        }).RequireAuthorization("CanManageSeason");
+
+        org.MapPost("/seasons/{seasonId:guid}/generation-jobs", async (
+            Guid orgId,
+            Guid seasonId,
+            ICurrentUser current,
+            QuestionReviewService review,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            return Results.Ok(await review.RunJobAsync(orgId, seasonId, cancellationToken));
+        }).RequireAuthorization("CanManageSeason");
+
+        org.MapGet("/seasons/{seasonId:guid}/questions", async (
+            Guid orgId,
+            Guid seasonId,
+            ICurrentUser current,
+            QuestionReviewService review,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            return Results.Ok(await review.ListAsync(orgId, seasonId, cancellationToken));
+        }).RequireAuthorization("CanManageSeason");
+
+        org.MapPost("/questions/{candidateId:guid}/approve", async (
+            Guid orgId,
+            Guid candidateId,
+            ICurrentUser current,
+            QuestionReviewService review,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            var playableId = await review.ApproveAsync(orgId, candidateId, cancellationToken);
+            return Results.Ok(new { playableQuestionId = playableId });
+        }).RequireAuthorization("CanManageSeason");
+
+        org.MapPost("/questions/{candidateId:guid}/reject", async (
+            Guid orgId,
+            Guid candidateId,
+            ICurrentUser current,
+            QuestionReviewService review,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden)
+            {
+                return forbidden;
+            }
+
+            await review.RejectAsync(orgId, candidateId, cancellationToken);
+            return Results.NoContent();
         }).RequireAuthorization("CanManageSeason");
 
         var study = app.MapGroup("/api/v1/study").RequireAuthorization("CanStudy");

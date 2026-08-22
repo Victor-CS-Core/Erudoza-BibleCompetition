@@ -24,7 +24,8 @@ public sealed record ActivityRequest(
     int Sequence,
     SourceUnit? NextSourceUnit = null,
     IReadOnlyList<string>? DistractorCitations = null,
-    IReadOnlyCollection<string>? UsedActivityTypes = null);
+    IReadOnlyCollection<string>? UsedActivityTypes = null,
+    PlayableQuestion? PlayableQuestion = null);
 
 public interface IActivityProvider
 {

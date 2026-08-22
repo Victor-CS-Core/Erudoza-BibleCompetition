@@ -39,6 +39,21 @@ public sealed class DeterministicActivityTests
     }
 
     [Fact]
+    public void Short_answer_uses_the_approved_prompt_and_stored_answer()
+    {
+        var unit = Sample("Development sample: Daniel purposed in his heart.");
+        var question = new QuestionCandidate
+        {
+            Prompt = "Who purposed in his heart?",
+            CanonicalAnswer = "Daniel",
+            Difficulty = 2
+        };
+        var generated = ShortAnswerGenerator.Create(question, unit);
+        generated.Payload.Prompt.Should().Be(question.Prompt);
+        ActivitySerialization.ReadAnswerKey(generated.AnswerKeyJson).CanonicalAnswer.Should().Be("Daniel");
+    }
+
+    [Fact]
     public void What_comes_next_uses_the_following_stored_verse()
     {
         var current = Sample("Development sample: First verse.");

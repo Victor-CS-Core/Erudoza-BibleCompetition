@@ -105,6 +105,14 @@ public sealed class StudyEngine(
             .Take(6)
             .ToList();
         var usedTypes = session.Cards.Select(card => card.ActivityType).ToList();
+        var playable = (await db.PlayableQuestions
+            .Include(item => item.QuestionCandidate)
+            .ThenInclude(item => item!.Evidence)
+            .Where(item => item.OrganizationId == context.OrganizationId && item.Status == QuestionLifecycleStatus.Playable)
+            .ToListAsync(cancellationToken))
+            .Where(item => item.QuestionCandidate?.Evidence.Any(evidence => evidence.SourceUnitId == selected.SourceUnitId) == true)
+            .OrderBy(item => item.CreatedAtUtc)
+            .FirstOrDefault();
         var request = new ActivityRequest(
             context,
             selected,
@@ -114,7 +122,8 @@ public sealed class StudyEngine(
             Sequence: session.Cards.Count + 1,
             nextUnit,
             distractors,
-            usedTypes);
+            usedTypes,
+            playable);
 
         var eligible = providers.Where(item => item.CanHandle(request)).ToList();
         var provider = ChooseProvider(eligible, usedTypes, request.Sequence)

@@ -39,6 +39,15 @@ export function StudentHomePage() {
               Start competition simulation
             </Link>
           ) : null}
+          {(data?.reviewDueCount ?? 0) > 0 ? (
+            <Link
+              to="/student/study?mode=Review"
+              data-testid="start-reviews"
+              className="inline-flex items-center rounded-[var(--er-radius-control)] border px-5"
+            >
+              Start due reviews
+            </Link>
+          ) : null}
         </div>
       </PaperSurface>
       <DeckStack due={data?.reviewDueCount ?? 0} next={data?.assignments.length ?? 0} review={data?.reviewDueCount ?? 0} />
