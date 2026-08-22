@@ -18,6 +18,7 @@ export function ProgressPage() {
   });
   const data = progress.data;
   const summary = useLocation().state as SessionSummary | null;
+  const recent = data?.recentAttempts ?? [];
 
   return (
     <PaperSurface>
@@ -60,6 +61,26 @@ export function ProgressPage() {
           </li>
         ))}
       </ul>
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold">Recent attempts</h2>
+        <ul className="mt-3 space-y-3" data-testid="recent-attempts">
+          {recent.length ? (
+            recent.map((item) => (
+              <li key={item.id} className="flex items-start justify-between gap-3 border-t border-[var(--er-border)] pt-3">
+                <div>
+                  <p className="font-medium">
+                    {item.title} · {item.activityType}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--er-graphite)]">{item.submittedAnswer || "—"}</p>
+                </div>
+                <Stamp label={item.isCorrect ? "Exact" : "Miss"} tone={item.isCorrect ? "mastered" : "due"} />
+              </li>
+            ))
+          ) : (
+            <li className="text-sm text-[var(--er-graphite)]">No attempts yet.</li>
+          )}
+        </ul>
+      </div>
     </PaperSurface>
   );
 }

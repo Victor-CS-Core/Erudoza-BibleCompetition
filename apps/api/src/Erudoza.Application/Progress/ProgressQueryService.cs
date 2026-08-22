@@ -55,9 +55,22 @@ public sealed class ProgressQueryService(IErudozaDbContext db, IClock clock)
         var knowledge = await db.KnowledgeUnits.AsNoTracking()
             .Where(item => item.OrganizationId == organizationId)
             .ToDictionaryAsync(item => item.Id, cancellationToken);
-        var attempts = await db.Attempts.CountAsync(
-            item => item.OrganizationId == organizationId && item.StudentUserId == studentId && item.SeasonId == season.Id,
-            cancellationToken);
+        var attemptEntities = await db.Attempts.AsNoTracking()
+            .Where(item => item.OrganizationId == organizationId && item.StudentUserId == studentId && item.SeasonId == season.Id)
+            .ToListAsync(cancellationToken);
+        var attempts = attemptEntities.Count;
+        var recentAttempts = attemptEntities
+            .OrderByDescending(item => item.CreatedAtUtc)
+            .Take(20)
+            .Select(item => new AttemptRowDto(
+                item.Id,
+                knowledge.TryGetValue(item.KnowledgeUnitId, out var unit) ? unit.Title : "Passage",
+                item.ActivityType,
+                item.IsCorrect,
+                item.SubmittedAnswer,
+                item.EvaluationResult,
+                item.CreatedAtUtc))
+            .ToList();
 
         return new ProgressDto(
             season.Id,
@@ -75,6 +88,7 @@ public sealed class ProgressQueryService(IErudozaDbContext db, IClock clock)
                 item.RecognitionScore,
                 reviews.FirstOrDefault(review => review.KnowledgeUnitId == item.KnowledgeUnitId)?.DueAtUtc)).ToList(),
             studentId,
-            displayName);
+            displayName,
+            recentAttempts);
     }
 }

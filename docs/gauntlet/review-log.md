@@ -122,3 +122,9 @@ Coaches can reset a student password from the Students page. Students cannot res
 Date: 2026-08-22
 
 The season wizard Roster tab lists assigned students, assignment type, and scope. Coaches and the assigned student can read the roster. Setup still holds scope, assignment creation, and activation.
+
+## Milestone N — Recent attempts
+
+Date: 2026-08-22
+
+Progress includes the twenty most recent attempts, sorted in memory so SQLite is not asked to order DateTimeOffset. Students see their own attempts. Coaches see a student's attempts from coverage progress. Students still cannot read another student's progress.

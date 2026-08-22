@@ -18,6 +18,8 @@ test("admin can activate a season and the student can study missing words", asyn
   await expect(page.getByTestId("select-content-pack")).toContainText("dev-daniel");
   await page.getByTestId("save-scope").click();
   await expect(page.getByText("Scope saved.")).toBeVisible();
+  await expect(page.getByTestId("assign-student-select")).toContainText("Daniel Student");
+  await page.getByTestId("assign-student-select").selectOption({ label: "Daniel Student" });
   await page.getByTestId("assign-student").click();
   await expect(page.getByText("Assignment saved.")).toBeVisible();
   await page.getByTestId("chapter-tab-roster").click();
@@ -41,4 +43,5 @@ test("admin can activate a season and the student can study missing words", asyn
   await page.getByTestId("complete-session").click();
   await expect(page.getByTestId("progress-mastery")).toBeVisible();
   await expect(page.getByTestId("progress-attempts")).not.toHaveText("0");
+  await expect(page.getByTestId("recent-attempts")).toContainText("MissingWords");
 });

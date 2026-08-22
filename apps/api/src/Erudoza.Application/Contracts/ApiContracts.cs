@@ -206,7 +206,17 @@ public sealed record ProgressDto(
     int AttemptCount,
     IReadOnlyList<MasteryRowDto> Mastery,
     Guid StudentUserId = default,
-    string StudentDisplayName = "");
+    string StudentDisplayName = "",
+    IReadOnlyList<AttemptRowDto>? RecentAttempts = null);
+
+public sealed record AttemptRowDto(
+    Guid Id,
+    string Title,
+    string ActivityType,
+    bool IsCorrect,
+    string SubmittedAnswer,
+    string EvaluationResult,
+    DateTimeOffset CreatedAtUtc);
 
 public sealed record MasteryRowDto(
     Guid KnowledgeUnitId,

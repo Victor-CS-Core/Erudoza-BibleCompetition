@@ -114,6 +114,15 @@ export type Progress = {
   attemptCount: number;
   studentUserId?: string;
   studentDisplayName?: string;
+  recentAttempts?: {
+    id: string;
+    title: string;
+    activityType: string;
+    isCorrect: boolean;
+    submittedAnswer: string;
+    evaluationResult: string;
+    createdAtUtc: string;
+  }[];
   mastery: {
     knowledgeUnitId: string;
     title: string;
