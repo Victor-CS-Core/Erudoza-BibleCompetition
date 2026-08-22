@@ -47,5 +47,7 @@ dotnet test apps/api/Erudoza.sln
 ## Notes
 
 - Canonical Scripture is stored in the relational content model. The development pack is synthetic sample text.
-- OpenAI is not required for the scaffold. Generation is behind `IGenerativeQuestionService` with a fake provider.
+- Study activities in this slice: Missing Words, Verse Builder, Reference Match, and What Comes Next. All are deterministic and use stored verse text.
+- OpenAI is optional. Leave `OpenAI__Enabled=false` unless `OPENAI_API_KEY` is set. Generation still cannot bypass the question validator.
+- `erudoza.com` is attached after a live host exists. See `docs/operations/custom-domain.md`. Do not share a GoDaddy password.
 - The final logo is a separate approval artifact. The UI uses a replaceable Erudoza wordmark.
