@@ -501,6 +501,11 @@ public sealed class SeasonStudyAndContentTests(ErudozaApiFactory factory) : ICla
         progress!.AttemptCount.Should().BeGreaterThan(0);
         progress.StudentDisplayName.Should().NotBeNullOrWhiteSpace();
         progress.StudentUserId.Should().Be(SeedIdentifiers.StudentUserId);
+        progress.RecentAttempts.Should().NotBeNull();
+        progress.RecentAttempts!.Should().Contain(item => item.ActivityType == "MissingWords" && item.IsCorrect);
+
+        var own = await student.GetFromJsonAsync<ProgressDto>("/api/v1/progress/me");
+        own!.RecentAttempts.Should().Contain(item => item.ActivityType == "MissingWords");
 
         var forbidden = await student.GetAsync(
             $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons/{seasonId}/students/{SeedIdentifiers.StudentUserId}/progress");

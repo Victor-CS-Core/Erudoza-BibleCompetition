@@ -41,4 +41,5 @@ test("admin can activate a season and the student can study missing words", asyn
   await page.getByTestId("complete-session").click();
   await expect(page.getByTestId("progress-mastery")).toBeVisible();
   await expect(page.getByTestId("progress-attempts")).not.toHaveText("0");
+  await expect(page.getByTestId("recent-attempts")).toContainText("MissingWords");
 });
