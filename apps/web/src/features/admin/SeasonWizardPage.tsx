@@ -15,7 +15,9 @@ export function SeasonWizardPage() {
   const [name, setName] = useState(`Season ${new Date().getFullYear()}`);
   const [yearLabel, setYearLabel] = useState(String(new Date().getFullYear()));
   const [bookKey, setBookKey] = useState("DAN");
+  const [startChapter, setStartChapter] = useState(1);
   const [startVerse, setStartVerse] = useState(1);
+  const [endChapter, setEndChapter] = useState(1);
   const [endVerse, setEndVerse] = useState(4);
   const [packId, setPackId] = useState("");
   const [studentId, setStudentId] = useState("");
@@ -49,7 +51,7 @@ export function SeasonWizardPage() {
     mutationFn: () =>
       api.defineScope(orgId, seasonId!, {
         contentPackId: selectedPackId,
-        includes: [{ bookKey, startChapter: 1, startVerse, endChapter: 1, endVerse }],
+        includes: [{ bookKey, startChapter, startVerse, endChapter, endVerse }],
         excludes: [],
       }),
     onSuccess: () => setMessage("Scope saved."),
@@ -61,7 +63,7 @@ export function SeasonWizardPage() {
         studentUserId: selectedStudentId,
         type: "PrimarySpecialist",
         contentPackId: selectedPackId,
-        range: { bookKey, startChapter: 1, startVerse, endChapter: 1, endVerse },
+        range: { bookKey, startChapter, startVerse, endChapter, endVerse },
       }),
     onSuccess: () => {
       setMessage("Assignment saved.");
@@ -171,14 +173,36 @@ export function SeasonWizardPage() {
                 ))}
               </select>
             </label>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-5">
               <label className="text-sm font-medium">
                 Book
                 <input data-testid="scope-book" className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3" value={bookKey} onChange={(e) => setBookKey(e.target.value)} />
               </label>
               <label className="text-sm font-medium">
+                Start chapter
+                <input
+                  data-testid="scope-start-chapter"
+                  type="number"
+                  min={1}
+                  className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
+                  value={startChapter}
+                  onChange={(e) => setStartChapter(Number(e.target.value))}
+                />
+              </label>
+              <label className="text-sm font-medium">
                 Start verse
                 <input data-testid="scope-start" type="number" className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3" value={startVerse} onChange={(e) => setStartVerse(Number(e.target.value))} />
+              </label>
+              <label className="text-sm font-medium">
+                End chapter
+                <input
+                  data-testid="scope-end-chapter"
+                  type="number"
+                  min={1}
+                  className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
+                  value={endChapter}
+                  onChange={(e) => setEndChapter(Number(e.target.value))}
+                />
               </label>
               <label className="text-sm font-medium">
                 End verse
@@ -212,7 +236,7 @@ export function SeasonWizardPage() {
                       studentUserId: selectedStudentId,
                       type: "RequiredCoverage",
                       contentPackId: selectedPackId,
-                      range: { bookKey, startChapter: 1, startVerse, endChapter: 1, endVerse },
+                      range: { bookKey, startChapter, startVerse, endChapter, endVerse },
                     })
                     .then(() => {
                       setMessage("Required coverage saved.");

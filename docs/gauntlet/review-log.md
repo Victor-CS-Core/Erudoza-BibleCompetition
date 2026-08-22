@@ -128,3 +128,9 @@ The season wizard Roster tab lists assigned students, assignment type, and scope
 Date: 2026-08-22
 
 Progress includes the twenty most recent attempts, sorted in memory so SQLite is not asked to order DateTimeOffset. Students see their own attempts. Coaches see a student's attempts from coverage progress. Students still cannot read another student's progress.
+
+## Milestone O — Season chapter fields
+
+Date: 2026-08-22
+
+The season wizard Setup tab includes start and end chapter fields. Saving scope and creating assignments send those chapter numbers instead of always using chapter 1. Defaults remain chapter 1, verses 1–4 so the existing Daniel gauntlet path still works. Coaches can scope an imported Joshua pack to chapter 2.
