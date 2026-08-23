@@ -2,9 +2,9 @@
 
 The public SPA is hosted on OpenAI Sites. Firebase Hosting is retired; Firebase is reserved for the future storage layer.
 
-OpenAI Sites currently has both `erudoza.com` and `www.erudoza.com` attached. Until GoDaddy receives the record set below, the apex continues resolving to the legacy Firebase Hosting address and both Sites custom-domain certificates remain pending.
+OpenAI Sites has both `erudoza.com` and `www.erudoza.com` attached and active. GoDaddy serves the record set below, and both custom domains have active SSL certificates.
 
-## Required GoDaddy DNS
+## Active GoDaddy DNS
 
 | Type | Name | Value |
 |------|------|-------|
@@ -34,7 +34,7 @@ npm.cmd run connect:domain -- --apply
 
 Use GoDaddy developer API keys, never the account password.
 
-After DNS propagates, refresh both custom-domain statuses in OpenAI Sites and confirm:
+Verified on August 22, 2026:
 
 - `https://erudoza.com` serves the Sites deployment.
 - `https://www.erudoza.com` serves the same application.
