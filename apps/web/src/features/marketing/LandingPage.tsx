@@ -2,55 +2,94 @@ import { Link } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
 import { PaperSurface } from "../../components/material/PaperSurface";
 
+const trainingDecks = [
+  {
+    name: "New deck",
+    image: "/brand/deck-new.webp",
+    className: "er-deck-new",
+  },
+  {
+    name: "Review deck",
+    image: "/brand/deck-review.webp",
+    className: "er-deck-review",
+  },
+  {
+    name: "Simulation deck",
+    image: "/brand/deck-simulation.webp",
+    className: "er-deck-simulation",
+  },
+] as const;
+
 export function LandingPage() {
   return (
-    <div className="er-canvas">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5">
+    <div className="er-canvas er-landing">
+      <header className="er-site-header mx-auto flex max-w-7xl items-center justify-between px-4 py-4 md:px-8">
         <ErudozaWordmark />
-        <Link to="/login" className="rounded-[var(--er-radius-control)] px-4 font-medium text-[var(--er-action-blue)]">
+        <Link to="/login" className="er-header-action px-4 font-semibold">
           Sign in
         </Link>
       </header>
-      <main className="mx-auto max-w-6xl px-4 pb-16">
-        <section className="er-kraft-board mt-6 px-6 py-12 md:px-12">
-          <p className="er-scripture text-4xl font-semibold md:text-6xl">Study. Master. Compete.</p>
-          <p className="mt-4 max-w-2xl text-lg text-[var(--er-graphite)]">
-            Turn assigned Scripture into personalized study decks, memory challenges, targeted review, and
-            competition-ready practice.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              to="/login"
-              data-testid="start-studying"
-              className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-5 text-[var(--er-card)]"
-            >
-              Start studying
-            </Link>
-            <Link
-              to="/login"
-              data-testid="build-a-season"
-              className="rounded-[var(--er-radius-control)] border border-[var(--er-ink-navy)] px-5"
-            >
-              Build a season
-            </Link>
+      <main className="mx-auto max-w-7xl px-4 pb-16 md:px-8">
+        <section className="er-landing-hero">
+          <div className="er-hero-copy">
+            <p className="er-eyebrow">Purpose-built for Bible Bowl</p>
+            <h1 className="er-hero-title">
+              Know the passage.
+              <span>Own the moment.</span>
+            </h1>
+            <p className="er-hero-summary">
+              Turn your assigned Scripture into focused memorization games, intelligent review, and realistic
+              competition practice.
+            </p>
+            <div className="er-hero-actions">
+              <Link to="/login" data-testid="start-studying" className="er-primary-action">
+                Start studying
+              </Link>
+              <Link to="/login" data-testid="build-a-season" className="er-secondary-action">
+                Build a season
+              </Link>
+            </div>
+            <p className="er-hero-note">Your team chooses the passage. Erudoza builds the practice.</p>
+          </div>
+
+          <div className="er-deck-stage" aria-labelledby="training-decks-title">
+            <div className="er-deck-stage-heading">
+              <p className="er-deck-kicker">New · Review · Simulation</p>
+              <h2 id="training-decks-title">Choose today’s training deck</h2>
+              <p>Build recall first, reinforce what is due, then test it under pressure.</p>
+            </div>
+            <div className="er-deck-fan">
+              {trainingDecks.map((deck) => (
+                <Link
+                  key={deck.name}
+                  to="/login"
+                  className={`er-deck-link ${deck.className}`}
+                  aria-label={`Open the ${deck.name.toLowerCase()}`}
+                >
+                  <img src={deck.image} alt={deck.name} />
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
-          <PaperSurface>
-            <h2 className="text-xl font-semibold">Assigned material. Smarter practice.</h2>
-            <p className="mt-2 text-[var(--er-graphite)]">
-              Every study session is built from the books, chapters, verses, and approved supplemental material
-              assigned for the current competition.
-            </p>
+
+        <section className="er-proof-grid" aria-label="How Erudoza prepares competitors">
+          <PaperSurface as="article" className="er-proof-card">
+            <p className="er-proof-label">Learn exactly</p>
+            <h2>Practice only the assigned Scripture.</h2>
+            <p>Coaches define the season range. Every game stays anchored to that approved material.</p>
           </PaperSurface>
-          <PaperSurface>
-            <h2 className="text-xl font-semibold">Practice the same truth in different ways.</h2>
-            <p className="mt-2 text-[var(--er-graphite)]">
-              Restore missing words. Rebuild verses. Match references. Recall facts. Then move into competition-style
-              questions.
-            </p>
+          <PaperSurface as="article" className="er-proof-card">
+            <p className="er-proof-label">Remember longer</p>
+            <h2>Meet each verse in more than one way.</h2>
+            <p>Restore words, rebuild verses, match references, and revisit the material that needs attention.</p>
           </PaperSurface>
-        </div>
+          <PaperSurface as="article" className="er-proof-card">
+            <p className="er-proof-label">Compete calmly</p>
+            <h2>Rehearse before the room gets loud.</h2>
+            <p>Timed simulation turns growing recall into confident Bible Bowl performance.</p>
+          </PaperSurface>
+        </section>
       </main>
     </div>
   );

@@ -6,5 +6,7 @@ describe("ErudozaWordmark", () => {
     render(<ErudozaWordmark />);
     expect(screen.getByText("Erudoza")).toBeInTheDocument();
     expect(screen.getByText("Study. Master. Compete.")).toBeInTheDocument();
+    expect(screen.getByTestId("erudoza-mark")).toHaveAttribute("src", "/brand/erudoza-mark.png");
+    expect(screen.getByTestId("erudoza-mark")).toHaveAttribute("alt", "");
   });
 });

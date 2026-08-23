@@ -1,33 +1,25 @@
 :root {
-  --er-ink-navy: #0d1b3d;
-  --er-teal: #14b8a6;
-  --er-learning-blue: #4da6ff;
-  --er-coral: #ff8a65;
+  --er-ink-navy: #0d2b4f;
+  --er-teal: #00a89e;
+  --er-learning-blue: #1579a8;
+  --er-coral: #ff5a2e;
 
-  --er-paper: #fafaf7;
-  --er-card: #ffffff;
-  --er-parchment: #f3ebdd;
+  --er-paper: #fff7e6;
+  --er-card: #fffdf7;
+  --er-parchment: #f5ebd7;
   --er-kraft: #c8a978;
   --er-kraft-dark: #9d7b4f;
-  --er-graphite: #4d4a45;
-  --er-border: #dce2e9;
-  --er-muted-ink: #626c80;
-  --er-deep-table: #071126;
+  --er-graphite: #3f4d5d;
+  --er-border: #d8c7a8;
+  --er-muted-ink: #5c6b7a;
+  --er-deep-table: #071b32;
 
-  --er-success-ink: #0f766e;
-  --er-action-blue: #1d4ed8;
-  --er-stamp-red: #b94d3d;
+  --er-success-ink: #087c74;
+  --er-action-blue: #006f78;
+  --er-stamp-red: #d23f22;
 
   --er-radius-card: 18px;
   --er-radius-sheet: 14px;
   --er-radius-control: 12px;
   --er-focus: 0 0 0 3px color-mix(in srgb, var(--er-action-blue) 35%, transparent);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --er-paper: #10203f;
-    --er-card: #f7f1e6;
-    --er-parchment: #e8dcc6;
-  }
 }

@@ -11,7 +11,7 @@
     "test:e2e": "npm --workspace apps/web run test:e2e",
     "lint:web": "npm --workspace apps/web run lint",
     "typecheck:web": "npm --workspace apps/web run typecheck",
-    "deploy:hosting": "npm run build:web && npx firebase-tools deploy --only hosting",
+    "build:sites": "npm run build:web",
     "connect:domain": "python3 scripts/connect-godaddy-dns.py"
   },
   "engines": {

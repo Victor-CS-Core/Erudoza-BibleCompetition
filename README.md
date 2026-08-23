@@ -6,14 +6,15 @@ Erudoza is a Scripture competition learning engine. The first scaffold proves on
 
 Primary public origin: https://erudoza.com
 
-Current Spark host: https://erudoza.web.app
+Hosting target: OpenAI Sites. The Firebase Hosting origin is legacy and is not the application deployment target.
 
 ## Stack
 
 - SPA: React 19, TypeScript, Vite 8, Tailwind CSS 4
 - API: .NET 10, ASP.NET Core, EF Core
 - Data: SQLite for local/test without Docker
-- Public host: Firebase Hosting on the Spark (no-cost) plan
+- Public host: OpenAI Sites with a Cloudflare Worker-compatible Vite build
+- Firebase: reserved for the future application storage layer; it is not used for hosting
 - Local optional dependencies: SQL Server + Azurite via `infra/local/compose.yaml`
 
 ## Quick start
@@ -53,5 +54,7 @@ dotnet test apps/api/Erudoza.sln
 - Study activities in this slice: Missing Words, Verse Builder, Reference Match, and What Comes Next. All are deterministic and use stored verse text.
 - Competition simulation uses the season rule profile. `PBE_STYLE_V1` forbids multiple-choice in simulation.
 - OpenAI is optional. Set `OPENAI_API_KEY` to draft short-answer candidates from stored verses. Study games still run without it. Generation cannot bypass the question validator or coach approval. See `docs/operations/openai-and-scripture.md`.
-- `https://erudoza.com` is the public Spark Hosting origin. See `docs/operations/firebase-host.md`. Firebase Spark cannot run the .NET API. Do not share a GoDaddy password.
-- The final logo is a separate approval artifact. The UI uses a replaceable Erudoza wordmark.
+- `https://erudoza.com` is the public application origin and is managed through OpenAI Sites. See `docs/operations/firebase-host.md` for the retired Firebase Hosting boundary.
+- Sites serves the SPA and its same-origin API bridge. The current .NET API remains a separate development service until a production API or Firebase-backed replacement is connected through `ERUDOZA_API_BASE_URL`.
+- The supplied NKJV dataset is private local source material and is not bundled into the public site or uploaded by the build.
+- The supplied flame-and-open-book mark is integrated through a replaceable Erudoza wordmark component.
