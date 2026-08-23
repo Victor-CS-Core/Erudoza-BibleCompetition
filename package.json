@@ -12,7 +12,7 @@
     "lint:web": "npm --workspace apps/web run lint",
     "typecheck:web": "npm --workspace apps/web run typecheck",
     "build:sites": "npm run build:web",
-    "connect:domain": "python3 scripts/connect-godaddy-dns.py"
+    "connect:domain": "node scripts/connect-godaddy-dns.mjs"
   },
   "engines": {
     "node": ">=22"

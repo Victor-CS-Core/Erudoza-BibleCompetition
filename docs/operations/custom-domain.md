@@ -1,36 +1,41 @@
 # Connecting erudoza.com
 
-Do not share a GoDaddy username or password with the implementation agent.
+The public SPA is hosted on OpenAI Sites. Firebase Hosting is retired; Firebase is reserved for the future storage layer.
 
-Host the public SPA on Firebase Spark. See `docs/operations/firebase-host.md`. Do not point the domain at a paid Azure App Service.
-
-## Live status
-
-- **https://erudoza.com** serves the Spark Hosting site (SSL from Google Trust Services).
-- **https://erudoza.web.app** remains the default Hosting URL.
-- `www.erudoza.com` is attached on the same site and redirects to the apex. GoDaddy already has `CNAME www → erudoza.web.app`. Some resolvers may still cache the previous ChatGPT custom-domain CNAME for up to an hour.
-
-Firebase Hosting has custom domains `erudoza.com` and `www.erudoza.com`. Nameservers stay on GoDaddy (`ns29.domaincontrol.com` / `ns30.domaincontrol.com`).
+OpenAI Sites currently has both `erudoza.com` and `www.erudoza.com` attached. Until GoDaddy receives the record set below, the apex continues resolving to the legacy Firebase Hosting address and both Sites custom-domain certificates remain pending.
 
 ## Required GoDaddy DNS
 
-These records are already written. Re-run `python3 scripts/connect-godaddy-dns.py` (or `npm run connect:domain`) only if they drift. The script needs `GODADDY_API_KEY` / `GODADDY_API_SECRET`.
+| Type | Name | Value |
+|------|------|-------|
+| A | `@` | `162.159.143.30` |
+| A | `@` | `172.66.3.26` |
+| TXT | `_openai-site-verification` | `openai-site-verification=Yf2lnZm49UIO94zqygFMyFdEkC7bQp301uhg9I22OK4` |
+| TXT | `_cf-custom-hostname` | `5115613d-519c-458a-96be-a33ae7d446b4` |
+| CNAME | `www` | `custom-domains.chatgpt.site.` |
+| TXT | `_openai-site-verification.www` | `openai-site-verification=qL1d-4PCxVfUGM66OsT3QhLNY0VthRc9a-COWDZ3Uuc` |
+| TXT | `_cf-custom-hostname.www` | `1198484f-1629-41c7-a83d-e0357c675404` |
 
-| Type | Name | Value | Notes |
-|------|------|-------|-------|
-| A | `@` | `199.36.158.100` | Firebase Hosting |
-| TXT | `@` | `hosting-site=erudoza` | Keep existing Apple and SPF TXT records |
-| TXT | `_acme-challenge` | value from Firebase | SSL ownership for the apex |
-| CNAME | `www` | `erudoza.web.app` | Replaces `custom-domains.chatgpt.site` |
-| TXT | `_acme-challenge.www` | value from Firebase | SSL ownership for www |
+Leave unrelated apex TXT records, including Apple and SPF records, in place. Replacing `A @` is the apex hosting cutover; replacing `CNAME www` moves the www host from Firebase to Sites.
 
-Leave the existing apex TXT records `apple-domain=…` and `v=spf1 include:icloud.com ~all` in place. ACME TXT values rotate; the script reads the live values from Firebase before writing DNS.
+## Safe helper workflow
 
-The SPA `PUBLIC_ORIGIN` / `VITE_PUBLIC_ORIGIN` should be `https://erudoza.com` if a later build needs an absolute public origin.
+The helper is read-only by default:
 
-## Safer credential path
+```powershell
+npm.cmd run connect:domain
+```
 
-1. Add `OPENAI_API_KEY` as an environment secret only if generation jobs will run on a later API host. Study and simulation work without OpenAI.
-2. Create GoDaddy **API keys** (not the account password) at https://developer.godaddy.com/keys and store `GODADDY_API_KEY` / `GODADDY_API_SECRET`.
-3. Authenticate the Firebase CLI (`npx firebase-tools login --no-localhost`) to deploy Hosting and attach domains.
-4. After DNS propagates, confirm `https://erudoza.com` returns the Erudoza landing page.
+To apply the exact scoped record sets, first set `GODADDY_API_KEY` and `GODADDY_API_SECRET` in the process environment, then run:
+
+```powershell
+npm.cmd run connect:domain -- --apply
+```
+
+Use GoDaddy developer API keys, never the account password.
+
+After DNS propagates, refresh both custom-domain statuses in OpenAI Sites and confirm:
+
+- `https://erudoza.com` serves the Sites deployment.
+- `https://www.erudoza.com` serves the same application.
+- `/api/*` returns the Sites bridge response until `ERUDOZA_API_BASE_URL` is configured.

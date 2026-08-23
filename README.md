@@ -54,7 +54,7 @@ dotnet test apps/api/Erudoza.sln
 - Study activities in this slice: Missing Words, Verse Builder, Reference Match, and What Comes Next. All are deterministic and use stored verse text.
 - Competition simulation uses the season rule profile. `PBE_STYLE_V1` forbids multiple-choice in simulation.
 - OpenAI is optional. Set `OPENAI_API_KEY` to draft short-answer candidates from stored verses. Study games still run without it. Generation cannot bypass the question validator or coach approval. See `docs/operations/openai-and-scripture.md`.
-- `https://erudoza.com` is the public application origin and is managed through OpenAI Sites. See `docs/operations/firebase-host.md` for the retired Firebase Hosting boundary.
+- `https://erudoza.com` is the public application origin and is managed through OpenAI Sites. See `docs/operations/custom-domain.md` for DNS and `docs/operations/firebase-host.md` for the retired Firebase Hosting boundary.
 - Sites serves the SPA and its same-origin API bridge. The current .NET API remains a separate development service until a production API or Firebase-backed replacement is connected through `ERUDOZA_API_BASE_URL`.
 - The supplied NKJV dataset is private local source material and is not bundled into the public site or uploaded by the build.
 - The supplied flame-and-open-book mark is integrated through a replaceable Erudoza wordmark component.
