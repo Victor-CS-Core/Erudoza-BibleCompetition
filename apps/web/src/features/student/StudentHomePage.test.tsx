@@ -61,6 +61,7 @@ describe("StudentHomePage Field Guide Academy", () => {
     expect(await screen.findByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
     expect(await screen.findByText("Daniel 2026")).toBeInTheDocument();
     expect(screen.getByTestId("academy-track-learner")).toBeInTheDocument();
+    expect(screen.getByTestId("academy-track-review")).toBeInTheDocument();
     expect(screen.getByTestId("academy-track-unavailable")).toHaveTextContent(
       "Learner drill opens when this season is Active.",
     );
@@ -71,6 +72,14 @@ describe("StudentHomePage Field Guide Academy", () => {
     expect(screen.getByTestId("deck-rehearsal")).toHaveTextContent("Draft");
     expect(screen.queryByTestId("start-simulation")).not.toBeInTheDocument();
     expect(screen.queryByTestId("start-reviews")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("academy-track-review"));
+
+    expect(screen.getByTestId("academy-track-unavailable")).toHaveTextContent(
+      "No passages are due for review.",
+    );
+    expect(screen.queryByTestId("start-reviews")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
   });
 
   it("shows rehearsal only after an Active season tab is selected", async () => {
@@ -92,7 +101,7 @@ describe("StudentHomePage Field Guide Academy", () => {
     expect(screen.queryByTestId("start-todays-deck")).not.toBeInTheDocument();
   });
 
-  it("shows due reviews only when the progress API reports a positive count", async () => {
+  it("shows due reviews and the DUE stamp when the progress API reports a positive count", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 3 }));
     renderHome();
 

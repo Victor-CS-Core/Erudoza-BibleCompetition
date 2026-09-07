@@ -10,21 +10,28 @@ import {
 } from "./academyTracks";
 
 describe("visibleAcademyTracks", () => {
-  it("always includes learner and hides rehearsal until the season is Active", () => {
-    expect(visibleAcademyTracks(undefined)).toEqual(["learner"]);
-    expect(visibleAcademyTracks({ seasonStatus: "Draft", reviewDueCount: 0 })).toEqual(["learner"]);
+  it("always includes learner and reviews and hides rehearsal until the season is Active", () => {
+    expect(visibleAcademyTracks(undefined)).toEqual(["learner", "review"]);
+    expect(visibleAcademyTracks({ seasonStatus: "Draft", reviewDueCount: 0 })).toEqual([
+      "learner",
+      "review",
+    ]);
   });
 
-  it("adds reviews only when reviewDueCount is positive", () => {
-    expect(visibleAcademyTracks({ seasonStatus: "Active", reviewDueCount: 2 })).toEqual([
+  it("keeps reviews when the season is Active even if no reviews are due", () => {
+    expect(visibleAcademyTracks({ seasonStatus: "Active", reviewDueCount: 0 })).toEqual([
       "learner",
       "review",
       "rehearsal",
     ]);
   });
 
-  it("keeps rehearsal when the season is Active even if no reviews are due", () => {
-    expect(visibleAcademyTracks({ seasonStatus: "Active", reviewDueCount: 0 })).toEqual(["learner", "rehearsal"]);
+  it("adds rehearsal only when the season is Active", () => {
+    expect(visibleAcademyTracks({ seasonStatus: "Active", reviewDueCount: 2 })).toEqual([
+      "learner",
+      "review",
+      "rehearsal",
+    ]);
   });
 
   it("can show due reviews on a Draft season without unlocking rehearsal", () => {

@@ -40,7 +40,7 @@
 - Consumes: existing `visibleAcademyTracks`, `canStartAcademyTrack`, `academyUnavailableCopy`
 - Produces: `visibleAcademyTracks` always includes `"review"` after `"learner"`
 
-- [ ] **Step 1: Write the failing track assertions**
+- [x] **Step 1: Write the failing track assertions**
 
 ```ts
 it("always includes learner and reviews and hides rehearsal until the season is Active", () => {
@@ -64,7 +64,7 @@ Student home (Draft, count 0): `academy-track-review` is present; clicking it sh
 
 AppShell (Draft or Active, count 0): `nav-academy-review` is present and points at `/student/study?mode=Review`.
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts src/features/student/StudentHomePage.test.tsx src/layouts/AppShell.test.tsx` and confirm FAIL (Reviews still hidden when count is 0).
-- [ ] **Step 3: Always push `review` in `visibleAcademyTracks`. Leave the start gate and unavailable copy unchanged. Update the brand-guide sentence that Reviews stay visible when due so it also covers the empty chapter.
-- [ ] **Step 4: Run** the same tests and confirm PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts src/features/student/StudentHomePage.test.tsx src/layouts/AppShell.test.tsx` and confirm FAIL (Reviews still hidden when count is 0).
+- [x] **Step 3: Always push `review` in `visibleAcademyTracks`. Leave the start gate and unavailable copy unchanged. Update the brand-guide sentence that Reviews stay visible when due so it also covers the empty chapter.
+- [x] **Step 4: Run** the same tests and confirm PASS.
+- [x] **Step 5: Commit**
