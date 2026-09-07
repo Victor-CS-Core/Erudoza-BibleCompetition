@@ -297,13 +297,14 @@
 
 .er-deck-label {
   position: absolute;
-  left: 22%;
-  right: 8%;
-  bottom: 13%;
+  left: 6%;
+  right: 6%;
+  bottom: 4%;
   display: flex;
   align-items: center;
-  min-height: 12%;
-  padding: 0.2rem 0.35rem;
+  justify-content: center;
+  min-height: 32%;
+  padding: 0.35rem 0.45rem;
   background: var(--er-parchment);
 }
 
