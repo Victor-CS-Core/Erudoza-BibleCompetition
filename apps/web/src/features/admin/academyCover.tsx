@@ -18,11 +18,14 @@ export function CoachFieldGuideCover(input: {
   seasonName?: string | null;
   seasonStatus?: string | null;
 }) {
+  const chapter = academyCoachChapterLine(input);
   return (
     <FieldGuideCover>
-      <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="academy-chapter-line">
-        {academyCoachChapterLine(input)}
-      </p>
+      {chapter ? (
+        <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="academy-chapter-line">
+          {chapter}
+        </p>
+      ) : null}
     </FieldGuideCover>
   );
 }

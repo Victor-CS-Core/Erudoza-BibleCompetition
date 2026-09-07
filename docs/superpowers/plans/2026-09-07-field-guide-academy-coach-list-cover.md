@@ -80,5 +80,5 @@ it("stays empty instead of inventing readiness", () => {
 - [x] **Step 2: Run** `npm run test:web -- src/features/admin/SimpleAdminPages.test.tsx src/features/admin/ContentPage.test.tsx` and confirm FAIL.
 - [x] **Step 3: Wrap each page with `FieldGuideCover` above the existing sheets and render `academyCoachChapterLine`.
 - [x] **Step 4: Update the brand guide one-liner.
-- [ ] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 6: Commit**
+- [x] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 6: Commit**

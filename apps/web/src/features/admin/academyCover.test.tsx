@@ -1,5 +1,6 @@
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { academyCoachChapterLine } from "./academyCover";
+import { academyCoachChapterLine, CoachFieldGuideCover } from "./academyCover";
 
 describe("academyCoachChapterLine", () => {
   it("names a season chapter from real name and status", () => {
@@ -29,5 +30,15 @@ describe("academyCoachChapterLine", () => {
     expect(academyCoachChapterLine({})).toBe("");
     expect(academyCoachChapterLine({ seasonName: "   ", seasonStatus: "  " })).toBe("");
     expect(academyCoachChapterLine({ organizationName: "  " })).toBe("");
+  });
+});
+
+describe("CoachFieldGuideCover", () => {
+  it("omits the chapter line when there is nothing honest to show", () => {
+    render(<CoachFieldGuideCover />);
+    expect(screen.getByTestId("field-guide-academy")).toBeInTheDocument();
+    expect(screen.queryByTestId("academy-chapter-line")).not.toBeInTheDocument();
+    expect(screen.getByTestId("field-guide-academy")).not.toHaveTextContent("%");
+    expect(screen.getByTestId("field-guide-academy")).not.toHaveTextContent("streak");
   });
 });

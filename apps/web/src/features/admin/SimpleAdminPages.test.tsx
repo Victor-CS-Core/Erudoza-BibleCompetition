@@ -165,4 +165,15 @@ describe("Coach list pages Field Guide Academy", () => {
     expect(screen.getByTestId("run-generation")).toBeInTheDocument();
     expect(screen.getByTestId("question-review-list")).toBeInTheDocument();
   });
+
+  it("uses the organization chapter on questions when no season exists", async () => {
+    vi.mocked(api.seasons).mockResolvedValue([]);
+
+    renderPage(<QuestionsPage />);
+
+    expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
+    expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
+    expect(screen.getByTestId("run-generation")).toBeDisabled();
+    expect(api.questions).not.toHaveBeenCalled();
+  });
 });
