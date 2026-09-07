@@ -1,4 +1,5 @@
 import {
+  ACADEMY_TRACKS,
   academyActivityName,
   academySessionKicker,
   academySessionSummaryCopy,
@@ -80,6 +81,20 @@ describe("academyUnavailableCopy", () => {
     );
     expect(academyUnavailableCopy("rehearsal")).toBe("Rehearsal opens when this season is Active.");
     expect(academyUnavailableCopy("learner")).toBe("Learner drill opens when this season is Active.");
+  });
+});
+
+describe("ACADEMY_TRACKS leftover verbs", () => {
+  it("names learner and rehearsal copy without practice or simulation", () => {
+    expect(ACADEMY_TRACKS.learner.description).toBe(
+      "Drill the assigned passage with memorization games.",
+    );
+    expect(ACADEMY_TRACKS.rehearsal.description).toBe(
+      "Run a PBE-style rehearsal from the assigned Scripture.",
+    );
+    expect(ACADEMY_TRACKS.rehearsal.ctaLabel).toBe("Start rehearsal");
+    expect(ACADEMY_TRACKS.rehearsal.ctaTestId).toBe("start-simulation");
+    expect(ACADEMY_TRACKS.rehearsal.href).toBe("/student/study?mode=Simulation");
   });
 });
 

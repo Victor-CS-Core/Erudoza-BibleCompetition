@@ -32,5 +32,13 @@ describe("LandingPage", () => {
     expect(screen.queryByRole("img", { name: "Simulation deck" })).not.toBeInTheDocument();
     expect(screen.getByTestId("start-studying")).toBeInTheDocument();
     expect(screen.getByTestId("build-a-season")).toBeInTheDocument();
+    expect(screen.getByText(/due reviews, and realistic rehearsal/)).toBeInTheDocument();
+    expect(screen.getByText("Your team chooses the passage. Erudoza deals the deck.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Drill only the assigned Scripture." })).toBeInTheDocument();
+    expect(
+      screen.getByText("Timed rehearsal turns growing recall into confident Bible Bowl performance."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/practice/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/simulation/i)).not.toBeInTheDocument();
   });
 });

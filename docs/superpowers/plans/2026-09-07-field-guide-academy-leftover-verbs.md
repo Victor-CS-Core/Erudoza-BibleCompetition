@@ -39,7 +39,7 @@
 - Consumes: existing `ACADEMY_TRACKS` records
 - Produces: Learner description “Drill the assigned passage with memorization games.”; Rehearsal description “Run a PBE-style rehearsal from the assigned Scripture.”; Rehearsal CTA “Start rehearsal”
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 describe("ACADEMY_TRACKS leftover verbs", () => {
@@ -66,9 +66,9 @@ expect(screen.queryByText(/practice/i)).not.toBeInTheDocument();
 expect(screen.queryByText(/simulation/i)).not.toBeInTheDocument();
 ```
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts src/features/student/StudentHomePage.test.tsx` and confirm FAIL (old Practice / simulation copy still present).
-- [ ] **Step 3: Update `ACADEMY_TRACKS` learner description, rehearsal description, and rehearsal CTA label only.**
-- [ ] **Step 4: Run** the same files and confirm PASS.
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts src/features/student/StudentHomePage.test.tsx` and confirm FAIL (old Practice / simulation copy still present).
+- [x] **Step 3: Update `ACADEMY_TRACKS` learner description, rehearsal description, and rehearsal CTA label only.**
+- [x] **Step 4: Run** the same files and confirm PASS.
 
 ---
 
@@ -83,7 +83,7 @@ expect(screen.queryByText(/simulation/i)).not.toBeInTheDocument();
 - Consumes: existing landing hero, proof cards, and supplied deck images
 - Produces: visible landing copy that uses drill / rehearsal / deals the deck
 
-- [ ] **Step 1: Write the failing assertions**
+- [x] **Step 1: Write the failing assertions**
 
 ```ts
 expect(screen.getByText(/due reviews, and realistic rehearsal/)).toBeInTheDocument();
@@ -96,7 +96,7 @@ expect(screen.queryByText(/practice/i)).not.toBeInTheDocument();
 expect(screen.queryByText(/simulation/i)).not.toBeInTheDocument();
 ```
 
-- [ ] **Step 2: Run** `npm run test:web -- src/test/landingPage.test.tsx` and confirm FAIL (old practice / simulation copy still visible).
-- [ ] **Step 3: Replace the four landing strings. Keep image sources, `er-deck-*` classes, and `start-studying` / `build-a-season`. Update the brand guide one-liner.**
+- [x] **Step 2: Run** `npm run test:web -- src/test/landingPage.test.tsx` and confirm FAIL (old practice / simulation copy still visible).
+- [x] **Step 3: Replace the four landing strings. Keep image sources, `er-deck-*` classes, and `start-studying` / `build-a-season`. Update the brand guide one-liner.**
 - [ ] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
 - [ ] **Step 5: Commit**
