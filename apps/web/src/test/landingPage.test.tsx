@@ -21,12 +21,15 @@ describe("LandingPage", () => {
     expect(cover).not.toHaveTextContent("streak");
     expect(screen.getByRole("heading", { name: /Know the passage/ })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Choose today’s training deck" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "New deck" })).toHaveAttribute("src", "/brand/deck-new.webp");
-    expect(screen.getByRole("img", { name: "Review deck" })).toHaveAttribute("src", "/brand/deck-review.webp");
-    expect(screen.getByRole("img", { name: "Simulation deck" })).toHaveAttribute(
+    expect(screen.getByRole("img", { name: "Learner deck" })).toHaveAttribute("src", "/brand/deck-new.webp");
+    expect(screen.getByRole("img", { name: "Reviews deck" })).toHaveAttribute("src", "/brand/deck-review.webp");
+    expect(screen.getByRole("img", { name: "Rehearsal deck" })).toHaveAttribute(
       "src",
       "/brand/deck-simulation.webp",
     );
+    expect(screen.queryByRole("img", { name: "New deck" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "Review deck" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: "Simulation deck" })).not.toBeInTheDocument();
     expect(screen.getByTestId("start-studying")).toBeInTheDocument();
     expect(screen.getByTestId("build-a-season")).toBeInTheDocument();
   });

@@ -1,6 +1,6 @@
 # Field Guide Academy Deck Labels Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Name landing decks and the learner `DeckStack` with Learner / Reviews / Rehearsal using only real progress fields.
 
@@ -41,7 +41,7 @@
 - Consumes: `learner: number`, `reviews: number`, `seasonStatus?: string | null`
 - Produces: `deck-stack` with `deck-learner`, `deck-reviews`, `deck-rehearsal`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```tsx
 it("labels today's deck with academy tracks and honest fields", () => {
@@ -64,10 +64,10 @@ it("shows an em dash when rehearsal has no season status", () => {
 });
 ```
 
-- [ ] **Step 2: Run** `npm run test:web -- src/components/material/DeckStack.test.tsx` and confirm FAIL (missing labels / testids).
-- [ ] **Step 3: Relabel `DeckStack` and wire StudentHomePage to `assignments.length`, `reviewDueCount`, and `seasonStatus`.
-- [ ] **Step 4: Assert the home page deck uses those honest fields.
-- [ ] **Step 5: Run** the DeckStack and StudentHomePage tests and confirm PASS.
+- [x] **Step 2: Run** `npm run test:web -- src/components/material/DeckStack.test.tsx` and confirm FAIL (missing labels / testids).
+- [x] **Step 3: Relabel `DeckStack` and wire StudentHomePage to `assignments.length`, `reviewDueCount`, and `seasonStatus`.
+- [x] **Step 4: Assert the home page deck uses those honest fields.
+- [x] **Step 5: Run** the DeckStack and StudentHomePage tests and confirm PASS.
 
 ---
 
@@ -82,9 +82,9 @@ it("shows an em dash when rehearsal has no season status", () => {
 - Consumes: existing supplied deck image sources
 - Produces: Learner / Reviews / Rehearsal deck names on `/`
 
-- [ ] **Step 1: Write the failing landing assertions** for Learner deck / Reviews deck / Rehearsal deck alts, same image sources, and no New / Review / Simulation deck names.
-- [ ] **Step 2: Run** `npm run test:web -- src/test/landingPage.test.tsx` and confirm FAIL (old alts).
-- [ ] **Step 3: Rename the three landing deck labels only.
-- [ ] **Step 4: Update the brand guide one-liner.
-- [ ] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 6: Commit**
+- [x] **Step 1: Write the failing landing assertions** for Learner deck / Reviews deck / Rehearsal deck alts, same image sources, and no New / Review / Simulation deck names.
+- [x] **Step 2: Run** `npm run test:web -- src/test/landingPage.test.tsx` and confirm FAIL (old alts).
+- [x] **Step 3: Rename the three landing deck labels only.
+- [x] **Step 4: Update the brand guide one-liner.
+- [x] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 6: Commit**
