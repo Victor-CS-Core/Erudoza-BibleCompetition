@@ -98,5 +98,5 @@ expect(screen.queryByText(/simulation/i)).not.toBeInTheDocument();
 
 - [x] **Step 2: Run** `npm run test:web -- src/test/landingPage.test.tsx` and confirm FAIL (old practice / simulation copy still visible).
 - [x] **Step 3: Replace the four landing strings. Keep image sources, `er-deck-*` classes, and `start-studying` / `build-a-season`. Update the brand guide one-liner.**
-- [ ] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 5: Commit**
+- [x] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 5: Commit**
