@@ -27,7 +27,7 @@
 - Consumes: existing `GET /api/v1/organizations/{orgId}/seasons` and `SeasonDto`
 - Produces: HTTP 200 with newest-first `SeasonDto[]`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```csharp
 [Fact]
@@ -52,13 +52,13 @@ public async Task Admin_can_list_seasons_newest_first_on_sqlite()
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 Run: `dotnet test apps/api/tests/Erudoza.IntegrationTests/Erudoza.IntegrationTests.csproj --filter FullyQualifiedName~Admin_can_list_seasons_newest_first_on_sqlite`
 
 Expected: FAIL with HTTP 500 — SQLite cannot `ORDER BY DateTimeOffset`.
 
-- [ ] **Step 3: Write minimal implementation**
+- [x] **Step 3: Write minimal implementation**
 
 In `ApiEndpoints.cs` `GET /seasons`, load then sort:
 
@@ -70,11 +70,11 @@ var seasons = (await db.Seasons.AsNoTracking()
     .ToList();
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run the same filter. Expected: PASS.
 
-- [ ] **Step 5: Brand-guide sentence**
+- [x] **Step 5: Brand-guide sentence**
 
 Add that the coach seasons folio lists newest-first in memory so SQLite is not asked to order `DateTimeOffset`.
 
