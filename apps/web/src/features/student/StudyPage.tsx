@@ -140,7 +140,9 @@ export function StudyPage() {
       <StudyCard>
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
-            <span data-testid="academy-activity-name">{academyActivityName(current?.activityType ?? "MissingWords")}</span>
+            <span data-testid="academy-activity-name">
+              {current ? academyActivityName(current.activityType) : "Loading"}
+            </span>
             {" · "}
             {current?.citation ?? "Loading"}
           </p>

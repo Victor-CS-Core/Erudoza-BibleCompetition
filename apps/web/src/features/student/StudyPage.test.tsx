@@ -148,10 +148,25 @@ describe("StudyPage Field Guide Academy honesty", () => {
 
   it("names the drawn card with the academy activity, not the raw API type", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+    vi.mocked(api.nextCard).mockResolvedValue({
+      id: "card-2",
+      sessionId: "session-1",
+      activityType: "VerseBuilder",
+      prompt: "Build the verse",
+      citation: "Daniel 1:2",
+      tokens: [
+        { display: "In", hidden: false, index: 0 },
+        { display: "the", hidden: false, index: 1 },
+      ],
+      sequence: 1,
+      total: 8,
+    });
     renderStudy("/student/study");
 
-    expect(await screen.findByTestId("academy-activity-name")).toHaveTextContent("Missing Words");
-    expect(screen.getByTestId("academy-activity-name")).not.toHaveTextContent("MissingWords");
+    await waitFor(() => expect(screen.getByTestId("academy-activity-name")).toHaveTextContent("Verse Builder"));
+    expect(screen.getByTestId("challenge-prompt")).toHaveTextContent("Build the verse");
+    expect(screen.getByTestId("challenge-card")).toHaveTextContent("Daniel 1:2");
+    expect(screen.getByTestId("academy-activity-name")).not.toHaveTextContent("VerseBuilder");
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
   });
 
