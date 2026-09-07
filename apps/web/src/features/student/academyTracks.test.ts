@@ -1,5 +1,6 @@
 import {
   academySessionKicker,
+  academySessionSummaryCopy,
   academyTrackForMode,
   academyUnavailableCopy,
   canStartAcademyTrack,
@@ -66,5 +67,25 @@ describe("academyUnavailableCopy", () => {
     expect(academyUnavailableCopy("review")).toBe("No passages are due for review.");
     expect(academyUnavailableCopy("rehearsal")).toBe("Rehearsal opens when this season is Active.");
     expect(academyUnavailableCopy("learner")).toBe("Learner drill is available from today's deck.");
+  });
+});
+
+describe("academySessionSummaryCopy", () => {
+  it("names finished sessions from academy tracks, not raw API mode", () => {
+    expect(academySessionSummaryCopy({ mode: "Practice", correct: 1, attempted: 1 })).toBe(
+      "Last Learner drill session: 1 / 1 exact",
+    );
+    expect(academySessionSummaryCopy({ mode: "review", correct: 2, attempted: 3 })).toBe(
+      "Last Due review session: 2 / 3 exact",
+    );
+    expect(academySessionSummaryCopy({ mode: "SIMULATION", correct: 0, attempted: 2 })).toBe(
+      "Last Rehearsal session: 0 / 2 exact",
+    );
+  });
+
+  it("omits a track name when the API mode is unknown", () => {
+    expect(academySessionSummaryCopy({ mode: "Unknown", correct: 1, attempted: 4 })).toBe(
+      "Last session: 1 / 4 exact",
+    );
   });
 });

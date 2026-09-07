@@ -89,3 +89,22 @@ export function academyUnavailableCopy(track: AcademyTrackId): string {
   }
   return "Learner drill is available from today's deck.";
 }
+
+export function academySessionSummaryCopy(summary: {
+  mode: string;
+  correct: number;
+  attempted: number;
+}): string {
+  const counts = `${summary.correct} / ${summary.attempted} exact`;
+  const mode = summary.mode.toLowerCase();
+  if (mode === "practice") {
+    return `Last ${academySessionKicker("Practice")} session: ${counts}`;
+  }
+  if (mode === "review") {
+    return `Last ${academySessionKicker("Review")} session: ${counts}`;
+  }
+  if (mode === "simulation") {
+    return `Last ${academySessionKicker("Simulation")} session: ${counts}`;
+  }
+  return `Last session: ${counts}`;
+}
