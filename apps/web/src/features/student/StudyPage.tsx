@@ -25,15 +25,11 @@ export function StudyPage() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [answer, setAnswer] = useState("");
   const [chunks, setChunks] = useState<string[]>([]);
-  const started = useRef(false);
   const startedAt = useRef(Date.now());
 
   const start = useMutation({
-    mutationFn: () => api.startSession(progress.data!.seasonId, mode),
-    onSuccess: async (session) => {
-      setSessionId(session.id);
-      await queryClient.invalidateQueries({ queryKey: ["card"] });
-    },
+    mutationFn: (sessionMode: "Practice" | "Review" | "Simulation") =>
+      api.startSession(progress.data!.seasonId, sessionMode),
   });
 
   const card = useQuery({
@@ -80,18 +76,24 @@ export function StudyPage() {
   });
 
   useEffect(() => {
-    started.current = false;
+    let cancelled = false;
     setSessionId(null);
     setAnswer("");
     setChunks([]);
-  }, [mode]);
-
-  useEffect(() => {
-    if (progress.data?.seasonId && trackReady && !started.current) {
-      started.current = true;
-      start.mutate();
+    if (!progress.data?.seasonId || !trackReady) {
+      return;
     }
-    // Intentionally start once per honest track after progress is known.
+    void start.mutateAsync(mode).then((session) => {
+      if (cancelled) {
+        return;
+      }
+      setSessionId(session.id);
+      void queryClient.invalidateQueries({ queryKey: ["card"] });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Start once per honest mode after progress is known; ignore stale starts.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress.data?.seasonId, trackReady, mode]);
 

@@ -120,4 +120,39 @@ describe("StudyPage Field Guide Academy honesty", () => {
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Simulation"));
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Rehearsal");
   });
+
+  it("ignores a stale learner start after switching to rehearsal", async () => {
+    let releaseLearner: ((session: { id: string; seasonId: string; status: string; mode: string; targetCardCount: number }) => void) | undefined;
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
+    vi.mocked(api.startSession).mockImplementation((seasonId, mode) => {
+      if (mode === "Practice") {
+        return new Promise((resolve) => {
+          releaseLearner = resolve;
+        });
+      }
+      return Promise.resolve({
+        id: "session-rehearsal",
+        seasonId,
+        status: "Created",
+        mode: "Simulation",
+        targetCardCount: 10,
+      });
+    });
+
+    const router = renderStudy("/student/study");
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
+    await router.navigate("/student/study?mode=Simulation");
+    await waitFor(() => expect(api.nextCard).toHaveBeenCalledWith("session-rehearsal"));
+
+    releaseLearner?.({
+      id: "session-stale-learner",
+      seasonId: "season-1",
+      status: "Created",
+      mode: "Practice",
+      targetCardCount: 8,
+    });
+
+    await waitFor(() => expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Rehearsal"));
+    expect(api.nextCard).not.toHaveBeenCalledWith("session-stale-learner");
+  });
 });
