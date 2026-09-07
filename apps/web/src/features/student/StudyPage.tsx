@@ -123,7 +123,7 @@ export function StudyPage() {
       </p>
       {progress.isSuccess && !canStartAcademyTrack(track, progress.data) ? (
         <p className="mt-4 text-[var(--er-graphite)]" data-testid="academy-track-unavailable">
-          {academyUnavailableCopy(track)}
+          {academyUnavailableCopy(track, progress.data)}
         </p>
       ) : null}
     </FieldGuideCover>

@@ -39,7 +39,7 @@
 - Consumes: `canStartAcademyTrack`, `academyUnavailableCopy`, progress `seasonStatus` and `reviewDueCount`
 - Produces: review start only when Active and due; honest unavailable copy
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it("blocks review until the season is Active and reviewDueCount is positive", () => {
@@ -63,10 +63,10 @@ it("explains hidden tracks without inventing scores", () => {
 
 Replace the current “blocks review until reviewDueCount is positive” case that still allows Draft + due.
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL.
-- [ ] **Step 3: Implement** review start as Active **and** `reviewDueCount > 0`. Teach `academyUnavailableCopy` an optional progress argument.
-- [ ] **Step 4: Run tests until PASS.**
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL.
+- [x] **Step 3: Implement** review start as Active **and** `reviewDueCount > 0`. Teach `academyUnavailableCopy` an optional progress argument.
+- [x] **Step 4: Run tests until PASS.**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -76,11 +76,11 @@ Replace the current “blocks review until reviewDueCount is positive” case th
 - Modify: `apps/web/src/features/student/StudentHomePage.test.tsx`
 - Modify: `apps/web/src/features/student/StudentHomePage.tsx`
 
-- [ ] **Step 1: Write a failing test** — Draft + `reviewDueCount: 3` keeps `academy-track-review`, has no `start-reviews`, and shows `Reviews open when this season is Active.`
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/StudentHomePage.test.tsx` and confirm FAIL.
-- [ ] **Step 3: Pass progress into `academyUnavailableCopy(selected, data)`. CTA already uses `canStartAcademyTrack`.
-- [ ] **Step 4: Run tests until PASS.**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Write a failing test** — Draft + `reviewDueCount: 3` keeps `academy-track-review`, has no `start-reviews`, and shows `Reviews open when this season is Active.`
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/StudentHomePage.test.tsx` and confirm FAIL.
+- [x] **Step 3: Pass progress into `academyUnavailableCopy(selected, data)`. CTA already uses `canStartAcademyTrack`.
+- [x] **Step 4: Run tests until PASS.**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -91,8 +91,8 @@ Replace the current “blocks review until reviewDueCount is positive” case th
 - Modify: `apps/web/src/features/student/StudyPage.tsx`
 - Modify: `docs/brand/erudoza-brand-guide.md`
 
-- [ ] **Step 1: Write a failing test** — Review with `seasonStatus: "Draft"` and `reviewDueCount: 2` does not call `startSession` and shows the Active-season review copy on the cover.
-- [ ] **Step 2: Pass progress into `academyUnavailableCopy(track, progress.data)`. StudyPage already consults `canStartAcademyTrack`.
-- [ ] **Step 3: Update the brand guide one-liner.
-- [ ] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Write a failing test** — Review with `seasonStatus: "Draft"` and `reviewDueCount: 2` does not call `startSession` and shows the Active-season review copy on the cover.
+- [x] **Step 2: Pass progress into `academyUnavailableCopy(track, progress.data)`. StudyPage already consults `canStartAcademyTrack`.
+- [x] **Step 3: Update the brand guide one-liner.
+- [x] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 5: Commit**
