@@ -96,4 +96,18 @@ describe("StudentHomePage Field Guide Academy", () => {
     expect(screen.getByLabelText("DUE")).toBeInTheDocument();
     expect(screen.getByTestId("deck-review")).toHaveTextContent("3");
   });
+
+  it("keeps the Reviews chapter visible on Draft seasons but hides the start CTA", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Draft", reviewDueCount: 3 }));
+    renderHome();
+
+    await screen.findByTestId("academy-track-review");
+    fireEvent.click(screen.getByTestId("academy-track-review"));
+
+    expect(screen.getByTestId("academy-track-unavailable")).toHaveTextContent(
+      "Reviews open when this season is Active.",
+    );
+    expect(screen.queryByTestId("start-reviews")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("DUE")).toBeInTheDocument();
+  });
 });

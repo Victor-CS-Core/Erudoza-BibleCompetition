@@ -53,7 +53,7 @@ export function StudentHomePage() {
             </Link>
           ) : progress.isSuccess ? (
             <p className="text-[var(--er-graphite)]" data-testid="academy-track-unavailable">
-              {academyUnavailableCopy(selected)}
+              {academyUnavailableCopy(selected, data)}
             </p>
           ) : null}
         </div>
