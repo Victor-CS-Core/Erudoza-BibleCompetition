@@ -38,7 +38,7 @@
 - Consumes: existing supplied deck image sources and `Stamp`
 - Produces: visible Learner / Reviews / Rehearsal stamps on `/` deck cards
 
-- [ ] **Step 1: Write the failing assertions**
+- [x] **Step 1: Write the failing assertions**
 
 ```ts
 const learner = screen.getByRole("link", { name: "Open the learner deck" });
@@ -51,7 +51,7 @@ expect(screen.queryByTestId("landing-deck-new")).not.toBeInTheDocument();
 expect(screen.queryByTestId("landing-deck-simulation")).not.toBeInTheDocument();
 ```
 
-- [ ] **Step 2: Run** `npm run test:web -- src/test/landingPage.test.tsx` and confirm FAIL (stamps missing).
-- [ ] **Step 3: Overlay `Stamp` on each deck link. Cover the baked-in title with `.er-deck-label`. Keep image sources, `er-deck-*` classes, and `start-studying` / `build-a-season`. Update the brand guide one-liner.
-- [ ] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/test/landingPage.test.tsx` and confirm FAIL (stamps missing).
+- [x] **Step 3: Overlay `Stamp` on each deck link. Cover the baked-in title with `.er-deck-label`. Keep image sources, `er-deck-*` classes, and `start-studying` / `build-a-season`. Update the brand guide one-liner.
+- [x] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 5: Commit**

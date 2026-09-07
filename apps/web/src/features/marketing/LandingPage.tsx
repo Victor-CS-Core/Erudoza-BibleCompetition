@@ -2,22 +2,32 @@ import { Link } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
 import { FieldGuideCover } from "../../components/material/FieldGuideCover";
 import { PaperSurface } from "../../components/material/PaperSurface";
+import { Stamp } from "../../components/material/Stamp";
 
 const trainingDecks = [
   {
     name: "Learner deck",
+    label: "Learner",
+    tone: "new",
     image: "/brand/deck-new.webp",
     className: "er-deck-new",
+    testId: "landing-deck-learner",
   },
   {
     name: "Reviews deck",
+    label: "Reviews",
+    tone: "review",
     image: "/brand/deck-review.webp",
     className: "er-deck-review",
+    testId: "landing-deck-reviews",
   },
   {
     name: "Rehearsal deck",
+    label: "Rehearsal",
+    tone: "due",
     image: "/brand/deck-simulation.webp",
     className: "er-deck-simulation",
+    testId: "landing-deck-rehearsal",
   },
 ] as const;
 
@@ -68,6 +78,9 @@ export function LandingPage() {
                   aria-label={`Open the ${deck.name.toLowerCase()}`}
                 >
                   <img src={deck.image} alt={deck.name} />
+                  <span className="er-deck-label" data-testid={deck.testId}>
+                    <Stamp label={deck.label} tone={deck.tone} />
+                  </span>
                 </Link>
               ))}
             </div>
