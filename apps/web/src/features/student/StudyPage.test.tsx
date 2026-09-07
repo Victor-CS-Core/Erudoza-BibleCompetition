@@ -146,6 +146,15 @@ describe("StudyPage Field Guide Academy honesty", () => {
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
   });
 
+  it("names the drawn card with the academy activity, not the raw API type", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+    renderStudy("/student/study");
+
+    expect(await screen.findByTestId("academy-activity-name")).toHaveTextContent("Missing Words");
+    expect(screen.getByTestId("academy-activity-name")).not.toHaveTextContent("MissingWords");
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
+  });
+
   it("stamps DUE on the study cover only when reviews are due", async () => {
     vi.mocked(api.progress).mockResolvedValue(
       progress({ seasonStatus: "Active", reviewDueCount: 2, seasonName: "Daniel 2026" }),

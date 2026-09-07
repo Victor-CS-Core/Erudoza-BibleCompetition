@@ -98,6 +98,19 @@ export function academyUnavailableCopy(track: AcademyTrackId, progress?: Academy
   return "Learner drill opens when this season is Active.";
 }
 
+const ACADEMY_ACTIVITY_NAMES: Record<string, string> = {
+  MissingWords: "Missing Words",
+  VerseBuilder: "Verse Builder",
+  ReferenceMatch: "Reference Match",
+  WhatComesNext: "What Comes Next",
+  TrueFalse: "True/False",
+  ShortAnswer: "Short answer",
+};
+
+export function academyActivityName(activityType: string): string {
+  return ACADEMY_ACTIVITY_NAMES[activityType] ?? activityType;
+}
+
 export function academySessionSummaryCopy(summary: {
   mode: string;
   correct: number;

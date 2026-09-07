@@ -40,7 +40,7 @@
 - Consumes: API `activityType` strings (`MissingWords`, `VerseBuilder`, `ReferenceMatch`, `WhatComesNext`, `TrueFalse`, `ShortAnswer`, or unknown)
 - Produces: `academyActivityName(activityType: string): string`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 describe("academyActivityName", () => {
@@ -59,9 +59,9 @@ describe("academyActivityName", () => {
 });
 ```
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL (helper missing).
-- [ ] **Step 3: Add `academyActivityName` with the six known mappings and a raw default.**
-- [ ] **Step 4: Run** the same file and confirm PASS.
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL (helper missing).
+- [x] **Step 3: Add `academyActivityName` with the six known mappings and a raw default.**
+- [x] **Step 4: Run** the same file and confirm PASS.
 
 ---
 
@@ -79,9 +79,9 @@ describe("academyActivityName", () => {
 - Consumes: `academyActivityName`
 - Produces: study chrome and `recent-attempts` labeled Missing Words (or the matching games-spec name)
 
-- [ ] **Step 1: Write the failing assertions** — study cover shows `academy-activity-name` = Missing Words after the card loads; recent attempts show Missing Words and not MissingWords.
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/StudyPage.test.tsx src/features/student/ProgressPage.test.tsx` and confirm FAIL (raw MissingWords still visible).
-- [ ] **Step 3: Call `academyActivityName` on the study card label and recent-attempt line. Add `data-testid="academy-activity-name"` on the study label.**
-- [ ] **Step 4: Update the Playwright recent-attempts assertion to Missing Words. Update the brand guide one-liner.**
-- [ ] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 6: Commit**
+- [x] **Step 1: Write the failing assertions** — study cover shows `academy-activity-name` = Missing Words after the card loads; recent attempts show Missing Words and not MissingWords.
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/StudyPage.test.tsx src/features/student/ProgressPage.test.tsx` and confirm FAIL (raw MissingWords still visible).
+- [x] **Step 3: Call `academyActivityName` on the study card label and recent-attempt line. Add `data-testid="academy-activity-name"` on the study label.**
+- [x] **Step 4: Update the Playwright recent-attempts assertion to Missing Words. Update the brand guide one-liner.**
+- [x] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 6: Commit**

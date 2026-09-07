@@ -1,4 +1,5 @@
 import {
+  academyActivityName,
   academySessionKicker,
   academySessionSummaryCopy,
   academyTrackForMode,
@@ -79,6 +80,21 @@ describe("academyUnavailableCopy", () => {
     );
     expect(academyUnavailableCopy("rehearsal")).toBe("Rehearsal opens when this season is Active.");
     expect(academyUnavailableCopy("learner")).toBe("Learner drill opens when this season is Active.");
+  });
+});
+
+describe("academyActivityName", () => {
+  it("names existing study activities from the games spec", () => {
+    expect(academyActivityName("MissingWords")).toBe("Missing Words");
+    expect(academyActivityName("VerseBuilder")).toBe("Verse Builder");
+    expect(academyActivityName("ReferenceMatch")).toBe("Reference Match");
+    expect(academyActivityName("WhatComesNext")).toBe("What Comes Next");
+    expect(academyActivityName("TrueFalse")).toBe("True/False");
+    expect(academyActivityName("ShortAnswer")).toBe("Short answer");
+  });
+
+  it("keeps an unknown API activity type raw", () => {
+    expect(academyActivityName("SelectedChoice")).toBe("SelectedChoice");
   });
 });
 

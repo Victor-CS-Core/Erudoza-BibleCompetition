@@ -5,7 +5,7 @@ import type { SessionSummary } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { FieldGuideCover } from "../../components/material/FieldGuideCover";
 import { Stamp } from "../../components/material/Stamp";
-import { academySessionSummaryCopy } from "./academyTracks";
+import { academyActivityName, academySessionSummaryCopy } from "./academyTracks";
 
 export function ProgressPage() {
   const { me } = useAuth();
@@ -71,7 +71,7 @@ export function ProgressPage() {
               <li key={item.id} className="flex items-start justify-between gap-3 border-t border-[var(--er-border)] pt-3">
                 <div>
                   <p className="font-medium">
-                    {item.title} · {item.activityType}
+                    {item.title} · {academyActivityName(item.activityType)}
                   </p>
                   <p className="mt-1 text-sm text-[var(--er-graphite)]">{item.submittedAnswer || "—"}</p>
                 </div>

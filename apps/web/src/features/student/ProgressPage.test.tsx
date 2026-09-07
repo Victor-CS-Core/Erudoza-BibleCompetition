@@ -112,7 +112,8 @@ describe("ProgressPage Field Guide Academy chrome", () => {
     expect(screen.getByTestId("session-summary")).toHaveTextContent("Last Learner drill session: 1 / 1 exact");
     expect(screen.getByTestId("progress-attempts")).toHaveTextContent("3");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Daniel 1:1");
-    expect(screen.getByTestId("recent-attempts")).toHaveTextContent("MissingWords");
+    expect(screen.getByTestId("recent-attempts")).toHaveTextContent("Missing Words");
+    expect(screen.getByTestId("recent-attempts")).not.toHaveTextContent("MissingWords");
     expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
     expect(api.studentProgress).not.toHaveBeenCalled();
   });
