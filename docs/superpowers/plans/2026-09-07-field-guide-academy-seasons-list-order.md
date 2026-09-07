@@ -78,6 +78,6 @@ Run the same filter. Expected: PASS.
 
 Add that the coach seasons folio lists newest-first in memory so SQLite is not asked to order `DateTimeOffset`.
 
-- [ ] **Step 6: Verification**
+- [x] **Step 6: Verification**
 
 Run `npm run test:web`, `npm run typecheck:web`, `npm run lint:web`, and the seasons-list API test.
