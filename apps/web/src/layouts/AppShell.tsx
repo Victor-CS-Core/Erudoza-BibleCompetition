@@ -1,11 +1,28 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
+import { useQuery } from "@tanstack/react-query";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
+import {
+  ACADEMY_TRACKS,
+  academyTrackForMode,
+  visibleAcademyTracks,
+} from "../features/student/academyTracks";
 
 export function AppShell({ variant }: { variant: "admin" | "student" }) {
   const { me, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const admin = variant === "admin";
+  const requestedMode = new URLSearchParams(location.search).get("mode");
+  const studyMode = requestedMode === "Simulation" || requestedMode === "Review" ? requestedMode : "Practice";
+  const activeStudyTrack = location.pathname === "/student/study" ? academyTrackForMode(studyMode) : null;
+  const progress = useQuery({
+    queryKey: ["progress"],
+    queryFn: () => api.progress(),
+    enabled: !admin,
+  });
+  const tracks = visibleAcademyTracks(progress.data);
   const signOut = async () => {
     await logout();
     navigate("/login");
@@ -39,15 +56,20 @@ export function AppShell({ variant }: { variant: "admin" | "student" }) {
               </>
             ) : (
               <>
-                <NavLink className={navClass(false)} to="/student">
+                <NavLink className={navClass(false)} to="/student" end>
                   Home
                 </NavLink>
-                <NavLink className={navClass(false)} to="/student/study">
-                  Study
-                </NavLink>
-                <NavLink className={navClass(false)} to="/student/study?mode=Simulation">
-                  Simulate
-                </NavLink>
+                {tracks.map((id) => (
+                  <Link
+                    key={id}
+                    className={navClass(false)({ isActive: activeStudyTrack === id })}
+                    to={ACADEMY_TRACKS[id].href}
+                    data-testid={`nav-academy-${id}`}
+                    aria-current={activeStudyTrack === id ? "page" : undefined}
+                  >
+                    {ACADEMY_TRACKS[id].label}
+                  </Link>
+                ))}
                 <NavLink className={navClass(false)} to="/student/progress">
                   Progress
                 </NavLink>

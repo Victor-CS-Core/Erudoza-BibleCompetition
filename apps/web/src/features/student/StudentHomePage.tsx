@@ -24,7 +24,7 @@ export function StudentHomePage() {
 
   return (
     <div className="space-y-5">
-      <FieldGuideCover stamp={data?.seasonStatus === "Active" ? <Stamp label="DUE" tone="due" /> : null}>
+      <FieldGuideCover stamp={(data?.reviewDueCount ?? 0) > 0 ? <Stamp label="DUE" tone="due" /> : null}>
         <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="current-season">
           {data?.seasonName || "Your study section has not been assigned yet."}
         </p>

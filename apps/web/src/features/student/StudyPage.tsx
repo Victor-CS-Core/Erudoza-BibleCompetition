@@ -6,27 +6,30 @@ import type { ChallengeCard } from "../../api/types";
 import { PaperSurface } from "../../components/material/PaperSurface";
 import { Stamp } from "../../components/material/Stamp";
 import { StudyCard } from "../../components/material/StudyCard";
-import { academySessionKicker } from "./academyTracks";
+import {
+  academySessionKicker,
+  academyTrackForMode,
+  academyUnavailableCopy,
+  canStartAcademyTrack,
+} from "./academyTracks";
 
 export function StudyPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const requested = params.get("mode");
   const mode = requested === "Simulation" || requested === "Review" ? requested : "Practice";
+  const track = academyTrackForMode(mode);
   const queryClient = useQueryClient();
   const progress = useQuery({ queryKey: ["progress"], queryFn: () => api.progress() });
+  const trackReady = progress.isSuccess && canStartAcademyTrack(track, progress.data);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [answer, setAnswer] = useState("");
   const [chunks, setChunks] = useState<string[]>([]);
-  const started = useRef(false);
   const startedAt = useRef(Date.now());
 
   const start = useMutation({
-    mutationFn: () => api.startSession(progress.data!.seasonId, mode),
-    onSuccess: async (session) => {
-      setSessionId(session.id);
-      await queryClient.invalidateQueries({ queryKey: ["card"] });
-    },
+    mutationFn: (sessionMode: "Practice" | "Review" | "Simulation") =>
+      api.startSession(progress.data!.seasonId, sessionMode),
   });
 
   const card = useQuery({
@@ -73,13 +76,26 @@ export function StudyPage() {
   });
 
   useEffect(() => {
-    if (progress.data?.seasonId && !started.current) {
-      started.current = true;
-      start.mutate();
+    let cancelled = false;
+    setSessionId(null);
+    setAnswer("");
+    setChunks([]);
+    if (!progress.data?.seasonId || !trackReady) {
+      return;
     }
-    // Intentionally start once when the active season is known.
+    void start.mutateAsync(mode).then((session) => {
+      if (cancelled) {
+        return;
+      }
+      setSessionId(session.id);
+      void queryClient.invalidateQueries({ queryKey: ["card"] });
+    });
+    return () => {
+      cancelled = true;
+    };
+    // Start once per honest mode after progress is known; ignore stale starts.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress.data?.seasonId]);
+  }, [progress.data?.seasonId, trackReady, mode]);
 
   const result = submit.data;
   const current = card.data;
@@ -94,6 +110,21 @@ export function StudyPage() {
     setChunks(next);
     setAnswer(next.join(" "));
   };
+
+  if (progress.isSuccess && !canStartAcademyTrack(track, progress.data)) {
+    return (
+      <div className="space-y-4">
+        <PaperSurface>
+          <p className="text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
+            <span data-testid="academy-session-kicker">{academySessionKicker(mode)}</span>
+          </p>
+          <p className="mt-4 text-[var(--er-graphite)]" data-testid="academy-track-unavailable">
+            {academyUnavailableCopy(track)}
+          </p>
+        </PaperSurface>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
