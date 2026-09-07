@@ -59,3 +59,33 @@ export function academySessionKicker(mode: "Practice" | "Review" | "Simulation")
   }
   return "Learner drill";
 }
+
+export function academyTrackForMode(mode: "Practice" | "Review" | "Simulation"): AcademyTrackId {
+  if (mode === "Simulation") {
+    return "rehearsal";
+  }
+  if (mode === "Review") {
+    return "review";
+  }
+  return "learner";
+}
+
+export function canStartAcademyTrack(
+  track: AcademyTrackId,
+  progress?: {
+    seasonStatus?: string | null;
+    reviewDueCount?: number | null;
+  } | null,
+): boolean {
+  return visibleAcademyTracks(progress).includes(track);
+}
+
+export function academyUnavailableCopy(track: AcademyTrackId): string {
+  if (track === "review") {
+    return "No passages are due for review.";
+  }
+  if (track === "rehearsal") {
+    return "Rehearsal opens when this season is Active.";
+  }
+  return "Learner drill is available from today's deck.";
+}
