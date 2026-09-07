@@ -1,11 +1,20 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
+import { api } from "../api/client";
 import { useAuth } from "../auth/AuthContext";
+import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
+import { ACADEMY_TRACKS, visibleAcademyTracks } from "../features/student/academyTracks";
 
 export function AppShell({ variant }: { variant: "admin" | "student" }) {
   const { me, logout } = useAuth();
   const navigate = useNavigate();
   const admin = variant === "admin";
+  const progress = useQuery({
+    queryKey: ["progress"],
+    queryFn: () => api.progress(),
+    enabled: !admin,
+  });
+  const tracks = visibleAcademyTracks(progress.data);
   const signOut = async () => {
     await logout();
     navigate("/login");
@@ -42,12 +51,16 @@ export function AppShell({ variant }: { variant: "admin" | "student" }) {
                 <NavLink className={navClass(false)} to="/student">
                   Home
                 </NavLink>
-                <NavLink className={navClass(false)} to="/student/study">
-                  Study
-                </NavLink>
-                <NavLink className={navClass(false)} to="/student/study?mode=Simulation">
-                  Simulate
-                </NavLink>
+                {tracks.map((id) => (
+                  <NavLink
+                    key={id}
+                    className={navClass(false)}
+                    to={ACADEMY_TRACKS[id].href}
+                    data-testid={`nav-academy-${id}`}
+                  >
+                    {ACADEMY_TRACKS[id].label}
+                  </NavLink>
+                ))}
                 <NavLink className={navClass(false)} to="/student/progress">
                   Progress
                 </NavLink>

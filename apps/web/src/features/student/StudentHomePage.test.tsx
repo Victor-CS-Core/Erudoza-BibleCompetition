@@ -71,7 +71,7 @@ describe("StudentHomePage Field Guide Academy", () => {
     renderHome();
 
     await screen.findByTestId("academy-track-rehearsal");
-    expect(screen.getByLabelText("DUE")).toBeInTheDocument();
+    expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
     expect(screen.getByTestId("start-todays-deck")).toBeInTheDocument();
     expect(screen.queryByTestId("start-simulation")).not.toBeInTheDocument();
 
@@ -89,6 +89,7 @@ describe("StudentHomePage Field Guide Academy", () => {
     fireEvent.click(screen.getByTestId("academy-track-review"));
 
     expect(screen.getByTestId("start-reviews")).toHaveAttribute("href", "/student/study?mode=Review");
+    expect(screen.getByLabelText("DUE")).toBeInTheDocument();
     expect(screen.getByTestId("deck-review")).toHaveTextContent("3");
   });
 });
