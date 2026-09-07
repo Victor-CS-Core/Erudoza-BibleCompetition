@@ -40,10 +40,7 @@ export function visibleAcademyTracks(progress?: {
   seasonStatus?: string | null;
   reviewDueCount?: number | null;
 } | null): AcademyTrackId[] {
-  const tracks: AcademyTrackId[] = ["learner"];
-  if ((progress?.reviewDueCount ?? 0) > 0) {
-    tracks.push("review");
-  }
+  const tracks: AcademyTrackId[] = ["learner", "review"];
   if (progress?.seasonStatus === "Active") {
     tracks.push("rehearsal");
   }

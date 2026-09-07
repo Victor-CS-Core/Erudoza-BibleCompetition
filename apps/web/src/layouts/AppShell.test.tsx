@@ -68,11 +68,12 @@ describe("AppShell Field Guide Academy nav", () => {
     expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/student");
     expect(screen.getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/student/progress");
     expect(screen.queryByTestId("nav-academy-rehearsal")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("nav-academy-review")).not.toBeInTheDocument();
+    expect(screen.getByTestId("nav-academy-review")).toHaveAttribute("href", "/student/study?mode=Review");
+    expect(screen.getByTestId("nav-academy-review")).toHaveTextContent("Reviews");
     expect(screen.queryByRole("link", { name: "Simulate" })).not.toBeInTheDocument();
   });
 
-  it("adds rehearsal only after Active progress", async () => {
+  it("adds rehearsal only after Active progress and keeps reviews when none are due", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
     renderShell();
 
@@ -81,10 +82,10 @@ describe("AppShell Field Guide Academy nav", () => {
       "/student/study?mode=Simulation",
     );
     expect(screen.getByTestId("nav-academy-rehearsal")).toHaveTextContent("Rehearsal");
-    expect(screen.queryByTestId("nav-academy-review")).not.toBeInTheDocument();
+    expect(screen.getByTestId("nav-academy-review")).toHaveAttribute("href", "/student/study?mode=Review");
   });
 
-  it("adds reviews only when the progress API reports a positive count", async () => {
+  it("keeps reviews when the progress API reports a positive count", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 3 }));
     renderShell();
 
