@@ -105,8 +105,6 @@ export function StudyPage() {
             {current?.activityType ?? "MissingWords"} · {current?.citation ?? "Loading"}
           </p>
           <div className="flex items-center gap-2">
-            {mode === "Simulation" ? <Stamp label="Simulation" tone="simulation" /> : null}
-            {mode === "Review" ? <Stamp label="Review" tone="review" /> : null}
             <p data-testid="card-progress">{current ? `${current.sequence} / ${current.total}` : "…"}</p>
           </div>
         </div>

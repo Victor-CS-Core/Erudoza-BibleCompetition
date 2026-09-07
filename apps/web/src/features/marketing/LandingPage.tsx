@@ -54,7 +54,7 @@ export function LandingPage() {
 
           <div className="er-deck-stage" aria-labelledby="training-decks-title">
             <div className="er-deck-stage-heading">
-              <p className="er-deck-kicker">Learner · Review · Rehearsal</p>
+              <p className="er-deck-kicker">Learner · Reviews · Rehearsal</p>
               <h2 id="training-decks-title">Choose today’s training deck</h2>
               <p>Build recall first, reinforce what is due, then test it under pressure.</p>
             </div>

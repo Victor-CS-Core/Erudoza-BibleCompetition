@@ -71,6 +71,7 @@ describe("StudentHomePage Field Guide Academy", () => {
     renderHome();
 
     await screen.findByTestId("academy-track-rehearsal");
+    expect(screen.getByLabelText("DUE")).toBeInTheDocument();
     expect(screen.getByTestId("start-todays-deck")).toBeInTheDocument();
     expect(screen.queryByTestId("start-simulation")).not.toBeInTheDocument();
 

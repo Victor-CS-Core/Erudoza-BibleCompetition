@@ -28,7 +28,7 @@ export function StudentHomePage() {
         <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="current-season">
           {data?.seasonName || "Your study section has not been assigned yet."}
         </p>
-        <div className="mt-5 flex flex-wrap gap-2" role="tablist" aria-label="Academy tracks">
+        <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Academy tracks">
           {tracks.map((id) => (
             <ChapterTab
               key={id}

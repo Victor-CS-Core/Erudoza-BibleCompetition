@@ -13,6 +13,14 @@ describe("visibleAcademyTracks", () => {
       "rehearsal",
     ]);
   });
+
+  it("keeps rehearsal when the season is Active even if no reviews are due", () => {
+    expect(visibleAcademyTracks({ seasonStatus: "Active", reviewDueCount: 0 })).toEqual(["learner", "rehearsal"]);
+  });
+
+  it("can show due reviews on a Draft season without unlocking rehearsal", () => {
+    expect(visibleAcademyTracks({ seasonStatus: "Draft", reviewDueCount: 1 })).toEqual(["learner", "review"]);
+  });
 });
 
 describe("academySessionKicker", () => {

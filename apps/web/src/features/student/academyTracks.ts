@@ -50,7 +50,7 @@ export function visibleAcademyTracks(progress?: {
   return tracks;
 }
 
-export function academySessionKicker(mode: string): string {
+export function academySessionKicker(mode: "Practice" | "Review" | "Simulation"): string {
   if (mode === "Simulation") {
     return "Rehearsal";
   }
