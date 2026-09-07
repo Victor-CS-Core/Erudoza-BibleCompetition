@@ -39,7 +39,7 @@
 - Consumes: `academySessionKicker`, API session `mode` string
 - Produces: `academySessionSummaryCopy({ mode, correct, attempted })`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 describe("academySessionSummaryCopy", () => {
