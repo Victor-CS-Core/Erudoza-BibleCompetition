@@ -70,21 +70,26 @@ export function academyTrackForMode(mode: "Practice" | "Review" | "Simulation"):
   return "learner";
 }
 
-export function canStartAcademyTrack(
-  track: AcademyTrackId,
-  progress?: {
-    seasonStatus?: string | null;
-    reviewDueCount?: number | null;
-  } | null,
-): boolean {
+type AcademyProgress = {
+  seasonStatus?: string | null;
+  reviewDueCount?: number | null;
+};
+
+export function canStartAcademyTrack(track: AcademyTrackId, progress?: AcademyProgress | null): boolean {
   if (track === "learner") {
     return progress?.seasonStatus === "Active";
+  }
+  if (track === "review") {
+    return progress?.seasonStatus === "Active" && (progress?.reviewDueCount ?? 0) > 0;
   }
   return visibleAcademyTracks(progress).includes(track);
 }
 
-export function academyUnavailableCopy(track: AcademyTrackId): string {
+export function academyUnavailableCopy(track: AcademyTrackId, progress?: AcademyProgress | null): string {
   if (track === "review") {
+    if ((progress?.reviewDueCount ?? 0) > 0 && progress?.seasonStatus !== "Active") {
+      return "Reviews open when this season is Active.";
+    }
     return "No passages are due for review.";
   }
   if (track === "rehearsal") {
