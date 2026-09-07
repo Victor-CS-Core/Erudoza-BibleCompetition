@@ -9,6 +9,8 @@ import { PaperSurface } from "../../components/material/PaperSurface";
 import { Stamp } from "../../components/material/Stamp";
 import {
   ACADEMY_TRACKS,
+  academyUnavailableCopy,
+  canStartAcademyTrack,
   type AcademyTrackId,
   visibleAcademyTracks,
 } from "./academyTracks";
@@ -41,13 +43,19 @@ export function StudentHomePage() {
         </div>
         <p className="mt-4 text-[var(--er-graphite)]">{track.description}</p>
         <div className="mt-5">
-          <Link
-            to={track.href}
-            data-testid={track.ctaTestId}
-            className="inline-flex items-center rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-5 text-[var(--er-card)]"
-          >
-            {track.ctaLabel}
-          </Link>
+          {canStartAcademyTrack(selected, data) ? (
+            <Link
+              to={track.href}
+              data-testid={track.ctaTestId}
+              className="inline-flex items-center rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-5 text-[var(--er-card)]"
+            >
+              {track.ctaLabel}
+            </Link>
+          ) : progress.isSuccess ? (
+            <p className="text-[var(--er-graphite)]" data-testid="academy-track-unavailable">
+              {academyUnavailableCopy(selected)}
+            </p>
+          ) : null}
         </div>
       </FieldGuideCover>
       <DeckStack due={data?.reviewDueCount ?? 0} next={data?.assignments.length ?? 0} review={data?.reviewDueCount ?? 0} />
