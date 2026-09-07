@@ -38,7 +38,7 @@
 - Consumes: `canStartAcademyTrack`, `academyUnavailableCopy`, progress `seasonStatus`
 - Produces: learner start only when Active; honest unavailable copy
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it("blocks learner until the season is Active", () => {
@@ -55,10 +55,10 @@ it("explains hidden tracks without inventing scores", () => {
 
 Replace the current “lets learner start even when later tracks are hidden” case.
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL.
-- [ ] **Step 3: Implement** learner start as `seasonStatus === "Active"`. Set learner unavailable copy to `Learner drill opens when this season is Active.`
-- [ ] **Step 4: Run tests until PASS.**
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL.
+- [x] **Step 3: Implement** learner start as `seasonStatus === "Active"`. Set learner unavailable copy to `Learner drill opens when this season is Active.`
+- [x] **Step 4: Run tests until PASS.**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -68,11 +68,11 @@ Replace the current “lets learner start even when later tracks are hidden” c
 - Modify: `apps/web/src/features/student/StudentHomePage.test.tsx`
 - Modify: `apps/web/src/features/student/StudentHomePage.tsx`
 
-- [ ] **Step 1: Write failing tests** — Draft cover has no `start-todays-deck` and shows `academy-track-unavailable`; Active still has the CTA.
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/StudentHomePage.test.tsx` and confirm FAIL.
-- [ ] **Step 3: Render the Learner CTA only when `canStartAcademyTrack(selected, data)`. Otherwise show the existing unavailable sentence.
-- [ ] **Step 4: Run tests until PASS.**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Write failing tests** — Draft cover has no `start-todays-deck` and shows `academy-track-unavailable`; Active still has the CTA.
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/StudentHomePage.test.tsx` and confirm FAIL.
+- [x] **Step 3: Render the Learner CTA only when `canStartAcademyTrack(selected, data)`. Otherwise show the existing unavailable sentence.
+- [x] **Step 4: Run tests until PASS.**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -82,8 +82,8 @@ Replace the current “lets learner start even when later tracks are hidden” c
 - Modify: `apps/web/src/features/student/StudyPage.test.tsx`
 - Modify: `docs/brand/erudoza-brand-guide.md`
 
-- [ ] **Step 1: Write a failing test** — Practice with `seasonStatus: "Draft"` does not call `startSession` and shows the learner unavailable copy on the cover.
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/StudyPage.test.tsx` and confirm FAIL.
-- [ ] **Step 3: No StudyPage behavior change if the gate already blocks the start. Update the brand guide one-liner.
-- [ ] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 1: Write a failing test** — Practice with `seasonStatus: "Draft"` does not call `startSession` and shows the learner unavailable copy on the cover.
+- [x] **Step 2: StudyPage already consults `canStartAcademyTrack`; after Task 1 the new test passed without a page change.
+- [x] **Step 3: No StudyPage behavior change. Update the brand guide one-liner.
+- [x] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
 - [ ] **Step 5: Commit**
