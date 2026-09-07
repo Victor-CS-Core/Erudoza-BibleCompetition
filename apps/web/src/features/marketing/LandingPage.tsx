@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
+import { FieldGuideCover } from "../../components/material/FieldGuideCover";
 import { PaperSurface } from "../../components/material/PaperSurface";
 
 const trainingDecks = [
@@ -29,10 +30,10 @@ export function LandingPage() {
           Sign in
         </Link>
       </header>
-      <main className="mx-auto max-w-7xl px-4 pb-16 md:px-8">
+      <main className="mx-auto max-w-7xl space-y-8 px-4 pb-16 md:px-8">
+        <FieldGuideCover />
         <section className="er-landing-hero">
           <div className="er-hero-copy">
-            <p className="er-eyebrow">Field Guide Academy</p>
             <h1 className="er-hero-title">
               Know the passage.
               <span>Own the moment.</span>

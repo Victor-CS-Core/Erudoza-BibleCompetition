@@ -36,7 +36,7 @@
 - Consumes: existing `FieldGuideCover` and landing `Link`s to `/login`
 - Produces: `data-testid="field-guide-academy"` cover titled Field Guide Academy above the unchanged hero and decks
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```tsx
 it("opens on the Field Guide Academy cover and keeps the training decks", () => {
@@ -60,8 +60,8 @@ it("opens on the Field Guide Academy cover and keeps the training decks", () => 
 });
 ```
 
-- [ ] **Step 2: Run** `npm run test:web -- src/test/landingPage.test.tsx` and confirm FAIL (missing `field-guide-academy`).
-- [ ] **Step 3: Place `FieldGuideCover` above the existing hero. Remove the hero eyebrow. Keep deck images and CTAs.
-- [ ] **Step 4: Update the brand guide one-liner.
-- [ ] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 6: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/test/landingPage.test.tsx` and confirm FAIL (missing `field-guide-academy`).
+- [x] **Step 3: Place `FieldGuideCover` above the existing hero. Remove the hero eyebrow. Keep deck images and CTAs.
+- [x] **Step 4: Update the brand guide one-liner.
+- [x] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 6: Commit**
