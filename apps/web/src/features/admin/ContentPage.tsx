@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import type { ContentPack } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { PaperSurface } from "../../components/material/PaperSurface";
+import { CoachFieldGuideCover } from "./academyCover";
 import { parseContentPackImport, sampleJoshuaPackJson } from "./contentPackImport";
 
 export function ContentPage() {
@@ -70,6 +71,7 @@ export function ContentPage() {
 
   return (
     <div className="space-y-4">
+      <CoachFieldGuideCover organizationName={me?.organizationName} />
       <PaperSurface>
         <h1 className="text-2xl font-semibold">Content packs</h1>
         <p className="mt-2 text-sm text-[var(--er-graphite)]">

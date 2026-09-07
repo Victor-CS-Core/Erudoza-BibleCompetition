@@ -39,7 +39,7 @@
 - Consumes: optional `organizationName`, `seasonName`, `seasonStatus`
 - Produces: `{name} · {status}` when both season fields exist; otherwise organization name; otherwise empty
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it("names a season chapter from real name and status", () => {
@@ -60,10 +60,10 @@ it("stays empty instead of inventing readiness", () => {
 });
 ```
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/admin/academyCover.test.ts` and confirm FAIL.
-- [ ] **Step 3: Implement** `academyCoachChapterLine`.
-- [ ] **Step 4: Run tests until PASS.**
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/admin/academyCover.test.ts` and confirm FAIL.
+- [x] **Step 3: Implement** `academyCoachChapterLine`.
+- [x] **Step 4: Run tests until PASS.**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -76,9 +76,9 @@ it("stays empty instead of inventing readiness", () => {
 - Modify: `apps/web/src/features/admin/ContentPage.tsx`
 - Modify: `docs/brand/erudoza-brand-guide.md`
 
-- [ ] **Step 1: Write failing tests** — each remaining coach list page shows `field-guide-academy` and an honest chapter line; seasons/students/content keep their list/form testids; assignments/questions show `{season.name} · {season.status}` from real API fields; no `%` or `streak`.
-- [ ] **Step 2: Run** `npm run test:web -- src/features/admin/SimpleAdminPages.test.tsx src/features/admin/ContentPage.test.tsx` and confirm FAIL.
-- [ ] **Step 3: Wrap each page with `FieldGuideCover` above the existing sheets and render `academyCoachChapterLine`.
-- [ ] **Step 4: Update the brand guide one-liner.
+- [x] **Step 1: Write failing tests** — each remaining coach list page shows `field-guide-academy` and an honest chapter line; seasons/students/content keep their list/form testids; assignments/questions show `{season.name} · {season.status}` from real API fields; no `%` or `streak`.
+- [x] **Step 2: Run** `npm run test:web -- src/features/admin/SimpleAdminPages.test.tsx src/features/admin/ContentPage.test.tsx` and confirm FAIL.
+- [x] **Step 3: Wrap each page with `FieldGuideCover` above the existing sheets and render `academyCoachChapterLine`.
+- [x] **Step 4: Update the brand guide one-liner.
 - [ ] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
 - [ ] **Step 6: Commit**

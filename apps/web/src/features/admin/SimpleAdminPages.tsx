@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { PaperSurface } from "../../components/material/PaperSurface";
+import { CoachFieldGuideCover } from "./academyCover";
 
 export function SeasonsListPage() {
   const { me } = useAuth();
@@ -14,7 +15,9 @@ export function SeasonsListPage() {
   });
 
   return (
-    <PaperSurface>
+    <div className="space-y-4">
+      <CoachFieldGuideCover organizationName={me?.organizationName} />
+      <PaperSurface>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Seasons</h1>
         <Link data-testid="create-season" to="/admin/seasons/new" className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-4 text-[var(--er-card)]">
@@ -31,6 +34,7 @@ export function SeasonsListPage() {
         ))}
       </ul>
     </PaperSurface>
+    </div>
   );
 }
 
@@ -80,7 +84,9 @@ export function StudentsPage() {
   };
 
   return (
-    <PaperSurface>
+    <div className="space-y-4">
+      <CoachFieldGuideCover organizationName={me?.organizationName} />
+      <PaperSurface>
       <h1 className="text-2xl font-semibold">Students</h1>
       <p className="mt-2 text-sm text-[var(--er-graphite)]">
         Students sign in with a username. Coaches reset passwords here because student accounts do not require email.
@@ -169,6 +175,7 @@ export function StudentsPage() {
       ) : null}
       {error ? <p className="mt-4 text-sm text-[var(--er-stamp-red)]">{error}</p> : null}
     </PaperSurface>
+    </div>
   );
 }
 
@@ -187,7 +194,13 @@ export function AssignmentsPage() {
   });
 
   return (
-    <PaperSurface>
+    <div className="space-y-4">
+      <CoachFieldGuideCover
+        organizationName={me?.organizationName}
+        seasonName={coverage.data?.seasonName ?? season?.name}
+        seasonStatus={coverage.data?.seasonStatus ?? season?.status}
+      />
+      <PaperSurface>
       <h1 className="text-2xl font-semibold">Coverage</h1>
       <p className="mt-2 text-[var(--er-graphite)]">
         {coverage.data
@@ -235,6 +248,7 @@ export function AssignmentsPage() {
         <p className="mt-4 text-[var(--er-graphite)]">No assigned students yet.</p>
       )}
     </PaperSurface>
+    </div>
   );
 }
 
@@ -279,7 +293,13 @@ export function QuestionsPage() {
   });
 
   return (
-    <PaperSurface>
+    <div className="space-y-4">
+      <CoachFieldGuideCover
+        organizationName={me?.organizationName}
+        seasonName={season?.name}
+        seasonStatus={season?.status}
+      />
+      <PaperSurface>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Question review</h1>
@@ -348,5 +368,6 @@ export function QuestionsPage() {
         <p className="mt-4 text-[var(--er-graphite)]">No candidates yet. Generate from the stored season scope.</p>
       ) : null}
     </PaperSurface>
+    </div>
   );
 }
