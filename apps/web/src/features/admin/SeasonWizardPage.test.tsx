@@ -31,14 +31,15 @@ vi.mock("../../auth/AuthContext", () => ({
   }),
 }));
 
-function renderWizard() {
+function renderWizard(path = "/admin/seasons/season-1") {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={["/admin/seasons/season-1"]}>
+      <MemoryRouter initialEntries={[path]}>
         <Routes>
+          <Route path="/admin/seasons/new" element={<SeasonWizardPage />} />
           <Route path="/admin/seasons/:seasonId" element={<SeasonWizardPage />} />
         </Routes>
       </MemoryRouter>
@@ -121,5 +122,55 @@ describe("SeasonWizardPage chapter scope", () => {
         range: { bookKey: "JOS", startChapter: 2, startVerse: 1, endChapter: 2, endVerse: 1 },
       }),
     );
+  });
+});
+
+describe("SeasonWizardPage Field Guide Academy", () => {
+  beforeEach(() => {
+    vi.mocked(api.contentPacks).mockClear();
+    vi.mocked(api.students).mockClear();
+    vi.mocked(api.assignments).mockClear();
+    vi.mocked(api.season).mockClear();
+    vi.mocked(api.contentPacks).mockResolvedValue([]);
+    vi.mocked(api.students).mockResolvedValue([]);
+    vi.mocked(api.assignments).mockResolvedValue([]);
+    vi.mocked(api.season).mockResolvedValue({
+      id: "season-1",
+      organizationId: "org-1",
+      name: "Imported Joshua",
+      yearLabel: "2026",
+      status: "Draft",
+      ruleProfileKey: "PBE_STYLE_V1",
+      ruleProfileVersion: 1,
+      startDate: null,
+      targetCompetitionDate: null,
+      scopeUnitCount: 0,
+      assignmentCount: 0,
+    });
+  });
+
+  it("names Field Guide Academy on an existing season chapter from real name and status", async () => {
+    renderWizard("/admin/seasons/season-1");
+
+    const cover = await screen.findByTestId("field-guide-academy");
+    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(cover).toHaveTextContent("Imported Joshua");
+      expect(cover).toHaveTextContent("Draft");
+    });
+    expect(cover).not.toHaveTextContent("%");
+    expect(cover).not.toHaveTextContent("streak");
+    expect(api.season).toHaveBeenCalledWith("org-1", "season-1");
+  });
+
+  it("uses New season copy on create without invented readiness", async () => {
+    renderWizard("/admin/seasons/new");
+
+    const cover = await screen.findByTestId("field-guide-academy");
+    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
+    expect(cover).toHaveTextContent("New season");
+    expect(cover).not.toHaveTextContent("%");
+    expect(cover).not.toHaveTextContent("streak");
+    expect(api.season).not.toHaveBeenCalled();
   });
 });
