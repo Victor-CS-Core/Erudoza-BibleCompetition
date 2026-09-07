@@ -60,6 +60,7 @@ describe("StudentHomePage Field Guide Academy", () => {
 
     expect(await screen.findByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
     expect(await screen.findByText("Daniel 2026")).toBeInTheDocument();
+    expect(screen.getByTestId("academy-track-learner")).toBeInTheDocument();
     expect(screen.getByTestId("academy-track-unavailable")).toHaveTextContent(
       "Learner drill opens when this season is Active.",
     );

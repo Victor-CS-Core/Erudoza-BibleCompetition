@@ -86,4 +86,4 @@ Replace the current “lets learner start even when later tracks are hidden” c
 - [x] **Step 2: StudyPage already consults `canStartAcademyTrack`; after Task 1 the new test passed without a page change.
 - [x] **Step 3: No StudyPage behavior change. Update the brand guide one-liner.
 - [x] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
