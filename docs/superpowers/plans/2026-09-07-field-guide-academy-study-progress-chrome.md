@@ -1,6 +1,6 @@
 # Field Guide Academy Study / Progress Chrome Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Put Field Guide Academy cover on `/student/study` and `/student/progress` (including the coach student folio) and name finished sessions with academy track copy instead of raw API mode.
 
@@ -63,10 +63,10 @@ describe("academySessionSummaryCopy", () => {
 });
 ```
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL.
-- [ ] **Step 3: Implement** `academySessionSummaryCopy` by case-insensitive mapping onto Practice / Review / Simulation, then `academySessionKicker`. Unknown mode uses `Last session: {correct} / {attempted} exact`.
-- [ ] **Step 4: Run tests until PASS.**
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL.
+- [x] **Step 3: Implement** `academySessionSummaryCopy` by case-insensitive mapping onto Practice / Review / Simulation, then `academySessionKicker`. Unknown mode uses `Last session: {correct} / {attempted} exact`.
+- [x] **Step 4: Run tests until PASS.**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -76,11 +76,11 @@ describe("academySessionSummaryCopy", () => {
 - Modify: `apps/web/src/features/student/StudyPage.test.tsx`
 - Modify: `apps/web/src/features/student/StudyPage.tsx`
 
-- [ ] **Step 1: Write failing tests** — learner study shows `field-guide-academy`, `current-season`, and the session kicker; `DUE` appears only when `reviewDueCount > 0`; unavailable Review still skips `startSession` and still lives on the cover.
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/StudyPage.test.tsx` and confirm FAIL.
-- [ ] **Step 3: Wrap study chrome in `FieldGuideCover`. Put season line + kicker (and unavailable copy) on the cover. Keep `StudyCard` below for allowed starts. Stamp `DUE` when reviews are due.
-- [ ] **Step 4: Run tests until PASS.**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Write failing tests** — learner study shows `field-guide-academy`, `current-season`, and the session kicker; `DUE` appears only when `reviewDueCount > 0`; unavailable Review still skips `startSession` and still lives on the cover.
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/StudyPage.test.tsx` and confirm FAIL.
+- [x] **Step 3: Wrap study chrome in `FieldGuideCover`. Put season line + kicker (and unavailable copy) on the cover. Keep `StudyCard` below for allowed starts. Stamp `DUE` when reviews are due.
+- [x] **Step 4: Run tests until PASS.**
+- [x] **Step 5: Commit**
 
 ---
 
@@ -91,8 +91,8 @@ describe("academySessionSummaryCopy", () => {
 - Modify: `apps/web/src/features/student/ProgressPage.tsx`
 - Modify: `docs/brand/erudoza-brand-guide.md`
 
-- [ ] **Step 1: Write failing tests** — student progress shows the cover, season line, and `Last Learner drill session` from location state; coach path `/admin/seasons/:seasonId/students/:studentId/progress` uses `studentProgress` and the same cover; existing `progress-mastery` / `progress-attempts` stay.
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/ProgressPage.test.tsx` and confirm FAIL.
-- [ ] **Step 3: Wrap ProgressPage in `FieldGuideCover`. Replace the extra `h1` with a chapter heading. Use `academySessionSummaryCopy`. Stamp `DUE` when reviews are due. Update the brand guide one-liner.
-- [ ] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Write failing tests** — student progress shows the cover, season line, and `Last Learner drill session` from location state; coach path `/admin/seasons/:seasonId/students/:studentId/progress` uses `studentProgress` and the same cover; existing `progress-mastery` / `progress-attempts` stay.
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/ProgressPage.test.tsx` and confirm FAIL.
+- [x] **Step 3: Wrap ProgressPage in `FieldGuideCover`. Replace the extra `h1` with a chapter heading. Use `academySessionSummaryCopy`. Stamp `DUE` when reviews are due. Update the brand guide one-liner.
+- [x] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 5: Commit**
