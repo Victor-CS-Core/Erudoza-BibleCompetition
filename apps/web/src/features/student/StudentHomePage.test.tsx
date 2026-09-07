@@ -66,6 +66,9 @@ describe("StudentHomePage Field Guide Academy", () => {
     );
     expect(screen.queryByTestId("start-todays-deck")).not.toBeInTheDocument();
     expect(screen.getByTestId("assignment-range")).toHaveTextContent("DAN 1:1–1:4");
+    expect(screen.getByTestId("deck-learner")).toHaveTextContent("1");
+    expect(screen.getByTestId("deck-reviews")).toHaveTextContent("0");
+    expect(screen.getByTestId("deck-rehearsal")).toHaveTextContent("Draft");
     expect(screen.queryByTestId("start-simulation")).not.toBeInTheDocument();
     expect(screen.queryByTestId("start-reviews")).not.toBeInTheDocument();
   });
@@ -94,7 +97,9 @@ describe("StudentHomePage Field Guide Academy", () => {
 
     expect(screen.getByTestId("start-reviews")).toHaveAttribute("href", "/student/study?mode=Review");
     expect(screen.getByLabelText("DUE")).toBeInTheDocument();
-    expect(screen.getByTestId("deck-review")).toHaveTextContent("3");
+    expect(screen.getByTestId("deck-learner")).toHaveTextContent("1");
+    expect(screen.getByTestId("deck-reviews")).toHaveTextContent("3");
+    expect(screen.getByTestId("deck-rehearsal")).toHaveTextContent("Active");
   });
 
   it("keeps the Reviews chapter visible on Draft seasons but hides the start CTA", async () => {

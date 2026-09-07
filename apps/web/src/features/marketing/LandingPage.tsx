@@ -5,17 +5,17 @@ import { PaperSurface } from "../../components/material/PaperSurface";
 
 const trainingDecks = [
   {
-    name: "New deck",
+    name: "Learner deck",
     image: "/brand/deck-new.webp",
     className: "er-deck-new",
   },
   {
-    name: "Review deck",
+    name: "Reviews deck",
     image: "/brand/deck-review.webp",
     className: "er-deck-review",
   },
   {
-    name: "Simulation deck",
+    name: "Rehearsal deck",
     image: "/brand/deck-simulation.webp",
     className: "er-deck-simulation",
   },

@@ -58,7 +58,11 @@ export function StudentHomePage() {
           ) : null}
         </div>
       </FieldGuideCover>
-      <DeckStack due={data?.reviewDueCount ?? 0} next={data?.assignments.length ?? 0} review={data?.reviewDueCount ?? 0} />
+      <DeckStack
+        learner={data?.assignments.length ?? 0}
+        reviews={data?.reviewDueCount ?? 0}
+        seasonStatus={data?.seasonStatus}
+      />
       <PaperSurface data-testid="assignment-packet">
         <h2 className="text-xl font-semibold">Your assignment</h2>
         {assignment ? (
