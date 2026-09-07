@@ -30,8 +30,10 @@ test("admin can activate a season and the student can study missing words", asyn
   await page.getByTestId("logout").click();
 
   await login(page, "daniel.student", "DevStudent!234");
+  await expect(page.getByTestId("field-guide-academy")).toContainText("Field Guide Academy");
   await expect(page.getByTestId("assignment-range")).toContainText("DAN");
   await page.getByTestId("start-todays-deck").click();
+  await expect(page.getByTestId("academy-session-kicker")).toHaveText("Learner drill");
   await expect(page.getByTestId("challenge-card")).toBeVisible();
   await expect(page.getByTestId("challenge-prompt")).toContainText("____");
   const answer = await page.getByTestId("debug-answer").innerText();

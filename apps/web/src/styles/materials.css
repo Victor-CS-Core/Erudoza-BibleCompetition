@@ -35,6 +35,50 @@
   border-color: var(--er-kraft-dark);
 }
 
+.er-field-guide {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--er-kraft-dark);
+  border-radius: var(--er-radius-sheet);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 28%),
+    var(--er-card);
+  box-shadow: 0 12px 32px rgba(13, 43, 79, 0.08);
+}
+
+.er-field-guide::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.7rem;
+  background: repeating-linear-gradient(
+    180deg,
+    var(--er-kraft-dark) 0 11px,
+    var(--er-kraft) 11px 13px
+  );
+  content: "";
+}
+
+.er-field-guide-inner {
+  padding: 1.25rem 1.25rem 1.25rem 1.85rem;
+}
+
+@media (max-width: 680px) {
+  .er-field-guide::before {
+    inset: 0 0 auto 0;
+    width: auto;
+    height: 0.45rem;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--er-kraft-dark) 0 11px,
+      var(--er-kraft) 11px 13px
+    );
+  }
+
+  .er-field-guide-inner {
+    padding: 1.25rem;
+  }
+}
+
 .er-site-header {
   position: relative;
   z-index: 20;

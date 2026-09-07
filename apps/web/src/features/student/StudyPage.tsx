@@ -6,6 +6,7 @@ import type { ChallengeCard } from "../../api/types";
 import { PaperSurface } from "../../components/material/PaperSurface";
 import { Stamp } from "../../components/material/Stamp";
 import { StudyCard } from "../../components/material/StudyCard";
+import { academySessionKicker } from "./academyTracks";
 
 export function StudyPage() {
   const navigate = useNavigate();
@@ -99,11 +100,11 @@ export function StudyPage() {
       <StudyCard>
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
+            <span data-testid="academy-session-kicker">{academySessionKicker(mode)}</span>
+            {" · "}
             {current?.activityType ?? "MissingWords"} · {current?.citation ?? "Loading"}
           </p>
           <div className="flex items-center gap-2">
-            {mode === "Simulation" ? <Stamp label="Simulation" tone="simulation" /> : null}
-            {mode === "Review" ? <Stamp label="Review" tone="review" /> : null}
             <p data-testid="card-progress">{current ? `${current.sequence} / ${current.total}` : "…"}</p>
           </div>
         </div>
