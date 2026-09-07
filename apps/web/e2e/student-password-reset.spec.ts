@@ -25,5 +25,5 @@ test("coach can reset a student password and the student can sign in", async ({ 
 
   await page.getByTestId("logout").click();
   await login(page, userName, "NewPass!234");
-  await expect(page.getByRole("heading", { name: "Ready to study?" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Field Guide Academy" })).toBeVisible();
 });

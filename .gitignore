@@ -46,4 +46,5 @@ firebase-debug.log
 firebase-debug.*.log
 .firebase/
 .wrangler/
+apps/web/.dev.vars
 __pycache__/

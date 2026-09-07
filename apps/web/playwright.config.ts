@@ -32,7 +32,8 @@ export default defineConfig({
       },
     },
     {
-      command: "npm run dev -- --host 127.0.0.1 --port 5173",
+      command:
+        "printf 'ERUDOZA_API_BASE_URL=http://127.0.0.1:5080\\n' > .dev.vars && npm run dev -- --host 127.0.0.1 --port 5173",
       url: webUrl,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
