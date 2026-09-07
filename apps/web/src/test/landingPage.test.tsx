@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { LandingPage } from "../features/marketing/LandingPage";
 
@@ -30,6 +30,14 @@ describe("LandingPage", () => {
     expect(screen.queryByRole("img", { name: "New deck" })).not.toBeInTheDocument();
     expect(screen.queryByRole("img", { name: "Review deck" })).not.toBeInTheDocument();
     expect(screen.queryByRole("img", { name: "Simulation deck" })).not.toBeInTheDocument();
+    const learner = screen.getByRole("link", { name: "Open the learner deck" });
+    const reviews = screen.getByRole("link", { name: "Open the reviews deck" });
+    const rehearsal = screen.getByRole("link", { name: "Open the rehearsal deck" });
+    expect(within(learner).getByTestId("landing-deck-learner")).toHaveTextContent("Learner");
+    expect(within(reviews).getByTestId("landing-deck-reviews")).toHaveTextContent("Reviews");
+    expect(within(rehearsal).getByTestId("landing-deck-rehearsal")).toHaveTextContent("Rehearsal");
+    expect(screen.queryByTestId("landing-deck-new")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("landing-deck-simulation")).not.toBeInTheDocument();
     expect(screen.getByTestId("start-studying")).toBeInTheDocument();
     expect(screen.getByTestId("build-a-season")).toBeInTheDocument();
     expect(screen.getByText(/due reviews, and realistic rehearsal/)).toBeInTheDocument();

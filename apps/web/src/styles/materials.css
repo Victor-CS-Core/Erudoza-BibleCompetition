@@ -295,6 +295,18 @@
   filter: drop-shadow(0 14px 14px rgba(13, 43, 79, 0.17));
 }
 
+.er-deck-label {
+  position: absolute;
+  left: 22%;
+  right: 8%;
+  bottom: 13%;
+  display: flex;
+  align-items: center;
+  min-height: 12%;
+  padding: 0.2rem 0.35rem;
+  background: var(--er-parchment);
+}
+
 .er-deck-new {
   transform: translateY(0.55rem) rotate(-4deg);
 }
