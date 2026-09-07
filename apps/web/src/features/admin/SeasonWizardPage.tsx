@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { ChapterTab } from "../../components/material/ChapterTab";
+import { FieldGuideCover } from "../../components/material/FieldGuideCover";
 import { PaperSurface } from "../../components/material/PaperSurface";
 
 export function SeasonWizardPage() {
@@ -86,15 +87,22 @@ export function SeasonWizardPage() {
 
   return (
     <div className="space-y-4">
+      <FieldGuideCover>
+        <p className="mt-2 text-[var(--er-muted-ink)]">
+          {!seasonId ? "New season" : season.data ? `${season.data.name} · ${season.data.status}` : null}
+        </p>
+      </FieldGuideCover>
       <div className="flex gap-2">
         <ChapterTab label="Setup" active={tab === "setup"} testId="chapter-tab-setup" onClick={() => setTab("setup")} />
         <ChapterTab label="Roster" active={tab === "roster"} testId="chapter-tab-roster" onClick={() => setTab("roster")} />
       </div>
       <PaperSurface>
-        <h1 className="text-2xl font-semibold">{season.data?.name ?? "Create a season"}</h1>
-        <p className="mt-1 text-sm text-[var(--er-muted-ink)]">
-          Status: <span data-testid="season-status">{season.data?.status ?? "Draft"}</span>
-        </p>
+        <h2 className="text-2xl font-semibold">{season.data?.name ?? (!seasonId ? "New season" : "")}</h2>
+        {season.data ? (
+          <p className="mt-1 text-sm text-[var(--er-muted-ink)]">
+            Status: <span data-testid="season-status">{season.data.status}</span>
+          </p>
+        ) : null}
         {!seasonId ? (
           <form className="mt-5 grid gap-3" onSubmit={onCreate}>
             <label className="text-sm font-medium">
@@ -120,7 +128,11 @@ export function SeasonWizardPage() {
                 <option value="PBE_STYLE_V1">PBE_STYLE_V1</option>
               </select>
             </label>
-            <button data-testid="save-season" className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] text-[var(--er-card)]" type="submit">
+            <button
+              data-testid="save-season"
+              className="min-h-11 rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-4 py-3 text-[var(--er-card)]"
+              type="submit"
+            >
               Save season
             </button>
           </form>
