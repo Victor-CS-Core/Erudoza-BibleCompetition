@@ -41,11 +41,11 @@
 - Consumes: `visibleAcademyTracks`, study `mode`
 - Produces: `academyTrackForMode()`, `canStartAcademyTrack()`, `academyUnavailableCopy()`
 
-- [ ] **Step 1: Write the failing tests** for mode mapping, start gate, and copy.
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL.
-- [ ] **Step 3: Implement** the three functions. Learner is always startable from the helper; Review and Rehearsal use `visibleAcademyTracks`.
-- [ ] **Step 4: Run tests until PASS.**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Write the failing tests** for mode mapping, start gate, and copy.
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/academyTracks.test.ts` and confirm FAIL.
+- [x] **Step 3: Implement** the three functions. Learner is always startable from the helper; Review and Rehearsal use `visibleAcademyTracks`.
+- [x] **Step 4: Run tests until PASS.**
+- [x] **Step 5: Commit**
 
 ### Task 2: Study page refuses hidden tracks
 
@@ -53,11 +53,11 @@
 - Create: `apps/web/src/features/student/StudyPage.test.tsx`
 - Modify: `apps/web/src/features/student/StudyPage.tsx`
 
-- [ ] **Step 1: Write failing tests** — Review with `reviewDueCount: 0` does not call `startSession` and shows unavailable copy; Simulation on Draft does the same; Review with due count and Simulation on Active still call `startSession`.
-- [ ] **Step 2: Run** `npm run test:web -- src/features/student/StudyPage.test.tsx` and confirm FAIL.
-- [ ] **Step 3: Gate the existing start effect on `canStartAcademyTrack`. Render kicker + `data-testid="academy-track-unavailable"` when blocked.
-- [ ] **Step 4: Run tests until PASS.**
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Write failing tests** — Review with `reviewDueCount: 0` does not call `startSession` and shows unavailable copy; Simulation on Draft does the same; Review with due count and Simulation on Active still call `startSession`.
+- [x] **Step 2: Run** `npm run test:web -- src/features/student/StudyPage.test.tsx` and confirm FAIL.
+- [x] **Step 3: Gate the existing start effect on `canStartAcademyTrack`. Render kicker + `data-testid="academy-track-unavailable"` when blocked.
+- [x] **Step 4: Run tests until PASS.**
+- [x] **Step 5: Commit**
 
 ### Task 3: Honest student nav + due stamp
 
@@ -68,8 +68,8 @@
 - Modify: `apps/web/src/features/student/StudentHomePage.test.tsx`
 - Modify: `docs/brand/erudoza-brand-guide.md`
 
-- [ ] **Step 1: Write failing shell tests** — Draft progress has Learner, not Rehearsal/Reviews; Active adds Rehearsal; `reviewDueCount > 0` adds Reviews. Adjust home test so `DUE` is absent on Active with zero reviews and present when reviews are due.
-- [ ] **Step 2: Run the new tests and confirm FAIL.**
-- [ ] **Step 3: Student `AppShell` queries `api.progress()` (same query key as home) and maps `visibleAcademyTracks` to nav links. Stamp `DUE` only when `reviewDueCount > 0`.
-- [ ] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 5: Commit**
+- [x] **Step 1: Write failing shell tests** — Draft progress has Learner, not Rehearsal/Reviews; Active adds Rehearsal; `reviewDueCount > 0` adds Reviews. Adjust home test so `DUE` is absent on Active with zero reviews and present when reviews are due.
+- [x] **Step 2: Run the new tests and confirm FAIL.**
+- [x] **Step 3: Student `AppShell` queries `api.progress()` (same query key as home) and maps `visibleAcademyTracks` to nav links. Stamp `DUE` only when `reviewDueCount > 0`.
+- [x] **Step 4: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 5: Commit**

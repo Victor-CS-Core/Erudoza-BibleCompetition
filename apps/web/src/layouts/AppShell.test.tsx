@@ -42,13 +42,13 @@ function progress(overrides: Partial<Progress> = {}): Progress {
   };
 }
 
-function renderShell() {
+function renderShell(path = "/student") {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter>
+      <MemoryRouter initialEntries={[path]}>
         <AppShell variant="student" />
       </MemoryRouter>
     </QueryClientProvider>,
@@ -65,6 +65,8 @@ describe("AppShell Field Guide Academy nav", () => {
 
     expect(await screen.findByTestId("nav-academy-learner")).toHaveAttribute("href", "/student/study");
     expect(screen.getByTestId("nav-academy-learner")).toHaveTextContent("Learner");
+    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/student");
+    expect(screen.getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/student/progress");
     expect(screen.queryByTestId("nav-academy-rehearsal")).not.toBeInTheDocument();
     expect(screen.queryByTestId("nav-academy-review")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Simulate" })).not.toBeInTheDocument();
@@ -88,5 +90,15 @@ describe("AppShell Field Guide Academy nav", () => {
 
     expect(await screen.findByTestId("nav-academy-review")).toHaveAttribute("href", "/student/study?mode=Review");
     expect(screen.getByTestId("nav-academy-review")).toHaveTextContent("Reviews");
+  });
+
+  it("marks only the current academy study track as the active page", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 3 }));
+    renderShell("/student/study?mode=Simulation");
+
+    expect(await screen.findByTestId("nav-academy-rehearsal")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("nav-academy-learner")).not.toHaveAttribute("aria-current");
+    expect(screen.getByTestId("nav-academy-review")).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
   });
 });

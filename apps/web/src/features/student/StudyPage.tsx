@@ -80,13 +80,20 @@ export function StudyPage() {
   });
 
   useEffect(() => {
+    started.current = false;
+    setSessionId(null);
+    setAnswer("");
+    setChunks([]);
+  }, [mode]);
+
+  useEffect(() => {
     if (progress.data?.seasonId && trackReady && !started.current) {
       started.current = true;
       start.mutate();
     }
-    // Intentionally start once when the honest track is allowed.
+    // Intentionally start once per honest track after progress is known.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress.data?.seasonId, trackReady]);
+  }, [progress.data?.seasonId, trackReady, mode]);
 
   const result = submit.data;
   const current = card.data;
