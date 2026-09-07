@@ -76,6 +76,19 @@ describe("StudyPage Field Guide Academy honesty", () => {
     expect(api.startSession).not.toHaveBeenCalled();
   });
 
+  it("does not start due reviews until the season is Active", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Draft", reviewDueCount: 2 }));
+    renderStudy("/student/study?mode=Review");
+
+    expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent(
+      "Reviews open when this season is Active.",
+    );
+    expect(screen.getByTestId("field-guide-academy")).toBeInTheDocument();
+    expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Due review");
+    expect(screen.queryByTestId("challenge-card")).not.toBeInTheDocument();
+    expect(api.startSession).not.toHaveBeenCalled();
+  });
+
   it("does not start learner drill until the season is Active", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Draft" }));
     renderStudy("/student/study");

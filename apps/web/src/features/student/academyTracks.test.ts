@@ -54,9 +54,12 @@ describe("canStartAcademyTrack", () => {
     expect(canStartAcademyTrack("learner", { seasonStatus: "Active", reviewDueCount: 0 })).toBe(true);
   });
 
-  it("blocks review until reviewDueCount is positive", () => {
+  it("blocks review until the season is Active and reviewDueCount is positive", () => {
     expect(canStartAcademyTrack("review", { seasonStatus: "Active", reviewDueCount: 0 })).toBe(false);
-    expect(canStartAcademyTrack("review", { seasonStatus: "Draft", reviewDueCount: 2 })).toBe(true);
+    expect(canStartAcademyTrack("review", { seasonStatus: "Draft", reviewDueCount: 2 })).toBe(false);
+    expect(canStartAcademyTrack("review", { seasonStatus: "ContentReady", reviewDueCount: 2 })).toBe(false);
+    expect(canStartAcademyTrack("review", { seasonStatus: "None", reviewDueCount: 2 })).toBe(false);
+    expect(canStartAcademyTrack("review", { seasonStatus: "Active", reviewDueCount: 2 })).toBe(true);
   });
 
   it("blocks rehearsal until the season is Active", () => {
@@ -68,6 +71,12 @@ describe("canStartAcademyTrack", () => {
 describe("academyUnavailableCopy", () => {
   it("explains hidden tracks without inventing scores", () => {
     expect(academyUnavailableCopy("review")).toBe("No passages are due for review.");
+    expect(academyUnavailableCopy("review", { seasonStatus: "Draft", reviewDueCount: 2 })).toBe(
+      "Reviews open when this season is Active.",
+    );
+    expect(academyUnavailableCopy("review", { seasonStatus: "Active", reviewDueCount: 0 })).toBe(
+      "No passages are due for review.",
+    );
     expect(academyUnavailableCopy("rehearsal")).toBe("Rehearsal opens when this season is Active.");
     expect(academyUnavailableCopy("learner")).toBe("Learner drill opens when this season is Active.");
   });
