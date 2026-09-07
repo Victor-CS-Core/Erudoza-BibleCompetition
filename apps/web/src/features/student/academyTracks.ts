@@ -77,6 +77,9 @@ export function canStartAcademyTrack(
     reviewDueCount?: number | null;
   } | null,
 ): boolean {
+  if (track === "learner") {
+    return progress?.seasonStatus === "Active";
+  }
   return visibleAcademyTracks(progress).includes(track);
 }
 
@@ -87,7 +90,7 @@ export function academyUnavailableCopy(track: AcademyTrackId): string {
   if (track === "rehearsal") {
     return "Rehearsal opens when this season is Active.";
   }
-  return "Learner drill is available from today's deck.";
+  return "Learner drill opens when this season is Active.";
 }
 
 export function academySessionSummaryCopy(summary: {

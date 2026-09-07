@@ -47,8 +47,11 @@ describe("academyTrackForMode", () => {
 });
 
 describe("canStartAcademyTrack", () => {
-  it("lets learner start even when later tracks are hidden", () => {
-    expect(canStartAcademyTrack("learner", { seasonStatus: "Draft", reviewDueCount: 0 })).toBe(true);
+  it("blocks learner until the season is Active", () => {
+    expect(canStartAcademyTrack("learner", { seasonStatus: "Draft", reviewDueCount: 0 })).toBe(false);
+    expect(canStartAcademyTrack("learner", { seasonStatus: "ContentReady", reviewDueCount: 0 })).toBe(false);
+    expect(canStartAcademyTrack("learner", { seasonStatus: "None", reviewDueCount: 0 })).toBe(false);
+    expect(canStartAcademyTrack("learner", { seasonStatus: "Active", reviewDueCount: 0 })).toBe(true);
   });
 
   it("blocks review until reviewDueCount is positive", () => {
@@ -66,7 +69,7 @@ describe("academyUnavailableCopy", () => {
   it("explains hidden tracks without inventing scores", () => {
     expect(academyUnavailableCopy("review")).toBe("No passages are due for review.");
     expect(academyUnavailableCopy("rehearsal")).toBe("Rehearsal opens when this season is Active.");
-    expect(academyUnavailableCopy("learner")).toBe("Learner drill is available from today's deck.");
+    expect(academyUnavailableCopy("learner")).toBe("Learner drill opens when this season is Active.");
   });
 });
 

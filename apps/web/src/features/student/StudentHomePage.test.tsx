@@ -55,12 +55,16 @@ describe("StudentHomePage Field Guide Academy", () => {
     vi.mocked(api.progress).mockResolvedValue(progress());
   });
 
-  it("opens on the learner cover with today's deck CTA", async () => {
+  it("opens on the learner cover without today's deck CTA while the season is Draft", async () => {
     renderHome();
 
     expect(await screen.findByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
     expect(await screen.findByText("Daniel 2026")).toBeInTheDocument();
-    expect(screen.getByTestId("start-todays-deck")).toHaveAttribute("href", "/student/study");
+    expect(screen.getByTestId("academy-track-learner")).toBeInTheDocument();
+    expect(screen.getByTestId("academy-track-unavailable")).toHaveTextContent(
+      "Learner drill opens when this season is Active.",
+    );
+    expect(screen.queryByTestId("start-todays-deck")).not.toBeInTheDocument();
     expect(screen.getByTestId("assignment-range")).toHaveTextContent("DAN 1:1–1:4");
     expect(screen.queryByTestId("start-simulation")).not.toBeInTheDocument();
     expect(screen.queryByTestId("start-reviews")).not.toBeInTheDocument();
@@ -72,7 +76,7 @@ describe("StudentHomePage Field Guide Academy", () => {
 
     await screen.findByTestId("academy-track-rehearsal");
     expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
-    expect(screen.getByTestId("start-todays-deck")).toBeInTheDocument();
+    expect(screen.getByTestId("start-todays-deck")).toHaveAttribute("href", "/student/study");
     expect(screen.queryByTestId("start-simulation")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId("academy-track-rehearsal"));
