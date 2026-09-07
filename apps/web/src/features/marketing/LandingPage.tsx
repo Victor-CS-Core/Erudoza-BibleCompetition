@@ -39,8 +39,8 @@ export function LandingPage() {
               <span>Own the moment.</span>
             </h1>
             <p className="er-hero-summary">
-              Turn your assigned Scripture into focused memorization games, intelligent review, and realistic
-              competition practice.
+              Turn your assigned Scripture into focused memorization games, due reviews, and realistic
+              rehearsal.
             </p>
             <div className="er-hero-actions">
               <Link to="/login" data-testid="start-studying" className="er-primary-action">
@@ -50,7 +50,7 @@ export function LandingPage() {
                 Build a season
               </Link>
             </div>
-            <p className="er-hero-note">Your team chooses the passage. Erudoza builds the practice.</p>
+            <p className="er-hero-note">Your team chooses the passage. Erudoza deals the deck.</p>
           </div>
 
           <div className="er-deck-stage" aria-labelledby="training-decks-title">
@@ -77,7 +77,7 @@ export function LandingPage() {
         <section className="er-proof-grid" aria-label="How Erudoza prepares competitors">
           <PaperSurface as="article" className="er-proof-card">
             <p className="er-proof-label">Learn exactly</p>
-            <h2>Practice only the assigned Scripture.</h2>
+            <h2>Drill only the assigned Scripture.</h2>
             <p>Coaches define the season range. Every game stays anchored to that approved material.</p>
           </PaperSurface>
           <PaperSurface as="article" className="er-proof-card">
@@ -88,7 +88,7 @@ export function LandingPage() {
           <PaperSurface as="article" className="er-proof-card">
             <p className="er-proof-label">Compete calmly</p>
             <h2>Rehearse before the room gets loud.</h2>
-            <p>Timed simulation turns growing recall into confident Bible Bowl performance.</p>
+            <p>Timed rehearsal turns growing recall into confident Bible Bowl performance.</p>
           </PaperSurface>
         </section>
       </main>

@@ -85,6 +85,10 @@ describe("StudentHomePage Field Guide Academy", () => {
     fireEvent.click(screen.getByTestId("academy-track-rehearsal"));
 
     expect(screen.getByTestId("start-simulation")).toHaveAttribute("href", "/student/study?mode=Simulation");
+    expect(screen.getByTestId("start-simulation")).toHaveTextContent("Start rehearsal");
+    expect(screen.getByText("Run a PBE-style rehearsal from the assigned Scripture.")).toBeInTheDocument();
+    expect(screen.queryByText(/practice/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/simulation/i)).not.toBeInTheDocument();
     expect(screen.queryByTestId("start-todays-deck")).not.toBeInTheDocument();
   });
 

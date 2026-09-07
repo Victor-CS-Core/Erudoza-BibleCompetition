@@ -13,7 +13,7 @@ export const ACADEMY_TRACKS: Record<AcademyTrackId, AcademyTrack> = {
   learner: {
     id: "learner",
     label: "Learner",
-    description: "Practice the assigned passage with memorization games.",
+    description: "Drill the assigned passage with memorization games.",
     ctaLabel: "Start today's deck",
     href: "/student/study",
     ctaTestId: "start-todays-deck",
@@ -29,8 +29,8 @@ export const ACADEMY_TRACKS: Record<AcademyTrackId, AcademyTrack> = {
   rehearsal: {
     id: "rehearsal",
     label: "Rehearsal",
-    description: "Run a PBE-style simulation from the assigned Scripture.",
-    ctaLabel: "Start competition simulation",
+    description: "Run a PBE-style rehearsal from the assigned Scripture.",
+    ctaLabel: "Start rehearsal",
     href: "/student/study?mode=Simulation",
     ctaTestId: "start-simulation",
   },
