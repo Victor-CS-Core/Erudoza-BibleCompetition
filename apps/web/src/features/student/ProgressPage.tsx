@@ -3,8 +3,9 @@ import { useLocation, useParams } from "react-router-dom";
 import { api } from "../../api/client";
 import type { SessionSummary } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { PaperSurface } from "../../components/material/PaperSurface";
+import { FieldGuideCover } from "../../components/material/FieldGuideCover";
 import { Stamp } from "../../components/material/Stamp";
+import { academySessionSummaryCopy } from "./academyTracks";
 
 export function ProgressPage() {
   const { me } = useAuth();
@@ -19,17 +20,18 @@ export function ProgressPage() {
   const data = progress.data;
   const summary = useLocation().state as SessionSummary | null;
   const recent = data?.recentAttempts ?? [];
+  const due = (data?.reviewDueCount ?? 0) > 0;
 
   return (
-    <PaperSurface>
-      <h1 className="text-2xl font-semibold">{coachView ? "Student progress" : "Progress"}</h1>
+    <FieldGuideCover stamp={due ? <Stamp label="DUE" tone="due" /> : null}>
+      <h2 className="mt-5 text-xl font-semibold">{coachView ? "Student progress" : "Progress"}</h2>
       <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="progress-student">
         {data?.studentDisplayName ? `${data.studentDisplayName} · ` : null}
         {data?.seasonName}
       </p>
       {summary ? (
         <p className="mt-3 text-sm" data-testid="session-summary">
-          Last {summary.mode.toLowerCase()} session: {summary.correct} / {summary.attempted} exact
+          {academySessionSummaryCopy(summary)}
         </p>
       ) : null}
       <dl className="mt-5 grid gap-3 md:grid-cols-3">
@@ -81,6 +83,6 @@ export function ProgressPage() {
           )}
         </ul>
       </div>
-    </PaperSurface>
+    </FieldGuideCover>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import type { ChallengeCard } from "../../api/types";
+import { FieldGuideCover } from "../../components/material/FieldGuideCover";
 import { PaperSurface } from "../../components/material/PaperSurface";
 import { Stamp } from "../../components/material/Stamp";
 import { StudyCard } from "../../components/material/StudyCard";
@@ -111,28 +112,33 @@ export function StudyPage() {
     setAnswer(next.join(" "));
   };
 
+  const due = (progress.data?.reviewDueCount ?? 0) > 0;
+  const cover = (
+    <FieldGuideCover stamp={due ? <Stamp label="DUE" tone="due" /> : null}>
+      <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="current-season">
+        {progress.data?.seasonName || "Your study section has not been assigned yet."}
+      </p>
+      <p className="mt-4 text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
+        <span data-testid="academy-session-kicker">{academySessionKicker(mode)}</span>
+      </p>
+      {progress.isSuccess && !canStartAcademyTrack(track, progress.data) ? (
+        <p className="mt-4 text-[var(--er-graphite)]" data-testid="academy-track-unavailable">
+          {academyUnavailableCopy(track)}
+        </p>
+      ) : null}
+    </FieldGuideCover>
+  );
+
   if (progress.isSuccess && !canStartAcademyTrack(track, progress.data)) {
-    return (
-      <div className="space-y-4">
-        <PaperSurface>
-          <p className="text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
-            <span data-testid="academy-session-kicker">{academySessionKicker(mode)}</span>
-          </p>
-          <p className="mt-4 text-[var(--er-graphite)]" data-testid="academy-track-unavailable">
-            {academyUnavailableCopy(track)}
-          </p>
-        </PaperSurface>
-      </div>
-    );
+    return <div className="space-y-4">{cover}</div>;
   }
 
   return (
     <div className="space-y-4">
+      {cover}
       <StudyCard>
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
-            <span data-testid="academy-session-kicker">{academySessionKicker(mode)}</span>
-            {" · "}
             {current?.activityType ?? "MissingWords"} · {current?.citation ?? "Loading"}
           </p>
           <div className="flex items-center gap-2">

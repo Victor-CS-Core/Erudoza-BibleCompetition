@@ -108,6 +108,41 @@ describe("StudyPage Field Guide Academy honesty", () => {
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Simulation"));
   });
 
+  it("opens learner drill on the Field Guide Academy cover", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", seasonName: "Daniel 2026" }));
+    renderStudy("/student/study");
+
+    expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("current-season")).toHaveTextContent("Daniel 2026"));
+    expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Learner drill");
+    expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
+  });
+
+  it("stamps DUE on the study cover only when reviews are due", async () => {
+    vi.mocked(api.progress).mockResolvedValue(
+      progress({ seasonStatus: "Active", reviewDueCount: 2, seasonName: "Daniel 2026" }),
+    );
+    renderStudy("/student/study");
+
+    expect(await screen.findByLabelText("DUE")).toBeInTheDocument();
+    expect(screen.getByTestId("field-guide-academy")).toBeInTheDocument();
+  });
+
+  it("keeps unavailable review copy on the Field Guide cover", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
+    renderStudy("/student/study?mode=Review");
+
+    expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent(
+      "No passages are due for review.",
+    );
+    expect(screen.getByTestId("field-guide-academy")).toBeInTheDocument();
+    expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Due review");
+    expect(screen.queryByTestId("challenge-card")).not.toBeInTheDocument();
+    expect(api.startSession).not.toHaveBeenCalled();
+  });
+
   it("starts a new rehearsal session after switching from learner on the same page", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
     const router = renderStudy("/student/study");
