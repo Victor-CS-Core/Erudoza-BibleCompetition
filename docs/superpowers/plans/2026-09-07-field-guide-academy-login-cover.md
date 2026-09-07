@@ -36,7 +36,7 @@
 - Consumes: existing `useAuth().login(identifier, password)` returning `Me`
 - Produces: `data-testid="field-guide-academy"` cover titled Field Guide Academy above the unchanged sign-in sheet
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```tsx
 it("opens on the Field Guide Academy cover and keeps the sign-in form", () => {
@@ -57,8 +57,8 @@ it("sends an adult to /admin after login", async () => { /* mock login Adult; su
 it("stays on /login when sign-in fails", async () => { /* reject login; expect error copy; pathname /login */ });
 ```
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/auth/LoginPage.test.tsx` and confirm FAIL (missing `field-guide-academy`).
-- [ ] **Step 3: Wrap login with `FieldGuideCover` above the existing `PaperSurface`. Keep testids and `login()` routing.
-- [ ] **Step 4: Update the brand guide one-liner.
-- [ ] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
-- [ ] **Step 6: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/auth/LoginPage.test.tsx` and confirm FAIL (missing `field-guide-academy`).
+- [x] **Step 3: Wrap login with `FieldGuideCover` above the existing `PaperSurface`. Keep testids and `login()` routing.
+- [x] **Step 4: Update the brand guide one-liner.
+- [x] **Step 5: Run** `npm run test:web`, `typecheck:web`, `lint:web`.
+- [x] **Step 6: Commit**
