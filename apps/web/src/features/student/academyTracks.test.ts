@@ -1,6 +1,7 @@
 import {
   ACADEMY_TRACKS,
   academyActivityName,
+  academyRecentExactPercent,
   academySessionKicker,
   academySessionSummaryCopy,
   academyTrackForMode,
@@ -137,5 +138,21 @@ describe("academySessionSummaryCopy", () => {
     expect(academySessionSummaryCopy({ mode: "Unknown", correct: 1, attempted: 4 })).toBe(
       "Last session: 1 / 4 exact",
     );
+  });
+});
+
+describe("academyRecentExactPercent", () => {
+  it("reports exact-match percent from recent attempts, not an invented score", () => {
+    expect(academyRecentExactPercent(undefined)).toBe("—");
+    expect(academyRecentExactPercent([])).toBe("—");
+    expect(
+      academyRecentExactPercent([
+        { isCorrect: true },
+        { isCorrect: false },
+        { isCorrect: true },
+        { isCorrect: true },
+      ]),
+    ).toBe("75%");
+    expect(academyRecentExactPercent([{ isCorrect: true }])).toBe("100%");
   });
 });

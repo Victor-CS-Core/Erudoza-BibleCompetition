@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import type { ChallengeCard } from "../../api/types";
+import { FieldGuideChrome } from "../../components/material/FieldGuideChrome";
 import { FieldGuideCover } from "../../components/material/FieldGuideCover";
 import { PaperSurface } from "../../components/material/PaperSurface";
 import { Stamp } from "../../components/material/Stamp";
@@ -131,13 +132,23 @@ export function StudyPage() {
   );
 
   if (progress.isSuccess && !canStartAcademyTrack(track, progress.data)) {
-    return <div className="space-y-4">{cover}</div>;
+    return (
+      <div className="er-study-stage space-y-4">
+        <FieldGuideChrome testId="study-field-guide-chrome" />
+        {cover}
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="er-study-stage space-y-4">
+      <FieldGuideChrome testId="study-field-guide-chrome" />
       {cover}
-      <StudyCard>
+      <StudyCard className="er-bible-challenge">
+        <div className="er-challenge-ribbon" data-testid="challenge-ribbon">
+          <img src="/brand/erudoza-mark.png" alt="" width={36} height={36} />
+        </div>
+        <h2 className="er-challenge-title">Bible Challenge</h2>
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
             <span data-testid="academy-activity-name">
@@ -201,6 +212,9 @@ export function StudyPage() {
             Finish session
           </button>
         </div>
+        <p className="er-challenge-footer" data-testid="challenge-footer">
+          Scripture Memory & Discipleship Field Guide Academy
+        </p>
       </StudyCard>
       {result ? (
         <PaperSurface data-testid="challenge-feedback">

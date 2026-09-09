@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
@@ -137,5 +137,64 @@ describe("ProgressPage Field Guide Academy chrome", () => {
     expect(screen.getByLabelText("DUE")).toBeInTheDocument();
     expect(api.studentProgress).toHaveBeenCalledWith("org-1", "season-1", "student-1");
     expect(api.progress).not.toHaveBeenCalled();
+  });
+});
+
+describe("ProgressPage TOP FOLIO honesty", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.progress).mockResolvedValue(progress());
+    vi.mocked(api.studentProgress).mockResolvedValue(
+      progress({ studentDisplayName: "Daniel Student", reviewDueCount: 2 }),
+    );
+  });
+
+  it("puts Attempts, Due reviews, and Recent in TOP FOLIO from progress truth", async () => {
+    renderProgress("/student/progress");
+
+    const folio = await screen.findByTestId("progress-top-folio");
+    expect(folio).toHaveTextContent("TOP FOLIO");
+    await waitFor(() => expect(within(folio).getByTestId("progress-attempts")).toHaveTextContent("3"));
+    expect(within(folio).getByTestId("progress-reviews")).toHaveTextContent("0");
+    expect(within(folio).getByTestId("progress-recent")).toHaveTextContent("100%");
+    expect(within(folio).queryByText(/strong passages/i)).not.toBeInTheDocument();
+    expect(folio).not.toHaveTextContent("78%");
+    expect(folio).not.toHaveTextContent("streak");
+  });
+
+  it("shows an em dash for Recent when there are no recent attempts", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ recentAttempts: [], attemptCount: 0 }));
+    renderProgress("/student/progress");
+
+    const folio = await screen.findByTestId("progress-top-folio");
+    await waitFor(() => expect(screen.getByTestId("progress-student")).toHaveTextContent("Daniel 2026"));
+    expect(within(folio).getByTestId("progress-attempts")).toHaveTextContent("0");
+    expect(within(folio).getByTestId("progress-recent")).toHaveTextContent("—");
+    expect(folio).not.toHaveTextContent("%");
+  });
+
+  it("keeps the mastery pathway aspirational and does not invent live ring scores", async () => {
+    renderProgress("/student/progress");
+
+    const pathway = await screen.findByTestId("progress-mastery-pathway");
+    expect(pathway).toHaveAttribute("data-aspirational", "true");
+    await waitFor(() => expect(pathway).toHaveTextContent("Daniel 2026"));
+    expect(pathway).toHaveTextContent("Field Guide Mastery Pathway");
+    expect(pathway).toHaveTextContent("product uses attempts/due until API-backed");
+    expect(pathway).not.toHaveTextContent("6/8");
+    expect(pathway).not.toHaveTextContent("Romans");
+    expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Daniel 1:1");
+    expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Exact wording 0.8");
+  });
+
+  it("keeps Field Guide chrome behind the progress folio", async () => {
+    renderProgress("/student/progress");
+
+    const chrome = await screen.findByTestId("progress-field-guide-chrome");
+    expect(chrome).toHaveAttribute("aria-hidden", "true");
+    expect(within(chrome).getByTestId("chrome-compass")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-mountain")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-forest")).toBeInTheDocument();
+    expect(await screen.findByTestId("progress-top-folio")).toBeInTheDocument();
   });
 });
