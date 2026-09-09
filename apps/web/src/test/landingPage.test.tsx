@@ -49,4 +49,46 @@ describe("LandingPage", () => {
     expect(screen.queryByText(/practice/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/simulation/i)).not.toBeInTheDocument();
   });
+
+  it("stacks lockup, CTAs, and TRAINING DECKS in a portrait phone column", () => {
+    renderLanding();
+
+    const column = screen.getByTestId("landing-phone-column");
+    expect(column).toHaveClass("er-landing-column");
+
+    const lockup = within(column).getByTestId("field-guide-academy");
+    const start = within(column).getByTestId("start-studying");
+    const season = within(column).getByTestId("build-a-season");
+    const decks = within(column).getByTestId("landing-training-decks");
+
+    expect(lockup.compareDocumentPosition(start) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(start.compareDocumentPosition(season) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(season.compareDocumentPosition(decks) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(within(decks).getByRole("heading", { name: "TRAINING DECKS" })).toBeInTheDocument();
+    expect(within(column).getByTestId("erudoza-mark")).toHaveAttribute("src", "/brand/erudoza-mark.png");
+  });
+
+  it("keeps Field Guide chrome on the landing column", () => {
+    renderLanding();
+
+    const chrome = within(screen.getByTestId("landing-phone-column")).getByTestId("landing-field-guide-chrome");
+    expect(chrome).toHaveAttribute("aria-hidden", "true");
+    expect(within(chrome).getByTestId("chrome-compass")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-mountain")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-forest")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-leaf")).toBeInTheDocument();
+  });
+
+  it("stacks training decks without a horizontal fan", () => {
+    renderLanding();
+
+    const decks = screen.getByTestId("landing-training-decks");
+    expect(decks).toHaveClass("er-deck-stack");
+    expect(decks).not.toHaveClass("er-deck-fan");
+    expect(within(decks).getByTestId("landing-deck-learner")).toHaveTextContent("Learner");
+    expect(within(decks).getByTestId("landing-deck-reviews")).toHaveTextContent("Reviews");
+    expect(within(decks).getByTestId("landing-deck-rehearsal")).toHaveTextContent("Rehearsal");
+    expect(decks).not.toHaveTextContent("%");
+    expect(decks).not.toHaveTextContent("streak");
+  });
 });
