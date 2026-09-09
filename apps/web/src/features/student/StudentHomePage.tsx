@@ -26,10 +26,23 @@ export function StudentHomePage() {
 
   return (
     <div className="space-y-5">
-      <FieldGuideCover stamp={(data?.reviewDueCount ?? 0) > 0 ? <Stamp label="DUE" tone="due" /> : null}>
-        <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="current-season">
-          {data?.seasonName || "Your study section has not been assigned yet."}
-        </p>
+      <FieldGuideCover folio stamp={(data?.reviewDueCount ?? 0) > 0 ? <Stamp label="DUE" tone="due" /> : null}>
+        <div className="er-folio-chapter">
+          <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="current-season">
+            {data?.seasonName ? (
+              <>
+                CHAPTER: <span>{data.seasonName}</span>
+              </>
+            ) : (
+              "Your study section has not been assigned yet."
+            )}
+          </p>
+          {data?.seasonStatus ? (
+            <p className="er-folio-status" data-testid="folio-season-status">
+              {data.seasonStatus}
+            </p>
+          ) : null}
+        </div>
         <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Academy tracks">
           {tracks.map((id) => (
             <ChapterTab
@@ -63,8 +76,8 @@ export function StudentHomePage() {
         reviews={data?.reviewDueCount ?? 0}
         seasonStatus={data?.seasonStatus}
       />
-      <PaperSurface data-testid="assignment-packet">
-        <h2 className="text-xl font-semibold">Your assignment</h2>
+      <PaperSurface data-testid="assignment-packet" className="er-assignment-strip">
+        <h2 className="text-xl font-semibold">Assignment</h2>
         {assignment ? (
           <p className="mt-2" data-testid="assignment-range">
             {assignment.type}: {assignment.bookKey} {assignment.startChapter}:{assignment.startVerse}–

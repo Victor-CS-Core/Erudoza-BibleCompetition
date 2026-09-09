@@ -21,4 +21,20 @@ describe("DeckStack", () => {
 
     expect(screen.getByTestId("deck-rehearsal")).toHaveTextContent("—");
   });
+
+  it("presents academy tracks as art-backed cards with honest empty counts", () => {
+    render(<DeckStack learner={4} reviews={0} seasonStatus="Active" />);
+
+    const stack = screen.getByTestId("deck-stack");
+    expect(stack).toHaveClass("er-deck-art");
+    expect(stack).toHaveTextContent("Today's deck");
+    expect(screen.getByTestId("deck-card-learner")).toHaveTextContent("Learner");
+    expect(screen.getByTestId("deck-learner")).toHaveTextContent("4");
+    expect(screen.getByTestId("deck-card-reviews")).toHaveTextContent("Reviews");
+    expect(screen.getByTestId("deck-reviews")).toHaveTextContent("0");
+    expect(screen.getByTestId("deck-card-rehearsal")).toHaveTextContent("Rehearsal");
+    expect(screen.getByTestId("deck-rehearsal")).toHaveTextContent("Active");
+    expect(stack).not.toHaveTextContent("%");
+    expect(stack).not.toHaveTextContent("streak");
+  });
 });
