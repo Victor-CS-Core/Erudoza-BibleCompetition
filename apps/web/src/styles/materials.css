@@ -1,5 +1,6 @@
 .er-canvas {
   min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--er-coral) 9%, transparent), transparent 25rem),
     radial-gradient(circle at 92% 16%, color-mix(in srgb, var(--er-teal) 11%, transparent), transparent 27rem),
@@ -366,6 +367,95 @@
 .er-ink-panel {
   background: var(--er-ink-navy);
   color: var(--er-card);
+}
+
+.er-learner-shell {
+  height: 100vh;
+  height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  overflow: hidden;
+}
+
+.er-learner-column {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 28rem;
+  height: 100%;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.er-learner-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--er-border);
+  background: var(--er-card);
+}
+
+.er-learner-wordmark {
+  min-width: 0;
+  min-height: 44px;
+}
+
+.er-learner-icon-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--er-ink-navy);
+}
+
+.er-learner-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1rem 1rem 1.15rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.er-learner-tabbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 0.2rem;
+  background: var(--er-deep-table);
+  padding: 0.3rem 0.4rem env(safe-area-inset-bottom, 0px);
+}
+
+.er-learner-tab {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.3rem 0.2rem;
+  color: color-mix(in srgb, var(--er-card) 74%, transparent);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.er-learner-tab[aria-current="page"] {
+  color: var(--er-teal);
+  box-shadow: inset 0 -3px 0 var(--er-teal);
 }
 
 .er-scripture {
