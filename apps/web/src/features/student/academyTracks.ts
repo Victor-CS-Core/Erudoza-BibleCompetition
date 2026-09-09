@@ -126,3 +126,13 @@ export function academySessionSummaryCopy(summary: {
   }
   return `Last session: ${counts}`;
 }
+
+export function academyRecentExactPercent(
+  recentAttempts?: { isCorrect: boolean }[] | null,
+): string {
+  if (!recentAttempts?.length) {
+    return "—";
+  }
+  const exact = recentAttempts.filter((item) => item.isCorrect).length;
+  return `${Math.round((exact / recentAttempts.length) * 100)}%`;
+}

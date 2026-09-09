@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
@@ -239,5 +239,64 @@ describe("StudyPage Field Guide Academy honesty", () => {
 
     await waitFor(() => expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Rehearsal"));
     expect(api.nextCard).not.toHaveBeenCalledWith("session-stale-learner");
+  });
+});
+
+describe("StudyPage Bible Challenge density", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.startSession).mockResolvedValue({
+      id: "session-1",
+      seasonId: "season-1",
+      status: "Created",
+      mode: "Practice",
+      targetCardCount: 8,
+    });
+    vi.mocked(api.nextCard).mockResolvedValue({
+      id: "card-1",
+      sessionId: "session-1",
+      activityType: "MissingWords",
+      prompt: "In the Sermon on the Mount, Jesus teaches.",
+      citation: "Matthew 5:9",
+      tokens: [],
+      sequence: 1,
+      total: 8,
+    });
+  });
+
+  it("opens the challenge card as a Bible Challenge folio without mastery metrics", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", seasonName: "Daniel 2026" }));
+    renderStudy("/student/study");
+
+    const card = await screen.findByTestId("challenge-card");
+    expect(card).toHaveClass("er-bible-challenge");
+    expect(screen.getByTestId("challenge-ribbon")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Bible Challenge" })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId("challenge-prompt")).toHaveTextContent("In the Sermon on the Mount"),
+    );
+    expect(screen.getByTestId("challenge-footer")).toHaveTextContent(
+      "Scripture Memory & Discipleship Field Guide Academy",
+    );
+    expect(screen.getByTestId("complete-session")).toBeInTheDocument();
+    expect(screen.queryByTestId("progress-top-folio")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("progress-mastery-pathway")).not.toBeInTheDocument();
+    expect(card).not.toHaveTextContent("%");
+    expect(card).not.toHaveTextContent("streak");
+    expect(card).not.toHaveTextContent("6/8");
+  });
+
+  it("keeps Field Guide chrome behind the study folio", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+    renderStudy("/student/study");
+
+    const chrome = await screen.findByTestId("study-field-guide-chrome");
+    expect(chrome).toHaveAttribute("aria-hidden", "true");
+    expect(within(chrome).getByTestId("chrome-compass")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-mountain")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-forest")).toBeInTheDocument();
+    expect(within(chrome).getByText("Discover Interpret Serve")).toBeInTheDocument();
+    expect(screen.getByTestId("field-guide-academy")).toBeInTheDocument();
+    expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Learner drill");
   });
 });

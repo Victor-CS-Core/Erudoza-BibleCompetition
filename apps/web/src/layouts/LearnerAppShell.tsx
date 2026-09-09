@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
 
@@ -11,6 +11,7 @@ const learnerTabs = [
 export function LearnerAppShell() {
   const { me, logout } = useAuth();
   const navigate = useNavigate();
+  const onStudy = useLocation().pathname.startsWith("/student/study");
   const signOut = async () => {
     await logout();
     navigate("/login");
@@ -20,9 +21,20 @@ export function LearnerAppShell() {
     <div className="er-canvas er-learner-shell" data-testid="learner-app-shell">
       <div className="er-learner-column" data-testid="learner-phone-column">
         <header className="er-learner-header">
-          <button type="button" className="er-learner-icon-btn" aria-label="Menu">
-            <MenuIcon />
-          </button>
+          {onStudy ? (
+            <div className="er-learner-study-utils">
+              <Link to="/student" className="er-learner-icon-btn" aria-label="Back" data-testid="study-back">
+                <BackIcon />
+              </Link>
+              <p className="er-study-page-title" data-testid="study-page-title">
+                Study
+              </p>
+            </div>
+          ) : (
+            <button type="button" className="er-learner-icon-btn" aria-label="Menu">
+              <MenuIcon />
+            </button>
+          )}
           <Link to="/student" aria-label="Erudoza home" className="er-learner-wordmark">
             <ErudozaWordmark compact />
           </Link>
@@ -51,6 +63,14 @@ function MenuIcon() {
   return (
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
       <path fill="currentColor" d="M4 7h16v2H4zm0 4h16v2H4zm0 4h16v2H4z" />
+    </svg>
+  );
+}
+
+function BackIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path fill="currentColor" d="M15.4 5.4 8.8 12l6.6 6.6-1.4 1.4L6 12l8-8.6Z" />
     </svg>
   );
 }

@@ -120,5 +120,18 @@ describe("Learner AppShell", () => {
     const tabs = within(screen.getByTestId("learner-tab-bar"));
     expect(tabs.getByRole("link", { name: "Progress" })).toHaveAttribute("aria-current", "page");
     expect(tabs.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
+    expect(tabs.getByRole("link", { name: "Learner" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("button", { name: "Menu" })).toBeInTheDocument();
+  });
+
+  it("offers Back to Home on Study and keeps sign-out instead of an invented Save", () => {
+    renderShell("/student/study");
+
+    expect(screen.getByTestId("study-back")).toHaveAttribute("href", "/student");
+    expect(screen.getByTestId("study-page-title")).toHaveTextContent("Study");
+    expect(screen.getByTestId("logout")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Menu" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Save")).not.toBeInTheDocument();
+    expect(screen.getByTestId("nav-academy-learner")).toHaveAttribute("aria-current", "page");
   });
 });

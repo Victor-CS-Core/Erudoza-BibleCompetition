@@ -303,7 +303,6 @@
 }
 
 .er-landing-column {
-  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -725,6 +724,248 @@
 .er-learner-tab[aria-current="page"] {
   color: var(--er-teal);
   box-shadow: inset 0 -3px 0 var(--er-teal);
+}
+
+.er-learner-study-utils {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-width: 0;
+}
+
+.er-study-page-title {
+  margin: 0;
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.er-study-stage,
+.er-progress-stage {
+  position: relative;
+}
+
+.er-study-stage > *:not(.er-field-guide-chrome),
+.er-progress-stage > *:not(.er-field-guide-chrome) {
+  position: relative;
+  z-index: 1;
+}
+
+.er-chrome-motto {
+  position: absolute;
+  top: 11.5rem;
+  right: 0.4rem;
+  margin: 0;
+  color: color-mix(in srgb, var(--er-kraft-dark) 72%, var(--er-ink-navy));
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 0.78rem;
+  font-style: italic;
+  letter-spacing: 0.01em;
+  opacity: 0.42;
+  transform: rotate(-8deg);
+}
+
+.er-bible-challenge {
+  padding-top: 2.55rem;
+  overflow: visible;
+  border-radius: 6px 18px 10px 16px / 16px 8px 18px 6px;
+}
+
+.er-challenge-ribbon {
+  position: absolute;
+  top: 0.7rem;
+  left: 8%;
+  right: 8%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.85rem;
+  background: var(--er-ink-navy);
+  box-shadow: 0 0 0 3px var(--er-card);
+}
+
+.er-challenge-ribbon img {
+  position: absolute;
+  top: -1.05rem;
+  width: 2.15rem;
+  height: 2.15rem;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 5px rgba(13, 43, 79, 0.2));
+}
+
+.er-challenge-title {
+  margin: 0.2rem 0 0.7rem;
+  color: var(--er-ink-navy);
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 1.28rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.er-challenge-title::after {
+  display: block;
+  width: 4.6rem;
+  margin: 0.45rem auto 0;
+  border-top: 1px solid var(--er-ink-navy);
+  content: "";
+}
+
+.er-challenge-footer {
+  margin-top: 1.15rem;
+  color: var(--er-ink-navy);
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.er-top-folio {
+  padding: 0.7rem 0.75rem 0.9rem;
+  border: 1px solid var(--er-kraft-dark);
+  border-radius: var(--er-radius-sheet);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 40%),
+    var(--er-parchment);
+}
+
+.er-top-folio-label {
+  margin: 0;
+  color: var(--er-ink-navy);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-align: center;
+}
+
+.er-top-folio-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+.er-top-folio-stats div {
+  min-width: 0;
+  padding: 0 0.35rem;
+  border-left: 1px solid var(--er-border);
+}
+
+.er-top-folio-stats div:first-child {
+  border-left: 0;
+}
+
+.er-top-folio-stats dt {
+  color: var(--er-muted-ink);
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.er-top-folio-stats dd {
+  margin: 0.2rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.er-mastery-pathway {
+  margin-top: 1.1rem;
+  padding: 0.85rem 0.7rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--er-kraft-dark) 55%, var(--er-border));
+  border-radius: var(--er-radius-sheet);
+  background: color-mix(in srgb, var(--er-card) 70%, var(--er-parchment));
+}
+
+.er-mastery-pathway-title {
+  margin: 0;
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.er-mastery-pathway-quote {
+  margin: 0.55rem 0 0;
+  color: var(--er-graphite);
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 0.82rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
+.er-pathway-orbit {
+  position: relative;
+  width: min(100%, 16.5rem);
+  aspect-ratio: 1;
+  margin: 0.7rem auto 0;
+}
+
+.er-pathway-core {
+  position: absolute;
+  inset: 31%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--er-coral);
+  border-radius: 999px;
+  box-shadow: 0 0 0 7px color-mix(in srgb, var(--er-teal) 32%, transparent);
+  background: var(--er-card);
+}
+
+.er-pathway-node {
+  position: absolute;
+  width: 4.6rem;
+  margin-left: -2.3rem;
+  color: var(--er-ink-navy);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.er-pathway-node-0 {
+  top: 0.15rem;
+  left: 50%;
+}
+
+.er-pathway-node-1 {
+  top: 18%;
+  left: 88%;
+}
+
+.er-pathway-node-2 {
+  top: 58%;
+  left: 90%;
+}
+
+.er-pathway-node-3 {
+  top: 84%;
+  left: 50%;
+}
+
+.er-pathway-node-4 {
+  top: 58%;
+  left: 10%;
+}
+
+.er-pathway-node-5 {
+  top: 18%;
+  left: 12%;
+}
+
+.er-mastery-pathway-note {
+  margin: 0.85rem 0 0;
+  padding: 0.45rem 0.55rem;
+  border: 1px dashed var(--er-stamp-red);
+  color: var(--er-graphite);
+  font-size: 0.72rem;
+  line-height: 1.4;
 }
 
 .er-scripture {
