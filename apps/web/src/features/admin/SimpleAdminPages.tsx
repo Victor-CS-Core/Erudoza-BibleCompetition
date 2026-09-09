@@ -250,9 +250,10 @@ export function AssignmentsPage() {
             ))}
           </tbody>
         </table>
-      ) : (
+      ) : null}
+      {coverage.data && coverage.data.students.length === 0 ? (
         <p className="mt-4 text-[var(--er-graphite)]">No assigned students yet.</p>
-      )}
+      ) : null}
     </PaperSurface>
     </div>
   );
