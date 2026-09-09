@@ -52,6 +52,27 @@ public sealed class SeasonStudyAndContentTests(ErudozaApiFactory factory) : ICla
     }
 
     [Fact]
+    public async Task Admin_can_list_seasons_newest_first_on_sqlite()
+    {
+        var admin = await TestHttp.LoginAsync(factory, "admin@erudoza.local", "DevAdmin!234");
+        var older = await admin.PostAsJsonAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons",
+            new { name = "Older List Season", yearLabel = "2026", ruleProfileKey = "PBE_STYLE_V1" });
+        older.EnsureSuccessStatusCode();
+        var newer = await admin.PostAsJsonAsync(
+            $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons",
+            new { name = "Newer List Season", yearLabel = "2026", ruleProfileKey = "PBE_STYLE_V1" });
+        newer.EnsureSuccessStatusCode();
+
+        var response = await admin.GetAsync($"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/seasons");
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var seasons = await response.Content.ReadFromJsonAsync<List<SeasonDto>>();
+        seasons.Should().NotBeNull();
+        var listed = seasons!.Where(item => item.Name is "Older List Season" or "Newer List Season").Select(item => item.Name).ToList();
+        listed.Should().Equal("Newer List Season", "Older List Season");
+    }
+
+    [Fact]
     public async Task Duplicate_attempt_is_idempotent_and_mastery_changes()
     {
         var (admin, seasonId) = await ActivateFreshSeason();

@@ -107,10 +107,11 @@ public static class ApiEndpoints
                 return forbidden;
             }
 
-            var seasons = await db.Seasons.AsNoTracking()
+            var seasons = (await db.Seasons.AsNoTracking()
                 .Where(item => item.OrganizationId == orgId)
+                .ToListAsync(cancellationToken))
                 .OrderByDescending(item => item.CreatedAtUtc)
-                .ToListAsync(cancellationToken);
+                .ToList();
             var result = new List<SeasonDto>();
             foreach (var season in seasons)
             {
