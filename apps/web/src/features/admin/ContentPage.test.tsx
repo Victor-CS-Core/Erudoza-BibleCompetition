@@ -70,9 +70,22 @@ describe("ContentPage Field Guide Academy", () => {
     expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
     expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
     expect(await screen.findByTestId("content-pack")).toHaveTextContent("dev-joshua");
+    expect(screen.queryByText("No content packs yet.")).not.toBeInTheDocument();
     expect(screen.getByTestId("load-sample-pack")).toBeInTheDocument();
     expect(screen.getByTestId("import-pack-submit")).toBeInTheDocument();
     expect(cover).not.toHaveTextContent("%");
     expect(cover).not.toHaveTextContent("streak");
+  });
+
+  it("explains an empty content packs list without inventing readiness", async () => {
+    vi.mocked(api.contentPacks).mockResolvedValue([]);
+
+    renderPage();
+
+    expect(await screen.findByText("No content packs yet.")).toBeInTheDocument();
+    expect(screen.getByTestId("import-catalog-submit")).toBeInTheDocument();
+    expect(screen.getByTestId("load-sample-pack")).toBeInTheDocument();
+    expect(screen.getByTestId("import-pack-submit")).toBeInTheDocument();
+    expect(screen.queryByTestId("content-pack")).not.toBeInTheDocument();
   });
 });

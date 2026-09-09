@@ -36,7 +36,7 @@
 - Consumes: existing `api.contentPacks` query (`ContentPack[]`)
 - Produces: visible sentence `No content packs yet.` when that query resolves to `[]`
 
-- [ ] **Step 1: Write the failing empty-state test**
+- [x] **Step 1: Write the failing empty-state test**
 
 ```ts
 it("explains an empty content packs list without inventing readiness", async () => {
@@ -54,7 +54,7 @@ it("explains an empty content packs list without inventing readiness", async () 
 
 Existing populated-list test must also assert it does not show `No content packs yet.`
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/admin/ContentPage.test.tsx` and confirm FAIL (empty list stays blank).
-- [ ] **Step 3: Render** `No content packs yet.` when `packs.data && packs.data.length === 0` on `ContentPage`. Update the brand-guide sentence.
-- [ ] **Step 4: Run** the same test and confirm PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/admin/ContentPage.test.tsx` and confirm FAIL (empty list stays blank).
+- [x] **Step 3: Render** `No content packs yet.` when `packs.data && packs.data.length === 0` on `ContentPage`. Update the brand-guide sentence.
+- [x] **Step 4: Run** the same test and confirm PASS.
+- [x] **Step 5: Commit**

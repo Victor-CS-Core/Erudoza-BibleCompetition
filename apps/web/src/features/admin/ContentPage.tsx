@@ -85,6 +85,9 @@ export function ContentPage() {
             </li>
           ))}
         </ul>
+        {packs.data && packs.data.length === 0 ? (
+          <p className="mt-4 text-[var(--er-graphite)]">No content packs yet.</p>
+        ) : null}
       </PaperSurface>
       {selectedPackId ? (
         <PaperSurface>
