@@ -48,7 +48,7 @@ When the content-packs API returns an empty list, say `No content packs yet.` on
 
 ## Locked decisions
 
-1. **Empty copy is** `No content packs yet.` Same three words on the content packs list that would otherwise render a blank `<ul>`.
+1. **Empty copy is** `No content packs yet.` Same four words on the content packs list that would otherwise render a blank `<ul>`.
 2. **Surface:** `/admin/content` (`ContentPage`). Season-wizard pack `<select>` stays unchanged. Coverage / questions / students / seasons already have their own sentences.
 3. **Show only after a successful empty load.** `packs.data && packs.data.length === 0`. Do not show while `data` is undefined (loading or error).
 4. **Import controls stay.** Do not hide `import-catalog-submit`, `load-sample-pack`, or `import-pack-submit`, or invent a second CTA.
