@@ -1174,18 +1174,18 @@
   vertical-align: 0.12em;
 }
 
-.er-login .er-wordmark {
-  order: -1;
-  flex-direction: column;
-  margin-top: 0.15rem;
-}
-
-.er-login .er-field-guide-inner > div {
+.er-login .er-field-guide-inner > div:not(.er-wordmark) {
   order: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
+}
+
+.er-login .er-field-guide-inner > .er-wordmark {
+  order: -1;
+  flex-direction: column;
+  margin-top: 0.15rem;
 }
 
 .er-login .er-login-motto {
@@ -1328,6 +1328,7 @@
 }
 
 .er-denim-action {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1349,8 +1350,8 @@
 }
 
 .er-denim-action-arrow {
-  margin-left: auto;
-  padding-left: 0.65rem;
+  position: absolute;
+  right: 0.85rem;
   font-size: 1.15rem;
   line-height: 1;
 }
