@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../api/client";
@@ -55,51 +55,67 @@ function renderShell(path = "/student") {
   );
 }
 
-describe("AppShell Field Guide Academy nav", () => {
+describe("Learner AppShell", () => {
   beforeEach(() => {
     vi.mocked(api.progress).mockResolvedValue(progress());
   });
 
-  it("keeps learner and hides rehearsal until the season is Active", async () => {
+  it("renders a bottom tab bar with labeled Home, Learner, and Progress tabs", () => {
     renderShell();
 
-    expect(await screen.findByTestId("nav-academy-learner")).toHaveAttribute("href", "/student/study");
-    expect(screen.getByTestId("nav-academy-learner")).toHaveTextContent("Learner");
-    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/student");
-    expect(screen.getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/student/progress");
-    expect(screen.queryByTestId("nav-academy-rehearsal")).not.toBeInTheDocument();
-    expect(screen.getByTestId("nav-academy-review")).toHaveAttribute("href", "/student/study?mode=Review");
-    expect(screen.getByTestId("nav-academy-review")).toHaveTextContent("Reviews");
-    expect(screen.queryByRole("link", { name: "Simulate" })).not.toBeInTheDocument();
+    const tabs = screen.getByTestId("learner-tab-bar");
+    expect(tabs).toHaveAttribute("aria-label", "Learner");
+    expect(within(tabs).getByRole("link", { name: "Home" })).toHaveAttribute("href", "/student");
+    expect(within(tabs).getByRole("link", { name: "Learner" })).toHaveAttribute("href", "/student/study");
+    expect(within(tabs).getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/student/progress");
+    expect(within(tabs).getByTestId("nav-academy-learner")).toHaveTextContent("Learner");
+    expect(within(tabs).queryByRole("link", { name: "Reviews" })).not.toBeInTheDocument();
+    expect(within(tabs).queryByRole("link", { name: "Rehearsal" })).not.toBeInTheDocument();
+    expect(within(tabs).queryByRole("link", { name: "Students" })).not.toBeInTheDocument();
+    expect(within(tabs).queryByRole("link", { name: "More" })).not.toBeInTheDocument();
   });
 
-  it("adds rehearsal only after Active progress and keeps reviews when none are due", async () => {
-    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+  it("sizes each learner tab to at least 44 by 44 and clears the home indicator", () => {
     renderShell();
 
-    expect(await screen.findByTestId("nav-academy-rehearsal")).toHaveAttribute(
-      "href",
-      "/student/study?mode=Simulation",
-    );
-    expect(screen.getByTestId("nav-academy-rehearsal")).toHaveTextContent("Rehearsal");
-    expect(screen.getByTestId("nav-academy-review")).toHaveAttribute("href", "/student/study?mode=Review");
+    const tabs = screen.getByTestId("learner-tab-bar");
+    expect(tabs.className).toMatch(/er-learner-tabbar/);
+    for (const name of ["Home", "Learner", "Progress"]) {
+      expect(within(tabs).getByRole("link", { name })).toHaveClass("er-learner-tab");
+    }
   });
 
-  it("keeps reviews when the progress API reports a positive count", async () => {
-    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 3 }));
+  it("centers a 28rem phone column inside a 100dvh safe-area shell", () => {
     renderShell();
 
-    expect(await screen.findByTestId("nav-academy-review")).toHaveAttribute("href", "/student/study?mode=Review");
-    expect(screen.getByTestId("nav-academy-review")).toHaveTextContent("Reviews");
+    expect(screen.getByTestId("learner-app-shell")).toHaveClass("er-learner-shell");
+    expect(screen.getByTestId("learner-phone-column")).toHaveClass("er-learner-column");
   });
 
-  it("marks only the current academy study track as the active page", async () => {
-    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 3 }));
+  it("keeps header menu, wordmark, and sign-out on the learner chrome", () => {
+    renderShell();
+
+    expect(screen.getByRole("button", { name: "Menu" })).toBeInTheDocument();
+    expect(screen.getByTestId("erudoza-wordmark")).toBeInTheDocument();
+    expect(screen.getByTestId("logout")).toBeInTheDocument();
+  });
+
+  it("marks Home current on /student and Learner current on study routes", () => {
+    const home = renderShell("/student");
+    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Learner" })).not.toHaveAttribute("aria-current");
+    home.unmount();
+
     renderShell("/student/study?mode=Simulation");
+    expect(screen.getByTestId("nav-academy-learner")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Progress" })).not.toHaveAttribute("aria-current");
+  });
 
-    expect(await screen.findByTestId("nav-academy-rehearsal")).toHaveAttribute("aria-current", "page");
-    expect(screen.getByTestId("nav-academy-learner")).not.toHaveAttribute("aria-current");
-    expect(screen.getByTestId("nav-academy-review")).not.toHaveAttribute("aria-current");
+  it("marks Progress current on the progress route", () => {
+    renderShell("/student/progress");
+
+    expect(screen.getByRole("link", { name: "Progress" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
   });
 });
