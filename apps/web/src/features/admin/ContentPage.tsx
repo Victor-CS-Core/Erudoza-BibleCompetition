@@ -100,6 +100,9 @@ export function ContentPage() {
               </li>
             ))}
           </ul>
+          {units.data && units.data.length === 0 ? (
+            <p className="mt-4 text-[var(--er-graphite)]">No stored verses yet.</p>
+          ) : null}
         </PaperSurface>
       ) : null}
       <PaperSurface>
