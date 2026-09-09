@@ -102,14 +102,31 @@ export function LoginPage() {
                 onClick={() => setShowPassword((open) => !open)}
               >
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" stroke="currentColor" strokeWidth="1.6" />
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                  {showPassword ? (
+                    <>
+                      <path d="M3 5 21 21" stroke="currentColor" strokeWidth="1.6" />
+                      <path d="M9.5 9.7A3 3 0 0 0 12 15a3 3 0 0 0 2.5-1.3" stroke="currentColor" strokeWidth="1.6" />
+                      <path
+                        d="M4 12s3.2-5 8-5c1.4 0 2.7.4 3.8 1M20 12s-1.2 1.9-3.2 3.3"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" stroke="currentColor" strokeWidth="1.6" />
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                    </>
+                  )}
                 </svg>
               </button>
             </label>
             {error ? <p className="text-sm text-[var(--er-stamp-red)]">{error}</p> : null}
             <button data-testid="login-submit" className="er-denim-action" type="submit">
               Continue
+              <span className="er-denim-action-arrow" aria-hidden="true">
+                ›
+              </span>
             </button>
           </form>
           <div className="er-login-sheet-links">

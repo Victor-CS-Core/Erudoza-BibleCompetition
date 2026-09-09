@@ -131,10 +131,24 @@ describe("LoginPage Field Guide Academy", () => {
   it("keeps existing academy links without inventing a new auth flow", () => {
     renderLogin();
 
-    expect(screen.getByText("Forgot Password?")).toBeInTheDocument();
+    const forgot = screen.getByText("Forgot Password?");
+    expect(forgot.tagName).toBe("P");
+    expect(forgot).toHaveClass("er-login-forgot");
     expect(screen.getByTestId("login-join-academy")).toHaveAttribute("href", "/");
     expect(screen.queryByTestId("login-forgot-submit")).not.toBeInTheDocument();
     expect(screen.queryByTestId("signup-submit")).not.toBeInTheDocument();
+  });
+
+  it("lets the explorer reveal the password without changing the login contract", () => {
+    renderLogin();
+
+    const password = screen.getByTestId("login-password");
+    expect(password).toHaveAttribute("type", "password");
+    fireEvent.click(screen.getByRole("button", { name: "Show password" }));
+    expect(password).toHaveAttribute("type", "text");
+    fireEvent.click(screen.getByRole("button", { name: "Hide password" }));
+    expect(password).toHaveAttribute("type", "password");
+    expect(login).not.toHaveBeenCalled();
   });
 
   it("sends a student to /student after login", async () => {

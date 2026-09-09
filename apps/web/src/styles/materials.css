@@ -1156,15 +1156,44 @@
   text-align: center;
 }
 
+.er-login .er-eyebrow {
+  color: var(--er-teal);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+}
+
+.er-login .er-eyebrow::before,
+.er-login .er-eyebrow::after {
+  display: inline-block;
+  width: 0.38rem;
+  height: 0.38rem;
+  margin: 0 0.45rem;
+  background: var(--er-stamp-red);
+  content: "";
+  transform: rotate(45deg);
+  vertical-align: 0.12em;
+}
+
+.er-login .er-wordmark {
+  order: -1;
+  flex-direction: column;
+  margin-top: 0.15rem;
+}
+
 .er-login .er-field-guide-inner > div {
+  order: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
 }
 
+.er-login .er-login-motto {
+  order: 2;
+}
+
 .er-login .er-field-guide-inner h1 {
-  margin-top: 0.35rem;
+  margin-top: 0.2rem;
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -1180,11 +1209,6 @@
   background: var(--er-stamp-red);
   content: "";
   vertical-align: 0.28em;
-}
-
-.er-login .er-wordmark {
-  flex-direction: column;
-  margin-top: 0.35rem;
 }
 
 .er-login .er-wordmark-mark {
@@ -1224,7 +1248,6 @@
 .er-signin-sheet {
   margin: 0.15rem 0.85rem 1.35rem;
   padding: 1.05rem 1rem 1.1rem;
-  overflow: hidden;
   border-color: color-mix(in srgb, var(--er-kraft-dark) 42%, var(--er-border));
   border-radius: 10px 22px 12px 20px / 18px 10px 24px 8px;
   background:
@@ -1325,18 +1348,19 @@
   text-transform: uppercase;
 }
 
-.er-denim-action::after {
-  margin-left: 0.65rem;
-  content: "›";
+.er-denim-action-arrow {
+  margin-left: auto;
+  padding-left: 0.65rem;
   font-size: 1.15rem;
   line-height: 1;
 }
 
 .er-login-sheet-links {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.65rem;
+  gap: 0.45rem 0.65rem;
   margin-top: 0.85rem;
 }
 
@@ -1349,7 +1373,8 @@
 }
 
 .er-login-forgot {
-  color: var(--er-action-blue);
+  color: var(--er-muted-ink);
+  cursor: default;
 }
 
 .er-login-join {
