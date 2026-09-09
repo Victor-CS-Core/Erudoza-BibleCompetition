@@ -137,7 +137,18 @@ describe("Coach list pages Field Guide Academy", () => {
     expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
     expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
     expect(await screen.findByTestId("student-list")).toHaveTextContent("daniel.student");
+    expect(screen.queryByText("No students yet.")).not.toBeInTheDocument();
     expect(screen.getByTestId("add-student")).toBeInTheDocument();
+  });
+
+  it("explains an empty students list without inventing readiness", async () => {
+    vi.mocked(api.students).mockResolvedValue([]);
+
+    renderPage(<StudentsPage />);
+
+    expect(await screen.findByText("No students yet.")).toBeInTheDocument();
+    expect(screen.getByTestId("add-student")).toBeInTheDocument();
+    expect(screen.queryByText("daniel.student")).not.toBeInTheDocument();
   });
 
   it("opens coverage on the Field Guide Academy cover from real season fields", async () => {

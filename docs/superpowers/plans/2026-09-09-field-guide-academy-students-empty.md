@@ -36,7 +36,7 @@
 - Consumes: existing `api.students` query (`Student[]`)
 - Produces: visible sentence `No students yet.` when that query resolves to `[]`
 
-- [ ] **Step 1: Write the failing empty-state test**
+- [x] **Step 1: Write the failing empty-state test**
 
 ```ts
 it("explains an empty students list without inventing readiness", async () => {
@@ -52,7 +52,7 @@ it("explains an empty students list without inventing readiness", async () => {
 
 Existing populated-list test must also assert it does not show `No students yet.`
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/admin/SimpleAdminPages.test.tsx` and confirm FAIL (empty list stays blank).
-- [ ] **Step 3: Render** `No students yet.` when `students.data && students.data.length === 0` on `StudentsPage`. Update the brand-guide sentence.
-- [ ] **Step 4: Run** the same test and confirm PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/admin/SimpleAdminPages.test.tsx` and confirm FAIL (empty list stays blank).
+- [x] **Step 3: Render** `No students yet.` when `students.data && students.data.length === 0` on `StudentsPage`. Update the brand-guide sentence.
+- [x] **Step 4: Run** the same test and confirm PASS.
+- [x] **Step 5: Commit**
