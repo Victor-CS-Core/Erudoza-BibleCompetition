@@ -757,6 +757,225 @@
   min-width: 0;
 }
 
+.er-coach-shell {
+  height: 100vh;
+  height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  overflow: hidden;
+}
+
+.er-coach-column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 430px;
+  height: 100%;
+  margin-inline: auto;
+  overflow: hidden;
+}
+
+.er-coach-column > *:not(.er-field-guide-chrome) {
+  position: relative;
+  z-index: 1;
+}
+
+.er-coach-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--er-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 70%),
+    var(--er-parchment);
+}
+
+.er-coach-wordmark {
+  min-width: 0;
+  min-height: 44px;
+}
+
+.er-coach-main {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1rem 1rem 1.15rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.er-coach-more {
+  display: grid;
+  flex-shrink: 0;
+  gap: 0.35rem;
+  padding: 0.7rem 0.75rem 0.55rem;
+  border-top: 1px solid var(--er-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent 40%),
+    var(--er-parchment);
+}
+
+.er-coach-more-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--er-border);
+  border-radius: var(--er-radius-control);
+  background: var(--er-card);
+  color: var(--er-ink-navy);
+  font-size: 0.92rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.er-coach-tabbar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: stretch;
+  justify-content: space-around;
+  gap: 0.2rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 55%),
+    var(--er-parchment);
+  border-top: 1px solid var(--er-border);
+  padding: 0.3rem 0.4rem env(safe-area-inset-bottom, 0px);
+}
+
+.er-coach-tab {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.12rem;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.3rem 0.2rem;
+  border: 0;
+  background: transparent;
+  color: var(--er-graphite);
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.er-coach-tab[aria-current="page"] {
+  color: var(--er-teal);
+  box-shadow: inset 0 -3px 0 var(--er-teal);
+}
+
+.er-seasons-lede {
+  margin: 0.45rem 0 0;
+  color: var(--er-graphite);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.er-season-row,
+.er-season-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+}
+
+.er-season-row {
+  border-top: 1px solid var(--er-border);
+  padding-top: 0.55rem;
+}
+
+.er-season-card {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--er-border);
+  border-radius: var(--er-radius-control);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent 40%),
+    var(--er-parchment);
+  color: var(--er-ink-navy);
+  text-decoration: none;
+}
+
+.er-season-badge {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.28rem;
+  min-height: 28px;
+  padding: 0.18rem 0.62rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
+.er-season-badge-active {
+  background: color-mix(in srgb, var(--er-teal) 22%, var(--er-card));
+  color: var(--er-success-ink);
+}
+
+.er-season-badge-draft {
+  background: color-mix(in srgb, var(--er-kraft) 38%, var(--er-card));
+  color: var(--er-kraft-dark);
+}
+
+.er-create-season {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--er-radius-sheet);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, #ffffff 8%, transparent) 0 8px,
+      transparent 8px 16px
+    ),
+    var(--er-ink-navy);
+  color: var(--er-card);
+  text-decoration: none;
+}
+
+.er-create-season-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1.5px solid color-mix(in srgb, var(--er-card) 72%, transparent);
+  border-radius: 999px;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.er-create-season-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.er-create-season-copy strong {
+  font-size: 1rem;
+}
+
+.er-create-season-copy span {
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.82;
+}
+
 .er-study-page-title {
   margin: 0;
   font-family: "Source Serif 4", Literata, Georgia, serif;

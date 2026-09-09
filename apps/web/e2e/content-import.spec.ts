@@ -59,6 +59,7 @@ test("coach can import a synthetic pack and browse stored verses", async ({ page
   const packKey = `dev-joshua-${Date.now()}`;
   await login(page, "admin@erudoza.local", "DevAdmin!234");
   await expect(page.getByTestId("organization-name")).toBeVisible();
+  await page.getByTestId("coach-tab-more").click();
   await page.getByRole("link", { name: "Content" }).click();
   await expect(page.getByTestId("load-sample-pack")).toBeVisible();
   await page.getByTestId("load-sample-pack").click();

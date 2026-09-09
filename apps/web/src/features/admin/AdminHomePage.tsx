@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { FieldGuideCover } from "../../components/material/FieldGuideCover";
 import { PaperSurface } from "../../components/material/PaperSurface";
+import { SeasonStatusBadge } from "./SeasonStatusBadge";
 
 export function AdminHomePage() {
   const { me } = useAuth();
@@ -20,7 +21,7 @@ export function AdminHomePage() {
 
   return (
     <div className="space-y-5">
-      <FieldGuideCover>
+      <FieldGuideCover folio>
         <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="organization-name">
           {org.data?.name ?? me?.organizationName}
         </p>
@@ -29,9 +30,9 @@ export function AdminHomePage() {
         </h2>
         <ul className="mt-2 space-y-2" data-testid="season-readiness-folio">
           {seasons.data?.map((season) => (
-            <li key={season.id} className="flex items-center justify-between gap-3 border-t border-[var(--er-border)] pt-2">
+            <li key={season.id} className="er-season-row">
               <span>{season.name}</span>
-              <span>{season.status}</span>
+              <SeasonStatusBadge status={season.status} />
             </li>
           ))}
           {seasons.data && seasons.data.length === 0 ? (
@@ -40,21 +41,18 @@ export function AdminHomePage() {
         </ul>
       </FieldGuideCover>
       <PaperSurface>
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold">Seasons</h2>
-          <Link
-            to="/admin/seasons/new"
-            data-testid="create-season"
-            className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-4 text-[var(--er-card)]"
-          >
-            Create season
-          </Link>
-        </div>
+        <h2 className="text-xl font-semibold">Seasons</h2>
+        <p className="er-seasons-lede">
+          Create and manage seasons to guide learning, track progress, and grow with purpose.
+        </p>
         <ul className="mt-4 space-y-2">
           {seasons.data?.map((season) => (
             <li key={season.id}>
-              <Link className="text-[var(--er-action-blue)]" to={`/admin/seasons/${season.id}`}>
-                {season.name} · {season.status}
+              <Link className="er-season-card" to={`/admin/seasons/${season.id}`}>
+                <span>
+                  {season.name} · {season.status}
+                </span>
+                <SeasonStatusBadge status={season.status} />
               </Link>
             </li>
           ))}
@@ -62,6 +60,15 @@ export function AdminHomePage() {
         {seasons.data && seasons.data.length === 0 ? (
           <p className="mt-4 text-[var(--er-graphite)]">No seasons yet.</p>
         ) : null}
+        <Link to="/admin/seasons/new" data-testid="create-season" className="er-create-season">
+          <span className="er-create-season-mark" aria-hidden="true">
+            +
+          </span>
+          <span className="er-create-season-copy">
+            <strong>Create season</strong>
+            <span>Start a new season</span>
+          </span>
+        </Link>
       </PaperSurface>
     </div>
   );

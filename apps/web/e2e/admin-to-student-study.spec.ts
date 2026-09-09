@@ -27,6 +27,7 @@ test("admin can activate a season and the student can study missing words", asyn
   await page.getByTestId("chapter-tab-setup").click();
   await page.getByTestId("activate-season").click();
   await expect(page.getByTestId("season-status")).toHaveText("Active");
+  await page.getByTestId("coach-tab-more").click();
   await page.getByTestId("logout").click();
 
   await login(page, "daniel.student", "DevStudent!234");
