@@ -63,6 +63,166 @@
   padding: 1.25rem 1.25rem 1.25rem 1.85rem;
 }
 
+.er-field-guide-folio {
+  display: flex;
+  align-items: stretch;
+}
+
+.er-field-guide-folio::before {
+  display: none;
+}
+
+.er-field-guide-spine {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  padding: 0.65rem 0;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--er-ink-navy) 92%, var(--er-kraft-dark)) 0 11px,
+      color-mix(in srgb, var(--er-ink-navy) 78%, var(--er-kraft)) 11px 13px
+    );
+  color: var(--er-kraft);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.er-field-guide-folio .er-field-guide-inner {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.er-folio-chapter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem 0.75rem;
+}
+
+.er-folio-status {
+  margin: 0;
+  color: var(--er-success-ink);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.er-deck-art-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+  overflow-x: hidden;
+}
+
+.er-deck-art-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.3rem 0.5rem;
+  overflow: hidden;
+  border: 1px solid var(--er-kraft-dark);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 32%),
+    var(--er-parchment);
+}
+
+.er-deck-art-card-learner {
+  border-top: 6px solid var(--er-ink-navy);
+}
+
+.er-deck-art-card-reviews {
+  border-top: 6px solid var(--er-stamp-red);
+}
+
+.er-deck-art-card-rehearsal {
+  border-top: 6px solid var(--er-teal);
+}
+
+.er-deck-art-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  color: var(--er-card);
+}
+
+.er-deck-art-card-learner .er-deck-art-mark {
+  background: var(--er-ink-navy);
+}
+
+.er-deck-art-card-reviews .er-deck-art-mark {
+  background: var(--er-stamp-red);
+}
+
+.er-deck-art-card-rehearsal .er-deck-art-mark {
+  background: var(--er-teal);
+}
+
+.er-deck-art-ribbon {
+  margin: 0;
+  max-width: 100%;
+  padding: 0.12rem 0.28rem;
+  border-radius: 3px;
+  background: var(--er-ink-navy);
+  color: var(--er-card);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.er-deck-art-card-reviews .er-deck-art-ribbon {
+  background: var(--er-stamp-red);
+}
+
+.er-deck-art-card-rehearsal .er-deck-art-ribbon {
+  background: var(--er-teal);
+}
+
+.er-deck-art-count {
+  margin: 0;
+  color: var(--er-ink-navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.er-assignment-strip {
+  position: relative;
+  padding-top: 1.35rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.4), transparent 30%),
+    var(--er-parchment);
+}
+
+.er-assignment-strip::before {
+  position: absolute;
+  top: -0.35rem;
+  left: 0.7rem;
+  width: 0.7rem;
+  height: 1.15rem;
+  border: 2px solid var(--er-kraft-dark);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--er-kraft) 55%, transparent);
+  content: "";
+  transform: rotate(-18deg);
+}
+
 @media (max-width: 680px) {
   .er-field-guide::before {
     inset: 0 0 auto 0;
@@ -77,6 +237,14 @@
 
   .er-field-guide-inner {
     padding: 1.25rem;
+  }
+
+  .er-field-guide-folio::before {
+    display: none;
+  }
+
+  .er-field-guide-folio .er-field-guide-inner {
+    padding: 0.95rem 0.9rem 0.95rem 0.75rem;
   }
 }
 

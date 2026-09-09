@@ -128,4 +128,28 @@ describe("StudentHomePage Field Guide Academy", () => {
     expect(screen.queryByTestId("start-reviews")).not.toBeInTheDocument();
     expect(screen.getByLabelText("DUE")).toBeInTheDocument();
   });
+
+  it("shows a readable folio chapter, art-backed decks, and assignment strip", async () => {
+    renderHome();
+
+    const cover = await screen.findByTestId("field-guide-academy");
+    expect(cover).toHaveClass("er-field-guide-folio");
+    expect(screen.getByTestId("folio-spine")).toHaveTextContent("FIELD GUIDE");
+    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
+    expect(await screen.findByText("Daniel 2026")).toBeInTheDocument();
+    expect(screen.getByTestId("current-season")).toHaveTextContent("CHAPTER");
+    expect(screen.getByTestId("current-season")).toHaveTextContent("Daniel 2026");
+    expect(screen.getByTestId("folio-season-status")).toHaveTextContent("Draft");
+    expect(screen.getByTestId("deck-stack")).toHaveClass("er-deck-art");
+    expect(screen.getByTestId("deck-card-learner")).toHaveTextContent("Learner");
+    expect(screen.getByTestId("deck-card-reviews")).toHaveTextContent("Reviews");
+    expect(screen.getByTestId("deck-card-rehearsal")).toHaveTextContent("Rehearsal");
+    expect(screen.getByTestId("deck-learner")).toHaveTextContent("1");
+    expect(screen.getByTestId("deck-reviews")).toHaveTextContent("0");
+    expect(screen.getByTestId("assignment-packet")).toHaveClass("er-assignment-strip");
+    expect(screen.getByTestId("assignment-range")).toHaveTextContent("DAN 1:1–1:4");
+    expect(cover).not.toHaveTextContent("%");
+    expect(cover).not.toHaveTextContent("streak");
+    expect(screen.queryByText(/mastery ring/i)).not.toBeInTheDocument();
+  });
 });
