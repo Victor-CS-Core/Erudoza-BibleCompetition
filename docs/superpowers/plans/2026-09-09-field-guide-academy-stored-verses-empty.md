@@ -36,7 +36,7 @@
 - Consumes: existing `api.sourceUnits` query (`SourceUnit[]`) after a pack is selected
 - Produces: visible sentence `No stored verses yet.` when that query resolves to `[]`
 
-- [ ] **Step 1: Write the failing empty-state test**
+- [x] **Step 1: Write the failing empty-state test**
 
 ```ts
 it("explains an empty stored verses list without inventing readiness", async () => {
@@ -57,7 +57,7 @@ it("explains an empty stored verses list without inventing readiness", async () 
 
 Existing populated-list test must also select the pack, show a real citation, and assert it does not show `No stored verses yet.` Empty content-packs test must keep asserting the stored-verses folio stays closed.
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/admin/ContentPage.test.tsx` and confirm FAIL (selected pack with `[]` units stays blank).
-- [ ] **Step 3: Render** `No stored verses yet.` when `units.data && units.data.length === 0` on `ContentPage`. Update the brand-guide sentence.
-- [ ] **Step 4: Run** the same test and confirm PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/admin/ContentPage.test.tsx` and confirm FAIL (selected pack with `[]` units stays blank).
+- [x] **Step 3: Render** `No stored verses yet.` when `units.data && units.data.length === 0` on `ContentPage`. Update the brand-guide sentence.
+- [x] **Step 4: Run** the same test and confirm PASS.
+- [x] **Step 5: Commit**
