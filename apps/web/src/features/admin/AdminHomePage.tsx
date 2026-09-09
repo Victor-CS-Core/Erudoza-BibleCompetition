@@ -34,6 +34,9 @@ export function AdminHomePage() {
               <span>{season.status}</span>
             </li>
           ))}
+          {seasons.data && seasons.data.length === 0 ? (
+            <li className="text-[var(--er-graphite)]">No seasons yet.</li>
+          ) : null}
         </ul>
       </FieldGuideCover>
       <PaperSurface>
@@ -56,6 +59,9 @@ export function AdminHomePage() {
             </li>
           ))}
         </ul>
+        {seasons.data && seasons.data.length === 0 ? (
+          <p className="mt-4 text-[var(--er-graphite)]">No seasons yet.</p>
+        ) : null}
       </PaperSurface>
     </div>
   );
