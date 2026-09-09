@@ -14,6 +14,7 @@ export function CoachAppShell() {
   const seasonsActive = pathname === "/admin" || pathname.startsWith("/admin/seasons");
   const studentsActive = pathname.startsWith("/admin/students");
   const moreActive = moreRoutes.some((route) => pathname.startsWith(route));
+  const studentProgress = /\/admin\/seasons\/[^/]+\/students\/[^/]+\/progress$/.test(pathname);
   const signOut = async () => {
     await logout();
     navigate("/login");
@@ -26,7 +27,7 @@ export function CoachAppShell() {
   return (
     <div className="er-canvas er-coach-shell" data-testid="coach-app-shell">
       <div className="er-coach-column" data-testid="coach-phone-column">
-        <FieldGuideChrome testId="coach-field-guide-chrome" />
+        {studentProgress ? null : <FieldGuideChrome testId="coach-field-guide-chrome" />}
         <header className="er-coach-header">
           <Link to="/admin" aria-label="Erudoza home" className="er-coach-wordmark">
             <ErudozaWordmark compact />

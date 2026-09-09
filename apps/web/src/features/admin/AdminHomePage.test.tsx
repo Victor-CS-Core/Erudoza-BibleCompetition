@@ -113,6 +113,23 @@ describe("AdminHomePage Field Guide Academy", () => {
     expect(folio).not.toHaveTextContent("streak");
   });
 
+  it("does not dress a ContentReady season as a Draft badge", async () => {
+    vi.mocked(api.seasons).mockResolvedValue([
+      season({ id: "season-ready", name: "Scope Saved", status: "ContentReady" }),
+    ]);
+
+    renderHome();
+
+    const folio = await screen.findByTestId("season-readiness-folio");
+    const badge = await within(folio).findByTestId("season-status-badge");
+    expect(badge).toHaveTextContent("ContentReady");
+    expect(badge).toHaveClass("er-season-badge-ready");
+    expect(badge).not.toHaveClass("er-season-badge-draft");
+    expect(badge).not.toHaveClass("er-season-badge-active");
+    expect(folio).not.toHaveTextContent("%");
+    expect(folio).not.toHaveTextContent("streak");
+  });
+
   it("explains an empty seasons folio without inventing readiness", async () => {
     vi.mocked(api.seasons).mockResolvedValue([]);
 

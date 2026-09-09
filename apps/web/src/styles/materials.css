@@ -804,7 +804,7 @@
   flex: 1 1 auto;
   min-height: 0;
   padding: 1rem 1rem 1.15rem;
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
 }
 
@@ -923,6 +923,16 @@
 .er-season-badge-draft {
   background: color-mix(in srgb, var(--er-kraft) 38%, var(--er-card));
   color: var(--er-kraft-dark);
+}
+
+.er-season-badge-ready {
+  background: color-mix(in srgb, var(--er-learning-blue) 16%, var(--er-card));
+  color: var(--er-ink-navy);
+}
+
+.er-season-badge-closed {
+  background: color-mix(in srgb, var(--er-graphite) 14%, var(--er-card));
+  color: var(--er-graphite);
 }
 
 .er-create-season {

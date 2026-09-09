@@ -273,6 +273,13 @@ describe("Coach AppShell", () => {
     expect(studentTabs.getByRole("link", { name: "Seasons" })).not.toHaveAttribute("aria-current");
   });
 
+  it("leaves Field Guide chrome to the progress folio on coach student progress", () => {
+    renderCoachShell("/admin/seasons/season-1/students/student-1/progress");
+
+    expect(screen.queryByTestId("coach-field-guide-chrome")).not.toBeInTheDocument();
+    expect(screen.getByTestId("coach-tab-seasons")).toHaveAttribute("aria-current", "page");
+  });
+
   it("puts Content, Assignments, Questions, and Sign out under More", () => {
     renderCoachShell("/admin/content");
 

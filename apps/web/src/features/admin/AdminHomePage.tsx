@@ -49,9 +49,7 @@ export function AdminHomePage() {
           {seasons.data?.map((season) => (
             <li key={season.id}>
               <Link className="er-season-card" to={`/admin/seasons/${season.id}`}>
-                <span>
-                  {season.name} · {season.status}
-                </span>
+                <span>{season.name}</span>
                 <SeasonStatusBadge status={season.status} />
               </Link>
             </li>
