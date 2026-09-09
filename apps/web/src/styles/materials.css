@@ -361,6 +361,30 @@
   opacity: 0.28;
 }
 
+.er-study-stage .er-chrome-compass,
+.er-progress-stage .er-chrome-compass {
+  top: auto;
+  bottom: 4.5rem;
+  right: -0.6rem;
+  width: 6.4rem;
+  height: 6.4rem;
+}
+
+.er-study-stage .er-chrome-mountain,
+.er-progress-stage .er-chrome-mountain {
+  top: auto;
+  bottom: 0;
+  height: 6.5rem;
+  opacity: 0.16;
+}
+
+.er-study-stage .er-chrome-forest,
+.er-progress-stage .er-chrome-forest {
+  top: auto;
+  bottom: 0;
+  height: 4.2rem;
+}
+
 .er-chrome-mountain {
   top: 16.5rem;
   right: 0;
@@ -743,6 +767,24 @@
 .er-study-stage,
 .er-progress-stage {
   position: relative;
+}
+
+.er-study-stage .er-field-guide-inner {
+  padding: 0.7rem 0.85rem 0.75rem;
+}
+
+.er-study-stage .er-field-guide h1 {
+  margin-top: 0.15rem;
+  font-size: 1.15rem;
+}
+
+.er-study-stage .er-eyebrow {
+  font-size: 0.64rem;
+}
+
+.er-study-stage [data-testid="current-season"],
+.er-study-stage [data-testid="academy-session-kicker"] {
+  margin-top: 0.35rem;
 }
 
 .er-study-stage > *:not(.er-field-guide-chrome),
