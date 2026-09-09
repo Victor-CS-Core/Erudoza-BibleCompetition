@@ -160,9 +160,20 @@ describe("Coach list pages Field Guide Academy", () => {
       expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Daniel Gauntlet · Active");
     });
     expect(await screen.findByTestId("coverage-table")).toHaveTextContent("daniel.student");
+    expect(screen.queryByText("No assigned students yet.")).not.toBeInTheDocument();
     expect(cover).not.toHaveTextContent("%");
     expect(cover).not.toHaveTextContent("streak");
     expect(api.coverage).toHaveBeenCalledWith("org-1", "season-active");
+  });
+
+  it("explains an empty coverage list without inventing readiness", async () => {
+    vi.mocked(api.coverage).mockResolvedValue(coverage({ students: [] }));
+
+    renderPage(<AssignmentsPage />);
+
+    expect(await screen.findByText("No assigned students yet.")).toBeInTheDocument();
+    expect(screen.queryByTestId("coverage-table")).not.toBeInTheDocument();
+    expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Daniel Gauntlet · Active");
   });
 
   it("uses the organization chapter on coverage when no season exists", async () => {
@@ -173,6 +184,8 @@ describe("Coach list pages Field Guide Academy", () => {
     expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
     expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
     expect(screen.queryByTestId("coverage-table")).not.toBeInTheDocument();
+    expect(screen.queryByText("No assigned students yet.")).not.toBeInTheDocument();
+    expect(screen.getByText("Open a season to create specialist and required coverage assignments.")).toBeInTheDocument();
     expect(api.coverage).not.toHaveBeenCalled();
   });
 

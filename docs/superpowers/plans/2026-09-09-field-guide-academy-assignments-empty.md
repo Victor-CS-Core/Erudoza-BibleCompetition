@@ -36,7 +36,7 @@
 - Consumes: existing `api.coverage` query (`SeasonCoverage`)
 - Produces: visible sentence `No assigned students yet.` only when that query resolves with `students: []`
 
-- [ ] **Step 1: Write the failing empty-state tests**
+- [x] **Step 1: Write the failing empty-state tests**
 
 ```ts
 it("explains an empty coverage list without inventing readiness", async () => {
@@ -46,14 +46,14 @@ it("explains an empty coverage list without inventing readiness", async () => {
 
   expect(await screen.findByText("No assigned students yet.")).toBeInTheDocument();
   expect(screen.queryByTestId("coverage-table")).not.toBeInTheDocument();
-  expect(screen.getByText("Daniel Gauntlet · Active")).toBeInTheDocument();
+  expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Daniel Gauntlet · Active");
 });
 ```
 
 Existing no-season coverage test must also assert it does not show `No assigned students yet.`
 Existing populated coverage test must also assert it does not show `No assigned students yet.`
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/admin/SimpleAdminPages.test.tsx` and confirm FAIL (no-season folio still says `No assigned students yet.`).
-- [ ] **Step 3: Render** `No assigned students yet.` when `coverage.data && coverage.data.students.length === 0` on `AssignmentsPage`. Update the brand-guide sentence.
-- [ ] **Step 4: Run** the same test and confirm PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/admin/SimpleAdminPages.test.tsx` and confirm FAIL (no-season folio still says `No assigned students yet.`).
+- [x] **Step 3: Render** `No assigned students yet.` when `coverage.data && coverage.data.students.length === 0` on `AssignmentsPage`. Update the brand-guide sentence.
+- [x] **Step 4: Run** the same test and confirm PASS.
+- [x] **Step 5: Commit**
