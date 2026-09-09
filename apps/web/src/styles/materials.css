@@ -148,7 +148,15 @@
 
 .er-landing-header {
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   padding: 0.7rem 1rem;
+}
+
+.er-landing .er-wordmark-tagline {
+  display: none;
 }
 
 .er-landing-main {
@@ -187,21 +195,21 @@
 }
 
 .er-chrome-mountain {
+  top: 16.5rem;
   right: 0;
-  bottom: 0;
   left: 0;
-  height: 7.5rem;
+  height: 8.5rem;
   color: color-mix(in srgb, var(--er-ink-navy) 70%, var(--er-kraft-dark));
-  opacity: 0.16;
+  opacity: 0.2;
 }
 
 .er-chrome-forest {
+  top: 22.5rem;
   right: 0;
-  bottom: 0;
   left: 0;
-  height: 4.6rem;
+  height: 5rem;
   color: color-mix(in srgb, var(--er-ink-navy) 62%, #1f4d3a);
-  opacity: 0.22;
+  opacity: 0.26;
 }
 
 .er-chrome-leaf {
