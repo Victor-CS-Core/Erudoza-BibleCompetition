@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Me } from "../../api/types";
@@ -79,6 +79,62 @@ describe("LoginPage Field Guide Academy", () => {
     expect(screen.getByTestId("login-submit")).toBeInTheDocument();
     expect(cover).not.toHaveTextContent("%");
     expect(cover).not.toHaveTextContent("streak");
+  });
+
+  it("stacks kraft banner, Field Guide hero, and parchment Sign in in a portrait phone column", () => {
+    renderLogin();
+
+    const column = screen.getByTestId("login-phone-column");
+    expect(column).toHaveClass("er-login-column");
+
+    const banner = within(column).getByTestId("login-kraft-banner");
+    expect(banner).toHaveClass("er-kraft-banner");
+    expect(banner).toHaveTextContent("FIELD GUIDE");
+    expect(banner).toHaveTextContent("VOL. 7");
+    expect(banner).toHaveTextContent("FLORA & TERRAIN");
+    expect(within(column).getByText("Pathfinder Bible Experience")).toBeInTheDocument();
+
+    const cover = within(column).getByTestId("field-guide-academy");
+    expect(within(column).getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
+    expect(within(column).getByTestId("erudoza-wordmark")).toBeInTheDocument();
+    expect(within(column).getByTestId("erudoza-mark")).toHaveAttribute("src", "/brand/erudoza-mark.png");
+    expect(within(column).getByTestId("login-motto")).toHaveTextContent("Discover · Interpret · Serve");
+
+    const sheet = within(column).getByTestId("login-signin-sheet");
+    expect(sheet).toHaveClass("er-signin-sheet");
+    expect(within(sheet).getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
+    expect(within(sheet).getByTestId("login-identifier")).toBeInTheDocument();
+    expect(within(sheet).getByTestId("login-password")).toBeInTheDocument();
+    const submit = within(sheet).getByTestId("login-submit");
+    expect(submit).toHaveClass("er-denim-action");
+    expect(submit).toHaveTextContent("Continue");
+
+    expect(banner.compareDocumentPosition(cover) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(cover.compareDocumentPosition(sheet) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByTestId("learner-tab-bar")).not.toBeInTheDocument();
+    expect(column).not.toHaveTextContent("%");
+    expect(column).not.toHaveTextContent("streak");
+    expect(column).not.toHaveTextContent("mastery");
+  });
+
+  it("keeps Field Guide chrome on the login column", () => {
+    renderLogin();
+
+    const chrome = within(screen.getByTestId("login-phone-column")).getByTestId("login-field-guide-chrome");
+    expect(chrome).toHaveAttribute("aria-hidden", "true");
+    expect(within(chrome).getByTestId("chrome-compass")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-mountain")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-forest")).toBeInTheDocument();
+    expect(within(chrome).getByTestId("chrome-leaf")).toBeInTheDocument();
+  });
+
+  it("keeps existing academy links without inventing a new auth flow", () => {
+    renderLogin();
+
+    expect(screen.getByText("Forgot Password?")).toBeInTheDocument();
+    expect(screen.getByTestId("login-join-academy")).toHaveAttribute("href", "/");
+    expect(screen.queryByTestId("login-forgot-submit")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("signup-submit")).not.toBeInTheDocument();
   });
 
   it("sends a student to /student after login", async () => {
