@@ -17,10 +17,11 @@ export function CoachFieldGuideCover(input: {
   organizationName?: string | null;
   seasonName?: string | null;
   seasonStatus?: string | null;
+  folio?: boolean;
 }) {
   const chapter = academyCoachChapterLine(input);
   return (
-    <FieldGuideCover>
+    <FieldGuideCover folio={input.folio}>
       {chapter ? (
         <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="academy-chapter-line">
           {chapter}

@@ -114,7 +114,11 @@ describe("Coach list pages Field Guide Academy", () => {
     expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
     expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
     expect(screen.getByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new");
+    expect(screen.getByTestId("create-season")).toHaveClass("er-create-season");
     await waitFor(() => expect(screen.getByText(/Imported Joshua/)).toBeInTheDocument());
+    const badges = screen.getAllByTestId("season-status-badge");
+    expect(badges.map((badge) => badge.textContent)).toEqual(expect.arrayContaining(["Draft", "Active"]));
+    expect(badges[0].querySelector("svg")).toBeTruthy();
     expect(screen.queryByText("No seasons yet.")).not.toBeInTheDocument();
     expect(cover).not.toHaveTextContent("%");
     expect(cover).not.toHaveTextContent("streak");

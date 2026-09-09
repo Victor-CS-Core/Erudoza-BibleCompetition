@@ -5,6 +5,7 @@ import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { PaperSurface } from "../../components/material/PaperSurface";
 import { CoachFieldGuideCover } from "./academyCover";
+import { SeasonStatusBadge } from "./SeasonStatusBadge";
 
 export function SeasonsListPage() {
   const { me } = useAuth();
@@ -16,19 +17,20 @@ export function SeasonsListPage() {
 
   return (
     <div className="space-y-4">
-      <CoachFieldGuideCover organizationName={me?.organizationName} />
+      <CoachFieldGuideCover organizationName={me?.organizationName} folio />
       <PaperSurface>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Seasons</h1>
-        <Link data-testid="create-season" to="/admin/seasons/new" className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-4 text-[var(--er-card)]">
-          Create season
-        </Link>
-      </div>
+      <h1 className="text-2xl font-semibold">Seasons</h1>
+      <p className="er-seasons-lede">
+        Create and manage seasons to guide learning, track progress, and grow with purpose.
+      </p>
       <ul className="mt-4 space-y-2">
         {seasons.data?.map((season) => (
           <li key={season.id}>
-            <Link className="text-[var(--er-action-blue)]" to={`/admin/seasons/${season.id}`}>
-              {season.name} · {season.ruleProfileKey} · {season.status}
+            <Link className="er-season-card" to={`/admin/seasons/${season.id}`}>
+              <span>
+                {season.name} · {season.ruleProfileKey}
+              </span>
+              <SeasonStatusBadge status={season.status} />
             </Link>
           </li>
         ))}
@@ -36,6 +38,15 @@ export function SeasonsListPage() {
       {seasons.data && seasons.data.length === 0 ? (
         <p className="mt-4 text-[var(--er-graphite)]">No seasons yet.</p>
       ) : null}
+      <Link data-testid="create-season" to="/admin/seasons/new" className="er-create-season">
+        <span className="er-create-season-mark" aria-hidden="true">
+          +
+        </span>
+        <span className="er-create-season-copy">
+          <strong>Create season</strong>
+          <span>Start a new season</span>
+        </span>
+      </Link>
     </PaperSurface>
     </div>
   );

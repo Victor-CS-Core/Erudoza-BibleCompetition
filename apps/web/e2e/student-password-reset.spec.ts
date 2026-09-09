@@ -23,6 +23,7 @@ test("coach can reset a student password and the student can sign in", async ({ 
   await page.getByTestId("reset-password-save").click();
   await expect(page.getByTestId("reset-password-status")).toContainText("Password updated");
 
+  await page.getByTestId("coach-tab-more").click();
   await page.getByTestId("logout").click();
   await login(page, userName, "NewPass!234");
   await expect(page.getByRole("heading", { name: "Field Guide Academy" })).toBeVisible();

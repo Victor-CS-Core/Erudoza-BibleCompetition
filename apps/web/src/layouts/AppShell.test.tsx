@@ -1,30 +1,50 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../api/client";
 import type { Progress } from "../api/types";
+import { AdminHomePage } from "../features/admin/AdminHomePage";
 import { AppShell } from "./AppShell";
+
+const authState = vi.hoisted(() => ({
+  variant: "student" as "student" | "admin",
+  logout: vi.fn(),
+}));
 
 vi.mock("../api/client", () => ({
   api: {
     progress: vi.fn(),
+    organization: vi.fn(),
+    seasons: vi.fn(),
   },
 }));
 
 vi.mock("../auth/AuthContext", () => ({
   useAuth: () => ({
-    me: {
-      userId: "student-1",
-      organizationId: "org-1",
-      organizationName: "Development Academy",
-      displayName: "Daniel Student",
-      userName: "daniel.student",
-      email: null,
-      kind: "Student",
-      role: "Student",
-    },
-    logout: vi.fn(),
+    me:
+      authState.variant === "admin"
+        ? {
+            userId: "admin-1",
+            organizationId: "org-1",
+            organizationName: "Development Academy",
+            displayName: "Admin",
+            userName: "admin",
+            email: "admin@erudoza.local",
+            kind: "Adult",
+            role: "Admin",
+          }
+        : {
+            userId: "student-1",
+            organizationId: "org-1",
+            organizationName: "Development Academy",
+            displayName: "Daniel Student",
+            userName: "daniel.student",
+            email: null,
+            kind: "Student",
+            role: "Student",
+          },
+    logout: authState.logout,
   }),
 }));
 
@@ -55,8 +75,39 @@ function renderShell(path = "/student") {
   );
 }
 
+function renderCoachShell(path = "/admin") {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter initialEntries={[path]}>
+        <AppShell variant="admin" />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
+function renderCoachSeasons() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter initialEntries={["/admin"]}>
+        <Routes>
+          <Route element={<AppShell variant="admin" />}>
+            <Route path="/admin" element={<AdminHomePage />} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
+
 describe("Learner AppShell", () => {
   beforeEach(() => {
+    authState.variant = "student";
     vi.mocked(api.progress).mockResolvedValue(progress());
   });
 
@@ -133,5 +184,117 @@ describe("Learner AppShell", () => {
     expect(screen.queryByRole("button", { name: "Menu" })).not.toBeInTheDocument();
     expect(screen.queryByText("Save")).not.toBeInTheDocument();
     expect(screen.getByTestId("nav-academy-learner")).toHaveAttribute("aria-current", "page");
+  });
+});
+
+describe("Coach AppShell", () => {
+  beforeEach(() => {
+    authState.variant = "admin";
+    authState.logout.mockReset();
+    vi.mocked(api.organization).mockResolvedValue({
+      id: "org-1",
+      name: "Development Academy",
+      slug: "development-academy",
+    });
+    vi.mocked(api.seasons).mockResolvedValue([
+      {
+        id: "season-active",
+        organizationId: "org-1",
+        name: "Daniel 2026",
+        yearLabel: "2026",
+        status: "Active",
+        ruleProfileKey: "PBE_STYLE_V1",
+        ruleProfileVersion: 1,
+        startDate: null,
+        targetCompetitionDate: null,
+        scopeUnitCount: 0,
+        assignmentCount: 0,
+      },
+    ]);
+  });
+
+  it("renders a bottom tab bar with labeled Seasons, Students, and More tabs", () => {
+    renderCoachShell();
+
+    const tabs = screen.getByTestId("coach-tab-bar");
+    expect(tabs).toHaveAttribute("aria-label", "Coach");
+    expect(within(tabs).getByRole("link", { name: "Seasons" })).toHaveAttribute("href", "/admin");
+    expect(within(tabs).getByRole("link", { name: "Students" })).toHaveAttribute("href", "/admin/students");
+    expect(within(tabs).getByRole("button", { name: "More" })).toBeInTheDocument();
+    expect(within(tabs).getByTestId("coach-tab-seasons")).toHaveTextContent("Seasons");
+    expect(within(tabs).getByTestId("coach-tab-students")).toHaveTextContent("Students");
+    expect(within(tabs).getByTestId("coach-tab-more")).toHaveTextContent("More");
+    expect(within(tabs).queryByRole("link", { name: "Content" })).not.toBeInTheDocument();
+    expect(within(tabs).queryByRole("link", { name: "Questions" })).not.toBeInTheDocument();
+    expect(within(tabs).queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
+  });
+
+  it("sizes each coach tab to at least 44 by 44 and clears the home indicator", () => {
+    renderCoachShell();
+
+    const tabs = screen.getByTestId("coach-tab-bar");
+    expect(tabs.className).toMatch(/er-coach-tabbar/);
+    expect(within(tabs).getByRole("link", { name: "Seasons" })).toHaveClass("er-coach-tab");
+    expect(within(tabs).getByRole("link", { name: "Students" })).toHaveClass("er-coach-tab");
+    expect(within(tabs).getByRole("button", { name: "More" })).toHaveClass("er-coach-tab");
+  });
+
+  it("centers a 430px phone column inside a 100dvh safe-area shell on coach routes", () => {
+    renderCoachShell("/admin/students");
+
+    expect(screen.getByTestId("coach-app-shell")).toHaveClass("er-coach-shell");
+    expect(screen.getByTestId("coach-phone-column")).toHaveClass("er-coach-column");
+  });
+
+  it("keeps Create season inside the coach phone column on seasons", async () => {
+    renderCoachSeasons();
+
+    const column = screen.getByTestId("coach-phone-column");
+    expect(await within(column).findByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new");
+    expect(within(column).getByTestId("create-season")).toHaveClass("er-create-season");
+  });
+
+  it("marks Seasons current on /admin and /admin/seasons, Students on the roster", () => {
+    const home = renderCoachShell("/admin");
+    const homeTabs = within(screen.getByTestId("coach-tab-bar"));
+    expect(homeTabs.getByRole("link", { name: "Seasons" })).toHaveAttribute("aria-current", "page");
+    expect(homeTabs.getByRole("link", { name: "Students" })).not.toHaveAttribute("aria-current");
+    expect(homeTabs.getByRole("button", { name: "More" })).not.toHaveAttribute("aria-current");
+    home.unmount();
+
+    const seasons = renderCoachShell("/admin/seasons/new");
+    const seasonTabs = within(screen.getByTestId("coach-tab-bar"));
+    expect(seasonTabs.getByRole("link", { name: "Seasons" })).toHaveAttribute("aria-current", "page");
+    seasons.unmount();
+
+    renderCoachShell("/admin/students");
+    const studentTabs = within(screen.getByTestId("coach-tab-bar"));
+    expect(studentTabs.getByRole("link", { name: "Students" })).toHaveAttribute("aria-current", "page");
+    expect(studentTabs.getByRole("link", { name: "Seasons" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("leaves Field Guide chrome to the progress folio on coach student progress", () => {
+    renderCoachShell("/admin/seasons/season-1/students/student-1/progress");
+
+    expect(screen.queryByTestId("coach-field-guide-chrome")).not.toBeInTheDocument();
+    expect(screen.getByTestId("coach-tab-seasons")).toHaveAttribute("aria-current", "page");
+  });
+
+  it("puts Content, Assignments, Questions, and Sign out under More", () => {
+    renderCoachShell("/admin/content");
+
+    const tabs = within(screen.getByTestId("coach-tab-bar"));
+    expect(tabs.getByRole("button", { name: "More" })).toHaveAttribute("aria-current", "page");
+    expect(tabs.getByRole("link", { name: "Seasons" })).not.toHaveAttribute("aria-current");
+
+    fireEvent.click(screen.getByTestId("coach-tab-more"));
+    const more = screen.getByTestId("coach-more-overflow");
+    expect(within(more).getByRole("link", { name: "Content" })).toHaveAttribute("href", "/admin/content");
+    expect(within(more).getByRole("link", { name: "Assignments" })).toHaveAttribute("href", "/admin/assignments");
+    expect(within(more).getByRole("link", { name: "Questions" })).toHaveAttribute("href", "/admin/questions");
+    expect(within(more).getByTestId("logout")).toHaveTextContent("Sign out");
+    expect(more).not.toHaveTextContent("%");
+    expect(more).not.toHaveTextContent("streak");
+    expect(more).not.toHaveTextContent("mastery");
   });
 });
