@@ -116,6 +116,9 @@ export function StudentsPage() {
           </li>
         ))}
       </ul>
+      {students.data && students.data.length === 0 ? (
+        <p className="mt-4 text-[var(--er-graphite)]">No students yet.</p>
+      ) : null}
       {resetStudentId ? (
         <form className="mt-4 grid gap-3" onSubmit={onReset}>
           <label className="text-sm font-medium">
