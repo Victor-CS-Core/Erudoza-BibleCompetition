@@ -1038,6 +1038,387 @@
   color: var(--er-ink-navy);
 }
 
+.er-login {
+  position: relative;
+  overflow-x: hidden;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.er-login-column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 430px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin-inline: auto;
+  overflow-x: hidden;
+}
+
+.er-login-column > *:not(.er-field-guide-chrome) {
+  position: relative;
+  z-index: 1;
+}
+
+.er-kraft-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0.85rem 0.75rem 0.15rem;
+  padding: 0.62rem 0.7rem;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--er-kraft-dark) 16%, transparent) 0 1px,
+      transparent 1px 3px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--er-kraft-dark) 10%, transparent) 0 1px,
+      transparent 1px 4px
+    ),
+    linear-gradient(180deg, color-mix(in srgb, var(--er-card) 22%, var(--er-kraft)), var(--er-kraft-dark));
+  box-shadow:
+    0 9px 0 color-mix(in srgb, var(--er-ink-navy) 90%, #1a3358),
+    0 14px 22px rgba(13, 43, 79, 0.16);
+  color: var(--er-ink-navy);
+}
+
+.er-kraft-grommet {
+  flex: none;
+  width: 0.78rem;
+  height: 0.78rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at 32% 28%, #f0e0b0, #c4a15a 42%, #6f531c 78%);
+  box-shadow:
+    inset 0 0 0 2px #8d6c32,
+    0 0 0 3px color-mix(in srgb, var(--er-ink-navy) 78%, transparent);
+}
+
+.er-kraft-banner-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  text-align: center;
+}
+
+.er-kraft-banner-copy p:first-child {
+  margin: 0;
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.er-kraft-banner-copy p:last-child {
+  margin: 0.12rem 0 0;
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.er-kraft-banner-mark {
+  flex: none;
+  display: block;
+  width: 1.35rem;
+  height: 1.15rem;
+  color: var(--er-ink-navy);
+}
+
+.er-kraft-banner-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.er-login .er-field-guide {
+  margin: 0.15rem 0 0.2rem;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.er-login .er-field-guide::before {
+  display: none;
+}
+
+.er-login .er-field-guide-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.55rem 1rem 0.35rem;
+  text-align: center;
+}
+
+.er-login .er-eyebrow {
+  color: var(--er-teal);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+}
+
+.er-login .er-eyebrow::before,
+.er-login .er-eyebrow::after {
+  display: inline-block;
+  width: 0.38rem;
+  height: 0.38rem;
+  margin: 0 0.45rem;
+  background: var(--er-stamp-red);
+  content: "";
+  transform: rotate(45deg);
+  vertical-align: 0.12em;
+}
+
+.er-login .er-field-guide-inner > div:not(.er-wordmark) {
+  order: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.er-login .er-field-guide-inner > .er-wordmark {
+  order: -1;
+  flex-direction: column;
+  margin-top: 0.15rem;
+}
+
+.er-login .er-login-motto {
+  order: 2;
+}
+
+.er-login .er-field-guide-inner h1 {
+  margin-top: 0.2rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.er-login .er-field-guide-inner h1::before,
+.er-login .er-field-guide-inner h1::after {
+  display: inline-block;
+  width: 1.7rem;
+  height: 1px;
+  margin: 0 0.45rem;
+  background: var(--er-stamp-red);
+  content: "";
+  vertical-align: 0.28em;
+}
+
+.er-login .er-wordmark-mark {
+  width: 4.4rem;
+  height: 4.4rem;
+}
+
+.er-login .er-wordmark-name {
+  font-size: 2.05rem;
+  letter-spacing: -0.03em;
+}
+
+.er-login .er-wordmark-tagline {
+  display: none;
+}
+
+.er-login-motto {
+  margin: 0.45rem 0 0;
+  color: var(--er-ink-navy);
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.er-login-motto::before {
+  display: block;
+  width: 0.42rem;
+  height: 0.42rem;
+  margin: 0 auto 0.35rem;
+  background: var(--er-stamp-red);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.er-signin-sheet {
+  margin: 0.15rem 0.85rem 1.35rem;
+  padding: 1.05rem 1rem 1.1rem;
+  border-color: color-mix(in srgb, var(--er-kraft-dark) 42%, var(--er-border));
+  border-radius: 10px 22px 12px 20px / 18px 10px 24px 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 30%),
+    var(--er-parchment);
+  box-shadow:
+    0 16px 34px rgba(13, 43, 79, 0.12),
+    inset 0 0 0 1px color-mix(in srgb, var(--er-kraft-dark) 28%, transparent);
+}
+
+.er-signin-title {
+  margin: 0;
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+
+.er-signin-flourish {
+  display: block;
+  width: 2.4rem;
+  height: 0.7rem;
+  margin: 0.35rem auto 0.85rem;
+  background:
+    radial-gradient(circle at 50% 80%, var(--er-stamp-red) 0.18rem, transparent 0.2rem),
+    linear-gradient(var(--er-stamp-red), var(--er-stamp-red)) center 0.55rem / 2.4rem 1px no-repeat;
+}
+
+.er-signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.er-login-field {
+  position: relative;
+  display: block;
+}
+
+.er-login-field-icon,
+.er-login-visibility {
+  position: absolute;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--er-ink-navy);
+  transform: translateY(-50%);
+}
+
+.er-login-field-icon {
+  left: 0.1rem;
+  pointer-events: none;
+}
+
+.er-login-field-icon svg,
+.er-login-visibility svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.er-login-visibility {
+  right: 0.05rem;
+  border: 0;
+  background: transparent;
+}
+
+.er-login-input {
+  width: 100%;
+  padding: 0.15rem 2.7rem 0.15rem 2.55rem;
+  border: 1px solid color-mix(in srgb, var(--er-ink-navy) 28%, var(--er-border));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--er-parchment) 70%, var(--er-kraft));
+  color: var(--er-ink-navy);
+}
+
+.er-denim-action {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.15rem;
+  padding: 0.78rem 1.15rem;
+  border: 0;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, color-mix(in srgb, var(--er-ink-navy) 82%, #4a6a92), var(--er-ink-navy));
+  box-shadow: 0 8px 16px rgba(13, 43, 79, 0.22);
+  color: var(--er-card);
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 0.92rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.er-denim-action-arrow {
+  position: absolute;
+  right: 0.85rem;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.er-login-sheet-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.45rem 0.65rem;
+  margin-top: 0.85rem;
+}
+
+.er-login-forgot,
+.er-login-join {
+  margin: 0;
+  font-family: "Source Serif 4", Literata, Georgia, serif;
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.er-login-forgot {
+  color: var(--er-muted-ink);
+  cursor: default;
+}
+
+.er-login-join {
+  color: var(--er-stamp-red);
+  text-align: right;
+  text-decoration: none;
+}
+
+.er-login .er-chrome-compass {
+  top: auto;
+  right: auto;
+  bottom: 0.35rem;
+  left: -0.35rem;
+  width: 6.6rem;
+  height: 6.6rem;
+  opacity: 0.34;
+}
+
+.er-login .er-chrome-mountain {
+  top: 5.6rem;
+  height: 9.2rem;
+  opacity: 0.18;
+}
+
+.er-login .er-chrome-forest {
+  top: 12.2rem;
+  height: 5.4rem;
+  opacity: 0.24;
+}
+
+.er-login .er-chrome-leaf {
+  top: auto;
+  bottom: 0.15rem;
+  left: auto;
+  right: 0.1rem;
+  width: 3.6rem;
+  height: 5.4rem;
+}
+
+.er-login .er-chrome-motto {
+  display: none;
+}
+
 @media (max-width: 680px) {
   .er-site-header {
     align-items: center;
