@@ -21,11 +21,11 @@ describe("LandingPage", () => {
     expect(cover).not.toHaveTextContent("streak");
     expect(screen.getByRole("heading", { name: /Know the passage/ })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Choose today’s training deck" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Learner deck" })).toHaveAttribute("src", "/brand/deck-new.webp");
-    expect(screen.getByRole("img", { name: "Reviews deck" })).toHaveAttribute("src", "/brand/deck-review.webp");
+    expect(screen.getByRole("img", { name: "Learner deck" })).toHaveAttribute("src", "/brand/deck-learner.webp");
+    expect(screen.getByRole("img", { name: "Reviews deck" })).toHaveAttribute("src", "/brand/deck-reviews.webp");
     expect(screen.getByRole("img", { name: "Rehearsal deck" })).toHaveAttribute(
       "src",
-      "/brand/deck-simulation.webp",
+      "/brand/deck-rehearsal.webp",
     );
     expect(screen.queryByRole("img", { name: "New deck" })).not.toBeInTheDocument();
     expect(screen.queryByRole("img", { name: "Review deck" })).not.toBeInTheDocument();
@@ -33,11 +33,20 @@ describe("LandingPage", () => {
     const learner = screen.getByRole("link", { name: "Open the learner deck" });
     const reviews = screen.getByRole("link", { name: "Open the reviews deck" });
     const rehearsal = screen.getByRole("link", { name: "Open the rehearsal deck" });
+    expect(learner).toHaveClass("er-deck-learner");
+    expect(reviews).toHaveClass("er-deck-reviews");
+    expect(rehearsal).toHaveClass("er-deck-rehearsal");
+    expect(learner).not.toHaveClass("er-deck-new");
+    expect(reviews).not.toHaveClass("er-deck-review");
+    expect(rehearsal).not.toHaveClass("er-deck-simulation");
     expect(within(learner).getByTestId("landing-deck-learner")).toHaveTextContent("Learner");
     expect(within(reviews).getByTestId("landing-deck-reviews")).toHaveTextContent("Reviews");
     expect(within(rehearsal).getByTestId("landing-deck-rehearsal")).toHaveTextContent("Rehearsal");
     expect(screen.queryByTestId("landing-deck-new")).not.toBeInTheDocument();
     expect(screen.queryByTestId("landing-deck-simulation")).not.toBeInTheDocument();
+    expect(learner.getAttribute("class") ?? "").not.toMatch(/new|simulation/i);
+    expect(reviews.getAttribute("class") ?? "").not.toMatch(/new|simulation/i);
+    expect(rehearsal.getAttribute("class") ?? "").not.toMatch(/new|simulation/i);
     expect(screen.getByTestId("start-studying")).toBeInTheDocument();
     expect(screen.getByTestId("build-a-season")).toBeInTheDocument();
     expect(screen.getByText(/due reviews, and realistic rehearsal/)).toBeInTheDocument();
@@ -88,6 +97,21 @@ describe("LandingPage", () => {
     expect(within(decks).getByTestId("landing-deck-learner")).toHaveTextContent("Learner");
     expect(within(decks).getByTestId("landing-deck-reviews")).toHaveTextContent("Reviews");
     expect(within(decks).getByTestId("landing-deck-rehearsal")).toHaveTextContent("Rehearsal");
+    expect(within(decks).getByRole("img", { name: "Learner deck" })).toHaveAttribute(
+      "src",
+      "/brand/deck-learner.webp",
+    );
+    expect(within(decks).getByRole("img", { name: "Reviews deck" })).toHaveAttribute(
+      "src",
+      "/brand/deck-reviews.webp",
+    );
+    expect(within(decks).getByRole("img", { name: "Rehearsal deck" })).toHaveAttribute(
+      "src",
+      "/brand/deck-rehearsal.webp",
+    );
+    expect(decks.innerHTML).not.toMatch(
+      /deck-new\.webp|deck-review\.webp|deck-simulation\.webp|er-deck-new|er-deck-simulation/,
+    );
     expect(decks).not.toHaveTextContent("%");
     expect(decks).not.toHaveTextContent("streak");
   });

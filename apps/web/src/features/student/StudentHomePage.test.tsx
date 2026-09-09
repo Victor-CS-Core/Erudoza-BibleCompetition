@@ -146,6 +146,15 @@ describe("StudentHomePage Field Guide Academy", () => {
     expect(screen.getByTestId("deck-card-rehearsal")).toHaveTextContent("Rehearsal");
     expect(screen.getByTestId("deck-learner")).toHaveTextContent("1");
     expect(screen.getByTestId("deck-reviews")).toHaveTextContent("0");
+    expect(screen.getByRole("img", { name: "Learner deck" })).toHaveAttribute("src", "/brand/deck-learner.webp");
+    expect(screen.getByRole("img", { name: "Reviews deck" })).toHaveAttribute("src", "/brand/deck-reviews.webp");
+    expect(screen.getByRole("img", { name: "Rehearsal deck" })).toHaveAttribute(
+      "src",
+      "/brand/deck-rehearsal.webp",
+    );
+    expect(screen.getByTestId("deck-stack").innerHTML).not.toMatch(
+      /deck-new\.webp|deck-simulation\.webp|NEW DECK|REVIEW DECK|SIMULATION/,
+    );
     expect(screen.getByTestId("assignment-packet")).toHaveClass("er-assignment-strip");
     expect(screen.getByTestId("assignment-range")).toHaveTextContent("DAN 1:1–1:4");
     expect(cover).not.toHaveTextContent("%");

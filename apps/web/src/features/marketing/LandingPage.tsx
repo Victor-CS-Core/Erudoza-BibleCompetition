@@ -1,36 +1,10 @@
 import { Link } from "react-router-dom";
+import { ACADEMY_DECK_ART } from "../../components/brand/academyDeckArt";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
 import { FieldGuideChrome } from "../../components/material/FieldGuideChrome";
 import { FieldGuideCover } from "../../components/material/FieldGuideCover";
 import { PaperSurface } from "../../components/material/PaperSurface";
 import { Stamp } from "../../components/material/Stamp";
-
-const trainingDecks = [
-  {
-    name: "Learner deck",
-    label: "Learner",
-    tone: "new",
-    image: "/brand/deck-new.webp",
-    className: "er-deck-new",
-    testId: "landing-deck-learner",
-  },
-  {
-    name: "Reviews deck",
-    label: "Reviews",
-    tone: "review",
-    image: "/brand/deck-review.webp",
-    className: "er-deck-review",
-    testId: "landing-deck-reviews",
-  },
-  {
-    name: "Rehearsal deck",
-    label: "Rehearsal",
-    tone: "due",
-    image: "/brand/deck-simulation.webp",
-    className: "er-deck-simulation",
-    testId: "landing-deck-rehearsal",
-  },
-] as const;
 
 export function LandingPage() {
   return (
@@ -78,19 +52,22 @@ export function LandingPage() {
                 <p>Build recall first, reinforce what is due, then test it under pressure.</p>
               </div>
               <div className="er-deck-stack-cards">
-                {trainingDecks.map((deck) => (
-                  <Link
-                    key={deck.name}
-                    to="/login"
-                    className={`er-deck-link ${deck.className}`}
-                    aria-label={`Open the ${deck.name.toLowerCase()}`}
-                  >
-                    <img src={deck.image} alt={deck.name} />
-                    <span className="er-deck-label" data-testid={deck.testId}>
-                      <Stamp label={deck.label} tone={deck.tone} />
-                    </span>
-                  </Link>
-                ))}
+                {ACADEMY_DECK_ART.map((deck) => {
+                  const name = `${deck.label} deck`;
+                  return (
+                    <Link
+                      key={deck.id}
+                      to="/login"
+                      className={`er-deck-link ${deck.className}`}
+                      aria-label={`Open the ${name.toLowerCase()}`}
+                    >
+                      <img src={deck.src} alt={name} />
+                      <span className="er-deck-label" data-testid={deck.testId}>
+                        <Stamp label={deck.label} tone={deck.tone} />
+                      </span>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </section>

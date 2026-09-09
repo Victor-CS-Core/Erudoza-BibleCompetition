@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { DeckStack } from "./DeckStack";
 
 describe("DeckStack", () => {
@@ -34,6 +34,20 @@ describe("DeckStack", () => {
     expect(screen.getByTestId("deck-reviews")).toHaveTextContent("0");
     expect(screen.getByTestId("deck-card-rehearsal")).toHaveTextContent("Rehearsal");
     expect(screen.getByTestId("deck-rehearsal")).toHaveTextContent("Active");
+    expect(within(screen.getByTestId("deck-card-learner")).getByRole("img", { name: "Learner deck" })).toHaveAttribute(
+      "src",
+      "/brand/deck-learner.webp",
+    );
+    expect(within(screen.getByTestId("deck-card-reviews")).getByRole("img", { name: "Reviews deck" })).toHaveAttribute(
+      "src",
+      "/brand/deck-reviews.webp",
+    );
+    expect(
+      within(screen.getByTestId("deck-card-rehearsal")).getByRole("img", { name: "Rehearsal deck" }),
+    ).toHaveAttribute("src", "/brand/deck-rehearsal.webp");
+    expect(stack.innerHTML).not.toMatch(
+      /deck-new\.webp|deck-review\.webp|deck-simulation\.webp|NEW DECK|REVIEW DECK|SIMULATION/,
+    );
     expect(stack).not.toHaveTextContent("%");
     expect(stack).not.toHaveTextContent("streak");
   });
