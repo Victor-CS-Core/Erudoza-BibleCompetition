@@ -115,8 +115,19 @@ describe("Coach list pages Field Guide Academy", () => {
     expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
     expect(screen.getByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new");
     await waitFor(() => expect(screen.getByText(/Imported Joshua/)).toBeInTheDocument());
+    expect(screen.queryByText("No seasons yet.")).not.toBeInTheDocument();
     expect(cover).not.toHaveTextContent("%");
     expect(cover).not.toHaveTextContent("streak");
+  });
+
+  it("explains an empty seasons list without inventing readiness", async () => {
+    vi.mocked(api.seasons).mockResolvedValue([]);
+
+    renderPage(<SeasonsListPage />);
+
+    expect(await screen.findByText("No seasons yet.")).toBeInTheDocument();
+    expect(screen.getByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new");
+    expect(screen.queryByText(/Imported Joshua/)).not.toBeInTheDocument();
   });
 
   it("opens students on the Field Guide Academy cover and keeps the roster form", async () => {

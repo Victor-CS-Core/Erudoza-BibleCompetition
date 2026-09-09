@@ -33,6 +33,9 @@ export function SeasonsListPage() {
           </li>
         ))}
       </ul>
+      {seasons.data && seasons.data.length === 0 ? (
+        <p className="mt-4 text-[var(--er-graphite)]">No seasons yet.</p>
+      ) : null}
     </PaperSurface>
     </div>
   );

@@ -40,7 +40,7 @@
 - Consumes: existing `api.seasons` query (`Season[]`)
 - Produces: visible sentence `No seasons yet.` when that query resolves to `[]`
 
-- [ ] **Step 1: Write the failing empty-state tests**
+- [x] **Step 1: Write the failing empty-state tests**
 
 ```ts
 it("explains an empty seasons folio without inventing readiness", async () => {
@@ -70,7 +70,7 @@ it("explains an empty seasons list without inventing readiness", async () => {
 
 Existing populated-list tests must also assert they do not show `No seasons yet.`
 
-- [ ] **Step 2: Run** `npm run test:web -- src/features/admin/AdminHomePage.test.tsx src/features/admin/SimpleAdminPages.test.tsx` and confirm FAIL (empty lists stay blank).
-- [ ] **Step 3: Render** `No seasons yet.` when `seasons.data && seasons.data.length === 0` on the admin home readiness folio, the admin home paper list, and `SeasonsListPage`. Update the brand-guide sentence.
-- [ ] **Step 4: Run** the same tests and confirm PASS.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Run** `npm run test:web -- src/features/admin/AdminHomePage.test.tsx src/features/admin/SimpleAdminPages.test.tsx` and confirm FAIL (empty lists stay blank).
+- [x] **Step 3: Render** `No seasons yet.` when `seasons.data && seasons.data.length === 0` on the admin home readiness folio, the admin home paper list, and `SeasonsListPage`. Update the brand-guide sentence.
+- [x] **Step 4: Run** the same tests and confirm PASS.
+- [x] **Step 5: Commit**

@@ -89,7 +89,20 @@ describe("AdminHomePage Field Guide Academy", () => {
     expect(folio).toHaveTextContent("Draft");
     expect(folio).toHaveTextContent("Daniel Gauntlet");
     expect(folio).toHaveTextContent("Active");
+    expect(folio).not.toHaveTextContent("No seasons yet.");
     expect(folio).not.toHaveTextContent("%");
     expect(folio).not.toHaveTextContent("streak");
+  });
+
+  it("explains an empty seasons folio without inventing readiness", async () => {
+    vi.mocked(api.seasons).mockResolvedValue([]);
+
+    renderHome();
+
+    const folio = await screen.findByTestId("season-readiness-folio");
+    await waitFor(() => expect(folio).toHaveTextContent("No seasons yet."));
+    expect(folio).not.toHaveTextContent("%");
+    expect(folio).not.toHaveTextContent("streak");
+    expect(screen.getByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new");
   });
 });
