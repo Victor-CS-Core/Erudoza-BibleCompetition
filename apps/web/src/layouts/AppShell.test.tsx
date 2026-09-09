@@ -102,20 +102,23 @@ describe("Learner AppShell", () => {
 
   it("marks Home current on /student and Learner current on study routes", () => {
     const home = renderShell("/student");
-    expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Learner" })).not.toHaveAttribute("aria-current");
+    const homeTabs = within(screen.getByTestId("learner-tab-bar"));
+    expect(homeTabs.getByRole("link", { name: "Home" })).toHaveAttribute("aria-current", "page");
+    expect(homeTabs.getByRole("link", { name: "Learner" })).not.toHaveAttribute("aria-current");
     home.unmount();
 
     renderShell("/student/study?mode=Simulation");
+    const studyTabs = within(screen.getByTestId("learner-tab-bar"));
     expect(screen.getByTestId("nav-academy-learner")).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
-    expect(screen.getByRole("link", { name: "Progress" })).not.toHaveAttribute("aria-current");
+    expect(studyTabs.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
+    expect(studyTabs.getByRole("link", { name: "Progress" })).not.toHaveAttribute("aria-current");
   });
 
   it("marks Progress current on the progress route", () => {
     renderShell("/student/progress");
 
-    expect(screen.getByRole("link", { name: "Progress" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
+    const tabs = within(screen.getByTestId("learner-tab-bar"));
+    expect(tabs.getByRole("link", { name: "Progress" })).toHaveAttribute("aria-current", "page");
+    expect(tabs.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
   });
 });
