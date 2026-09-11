@@ -129,7 +129,7 @@ public sealed record AssignmentDto(
 
 public sealed record ActivationResultDto(bool Activated, IReadOnlyList<string> BlockingProblems);
 
-public sealed record StartSessionRequest(Guid SeasonId, StudyMode Mode);
+public sealed record StartSessionRequest(Guid SeasonId, StudyMode Mode, StartTrainingContext? Training = null);
 
 public sealed record SessionDto(Guid Id, Guid SeasonId, string Status, string Mode, int TargetCardCount, string Difficulty = "Standard");
 
@@ -141,7 +141,7 @@ public sealed record SessionSummaryDto(
     int Attempted,
     int Correct,
     int TargetCardCount,
-    string Status);
+    string Status, SessionRecapDto? Recap = null);
 
 public sealed record CoverageStudentDto(
     Guid StudentUserId,
@@ -226,4 +226,4 @@ public sealed record MasteryRowDto(
     int ExactWordingScore,
     int RecognitionScore,
     DateTimeOffset? ReviewDueAtUtc,
-    string AlgorithmVersion = "v1-scaffold");
+    string AlgorithmVersion = "v1-scaffold", int ReferenceScore = 0, int SequenceScore = 0, int FactualRecallScore = 0, string? BookKey = null, int? Chapter = null, int? Verse = null);

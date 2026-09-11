@@ -66,7 +66,7 @@ public sealed class ProgressQueryService(IErudozaDbContext db, IClock clock, ISt
             .Where(item => item.OrganizationId == organizationId && item.StudentUserId == studentId && item.SeasonId == season.Id && !item.IsLegacyDuplicate)
             .ToListAsync(cancellationToken);
         var referencedIds = attemptEntities.Select(a => a.KnowledgeUnitId).Concat(eligibleKnowledgeIds).Distinct().ToArray();
-        var knowledge = await db.KnowledgeUnits.AsNoTracking()
+        var knowledge = await db.KnowledgeUnits.AsNoTracking().Include(x => x.SourceUnit)
             .Where(item => referencedIds.Contains(item.Id) && (item.OrganizationId == organizationId && item.ContentPack!.OrganizationId == organizationId
                 || item.OrganizationId == BuiltInLibrary.OrganizationId && item.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && item.ContentPack.IsBuiltIn))
             .ToDictionaryAsync(item => item.Id, cancellationToken);
@@ -99,7 +99,7 @@ public sealed class ProgressQueryService(IErudozaDbContext db, IClock clock, ISt
                 item.ExactWordingScore,
                 item.RecognitionScore,
                 reviews.FirstOrDefault(review => review.KnowledgeUnitId == item.KnowledgeUnitId)?.DueAtUtc,
-                item.AlgorithmVersion)).ToList(),
+                item.AlgorithmVersion, item.ReferenceScore, item.SequenceScore, item.FactualRecallScore, unit?.SourceUnit?.BookKey, unit?.SourceUnit?.Chapter, unit?.SourceUnit?.Verse)).ToList(),
             studentId,
             displayName,
             recentAttempts);

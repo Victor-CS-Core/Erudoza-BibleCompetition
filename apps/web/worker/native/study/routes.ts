@@ -1,3 +1,7 @@
+import { trainingNow } from '../training/clock';
+import type { StartTrainingContext, SessionRecap, SkillScores } from '../../../src/api/trainingTypes';
+import { applyAcceptedAttempt, prepareStart, makeRecap, scopeVersion, startPayload } from '../training/store';
+import type { SessionTraining, MissionRecord } from '../training/store';
 import type { RequestContext } from '../types';
 import { admin, body, HttpError, json, requiredString } from '../types';
 import { atomic, contains, effectiveSources, fail, id, memberId, student } from '../application/model';
@@ -8,9 +12,9 @@ import type { GeneratedActivity, MasteryScores, RuleProfile, StudyMode } from '.
 
 export interface Card extends GeneratedActivity { id: string; sequence: number; createdAtUtc: string; source: Source; answerSource: Source }
 export interface Result { attemptId: string; isCorrect: boolean; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean }
-export interface Attempt { id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean }
-export interface Session { id: string; studentUserId: string; seasonId: string; status: string; mode: StudyMode; difficulty: string; targetCardCount: number; ruleProfile: RuleProfile & { showReference: boolean }; cards: Card[]; attempts: Attempt[]; createdAtUtc: string; completedAtUtc?: string }
-export interface Mastery extends MasteryScores { id: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; algorithmVersion: string; reviewDueAt: string; lastSeenAt: string }
+export interface Attempt { id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean; previousAttemptId?: string; before?: SkillScores; after?: SkillScores }
+export interface Session { id: string; studentUserId: string; seasonId: string; status: string; mode: StudyMode; difficulty: string; targetCardCount: number; ruleProfile: RuleProfile & { showReference: boolean }; cards: Card[]; attempts: Attempt[]; createdAtUtc: string; completedAtUtc?: string; training?: SessionTraining; recap?: SessionRecap }
+export interface Mastery extends MasteryScores { id: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; algorithmVersion: string; reviewDueAt: string; lastSeenAt: string; lastAttemptId?: string }
 interface Submission { clientSubmissionId: string; challengeCardId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean }
 interface Guard { kind: string; id: string; revision: number }
 const zero: MasteryScores = { recognition: 0, exactWording: 0, reference: 0, sequence: 0, factualRecall: 0, level: 'Unseen' };
@@ -19,7 +23,7 @@ const sourceUnit = (s: Source) => ({ id: s.id, citationLabel: s.citation, canoni
 const knowledgeId = (s: Source) => s.knowledgeUnitId ?? s.id;
 const sessionDto = (s: Session) => ({ id: s.id, seasonId: s.seasonId, status: s.status, mode: s.mode, targetCardCount: s.targetCardCount, difficulty: s.difficulty });
 const cardDto = (s: Session, c: Card) => toCardDto(c, { id: c.id, sessionId: s.id, sequence: c.sequence, total: s.targetCardCount }, sourceUnit(c.source), s.mode !== 'Simulation' || s.ruleProfile.showReference, false);
-const summary = (s: Session) => ({ sessionId: s.id, mode: s.mode, attempted: s.attempts.length, correct: s.attempts.filter(a => a.isCorrect).length, targetCardCount: s.targetCardCount, status: s.status });
+const summary = (s: Session) => ({ sessionId: s.id, mode: s.mode, attempted: s.attempts.length, correct: s.attempts.filter(a => a.isCorrect).length, targetCardCount: s.targetCardCount, status: s.status, ...(s.recap ? { recap: s.recap } : {}) });
 const replay = (a: Attempt) => ({ ...a.result, alreadyProcessed: true });
 function requireStudent(ctx: RequestContext) { if (ctx.actor.kind !== 'Student' || ctx.actor.role !== 'Student') throw new HttpError(403, 'Student access is required.'); }
 async function listAll<T extends { id: string }>(ctx: RequestContext, kind: string, scope: { seasonId?: string; ownerId?: string } = {}) {
@@ -43,6 +47,25 @@ async function activeScope(ctx: RequestContext, seasonId: string, studentId: str
   if (!sources.length) fail('The student has no assigned study scope.');
   return { sources, guards: [...rows.results, { kind: '@active-user', id: studentId, revision: 0 }] };
 }
+async function sessionScope(ctx: RequestContext, session: Session, persistInvalidation = false) {
+  try {
+    const scope = await activeScope(ctx, session.seasonId, session.studentUserId);
+    if(session.training?.missionId){
+      const prior=await ctx.store.require<MissionRecord>('daily-mission',session.training.missionId,ctx.orgId),mission=prior.value;
+      if(mission.invalidated||mission.revision!==session.training.missionRevision||mission.scopeVersion!==await scopeVersion(scope.sources)){
+        if(persistInvalidation&&!mission.invalidated){const invalidated={...mission,invalidated:true};await atomic(ctx,'training.mission.invalidate',[ctx.store.update('daily-mission',mission.id,ctx.orgId,invalidated,prior.revision)],[{kind:'daily-mission',id:mission.id,revision:prior.revision}]);}
+        throw new HttpError(409,'The assignment changed. Reload Training HQ and start a new mission.');
+      }
+    }
+    return scope;
+  }
+  catch (error) {
+    if (!session.training?.missionId || !(error instanceof HttpError) || error.status !== 400) throw error;
+    const prior = await ctx.store.get<MissionRecord>('daily-mission',session.training.missionId,ctx.orgId);
+    if(persistInvalidation&&prior&&!prior.value.invalidated){const mission={...prior.value,invalidated:true};await atomic(ctx,'training.mission.invalidate',[ctx.store.update('daily-mission',mission.id,ctx.orgId,mission,prior.revision)],[{kind:'daily-mission',id:mission.id,revision:prior.revision}]);}
+    throw new HttpError(409,'The season or assignment changed. Reload Training HQ.');
+  }
+}
 function cardInScope(card: Card, sources: Source[]) {
   if (![card.sourceUnitId, card.answerSourceUnitId ?? card.sourceUnitId].every(id => sources.some(s => s.id === id))) fail('This card is no longer within the student assignment. Start a new session.');
 }
@@ -58,21 +81,26 @@ async function loadSession(ctx: RequestContext, sessionId: string) {
   if (stored.value.studentUserId !== ctx.actor.userId) throw new HttpError(404, 'Study session was not found.');
   return stored;
 }
-async function start(ctx: RequestContext, input: { seasonId: string; mode?: StudyMode }) {
+async function start(ctx: RequestContext, input: { seasonId: string; mode?: StudyMode; training?: StartTrainingContext }) {
   const seasonId = requiredString(input.seasonId, 'Season'), mode = input.mode ?? 'Practice';
   if (!['Practice', 'Review', 'Simulation'].includes(mode)) fail('Choose Practice, Review, or Simulation.');
   return retry(async () => {
+    if (input.training?.clientStartId && typeof input.training.clientStartId === 'string') {
+      const row = await ctx.env.DB.prepare("SELECT data FROM Records WHERE kind='session' AND org_id=? AND owner_id=? AND json_extract(data,'$.training.clientStartId')=? LIMIT 1").bind(ctx.orgId,ctx.actor.userId,input.training.clientStartId).first<{data:string}>();
+      if(row){const existing=JSON.parse(row.data) as Session;if(existing.training?.startPayload!==startPayload(seasonId,mode,input.training))fail('This start ID was already used with a different payload.');return json(sessionDto(existing));}
+    }
     const scope = await activeScope(ctx, seasonId, ctx.actor.userId);
     const member = await ctx.store.get<Membership>('membership', memberId(seasonId, ctx.actor.userId), ctx.orgId);
     let targetCardCount = mode === 'Simulation' ? 10 : 8;
-    if (mode === 'Review') {
+    if (mode === 'Review' && !input.training?.step) {
       const mastery = await listAll<Mastery>(ctx, 'mastery', { seasonId, ownerId: ctx.actor.userId });
       const due = mastery.filter(m => Date.parse(m.reviewDueAt) <= Date.now() && scope.sources.some(s => knowledgeId(s) === m.knowledgeUnitId));
       if (!due.length) fail('There are no passages due for review.');
       targetCardCount = Math.min(8, due.length);
     }
-    const session: Session = { id: id(), studentUserId: ctx.actor.userId, seasonId, status: 'Created', mode, difficulty: member?.value.difficulty ?? 'Standard', targetCardCount, ruleProfile: { ...defaultRules }, cards: [], attempts: [], createdAtUtc: new Date().toISOString() };
-    await atomic(ctx, 'study.session.start', [ctx.store.insertion('session', session.id, ctx.orgId, session, { seasonId, ownerId: ctx.actor.userId })], selectedGuards(scope.guards));
+    const session: Session = { id: id(), studentUserId: ctx.actor.userId, seasonId, status: 'Created', mode, difficulty: member?.value.difficulty ?? 'Standard', targetCardCount, ruleProfile: { ...defaultRules }, cards: [], attempts: [], createdAtUtc: trainingNow() };
+    const trainingWrites = await prepareStart(ctx,session,scope.sources,input.training);
+    await atomic(ctx, 'study.session.start', [...trainingWrites.statements,ctx.store.insertion('session', session.id, ctx.orgId, session, { seasonId, ownerId: ctx.actor.userId })], [...trainingWrites.guards,...selectedGuards(scope.guards)]);
     return json(sessionDto(session));
   });
 }
@@ -80,7 +108,7 @@ async function next(ctx: RequestContext, sessionId: string) {
   return retry(async () => {
     const stored = await loadSession(ctx, sessionId), session = stored.value;
     if (['Completed', 'Abandoned'].includes(session.status)) fail('The study session is already complete.');
-    const scope = await activeScope(ctx, session.seasonId, session.studentUserId);
+    const scope = await sessionScope(ctx, session);
     const unanswered = session.cards.find(c => !session.attempts.some(a => a.cardId === c.id));
     if (unanswered) { cardInScope(unanswered, scope.sources); return json(cardDto(session, unanswered)); }
     if (session.cards.length >= session.targetCardCount) fail('The session target has been reached.');
@@ -92,16 +120,25 @@ async function next(ctx: RequestContext, sessionId: string) {
     const primary = (s: Source) => assignments.some(a => a.type === 'PrimarySpecialist' && a.contentPackId === s.contentPackId && contains(a, s));
     const count = (cards: Card[], s: Source) => cards.filter(c => c.sourceUnitId === s.id).length;
     const last = (s: Source) => Date.parse(exposure.get(s.id)?.lastAt ?? '0001-01-01T00:00:00Z');
-    const eligible = scope.sources.filter(s => session.mode !== 'Review' || due.has(knowledgeId(s)));
+    let frozen: Set<string> | null = null;
+    if(session.training?.missionId) {
+      const storedMission=await ctx.store.require<MissionRecord>('daily-mission',session.training.missionId,ctx.orgId),mission=storedMission.value;
+      if(mission.invalidated||mission.revision!==session.training.missionRevision||mission.scopeVersion!==await scopeVersion(scope.sources)) {
+
+        throw new HttpError(409,'The assignment changed. Reload Training HQ and start a new mission.');
+      }
+      if(session.mode==='Review')frozen=new Set(session.training.reviewKnowledgeUnitIds.filter(id=>!mission.acceptedReviewKnowledgeUnitIds.includes(id)));
+    }
+    const eligible = scope.sources.filter(s => session.mode !== 'Review' || (frozen?frozen.has(knowledgeId(s)):due.has(knowledgeId(s))));
     if (!eligible.length) fail('There are no passages due for review.');
     const source = eligible.sort((a, b) => count(session.cards, a) - count(session.cards, b) || (exposure.get(a.id)?.count ?? 0) - (exposure.get(b.id)?.count ?? 0) || Number(due.has(knowledgeId(b))) - Number(due.has(knowledgeId(a))) || Number(primary(b)) - Number(primary(a)) || last(a) - last(b) || a.ordinal - b.ordinal || knowledgeId(a).localeCompare(knowledgeId(b)))[0];
-    const nextSource = scope.sources.find(s => s.contentPackId === source.contentPackId && s.ordinal === source.ordinal + 1);
+    const nextSource = scope.sources.find(s => s.contentPackId === source.contentPackId && s.ordinal === source.ordinal + 1 && (!frozen || frozen.has(knowledgeId(s))));
     const alternate = scope.sources.find(s => s.id !== source.id), sequence = session.cards.length + 1;
     const request = { sourceUnit: sourceUnit(source), knowledgeUnitId: knowledgeId(source), sessionId, sequence, difficulty: normalizeDifficulty(session.difficulty), mode: session.mode, ruleProfile: session.ruleProfile, nextSourceUnit: nextSource ? sourceUnit(nextSource) : null, nextKnowledgeUnitId: nextSource ? knowledgeId(nextSource) : null, alternateSourceUnit: alternate ? sourceUnit(alternate) : null, distractorCitations: [...new Set(scope.sources.filter(s => s.citation !== source.citation).map(s => s.citation))].slice(0, 6), usedActivityTypes: session.cards.map(c => c.activityType), targetCardCount: session.targetCardCount };
     const activity = chooseActivity(eligibleActivities(request), request.usedActivityTypes, sequence);
     if (!activity) return fail('No activity provider is available for the current rule profile and mode.');
     const generated = generateActivity(activity, request);
-    const card: Card = { ...generated, id: id(), sequence, createdAtUtc: new Date().toISOString(), source: { ...source }, answerSource: { ...(generated.answerSourceUnitId ? nextSource! : source) } };
+    const card: Card = { ...generated, id: id(), sequence, createdAtUtc: trainingNow(), source: { ...source }, answerSource: { ...(generated.answerSourceUnitId ? nextSource! : source) } };
     session.cards.push(card); session.status = 'Active';
     await atomic(ctx, 'study.card.create', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision)], [{ kind: 'session', id: sessionId, revision: stored.revision }, ...selectedGuards(scope.guards, [source.id, card.answerSource.id, ...(alternate ? [alternate.id] : [])])]);
     return json(cardDto(session, card));
@@ -126,8 +163,8 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
     if (session.mode === 'Simulation' && input.hintsUsed) fail('Hints are not permitted in simulation.');
     const card = session.cards.find(c => c.id === input.challengeCardId);
     if (!card) return fail('Challenge card does not belong to this session.');
-    const scope = await activeScope(ctx, session.seasonId, session.studentUserId); cardInScope(card, scope.sources);
-    const evaluation = evaluateAnswer(input.submittedAnswer, card.answerKey.canonicalAnswer), now = new Date().toISOString();
+    const scope = await sessionScope(ctx, session, true); cardInScope(card, scope.sources);
+    const evaluation = evaluateAnswer(input.submittedAnswer, card.answerKey.canonicalAnswer), now = trainingNow();
     const priorId = await ctx.env.DB.prepare("SELECT id FROM Records WHERE kind='mastery' AND org_id=? AND season_id=? AND owner_id=? AND json_extract(data,'$.knowledgeUnitId')=? LIMIT 1").bind(ctx.orgId, session.seasonId, session.studentUserId, card.knowledgeUnitId).first<{ id: string }>();
     const masteryId = priorId?.id ?? `${session.seasonId}:${session.studentUserId}:${card.knowledgeUnitId}`;
     const previous = await ctx.store.get<Mastery>('mastery', masteryId, ctx.orgId);
@@ -147,12 +184,13 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
     }
     const scores = applyMastery(priorScores, evaluation.isCorrect, input.hintsUsed, card.activityType, card.answerMode, card.payload.difficulty);
     const mastery: Mastery = { ...scores, id: masteryId, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, algorithmVersion: MASTERY_VERSION, reviewDueAt: nextReview(now, evaluation.isCorrect), lastSeenAt: now };
-    const attemptId = id();
+    const attemptId = id(); mastery.lastAttemptId = attemptId;
     const result: Result = { attemptId, isCorrect: evaluation.isCorrect, evaluationResult: evaluation.evaluationCode, canonicalAnswer: card.answerKey.canonicalAnswer, citation: card.answerSource.citation, sourceText: card.answerSource.canonicalText, masteryLevel: mastery.level, exactWordingScore: mastery.exactWording, reviewDueAtUtc: mastery.reviewDueAt, alreadyProcessed: false };
-    const attempt: Attempt = { id: attemptId, sessionId, cardId: card.id, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, clientSubmissionId: input.clientSubmissionId, submittedAnswer: input.submittedAnswer, responseTimeMs: input.responseTimeMs, hintsUsed: input.hintsUsed, isCorrect: evaluation.isCorrect, evaluationResult: evaluation.evaluationCode, activityType: card.activityType, at: now, result };
+    const attempt: Attempt = { id: attemptId, sessionId, cardId: card.id, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, clientSubmissionId: input.clientSubmissionId, submittedAnswer: input.submittedAnswer, responseTimeMs: input.responseTimeMs, hintsUsed: input.hintsUsed, isCorrect: evaluation.isCorrect, evaluationResult: evaluation.evaluationCode, activityType: card.activityType, at: now, result, previousAttemptId: previous?.value.lastAttemptId, before: { ...priorScores }, after: { ...scores } };
     session.attempts.push(attempt); session.status = 'Active';
     const recordScope = { seasonId: session.seasonId, ownerId: session.studentUserId };
-    await atomic(ctx, 'study.attempt', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision), previous ? ctx.store.update('mastery', masteryId, ctx.orgId, mastery, previous.revision) : ctx.store.insertion('mastery', masteryId, ctx.orgId, mastery, recordScope), ctx.store.insertion('attempt', attemptId, ctx.orgId, attempt, recordScope)], [{ kind: 'session', id: sessionId, revision: stored.revision }, ...(previous ? [{ kind: 'mastery', id: masteryId, revision: previous.revision }] : []), ...selectedGuards(scope.guards, [card.sourceUnitId, card.answerSource.id])]);
+    const trainingWrites = await applyAcceptedAttempt(ctx,session,attempt,scope.sources,mastery);
+    await atomic(ctx, 'study.attempt', [...trainingWrites.statements,ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision), previous ? ctx.store.update('mastery', masteryId, ctx.orgId, mastery, previous.revision) : ctx.store.insertion('mastery', masteryId, ctx.orgId, mastery, recordScope), ctx.store.insertion('attempt', attemptId, ctx.orgId, attempt, recordScope)], [...trainingWrites.guards,{ kind: 'session', id: sessionId, revision: stored.revision }, ...(previous ? [{ kind: 'mastery', id: masteryId, revision: previous.revision }] : []), ...selectedGuards(scope.guards, [card.sourceUnitId, card.answerSource.id])]);
     return json(result);
   });
 }
@@ -167,7 +205,7 @@ async function progress(ctx: RequestContext, studentId: string, requested: strin
   const states = (await listAll<Mastery>(ctx, 'mastery', { seasonId: season.id, ownerId: studentId })).filter(m => byKnowledge.has(m.knowledgeUnitId));
   const attempts = (await listAll<Attempt>(ctx, 'attempt', { seasonId: season.id, ownerId: studentId })).filter(a => !a.isLegacyDuplicate);
   const member = await ctx.store.get<Membership>('membership', memberId(season.id, studentId), ctx.orgId);
-  return json({ ...empty, seasonId: season.id, seasonName: season.name, seasonStatus: season.status, assignments: assignments.filter(a => a.seasonId === season.id).map(a => ({ ...a, difficulty: member?.value.difficulty ?? 'Standard' })), masteredCount: states.filter(m => m.level === 'Mastered' && m.algorithmVersion === MASTERY_VERSION).length, reviewDueCount: states.filter(m => Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount: attempts.length, mastery: states.map(m => ({ knowledgeUnitId: m.knowledgeUnitId, title: byKnowledge.get(m.knowledgeUnitId)?.citation ?? 'Passage', level: m.level, exactWordingScore: m.exactWording, recognitionScore: m.recognition, algorithmVersion: m.algorithmVersion, reviewDueAtUtc: m.reviewDueAt })), recentAttempts: attempts.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20).map(a => ({ id: a.id, title: a.result?.citation ?? byKnowledge.get(a.knowledgeUnitId)?.citation ?? 'Passage', activityType: a.activityType, isCorrect: a.isCorrect, submittedAnswer: a.submittedAnswer, evaluationResult: a.evaluationResult, createdAtUtc: a.at })) });
+  return json({ ...empty, seasonId: season.id, seasonName: season.name, seasonStatus: season.status, assignments: assignments.filter(a => a.seasonId === season.id).map(a => ({ ...a, difficulty: member?.value.difficulty ?? 'Standard' })), masteredCount: states.filter(m => m.level === 'Mastered' && m.algorithmVersion === MASTERY_VERSION).length, reviewDueCount: states.filter(m => Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount: attempts.length, mastery: states.map(m => ({ knowledgeUnitId: m.knowledgeUnitId, title: byKnowledge.get(m.knowledgeUnitId)?.citation ?? 'Passage', level: m.level, exactWordingScore: m.exactWording, recognitionScore: m.recognition, referenceScore: m.reference, sequenceScore: m.sequence, factualRecallScore: m.factualRecall, bookKey: byKnowledge.get(m.knowledgeUnitId)?.bookKey, chapter: byKnowledge.get(m.knowledgeUnitId)?.chapter, verse: byKnowledge.get(m.knowledgeUnitId)?.verse, algorithmVersion: m.algorithmVersion, reviewDueAtUtc: m.reviewDueAt })), recentAttempts: attempts.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20).map(a => ({ id: a.id, title: a.result?.citation ?? byKnowledge.get(a.knowledgeUnitId)?.citation ?? 'Passage', activityType: a.activityType, isCorrect: a.isCorrect, submittedAnswer: a.submittedAnswer, evaluationResult: a.evaluationResult, createdAtUtc: a.at })) });
 }
 export async function handleStudy(ctx: RequestContext): Promise<Response | null> {
   const { path, request } = ctx, method = request.method;
@@ -194,7 +232,7 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
   if (action === 'complete' && method === 'POST') return retry(async () => {
     const stored = await loadSession(ctx, sessionId), session = stored.value;
     if (!session.attempts.length) fail('A session cannot be completed without a persisted attempt.');
-    if (session.status !== 'Completed') { session.status = 'Completed'; session.completedAtUtc ??= new Date().toISOString(); await atomic(ctx, 'study.session.complete', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision)], [{ kind: 'session', id: sessionId, revision: stored.revision }]); }
+    if (session.status !== 'Completed') { session.status = 'Completed'; session.completedAtUtc ??= trainingNow(); session.recap ??= await makeRecap(ctx,session); await atomic(ctx, 'study.session.complete', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision)], [{ kind: 'session', id: sessionId, revision: stored.revision }]); }
     return json(summary(session));
   });
   if (!action && method === 'GET') {

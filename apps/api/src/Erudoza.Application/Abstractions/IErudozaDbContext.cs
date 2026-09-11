@@ -5,6 +5,12 @@ namespace Erudoza.Application.Abstractions;
 
 public interface IErudozaDbContext
 {
+    DbSet<TrainingPreference> TrainingPreferences { get; }
+    DbSet<TrainingDay> TrainingDays { get; }
+    DbSet<TrainingWeek> TrainingWeeks { get; }
+    DbSet<DailyMission> DailyMissions { get; }
+    DbSet<TrainingSeasonProgress> TrainingSeasonProgress { get; }
+    DbSet<SoloBadgeAward> SoloBadgeAwards { get; }
     DbSet<Organization> Organizations { get; }
     DbSet<ApplicationUser> Users { get; }
     DbSet<StudentProfile> StudentProfiles { get; }

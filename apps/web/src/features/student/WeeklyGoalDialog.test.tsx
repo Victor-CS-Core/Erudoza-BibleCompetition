@@ -1,0 +1,19 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, expect, it, vi } from "vitest";
+import { trainingApi } from "../../api/training";
+import { WeeklyGoalDialog } from "./WeeklyGoalDialog";
+import { todayFixture } from "./trainingFixtures";
+vi.mock("../../api/training", () => ({ trainingApi: { savePreferences: vi.fn() } }));
+beforeEach(() => { HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); }; HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); }; });
+it("saves chosen goal with timezone and explains next Monday", async () => { const close = vi.fn(); vi.mocked(trainingApi.savePreferences).mockResolvedValue(todayFixture().preferences); render(<QueryClientProvider client={new QueryClient()}><WeeklyGoalDialog preferences={todayFixture().preferences} onClose={close} /></QueryClientProvider>); expect(screen.getByText(/Later changes start next local Monday/)).toBeInTheDocument(); fireEvent.change(screen.getByLabelText("Practice days per week"), { target: { value: "3" } }); fireEvent.click(screen.getByRole("button", { name: "Save goal" })); await waitFor(() => expect(close).toHaveBeenCalled()); expect(trainingApi.savePreferences).toHaveBeenCalledWith({ weeklyTarget: 3, timeZone: "America/New_York" }); });
+it("retains the dialog on failed save", async () => { vi.mocked(trainingApi.savePreferences).mockRejectedValue(new Error("offline")); const close = vi.fn(); render(<QueryClientProvider client={new QueryClient()}><WeeklyGoalDialog preferences={todayFixture().preferences} onClose={close} /></QueryClientProvider>); fireEvent.click(screen.getByRole("button", { name: "Save goal" })); expect(await screen.findByRole("alert")).toHaveTextContent("could not be saved"); expect(close).not.toHaveBeenCalled(); });
+it("shows the current timezone and sends an explicit edited calendar", async () => { const close = vi.fn(); vi.mocked(trainingApi.savePreferences).mockResolvedValue(todayFixture().preferences); render(<QueryClientProvider client={new QueryClient()}><WeeklyGoalDialog preferences={{ ...todayFixture().preferences, timeZone: "UTC" }} onClose={close} /></QueryClientProvider>); expect(screen.getByLabelText("Calendar timezone")).toHaveValue("UTC"); fireEvent.change(screen.getByLabelText("Calendar timezone"), { target: { value: "America/Chicago" } }); fireEvent.click(screen.getByRole("button", { name: "Save goal" })); await waitFor(() => expect(close).toHaveBeenCalled()); expect(trainingApi.savePreferences).toHaveBeenLastCalledWith({ weeklyTarget: 5, timeZone: "America/Chicago" }); });
+it("rejects an invalid timezone before sending preferences", () => { vi.mocked(trainingApi.savePreferences).mockClear(); render(<QueryClientProvider client={new QueryClient()}><WeeklyGoalDialog preferences={todayFixture().preferences} onClose={vi.fn()} /></QueryClientProvider>); fireEvent.change(screen.getByLabelText("Calendar timezone"), { target: { value: "not-a-zone" } }); expect(screen.getByRole("button", { name: "Save goal" })).toBeDisabled(); expect(trainingApi.savePreferences).not.toHaveBeenCalled(); });
+
+it("formats pending activation in its existing calendar, even across the browser date boundary", () => {
+  const preferences = { timeZone: "UTC", weeklyTarget: 5 as const, pending: { weeklyTarget: 3 as const, timeZone: "Pacific/Auckland", effectiveAtUtc: "2026-09-14T00:00:00Z" } };
+  render(<QueryClientProvider client={new QueryClient()}><WeeklyGoalDialog preferences={preferences} onClose={vi.fn()} /></QueryClientProvider>);
+  expect(screen.getByText(/Scheduled goal:/)).toHaveTextContent("Sep 14, 2026 (UTC)");
+  expect(screen.getByLabelText("Practice days per week")).toHaveValue("3");
+});

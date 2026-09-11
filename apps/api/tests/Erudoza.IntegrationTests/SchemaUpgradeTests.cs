@@ -38,6 +38,28 @@ public sealed class SchemaUpgradeTests
     }
 
     [Fact]
+    public async Task Training_days_are_unique_across_seasons_and_restart_preserves_preferences()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        var options = new DbContextOptionsBuilder<ErudozaDbContext>().UseSqlite(connection).Options;
+        await using (var db = new ErudozaDbContext(options))
+        {
+            await DatabaseSchemaUpgrade.ApplyAsync(db);
+            var org = Guid.NewGuid(); var student = Guid.NewGuid();
+            db.TrainingDays.Add(new() { OrganizationId = org, StudentUserId = student, LocalDate = "2026-09-11", WeekStartLocalDate = "2026-09-07", TimeZone = "UTC", SessionId = Guid.NewGuid(), CreditedAtUtc = DateTimeOffset.Parse("2026-09-11T12:00:00Z") });
+            db.TrainingPreferences.Add(new() { OrganizationId = org, StudentUserId = student, PreferencesJson = "{\"timeZone\":\"UTC\",\"weeklyTarget\":5,\"pending\":null}" });
+            await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+            db.TrainingDays.Add(new() { OrganizationId = org, StudentUserId = student, LocalDate = "2026-09-11", SessionId = Guid.NewGuid() });
+            await Assert.ThrowsAsync<DbUpdateException>(() => db.SaveChangesAsync());
+        }
+        await using var restarted = new ErudozaDbContext(options);
+        await DatabaseSchemaUpgrade.ApplyAsync(restarted);
+        (await restarted.TrainingDays.CountAsync()).Should().Be(1);
+        (await restarted.TrainingPreferences.CountAsync()).Should().Be(1);
+        (await restarted.SoloBadgeAwards.CountAsync()).Should().Be(0);
+    }
+    [Fact]
     public async Task Fresh_database_records_current_schema_and_can_restart()
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");

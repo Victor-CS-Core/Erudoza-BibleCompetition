@@ -79,7 +79,7 @@ describe("LandingPage", () => {
     const home = screen.getByRole("link", { name: "Erudoza home" });
     expect(home).toHaveTextContent("Erudoza");
     const mark = within(home).getByTestId("erudoza-mark");
-    expect(mark).toHaveAttribute("src", "/brand/erudoza-mark.png");
+    expect(mark).toHaveAttribute("src", "/brand/erudoza-patch-96.webp");
     expect(mark).toHaveAttribute("alt", "");
     expect(screen.getByRole("img", { name: "Mountains and forest surrounding an open valley" }))
       .toBeInTheDocument();

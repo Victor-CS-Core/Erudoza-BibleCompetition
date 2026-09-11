@@ -139,6 +139,12 @@ export type Progress = {
     level: string;
     exactWordingScore: number;
     recognitionScore: number;
+    referenceScore?: number;
+    sequenceScore?: number;
+    factualRecallScore?: number;
+    bookKey?: string;
+    chapter?: number;
+    verse?: number;
     algorithmVersion?: string;
     reviewDueAtUtc: string | null;
   }[];
@@ -154,6 +160,7 @@ export type Session = {
 };
 
 export type SessionSummary = {
+  recap?: import("./trainingTypes").SessionRecap;
   sessionId: string;
   mode: string;
   attempted: number;

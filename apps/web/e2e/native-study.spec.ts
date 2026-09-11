@@ -1,49 +1,8 @@
-import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { answerCard, json, type StoredSource } from './study-source-helpers';
 import { randomUUID } from 'node:crypto';
 import { assertNoOverflow, login, logout } from './helpers';
 import type { AttemptResult, ChallengeCard, ContentPack, Me, Progress, SessionSummary, Student } from '../src/api/types';
-
-interface StoredSource { id: string; citation: string; canonicalText: string; bookKey: string; chapter: number; verse: number; ordinal: number }
-async function json<T>(api: APIRequestContext, path: string, data?: unknown): Promise<T> {
-  const response = data === undefined ? await api.get(path) : await api.post(path, { data });
-  expect(response.ok(), `${path}: HTTP ${response.status()}`).toBeTruthy();
-  return response.status() === 204 ? undefined as T : response.json() as Promise<T>;
-}
-
-// Answers come from the coach's normal stored-content API for this synthetic fixture.
-// The browser receives redacted real cards; no engine import, answer-key lookup or debug endpoint is used.
-async function answerCard(page: Page, card: ChallengeCard, sources: StoredSource[]) {
-  const source = card.activityType === 'ReferenceMatch'
-    ? sources.find(s => s.canonicalText === card.prompt)
-    : sources.find(s => s.citation === card.citation);
-  expect(source, `Stored source for ${card.activityType}`).toBeTruthy();
-  const current = source!;
-  if (card.activityType === 'MissingWords') {
-    const words = current.canonicalText.split(' ');
-    await page.getByTestId('missing-words-answer').fill(card.tokens.filter(t => t.hidden).map(t => words[t.index]).join(' '));
-  } else if (card.activityType === 'VerseBuilder') {
-    const phrases = page.locator('.student-builder-phrase');
-    const ordered = [...card.tokens].sort((a, b) => current.canonicalText.indexOf(a.display) - current.canonicalText.indexOf(b.display)).map(t => t.display);
-    expect(ordered.join(' ')).toBe(current.canonicalText);
-    for (let target = 0; target < ordered.length; target++) {
-      let index = (await phrases.allTextContents()).indexOf(ordered[target]);
-      while (index > target) {
-        await page.getByRole('button', { name: `Move phrase ${index + 1} up`, exact: true }).click();
-        index--;
-      }
-    }
-  } else if (card.activityType === 'ReferenceMatch') {
-    if (card.choices?.length) await page.getByRole('radio', { name: current.citation, exact: true }).check();
-    else await page.getByTestId('missing-words-answer').fill(current.citation);
-  } else if (card.activityType === 'TrueFalse') {
-    const statement = card.prompt.slice(card.prompt.indexOf('? ') + 2);
-    await page.getByTestId(statement === current.canonicalText ? 'true-false-true' : 'true-false-false').click();
-  } else if (card.activityType === 'WhatComesNext') {
-    const next = sources.find(s => s.ordinal === current.ordinal + 1);
-    expect(next).toBeTruthy();
-    await page.getByTestId('missing-words-answer').fill(next!.canonicalText);
-  } else throw new Error(`Unsupported fixture activity: ${card.activityType}`);
-}
 
 test('native coach assignment leads to an eight-card student session, durable resume and progress at phone/desktop widths', async ({ page }, info) => {
   test.setTimeout(120000);
@@ -128,7 +87,8 @@ test('native coach assignment leads to an eight-card student session, durable re
   await page.getByTestId('complete-session').click();
   const summary = await (await completed).json() as SessionSummary;
   expect(summary).toMatchObject({ sessionId, attempted: 8, correct: 8, targetCardCount: 8, status: 'Completed' });
-  await expect(page).toHaveURL(new RegExp(`/student/progress\\?seasonId=${season.id}$`));
+  await expect(page).toHaveURL(new RegExp(`/student/sessions/${sessionId}/recap`));
+  await page.getByRole('link', { name: 'View current progress', exact: true }).click();
   await expect(page.getByTestId('progress-attempts')).toHaveText('8');
   const progress = await json<Progress>(page.request, `/api/v1/progress/me?seasonId=${season.id}`);
   expect(progress.attemptCount).toBe(8);

@@ -1,4 +1,22 @@
 /* bm-design-system:start — shared product primitives and type */
+.ds-progress-meter { display:flex; align-items:center; gap:var(--er-space-3); }
+.ds-progress-meter progress { flex:1; width:100%; min-width:0; height:6px; appearance:none; border:0; background:var(--er-surface-soft); border-radius:3px; overflow:hidden; accent-color:var(--er-teal); }
+.ds-progress-meter progress::-webkit-progress-bar { background:var(--er-surface-soft); }
+.ds-progress-meter progress::-webkit-progress-value { background:var(--er-teal); border-radius:3px; }
+.ds-progress-meter progress::-moz-progress-bar { background:var(--er-teal); }
+.ds-progress-meter>span { white-space:nowrap; color:var(--er-muted-ink); font-size:var(--er-text-xs); font-variant-numeric:tabular-nums; }
+.ds-week-strip { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:var(--er-space-1); list-style:none; padding:0; margin:var(--er-space-6) 0; }
+.ds-week-strip li { display:flex; flex-direction:column; align-items:center; gap:var(--er-space-2); color:var(--er-muted-ink); font-size:var(--er-text-xs); }
+.ds-week-day { display:grid; place-items:center; width:32px; height:32px; border-radius:50%; background:var(--er-surface-soft); font-variant-numeric:tabular-nums; }
+.ds-week-day-credited { color:var(--er-card); background:var(--er-action-blue); }
+.ds-week-day svg { width:16px; height:16px; }
+.ds-week-strip [aria-current=date] .ds-week-day { outline:2px solid var(--er-teal); outline-offset:3px; }
+.ds-honor-art { display:inline-grid; flex:none; place-items:center; perspective:650px; }
+.ds-honor-art img { width:100%; height:100%; object-fit:contain; transform-origin:center; }
+.ds-honor-art-unearned img { filter:saturate(.4); }
+.ds-training-dialog { margin:auto; inset:0; width:min(520px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); }
+.ds-training-dialog>header { display:flex; align-items:center; justify-content:space-between; gap:var(--er-space-4); }
+.ds-training-dialog-body { padding-top:var(--er-space-4); overflow-wrap:anywhere; }
 :where(.training-app, .training-login, .training-public) { color: var(--er-ink-navy); font: var(--er-text-base)/1.55 var(--er-font-ui); -webkit-font-smoothing: antialiased; }
 :where(.training-app, .training-login, .training-public) :where(h1,h2,h3,h4,h5,h6) { color: var(--er-ink-navy); font-family: var(--er-font-ui); font-weight: 650; line-height: 1.25; letter-spacing: -.025em; text-wrap: balance; }
 :where(.training-app, .training-login, .training-public) h1 { font-size: var(--er-text-page); margin: 0; }

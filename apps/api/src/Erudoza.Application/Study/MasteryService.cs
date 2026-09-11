@@ -109,6 +109,6 @@ public sealed class MasteryService(IErudozaDbContext db, IClock clock) : IMaster
             state.ExactWordingScore,
             state.RecognitionScore,
             review.DueAtUtc,
-            ScaffoldMasteryRules.AlgorithmVersion);
+            ScaffoldMasteryRules.AlgorithmVersion, new(priorScores.ExactWording, priorScores.Recognition, priorScores.Reference, priorScores.Sequence, priorScores.FactualRecall), new(updated.ExactWording, updated.Recognition, updated.Reference, updated.Sequence, updated.FactualRecall));
     }
 }

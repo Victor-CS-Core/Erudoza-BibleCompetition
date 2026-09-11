@@ -9,7 +9,7 @@ namespace Erudoza.Application.Study;
 public sealed class StudyEngine(
     IErudozaDbContext db,
     IStudentStudyScopeService studyScope,
-    IReadOnlyList<IActivityProvider> providers) : IStudyEngine
+    IReadOnlyList<IActivityProvider> providers, IClock? clock = null) : IStudyEngine
 {
     public async Task<ChallengeCard> GetNextAsync(StudyContext context, CancellationToken cancellationToken)
     {
@@ -66,7 +66,7 @@ public sealed class StudyEngine(
                 && card.StudentUserId == context.StudentId && card.SeasonId == context.SeasonId)
             .Select(card => new { card.SourceUnitId, card.CreatedAtUtc })
             .ToListAsync(cancellationToken);
-        var now = DateTimeOffset.UtcNow;
+        var now = clock?.UtcNow ?? DateTimeOffset.UtcNow;
         var due = (await db.ReviewSchedules
             .AsNoTracking()
             .Where(item => item.OrganizationId == context.OrganizationId
@@ -90,7 +90,14 @@ public sealed class StudyEngine(
         var allEligibleKnowledgeUnits = knowledgeUnits.ToList();
         if (session.Mode == StudyMode.Review)
         {
-            knowledgeUnits = knowledgeUnits.Where(item => due.Contains(item.Id)).ToList();
+            if (session.TrainingJson is not null && TrainingProgressService.Read<SessionTrainingSnapshot>(session.TrainingJson) is { MissionId: not null } training)
+            {
+                var mission = await db.DailyMissions.SingleAsync(x => x.Id == training.MissionId && x.OrganizationId == context.OrganizationId && x.StudentUserId == context.StudentId, cancellationToken);
+                if (mission.Invalidated || mission.Revision != training.MissionRevision || mission.ScopeVersion != TrainingProgressService.Fingerprint(allEligibleKnowledgeUnits.Select(x => x.Id))) throw new TrainingConflictException("The assignment changed. Reload Training HQ.");
+                var remaining = training.ReviewKnowledgeUnitIds.Except(TrainingProgressService.Ids(mission.AcceptedReviewIdsJson)).ToHashSet();
+                knowledgeUnits = knowledgeUnits.Where(x => remaining.Contains(x.Id)).ToList();
+            }
+            else knowledgeUnits = knowledgeUnits.Where(item => due.Contains(item.Id)).ToList();
             if (knowledgeUnits.Count == 0)
             {
                 throw new DomainException("There are no passages due for review.");

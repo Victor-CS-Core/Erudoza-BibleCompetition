@@ -57,9 +57,11 @@ public static class DependencyInjection
         services.AddScoped<IStudyEngine>(sp => new StudyEngine(
             sp.GetRequiredService<IErudozaDbContext>(),
             sp.GetRequiredService<IStudentStudyScopeService>(),
-            sp.GetServices<IActivityProvider>().ToList()));
+            sp.GetServices<IActivityProvider>().ToList(), sp.GetRequiredService<IClock>()));
         services.AddScoped<IMasteryService, MasteryService>();
         services.AddScoped<StudySessionService>();
+        services.AddScoped<TrainingProgressService>();
+        services.AddScoped<TrainingQueryService>();
         services.AddMemoryCache();
         services.AddHttpClient("bible-api", client =>
         {

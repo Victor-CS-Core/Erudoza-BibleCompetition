@@ -122,6 +122,7 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
     <section className="training-login-hero" aria-label="Erudoza">
       <Link className="training-login-brand" to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
       <div className="training-login-message"><h2>Give your team<br /><em>a place to grow.</em></h2><p>Choose passages, guide your students, and prepare for competition together.</p></div>
+      <img className="training-login-art training-login-coach-art" src="/assets/training/coach-guide-960.webp" width={960} height={640} loading="lazy" alt="" />
       <p className="training-login-motto">Discover · Interpret · Serve</p>
     </section>
     <section className="training-login-main" aria-label={titles[mode]}>

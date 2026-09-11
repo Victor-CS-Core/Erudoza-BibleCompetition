@@ -3,8 +3,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
+import { trainingApi } from "../../api/training";
 import type { Progress, SessionSummary } from "../../api/types";
 import { ProgressPage } from "./ProgressPage";
+vi.mock("../../api/training", () => ({ trainingApi: { journey: vi.fn() } }));
 
 vi.mock("../../api/client", () => ({
   api: {
@@ -98,13 +100,15 @@ describe("ProgressPage recorded evidence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(api.progress).mockResolvedValue(progress());
+    vi.mocked(trainingApi.journey).mockResolvedValue({ seasonId: "season-1", scopeVersion: "scope-1", after: null, chapters: [] });
     vi.mocked(api.studentProgress).mockResolvedValue(progress({ studentDisplayName: "Daniel Student", reviewDueCount: 2 }));
   });
-  it("shows real learner records and a completed session summary", async () => {
+  it("shows real learner records without trusting an old route-state recap", async () => {
     renderProgress("/student/progress", summary());
     expect(screen.getByRole("heading", { name: "Your progress" })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("progress-student")).toHaveTextContent("Daniel 2026"));
-    expect(screen.getByTestId("session-summary")).toHaveTextContent("Last Learner drill session: 1 / 1 correct");
+    expect(screen.queryByTestId("session-summary")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Your passage journey" })).toBeInTheDocument();
     expect(screen.getByTestId("progress-attempts")).toHaveTextContent("3");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Daniel 1:1");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Exact wording score: 80 / 100");
@@ -126,6 +130,7 @@ describe("ProgressPage recorded evidence", () => {
     expect(screen.getByLabelText("DUE")).toBeInTheDocument();
     expect(api.studentProgress).toHaveBeenCalledWith("org-1", "season-1", "student-1");
     expect(api.progress).not.toHaveBeenCalled();
+    expect(trainingApi.journey).not.toHaveBeenCalled();
     expect(screen.getByRole("link", { name: "Back to assignments" })).toHaveAttribute("href", "/admin/assignments?studentId=student-1&seasonId=season-1");
     expect(screen.queryByRole("link", { name: "Start due reviews" })).not.toBeInTheDocument();
   });

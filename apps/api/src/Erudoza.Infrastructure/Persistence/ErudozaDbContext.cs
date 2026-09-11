@@ -7,6 +7,12 @@ namespace Erudoza.Infrastructure.Persistence;
 public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
     : DbContext(options), IErudozaDbContext
 {
+    public DbSet<TrainingPreference> TrainingPreferences => Set<TrainingPreference>();
+    public DbSet<TrainingDay> TrainingDays => Set<TrainingDay>();
+    public DbSet<TrainingWeek> TrainingWeeks => Set<TrainingWeek>();
+    public DbSet<DailyMission> DailyMissions => Set<DailyMission>();
+    public DbSet<TrainingSeasonProgress> TrainingSeasonProgress => Set<TrainingSeasonProgress>();
+    public DbSet<SoloBadgeAward> SoloBadgeAwards => Set<SoloBadgeAward>();
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<ApplicationUser> Users => Set<ApplicationUser>();
     public DbSet<StudentProfile> StudentProfiles => Set<StudentProfile>();
@@ -69,6 +75,14 @@ public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<TrainingPreference>().HasKey(x => new { x.OrganizationId, x.StudentUserId });
+        modelBuilder.Entity<TrainingPreference>().Property(x => x.Revision).IsConcurrencyToken();
+        modelBuilder.Entity<TrainingDay>().HasKey(x => new { x.OrganizationId, x.StudentUserId, x.LocalDate });
+        modelBuilder.Entity<TrainingWeek>().HasKey(x => new { x.OrganizationId, x.StudentUserId, x.WeekStartLocalDate });
+        modelBuilder.Entity<DailyMission>().HasIndex(x => new { x.OrganizationId, x.StudentUserId, x.SeasonId, x.LocalDate, x.Revision }).IsUnique();
+        modelBuilder.Entity<TrainingSeasonProgress>().HasKey(x => new { x.OrganizationId, x.StudentUserId, x.SeasonId, x.ScopeVersion });
+        modelBuilder.Entity<SoloBadgeAward>().HasKey(x => new { x.OrganizationId, x.StudentUserId, x.Key, x.RuleVersion, x.AwardScope });
+        modelBuilder.Entity<StudySession>().HasIndex(x => new { x.OrganizationId, x.StudentUserId, x.ClientStartId }).IsUnique().HasFilter("\"ClientStartId\" IS NOT NULL");
         modelBuilder.Entity<PracticeRoomRecord>(entity =>
         {
             entity.HasKey(x => x.Id);

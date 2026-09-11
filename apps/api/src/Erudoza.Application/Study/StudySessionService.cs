@@ -17,12 +17,24 @@ public sealed class StudySessionService(
     IClock clock,
     IStudyWriteCoordinator writes)
 {
-    public async Task<StudySession> StartAsync(
+    private readonly TrainingProgressService training = new(db, studyScope, clock);
+    public Task<StudySession> StartAsync(Guid organizationId, Guid studentId, StartSessionRequest request, CancellationToken cancellationToken)
+        => writes.ExecuteAsync(studentId, token => StartCoreAsync(organizationId, studentId, request, token), cancellationToken);
+    private async Task<StudySession> StartCoreAsync(
         Guid organizationId,
         Guid studentId,
         StartSessionRequest request,
         CancellationToken cancellationToken)
     {
+        if (request.Training is { } start)
+        {
+            var existing = await db.StudySessions.SingleOrDefaultAsync(x => x.OrganizationId == organizationId && x.StudentUserId == studentId && x.ClientStartId == start.ClientStartId, cancellationToken);
+            if (existing is not null)
+            {
+                if (existing.StartPayloadJson != TrainingProgressService.Write(request)) throw new DomainException("This start ID was already used with a different payload.");
+                return existing;
+            }
+        }
         if (!Enum.IsDefined(request.Mode)) throw new DomainException("Choose Practice, Review, or Simulation.");
         var season = await db.Seasons.Include(item => item.RuleProfile).SingleOrDefaultAsync(
             item => item.Id == request.SeasonId && item.OrganizationId == organizationId,
@@ -37,7 +49,7 @@ public sealed class StudySessionService(
         }
 
         var targetCardCount = request.Mode == StudyMode.Simulation ? 10 : 8;
-        if (request.Mode == StudyMode.Review)
+        if (request.Mode == StudyMode.Review && request.Training?.Step is null)
         {
             var eligibleKnowledgeIds = await db.KnowledgeUnits.AsNoTracking()
                 .Where(item => (item.OrganizationId == organizationId && item.ContentPack!.OrganizationId == organizationId || item.OrganizationId == BuiltInLibrary.OrganizationId && item.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && item.ContentPack.IsBuiltIn)
@@ -74,13 +86,17 @@ public sealed class StudySessionService(
             RuleProfileSnapshotJson = JsonSerializer.Serialize(RuleProfileReader.Read(season.RuleProfile!)),
             CreatedAtUtc = clock.UtcNow
         };
+        await training.PrepareStartAsync(session, request, cancellationToken);
         db.StudySessions.Add(session);
         await db.SaveChangesAsync(cancellationToken);
         return session;
     }
 
-    public Task<ChallengeCard> NextAsync(StudyContext context, CancellationToken cancellationToken) =>
-        writes.ExecuteAsync(context.SessionId, token => studyEngine.GetNextAsync(context, token), cancellationToken);
+    public async Task<ChallengeCard> NextAsync(StudyContext context, CancellationToken cancellationToken)
+    {
+        var result = await writes.ExecuteAsync(context.StudentId, async token => await training.InvalidateStaleAsync(context.OrganizationId, context.StudentId, context.SessionId, token) ? null : await studyEngine.GetNextAsync(context, token), cancellationToken);
+        return result ?? throw new TrainingConflictException("The assignment changed. Reload Training HQ.");
+    }
 
     public Task<ResumeSessionDto> ResumeAsync(Guid organizationId, Guid studentId, Guid sessionId,
         bool exposeDebugAnswer, CancellationToken cancellationToken)
@@ -121,20 +137,28 @@ public sealed class StudySessionService(
             var attempts = await db.Attempts.AsNoTracking().Where(item => item.SessionId == sessionId && !item.IsLegacyDuplicate)
                 .ToListAsync(cancellationToken);
             summary = new SessionSummaryDto(session.Id, session.Mode.ToString(), attempts.Count,
-                attempts.Count(item => item.IsCorrect), session.TargetCardCount, session.Status.ToString());
+                attempts.Count(item => item.IsCorrect), session.TargetCardCount, session.Status.ToString(), await training.RecapAsync(session, cancellationToken));
         }
         return new ResumeSessionDto(new SessionDto(session.Id, session.SeasonId, session.Status.ToString(),
             session.Mode.ToString(), session.TargetCardCount, session.Difficulty.ToString()), cardDto, result, summary);
     }
 
-    public Task<AttemptResultDto> SubmitAsync(
+    public async Task<AttemptResultDto> SubmitAsync(
         Guid organizationId,
         Guid studentId,
         Guid sessionId,
         SubmitAttemptRequest request,
         bool exposeDebugAnswer,
         CancellationToken cancellationToken)
-        => writes.ExecuteAsync(sessionId, token => SubmitCoreAsync(organizationId, studentId, sessionId, request, exposeDebugAnswer, token), cancellationToken);
+    {
+        var result = await writes.ExecuteAsync(studentId, async token =>
+        {
+            var replay = await db.Attempts.AnyAsync(x => x.SessionId == sessionId && x.OrganizationId == organizationId && x.StudentUserId == studentId && (x.ClientSubmissionId == request.ClientSubmissionId || x.ChallengeCardId == request.ChallengeCardId && !x.IsLegacyDuplicate), token);
+            if (!replay && await training.InvalidateStaleAsync(organizationId, studentId, sessionId, token)) return null;
+            return await SubmitCoreAsync(organizationId, studentId, sessionId, request, exposeDebugAnswer, token);
+        }, cancellationToken);
+        return result ?? throw new TrainingConflictException("The assignment changed. Reload Training HQ.");
+    }
 
     private async Task<AttemptResultDto> SubmitCoreAsync(Guid organizationId, Guid studentId, Guid sessionId,
         SubmitAttemptRequest request, bool exposeDebugAnswer, CancellationToken cancellationToken)
@@ -201,6 +225,8 @@ public sealed class StudySessionService(
         var answerKey = ActivitySerialization.ReadAnswerKey(card.AnswerKeyJson);
         var evaluation = ExactTextEvaluator.Evaluate(request.SubmittedAnswer, answerKey.CanonicalAnswer);
 
+        var preference = await db.TrainingPreferences.AsNoTracking().SingleOrDefaultAsync(x => x.OrganizationId == organizationId && x.StudentUserId == studentId, cancellationToken);
+        var acceptedAt = preference is not null && preference.LastEventAtUtc > clock.UtcNow ? preference.LastEventAtUtc : clock.UtcNow;
         var attempt = new Attempt
         {
             Id = Guid.NewGuid(),
@@ -219,13 +245,15 @@ public sealed class StudySessionService(
             ResponseTimeMs = request.ResponseTimeMs,
             HintsUsed = request.HintsUsed,
             ActivityType = card.ActivityType,
-            CreatedAtUtc = clock.UtcNow
+            CreatedAtUtc = acceptedAt
         };
 
         DomainInvariants.EnsureAttemptBoundaries(attempt, session, card);
         db.Attempts.Add(attempt);
 
-        await mastery.ApplyAttemptAsync(
+        var priorMastery = await db.MasteryStates.SingleOrDefaultAsync(x => x.OrganizationId == organizationId && x.StudentUserId == studentId && x.SeasonId == session.SeasonId && x.KnowledgeUnitId == card.KnowledgeUnitId, cancellationToken);
+        attempt.PreviousAttemptId = priorMastery?.LastAttemptId;
+        var skillUpdate = await mastery.ApplyAttemptAsync(
             new AttemptEvidence(
                 organizationId,
                 studentId,
@@ -238,6 +266,18 @@ public sealed class StudySessionService(
                 ActivitySerialization.ReadPayload(card.PayloadJson).Difficulty),
             cancellationToken);
 
+        if (skillUpdate.Before is not null && skillUpdate.After is not null)
+        {
+            attempt.BeforeSkillsJson = TrainingProgressService.Write(skillUpdate.Before);
+            attempt.AfterSkillsJson = TrainingProgressService.Write(skillUpdate.After);
+        }
+        await db.SaveChangesAsync(cancellationToken);
+        var updatedMastery = await db.MasteryStates.SingleAsync(x => x.OrganizationId == organizationId && x.StudentUserId == studentId && x.SeasonId == session.SeasonId && x.KnowledgeUnitId == card.KnowledgeUnitId, cancellationToken);
+        updatedMastery.LastAttemptId = attempt.Id;
+        updatedMastery.UpdatedAtUtc = acceptedAt;
+        var updatedReview = await db.ReviewSchedules.SingleAsync(x => x.OrganizationId == organizationId && x.StudentUserId == studentId && x.SeasonId == session.SeasonId && x.KnowledgeUnitId == card.KnowledgeUnitId, cancellationToken);
+        updatedReview.DueAtUtc = ScaffoldMasteryRules.NextReview(acceptedAt, evaluation.IsCorrect);
+        await training.ApplyAsync(session, attempt, cancellationToken);
         session.Status = StudySessionStatus.Active;
         await db.SaveChangesAsync(cancellationToken);
         var result = await ToResultAsync(attempt, alreadyProcessed: false, exposeDebugAnswer, cancellationToken);
@@ -247,7 +287,7 @@ public sealed class StudySessionService(
     }
 
     public Task<SessionSummaryDto> CompleteAsync(Guid organizationId, Guid studentId, Guid sessionId, CancellationToken cancellationToken)
-        => writes.ExecuteAsync(sessionId, token => CompleteCoreAsync(organizationId, studentId, sessionId, token), cancellationToken);
+        => writes.ExecuteAsync(studentId, token => CompleteCoreAsync(organizationId, studentId, sessionId, token), cancellationToken);
 
     private async Task<SessionSummaryDto> CompleteCoreAsync(Guid organizationId, Guid studentId, Guid sessionId, CancellationToken cancellationToken)
     {
@@ -266,6 +306,7 @@ public sealed class StudySessionService(
 
         session.Status = StudySessionStatus.Completed;
         session.CompletedAtUtc ??= clock.UtcNow;
+        session.RecapJson ??= TrainingProgressService.Write(await training.RecapAsync(session, cancellationToken));
         await db.SaveChangesAsync(cancellationToken);
         return new SessionSummaryDto(
             session.Id,
@@ -273,7 +314,7 @@ public sealed class StudySessionService(
             attempts.Count,
             attempts.Count(item => item.IsCorrect),
             session.TargetCardCount,
-            session.Status.ToString());
+            session.Status.ToString(), TrainingProgressService.Read<SessionRecapDto>(session.RecapJson));
     }
 
     private async Task<AttemptResultDto> ToResultAsync(

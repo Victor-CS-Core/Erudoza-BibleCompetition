@@ -99,7 +99,31 @@
     ],
     "sha256": "6c0080d79831f8ad4c3373b16ad27e4e8bea0c3bd4518c502e1183074d1a913c",
     "approval": "archive; not selected",
-    "generation": "built-in image_gen"
+    "generation": "built-in image_gen",
+    "derivatives": [
+      {
+        "file": "apps/web/public/assets/training/practice-complete-320.webp",
+        "width": 320,
+        "height": 320,
+        "bytes": 33316,
+        "sha256": "1e6383a23c7182334cae41e056516f81e7fe480384886b3ee348c2a1a08d214e",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/assets/training/practice-complete-640.webp",
+        "width": 640,
+        "height": 640,
+        "bytes": 92152,
+        "sha256": "6eaf5bed9a785f07240efd2a5404e1c967fa77f03c803b9126f09cd6ec67b21f",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   },
   {
     "key": "reference-ready-v1",
@@ -167,7 +191,31 @@
     ],
     "sha256": "4d7b9e261e856df818735ed428fea96d836efc765fbe75cfaceb7b75597b4ad8",
     "approval": "approved style; selected direction",
-    "generation": "built-in image_gen"
+    "generation": "built-in image_gen",
+    "derivatives": [
+      {
+        "file": "apps/web/public/assets/training/chapter-strong-160.webp",
+        "width": 160,
+        "height": 160,
+        "bytes": 11706,
+        "sha256": "901e6764e89572b8e7acfcdb7e7ccdb473c6c860fb95c5117867ca01844f52f3",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/assets/training/chapter-strong-320.webp",
+        "width": 320,
+        "height": 320,
+        "bytes": 39236,
+        "sha256": "331ae6dc05d4d20817ec5ad933fd6bac202861de31621d219055e62189d69bc7",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   },
   {
     "key": "exact-recall-v2",
@@ -184,7 +232,31 @@
     ],
     "sha256": "20e054076aeb3bbb7c6a53bdefbc86c68a69b31318e6dd8be8bc4d4e46ec17a2",
     "approval": "approved style; selected direction",
-    "generation": "built-in image_gen"
+    "generation": "built-in image_gen",
+    "derivatives": [
+      {
+        "file": "apps/web/public/assets/training/exact-recall-160.webp",
+        "width": 160,
+        "height": 160,
+        "bytes": 11172,
+        "sha256": "ab4bf64c6856470a6875071e945c200028fe014da68233904597dd460888fbfc",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/assets/training/exact-recall-320.webp",
+        "width": 320,
+        "height": 320,
+        "bytes": 34742,
+        "sha256": "18e8a2d1962aa8b0411981e432e52a2bfd61e0ed6b20bff21e1c07ea53cd5e7d",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   },
   {
     "key": "full-coverage-v2",
@@ -201,7 +273,31 @@
     ],
     "sha256": "c483703dd1cac71a7af81a2afd030cb23dcb46d3389b111e38a2252a7cf4771e",
     "approval": "approved style; selected direction",
-    "generation": "built-in image_gen"
+    "generation": "built-in image_gen",
+    "derivatives": [
+      {
+        "file": "apps/web/public/assets/training/full-coverage-160.webp",
+        "width": 160,
+        "height": 160,
+        "bytes": 11362,
+        "sha256": "fac066579a987c0a2fe05195bcbcf3f10e756c3fce1f17d544defea545f8d7d6",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/assets/training/full-coverage-320.webp",
+        "width": 320,
+        "height": 320,
+        "bytes": 35348,
+        "sha256": "4554653db6b65c38b2f3ca58ece4d1c6fc0ea4afae703c3a4aac86d7b8119c3e",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   },
   {
     "key": "pathfinder-coach-guide-v2",
@@ -218,7 +314,31 @@
     ],
     "sha256": "7efa24b9d22921c6ae89152bbb33dad65bf1745efdd1e4e172d00a7a20fcd150",
     "approval": "approved style; selected direction",
-    "generation": "built-in image_gen"
+    "generation": "built-in image_gen",
+    "derivatives": [
+      {
+        "file": "apps/web/public/assets/training/coach-guide-480.webp",
+        "width": 480,
+        "height": 320,
+        "bytes": 35112,
+        "sha256": "4e66904edd40def5070d931bdecec62681d15183d51ab79a802ded2254cfc921",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": false,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/assets/training/coach-guide-960.webp",
+        "width": 960,
+        "height": 640,
+        "bytes": 112726,
+        "sha256": "dbd3a5859d946f128277e8e34592b18c3bbdda4736620bc793dd9c190ade51d2",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": false,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   },
   {
     "key": "pathfinder-journey-hero-v2",
@@ -252,7 +372,31 @@
     ],
     "sha256": "4c338de4a58012d6479fcf43c03e738ab76bf354026bf11b5151077fd37bf8be",
     "approval": "approved style; selected direction",
-    "generation": "built-in image_gen"
+    "generation": "built-in image_gen",
+    "derivatives": [
+      {
+        "file": "apps/web/public/assets/training/reference-ready-160.webp",
+        "width": 160,
+        "height": 160,
+        "bytes": 12284,
+        "sha256": "e7d2426587344a260f602fb5bead1b8ed30d451e421ddd34dd0df54bae9cf4f8",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/assets/training/reference-ready-320.webp",
+        "width": 320,
+        "height": 320,
+        "bytes": 34344,
+        "sha256": "01c1807750b6d77b8e43c2604d0854e29288890e75daa40e622d31dc4e0a500e",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   },
   {
     "key": "review-complete-v2",
@@ -269,7 +413,31 @@
     ],
     "sha256": "88c0f2cfb46a5e13875d01b8a1385e0e710c059e8cdce8252268872450b49d56",
     "approval": "approved style; selected direction",
-    "generation": "built-in image_gen"
+    "generation": "built-in image_gen",
+    "derivatives": [
+      {
+        "file": "apps/web/public/assets/training/review-complete-160.webp",
+        "width": 160,
+        "height": 160,
+        "bytes": 11558,
+        "sha256": "4beb7d9ed20a74cb66d41b1bc7d5d67cc1ba99ed4b4c142af281546eecc952a8",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/assets/training/review-complete-320.webp",
+        "width": 320,
+        "height": 320,
+        "bytes": 36490,
+        "sha256": "1ed3ed41dc74d7575bfe6225c0ddb806a551336007f7d506328f94e8f0dea929",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   },
   {
     "key": "steady-study-v2",
@@ -286,7 +454,31 @@
     ],
     "sha256": "2057db8b0df26b4fe28233636cdfadf6986d5549d13d8b9fe8875f1e03b0f7e8",
     "approval": "approved style; selected direction",
-    "generation": "built-in image_gen"
+    "generation": "built-in image_gen",
+    "derivatives": [
+      {
+        "file": "apps/web/public/assets/training/steady-study-160.webp",
+        "width": 160,
+        "height": 160,
+        "bytes": 11984,
+        "sha256": "ac98724404a50821c12fde4bb1890c7a036779616b5e1452184243f340fcdd52",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/assets/training/steady-study-320.webp",
+        "width": 320,
+        "height": 320,
+        "bytes": 38122,
+        "sha256": "620b440837d2dcfc5b0049f7b4629089d120f6560f3e93377ea70e8c400ce7a1",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   },
   {
     "key": "pathfinder-journey-hero-v3",
@@ -304,7 +496,31 @@
     "sha256": "e74226db799af7b4857f0b1d52bc0d25c8dae8b927dcab7850b9f3c2056c1db7",
     "approval": "approved style; selected direction",
     "generation": "built-in image_gen edit",
-    "editOf": "pathfinder-journey-hero-v2"
+    "editOf": "pathfinder-journey-hero-v2",
+    "derivatives": [
+      {
+        "file": "apps/web/public/assets/training/journey-hero-720.webp",
+        "width": 720,
+        "height": 240,
+        "bytes": 42484,
+        "sha256": "1392d1e74acd3d73b175c3df21984300a33c77b9c70c4563ad8ef0e074f99110",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": false,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/assets/training/journey-hero-1440.webp",
+        "width": 1440,
+        "height": 480,
+        "bytes": 137388,
+        "sha256": "cec615b578739bb7e92b6065e3ab95140a2b407d84d37a2cd3875bcc9fe4f547",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": false,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   },
   {
     "key": "erudoza-logo-patch-v2",
@@ -322,6 +538,30 @@
     "sha256": "69abe74bb5130bf3e5b4a5ba92b95749dcd39e58da5ac3180d37557399927da5",
     "approval": "explicitly approved",
     "generation": "built-in image_gen edit",
-    "editOf": "erudoza-logo-patch-v1"
+    "editOf": "erudoza-logo-patch-v1",
+    "derivatives": [
+      {
+        "file": "apps/web/public/brand/erudoza-patch-96.webp",
+        "width": 96,
+        "height": 96,
+        "bytes": 5070,
+        "sha256": "cb2bfef5c414a644a90db6dc15448453a8b18dc5e9a90af71c966272e1c4b0c9",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      },
+      {
+        "file": "apps/web/public/brand/erudoza-patch-192.webp",
+        "width": 192,
+        "height": 192,
+        "bytes": 12396,
+        "sha256": "036214a4d30676d6d689c68ca72dfb32b8314b3b5d6668a68473f81b7456a70b",
+        "format": "WebP",
+        "quality": 86,
+        "alpha": true,
+        "processing": "Lanczos resize only; original composition retained"
+      }
+    ]
   }
 ]

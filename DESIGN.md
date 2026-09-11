@@ -26,3 +26,11 @@ Confirmation actions use `components/ui/ConfirmationDialog.tsx`: fixed footer, C
 The user approved prototype C on 10 September 2026 for the entire app. Its authority is the compact navy header with prominent search, pin controls, breadcrumb section switching, calm ivory surfaces, teal primary actions, dense readable tables, and clear section tabs. The prototype's students, percentages, dates, groups and illustrative artwork are not product data or permission to fabricate metrics.
 
 Search is deterministic navigation, not AI. Ctrl/Cmd+K and All sections open the command center. Search existing sections, coach-accessible students, and accessible seasons. Pins are local preferences scoped to organization, user and role. Hierarchy expansion survives opening/closing within the visit. Closing an overlay restores focus; arrows and Enter support quick navigation. Anchor destinations must point to actual page sections and focus them once asynchronous content loads.
+
+## Approved Honors and public entry — September 11
+
+Use the approved embroidered Pathfinder patch family and flame-and-Bible logo from the source asset manifest. The learner HQ places its next training action and compact landscape in one panel, with the saved week and next Honor alongside on desktop. Passage detail stays below. Public landing/account pages share the brand; desktop account artwork lives beside forms, while phone forms remain compact. Keep the 300px security-check space at 320px.
+
+Honors use `HonorArtwork`; tilt only the bitmap within seven degrees and leave labels/focus targets still. Respect reduced motion, fine-pointer availability, visibility changes and cleanup. `ProgressMeter` and `WeeklyProgressStrip` display stored fractions and day credit. Routine goal/Honor detail overlays use `TrainingDialog` with native focus containment, Escape/pending lock and focus restoration. Examples live at `/admin/design-system`.
+
+Recaps use persisted evidence and retain the session season in shared navigation. Unearned Honors explain the actual criterion and assigned scope; legacy progress stays labeled. Artwork approval does not authorize fabricated ranks or official Pathfinder certification. Coach HQ reorganization remains a separately documented recommendation.

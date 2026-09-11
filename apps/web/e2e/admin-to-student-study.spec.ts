@@ -61,5 +61,8 @@ test("coach activates a season and student submits a correct real activity with 
   await page.reload();
   await expect(page.getByTestId("challenge-feedback").getByRole("heading", { name: "Well remembered" })).toBeVisible();
   await page.getByTestId("complete-session").click();
+  await expect(page).toHaveURL(/\/student\/sessions\/[^/]+\/recap/);
+  await expect(page.getByText("1 correct from 1 accepted attempts", { exact: false })).toBeVisible();
+  await page.getByRole("link", { name: "View current progress", exact: true }).click();
   await expect(page.getByTestId("progress-attempts")).not.toHaveText("0");
 });

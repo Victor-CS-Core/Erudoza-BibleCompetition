@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
-import type { SessionSummary } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from "../../components/ui";
-import { academyActivityName, academyRecentExactPercent, academySessionSummaryCopy, canStartAcademyTrack } from "./academyTracks";
+import { academyActivityName, academyRecentExactPercent, canStartAcademyTrack } from "./academyTracks";
+import { PassageJourney } from "./PassageJourney";
 import "./student.css";
 
 export function ProgressPage() {
@@ -16,15 +16,14 @@ export function ProgressPage() {
   const progress = useQuery({ queryKey: ["progress", seasonId ?? selectedSeasonId, studentId, me?.organizationId, me?.userId],
     queryFn: () => coachView ? api.studentProgress(me!.organizationId, seasonId!, studentId!) : api.progress(selectedSeasonId), enabled: !coachView || !!me });
   const data = progress.data;
-  const summary = useLocation().state as SessionSummary | null;
   const recent = data?.recentAttempts ?? [];
   return <div className="training-dashboard student-progress">
     <PageHeader title={coachView ? "Student progress" : "Your progress"} description={<span data-testid="progress-student">{data?.studentDisplayName ? `${data.studentDisplayName} · ` : ""}{data?.seasonName || "Recorded practice and passage progress"}</span>}
       action={<LinkButton variant="secondary" to={coachView ? `/admin/assignments?studentId=${encodeURIComponent(studentId!)}&seasonId=${encodeURIComponent(seasonId!)}` : `/student${selectedSeasonId ? `?seasonId=${encodeURIComponent(selectedSeasonId)}` : ""}`}>{coachView ? "Back to assignments" : "Back to training"}</LinkButton>} />
-    {summary && <Notice data-testid="session-summary" tone="success">{academySessionSummaryCopy(summary)}</Notice>}
     {progress.isPending && <Panel aria-busy="true"><LoadingState label="Loading progress…" /></Panel>}
     {progress.isError && <Notice tone="danger">Progress could not load. <Button variant="secondary" onClick={() => void progress.refetch()}>Try again</Button></Notice>}
     {data && <>
+      {!coachView && !!data.seasonId && <PassageJourney seasonId={data.seasonId} />}
       <Panel data-testid="progress-top-folio"><h2>Recorded activity</h2><dl className="student-progress-metrics">
         <div><dt>Attempts</dt><dd data-testid="progress-attempts">{data.attemptCount}</dd></div>
         <div><dt>Verses mastered</dt><dd>{data.masteredCount}</dd></div>

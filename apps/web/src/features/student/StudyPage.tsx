@@ -2,8 +2,9 @@ import { useAuth } from "../../auth/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { api } from "../../api/client";
+import { api, ApiError } from "../../api/client";
 import type { ChallengeCard, AttemptResult, Session } from "../../api/types";
+import type { StartTrainingContext } from "../../api/trainingTypes";
 import { Badge, Button, Input, LinkButton, Notice, PageHeader, Panel, Textarea } from "../../components/ui";
 import {
   academyActivityName,
@@ -25,8 +26,14 @@ export function StudyPage() {
   const track = academyTrackForMode(mode);
   const queryClient = useQueryClient();
   const selectedSeasonId = params.get("seasonId") || undefined;
+  const missionId = params.get("missionId") || undefined;
+  const missionRevision = params.get("missionRevision");
+  const requestedStep = params.get("step");
+  const step = requestedStep === "Review" || requestedStep === "Practice" ? requestedStep : undefined;
+  const missionReview = step === "Review" && mode === "Review" && !!missionId;
+  const startIntent = useRef<{ key: string; context: StartTrainingContext } | null>(null);
   const progress = useQuery({ queryKey: ["progress", selectedSeasonId, me?.organizationId, me?.userId], queryFn: () => api.progress(selectedSeasonId) });
-  const trackReady = progress.isSuccess && canStartAcademyTrack(track, progress.data);
+  const trackReady = progress.isSuccess && (canStartAcademyTrack(track, progress.data) || (missionReview && progress.data.seasonStatus === "Active"));
   const [sessionId, setSessionId] = useState<string | null>(null);
   const loadedSession = useRef<string | null>(null);
   const [sessionSnapshot, setSessionSnapshot] = useState<Session | null>(null);
@@ -39,8 +46,24 @@ export function StudyPage() {
   const pendingAttempt = useRef<Parameters<typeof api.submitAttempt>[1] | null>(null);
 
   const start = useMutation({
-    mutationFn: (sessionMode: "Practice" | "Review" | "Simulation") =>
-      api.startSession(progress.data!.seasonId, sessionMode),
+    mutationFn: (sessionMode: "Practice" | "Review" | "Simulation") => {
+      const key = JSON.stringify([me?.organizationId, me?.userId, progress.data!.seasonId, sessionMode, missionId, missionRevision, step]);
+      if (startIntent.current?.key !== key) {
+        startIntent.current = { key, context: {
+          clientStartId: params.get("startId") || crypto.randomUUID(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          ...(step ? { step } : {}),
+          ...(missionId ? { missionId, missionRevision: missionRevision === null ? undefined : Number(missionRevision) } : {}),
+        } };
+      }
+      const context = startIntent.current.context;
+      if (!params.get("startId")) {
+        const nextParams = new URLSearchParams(params);
+        nextParams.set("startId", context.clientStartId);
+        setParams(nextParams, { replace: true });
+      }
+      return api.startSession(progress.data!.seasonId, sessionMode, context);
+    },
   });
 
   const card = useQuery({
@@ -94,8 +117,8 @@ export function StudyPage() {
   const complete = useMutation({
     mutationFn: () => api.completeSession(sessionId!),
     onSuccess: (summary) => {
-      void queryClient.invalidateQueries({ queryKey: ["progress"] });
-      navigate("/student/progress?seasonId=" + encodeURIComponent(progress.data!.seasonId), { state: summary });
+      for (const key of ["progress", "training-today", "training-honors", "training-journey"]) void queryClient.invalidateQueries({ queryKey: [key] });
+      navigate("/student/sessions/" + encodeURIComponent(summary.sessionId) + "/recap?seasonId=" + encodeURIComponent(sessionSnapshot?.seasonId ?? progress.data!.seasonId));
     },
   });
 
@@ -110,10 +133,11 @@ export function StudyPage() {
     submit.reset();
     complete.reset();
     if (requestedSessionId) {
+      startIntent.current = null;
       void resume.mutateAsync(requestedSessionId).then((saved) => {
         if (cancelled) return;
         if (saved.summary) {
-          navigate("/student/progress?seasonId=" + encodeURIComponent(saved.session.seasonId), { state: saved.summary, replace: true });
+          navigate("/student/sessions/" + encodeURIComponent(saved.session.id) + "/recap?seasonId=" + encodeURIComponent(saved.session.seasonId), { replace: true });
           return;
         }
         loadedSession.current = saved.session.id;
@@ -138,7 +162,7 @@ export function StudyPage() {
     return () => { cancelled = true; };
     // Navigation owns session identity; ignore late replies after switching modes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestedSessionId, progress.data?.seasonId, trackReady, mode, startRetry]);
+  }, [requestedSessionId, progress.data?.seasonId, trackReady, mode, missionId, missionRevision, step, startRetry]);
 
   const result = submit.data ?? (restoredAttempt?.cardId === card.data?.id ? restoredAttempt?.result : undefined);
   const accepted = !!result;
@@ -160,11 +184,17 @@ export function StudyPage() {
       description={<span data-testid="current-season">{progress.isPending ? "Loading your season…" : progress.data?.seasonName || "Your study section has not been assigned yet."}</span>}
       action={<Badge data-testid="academy-session-kicker">{academySessionKicker(mode)}</Badge>}>
       {sessionSnapshot?.difficulty && <p>Session difficulty: {sessionSnapshot.difficulty}</p>}
-      {progress.isSuccess && !canStartAcademyTrack(track, progress.data) && <p data-testid="academy-track-unavailable">{academyUnavailableCopy(track, progress.data)}</p>}
+      {progress.isSuccess && !trackReady && <p data-testid="academy-track-unavailable">{academyUnavailableCopy(track, progress.data)}</p>}
     </PageHeader></div>
   );
 
-  if (!requestedSessionId && progress.isSuccess && !canStartAcademyTrack(track, progress.data)) {
+  if ([start.error, card.error, submit.error, resume.error, complete.error].some(error => error instanceof ApiError && error.status === 409)) {
+    return <div className="er-study-stage space-y-4">{cover}<Notice tone="info">Your assignment or session changed. Return to Training HQ to continue with your current plan. Accepted answers remain saved.</Notice><LinkButton to={`/student?seasonId=${encodeURIComponent(sessionSnapshot?.seasonId ?? selectedSeasonId ?? progress.data?.seasonId ?? "")}`} onClick={() => {
+      for (const key of ["progress", "training-today", "training-honors", "training-journey"]) void queryClient.invalidateQueries({ queryKey: [key] });
+    }}>Return to Training HQ</LinkButton></div>;
+  }
+
+  if (!requestedSessionId && progress.isSuccess && !trackReady) {
     return (
       <div className="er-study-stage space-y-4">
         {cover}

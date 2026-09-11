@@ -1,0 +1,16 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { beforeEach, expect, it, vi } from "vitest";
+import { api } from "../../api/client";
+import { trainingApi } from "../../api/training";
+import { HonorsPage } from "./HonorsPage";
+import { honorFixture } from "./trainingFixtures";
+vi.mock("../../api/client", () => ({ api: { assignedSeasons: vi.fn() } }));
+vi.mock("../../api/training", () => ({ trainingApi: { honors: vi.fn() } }));
+vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
+function page() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><HonorsPage /></MemoryRouter></QueryClientProvider>); }
+beforeEach(() => { HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); }; HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); }; vi.mocked(api.assignedSeasons).mockResolvedValue([{ id: "s", name: "Daniel" }]); vi.mocked(trainingApi.honors).mockResolvedValue([honorFixture()]); });
+it("shows honest 4/5 progress and Advanced criterion without fabricating an award", async () => { page(); expect(await screen.findByText("4 / 5")).toBeInTheDocument(); expect(screen.getByText(/Requires Advanced practice/)).toBeInTheDocument(); fireEvent.click(screen.getByRole("button", { name: "Earned" })); expect(screen.getByText("No earned Honors yet")).toBeInTheDocument(); fireEvent.click(screen.getByRole("button", { name: "In progress" })); expect(screen.getByText("Exact Recall")).toBeInTheDocument(); });
+it("details preserve original earning date and scope", async () => { vi.mocked(trainingApi.honors).mockResolvedValue([honorFixture({ earnedAtUtc: "2026-09-10T12:00:00Z", evidenceSessionId: "saved" })]); page(); fireEvent.click(await screen.findByRole("button", { name: "View Exact Recall details" })); expect(screen.getByRole("dialog")).toHaveTextContent("saved historical evidence"); expect(screen.getByRole("dialog")).toHaveTextContent("Daniel assigned scope"); expect(screen.getByRole("link", { name: "View evidence session" })).toHaveAttribute("href", "/student/sessions/saved/recap?seasonId=s"); fireEvent.click(screen.getByRole("button", { name: "Close dialog" })); expect(screen.queryByRole("dialog")).not.toBeInTheDocument(); expect(screen.getByRole("button", { name: "View Exact Recall details" })).toBeInTheDocument(); });
+it("renders a recoverable error instead of an empty collection", async () => { vi.mocked(trainingApi.honors).mockRejectedValue(new Error("offline")); page(); expect(await screen.findByRole("alert")).toHaveTextContent("Honors could not load"); expect(screen.queryByText("No Honors recorded yet")).not.toBeInTheDocument(); });

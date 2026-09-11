@@ -1,28 +1,43 @@
-/* Login composition shares the same UI primitives as both workspaces. */
-.training-login { display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:100dvh;background:var(--er-paper); }
-.training-login-hero { position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;min-height:680px;padding:64px;color:var(--er-on-navy);background:var(--er-ink-navy); }
-.training-login-hero::before { content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(180deg,var(--er-ink-navy) 8%,color-mix(in srgb,var(--er-ink-navy) 90%,transparent) 38%,color-mix(in srgb,var(--er-ink-navy) 40%,transparent) 70%,transparent),url('/brand/training-landscape.webp') center bottom/cover; }
-.training-login-brand { align-self:flex-start; }.training-login-brand .er-wordmark-name { font:32px/1 var(--er-font-reading); }.training-login-brand .er-wordmark-mark { width:56px;height:56px; }.training-login-brand .er-wordmark-tagline { font-size:var(--er-text-xs); }
-.training-login-message { margin:80px 0 120px;max-width:480px; }.training-login-message h2 { font:44px/1.2 var(--er-font-reading);color:var(--er-on-navy);letter-spacing:-.025em;margin:0 0 24px; }.training-login-message h2 em { color:var(--er-on-navy-muted); }.training-login-message>p { color:var(--er-on-navy);line-height:1.75;max-width:340px; }
-.training-login-motto { font-size:var(--er-text-sm); }
-.training-login-main { display:flex;flex-direction:column;padding:32px 64px 24px; }.training-login-back { color:var(--er-muted-ink);font-size:var(--er-text-sm);align-self:flex-start; }.training-login-back:hover { text-decoration:underline; }
-.training-login-form-wrap { width:100%;max-width:390px;margin:auto;padding:64px 0; }.training-login-intro { color:var(--er-muted-ink);line-height:1.7;margin:12px 0 32px; }
-.training-login form { display:flex;flex-direction:column; }.training-login form label { margin-bottom:8px; }.training-login form>.ds-input { margin-bottom:24px; }.training-login-password { position:relative; }.training-login-password .ds-input { padding-right:72px; }.training-login-password .ds-button { position:absolute;right:2px;top:1px;min-height:42px; }
-.training-login-submit { width:100%;margin-top:24px;justify-content:space-between; }
-.training-login-error { margin-top:16px; }.training-login-help { border-top:1px solid var(--er-border);padding-top:24px;margin-top:32px;color:var(--er-muted-ink);font-size:var(--er-text-sm);line-height:1.8; }.training-login-footer { color:var(--er-muted-ink);font-size:var(--er-text-xs);text-align:center; }
-@media(max-width:1000px) { .training-login-hero { padding:40px; }.training-login-main { padding-inline:40px; } }
-@media(max-width:760px) {
-  .training-login { grid-template-columns:1fr; }.training-login-hero { min-height:0;padding:24px; }.training-login-hero::before { background:linear-gradient(90deg,var(--er-ink-navy),color-mix(in srgb,var(--er-ink-navy) 80%,transparent)),url('/brand/training-landscape.webp') center 65%/cover; }.training-login-brand .er-wordmark-mark { width:40px;height:40px; }.training-login-brand .er-wordmark-name { font-size:28px; }.training-login-message { margin:24px 0 0; }.training-login-message h2 { font-size:28px;margin:0; }.training-login-message>p,.training-login-motto { display:none; }.training-login-main { padding:24px; }.training-login-form-wrap { padding:24px 0; }.training-login-intro { margin-bottom:24px; }.training-login-footer { padding-top:12px;font-size:.6875rem; }
-}
-
+/* Account forms stay on solid surfaces; approved art has its own desktop panel. */
+.training-login { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); min-height:100dvh; background:var(--er-paper); }
+.training-login-hero { display:flex; flex-direction:column; min-width:0; padding:48px; color:var(--er-on-navy); background:var(--er-ink-navy); }
+.training-login-brand { align-self:flex-start; }
+.training-login-brand .er-wordmark-name { font:32px/1 var(--er-font-reading); }
+.training-login-brand .er-wordmark-mark { width:56px; height:56px; }
+.training-login-brand .er-wordmark-tagline { font-size:var(--er-text-xs); }
+.training-login-message { margin:64px 0 32px; max-width:480px; }
+.training-login-message h2 { color:var(--er-on-navy); margin:0 0 24px; text-wrap:balance; }
+.training-login-message h2 em { font-style:normal; }
+.training-login-message>p { color:var(--er-on-navy); max-width:42ch; }
+.training-login-art { display:block; width:100%; height:auto; max-height:340px; object-fit:cover; object-position:70% center; border-radius:var(--er-radius-card); margin-top:auto; }
+.training-login-coach-art { object-fit:contain; }
+.training-login-motto { font-size:var(--er-text-sm); margin-top:24px; }
+.training-login-main { display:flex; flex-direction:column; min-width:0; padding:32px 48px 24px; }
+.training-login-back { color:var(--er-muted-ink); font-size:var(--er-text-sm); align-self:flex-start; min-height:44px; display:inline-flex; align-items:center; }
+.training-login-back:hover { text-decoration:underline; }
+.training-login-form-wrap { width:100%; max-width:390px; margin:auto; padding:48px 0; }
+.training-login-form-wrap .ds-page-header { margin-bottom:32px; }
+.training-login form { display:flex; flex-direction:column; }
+.training-login form label { margin-bottom:8px; }
+.training-login form>.ds-input { margin-bottom:24px; }
+.training-login-password { position:relative; }
+.training-login-password .ds-input { padding-right:72px; }
+.training-login-password .ds-button { position:absolute; right:2px; top:1px; min-height:42px; }
+.training-login-submit { width:100%; margin-top:24px; justify-content:space-between; }
+.training-login-error { margin-top:16px; }
+.training-login .ds-notice { overflow-wrap:anywhere; }
+.training-login-help { border-top:1px solid var(--er-border); padding-top:24px; margin-top:32px; color:var(--er-muted-ink); font-size:var(--er-text-sm); line-height:1.8; }
+.training-login-footer { color:var(--er-muted-ink); font-size:var(--er-text-xs); text-align:center; }
 .training-login-caps { margin:8px 0 0; color:var(--er-warning-ink); font-size:var(--er-text-sm); }
-
+@media(max-width:1000px) { .training-login-hero { padding:32px; } .training-login-main { padding-inline:32px; } }
 @media(max-width:760px) {
   .training-login { display:flex; flex-direction:column; }
   .training-login-hero { padding:20px; flex:none; }
-  .training-login-message { margin-top:16px; }
-  .training-login-message h2 { font-size:22px; }
-  .training-login-main { flex:1; padding:20px; }
-  .training-login-form-wrap { margin:0 auto; padding:24px 0; }
+  .training-login-brand .er-wordmark-mark { width:40px; height:40px; }
+  .training-login-brand .er-wordmark-name { font-size:28px; }
+  .training-login-message,.training-login-art,.training-login-motto { display:none; }
+  .training-login-main { flex:1; padding:16px 20px 24px; }
+  .training-login-form-wrap { margin:0 auto; padding:16px 0 24px; }
   .training-login-footer { margin-top:auto; }
 }
+@media(pointer:coarse) { .training-login-password .ds-button { min-height:44px; top:0; } }

@@ -11,6 +11,10 @@ public sealed class ExceptionMappingMiddleware(RequestDelegate next, IHostEnviro
         {
             await next(context);
         }
+        catch (Erudoza.Application.Study.TrainingConflictException exception)
+        {
+            await WriteProblem(context, StatusCodes.Status409Conflict, exception.Message, exception);
+        }
         catch (DomainException exception)
         {
             await WriteProblem(context, StatusCodes.Status400BadRequest, exception.Message, exception);

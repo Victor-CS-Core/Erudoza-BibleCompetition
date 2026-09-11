@@ -16,6 +16,8 @@ import { CoachesPage } from "../features/admin/CoachesPage";
 import { LandingPage } from "../features/marketing/LandingPage";
 import { ProgressPage } from "../features/student/ProgressPage";
 import { StudentHomePage } from "../features/student/StudentHomePage";
+import { HonorsPage } from "../features/student/HonorsPage";
+import { SessionRecapPage } from "../features/student/SessionRecapPage";
 import { StudyPage } from "../features/student/StudyPage";
 import { AppShell } from "../layouts/AppShell";
 import { RouteProblemPage } from "./RouteProblemPage";
@@ -84,6 +86,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <StudentHomePage /> },
       { path: "study", element: <StudyPage /> },
+      { path: "sessions/:sessionId/recap", element: <SessionRecapPage /> },
+      { path: "honors", element: <HonorsPage /> },
       { path: "progress", element: <ProgressPage /> },
       { path: "practice", element: <PracticeRoute /> },
       { path: "practice/:roomId", element: <PracticeRoute /> },

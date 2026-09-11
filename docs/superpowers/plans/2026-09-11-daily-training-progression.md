@@ -1,5 +1,20 @@
 # Daily Training and Progression Implementation Plan
 
+## Implementation execution record — September 11
+
+The user authorized implementation after approving the student concept, patch family/logo and public-entry scope. The original checklists below are the planning recipe; the execution gates and deviations are recorded here and in the linked audits.
+
+| Scope | Execution gate |
+|---|---|
+| Tasks 1–6: contracts, atomic backend, calendar, mission, Honors, export | Implemented in native and .NET. Full .NET 252 tests, populated all-migration export/import 9 tests, and bounded native read/atomicity regressions pass. |
+| Tasks 7–10: shared UI/assets, HQ, study recap, Honors/journey/navigation | Implemented with approved assets. Full web/native Vitest 486 tests pass; pointer/focus/motion and selected-season/conflict recovery verified. |
+| Task 11: integrated review and release preparation | Fresh backend/UI/acceptance reviews resolved eight P2 findings. Both builds/type checks, lint/format, full native browser six cases pass. Full canonical browser 36 cases pass, with two opt-in audit skips. Final types/lint/builds and 486-test suite pass after the legacy correction. Repository checkpoint pending at this entry; browser suites precede the separately tested legacy-only display correction. |
+| P1/P2: public compositions and asset integration | Combined under the later proceed instruction. The working local implementation serves as the concrete review preview; no additional standalone static mockup or repeated asset approval was required. |
+| P3: public/account verification | 55 isolated native views pass at 1440/390/320, including signup/recovery/invitations and motion. Real provider/email tests are outside this visual change. |
+| Coach | Shared branding implemented. New Coach HQ layout/aggregation remains the separate documented recommendation. |
+
+Evidence: [Honors audit](../../audits/2026-09-11-honors-implementation.md), [public entry audit](../../audits/2026-09-11-public-entry.md), [prepared release change set](../../operations/honors-release.md). No Honors production migration or deployment has been performed. An exhaustive same-payload matrix for every calendar/scope permutation is not claimed; focused rules/HTTP tests plus explicit populated export DTO comparison and both browser runtimes establish the recorded local scope.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Implement the approved student Training HQ, session recap, Honors collection, and passage journey with durable, evidence-based progress.

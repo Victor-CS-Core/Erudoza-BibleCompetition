@@ -80,7 +80,7 @@ public sealed record MasteryUpdateResult(
     int ExactWordingScore,
     int RecognitionScore,
     DateTimeOffset? ReviewDueAtUtc,
-    string AlgorithmVersion);
+    string AlgorithmVersion, Erudoza.Application.Contracts.SkillScoresDto? Before = null, Erudoza.Application.Contracts.SkillScoresDto? After = null);
 
 public interface IMasteryService
 {

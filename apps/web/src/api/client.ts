@@ -16,6 +16,7 @@ import type {
   Student,
 } from "./types";
 import { apiUrl } from "./url";
+import type { StartTrainingContext } from "./trainingTypes";
 
 export class ApiError extends Error {
   constructor(message: string, public readonly status: number, public readonly retryAfterSeconds?: number) { super(message); }
@@ -111,8 +112,8 @@ export const api = {
   ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body) }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
-  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice") =>
-    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode }) }),
+  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext) =>
+    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, ...(training ? { training } : {}) }) }),
   resumeSession: (sessionId: string) => request<import("./types").ResumedSession>(`/api/v1/study/sessions/${sessionId}`),
   nextCard: (sessionId: string) => request<ChallengeCard>(`/api/v1/study/sessions/${sessionId}/next`),
   submitAttempt: (

@@ -1,13 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { api } from "../../api/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { api, ApiError } from "../../api/client";
 import { scriptureApi } from "../../api/scripture";
 import type { Progress } from "../../api/types";
 import { StudyPage } from "./StudyPage";
 
-vi.mock("../../api/client", () => ({
+vi.mock("../../api/client", async importOriginal => ({
+  ...await importOriginal<typeof import("../../api/client")>(),
   api: {
     progress: vi.fn(),
     startSession: vi.fn(),
@@ -17,6 +18,8 @@ vi.mock("../../api/client", () => ({
     resumeSession: vi.fn(),
   },
 }));
+
+afterEach(() => sessionStorage.clear());
 
 function progress(overrides: Partial<Progress> = {}): Progress {
   return {
@@ -36,7 +39,7 @@ function renderStudy(path: string) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  const router = createMemoryRouter([{ path: "/student/study", element: <StudyPage /> }, { path: "/student/progress", element: <p>Saved session summary</p> }], {
+  const router = createMemoryRouter([{ path: "/student/study", element: <StudyPage /> }, { path: "/student/sessions/:sessionId/recap", element: <p>Saved session summary</p> }], {
     initialEntries: [path],
   });
   render(
@@ -80,6 +83,27 @@ describe("StudyPage Field Guide Academy honesty", () => {
     expect(api.startSession).not.toHaveBeenCalled();
   });
 
+  it("keeps mission review available when another session moved its due dates", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
+    renderStudy("/student/study?mode=Review&step=Review&missionId=mission-1&missionRevision=2&startId=start-1");
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Review", expect.objectContaining({
+      clientStartId: "start-1", step: "Review", missionId: "mission-1", missionRevision: 2,
+    })));
+  });
+
+  it("reuses its start intent after a lost response", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+    vi.mocked(api.startSession).mockRejectedValueOnce(new Error("offline"));
+    const router = renderStudy("/student/study?startId=retry-intent&step=Practice");
+    fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
+    await screen.findByTestId("challenge-prompt");
+    await waitFor(() => expect(router.state.location.search).toContain("sessionId=session-1"));
+    const calls = vi.mocked(api.startSession).mock.calls;
+    expect(calls).toHaveLength(2);
+    expect(calls[0][2]).toEqual(calls[1][2]);
+    expect(calls[0][2]).toMatchObject({ clientStartId: "retry-intent", step: "Practice" });
+  });
+
   it("does not start due reviews until the season is Active", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Draft", reviewDueCount: 2 }));
     renderStudy("/student/study?mode=Review");
@@ -91,6 +115,21 @@ describe("StudyPage Field Guide Academy honesty", () => {
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Due review");
     expect(screen.queryByTestId("challenge-card")).not.toBeInTheDocument();
     expect(api.startSession).not.toHaveBeenCalled();
+  });
+
+  it.each(["start", "card", "answer"] as const)("recovers a stale %s through the selected HQ rather than repeating a conflict", async stage => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+    const conflict = new ApiError("Assignment changed", 409);
+    if (stage === "start") vi.mocked(api.startSession).mockRejectedValueOnce(conflict);
+    if (stage === "card") vi.mocked(api.nextCard).mockRejectedValueOnce(conflict);
+    if (stage === "answer") vi.mocked(api.submitAttempt).mockRejectedValueOnce(conflict);
+    renderStudy("/student/study?seasonId=season-1");
+    if (stage === "answer") {
+      fireEvent.change(await screen.findByTestId("missing-words-answer"), { target: { value: "answer" } });
+      fireEvent.click(screen.getByTestId("submit-answer"));
+    }
+    expect(await screen.findByRole("link", { name: "Return to Training HQ" })).toHaveAttribute("href", "/student?seasonId=season-1");
+    expect(screen.queryByRole("button", { name: "Try again" })).not.toBeInTheDocument();
   });
 
   it("does not start learner drill until the season is Active", async () => {
@@ -121,21 +160,21 @@ describe("StudyPage Field Guide Academy honesty", () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
     renderStudy("/student/study");
 
-    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
   });
 
   it("starts due reviews from the existing session API", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 2 }));
     renderStudy("/student/study?mode=Review");
 
-    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Review"));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Review", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
   });
 
   it("starts rehearsal when the season is Active", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
     renderStudy("/student/study?mode=Simulation");
 
-    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Simulation"));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Simulation", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
   });
 
   it("opens learner drill with the activity heading", async () => {
@@ -147,7 +186,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     await waitFor(() => expect(screen.getByTestId("current-season")).toHaveTextContent("Daniel 2026"));
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Learner drill");
     expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
-    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
   });
 
   it("names the drawn card with the academy activity, not the raw API type", async () => {
@@ -171,7 +210,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     expect(screen.getByTestId("challenge-prompt")).toHaveTextContent("Build the verse");
     expect(screen.getByTestId("challenge-card")).toHaveTextContent("Daniel 1:2");
     expect(screen.getByTestId("academy-activity-name")).not.toHaveTextContent("VerseBuilder");
-    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
   });
 
   it("keeps season context in a focused study header", async () => {
@@ -201,13 +240,13 @@ describe("StudyPage Field Guide Academy honesty", () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
     const router = renderStudy("/student/study");
 
-    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
     vi.mocked(api.startSession).mockClear();
     vi.mocked(api.startSession).mockResolvedValueOnce({ id: "session-rehearsal", seasonId: "season-1", status: "Created", mode: "Simulation", targetCardCount: 8 });
 
     await act(async () => { await router.navigate("/student/study?mode=Simulation"); });
 
-    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Simulation"));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Simulation", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Rehearsal");
   });
 
@@ -230,7 +269,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     });
 
     const router = renderStudy("/student/study");
-    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice"));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
     await act(async () => { await router.navigate("/student/study?mode=Simulation"); });
     await waitFor(() => expect(api.nextCard).toHaveBeenCalledWith("session-rehearsal"));
 
@@ -386,8 +425,8 @@ describe("Study submission recovery", () => {
     expect(screen.getByTestId("complete-session")).toBeEnabled();
     fireEvent.click(screen.getByTestId("complete-session"));
     expect(await screen.findByText("Saved session summary")).toBeInTheDocument();
-    expect(router.state.location.state).toEqual(summary);
-    expect(router.state.location.search).toBe("?seasonId=season-1");
+    expect(router.state.location.state).toBeNull();
+    expect(router.state.location.pathname).toBe("/student/sessions/session-1/recap");
   });
   it("retains accepted feedback and Finish when loading the next card fails", async () => {
     renderStudy("/student/study");

@@ -11,13 +11,13 @@ export function LandingPage() {
     <a className="training-skip" href="#public-main">Skip to content</a>
     <header className="public-header"><Link to="/" aria-label="Erudoza home"><ErudozaWordmark compact inverted /></Link><LinkButton to="/login" variant="secondary">Sign in<AppIcon name="arrow" /></LinkButton></header>
     <main id="public-main" className="public-main" data-testid="landing-phone-column">
-      <section className="public-intro">
+      <div className="public-welcome"><section className="public-intro">
         <h1>Know the passage.<br /><em>Own the moment.</em></h1>
         <p>Focused Scripture training for your next Bible competition. Study your assigned passages, strengthen your recall, and prepare together.</p>
         <div className="public-actions"><LinkButton to="/login" data-testid="start-studying">Start studying<AppIcon name="arrow" /></LinkButton><LinkButton to="/login" data-testid="build-a-season" variant="secondary">Coach your team</LinkButton></div>
         <p className="public-access-note">Sign in with the account provided by your coach or academy.</p>
       </section>
-      <div className="public-landscape" role="img" aria-label="Mountains and forest surrounding an open valley" />
+      <img className="public-landscape" src="/assets/training/journey-hero-1440.webp" srcSet="/assets/training/journey-hero-720.webp 720w, /assets/training/journey-hero-1440.webp 1440w" sizes="(min-width: 900px) 55vw, 100vw" width={1440} height={480} alt="Mountains and forest surrounding an open valley" fetchPriority="high" /></div>
       <section className="public-training" aria-labelledby="training-title">
         <div><h2 id="training-title">A clear path to confident recall.</h2><p>One assigned passage. Different ways to make it stick.</p></div>
         <ol className="public-training-steps">
@@ -26,7 +26,7 @@ export function LandingPage() {
           <li><AppIcon name="flag" /><div><h3>Rehearse for competition</h3><p>Practice under time pressure in a simulation or join your team in a coach-led room.</p></div></li>
         </ol>
       </section>
-      <section className="public-coach"><div><h2>Give every student a clear next step.</h2><p>Choose a season’s passages, set each student’s difficulty, and follow their progress in one place.</p><Link to="/signup">Create a club with a coach account →</Link></div><LinkButton to="/login" variant="secondary">Sign in as a coach<AppIcon name="arrow" /></LinkButton></section>
+      <section className="public-coach"><img className="public-coach-art" src="/assets/training/coach-guide-480.webp" srcSet="/assets/training/coach-guide-480.webp 480w, /assets/training/coach-guide-960.webp 960w" sizes="(min-width: 900px) 320px, 80vw" width={480} height={320} loading="lazy" alt="" /><div><h2>Give every student a clear next step.</h2><p>Choose a season’s passages, set each student’s difficulty, and follow their progress in one place.</p><Link to="/signup">Create a club with a coach account →</Link></div><LinkButton to="/login" variant="secondary">Sign in as a coach<AppIcon name="arrow" /></LinkButton></section>
     </main>
     <footer className="public-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</footer>
   </div>;

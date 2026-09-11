@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
 import { AppIcon } from "../../components/AppIcon";
-import { Button, Input, Notice } from "../../components/ui";
+import { Button, Input, Notice, PageHeader } from "../../components/ui";
 import { useAuth } from "../../auth/AuthContext";
 
 export function LoginPage() {
@@ -39,14 +39,14 @@ export function LoginPage() {
           <h2>Know the passage.<br /><em>Own the moment.</em></h2>
           <p>Build your knowledge, strengthen your recall, and prepare for your next competition.</p>
         </div>
+        <img className="training-login-art" src="/assets/training/journey-hero-720.webp" width={720} height={240} loading="lazy" alt="" />
         <p className="training-login-motto">Discover · Interpret · Serve</p>
       </section>
       <section className="training-login-main" aria-labelledby="login-heading">
         <Link to="/" className="training-login-back" data-testid="login-join-academy">← Back to home</Link>
         <div className="training-login-form-wrap">
 
-          <h1 id="login-heading">Sign in</h1>
-          <p className="training-login-intro">Your next step starts here. Continue to your training space.</p>
+          <div id="login-heading"><PageHeader title="Sign in" description="Your next step starts here. Continue to your training space." /></div>
           <form onSubmit={(event) => void onSubmit(event)} aria-busy={pending}>
             <label htmlFor="login-identifier">Email or username</label>
             <Input id="login-identifier" data-testid="login-identifier" value={identifier} onChange={(event) => setIdentifier(event.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="Enter your email or username" aria-invalid={!!error} aria-describedby={error ? "login-error" : undefined} disabled={pending} required />

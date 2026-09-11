@@ -75,7 +75,7 @@ describe("LoginPage Field Guide Academy", () => {
     expect(screen.getByRole("heading", { name: "Sign in" })).toBeInTheDocument();
     expect(screen.getByLabelText("Email or username")).toHaveAttribute("autocomplete", "username");
     expect(screen.getByLabelText("Password")).toHaveAttribute("autocomplete", "current-password");
-    expect(screen.getByTestId("erudoza-mark")).toHaveAttribute("src", "/brand/erudoza-mark.png");
+    expect(screen.getByTestId("erudoza-mark")).toHaveAttribute("src", "/brand/erudoza-patch-96.webp");
     expect(screen.getByText(/Ask your coach or academy administrator\./)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "← Back to home" })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: "Create a club" })).toHaveAttribute("href", "/signup");

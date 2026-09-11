@@ -23,3 +23,50 @@
   .student-builder-row .ds-button { padding-inline: var(--er-space-3); }
   .student-progress-records > li { gap: var(--er-space-3); }
 }
+
+/* Daily training compositions share all control, type and color primitives. */
+.training-dashboard { display: grid; gap: var(--er-space-6); }
+.training-dashboard > .ds-page-header { margin-bottom: 0; }
+.training-hq-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.training-hq-aside { display: grid; gap: 24px; }
+.training-mission-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, .75fr); gap: 16px; align-items: center; }
+.training-mission-heading .ds-badge { margin-bottom: 12px; }
+.training-mission-heading > img { width: 100%; height: 170px; object-fit: cover; border-radius: var(--er-radius-card); }
+.training-next-honor-content { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+.training-next-honor-content > div { flex: 1; min-width: 0; }
+.training-season { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.training-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.training-mission-steps, .training-passage-list { list-style: none; padding: 0; margin: 16px 0; }
+.training-mission-steps > li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--er-border); }
+.training-controls { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+.training-season-select { display: grid; gap: 8px; max-width: 360px; }
+.training-honor-preview { display: grid; grid-template-columns: minmax(160px, .7fr) minmax(0, 2fr); gap: 24px; align-items: center; }
+.training-honor-preview-items { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-around; }
+.training-honor-preview-items > a, .training-honor-preview-items > div { display: grid; justify-items: center; gap: 8px; min-width: 120px; max-width: 220px; text-align: center; }
+.training-honors-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.training-honor-card { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.training-honor-card > p { margin: 0; }
+.training-honor-card > button { margin-top: auto; }
+.training-honor-card > .ds-progress-meter { width: 100%; }
+.training-honor-detail { display: grid; justify-items: start; gap: 12px; }
+.training-honor-detail > .ds-honor-artwork { justify-self: center; }
+.training-passage-journey { display: grid; gap: 20px; }
+.training-passage-list > li { padding: 20px 0; border-bottom: 1px solid var(--er-border); }
+.training-skill-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.training-recap-main { display: flex; align-items: center; gap: 32px; }
+.training-recap-main > img { object-fit: contain; max-width: 35%; height: auto; }
+.training-recap-skills { display: flex; flex-wrap: wrap; gap: 16px 32px; }
+.training-recap-skills dd { margin: 4px 0 0; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) {
+  .training-hq-grid, .training-honor-preview { grid-template-columns: minmax(0, 1fr); }
+  .training-honors-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .training-skill-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .training-recap-main { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .training-recap-main > img { max-width: 140px; align-self: center; }
+}
+@media (max-width: 440px) {
+  .training-honors-grid, .training-skill-list { grid-template-columns: minmax(0, 1fr); }
+  .training-mission-heading { grid-template-columns: minmax(0, 1fr); }
+  .training-mission-heading > img { height: 110px; }
+  .training-controls > .ds-button { width: 100%; }
+}

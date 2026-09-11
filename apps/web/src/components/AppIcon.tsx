@@ -1,5 +1,6 @@
-export type IconName = "home" | "book" | "review" | "chart" | "users" | "flag" | "arrow" | "logout" | "menu" | "close" | "search" | "pin" | "chevron" | "grid" | "plus";
+export type IconName = "home" | "book" | "review" | "chart" | "users" | "flag" | "arrow" | "logout" | "menu" | "close" | "search" | "pin" | "chevron" | "grid" | "plus" | "check";
 const paths: Record<IconName, string> = {
+  check: "m5 12 4 4L19 6",
   search: "M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
   pin: "m15 3 6 6-4 1-3 5v3l-3-3-6-1 5-3 1-4Zm-6 12-6 6",
   chevron: "m6 9 6 6 6-6",

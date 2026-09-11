@@ -1,6 +1,8 @@
 // bm-design-system: Erudoza primitives. Styling lives in styles/design-system.css.
 import type { Ref, ButtonHTMLAttributes, HTMLAttributes, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode } from "react";
 import { Link, type LinkProps } from "react-router-dom";
+export { ProgressMeter, WeeklyProgressStrip } from "./TrainingProgress";
+export { HonorArtwork } from "./HonorArtwork";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type ActionStyle = { variant?: Variant; size?: "default" | "compact" };

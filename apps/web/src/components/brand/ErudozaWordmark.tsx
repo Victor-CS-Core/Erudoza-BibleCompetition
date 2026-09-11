@@ -10,7 +10,9 @@ export function ErudozaWordmark({ compact = false, inverted = false }: Props) {
   return (
     <div className={`er-wordmark flex items-center gap-3 ${ink}`} data-testid="erudoza-wordmark">
       <img
-        src="/brand/erudoza-mark.png"
+        src="/brand/erudoza-patch-96.webp"
+        srcSet="/brand/erudoza-patch-96.webp 96w, /brand/erudoza-patch-192.webp 192w"
+        sizes={compact ? "36px" : "56px"}
         alt=""
         width={compact ? 36 : 48}
         height={compact ? 36 : 48}

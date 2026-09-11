@@ -2,6 +2,10 @@ namespace Erudoza.Domain;
 
 public sealed class StudySession
 {
+    public string? ClientStartId { get; set; }
+    public string? StartPayloadJson { get; set; }
+    public string? TrainingJson { get; set; }
+    public string? RecapJson { get; set; }
     public TrainingDifficulty Difficulty { get; set; } = TrainingDifficulty.Standard;
     public string DifficultyPolicyVersion { get; set; } = "v1";
     public string RuleProfileSnapshotJson { get; set; } = string.Empty;
@@ -47,6 +51,9 @@ public sealed class ChallengeCard
 
 public sealed class Attempt
 {
+    public Guid? PreviousAttemptId { get; set; }
+    public string? BeforeSkillsJson { get; set; }
+    public string? AfterSkillsJson { get; set; }
     public bool IsLegacyDuplicate { get; set; }
     public string? ResultJson { get; set; }
     public Guid Id { get; set; }
@@ -73,6 +80,7 @@ public sealed class Attempt
 
 public sealed class MasteryState
 {
+    public Guid? LastAttemptId { get; set; }
     public Guid Id { get; set; }
     public Guid OrganizationId { get; set; }
     public Guid StudentUserId { get; set; }

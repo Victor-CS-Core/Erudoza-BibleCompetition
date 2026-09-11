@@ -53,7 +53,7 @@ public sealed class StudyIntegrityTests(ErudozaApiFactory factory) : IClassFixtu
         resumed.Summary.Should().BeNull();
         var completed = await (await student.PostAsync($"/api/v1/study/sessions/{session.Id}/complete", null)).Content.ReadFromJsonAsync<SessionSummaryDto>();
         resumed = await student.GetFromJsonAsync<ResumeSessionDto>($"/api/v1/study/sessions/{session.Id}");
-        resumed!.Summary.Should().Be(completed);
+        resumed!.Summary.Should().BeEquivalentTo(completed);
         using var scope = factory.Services.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<StudySessionService>();
         var wrongStudent = () => service.ResumeAsync(SeedIdentifiers.OrganizationId, Guid.NewGuid(), session.Id, false, CancellationToken.None);

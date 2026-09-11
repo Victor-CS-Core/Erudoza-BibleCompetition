@@ -1,6 +1,6 @@
 # Original Erudoza artwork — 11 September 2026
 
-Status: **Pathfinder patch style approved; embroidered Erudoza logo explicitly approved**. The student interaction mockup is approved. The user named the feature **Honors System** and requested pointer-following tilt. Production integration has not started.
+Status: **Pathfinder patch style approved; embroidered Erudoza logo explicitly approved**. The student interaction mockup is approved. The user named the feature **Honors System** and requested pointer-following tilt. Approved assets are integrated in the isolated implementation branch; production deployment is pending.
 
 Open the [artwork review gallery](review.html) to inspect the complete family, compare the earlier academy shields with the requested Pathfinder-inspired patches, and check badges at 48, 96, and 160 pixels on ivory, navy, and soft teal.
 
@@ -46,7 +46,7 @@ Shared honor rules and release checks are in the [implementation plan](../../sup
 - Requested direction: SDA Pathfinder thematic, original high-quality site art and badges.
 - Proposed selection: Pathfinder honors v2, revised hero v3, and embroidered logo v2. The existing completion illustration is retained as a reference for a future patch treatment.
 - User asset approval: "the art design and logos I approve are the patches style one"; the transparent logo was then explicitly approved with "That logo is perfect."
-- Production integration: not started.
+- Production integration: implemented locally; deployment pending. See the Honors implementation audit.
 
 ## Verification
 
@@ -56,7 +56,7 @@ Every generated image was visually inspected. All 19 masters were checked for di
 
 [Embroidered Erudoza logo](masters/pathfinder-v2/erudoza-logo-patch-v2.png) applies the approved thread treatment to the existing flame-and-Bible mark. The first generated logo had a baked checkerboard; it was rejected and replaced using built-in background extraction. The retained logo has genuine alpha transparency. Its generation and correction prompts are preserved.
 
-The gallery applies smooth pointer-following tilt to honor art only, bounded to 7 degrees with 70ms exponential easing. It returns to rest on exit and defaults to disabling for reduced motion, coarse input, and hidden pages. The gallery alone offers an explicit Motion > Preview tilt override so the requested effect can be inspected even on a reduced-motion device; production uses the device preference. The labels and target layout remain still. The plan specifies a reusable HonorArtwork component with cleanup and browser checks; production motion has not been implemented.
+The gallery applies smooth pointer-following tilt to honor art only, bounded to 7 degrees with 70ms exponential easing. It returns to rest on exit and defaults to disabling for reduced motion, coarse input, and hidden pages. The gallery alone offers an explicit Motion > Preview tilt override so the requested effect can be inspected even on a reduced-motion device; production uses the device preference. The labels and target layout remain still. The plan specifies a reusable HonorArtwork component with cleanup and browser checks; production HonorArtwork implements this behavior; browser checks confirm pointer, reduced-motion and coarse-touch behavior in the implementation audit.
 
 ## Recommended next assets
 
@@ -71,3 +71,7 @@ The [public entry design brief](../../product/2026-09-11-public-entry-design.md)
 3. Add small season crests for collection headers and completed-season keepsakes once their role and criteria are defined.
 
 Keep navigation icons simple at small sizes and retain the painted landscape style for large illustrations. These next assets are recommendations, not completed new assets or changes to existing match awards.
+
+## Optimized implementation derivatives — 11 September 2026
+
+The user instructed implementation to proceed with the approved artwork. Twenty responsive WebP derivatives now exist in `apps/web/public/brand/` and `apps/web/public/assets/training/`. Selected master entries in the manifest record every output path, byte count, dimensions, hash, alpha and processing method. The original masters remain unchanged; the earlier statement about no recompression describes the original design checkpoint. Derivatives use Lanczos resize and WebP quality 86, with no retouching, replacement art or cropping. The existing completion reference remains the Academy v1 artwork; no new completion patch is claimed. Production deployment and complete browser verification are separate gates.
