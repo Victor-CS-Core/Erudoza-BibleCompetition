@@ -4,6 +4,7 @@ Read this file before starting repository work. `AGENTS.md` defines the required
 
 ## Current state — 2026-09-11
 
+- The student daily-training interaction mockup and Pathfinder patch artwork style are approved; the embroidered Erudoza logo was explicitly approved. The user named the feature **Honors System** and requested smooth pointer-following honor tilt. The implementation plan, Coach recommendations, original masters, approval record, and local gallery are prepared in the scoped design checkpoint below. No training/progression production code or asset integration has started.
 - Task branch: `codex/cloudflare-free-port`. Repository: `Victor-CS-Core/Erudoza-BibleCompetition`.
 - The production pilot is live at **https://erudoza.com** on Cloudflare Free, with deterministic study, the built-in 66-book NKJV library, and private Team Practice functionality.
 - Current Worker version **`c254f500-b7ad-4135-b10d-2ac4e43558b7`** includes the shared contrast fix, with the existing `PUBLIC_ORIGIN=https://erudoza.com` and managed apex custom-domain binding. The original cutover version was `4958cd54-65b8-4060-9f68-ca59bdb22a6a`: its administrator/library, HTTPS/redirect, and WebSocket rejection-guard checks passed through 14:56:46 UTC. Current live HTML/JS/CSS match the validated native build and API health passed at 15:09:57 UTC.
@@ -75,6 +76,15 @@ Checkpoint verification notes: generated `.local` dry-run bundles were excluded 
 - [Deployed contrast HTML/JS/CSS hashes and API health](.local/contrast-audit/production-latest.json)
 - [Coach onboarding configuration, protection limits and release evidence](docs/operations/coach-onboarding.md)
 - [Local onboarding browser evidence](.local/coach-onboarding-browser/report.json)
+
+## Honors design and artwork checkpoint — September 11
+
+- Scope: [implementation plan](docs/superpowers/plans/2026-09-11-daily-training-progression.md), [design specification](docs/superpowers/specs/2026-09-11-daily-training-progression-design.md), [Coach recommendations](docs/product/2026-09-11-coach-workspace-recommendations.md), [archived student composition](docs/product/mockups/2026-09-11-daily-training.html), and [original artwork package](docs/brand/2026-09-11-original-assets/README.md).
+- User decisions: daily practice/rewards; current student concept approved; SDA Pathfinder theme requested; embroidered patch family approved; refined hero removes the sun and improves compass detail; transparent embroidered flame-and-Bible logo explicitly approved; achievement feature named Honors System. The artwork package preserves exact prompts, 19 source masters with hashes, and the selected/archived status.
+- Validation: coordinating-agent plan self-review aligned naming, API compatibility, event-day credit, concurrent first-credit tests, current migration ownership, and approved art/motion with the spec. All 63 local Markdown links resolved. All 19 master hashes matched their manifest; dimensions/pixel format/corner alpha inspected. Archived mockup/gallery inline scripts parsed. Gallery rendered at 1440/390/320 with all 10 current images loaded and no page overflow; 48/96/160 honor views and alternate surfaces checked. Pointer positions produced opposite signed rotations within 7 degrees; device reduced-motion preference reset artwork to rest. Full touch/coarse and React lifecycle tests remain implementation work.
+- Limits: these are documentation, original-art, and local-preview checks. No application test suite, database fixture, migration, production upload/deployment, or live gameplay check was performed by this design task. Coach recommendations use current source and earlier local contrast screenshots, not a fresh live Coach session. The existing load gate remains open.
+- Coordination: onboarding owns its code, deployment, and migration `0003_coach_onboarding.sql`; the future Honors migration number is planned as 0004 and must be rechecked at execution. Onboarding checkpoint `c7c5a10` was pushed before this design checkpoint. Only the listed design paths and this scoped progress update belong to this task.
+- Git gate: documentation/artwork reviewed for an explicit scoped commit and push on `codex/cloudflare-free-port`; record the actual outcome after execution. Next action: follow the saved student implementation plan when implementation is requested; Coach layout and further completion/Team Practice/season patch assets remain separate recommendations.
 
 ## Update convention
 

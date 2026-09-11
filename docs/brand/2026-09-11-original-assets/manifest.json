@@ -1,0 +1,327 @@
+[
+  {
+    "key": "academy-journey-hero-v1",
+    "file": "masters/academy-v1/academy-journey-hero-v1.png",
+    "width": 2172,
+    "height": 724,
+    "bytes": 2374183,
+    "pixelFormat": "Format24bppRgb",
+    "cornerAlpha": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "sha256": "2c75a3263ec5322ba23a964b68c5cda6741e581d73d9672eb2770b1047f41644",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "chapter-strong-v1",
+    "file": "masters/academy-v1/chapter-strong-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1993185,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sha256": "2ff12f110a3217707a820c61b843ed3e807e0c72eb46c13a3f1cbaa7135ce8ea",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "coach-field-guide-v1",
+    "file": "masters/academy-v1/coach-field-guide-v1.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2328258,
+    "pixelFormat": "Format24bppRgb",
+    "cornerAlpha": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "sha256": "c00857cbc3403f9b1bd8d114748866da488a5d9e932047b4474e90294eb1123e",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "exact-recall-v1",
+    "file": "masters/academy-v1/exact-recall-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1994453,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sha256": "e298f4a0022871d498cef9f077a4c10d88b0c220cb766f671dcaab6a59eef531",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "full-coverage-v1",
+    "file": "masters/academy-v1/full-coverage-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2150573,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sha256": "380418f41f26d8d2597d0a5bc4947f49f5aa97dafcc01ef98bcf8d099a7bc658",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "practice-complete-v1",
+    "file": "masters/academy-v1/practice-complete-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1315706,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sha256": "6c0080d79831f8ad4c3373b16ad27e4e8bea0c3bd4518c502e1183074d1a913c",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "reference-ready-v1",
+    "file": "masters/academy-v1/reference-ready-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2066125,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sha256": "8bca287b6c5f7cde3fdd65e78c2750f64749b66ce9205833ee61c9f56f1f0e83",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "review-complete-v1",
+    "file": "masters/academy-v1/review-complete-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1950431,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sha256": "c3d0acb5ef28059819f594b0ba29904a8078fc4f3107d03bfaf66771c5aa0bcb",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "steady-study-v1",
+    "file": "masters/academy-v1/steady-study-v1.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1965830,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sha256": "26748ead198b04a5b2f09cd63de8bc881f45fb0889f77c7a571f94b0d6549261",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "chapter-strong-v2",
+    "file": "masters/pathfinder-v2/chapter-strong-v2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2765572,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sha256": "4d7b9e261e856df818735ed428fea96d836efc765fbe75cfaceb7b75597b4ad8",
+    "approval": "approved style; selected direction",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "exact-recall-v2",
+    "file": "masters/pathfinder-v2/exact-recall-v2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2596931,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sha256": "20e054076aeb3bbb7c6a53bdefbc86c68a69b31318e6dd8be8bc4d4e46ec17a2",
+    "approval": "approved style; selected direction",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "full-coverage-v2",
+    "file": "masters/pathfinder-v2/full-coverage-v2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2685067,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sha256": "c483703dd1cac71a7af81a2afd030cb23dcb46d3389b111e38a2252a7cf4771e",
+    "approval": "approved style; selected direction",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "pathfinder-coach-guide-v2",
+    "file": "masters/pathfinder-v2/pathfinder-coach-guide-v2.png",
+    "width": 1536,
+    "height": 1024,
+    "bytes": 2745744,
+    "pixelFormat": "Format24bppRgb",
+    "cornerAlpha": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "sha256": "7efa24b9d22921c6ae89152bbb33dad65bf1745efdd1e4e172d00a7a20fcd150",
+    "approval": "approved style; selected direction",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "pathfinder-journey-hero-v2",
+    "file": "masters/pathfinder-v2/pathfinder-journey-hero-v2.png",
+    "width": 2172,
+    "height": 724,
+    "bytes": 2684918,
+    "pixelFormat": "Format24bppRgb",
+    "cornerAlpha": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "sha256": "20f804c907255aee7fcfbe0bd6cf9434c94cf0d1aa0151d38a6563db6459e5ca",
+    "approval": "archive; not selected",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "reference-ready-v2",
+    "file": "masters/pathfinder-v2/reference-ready-v2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2551795,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sha256": "4c338de4a58012d6479fcf43c03e738ab76bf354026bf11b5151077fd37bf8be",
+    "approval": "approved style; selected direction",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "review-complete-v2",
+    "file": "masters/pathfinder-v2/review-complete-v2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2470625,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sha256": "88c0f2cfb46a5e13875d01b8a1385e0e710c059e8cdce8252268872450b49d56",
+    "approval": "approved style; selected direction",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "steady-study-v2",
+    "file": "masters/pathfinder-v2/steady-study-v2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 2637349,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      1,
+      0
+    ],
+    "sha256": "2057db8b0df26b4fe28233636cdfadf6986d5549d13d8b9fe8875f1e03b0f7e8",
+    "approval": "approved style; selected direction",
+    "generation": "built-in image_gen"
+  },
+  {
+    "key": "pathfinder-journey-hero-v3",
+    "file": "masters/pathfinder-v2/pathfinder-journey-hero-v3.png",
+    "width": 2172,
+    "height": 724,
+    "bytes": 2491684,
+    "pixelFormat": "Format24bppRgb",
+    "cornerAlpha": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "sha256": "e74226db799af7b4857f0b1d52bc0d25c8dae8b927dcab7850b9f3c2056c1db7",
+    "approval": "approved style; selected direction",
+    "generation": "built-in image_gen edit",
+    "editOf": "pathfinder-journey-hero-v2"
+  },
+  {
+    "key": "erudoza-logo-patch-v2",
+    "file": "masters/pathfinder-v2/erudoza-logo-patch-v2.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1550840,
+    "pixelFormat": "Format32bppArgb",
+    "cornerAlpha": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "sha256": "69abe74bb5130bf3e5b4a5ba92b95749dcd39e58da5ac3180d37557399927da5",
+    "approval": "explicitly approved",
+    "generation": "built-in image_gen edit",
+    "editOf": "erudoza-logo-patch-v1"
+  }
+]
