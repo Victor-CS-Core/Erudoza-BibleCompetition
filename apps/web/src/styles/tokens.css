@@ -1,25 +1,52 @@
+/* Erudoza semantic tokens — shared by coach, student, login and reference. */
 :root {
-  --er-ink-navy: #0d2b4f;
-  --er-teal: #00a89e;
-  --er-learning-blue: #1579a8;
-  --er-coral: #ff5a2e;
-
-  --er-paper: #fff7e6;
-  --er-card: #fffdf7;
-  --er-parchment: #f5ebd7;
+  color-scheme: light;
+  --er-ink-navy: #102e47;
+  --er-teal: #087d80;
+  --er-action-blue: #08777b;
+  --er-learning-blue: #246f94;
+  --er-coral: #d64a28;
+  --er-paper: #f6f4ee;
+  --er-card: #fffefa;
+  --er-surface-soft: #eeeee7;
+  --er-selected: #e4f0ed;
+  --er-parchment: #f3eddf;
   --er-kraft: #c8a978;
-  --er-kraft-dark: #9d7b4f;
-  --er-graphite: #3f4d5d;
-  --er-border: #d8c7a8;
-  --er-muted-ink: #5c6b7a;
-  --er-deep-table: #071b32;
-
-  --er-success-ink: #087c74;
-  --er-action-blue: #006f78;
-  --er-stamp-red: #d23f22;
-
-  --er-radius-card: 18px;
-  --er-radius-sheet: 14px;
+  --er-kraft-dark: #80613d;
+  --er-graphite: #405363;
+  --er-muted-ink: #596c79;
+  --er-border: #dce0dc;
+  --er-border-strong: #b8c4c3;
+  --er-deep-table: #102e47;
+  --er-success-ink: #216b51;
+  --er-success-surface: #eaf3e9;
+  --er-stamp-red: #b63c27;
+  --er-danger-surface: #fff0e9;
+  --er-warning-ink: #855b17;
+  --er-warning-surface: #f8efd9;
+  --er-on-navy: #fff9ed;
+  --er-on-navy-muted: #c1d7de;
+  --er-font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --er-font-reading: Georgia, "Times New Roman", serif;
+  --er-text-xs: .75rem;
+  --er-text-sm: .8125rem;
+  --er-text-base: .9375rem;
+  --er-text-lg: 1.125rem;
+  --er-text-title: 1.375rem;
+  --er-text-page: 2rem;
+  --er-space-1: 4px;
+  --er-space-2: 8px;
+  --er-space-3: 12px;
+  --er-space-4: 16px;
+  --er-space-5: 20px;
+  --er-space-6: 24px;
+  --er-space-7: 32px;
+  --er-space-8: 40px;
+  --er-radius-card: 16px;
+  --er-radius-sheet: 16px;
   --er-radius-control: 12px;
-  --er-focus: 0 0 0 3px color-mix(in srgb, var(--er-action-blue) 35%, transparent);
+  --er-control-height: 44px;
+  --er-focus: 0 0 0 3px color-mix(in srgb, var(--er-teal) 24%, transparent);
+  --er-shadow-overlay: 0 12px 32px #102e4714;
+  --er-duration: 180ms;
 }

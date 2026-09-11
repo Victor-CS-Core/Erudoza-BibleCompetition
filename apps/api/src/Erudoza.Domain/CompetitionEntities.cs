@@ -96,6 +96,7 @@ public sealed class Team
 
 public sealed class CompetitionMember
 {
+    public TrainingDifficulty Difficulty { get; set; } = TrainingDifficulty.Standard;
     public Guid Id { get; set; }
     public Guid OrganizationId { get; set; }
     public Guid SeasonId { get; set; }

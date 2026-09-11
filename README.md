@@ -2,19 +2,22 @@
 
 Study. Master. Compete.
 
-Erudoza is a Scripture competition learning engine. The first scaffold proves one organization-scoped vertical slice: admin season setup, specialist assignment, student study, deterministic Missing Words, attempt persistence, and mastery/review updates.
+**Start work here:** read [PROGRESS.md](PROGRESS.md) for the current state, completed gates, blockers, and next actions. Every agent must follow the checkpoint workflow in [AGENTS.md](AGENTS.md).
+
+Erudoza is a Scripture competition training app. Coaches set up seasons, assign passages and choose each student's difficulty. Students practise with rule-based activities, save their progress and revisit passages due for review. No AI service or model key is required or supported.
 
 Primary public origin: https://erudoza.com
 
-Hosting target: OpenAI Sites. The Firebase Hosting origin is legacy and is not the application deployment target.
+Hosting target: Cloudflare Free (Workers, Durable Objects, and D1). The native staging app is deployed; the production-domain app cutover remains pending. See [the progress log](PROGRESS.md) and [DNS runbook](docs/operations/erudoza-cloudflare-dns.md) for verified status. OpenAI Sites is the previous host; Firebase Hosting is legacy.
 
 ## Stack
 
 - SPA: React 19, TypeScript, Vite 8, Tailwind CSS 4
-- API: .NET 10, ASP.NET Core, EF Core
-- Data: SQLite for local/test without Docker
-- Public host: OpenAI Sites with a Cloudflare Worker-compatible Vite build
-- Firebase: reserved for the future application storage layer; it is not used for hosting
+- Native API: Cloudflare Workers, Durable Objects for authoritative Team Practice rooms, D1 storage
+- Existing API: .NET 10, ASP.NET Core, EF Core; retained for compatibility and local/test workflows
+- Data: local D1/SQLite without Docker; hosted native D1 contains the admin and shared NKJV library
+- App host: Cloudflare Workers static assets; `erudoza.com` DNS is active on Cloudflare, with the app-domain binding still pending
+- Previous deployment path: Sites API bridge plus Azure App Service/Azure SQL; retained templates do not provision paid resources automatically
 - Local optional dependencies: SQL Server + Azurite via `infra/local/compose.yaml`
 
 ## Quick start
@@ -50,11 +53,12 @@ dotnet test apps/api/Erudoza.sln
 
 ## Notes
 
-- Canonical Scripture is stored in the relational content model. The development pack is synthetic sample text. Coaches can import another versioned pack from `/admin/content`; changed wording requires a new version.
-- Study activities in this slice: Missing Words, Verse Builder, Reference Match, and What Comes Next. All are deterministic and use stored verse text.
+- Coaches select passages from the built-in 66-book NKJV library at `/admin/content`. Chapter and verse choices follow the stored book structure. Manual Scripture imports and translation selection have been retired.
+- Study activities: Missing Words, Verse Builder, Reference Match, What Comes Next, and True/False. All use stored verse text and coach-selected difficulty.
 - Competition simulation uses the season rule profile. `PBE_STYLE_V1` forbids multiple-choice in simulation.
-- OpenAI is optional. Set `OPENAI_API_KEY` to draft short-answer candidates from stored verses. Study games still run without it. Generation cannot bypass the question validator or coach approval. See `docs/operations/openai-and-scripture.md`.
-- `https://erudoza.com` is the public application origin and is managed through OpenAI Sites. See `docs/operations/custom-domain.md` for DNS and `docs/operations/firebase-host.md` for the retired Firebase Hosting boundary.
-- Sites serves the SPA and its same-origin API bridge. The current .NET API remains a separate development service until a production API or Firebase-backed replacement is connected through `ERUDOZA_API_BASE_URL`.
+- Library selection and study need no AI setup. Seasons and students reference shared verses without creating additional packs. See [Scripture workflow](docs/operations/scripture-imports.md).
+- `https://erudoza.com` is the intended native application origin. Registration stays at GoDaddy; DNS is on Cloudflare Free. The previous website records remain until the reviewed app cutover is authorized and verified. Use the [current DNS runbook](docs/operations/erudoza-cloudflare-dns.md), not the legacy Sites/Firebase instructions, for this transition.
+- [Native operations](docs/operations/cloudflare-native.md) covers D1 provisioning, authentication, real-time rooms, timing, and free-tier constraints. The [staging audit](docs/audits/2026-09-10-cloudflare-staging.md) distinguishes verified pilot behavior from the open production-domain and regional load gates. The older [Azure release runbook](docs/operations/production-release.md) remains a reference for the retained backend.
 - The supplied NKJV dataset is private local source material and is not bundled into the public site or uploaded by the build.
+- Install the [validated NKJV library](content/nkjv/README.md) once through [the .NET maintenance command](apps/api/NKJV-LIBRARY.md) or local D1 provisioning. Missing installation returns a clear unavailable message. Previous KJV files and saved study history remain archived; builds do not install or upload Scripture.
 - The supplied flame-and-open-book mark is integrated through a replaceable Erudoza wordmark component.

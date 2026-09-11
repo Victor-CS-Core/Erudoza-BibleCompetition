@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Erudoza.Application.Abstractions;
 using Erudoza.Infrastructure.Persistence;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -8,16 +9,19 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Erudoza.IntegrationTests;
 
 public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
 {
+    public bool DisablePracticeTicker { get; set; }
     private readonly string _dbPath = Path.Combine(Path.GetTempPath(), $"erudoza-{Guid.NewGuid():N}.db");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+        builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
@@ -26,13 +30,16 @@ public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
                 ["Database:ConnectionString"] = $"Data Source={_dbPath}",
                 ["Database:ApplySchema"] = "false",
                 ["Seed:Enabled"] = "false",
-                ["OpenAI:Enabled"] = "false",
-                ["OpenAI:ApiKey"] = "",
-                ["ExposeDebugAnswers"] = "true"
+                ["ExposeDebugAnswers"] = "true",
+                ["RateLimiting:LoginPermitLimit"] = "1000"
             });
         });
         builder.ConfigureServices(services =>
         {
+            services.AddDataProtection().UseEphemeralDataProtectionProvider();
+            if (DisablePracticeTicker)
+                foreach (var descriptor in services.Where(item => item.ImplementationType == typeof(Erudoza.Api.Practice.PracticeTicker)).ToList())
+                    services.Remove(descriptor);
             foreach (var descriptor in services.Where(item =>
                          item.ServiceType == typeof(DbContextOptions<ErudozaDbContext>)
                          || item.ServiceType == typeof(ErudozaDbContext)).ToList())
@@ -85,6 +92,7 @@ public static class TestHttp
         var client = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = true });
         var response = await client.PostAsJsonAsync("/api/v1/auth/login", new { identifier, password });
         response.EnsureSuccessStatusCode();
+        ContentFixtures.Register(client, factory);
         return client;
     }
 }

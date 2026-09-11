@@ -1,50 +1,65 @@
-import { expect, test, type Page } from "@playwright/test";
-
-async function login(page: Page, identifier: string, password: string) {
-  await page.goto("/login");
-  await page.getByTestId("login-identifier").fill(identifier);
-  await page.getByTestId("login-password").fill(password);
-  await page.getByTestId("login-submit").click();
-}
-
-test("admin can activate a season and the student can study missing words", async ({ page }) => {
-  const seasonName = `Gauntlet ${Date.now()}`;
-  await login(page, "admin@erudoza.local", "DevAdmin!234");
-  await expect(page.getByTestId("organization-name")).toContainText("Development Academy");
-  await page.getByTestId("create-season").click();
-  await page.getByTestId("season-name").fill(seasonName);
-  await expect(page.getByTestId("rule-profile")).toHaveValue("PBE_STYLE_V1");
+import { expect, test } from "@playwright/test";
+import { login, logout } from "./helpers";
+test("coach activates a season and student submits a correct real activity with debug answers disabled", async ({ page }) => {
+  await login(page);
+  const me = await (await page.request.get("/api/v1/me")).json();
+  const org = `/api/v1/organizations/${me.organizationId}`;
+  const library = await (await page.request.get(`${org}/library`)).json();
+  const daniel = library.books.find((book: { bookKey: string }) => book.bookKey === "DAN");
+  const units = await (await page.request.get(`${org}/content-packs/${daniel.contentPackId}/source-units`)).json();
+  const source: string = units.find((unit: { chapter: number; verse: number }) => unit.chapter === 1 && unit.verse === 1).canonicalText;
+  await page.goto("/admin/seasons/new");
+  await page.getByTestId("season-name").fill(`E2E study ${Date.now()}`);
   await page.getByTestId("save-season").click();
-  await expect(page.getByTestId("select-content-pack")).toContainText("dev-daniel");
+  await page.getByRole("button", { name: "Choose passages", exact: true }).click();
+  await page.getByRole("combobox", { name: "Add a library book" }).selectOption(daniel.contentPackId);
+  await page.getByRole("button", { name: "Add book", exact: true }).click();
+  await page.getByTestId("scope-end").selectOption("1");
   await page.getByTestId("save-scope").click();
-  await expect(page.getByText("Scope saved.")).toBeVisible();
-  await expect(page.getByTestId("assign-student-select")).toContainText("Daniel Student");
-  await page.getByTestId("assign-student-select").selectOption({ label: "Daniel Student" });
+  await page.getByRole("link", { name: "Manage assignments for Daniel Student" }).click();
   await page.getByTestId("assign-student").click();
-  await expect(page.getByText("Assignment saved.")).toBeVisible();
-  await page.getByTestId("chapter-tab-roster").click();
-  await expect(page.getByTestId("season-roster")).toContainText("daniel.student");
-  await page.getByTestId("chapter-tab-setup").click();
+  await expect(page.getByText("Assignment saved.", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Review season" }).click();
   await page.getByTestId("activate-season").click();
+  await page.getByRole("dialog").getByRole("button", { name: "Start season", exact: true }).click();
   await expect(page.getByTestId("season-status")).toHaveText("Active");
-  await page.getByTestId("coach-tab-more").click();
-  await page.getByTestId("logout").click();
-
-  await login(page, "daniel.student", "DevStudent!234");
-  await expect(page.getByTestId("field-guide-academy")).toContainText("Field Guide Academy");
-  await expect(page.getByTestId("assignment-range")).toContainText("DAN");
+  const seasonId = new URL(page.url()).pathname.split("/").pop();
+  await logout(page);
+  await login(page, "daniel.student", process.env.ERUDOZA_E2E_PASSWORD!);
+  await page.goto(`/student?seasonId=${seasonId}`);
+  const cardResponse = page.waitForResponse(response => /\/api\/v1\/study\/sessions\/[^/]+\/next$/.test(response.url()));
   await page.getByTestId("start-todays-deck").click();
-  await expect(page.getByTestId("academy-session-kicker")).toHaveText("Learner drill");
-  await expect(page.getByTestId("challenge-card")).toBeVisible();
-  await expect(page.getByTestId("challenge-prompt")).toContainText("____");
-  const answer = await page.getByTestId("debug-answer").innerText();
-  await page.getByTestId("missing-words-answer").fill(answer.trim());
+  expect((await (await cardResponse).json()).debugAnswer).toBeFalsy();
+  await expect(page.getByTestId("card-progress")).toHaveText(/1 \/ \d+/);
+  await expect(page.getByTestId("submit-answer")).toBeVisible();
+  await expect(page.getByTestId("debug-answer")).toHaveCount(0);
+  const activity = await page.getByTestId("academy-activity-name").innerText();
+  const prompt = await page.getByTestId("challenge-prompt").innerText();
+  if (/Missing Words/i.test(activity)) {
+    const words = source.split(" ");
+    const displayed = prompt.split(/\s+/);
+    expect(displayed).toHaveLength(words.length);
+    await page.getByTestId("missing-words-answer").fill(displayed.flatMap((word, i) => word === "____" ? [words[i]] : []).join(" "));
+  } else if (/Verse Builder/i.test(activity)) {
+    const phrases = page.locator(".student-builder-phrase");
+    const target = (await phrases.allTextContents()).sort((a, b) => source.indexOf(a) - source.indexOf(b));
+    for (let i = 0; i < target.length; i++) {
+      let index = (await phrases.allTextContents()).indexOf(target[i]);
+      while (index > i) { await page.getByRole("button", { name: `Move phrase ${index + 1} up`, exact: true }).click(); index--; }
+    }
+  } else if (/Reference Match/i.test(activity)) {
+    const radio = page.getByRole("radio", { name: "Daniel 1:1", exact: true });
+    if (await radio.count()) await radio.check();
+    else await page.getByTestId("missing-words-answer").fill("Daniel 1:1");
+  } else if (/True.*False/i.test(activity)) {
+    await page.getByTestId(prompt.endsWith(source) ? "true-false-true" : "true-false-false").click();
+  } else throw new Error(`Unexpected activity for a single verse: ${activity}`);
   await page.getByTestId("submit-answer").click();
-  await expect(page.getByTestId("challenge-feedback")).toBeVisible();
-  await expect(page.getByTestId("feedback-citation")).toContainText("Daniel");
-  await expect(page.getByTestId("feedback-source")).toContainText("Development sample");
+  await expect(page.getByTestId("challenge-feedback").getByRole("heading", { name: "Well remembered" })).toBeVisible();
+  await expect(page.getByTestId("feedback-source")).toHaveText(source);
+  await expect(page.getByTestId("submit-answer")).toBeDisabled();
+  await page.reload();
+  await expect(page.getByTestId("challenge-feedback").getByRole("heading", { name: "Well remembered" })).toBeVisible();
   await page.getByTestId("complete-session").click();
-  await expect(page.getByTestId("progress-mastery")).toBeVisible();
   await expect(page.getByTestId("progress-attempts")).not.toHaveText("0");
-  await expect(page.getByTestId("recent-attempts")).toContainText("Missing Words");
 });

@@ -1,0 +1,918 @@
+{
+  "packKey": "builtin-nkjv-1ti",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "1 Timothy",
+      "units": [
+        {
+          "citation": "1 Timothy 1:1",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 29698,
+          "text": "Paul, an apostle of Jesus Christ, by the commandment of God our Savior and the Lord Jesus Christ, our hope,"
+        },
+        {
+          "citation": "1 Timothy 1:2",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 29699,
+          "text": "To Timothy, a true son in the faith: Grace, mercy, and peace from God our Father and Jesus Christ our Lord."
+        },
+        {
+          "citation": "1 Timothy 1:3",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 29700,
+          "text": "As I urged you when I went into Macedonia--remain in Ephesus that you may charge some that they teach no other doctrine,"
+        },
+        {
+          "citation": "1 Timothy 1:4",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 29701,
+          "text": "nor give heed to fables and endless genealogies, which cause disputes rather than godly edification which is in faith."
+        },
+        {
+          "citation": "1 Timothy 1:5",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 29702,
+          "text": "Now the purpose of the commandment is love from a pure heart, from a good conscience, and from sincere faith,"
+        },
+        {
+          "citation": "1 Timothy 1:6",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 29703,
+          "text": "from which some, having strayed, have turned aside to idle talk,"
+        },
+        {
+          "citation": "1 Timothy 1:7",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 29704,
+          "text": "desiring to be teachers of the law, understanding neither what they say nor the things which they affirm."
+        },
+        {
+          "citation": "1 Timothy 1:8",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 29705,
+          "text": "But we know that the law is good if one uses it lawfully,"
+        },
+        {
+          "citation": "1 Timothy 1:9",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 29706,
+          "text": "knowing this: that the law is not made for a righteous person, but for the lawless and insubordinate, for the ungodly and for sinners, for the unholy and profane, for murderers of fathers and murderers of mothers, for manslayers,"
+        },
+        {
+          "citation": "1 Timothy 1:10",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 29707,
+          "text": "for fornicators, for sodomites, for kidnappers, for liars, for perjurers, and if there is any other thing that is contrary to sound doctrine,"
+        },
+        {
+          "citation": "1 Timothy 1:11",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 29708,
+          "text": "according to the glorious gospel of the blessed God which was committed to my trust."
+        },
+        {
+          "citation": "1 Timothy 1:12",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 29709,
+          "text": "And I thank Christ Jesus our Lord who has enabled me, because He counted me faithful, putting me into the ministry,"
+        },
+        {
+          "citation": "1 Timothy 1:13",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 29710,
+          "text": "although I was formerly a blasphemer, a persecutor, and an insolent man; but I obtained mercy because I did it ignorantly in unbelief."
+        },
+        {
+          "citation": "1 Timothy 1:14",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 29711,
+          "text": "And the grace of our Lord was exceedingly abundant, with faith and love which are in Christ Jesus."
+        },
+        {
+          "citation": "1 Timothy 1:15",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 29712,
+          "text": "This is a faithful saying and worthy of all acceptance, that Christ Jesus came into the world to save sinners, of whom I am chief."
+        },
+        {
+          "citation": "1 Timothy 1:16",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 29713,
+          "text": "However, for this reason I obtained mercy, that in me first Jesus Christ might show all longsuffering, as a pattern to those who are going to believe on Him for everlasting life."
+        },
+        {
+          "citation": "1 Timothy 1:17",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 29714,
+          "text": "Now to the King eternal, immortal, invisible, to God who alone is wise, be honor and glory forever and ever. Amen."
+        },
+        {
+          "citation": "1 Timothy 1:18",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 29715,
+          "text": "This charge I commit to you, son Timothy, according to the prophecies previously made concerning you, that by them you may wage the good warfare,"
+        },
+        {
+          "citation": "1 Timothy 1:19",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 29716,
+          "text": "having faith and a good conscience, which some having rejected, concerning the faith have suffered shipwreck,"
+        },
+        {
+          "citation": "1 Timothy 1:20",
+          "bookKey": "1TI",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 29717,
+          "text": "of whom are Hymenaeus and Alexander, whom I delivered to Satan that they may learn not to blaspheme."
+        },
+        {
+          "citation": "1 Timothy 2:1",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 29718,
+          "text": "Therefore I exhort first of all that supplications, prayers, intercessions, and giving of thanks be made for all men,"
+        },
+        {
+          "citation": "1 Timothy 2:2",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 29719,
+          "text": "for kings and all who are in authority, that we may lead a quiet and peaceable life in all godliness and reverence."
+        },
+        {
+          "citation": "1 Timothy 2:3",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 29720,
+          "text": "For this is good and acceptable in the sight of God our Savior,"
+        },
+        {
+          "citation": "1 Timothy 2:4",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 29721,
+          "text": "who desires all men to be saved and to come to the knowledge of the truth."
+        },
+        {
+          "citation": "1 Timothy 2:5",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 29722,
+          "text": "For there is one God and one Mediator between God and men, the Man Christ Jesus,"
+        },
+        {
+          "citation": "1 Timothy 2:6",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 29723,
+          "text": "who gave Himself a ransom for all, to be testified in due time,"
+        },
+        {
+          "citation": "1 Timothy 2:7",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 29724,
+          "text": "for which I was appointed a preacher and an apostle--I am speaking the truth in Christ and not lying--a teacher of the Gentiles in faith and truth."
+        },
+        {
+          "citation": "1 Timothy 2:8",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 29725,
+          "text": "I desire therefore that the men pray everywhere, lifting up holy hands, without wrath and doubting;"
+        },
+        {
+          "citation": "1 Timothy 2:9",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 29726,
+          "text": "in like manner also, that the women adorn themselves in modest apparel, with propriety and moderation, not with braided hair or gold or pearls or costly clothing,"
+        },
+        {
+          "citation": "1 Timothy 2:10",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 29727,
+          "text": "but, which is proper for women professing godliness, with good works."
+        },
+        {
+          "citation": "1 Timothy 2:11",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 29728,
+          "text": "Let a woman learn in silence with all submission."
+        },
+        {
+          "citation": "1 Timothy 2:12",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 29729,
+          "text": "And I do not permit a woman to teach or to have authority over a man, but to be in silence."
+        },
+        {
+          "citation": "1 Timothy 2:13",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 29730,
+          "text": "For Adam was formed first, then Eve."
+        },
+        {
+          "citation": "1 Timothy 2:14",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 29731,
+          "text": "And Adam was not deceived, but the woman being deceived, fell into transgression."
+        },
+        {
+          "citation": "1 Timothy 2:15",
+          "bookKey": "1TI",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 29732,
+          "text": "Nevertheless she will be saved in childbearing if they continue in faith, love, and holiness, with self-control."
+        },
+        {
+          "citation": "1 Timothy 3:1",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 29733,
+          "text": "This is a faithful saying: If a man desires the position of a bishop, he desires a good work."
+        },
+        {
+          "citation": "1 Timothy 3:2",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 29734,
+          "text": "A bishop then must be blameless, the husband of one wife, temperate, sober-minded, of good behavior, hospitable, able to teach;"
+        },
+        {
+          "citation": "1 Timothy 3:3",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 29735,
+          "text": "not given to wine, not violent, not greedy for money, but gentle, not quarrelsome, not covetous;"
+        },
+        {
+          "citation": "1 Timothy 3:4",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 29736,
+          "text": "one who rules his own house well, having his children in submission with all reverence"
+        },
+        {
+          "citation": "1 Timothy 3:5",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 29737,
+          "text": "(for if a man does not know how to rule his own house, how will he take care of the church of God?);"
+        },
+        {
+          "citation": "1 Timothy 3:6",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 29738,
+          "text": "not a novice, lest being puffed up with pride he fall into the same condemnation as the devil."
+        },
+        {
+          "citation": "1 Timothy 3:7",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 29739,
+          "text": "Moreover he must have a good testimony among those who are outside, lest he fall into reproach and the snare of the devil."
+        },
+        {
+          "citation": "1 Timothy 3:8",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 29740,
+          "text": "Likewise deacons must be reverent, not double-tongued, not given to much wine, not greedy for money,"
+        },
+        {
+          "citation": "1 Timothy 3:9",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 29741,
+          "text": "holding the mystery of the faith with a pure conscience."
+        },
+        {
+          "citation": "1 Timothy 3:10",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 29742,
+          "text": "But let these also first be tested; then let them serve as deacons, being found blameless."
+        },
+        {
+          "citation": "1 Timothy 3:11",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 29743,
+          "text": "Likewise, their wives must be reverent, not slanderers, temperate, faithful in all things."
+        },
+        {
+          "citation": "1 Timothy 3:12",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 29744,
+          "text": "Let deacons be the husbands of one wife, ruling their children and their own houses well."
+        },
+        {
+          "citation": "1 Timothy 3:13",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 29745,
+          "text": "For those who have served well as deacons obtain for themselves a good standing and great boldness in the faith which is in Christ Jesus."
+        },
+        {
+          "citation": "1 Timothy 3:14",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 29746,
+          "text": "These things I write to you, though I hope to come to you shortly;"
+        },
+        {
+          "citation": "1 Timothy 3:15",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 29747,
+          "text": "but if I am delayed, I write so that you may know how you ought to conduct yourself in the house of God, which is the church of the living God, the pillar and ground of the truth."
+        },
+        {
+          "citation": "1 Timothy 3:16",
+          "bookKey": "1TI",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 29748,
+          "text": "And without controversy great is the mystery of godliness: God was manifested in the flesh, Justified in the Spirit, Seen by angels, Preached among the Gentiles, Believed on in the world, Received up in glory."
+        },
+        {
+          "citation": "1 Timothy 4:1",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 29749,
+          "text": "Now the Spirit expressly says that in latter times some will depart from the faith, giving heed to deceiving spirits and doctrines of demons,"
+        },
+        {
+          "citation": "1 Timothy 4:2",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 29750,
+          "text": "speaking lies in hypocrisy, having their own conscience seared with a hot iron,"
+        },
+        {
+          "citation": "1 Timothy 4:3",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 29751,
+          "text": "forbidding to marry, and commanding to abstain from foods which God created to be received with thanksgiving by those who believe and know the truth."
+        },
+        {
+          "citation": "1 Timothy 4:4",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 29752,
+          "text": "For every creature of God is good, and nothing is to be refused if it is received with thanksgiving;"
+        },
+        {
+          "citation": "1 Timothy 4:5",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 29753,
+          "text": "for it is sanctified by the word of God and prayer."
+        },
+        {
+          "citation": "1 Timothy 4:6",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 29754,
+          "text": "If you instruct the brethren in these things, you will be a good minister of Jesus Christ, nourished in the words of faith and of the good doctrine which you have carefully followed."
+        },
+        {
+          "citation": "1 Timothy 4:7",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 29755,
+          "text": "But reject profane and old wives' fables, and exercise yourself toward godliness."
+        },
+        {
+          "citation": "1 Timothy 4:8",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 29756,
+          "text": "For bodily exercise profits a little, but godliness is profitable for all things, having promise of the life that now is and of that which is to come."
+        },
+        {
+          "citation": "1 Timothy 4:9",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 29757,
+          "text": "This is a faithful saying and worthy of all acceptance."
+        },
+        {
+          "citation": "1 Timothy 4:10",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 29758,
+          "text": "For to this end we both labor and suffer reproach, because we trust in the living God, who is the Savior of all men, especially of those who believe."
+        },
+        {
+          "citation": "1 Timothy 4:11",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 29759,
+          "text": "These things command and teach."
+        },
+        {
+          "citation": "1 Timothy 4:12",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 29760,
+          "text": "Let no one despise your youth, but be an example to the believers in word, in conduct, in love, in spirit, in faith, in purity."
+        },
+        {
+          "citation": "1 Timothy 4:13",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 29761,
+          "text": "Till I come, give attention to reading, to exhortation, to doctrine."
+        },
+        {
+          "citation": "1 Timothy 4:14",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 29762,
+          "text": "Do not neglect the gift that is in you, which was given to you by prophecy with the laying on of the hands of the eldership."
+        },
+        {
+          "citation": "1 Timothy 4:15",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 29763,
+          "text": "Meditate on these things; give yourself entirely to them, that your progress may be evident to all."
+        },
+        {
+          "citation": "1 Timothy 4:16",
+          "bookKey": "1TI",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 29764,
+          "text": "Take heed to yourself and to the doctrine. Continue in them, for in doing this you will save both yourself and those who hear you."
+        },
+        {
+          "citation": "1 Timothy 5:1",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 29765,
+          "text": "Do not rebuke an older man, but exhort him as a father, younger men as brothers,"
+        },
+        {
+          "citation": "1 Timothy 5:2",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 29766,
+          "text": "older women as mothers, younger women as sisters, with all purity."
+        },
+        {
+          "citation": "1 Timothy 5:3",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 29767,
+          "text": "Honor widows who are really widows."
+        },
+        {
+          "citation": "1 Timothy 5:4",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 29768,
+          "text": "But if any widow has children or grandchildren, let them first learn to show piety at home and to repay their parents; for this is good and acceptable before God."
+        },
+        {
+          "citation": "1 Timothy 5:5",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 29769,
+          "text": "Now she who is really a widow, and left alone, trusts in God and continues in supplications and prayers night and day."
+        },
+        {
+          "citation": "1 Timothy 5:6",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 29770,
+          "text": "But she who lives in pleasure is dead while she lives."
+        },
+        {
+          "citation": "1 Timothy 5:7",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 29771,
+          "text": "And these things command, that they may be blameless."
+        },
+        {
+          "citation": "1 Timothy 5:8",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 29772,
+          "text": "But if anyone does not provide for his own, and especially for those of his household, he has denied the faith and is worse than an unbeliever."
+        },
+        {
+          "citation": "1 Timothy 5:9",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 29773,
+          "text": "Do not let a widow under sixty years old be taken into the number, and not unless she has been the wife of one man,"
+        },
+        {
+          "citation": "1 Timothy 5:10",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 29774,
+          "text": "well reported for good works: if she has brought up children, if she has lodged strangers, if she has washed the saints' feet, if she has relieved the afflicted, if she has diligently followed every good work."
+        },
+        {
+          "citation": "1 Timothy 5:11",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 29775,
+          "text": "But refuse the younger widows; for when they have begun to grow wanton against Christ, they desire to marry,"
+        },
+        {
+          "citation": "1 Timothy 5:12",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 29776,
+          "text": "having condemnation because they have cast off their first faith."
+        },
+        {
+          "citation": "1 Timothy 5:13",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 29777,
+          "text": "And besides they learn to be idle, wandering about from house to house, and not only idle but also gossips and busybodies, saying things which they ought not."
+        },
+        {
+          "citation": "1 Timothy 5:14",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 14,
+          "ordinal": 29778,
+          "text": "Therefore I desire that the younger widows marry, bear children, manage the house, give no opportunity to the adversary to speak reproachfully."
+        },
+        {
+          "citation": "1 Timothy 5:15",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 15,
+          "ordinal": 29779,
+          "text": "For some have already turned aside after Satan."
+        },
+        {
+          "citation": "1 Timothy 5:16",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 16,
+          "ordinal": 29780,
+          "text": "If any believing man or woman has widows, let them relieve them, and do not let the church be burdened, that it may relieve those who are really widows."
+        },
+        {
+          "citation": "1 Timothy 5:17",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 17,
+          "ordinal": 29781,
+          "text": "Let the elders who rule well be counted worthy of double honor, especially those who labor in the word and doctrine."
+        },
+        {
+          "citation": "1 Timothy 5:18",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 18,
+          "ordinal": 29782,
+          "text": "For the Scripture says, \"You shall not muzzle an ox while it treads out the grain,\" and, \"The laborer is worthy of his wages.\""
+        },
+        {
+          "citation": "1 Timothy 5:19",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 19,
+          "ordinal": 29783,
+          "text": "Do not receive an accusation against an elder except from two or three witnesses."
+        },
+        {
+          "citation": "1 Timothy 5:20",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 20,
+          "ordinal": 29784,
+          "text": "Those who are sinning rebuke in the presence of all, that the rest also may fear."
+        },
+        {
+          "citation": "1 Timothy 5:21",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 21,
+          "ordinal": 29785,
+          "text": "I charge you before God and the Lord Jesus Christ and the elect angels that you observe these things without prejudice, doing nothing with partiality."
+        },
+        {
+          "citation": "1 Timothy 5:22",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 22,
+          "ordinal": 29786,
+          "text": "Do not lay hands on anyone hastily, nor share in other people's sins; keep yourself pure."
+        },
+        {
+          "citation": "1 Timothy 5:23",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 23,
+          "ordinal": 29787,
+          "text": "No longer drink only water, but use a little wine for your stomach's sake and your frequent infirmities."
+        },
+        {
+          "citation": "1 Timothy 5:24",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 24,
+          "ordinal": 29788,
+          "text": "Some men's sins are clearly evident, preceding them to judgment, but those of some men follow later."
+        },
+        {
+          "citation": "1 Timothy 5:25",
+          "bookKey": "1TI",
+          "chapter": 5,
+          "verse": 25,
+          "ordinal": 29789,
+          "text": "Likewise, the good works of some are clearly evident, and those that are otherwise cannot be hidden."
+        },
+        {
+          "citation": "1 Timothy 6:1",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 29790,
+          "text": "Let as many bondservants as are under the yoke count their own masters worthy of all honor, so that the name of God and His doctrine may not be blasphemed."
+        },
+        {
+          "citation": "1 Timothy 6:2",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 29791,
+          "text": "And those who have believing masters, let them not despise them because they are brethren, but rather serve them because those who are benefited are believers and beloved. Teach and exhort these things."
+        },
+        {
+          "citation": "1 Timothy 6:3",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 29792,
+          "text": "If anyone teaches otherwise and does not consent to wholesome words, even the words of our Lord Jesus Christ, and to the doctrine which accords with godliness,"
+        },
+        {
+          "citation": "1 Timothy 6:4",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 29793,
+          "text": "he is proud, knowing nothing, but is obsessed with disputes and arguments over words, from which come envy, strife, reviling, evil suspicions,"
+        },
+        {
+          "citation": "1 Timothy 6:5",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 29794,
+          "text": "useless wranglings of men of corrupt minds and destitute of the truth, who suppose that godliness is a means of gain. From such withdraw yourself."
+        },
+        {
+          "citation": "1 Timothy 6:6",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 29795,
+          "text": "Now godliness with contentment is great gain."
+        },
+        {
+          "citation": "1 Timothy 6:7",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 29796,
+          "text": "For we brought nothing into this world, and it is certain we can carry nothing out."
+        },
+        {
+          "citation": "1 Timothy 6:8",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 29797,
+          "text": "And having food and clothing, with these we shall be content."
+        },
+        {
+          "citation": "1 Timothy 6:9",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 29798,
+          "text": "But those who desire to be rich fall into temptation and a snare, and into many foolish and harmful lusts which drown men in destruction and perdition."
+        },
+        {
+          "citation": "1 Timothy 6:10",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 29799,
+          "text": "For the love of money is a root of all kinds of evil, for which some have strayed from the faith in their greediness, and pierced themselves through with many sorrows."
+        },
+        {
+          "citation": "1 Timothy 6:11",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 29800,
+          "text": "But you, O man of God, flee these things and pursue righteousness, godliness, faith, love, patience, gentleness."
+        },
+        {
+          "citation": "1 Timothy 6:12",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 29801,
+          "text": "Fight the good fight of faith, lay hold on eternal life, to which you were also called and have confessed the good confession in the presence of many witnesses."
+        },
+        {
+          "citation": "1 Timothy 6:13",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 13,
+          "ordinal": 29802,
+          "text": "I urge you in the sight of God who gives life to all things, and before Christ Jesus who witnessed the good confession before Pontius Pilate,"
+        },
+        {
+          "citation": "1 Timothy 6:14",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 14,
+          "ordinal": 29803,
+          "text": "that you keep this commandment without spot, blameless until our Lord Jesus Christ's appearing,"
+        },
+        {
+          "citation": "1 Timothy 6:15",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 15,
+          "ordinal": 29804,
+          "text": "which He will manifest in His own time, He who is the blessed and only Potentate, the King of kings and Lord of lords,"
+        },
+        {
+          "citation": "1 Timothy 6:16",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 16,
+          "ordinal": 29805,
+          "text": "who alone has immortality, dwelling in unapproachable light, whom no man has seen or can see, to whom be honor and everlasting power. Amen."
+        },
+        {
+          "citation": "1 Timothy 6:17",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 17,
+          "ordinal": 29806,
+          "text": "Command those who are rich in this present age not to be haughty, nor to trust in uncertain riches but in the living God, who gives us richly all things to enjoy."
+        },
+        {
+          "citation": "1 Timothy 6:18",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 18,
+          "ordinal": 29807,
+          "text": "Let them do good, that they be rich in good works, ready to give, willing to share,"
+        },
+        {
+          "citation": "1 Timothy 6:19",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 19,
+          "ordinal": 29808,
+          "text": "storing up for themselves a good foundation for the time to come, that they may lay hold on eternal life."
+        },
+        {
+          "citation": "1 Timothy 6:20",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 20,
+          "ordinal": 29809,
+          "text": "O Timothy! Guard what was committed to your trust, avoiding the profane and idle babblings and contradictions of what is falsely called knowledge--"
+        },
+        {
+          "citation": "1 Timothy 6:21",
+          "bookKey": "1TI",
+          "chapter": 6,
+          "verse": 21,
+          "ordinal": 29810,
+          "text": "by professing it some have strayed concerning the faith. Grace be with you. Amen."
+        }
+      ]
+    }
+  ]
+}

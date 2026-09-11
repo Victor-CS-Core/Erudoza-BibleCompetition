@@ -9,7 +9,7 @@ describe("academyCoachChapterLine", () => {
     );
     expect(
       academyCoachChapterLine({
-        organizationName: "Development Academy",
+        organizationName: "Erudoza Academy",
         seasonName: "Daniel Gauntlet",
         seasonStatus: "Active",
       }),
@@ -17,12 +17,12 @@ describe("academyCoachChapterLine", () => {
   });
 
   it("falls back to the organization name when no season is selected", () => {
-    expect(academyCoachChapterLine({ organizationName: "Development Academy" })).toBe("Development Academy");
-    expect(academyCoachChapterLine({ organizationName: "Development Academy", seasonName: "Imported Joshua" })).toBe(
-      "Development Academy",
+    expect(academyCoachChapterLine({ organizationName: "Erudoza Academy" })).toBe("Erudoza Academy");
+    expect(academyCoachChapterLine({ organizationName: "Erudoza Academy", seasonName: "Imported Joshua" })).toBe(
+      "Erudoza Academy",
     );
-    expect(academyCoachChapterLine({ organizationName: "Development Academy", seasonStatus: "Draft" })).toBe(
-      "Development Academy",
+    expect(academyCoachChapterLine({ organizationName: "Erudoza Academy", seasonStatus: "Draft" })).toBe(
+      "Erudoza Academy",
     );
   });
 

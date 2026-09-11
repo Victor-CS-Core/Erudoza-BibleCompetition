@@ -1,0 +1,1702 @@
+{
+  "packKey": "builtin-nkjv-zec",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Zechariah",
+      "units": [
+        {
+          "citation": "Zechariah 1:1",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 22880,
+          "text": "In the eighth month of the second year of Darius, the word of the LORD came to Zechariah the son of Berechiah, the son of Iddo the prophet, saying,"
+        },
+        {
+          "citation": "Zechariah 1:2",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 22881,
+          "text": "\"The LORD has been very angry with your fathers."
+        },
+        {
+          "citation": "Zechariah 1:3",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 22882,
+          "text": "Therefore say to them, \"Thus says the LORD of hosts: \"Return to Me,\" says the LORD of hosts, \"and I will return to you,\" says the LORD of hosts."
+        },
+        {
+          "citation": "Zechariah 1:4",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 22883,
+          "text": "\"Do not be like your fathers, to whom the former prophets preached, saying, \"Thus says the LORD of hosts: \"Turn now from your evil ways and your evil deeds.\"' But they did not hear nor heed Me,\" says the LORD."
+        },
+        {
+          "citation": "Zechariah 1:5",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 22884,
+          "text": "\"Your fathers, where are they? And the prophets, do they live forever?"
+        },
+        {
+          "citation": "Zechariah 1:6",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 22885,
+          "text": "Yet surely My words and My statutes, Which I commanded My servants the prophets, Did they not overtake your fathers? \"So they returned and said: \"Just as the LORD of hosts determined to do to us, According to our ways and according to our deeds, So He has dealt with us.\"\"\""
+        },
+        {
+          "citation": "Zechariah 1:7",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 22886,
+          "text": "On the twenty-fourth day of the eleventh month, which is the month Shebat, in the second year of Darius, the word of the LORD came to Zechariah the son of Berechiah, the son of Iddo the prophet:"
+        },
+        {
+          "citation": "Zechariah 1:8",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 22887,
+          "text": "I saw by night, and behold, a man riding on a red horse, and it stood among the myrtle trees in the hollow; and behind him were horses: red, sorrel, and white."
+        },
+        {
+          "citation": "Zechariah 1:9",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 22888,
+          "text": "Then I said, \"My lord, what are these?\" So the angel who talked with me said to me, \"I will show you what they are.\""
+        },
+        {
+          "citation": "Zechariah 1:10",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 22889,
+          "text": "And the man who stood among the myrtle trees answered and said, \"These are the ones whom the LORD has sent to walk to and fro throughout the earth.\""
+        },
+        {
+          "citation": "Zechariah 1:11",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 22890,
+          "text": "So they answered the Angel of the LORD, who stood among the myrtle trees, and said, \"We have walked to and fro throughout the earth, and behold, all the earth is resting quietly.\""
+        },
+        {
+          "citation": "Zechariah 1:12",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 22891,
+          "text": "Then the Angel of the LORD answered and said, \"O LORD of hosts, how long will You not have mercy on Jerusalem and on the cities of Judah, against which You were angry these seventy years?\""
+        },
+        {
+          "citation": "Zechariah 1:13",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 22892,
+          "text": "And the LORD answered the angel who talked to me, with good and comforting words."
+        },
+        {
+          "citation": "Zechariah 1:14",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 22893,
+          "text": "So the angel who spoke with me said to me, \"Proclaim, saying, \"Thus says the LORD of hosts: \"I am zealous for Jerusalem And for Zion with great zeal."
+        },
+        {
+          "citation": "Zechariah 1:15",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 22894,
+          "text": "I am exceedingly angry with the nations at ease; For I was a little angry, And they helped--but with evil intent.\""
+        },
+        {
+          "citation": "Zechariah 1:16",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 22895,
+          "text": "\"Therefore thus says the LORD: \"I am returning to Jerusalem with mercy; My house shall be built in it,\" says the LORD of hosts, \"And a surveyor's line shall be stretched out over Jerusalem.\"'"
+        },
+        {
+          "citation": "Zechariah 1:17",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 22896,
+          "text": "\"Again proclaim, saying, \"Thus says the LORD of hosts: \"My cities shall again spread out through prosperity; The LORD will again comfort Zion, And will again choose Jerusalem.\"\"'"
+        },
+        {
+          "citation": "Zechariah 1:18",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 22897,
+          "text": "Then I raised my eyes and looked, and there were four horns."
+        },
+        {
+          "citation": "Zechariah 1:19",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 22898,
+          "text": "And I said to the angel who talked with me, \"What are these?\" So he answered me, \"These are the horns that have scattered Judah, Israel, and Jerusalem.\""
+        },
+        {
+          "citation": "Zechariah 1:20",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 22899,
+          "text": "Then the LORD showed me four craftsmen."
+        },
+        {
+          "citation": "Zechariah 1:21",
+          "bookKey": "ZEC",
+          "chapter": 1,
+          "verse": 21,
+          "ordinal": 22900,
+          "text": "And I said, \"What are these coming to do?\" So he said, \"These are the horns that scattered Judah, so that no one could lift up his head; but the craftsmen are coming to terrify them, to cast out the horns of the nations that lifted up their horn against the land of Judah to scatter it.\""
+        },
+        {
+          "citation": "Zechariah 2:1",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 22901,
+          "text": "Then I raised my eyes and looked, and behold, a man with a measuring line in his hand."
+        },
+        {
+          "citation": "Zechariah 2:2",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 22902,
+          "text": "So I said, \"Where are you going?\" And he said to me, \"To measure Jerusalem, to see what is its width and what is its length.\""
+        },
+        {
+          "citation": "Zechariah 2:3",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 22903,
+          "text": "And there was the angel who talked with me, going out; and another angel was coming out to meet him,"
+        },
+        {
+          "citation": "Zechariah 2:4",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 22904,
+          "text": "who said to him, \"Run, speak to this young man, saying: \"Jerusalem shall be inhabited as towns without walls, because of the multitude of men and livestock in it."
+        },
+        {
+          "citation": "Zechariah 2:5",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 22905,
+          "text": "For I,' says the LORD, \"will be a wall of fire all around her, and I will be the glory in her midst.\"'"
+        },
+        {
+          "citation": "Zechariah 2:6",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 22906,
+          "text": "\"Up, up! Flee from the land of the north,\" says the LORD; \"for I have spread you abroad like the four winds of heaven,\" says the LORD."
+        },
+        {
+          "citation": "Zechariah 2:7",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 22907,
+          "text": "\"Up, Zion! Escape, you who dwell with the daughter of Babylon.\""
+        },
+        {
+          "citation": "Zechariah 2:8",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 22908,
+          "text": "For thus says the LORD of hosts: \"He sent Me after glory, to the nations which plunder you; for he who touches you touches the apple of His eye."
+        },
+        {
+          "citation": "Zechariah 2:9",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 22909,
+          "text": "For surely I will shake My hand against them, and they shall become spoil for their servants. Then you will know that the LORD of hosts has sent Me."
+        },
+        {
+          "citation": "Zechariah 2:10",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 22910,
+          "text": "\"Sing and rejoice, O daughter of Zion! For behold, I am coming and I will dwell in your midst,\" says the LORD."
+        },
+        {
+          "citation": "Zechariah 2:11",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 22911,
+          "text": "\"Many nations shall be joined to the LORD in that day, and they shall become My people. And I will dwell in your midst. Then you will know that the LORD of hosts has sent Me to you."
+        },
+        {
+          "citation": "Zechariah 2:12",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 22912,
+          "text": "And the LORD will take possession of Judah as His inheritance in the Holy Land, and will again choose Jerusalem."
+        },
+        {
+          "citation": "Zechariah 2:13",
+          "bookKey": "ZEC",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 22913,
+          "text": "Be silent, all flesh, before the LORD, for He is aroused from His holy habitation!\""
+        },
+        {
+          "citation": "Zechariah 3:1",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 22914,
+          "text": "Then he showed me Joshua the high priest standing before the Angel of the LORD, and Satan standing at his right hand to oppose him."
+        },
+        {
+          "citation": "Zechariah 3:2",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 22915,
+          "text": "And the LORD said to Satan, \"The LORD rebuke you, Satan! The LORD who has chosen Jerusalem rebuke you! Is this not a brand plucked from the fire?\""
+        },
+        {
+          "citation": "Zechariah 3:3",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 22916,
+          "text": "Now Joshua was clothed with filthy garments, and was standing before the Angel."
+        },
+        {
+          "citation": "Zechariah 3:4",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 22917,
+          "text": "Then He answered and spoke to those who stood before Him, saying, \"Take away the filthy garments from him.\" And to him He said, \"See, I have removed your iniquity from you, and I will clothe you with rich robes.\""
+        },
+        {
+          "citation": "Zechariah 3:5",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 22918,
+          "text": "And I said, \"Let them put a clean turban on his head.\" So they put a clean turban on his head, and they put the clothes on him. And the Angel of the LORD stood by."
+        },
+        {
+          "citation": "Zechariah 3:6",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 22919,
+          "text": "Then the Angel of the LORD admonished Joshua, saying,"
+        },
+        {
+          "citation": "Zechariah 3:7",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 22920,
+          "text": "\"Thus says the LORD of hosts: \"If you will walk in My ways, And if you will keep My command, Then you shall also judge My house, And likewise have charge of My courts; I will give you places to walk Among these who stand here."
+        },
+        {
+          "citation": "Zechariah 3:8",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 22921,
+          "text": "\"Hear, O Joshua, the high priest, You and your companions who sit before you, For they are a wondrous sign; For behold, I am bringing forth My Servant the BRANCH."
+        },
+        {
+          "citation": "Zechariah 3:9",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 22922,
+          "text": "For behold, the stone That I have laid before Joshua: Upon the stone are seven eyes. Behold, I will engrave its inscription,' Says the LORD of hosts, \"And I will remove the iniquity of that land in one day."
+        },
+        {
+          "citation": "Zechariah 3:10",
+          "bookKey": "ZEC",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 22923,
+          "text": "In that day,' says the LORD of hosts, \"Everyone will invite his neighbor Under his vine and under his fig tree.\"'"
+        },
+        {
+          "citation": "Zechariah 4:1",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 22924,
+          "text": "Now the angel who talked with me came back and wakened me, as a man who is wakened out of his sleep."
+        },
+        {
+          "citation": "Zechariah 4:2",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 22925,
+          "text": "And he said to me, \"What do you see?\" So I said, \"I am looking, and there is a lampstand of solid gold with a bowl on top of it, and on the stand seven lamps with seven pipes to the seven lamps."
+        },
+        {
+          "citation": "Zechariah 4:3",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 22926,
+          "text": "Two olive trees are by it, one at the right of the bowl and the other at its left.\""
+        },
+        {
+          "citation": "Zechariah 4:4",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 22927,
+          "text": "So I answered and spoke to the angel who talked with me, saying, \"What are these, my lord?\""
+        },
+        {
+          "citation": "Zechariah 4:5",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 22928,
+          "text": "Then the angel who talked with me answered and said to me, \"Do you not know what these are?\" And I said, \"No, my lord.\""
+        },
+        {
+          "citation": "Zechariah 4:6",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 22929,
+          "text": "So he answered and said to me: \"This is the word of the LORD to Zerubbabel: \"Not by might nor by power, but by My Spirit,' Says the LORD of hosts."
+        },
+        {
+          "citation": "Zechariah 4:7",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 22930,
+          "text": "\"Who are you, O great mountain? Before Zerubbabel you shall become a plain! And he shall bring forth the capstone With shouts of \"Grace, grace to it!\"\"'"
+        },
+        {
+          "citation": "Zechariah 4:8",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 22931,
+          "text": "Moreover the word of the LORD came to me, saying:"
+        },
+        {
+          "citation": "Zechariah 4:9",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 22932,
+          "text": "\"The hands of Zerubbabel Have laid the foundation of this temple; His hands shall also finish it. Then you will know That the LORD of hosts has sent Me to you."
+        },
+        {
+          "citation": "Zechariah 4:10",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 22933,
+          "text": "For who has despised the day of small things? For these seven rejoice to see The plumb line in the hand of Zerubbabel. They are the eyes of the LORD, Which scan to and fro throughout the whole earth.\""
+        },
+        {
+          "citation": "Zechariah 4:11",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 22934,
+          "text": "Then I answered and said to him, \"What are these two olive trees--at the right of the lampstand and at its left?\""
+        },
+        {
+          "citation": "Zechariah 4:12",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 22935,
+          "text": "And I further answered and said to him, \"What are these two olive branches that drip into the receptacles of the two gold pipes from which the golden oil drains?\""
+        },
+        {
+          "citation": "Zechariah 4:13",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 22936,
+          "text": "Then he answered me and said, \"Do you not know what these are?\" And I said, \"No, my lord.\""
+        },
+        {
+          "citation": "Zechariah 4:14",
+          "bookKey": "ZEC",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 22937,
+          "text": "So he said, \"These are the two anointed ones, who stand beside the Lord of the whole earth.\""
+        },
+        {
+          "citation": "Zechariah 5:1",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 22938,
+          "text": "Then I turned and raised my eyes, and saw there a flying scroll."
+        },
+        {
+          "citation": "Zechariah 5:2",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 22939,
+          "text": "And he said to me, \"What do you see?\" So I answered, \"I see a flying scroll. Its length is twenty cubits and its width ten cubits.\""
+        },
+        {
+          "citation": "Zechariah 5:3",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 22940,
+          "text": "Then he said to me, \"This is the curse that goes out over the face of the whole earth: \"Every thief shall be expelled,' according to this side of the scroll; and, \"Every perjurer shall be expelled,' according to that side of it.\""
+        },
+        {
+          "citation": "Zechariah 5:4",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 22941,
+          "text": "\"I will send out the curse,\" says the LORD of hosts; \"It shall enter the house of the thief And the house of the one who swears falsely by My name. It shall remain in the midst of his house And consume it, with its timber and stones.\""
+        },
+        {
+          "citation": "Zechariah 5:5",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 22942,
+          "text": "Then the angel who talked with me came out and said to me, \"Lift your eyes now, and see what this is that goes forth.\""
+        },
+        {
+          "citation": "Zechariah 5:6",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 22943,
+          "text": "So I asked, \"What is it?\" And he said, \"It is a basket that is going forth.\" He also said, \"This is their resemblance throughout the earth:"
+        },
+        {
+          "citation": "Zechariah 5:7",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 22944,
+          "text": "Here is a lead disc lifted up, and this is a woman sitting inside the basket\";"
+        },
+        {
+          "citation": "Zechariah 5:8",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 22945,
+          "text": "then he said, \"This is Wickedness!\" And he thrust her down into the basket, and threw the lead cover over its mouth."
+        },
+        {
+          "citation": "Zechariah 5:9",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 22946,
+          "text": "Then I raised my eyes and looked, and there were two women, coming with the wind in their wings; for they had wings like the wings of a stork, and they lifted up the basket between earth and heaven."
+        },
+        {
+          "citation": "Zechariah 5:10",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 22947,
+          "text": "So I said to the angel who talked with me, \"Where are they carrying the basket?\""
+        },
+        {
+          "citation": "Zechariah 5:11",
+          "bookKey": "ZEC",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 22948,
+          "text": "And he said to me, \"To build a house for it in the land of Shinar; when it is ready, the basket will be set there on its base.\""
+        },
+        {
+          "citation": "Zechariah 6:1",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 22949,
+          "text": "Then I turned and raised my eyes and looked, and behold, four chariots were coming from between two mountains, and the mountains were mountains of bronze."
+        },
+        {
+          "citation": "Zechariah 6:2",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 22950,
+          "text": "With the first chariot were red horses, with the second chariot black horses,"
+        },
+        {
+          "citation": "Zechariah 6:3",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 22951,
+          "text": "with the third chariot white horses, and with the fourth chariot dappled horses--strong steeds."
+        },
+        {
+          "citation": "Zechariah 6:4",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 22952,
+          "text": "Then I answered and said to the angel who talked with me, \"What are these, my lord?\""
+        },
+        {
+          "citation": "Zechariah 6:5",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 22953,
+          "text": "And the angel answered and said to me, \"These are four spirits of heaven, who go out from their station before the Lord of all the earth."
+        },
+        {
+          "citation": "Zechariah 6:6",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 22954,
+          "text": "The one with the black horses is going to the north country, the white are going after them, and the dappled are going toward the south country.\""
+        },
+        {
+          "citation": "Zechariah 6:7",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 22955,
+          "text": "Then the strong steeds went out, eager to go, that they might walk to and fro throughout the earth. And He said, \"Go, walk to and fro throughout the earth.\" So they walked to and fro throughout the earth."
+        },
+        {
+          "citation": "Zechariah 6:8",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 22956,
+          "text": "And He called to me, and spoke to me, saying, \"See, those who go toward the north country have given rest to My Spirit in the north country.\""
+        },
+        {
+          "citation": "Zechariah 6:9",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 22957,
+          "text": "Then the word of the LORD came to me, saying:"
+        },
+        {
+          "citation": "Zechariah 6:10",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 22958,
+          "text": "\"Receive the gift from the captives--from Heldai, Tobijah, and Jedaiah, who have come from Babylon--and go the same day and enter the house of Josiah the son of Zephaniah."
+        },
+        {
+          "citation": "Zechariah 6:11",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 22959,
+          "text": "Take the silver and gold, make an elaborate crown, and set it on the head of Joshua the son of Jehozadak, the high priest."
+        },
+        {
+          "citation": "Zechariah 6:12",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 22960,
+          "text": "Then speak to him, saying, \"Thus says the LORD of hosts, saying: \"Behold, the Man whose name is the BRANCH! From His place He shall branch out, And He shall build the temple of the LORD;"
+        },
+        {
+          "citation": "Zechariah 6:13",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 13,
+          "ordinal": 22961,
+          "text": "Yes, He shall build the temple of the LORD. He shall bear the glory, And shall sit and rule on His throne; So He shall be a priest on His throne, And the counsel of peace shall be between them both.\"'"
+        },
+        {
+          "citation": "Zechariah 6:14",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 14,
+          "ordinal": 22962,
+          "text": "\"Now the elaborate crown shall be for a memorial in the temple of the LORD for Helem, Tobijah, Jedaiah, and Hen the son of Zephaniah."
+        },
+        {
+          "citation": "Zechariah 6:15",
+          "bookKey": "ZEC",
+          "chapter": 6,
+          "verse": 15,
+          "ordinal": 22963,
+          "text": "Even those from afar shall come and build the temple of the LORD. Then you shall know that the LORD of hosts has sent Me to you. And this shall come to pass if you diligently obey the voice of the LORD your God.\""
+        },
+        {
+          "citation": "Zechariah 7:1",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 1,
+          "ordinal": 22964,
+          "text": "Now in the fourth year of King Darius it came to pass that the word of the LORD came to Zechariah, on the fourth day of the ninth month, Chislev,"
+        },
+        {
+          "citation": "Zechariah 7:2",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 2,
+          "ordinal": 22965,
+          "text": "when the people sent Sherezer, with Regem-Melech and his men, to the house of God, to pray before the LORD,"
+        },
+        {
+          "citation": "Zechariah 7:3",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 3,
+          "ordinal": 22966,
+          "text": "and to ask the priests who were in the house of the LORD of hosts, and the prophets, saying, \"Should I weep in the fifth month and fast as I have done for so many years?\""
+        },
+        {
+          "citation": "Zechariah 7:4",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 4,
+          "ordinal": 22967,
+          "text": "Then the word of the LORD of hosts came to me, saying,"
+        },
+        {
+          "citation": "Zechariah 7:5",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 5,
+          "ordinal": 22968,
+          "text": "\"Say to all the people of the land, and to the priests: \"When you fasted and mourned in the fifth and seventh months during those seventy years, did you really fast for Me--for Me?"
+        },
+        {
+          "citation": "Zechariah 7:6",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 6,
+          "ordinal": 22969,
+          "text": "When you eat and when you drink, do you not eat and drink for yourselves?"
+        },
+        {
+          "citation": "Zechariah 7:7",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 7,
+          "ordinal": 22970,
+          "text": "Should you not have obeyed the words which the LORD proclaimed through the former prophets when Jerusalem and the cities around it were inhabited and prosperous, and the South and the Lowland were inhabited?\"'"
+        },
+        {
+          "citation": "Zechariah 7:8",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 8,
+          "ordinal": 22971,
+          "text": "Then the word of the LORD came to Zechariah, saying,"
+        },
+        {
+          "citation": "Zechariah 7:9",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 9,
+          "ordinal": 22972,
+          "text": "\"Thus says the LORD of hosts: \"Execute true justice, Show mercy and compassion Everyone to his brother."
+        },
+        {
+          "citation": "Zechariah 7:10",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 10,
+          "ordinal": 22973,
+          "text": "Do not oppress the widow or the fatherless, The alien or the poor. Let none of you plan evil in his heart Against his brother.'"
+        },
+        {
+          "citation": "Zechariah 7:11",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 11,
+          "ordinal": 22974,
+          "text": "But they refused to heed, shrugged their shoulders, and stopped their ears so that they could not hear."
+        },
+        {
+          "citation": "Zechariah 7:12",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 12,
+          "ordinal": 22975,
+          "text": "Yes, they made their hearts like flint, refusing to hear the law and the words which the LORD of hosts had sent by His Spirit through the former prophets. Thus great wrath came from the LORD of hosts."
+        },
+        {
+          "citation": "Zechariah 7:13",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 13,
+          "ordinal": 22976,
+          "text": "Therefore it happened, that just as He proclaimed and they would not hear, so they called out and I would not listen,\" says the LORD of hosts."
+        },
+        {
+          "citation": "Zechariah 7:14",
+          "bookKey": "ZEC",
+          "chapter": 7,
+          "verse": 14,
+          "ordinal": 22977,
+          "text": "\"But I scattered them with a whirlwind among all the nations which they had not known. Thus the land became desolate after them, so that no one passed through or returned; for they made the pleasant land desolate.\""
+        },
+        {
+          "citation": "Zechariah 8:1",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 1,
+          "ordinal": 22978,
+          "text": "Again the word of the LORD of hosts came, saying,"
+        },
+        {
+          "citation": "Zechariah 8:2",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 2,
+          "ordinal": 22979,
+          "text": "\"Thus says the LORD of hosts: \"I am zealous for Zion with great zeal; With great fervor I am zealous for her.'"
+        },
+        {
+          "citation": "Zechariah 8:3",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 3,
+          "ordinal": 22980,
+          "text": "\"Thus says the LORD: \"I will return to Zion, And dwell in the midst of Jerusalem. Jerusalem shall be called the City of Truth, The Mountain of the LORD of hosts, The Holy Mountain.'"
+        },
+        {
+          "citation": "Zechariah 8:4",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 4,
+          "ordinal": 22981,
+          "text": "\"Thus says the LORD of hosts: \"Old men and old women shall again sit In the streets of Jerusalem, Each one with his staff in his hand Because of great age."
+        },
+        {
+          "citation": "Zechariah 8:5",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 5,
+          "ordinal": 22982,
+          "text": "The streets of the city Shall be full of boys and girls Playing in its streets.'"
+        },
+        {
+          "citation": "Zechariah 8:6",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 6,
+          "ordinal": 22983,
+          "text": "\"Thus says the LORD of hosts: \"If it is marvelous in the eyes of the remnant of this people in these days, Will it also be marvelous in My eyes?' Says the LORD of hosts."
+        },
+        {
+          "citation": "Zechariah 8:7",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 7,
+          "ordinal": 22984,
+          "text": "\"Thus says the LORD of hosts: \"Behold, I will save My people from the land of the east And from the land of the west;"
+        },
+        {
+          "citation": "Zechariah 8:8",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 8,
+          "ordinal": 22985,
+          "text": "I will bring them back, And they shall dwell in the midst of Jerusalem. They shall be My people And I will be their God, In truth and righteousness.'"
+        },
+        {
+          "citation": "Zechariah 8:9",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 9,
+          "ordinal": 22986,
+          "text": "\"Thus says the LORD of hosts: \"Let your hands be strong, You who have been hearing in these days These words by the mouth of the prophets, Who spoke in the day the foundation was laid For the house of the LORD of hosts, That the temple might be built."
+        },
+        {
+          "citation": "Zechariah 8:10",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 10,
+          "ordinal": 22987,
+          "text": "For before these days There were no wages for man nor any hire for beast; There was no peace from the enemy for whoever went out or came in; For I set all men, everyone, against his neighbor."
+        },
+        {
+          "citation": "Zechariah 8:11",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 11,
+          "ordinal": 22988,
+          "text": "But now I will not treat the remnant of this people as in the former days,' says the LORD of hosts."
+        },
+        {
+          "citation": "Zechariah 8:12",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 12,
+          "ordinal": 22989,
+          "text": "\"For the seed shall be prosperous, The vine shall give its fruit, The ground shall give her increase, And the heavens shall give their dew-- I will cause the remnant of this people To possess all these."
+        },
+        {
+          "citation": "Zechariah 8:13",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 13,
+          "ordinal": 22990,
+          "text": "And it shall come to pass That just as you were a curse among the nations, O house of Judah and house of Israel, So I will save you, and you shall be a blessing. Do not fear, Let your hands be strong.'"
+        },
+        {
+          "citation": "Zechariah 8:14",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 14,
+          "ordinal": 22991,
+          "text": "\"For thus says the LORD of hosts: \"Just as I determined to punish you When your fathers provoked Me to wrath,' Says the LORD of hosts, \"And I would not relent,"
+        },
+        {
+          "citation": "Zechariah 8:15",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 15,
+          "ordinal": 22992,
+          "text": "So again in these days I am determined to do good To Jerusalem and to the house of Judah. Do not fear."
+        },
+        {
+          "citation": "Zechariah 8:16",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 16,
+          "ordinal": 22993,
+          "text": "These are the things you shall do: Speak each man the truth to his neighbor; Give judgment in your gates for truth, justice, and peace;"
+        },
+        {
+          "citation": "Zechariah 8:17",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 17,
+          "ordinal": 22994,
+          "text": "Let none of you think evil in your heart against your neighbor; And do not love a false oath. For all these are things that I hate,' Says the LORD.\""
+        },
+        {
+          "citation": "Zechariah 8:18",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 18,
+          "ordinal": 22995,
+          "text": "Then the word of the LORD of hosts came to me, saying,"
+        },
+        {
+          "citation": "Zechariah 8:19",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 19,
+          "ordinal": 22996,
+          "text": "\"Thus says the LORD of hosts: \"The fast of the fourth month, The fast of the fifth, The fast of the seventh, And the fast of the tenth, Shall be joy and gladness and cheerful feasts For the house of Judah. Therefore love truth and peace.'"
+        },
+        {
+          "citation": "Zechariah 8:20",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 20,
+          "ordinal": 22997,
+          "text": "\"Thus says the LORD of hosts: \"Peoples shall yet come, Inhabitants of many cities;"
+        },
+        {
+          "citation": "Zechariah 8:21",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 21,
+          "ordinal": 22998,
+          "text": "The inhabitants of one city shall go to another, saying, \"Let us continue to go and pray before the LORD, And seek the LORD of hosts. I myself will go also.\""
+        },
+        {
+          "citation": "Zechariah 8:22",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 22,
+          "ordinal": 22999,
+          "text": "Yes, many peoples and strong nations Shall come to seek the LORD of hosts in Jerusalem, And to pray before the LORD.'"
+        },
+        {
+          "citation": "Zechariah 8:23",
+          "bookKey": "ZEC",
+          "chapter": 8,
+          "verse": 23,
+          "ordinal": 23000,
+          "text": "\"Thus says the LORD of hosts: \"In those days ten men from every language of the nations shall grasp the sleeve of a Jewish man, saying, \"Let us go with you, for we have heard that God is with you.\"\"'"
+        },
+        {
+          "citation": "Zechariah 9:1",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 1,
+          "ordinal": 23001,
+          "text": "The burden of the word of the LORD Against the land of Hadrach, And Damascus its resting place (For the eyes of men And all the tribes of Israel Are on the LORD);"
+        },
+        {
+          "citation": "Zechariah 9:2",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 2,
+          "ordinal": 23002,
+          "text": "Also against Hamath, which borders on it, And against Tyre and Sidon, though they are very wise."
+        },
+        {
+          "citation": "Zechariah 9:3",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 3,
+          "ordinal": 23003,
+          "text": "For Tyre built herself a tower, Heaped up silver like the dust, And gold like the mire of the streets."
+        },
+        {
+          "citation": "Zechariah 9:4",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 4,
+          "ordinal": 23004,
+          "text": "Behold, the LORD will cast her out; He will destroy her power in the sea, And she will be devoured by fire."
+        },
+        {
+          "citation": "Zechariah 9:5",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 5,
+          "ordinal": 23005,
+          "text": "Ashkelon shall see it and fear; Gaza also shall be very sorrowful; And Ekron, for He dried up her expectation. The king shall perish from Gaza, And Ashkelon shall not be inhabited."
+        },
+        {
+          "citation": "Zechariah 9:6",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 6,
+          "ordinal": 23006,
+          "text": "\"A mixed race shall settle in Ashdod, And I will cut off the pride of the Philistines."
+        },
+        {
+          "citation": "Zechariah 9:7",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 7,
+          "ordinal": 23007,
+          "text": "I will take away the blood from his mouth, And the abominations from between his teeth. But he who remains, even he shall be for our God, And shall be like a leader in Judah, And Ekron like a Jebusite."
+        },
+        {
+          "citation": "Zechariah 9:8",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 8,
+          "ordinal": 23008,
+          "text": "I will camp around My house Because of the army, Because of him who passes by and him who returns. No more shall an oppressor pass through them, For now I have seen with My eyes."
+        },
+        {
+          "citation": "Zechariah 9:9",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 9,
+          "ordinal": 23009,
+          "text": "\"Rejoice greatly, O daughter of Zion! Shout, O daughter of Jerusalem! Behold, your King is coming to you; He is just and having salvation, Lowly and riding on a donkey, A colt, the foal of a donkey."
+        },
+        {
+          "citation": "Zechariah 9:10",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 10,
+          "ordinal": 23010,
+          "text": "I will cut off the chariot from Ephraim And the horse from Jerusalem; The battle bow shall be cut off. He shall speak peace to the nations; His dominion shall be \"from sea to sea, And from the River to the ends of the earth.'"
+        },
+        {
+          "citation": "Zechariah 9:11",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 11,
+          "ordinal": 23011,
+          "text": "\"As for you also, Because of the blood of your covenant, I will set your prisoners free from the waterless pit."
+        },
+        {
+          "citation": "Zechariah 9:12",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 12,
+          "ordinal": 23012,
+          "text": "Return to the stronghold, You prisoners of hope. Even today I declare That I will restore double to you."
+        },
+        {
+          "citation": "Zechariah 9:13",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 13,
+          "ordinal": 23013,
+          "text": "For I have bent Judah, My bow, Fitted the bow with Ephraim, And raised up your sons, O Zion, Against your sons, O Greece, And made you like the sword of a mighty man.\""
+        },
+        {
+          "citation": "Zechariah 9:14",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 14,
+          "ordinal": 23014,
+          "text": "Then the LORD will be seen over them, And His arrow will go forth like lightning. The Lord GOD will blow the trumpet, And go with whirlwinds from the south."
+        },
+        {
+          "citation": "Zechariah 9:15",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 15,
+          "ordinal": 23015,
+          "text": "The LORD of hosts will defend them; They shall devour and subdue with slingstones. They shall drink and roar as if with wine; They shall be filled with blood like basins, Like the corners of the altar."
+        },
+        {
+          "citation": "Zechariah 9:16",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 16,
+          "ordinal": 23016,
+          "text": "The LORD their God will save them in that day, As the flock of His people. For they shall be like the jewels of a crown, Lifted like a banner over His land--"
+        },
+        {
+          "citation": "Zechariah 9:17",
+          "bookKey": "ZEC",
+          "chapter": 9,
+          "verse": 17,
+          "ordinal": 23017,
+          "text": "For how great is its goodness And how great its beauty! Grain shall make the young men thrive, And new wine the young women."
+        },
+        {
+          "citation": "Zechariah 10:1",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 1,
+          "ordinal": 23018,
+          "text": "Ask the LORD for rain In the time of the latter rain. The LORD will make flashing clouds; He will give them showers of rain, Grass in the field for everyone."
+        },
+        {
+          "citation": "Zechariah 10:2",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 2,
+          "ordinal": 23019,
+          "text": "For the idols speak delusion; The diviners envision lies, And tell false dreams; They comfort in vain. Therefore the people wend their way like sheep; They are in trouble because there is no shepherd."
+        },
+        {
+          "citation": "Zechariah 10:3",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 3,
+          "ordinal": 23020,
+          "text": "\"My anger is kindled against the shepherds, And I will punish the goatherds. For the LORD of hosts will visit His flock, The house of Judah, And will make them as His royal horse in the battle."
+        },
+        {
+          "citation": "Zechariah 10:4",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 4,
+          "ordinal": 23021,
+          "text": "From him comes the cornerstone, From him the tent peg, From him the battle bow, From him every ruler together."
+        },
+        {
+          "citation": "Zechariah 10:5",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 5,
+          "ordinal": 23022,
+          "text": "They shall be like mighty men, Who tread down their enemies In the mire of the streets in the battle. They shall fight because the LORD is with them, And the riders on horses shall be put to shame."
+        },
+        {
+          "citation": "Zechariah 10:6",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 6,
+          "ordinal": 23023,
+          "text": "\"I will strengthen the house of Judah, And I will save the house of Joseph. I will bring them back, Because I have mercy on them. They shall be as though I had not cast them aside; For I am the LORD their God, And I will hear them."
+        },
+        {
+          "citation": "Zechariah 10:7",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 7,
+          "ordinal": 23024,
+          "text": "Those of Ephraim shall be like a mighty man, And their heart shall rejoice as if with wine. Yes, their children shall see it and be glad; Their heart shall rejoice in the LORD."
+        },
+        {
+          "citation": "Zechariah 10:8",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 8,
+          "ordinal": 23025,
+          "text": "I will whistle for them and gather them, For I will redeem them; And they shall increase as they once increased."
+        },
+        {
+          "citation": "Zechariah 10:9",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 9,
+          "ordinal": 23026,
+          "text": "\"I will sow them among the peoples, And they shall remember Me in far countries; They shall live, together with their children, And they shall return."
+        },
+        {
+          "citation": "Zechariah 10:10",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 10,
+          "ordinal": 23027,
+          "text": "I will also bring them back from the land of Egypt, And gather them from Assyria. I will bring them into the land of Gilead and Lebanon, Until no more room is found for them."
+        },
+        {
+          "citation": "Zechariah 10:11",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 11,
+          "ordinal": 23028,
+          "text": "He shall pass through the sea with affliction, And strike the waves of the sea: All the depths of the River shall dry up. Then the pride of Assyria shall be brought down, And the scepter of Egypt shall depart."
+        },
+        {
+          "citation": "Zechariah 10:12",
+          "bookKey": "ZEC",
+          "chapter": 10,
+          "verse": 12,
+          "ordinal": 23029,
+          "text": "\"So I will strengthen them in the LORD, And they shall walk up and down in His name,\" Says the LORD."
+        },
+        {
+          "citation": "Zechariah 11:1",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 1,
+          "ordinal": 23030,
+          "text": "Open your doors, O Lebanon, That fire may devour your cedars."
+        },
+        {
+          "citation": "Zechariah 11:2",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 2,
+          "ordinal": 23031,
+          "text": "Wail, O cypress, for the cedar has fallen, Because the mighty trees are ruined. Wail, O oaks of Bashan, For the thick forest has come down."
+        },
+        {
+          "citation": "Zechariah 11:3",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 3,
+          "ordinal": 23032,
+          "text": "There is the sound of wailing shepherds! For their glory is in ruins. There is the sound of roaring lions! For the pride of the Jordan is in ruins."
+        },
+        {
+          "citation": "Zechariah 11:4",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 4,
+          "ordinal": 23033,
+          "text": "Thus says the LORD my God, \"Feed the flock for slaughter,"
+        },
+        {
+          "citation": "Zechariah 11:5",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 5,
+          "ordinal": 23034,
+          "text": "whose owners slaughter them and feel no guilt; those who sell them say, \"Blessed be the LORD, for I am rich'; and their shepherds do not pity them."
+        },
+        {
+          "citation": "Zechariah 11:6",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 6,
+          "ordinal": 23035,
+          "text": "For I will no longer pity the inhabitants of the land,\" says the LORD. \"But indeed I will give everyone into his neighbor's hand and into the hand of his king. They shall attack the land, and I will not deliver them from their hand.\""
+        },
+        {
+          "citation": "Zechariah 11:7",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 7,
+          "ordinal": 23036,
+          "text": "So I fed the flock for slaughter, in particular the poor of the flock. I took for myself two staffs: the one I called Beauty, and the other I called Bonds; and I fed the flock."
+        },
+        {
+          "citation": "Zechariah 11:8",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 8,
+          "ordinal": 23037,
+          "text": "I dismissed the three shepherds in one month. My soul loathed them, and their soul also abhorred me."
+        },
+        {
+          "citation": "Zechariah 11:9",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 9,
+          "ordinal": 23038,
+          "text": "Then I said, \"I will not feed you. Let what is dying die, and what is perishing perish. Let those that are left eat each other's flesh.\""
+        },
+        {
+          "citation": "Zechariah 11:10",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 10,
+          "ordinal": 23039,
+          "text": "And I took my staff, Beauty, and cut it in two, that I might break the covenant which I had made with all the peoples."
+        },
+        {
+          "citation": "Zechariah 11:11",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 11,
+          "ordinal": 23040,
+          "text": "So it was broken on that day. Thus the poor of the flock, who were watching me, knew that it was the word of the LORD."
+        },
+        {
+          "citation": "Zechariah 11:12",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 12,
+          "ordinal": 23041,
+          "text": "Then I said to them, \"If it is agreeable to you, give me my wages; and if not, refrain.\" So they weighed out for my wages thirty pieces of silver."
+        },
+        {
+          "citation": "Zechariah 11:13",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 13,
+          "ordinal": 23042,
+          "text": "And the LORD said to me, \"Throw it to the potter\"--that princely price they set on me. So I took the thirty pieces of silver and threw them into the house of the LORD for the potter."
+        },
+        {
+          "citation": "Zechariah 11:14",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 14,
+          "ordinal": 23043,
+          "text": "Then I cut in two my other staff, Bonds, that I might break the brotherhood between Judah and Israel."
+        },
+        {
+          "citation": "Zechariah 11:15",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 15,
+          "ordinal": 23044,
+          "text": "And the LORD said to me, \"Next, take for yourself the implements of a foolish shepherd."
+        },
+        {
+          "citation": "Zechariah 11:16",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 16,
+          "ordinal": 23045,
+          "text": "For indeed I will raise up a shepherd in the land who will not care for those who are cut off, nor seek the young, nor heal those that are broken, nor feed those that still stand. But he will eat the flesh of the fat and tear their hooves in pieces."
+        },
+        {
+          "citation": "Zechariah 11:17",
+          "bookKey": "ZEC",
+          "chapter": 11,
+          "verse": 17,
+          "ordinal": 23046,
+          "text": "\"Woe to the worthless shepherd, Who leaves the flock! A sword shall be against his arm And against his right eye; His arm shall completely wither, And his right eye shall be totally blinded.\""
+        },
+        {
+          "citation": "Zechariah 12:1",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 1,
+          "ordinal": 23047,
+          "text": "The burden of the word of the LORD against Israel. Thus says the LORD, who stretches out the heavens, lays the foundation of the earth, and forms the spirit of man within him:"
+        },
+        {
+          "citation": "Zechariah 12:2",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 2,
+          "ordinal": 23048,
+          "text": "\"Behold, I will make Jerusalem a cup of drunkenness to all the surrounding peoples, when they lay siege against Judah and Jerusalem."
+        },
+        {
+          "citation": "Zechariah 12:3",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 3,
+          "ordinal": 23049,
+          "text": "And it shall happen in that day that I will make Jerusalem a very heavy stone for all peoples; all who would heave it away will surely be cut in pieces, though all nations of the earth are gathered against it."
+        },
+        {
+          "citation": "Zechariah 12:4",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 4,
+          "ordinal": 23050,
+          "text": "In that day,\" says the LORD, \"I will strike every horse with confusion, and its rider with madness; I will open My eyes on the house of Judah, and will strike every horse of the peoples with blindness."
+        },
+        {
+          "citation": "Zechariah 12:5",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 5,
+          "ordinal": 23051,
+          "text": "And the governors of Judah shall say in their heart, \"The inhabitants of Jerusalem are my strength in the LORD of hosts, their God.'"
+        },
+        {
+          "citation": "Zechariah 12:6",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 6,
+          "ordinal": 23052,
+          "text": "In that day I will make the governors of Judah like a firepan in the woodpile, and like a fiery torch in the sheaves; they shall devour all the surrounding peoples on the right hand and on the left, but Jerusalem shall be inhabited again in her own place--Jerusalem."
+        },
+        {
+          "citation": "Zechariah 12:7",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 7,
+          "ordinal": 23053,
+          "text": "\"The LORD will save the tents of Judah first, so that the glory of the house of David and the glory of the inhabitants of Jerusalem shall not become greater than that of Judah."
+        },
+        {
+          "citation": "Zechariah 12:8",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 8,
+          "ordinal": 23054,
+          "text": "In that day the LORD will defend the inhabitants of Jerusalem; the one who is feeble among them in that day shall be like David, and the house of David shall be like God, like the Angel of the LORD before them."
+        },
+        {
+          "citation": "Zechariah 12:9",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 9,
+          "ordinal": 23055,
+          "text": "It shall be in that day that I will seek to destroy all the nations that come against Jerusalem."
+        },
+        {
+          "citation": "Zechariah 12:10",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 10,
+          "ordinal": 23056,
+          "text": "\"And I will pour on the house of David and on the inhabitants of Jerusalem the Spirit of grace and supplication; then they will look on Me whom they pierced. Yes, they will mourn for Him as one mourns for his only son, and grieve for Him as one grieves for a firstborn."
+        },
+        {
+          "citation": "Zechariah 12:11",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 11,
+          "ordinal": 23057,
+          "text": "In that day there shall be a great mourning in Jerusalem, like the mourning at Hadad Rimmon in the plain of Megiddo."
+        },
+        {
+          "citation": "Zechariah 12:12",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 12,
+          "ordinal": 23058,
+          "text": "And the land shall mourn, every family by itself: the family of the house of David by itself, and their wives by themselves; the family of the house of Nathan by itself, and their wives by themselves;"
+        },
+        {
+          "citation": "Zechariah 12:13",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 13,
+          "ordinal": 23059,
+          "text": "the family of the house of Levi by itself, and their wives by themselves; the family of Shimei by itself, and their wives by themselves;"
+        },
+        {
+          "citation": "Zechariah 12:14",
+          "bookKey": "ZEC",
+          "chapter": 12,
+          "verse": 14,
+          "ordinal": 23060,
+          "text": "all the families that remain, every family by itself, and their wives by themselves."
+        },
+        {
+          "citation": "Zechariah 13:1",
+          "bookKey": "ZEC",
+          "chapter": 13,
+          "verse": 1,
+          "ordinal": 23061,
+          "text": "\"In that day a fountain shall be opened for the house of David and for the inhabitants of Jerusalem, for sin and for uncleanness."
+        },
+        {
+          "citation": "Zechariah 13:2",
+          "bookKey": "ZEC",
+          "chapter": 13,
+          "verse": 2,
+          "ordinal": 23062,
+          "text": "\"It shall be in that day,\" says the LORD of hosts, \"that I will cut off the names of the idols from the land, and they shall no longer be remembered. I will also cause the prophets and the unclean spirit to depart from the land."
+        },
+        {
+          "citation": "Zechariah 13:3",
+          "bookKey": "ZEC",
+          "chapter": 13,
+          "verse": 3,
+          "ordinal": 23063,
+          "text": "It shall come to pass that if anyone still prophesies, then his father and mother who begot him will say to him, \"You shall not live, because you have spoken lies in the name of the LORD.' And his father and mother who begot him shall thrust him through when he prophesies."
+        },
+        {
+          "citation": "Zechariah 13:4",
+          "bookKey": "ZEC",
+          "chapter": 13,
+          "verse": 4,
+          "ordinal": 23064,
+          "text": "\"And it shall be in that day that every prophet will be ashamed of his vision when he prophesies; they will not wear a robe of coarse hair to deceive."
+        },
+        {
+          "citation": "Zechariah 13:5",
+          "bookKey": "ZEC",
+          "chapter": 13,
+          "verse": 5,
+          "ordinal": 23065,
+          "text": "But he will say, \"I am no prophet, I am a farmer; for a man taught me to keep cattle from my youth.'"
+        },
+        {
+          "citation": "Zechariah 13:6",
+          "bookKey": "ZEC",
+          "chapter": 13,
+          "verse": 6,
+          "ordinal": 23066,
+          "text": "And one will say to him, \"What are these wounds between your arms?' Then he will answer, \"Those with which I was wounded in the house of my friends.'"
+        },
+        {
+          "citation": "Zechariah 13:7",
+          "bookKey": "ZEC",
+          "chapter": 13,
+          "verse": 7,
+          "ordinal": 23067,
+          "text": "\"Awake, O sword, against My Shepherd, Against the Man who is My Companion,\" Says the LORD of hosts. \"Strike the Shepherd, And the sheep will be scattered; Then I will turn My hand against the little ones."
+        },
+        {
+          "citation": "Zechariah 13:8",
+          "bookKey": "ZEC",
+          "chapter": 13,
+          "verse": 8,
+          "ordinal": 23068,
+          "text": "And it shall come to pass in all the land,\" Says the LORD, \"That two-thirds in it shall be cut off and die, But one-third shall be left in it:"
+        },
+        {
+          "citation": "Zechariah 13:9",
+          "bookKey": "ZEC",
+          "chapter": 13,
+          "verse": 9,
+          "ordinal": 23069,
+          "text": "I will bring the one-third through the fire, Will refine them as silver is refined, And test them as gold is tested. They will call on My name, And I will answer them. I will say, \"This is My people'; And each one will say, \"The LORD is my God.\"'"
+        },
+        {
+          "citation": "Zechariah 14:1",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 1,
+          "ordinal": 23070,
+          "text": "Behold, the day of the LORD is coming, And your spoil will be divided in your midst."
+        },
+        {
+          "citation": "Zechariah 14:2",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 2,
+          "ordinal": 23071,
+          "text": "For I will gather all the nations to battle against Jerusalem; The city shall be taken, The houses rifled, And the women ravished. Half of the city shall go into captivity, But the remnant of the people shall not be cut off from the city."
+        },
+        {
+          "citation": "Zechariah 14:3",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 3,
+          "ordinal": 23072,
+          "text": "Then the LORD will go forth And fight against those nations, As He fights in the day of battle."
+        },
+        {
+          "citation": "Zechariah 14:4",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 4,
+          "ordinal": 23073,
+          "text": "And in that day His feet will stand on the Mount of Olives, Which faces Jerusalem on the east. And the Mount of Olives shall be split in two, From east to west, Making a very large valley; Half of the mountain shall move toward the north And half of it toward the south."
+        },
+        {
+          "citation": "Zechariah 14:5",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 5,
+          "ordinal": 23074,
+          "text": "Then you shall flee through My mountain valley, For the mountain valley shall reach to Azal. Yes, you shall flee As you fled from the earthquake In the days of Uzziah king of Judah. Thus the LORD my God will come, And all the saints with You."
+        },
+        {
+          "citation": "Zechariah 14:6",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 6,
+          "ordinal": 23075,
+          "text": "It shall come to pass in that day That there will be no light; The lights will diminish."
+        },
+        {
+          "citation": "Zechariah 14:7",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 7,
+          "ordinal": 23076,
+          "text": "It shall be one day Which is known to the LORD-- Neither day nor night. But at evening time it shall happen That it will be light."
+        },
+        {
+          "citation": "Zechariah 14:8",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 8,
+          "ordinal": 23077,
+          "text": "And in that day it shall be That living waters shall flow from Jerusalem, Half of them toward the eastern sea And half of them toward the western sea; In both summer and winter it shall occur."
+        },
+        {
+          "citation": "Zechariah 14:9",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 9,
+          "ordinal": 23078,
+          "text": "And the LORD shall be King over all the earth. In that day it shall be-- \"The LORD is one,\" And His name one."
+        },
+        {
+          "citation": "Zechariah 14:10",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 10,
+          "ordinal": 23079,
+          "text": "All the land shall be turned into a plain from Geba to Rimmon south of Jerusalem. Jerusalem shall be raised up and inhabited in her place from Benjamin's Gate to the place of the First Gate and the Corner Gate, and from the Tower of Hananel to the king's winepresses."
+        },
+        {
+          "citation": "Zechariah 14:11",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 11,
+          "ordinal": 23080,
+          "text": "The people shall dwell in it; And no longer shall there be utter destruction, But Jerusalem shall be safely inhabited."
+        },
+        {
+          "citation": "Zechariah 14:12",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 12,
+          "ordinal": 23081,
+          "text": "And this shall be the plague with which the LORD will strike all the people who fought against Jerusalem: Their flesh shall dissolve while they stand on their feet, Their eyes shall dissolve in their sockets, And their tongues shall dissolve in their mouths."
+        },
+        {
+          "citation": "Zechariah 14:13",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 13,
+          "ordinal": 23082,
+          "text": "It shall come to pass in that day That a great panic from the LORD will be among them. Everyone will seize the hand of his neighbor, And raise his hand against his neighbor's hand;"
+        },
+        {
+          "citation": "Zechariah 14:14",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 14,
+          "ordinal": 23083,
+          "text": "Judah also will fight at Jerusalem. And the wealth of all the surrounding nations Shall be gathered together: Gold, silver, and apparel in great abundance."
+        },
+        {
+          "citation": "Zechariah 14:15",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 15,
+          "ordinal": 23084,
+          "text": "Such also shall be the plague On the horse and the mule, On the camel and the donkey, And on all the cattle that will be in those camps. So shall this plague be."
+        },
+        {
+          "citation": "Zechariah 14:16",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 16,
+          "ordinal": 23085,
+          "text": "And it shall come to pass that everyone who is left of all the nations which came against Jerusalem shall go up from year to year to worship the King, the LORD of hosts, and to keep the Feast of Tabernacles."
+        },
+        {
+          "citation": "Zechariah 14:17",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 17,
+          "ordinal": 23086,
+          "text": "And it shall be that whichever of the families of the earth do not come up to Jerusalem to worship the King, the LORD of hosts, on them there will be no rain."
+        },
+        {
+          "citation": "Zechariah 14:18",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 18,
+          "ordinal": 23087,
+          "text": "If the family of Egypt will not come up and enter in, they shall have no rain; they shall receive the plague with which the LORD strikes the nations who do not come up to keep the Feast of Tabernacles."
+        },
+        {
+          "citation": "Zechariah 14:19",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 19,
+          "ordinal": 23088,
+          "text": "This shall be the punishment of Egypt and the punishment of all the nations that do not come up to keep the Feast of Tabernacles."
+        },
+        {
+          "citation": "Zechariah 14:20",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 20,
+          "ordinal": 23089,
+          "text": "In that day \"HOLINESS TO THE LORD\" shall be engraved on the bells of the horses. The pots in the LORD's house shall be like the bowls before the altar."
+        },
+        {
+          "citation": "Zechariah 14:21",
+          "bookKey": "ZEC",
+          "chapter": 14,
+          "verse": 21,
+          "ordinal": 23090,
+          "text": "Yes, every pot in Jerusalem and Judah shall be holiness to the LORD of hosts. Everyone who sacrifices shall come and take them and cook in them. In that day there shall no longer be a Canaanite in the house of the LORD of hosts."
+        }
+      ]
+    }
+  ]
+}

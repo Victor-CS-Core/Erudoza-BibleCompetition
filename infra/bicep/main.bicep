@@ -12,6 +12,13 @@ param location string = resourceGroup().location
 @description('SQL administrator password. Supplied at deploy time, never committed.')
 param sqlAdminPassword string
 
+@secure()
+@description('Complete encrypted SQL Server connection string for a dedicated runtime principal. Inject from a secret store; never commit. Must target the database provisioned here.')
+param databaseConnectionString string
+
+@description('Explicit approved API outbound IPv4 addresses and migration-runner addresses. Determine these before enabling database traffic; never use 0.0.0.0 to allow all Azure services.')
+param sqlAllowedIpAddresses array = []
+
 @description('Public origin for the SPA.')
 param publicOrigin string = 'https://erudoza.com'
 
@@ -39,6 +46,23 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01' = {
   sku: {
     name: 'S0'
     tier: 'Standard'
+  }
+}
+
+resource sqlFirewallRules 'Microsoft.Sql/servers/firewallRules@2023-08-01' = [for (address, index) in sqlAllowedIpAddresses: {
+  parent: sqlServer
+  name: 'approved-egress-${index}'
+  properties: {
+    startIpAddress: address
+    endIpAddress: address
+  }
+}]
+
+resource sqlBackupRetention 'Microsoft.Sql/servers/databases/backupShortTermRetentionPolicies@2023-08-01' = {
+  parent: sqlDatabase
+  name: 'default'
+  properties: {
+    retentionDays: 14
   }
 }
 
@@ -97,6 +121,7 @@ resource appPlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   sku: {
     name: 'B1'
     tier: 'Basic'
+    capacity: 1 // Practice timing and room coordination have one authoritative process.
   }
   kind: 'linux'
   properties: {
@@ -115,7 +140,16 @@ resource api 'Microsoft.Web/sites@2023-12-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'DOTNETCORE|10.0'
+      alwaysOn: true
+      webSocketsEnabled: true
+      minTlsVersion: '1.2'
+      ftpsState: 'Disabled'
+      healthCheckPath: '/api/v1/health'
       appSettings: [
+        {
+          name: 'ASPNETCORE_ENVIRONMENT'
+          value: 'Production'
+        }
         {
           name: 'PUBLIC_ORIGIN'
           value: publicOrigin
@@ -125,12 +159,32 @@ resource api 'Microsoft.Web/sites@2023-12-01' = {
           value: 'SqlServer'
         }
         {
-          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: insights.properties.ConnectionString
+          name: 'Database__ConnectionString'
+          value: databaseConnectionString
         }
         {
-          name: 'OpenAI__Enabled'
+          name: 'Database__ApplySchema'
           value: 'false'
+        }
+        {
+          name: 'Seed__Enabled'
+          value: 'false'
+        }
+        {
+          name: 'ExposeDebugAnswers'
+          value: 'false'
+        }
+        {
+          name: 'DataProtection__KeyPath'
+          value: '/home/erudoza/keys'
+        }
+        {
+          name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+          value: 'true'
+        }
+        {
+          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+          value: insights.properties.ConnectionString
         }
       ]
     }

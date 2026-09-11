@@ -1,218 +1,127 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
+import { lifecycleApi } from "../../api/lifecycle";
+vi.mock("../../api/lifecycle", () => ({ lifecycleApi: { setStudentActive: vi.fn() } }));
 import type { Season, SeasonCoverage } from "../../api/types";
-import { AssignmentsPage, QuestionsPage, SeasonsListPage, StudentsPage } from "./SimpleAdminPages";
+import { AssignmentsPage, SeasonsListPage, StudentsPage } from "./SimpleAdminPages";
 
-vi.mock("../../api/client", () => ({
-  api: {
-    seasons: vi.fn(),
-    students: vi.fn(),
-    coverage: vi.fn(),
-    questions: vi.fn(),
-    generationJobs: vi.fn(),
-    generationStatus: vi.fn(),
-  },
-}));
-
-vi.mock("../../auth/AuthContext", () => ({
-  useAuth: () => ({
-    me: {
-      userId: "admin-1",
-      organizationId: "org-1",
-      organizationName: "Development Academy",
-      displayName: "Admin",
-      userName: "admin",
-      email: "admin@erudoza.local",
-      kind: "Adult",
-      role: "Admin",
-    },
-  }),
-}));
-
-function season(overrides: Partial<Season> = {}): Season {
-  return {
-    id: "season-1",
-    organizationId: "org-1",
-    name: "Imported Joshua",
-    yearLabel: "2026",
-    status: "Draft",
-    ruleProfileKey: "PBE_STYLE_V1",
-    ruleProfileVersion: 1,
-    startDate: null,
-    targetCompetitionDate: null,
-    scopeUnitCount: 0,
-    assignmentCount: 0,
-    ...overrides,
-  };
+vi.mock("../../api/client", () => ({ api: { seasons: vi.fn(), students: vi.fn(), coverage: vi.fn(), createStudent: vi.fn(), resetStudentPassword: vi.fn() } }));
+vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org-1" } }) }));
+function season(id: string, name: string, status: string): Season {
+  return { id, name, status, organizationId: "org-1", yearLabel: "2026", ruleProfileKey: "PBE_STYLE_V1", ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, scopeUnitCount: 4, assignmentCount: 2 };
+}
+const student = { userId: "student-1", userName: "daniel.student", displayName: "Daniel Student", email: null };
+const coverage: SeasonCoverage = { seasonId: "active", seasonName: "Daniel", seasonStatus: "Active", students: [{ studentUserId: "student-1", displayName: "Daniel Student", userName: "daniel.student", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 4, eligibleUnitCount: 4, masteredCount: 1, reviewDueCount: 0, attemptCount: 2 }] };
+function Location() { return <output data-testid="location">{useLocation().search}</output>; }
+function renderPage(ui: ReactNode, route = "/") {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  return render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[route]}>{ui}<Location /></MemoryRouter></QueryClientProvider>);
 }
 
-function coverage(overrides: Partial<SeasonCoverage> = {}): SeasonCoverage {
-  return {
-    seasonId: "season-active",
-    seasonName: "Daniel Gauntlet",
-    seasonStatus: "Active",
-    students: [
-      {
-        studentUserId: "student-1",
-        displayName: "Daniel Student",
-        userName: "daniel.student",
-        assignmentType: "PrimarySpecialist",
-        bookKey: "DAN",
-        startChapter: 1,
-        startVerse: 1,
-        endChapter: 1,
-        endVerse: 4,
-        eligibleUnitCount: 4,
-        masteredCount: 1,
-        reviewDueCount: 0,
-        attemptCount: 2,
-      },
-    ],
-    ...overrides,
-  };
-}
-
-function renderPage(ui: ReactNode) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  });
-  return render(
-    <QueryClientProvider client={client}>
-      <MemoryRouter>{ui}</MemoryRouter>
-    </QueryClientProvider>,
-  );
-}
-
-describe("Coach list pages Field Guide Academy", () => {
+describe("Coach directory pages", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(api.seasons).mockResolvedValue([
-      season({ id: "season-draft", name: "Imported Joshua", status: "Draft" }),
-      season({ id: "season-active", name: "Daniel Gauntlet", status: "Active" }),
-    ]);
-    vi.mocked(api.students).mockResolvedValue([
-      { userId: "student-1", userName: "daniel.student", displayName: "Daniel Student", email: null },
-    ]);
-    vi.mocked(api.coverage).mockResolvedValue(coverage());
-    vi.mocked(api.questions).mockResolvedValue([]);
-    vi.mocked(api.generationJobs).mockResolvedValue([]);
-    vi.mocked(api.generationStatus).mockResolvedValue({
-      openAiEnabled: false,
-      model: "local-fallback",
-      generator: "local",
-    });
+    vi.resetAllMocks();
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
+    vi.mocked(api.seasons).mockResolvedValue([season("draft", "Joshua", "Draft"), season("active", "Daniel", "Active")]);
+    vi.mocked(api.students).mockResolvedValue([student]);
+    vi.mocked(api.coverage).mockResolvedValue(coverage);
+    vi.mocked(api.createStudent).mockResolvedValue(student);
+    vi.mocked(api.resetStudentPassword).mockResolvedValue(undefined);
   });
-
-  it("opens seasons on the Field Guide Academy cover with the organization chapter", async () => {
+  it("lists named seasons with actual counts and creation link", async () => {
     renderPage(<SeasonsListPage />);
-
-    const cover = await screen.findByTestId("field-guide-academy");
-    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
-    expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
-    expect(screen.getByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new");
-    expect(screen.getByTestId("create-season")).toHaveClass("er-create-season");
-    await waitFor(() => expect(screen.getByText(/Imported Joshua/)).toBeInTheDocument());
-    const badges = screen.getAllByTestId("season-status-badge");
-    expect(badges.map((badge) => badge.textContent)).toEqual(expect.arrayContaining(["Draft", "Active"]));
-    expect(badges[0].querySelector("svg")).toBeTruthy();
-    expect(screen.queryByText("No seasons yet.")).not.toBeInTheDocument();
-    expect(cover).not.toHaveTextContent("%");
-    expect(cover).not.toHaveTextContent("streak");
+    expect(await screen.findByRole("link", { name: /Joshua/ })).toHaveAttribute("href", "/admin/seasons/draft");
+    expect(screen.getByRole("link", { name: /Joshua/ })).toHaveTextContent("4 verses · 2 assignments");
+    expect(screen.queryByText(/PBE_STYLE/)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Create season" })).toHaveAttribute("href", "/admin/seasons/new");
   });
-
-  it("explains an empty seasons list without inventing readiness", async () => {
+  it.each([true, false])("confirms student account state change from active=%s", async isActive => {
+    vi.mocked(api.students).mockResolvedValue([{ ...student, isActive }]);
+    vi.mocked(lifecycleApi.setStudentActive).mockResolvedValue(undefined);
+    renderPage(<StudentsPage />);
+    fireEvent.click(await screen.findByRole("button", { name: `${isActive ? "Deactivate" : "Reactivate"} Daniel Student` }));
+    expect(lifecycleApi.setStudentActive).not.toHaveBeenCalled();
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: `${isActive ? "Deactivate" : "Reactivate"} student` }));
+    await waitFor(() => expect(lifecycleApi.setStudentActive).toHaveBeenCalledWith("org-1", "student-1", !isActive));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+  it("shows load errors and retries seasons", async () => {
+    vi.mocked(api.seasons).mockRejectedValueOnce(new Error("offline"));
+    renderPage(<SeasonsListPage />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to load seasons");
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("link", { name: /Joshua/ })).toBeInTheDocument();
+  });
+  it("creates a student only with labeled valid details and clears the password", async () => {
+    renderPage(<StudentsPage />);
+    expect(screen.getByLabelText("Password")).toHaveAttribute("type", "password");
+    expect(screen.getByLabelText("Password")).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Add student" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Username"), { target: { value: "new.student" } });
+    fireEvent.change(screen.getByLabelText("Display name"), { target: { value: "New Student" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "UniquePass!123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add student" }));
+    expect(await screen.findByText("Student added.")).toBeInTheDocument();
+    expect(api.createStudent).toHaveBeenCalledWith("org-1", { userName: "new.student", displayName: "New Student", password: "UniquePass!123" });
+    expect(screen.getByLabelText("Password")).toHaveValue("");
+  });
+  it("disables duplicate creation while pending and reports failure", async () => {
+    let reject!: (reason: Error) => void;
+    vi.mocked(api.createStudent).mockReturnValue(new Promise((_, fail) => { reject = fail; }));
+    renderPage(<StudentsPage />);
+    fireEvent.change(screen.getByLabelText("Username"), { target: { value: "name" } });
+    fireEvent.change(screen.getByLabelText("Display name"), { target: { value: "Name" } });
+    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "LongPass123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add student" }));
+    expect(await screen.findByRole("button", { name: "Adding student…" })).toBeDisabled();
+    reject(new Error("Username already exists."));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Username already exists.");
+  });
+  it("resets the chosen student's password", async () => {
+    renderPage(<StudentsPage />);
+    fireEvent.click(await screen.findByRole("button", { name: "Reset password for Daniel Student" }));
+    fireEvent.change(screen.getByLabelText("New password for Daniel Student"), { target: { value: "ChangedPass123" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save password" }));
+    expect(await screen.findByText("Password updated.")).toBeInTheDocument();
+    expect(api.resetStudentPassword).toHaveBeenCalledWith("org-1", "student-1", "ChangedPass123");
+  });
+  it("honors and retains explicit season selection and deep links assignment management", async () => {
+    renderPage(<AssignmentsPage />, "/admin/assignments?seasonId=draft");
+    expect(await screen.findByTestId("coverage-table")).toHaveTextContent("Specialist");
+    expect(api.coverage).toHaveBeenCalledWith("org-1", "draft");
+    expect(screen.getByRole("link", { name: "Manage assignments for Daniel Student" })).toHaveAttribute("href", "/admin/assignments?seasonId=draft&studentId=student-1");
+    fireEvent.change(screen.getByRole("combobox", { name: "Season" }), { target: { value: "active" } });
+    await waitFor(() => expect(api.coverage).toHaveBeenCalledWith("org-1", "active"));
+    expect(screen.getByTestId("location")).toHaveTextContent("seasonId=active");
+  });
+  it("gives unassigned seasons a visible next step", async () => {
+    vi.mocked(api.coverage).mockResolvedValue({ ...coverage, students: [] });
+    renderPage(<AssignmentsPage />);
+    expect(await screen.findByText(/No assigned students yet/)).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Student" })).toHaveValue("");
+    expect(screen.getByRole("option", { name: /Daniel Student/ })).toBeInTheDocument();
+  });
+  it("handles no seasons without requesting coverage", async () => {
     vi.mocked(api.seasons).mockResolvedValue([]);
-
-    renderPage(<SeasonsListPage />);
-
+    renderPage(<AssignmentsPage />);
     expect(await screen.findByText("No seasons yet.")).toBeInTheDocument();
-    expect(screen.getByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new");
-    expect(screen.queryByText(/Imported Joshua/)).not.toBeInTheDocument();
-  });
-
-  it("opens students on the Field Guide Academy cover and keeps the roster form", async () => {
-    renderPage(<StudentsPage />);
-
-    expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
-    expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
-    expect(await screen.findByTestId("student-list")).toHaveTextContent("daniel.student");
-    expect(screen.queryByText("No students yet.")).not.toBeInTheDocument();
-    expect(screen.getByTestId("add-student")).toBeInTheDocument();
-  });
-
-  it("explains an empty students list without inventing readiness", async () => {
-    vi.mocked(api.students).mockResolvedValue([]);
-
-    renderPage(<StudentsPage />);
-
-    expect(await screen.findByText("No students yet.")).toBeInTheDocument();
-    expect(screen.getByTestId("add-student")).toBeInTheDocument();
-    expect(screen.queryByText("daniel.student")).not.toBeInTheDocument();
-  });
-
-  it("opens coverage on the Field Guide Academy cover from real season fields", async () => {
-    renderPage(<AssignmentsPage />);
-
-    const cover = await screen.findByTestId("field-guide-academy");
-    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Daniel Gauntlet · Active");
-    });
-    expect(await screen.findByTestId("coverage-table")).toHaveTextContent("daniel.student");
-    expect(screen.queryByText("No assigned students yet.")).not.toBeInTheDocument();
-    expect(cover).not.toHaveTextContent("%");
-    expect(cover).not.toHaveTextContent("streak");
-    expect(api.coverage).toHaveBeenCalledWith("org-1", "season-active");
-  });
-
-  it("explains an empty coverage list without inventing readiness", async () => {
-    vi.mocked(api.coverage).mockResolvedValue(coverage({ students: [] }));
-
-    renderPage(<AssignmentsPage />);
-
-    expect(await screen.findByText("No assigned students yet.")).toBeInTheDocument();
-    expect(screen.queryByTestId("coverage-table")).not.toBeInTheDocument();
-    expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Daniel Gauntlet · Active");
-  });
-
-  it("uses the organization chapter on coverage when no season exists", async () => {
-    vi.mocked(api.seasons).mockResolvedValue([]);
-
-    renderPage(<AssignmentsPage />);
-
-    expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
-    expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
-    expect(screen.queryByTestId("coverage-table")).not.toBeInTheDocument();
-    expect(screen.queryByText("No assigned students yet.")).not.toBeInTheDocument();
-    expect(screen.getByText("Open a season to create specialist and required coverage assignments.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Create season" })).toBeInTheDocument();
     expect(api.coverage).not.toHaveBeenCalled();
   });
-
-  it("opens questions on the Field Guide Academy cover from real season fields", async () => {
-    renderPage(<QuestionsPage />);
-
-    expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
-    await waitFor(() => {
-      expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Daniel Gauntlet · Active");
-    });
-    expect(screen.getByTestId("run-generation")).toBeInTheDocument();
-    expect(screen.getByTestId("question-review-list")).toBeInTheDocument();
+  it("does not silently substitute an unavailable season", async () => {
+    renderPage(<AssignmentsPage />, "/admin/assignments?seasonId=missing");
+    expect(await screen.findByRole("alert")).toHaveTextContent("This season is unavailable");
+    expect(api.coverage).not.toHaveBeenCalled();
   });
-
-  it("uses the organization chapter on questions when no season exists", async () => {
-    vi.mocked(api.seasons).mockResolvedValue([]);
-
-    renderPage(<QuestionsPage />);
-
-    expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
-    expect(screen.getByTestId("academy-chapter-line")).toHaveTextContent("Development Academy");
-    expect(screen.getByTestId("run-generation")).toBeDisabled();
-    expect(api.questions).not.toHaveBeenCalled();
+  it("shows a coverage error with retry instead of empty success", async () => {
+    vi.mocked(api.coverage).mockRejectedValue(new Error("offline"));
+    renderPage(<AssignmentsPage />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Unable to load assignments");
+    expect(screen.queryByText(/No assigned students/)).not.toBeInTheDocument();
   });
 });

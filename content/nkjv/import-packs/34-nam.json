@@ -1,0 +1,390 @@
+{
+  "packKey": "builtin-nkjv-nam",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Nahum",
+      "units": [
+        {
+          "citation": "Nahum 1:1",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 22686,
+          "text": "The burden against Nineveh. The book of the vision of Nahum the Elkoshite."
+        },
+        {
+          "citation": "Nahum 1:2",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 22687,
+          "text": "God is jealous, and the LORD avenges; The LORD avenges and is furious. The LORD will take vengeance on His adversaries, And He reserves wrath for His enemies;"
+        },
+        {
+          "citation": "Nahum 1:3",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 22688,
+          "text": "The LORD is slow to anger and great in power, And will not at all acquit the wicked. The LORD has His way In the whirlwind and in the storm, And the clouds are the dust of His feet."
+        },
+        {
+          "citation": "Nahum 1:4",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 22689,
+          "text": "He rebukes the sea and makes it dry, And dries up all the rivers. Bashan and Carmel wither, And the flower of Lebanon wilts."
+        },
+        {
+          "citation": "Nahum 1:5",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 22690,
+          "text": "The mountains quake before Him, The hills melt, And the earth heaves at His presence, Yes, the world and all who dwell in it."
+        },
+        {
+          "citation": "Nahum 1:6",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 22691,
+          "text": "Who can stand before His indignation? And who can endure the fierceness of His anger? His fury is poured out like fire, And the rocks are thrown down by Him."
+        },
+        {
+          "citation": "Nahum 1:7",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 22692,
+          "text": "The LORD is good, A stronghold in the day of trouble; And He knows those who trust in Him."
+        },
+        {
+          "citation": "Nahum 1:8",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 22693,
+          "text": "But with an overflowing flood He will make an utter end of its place, And darkness will pursue His enemies."
+        },
+        {
+          "citation": "Nahum 1:9",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 22694,
+          "text": "What do you conspire against the LORD? He will make an utter end of it. Affliction will not rise up a second time."
+        },
+        {
+          "citation": "Nahum 1:10",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 22695,
+          "text": "For while tangled like thorns, And while drunken like drunkards, They shall be devoured like stubble fully dried."
+        },
+        {
+          "citation": "Nahum 1:11",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 22696,
+          "text": "From you comes forth one Who plots evil against the LORD, A wicked counselor."
+        },
+        {
+          "citation": "Nahum 1:12",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 22697,
+          "text": "Thus says the LORD: \"Though they are safe, and likewise many, Yet in this manner they will be cut down When he passes through. Though I have afflicted you, I will afflict you no more;"
+        },
+        {
+          "citation": "Nahum 1:13",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 22698,
+          "text": "For now I will break off his yoke from you, And burst your bonds apart.\""
+        },
+        {
+          "citation": "Nahum 1:14",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 22699,
+          "text": "The LORD has given a command concerning you: \"Your name shall be perpetuated no longer. Out of the house of your gods I will cut off the carved image and the molded image. I will dig your grave, For you are vile.\""
+        },
+        {
+          "citation": "Nahum 1:15",
+          "bookKey": "NAM",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 22700,
+          "text": "Behold, on the mountains The feet of him who brings good tidings, Who proclaims peace! O Judah, keep your appointed feasts, Perform your vows. For the wicked one shall no more pass through you; He is utterly cut off."
+        },
+        {
+          "citation": "Nahum 2:1",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 22701,
+          "text": "He who scatters has come up before your face. Man the fort! Watch the road! Strengthen your flanks! Fortify your power mightily."
+        },
+        {
+          "citation": "Nahum 2:2",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 22702,
+          "text": "For the LORD will restore the excellence of Jacob Like the excellence of Israel, For the emptiers have emptied them out And ruined their vine branches."
+        },
+        {
+          "citation": "Nahum 2:3",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 22703,
+          "text": "The shields of his mighty men are made red, The valiant men are in scarlet. The chariots come with flaming torches In the day of his preparation, And the spears are brandished."
+        },
+        {
+          "citation": "Nahum 2:4",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 22704,
+          "text": "The chariots rage in the streets, They jostle one another in the broad roads; They seem like torches, They run like lightning."
+        },
+        {
+          "citation": "Nahum 2:5",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 22705,
+          "text": "He remembers his nobles; They stumble in their walk; They make haste to her walls, And the defense is prepared."
+        },
+        {
+          "citation": "Nahum 2:6",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 22706,
+          "text": "The gates of the rivers are opened, And the palace is dissolved."
+        },
+        {
+          "citation": "Nahum 2:7",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 22707,
+          "text": "It is decreed: She shall be led away captive, She shall be brought up; And her maidservants shall lead her as with the voice of doves, Beating their breasts."
+        },
+        {
+          "citation": "Nahum 2:8",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 22708,
+          "text": "Though Nineveh of old was like a pool of water, Now they flee away. \"Halt! Halt!\" they cry; But no one turns back."
+        },
+        {
+          "citation": "Nahum 2:9",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 22709,
+          "text": "Take spoil of silver! Take spoil of gold! There is no end of treasure, Or wealth of every desirable prize."
+        },
+        {
+          "citation": "Nahum 2:10",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 22710,
+          "text": "She is empty, desolate, and waste! The heart melts, and the knees shake; Much pain is in every side, And all their faces are drained of color."
+        },
+        {
+          "citation": "Nahum 2:11",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 22711,
+          "text": "Where is the dwelling of the lions, And the feeding place of the young lions, Where the lion walked, the lioness and lion's cub, And no one made them afraid?"
+        },
+        {
+          "citation": "Nahum 2:12",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 22712,
+          "text": "The lion tore in pieces enough for his cubs, Killed for his lionesses, Filled his caves with prey, And his dens with flesh."
+        },
+        {
+          "citation": "Nahum 2:13",
+          "bookKey": "NAM",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 22713,
+          "text": "\"Behold, I am against you,\" says the LORD of hosts, \"I will burn your chariots in smoke, and the sword shall devour your young lions; I will cut off your prey from the earth, and the voice of your messengers shall be heard no more.\""
+        },
+        {
+          "citation": "Nahum 3:1",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 22714,
+          "text": "Woe to the bloody city! It is all full of lies and robbery. Its victim never departs."
+        },
+        {
+          "citation": "Nahum 3:2",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 22715,
+          "text": "The noise of a whip And the noise of rattling wheels, Of galloping horses, Of clattering chariots!"
+        },
+        {
+          "citation": "Nahum 3:3",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 22716,
+          "text": "Horsemen charge with bright sword and glittering spear. There is a multitude of slain, A great number of bodies, Countless corpses-- They stumble over the corpses--"
+        },
+        {
+          "citation": "Nahum 3:4",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 22717,
+          "text": "Because of the multitude of harlotries of the seductive harlot, The mistress of sorceries, Who sells nations through her harlotries, And families through her sorceries."
+        },
+        {
+          "citation": "Nahum 3:5",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 22718,
+          "text": "\"Behold, I am against you,\" says the LORD of hosts; \"I will lift your skirts over your face, I will show the nations your nakedness, And the kingdoms your shame."
+        },
+        {
+          "citation": "Nahum 3:6",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 22719,
+          "text": "I will cast abominable filth upon you, Make you vile, And make you a spectacle."
+        },
+        {
+          "citation": "Nahum 3:7",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 22720,
+          "text": "It shall come to pass that all who look upon you Will flee from you, and say, \"Nineveh is laid waste! Who will bemoan her?' Where shall I seek comforters for you?\""
+        },
+        {
+          "citation": "Nahum 3:8",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 22721,
+          "text": "Are you better than No Amon That was situated by the River, That had the waters around her, Whose rampart was the sea, Whose wall was the sea?"
+        },
+        {
+          "citation": "Nahum 3:9",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 22722,
+          "text": "Ethiopia and Egypt were her strength, And it was boundless; Put and Lubim were your helpers."
+        },
+        {
+          "citation": "Nahum 3:10",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 22723,
+          "text": "Yet she was carried away, She went into captivity; Her young children also were dashed to pieces At the head of every street; They cast lots for her honorable men, And all her great men were bound in chains."
+        },
+        {
+          "citation": "Nahum 3:11",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 22724,
+          "text": "You also will be drunk; You will be hidden; You also will seek refuge from the enemy."
+        },
+        {
+          "citation": "Nahum 3:12",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 22725,
+          "text": "All your strongholds are fig trees with ripened figs: If they are shaken, They fall into the mouth of the eater."
+        },
+        {
+          "citation": "Nahum 3:13",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 22726,
+          "text": "Surely, your people in your midst are women! The gates of your land are wide open for your enemies; Fire shall devour the bars of your gates."
+        },
+        {
+          "citation": "Nahum 3:14",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 22727,
+          "text": "Draw your water for the siege! Fortify your strongholds! Go into the clay and tread the mortar! Make strong the brick kiln!"
+        },
+        {
+          "citation": "Nahum 3:15",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 22728,
+          "text": "There the fire will devour you, The sword will cut you off; It will eat you up like a locust. Make yourself many--like the locust! Make yourself many-- like the swarming locusts!"
+        },
+        {
+          "citation": "Nahum 3:16",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 22729,
+          "text": "You have multiplied your merchants more than the stars of heaven. The locust plunders and flies away."
+        },
+        {
+          "citation": "Nahum 3:17",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 22730,
+          "text": "Your commanders are like swarming locusts, And your generals like great grasshoppers, Which camp in the hedges on a cold day; When the sun rises they flee away, And the place where they are is not known."
+        },
+        {
+          "citation": "Nahum 3:18",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 22731,
+          "text": "Your shepherds slumber, O king of Assyria; Your nobles rest in the dust. Your people are scattered on the mountains, And no one gathers them."
+        },
+        {
+          "citation": "Nahum 3:19",
+          "bookKey": "NAM",
+          "chapter": 3,
+          "verse": 19,
+          "ordinal": 22732,
+          "text": "Your injury has no healing, Your wound is severe. All who hear news of you Will clap their hands over you, For upon whom has not your wickedness passed continually?"
+        }
+      ]
+    }
+  ]
+}

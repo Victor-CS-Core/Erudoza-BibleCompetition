@@ -1,3 +1,5 @@
+export type TrainingDifficulty = "Foundation" | "Standard" | "Advanced";
+
 export type Me = {
   userId: string;
   organizationId: string;
@@ -25,7 +27,8 @@ export type Season = {
   assignmentCount: number;
 };
 
-export type Student = { userId: string; userName: string; displayName: string; email: string | null };
+export type Student = { userId: string; userName: string; displayName: string; email: string | null; isActive?: boolean };
+
 
 export type ContentPack = {
   id: string;
@@ -52,12 +55,6 @@ export type ScriptureCatalog = {
   books: { bookKey: string; name: string }[];
 };
 
-export type GenerationStatus = {
-  openAiEnabled: boolean;
-  model: string;
-  generator: string;
-};
-
 export type ImportContentPackRequest = {
   packKey: string;
   version: number;
@@ -77,6 +74,8 @@ export type ImportContentPackRequest = {
 };
 
 export type Assignment = {
+  contentPackId?: string;
+  difficulty?: TrainingDifficulty;
   id: string;
   studentUserId: string;
   type: string;
@@ -140,11 +139,13 @@ export type Progress = {
     level: string;
     exactWordingScore: number;
     recognitionScore: number;
+    algorithmVersion?: string;
     reviewDueAtUtc: string | null;
   }[];
 };
 
 export type Session = {
+  difficulty?: TrainingDifficulty;
   id: string;
   seasonId: string;
   status: string;
@@ -177,30 +178,17 @@ export type CoverageStudent = {
   attemptCount: number;
 };
 
-export type GenerationJob = {
-  id: string;
-  seasonId: string | null;
-  status: string;
-  error: string | null;
-  createdAtUtc: string;
-  candidateCount: number;
-};
-
-export type QuestionReview = {
-  id: string;
-  seasonId: string | null;
-  prompt: string;
-  canonicalAnswer: string;
-  status: string;
-  questionType: string;
-  generatorVersion: string;
-  explanation: string | null;
-  evidence: { sourceUnitId: string; citation: string; evidenceText: string }[];
-};
-
 export type SeasonCoverage = {
   seasonId: string;
   seasonName: string;
   seasonStatus: string;
   students: CoverageStudent[];
 };
+
+export type ResumedSession = { session: Session; card: ChallengeCard | null; attempt: AttemptResult | null; summary: SessionSummary | null };
+
+export type PassageRange = { bookKey: string; startChapter: number; startVerse: number; endChapter: number; endVerse: number };
+export type PackScope = { contentPackId: string; includes: PassageRange[]; excludes: PassageRange[] };
+export type SeasonScope = { contentPackId: string | null; includes: PassageRange[]; excludes: PassageRange[]; packs?: PackScope[] };
+export type LibraryBook = { contentPackId: string; bookKey: string; name: string; verseCount: number; chapters: { number: number; verses: number[] }[] };
+export type ScriptureLibrary = { translationId: "nkjv"; translationName: string; version: number; books: LibraryBook[] };

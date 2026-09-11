@@ -101,7 +101,6 @@ const ACADEMY_ACTIVITY_NAMES: Record<string, string> = {
   ReferenceMatch: "Reference Match",
   WhatComesNext: "What Comes Next",
   TrueFalse: "True/False",
-  ShortAnswer: "Short answer",
 };
 
 export function academyActivityName(activityType: string): string {
@@ -113,7 +112,7 @@ export function academySessionSummaryCopy(summary: {
   correct: number;
   attempted: number;
 }): string {
-  const counts = `${summary.correct} / ${summary.attempted} exact`;
+  const counts = `${summary.correct} / ${summary.attempted} correct`;
   const mode = summary.mode.toLowerCase();
   if (mode === "practice") {
     return `Last ${academySessionKicker("Practice")} session: ${counts}`;

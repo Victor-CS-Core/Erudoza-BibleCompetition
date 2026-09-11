@@ -45,6 +45,10 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("SecurityStamp")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -163,6 +167,9 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsCorrect")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsLegacyDuplicate")
+                        .HasColumnType("INTEGER");
+
                     b.Property<Guid>("KnowledgeUnitId")
                         .HasColumnType("TEXT");
 
@@ -175,6 +182,9 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("ResponseTimeMs")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("ResultJson")
+                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("SeasonId")
                         .HasColumnType("TEXT");
@@ -191,7 +201,9 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ChallengeCardId");
+                    b.HasIndex("ChallengeCardId")
+                        .IsUnique()
+                        .HasFilter("[IsLegacyDuplicate] = 0");
 
                     b.HasIndex("SessionId", "ClientSubmissionId")
                         .IsUnique();
@@ -258,6 +270,9 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                     b.Property<int>("AnswerMode")
                         .HasColumnType("INTEGER");
 
+                    b.Property<Guid?>("AnswerSourceUnitId")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("TEXT");
 
@@ -312,6 +327,9 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Difficulty")
+                        .HasColumnType("INTEGER");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("TEXT");
 
@@ -331,6 +349,9 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                     b.HasIndex("TeamId");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("OrganizationId", "SeasonId", "UserId")
+                        .IsUnique();
 
                     b.ToTable("CompetitionMembers");
                 });
@@ -439,6 +460,9 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsBuiltIn")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("LicensingStatus")
@@ -669,6 +693,116 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrganizationId", "Status");
 
                     b.ToTable("PlayableQuestions");
+                });
+
+            modelBuilder.Entity("Erudoza.Domain.PracticeAwardRecord", b =>
+                {
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SeasonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("ReconciledAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("OrganizationId", "SeasonId", "UserId", "Key");
+
+                    b.ToTable("PracticeAwardRecord");
+                });
+
+            modelBuilder.Entity("Erudoza.Domain.PracticeQuestionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Published")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("QuestionKey")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SeasonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "QuestionKey", "Version")
+                        .IsUnique();
+
+                    b.ToTable("PracticeQuestionRecord");
+                });
+
+            modelBuilder.Entity("Erudoza.Domain.PracticeRoomRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("Revision")
+                        .IsConcurrencyToken()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("SeasonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("StateJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Status");
+
+                    b.ToTable("PracticeRoomRecord");
+                });
+
+            modelBuilder.Entity("Erudoza.Domain.PracticeSetting", b =>
+                {
+                    b.Property<Guid>("OrganizationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("OrganizationId");
+
+                    b.ToTable("PracticeSetting");
                 });
 
             modelBuilder.Entity("Erudoza.Domain.PromptVersion", b =>
@@ -988,10 +1122,21 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Difficulty")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DifficultyPolicyVersion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Mode")
                         .HasColumnType("INTEGER");
 
                     b.Property<Guid>("OrganizationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RuleProfileSnapshotJson")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("SeasonId")

@@ -1,0 +1,950 @@
+{
+  "packKey": "builtin-nkjv-sng",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Song of Solomon",
+      "units": [
+        {
+          "citation": "Song of Solomon 1:1",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 17539,
+          "text": "The song of songs, which is Solomon's."
+        },
+        {
+          "citation": "Song of Solomon 1:2",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 17540,
+          "text": "Let him kiss me with the kisses of his mouth-- For your love is better than wine."
+        },
+        {
+          "citation": "Song of Solomon 1:3",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 17541,
+          "text": "Because of the fragrance of your good ointments, Your name is ointment poured forth; Therefore the virgins love you."
+        },
+        {
+          "citation": "Song of Solomon 1:4",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 17542,
+          "text": "Draw me away! We will run after you. The king has brought me into his chambers. We will be glad and rejoice in you. We will remember your love more than wine. Rightly do they love you."
+        },
+        {
+          "citation": "Song of Solomon 1:5",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 17543,
+          "text": "I am dark, but lovely, O daughters of Jerusalem, Like the tents of Kedar, Like the curtains of Solomon."
+        },
+        {
+          "citation": "Song of Solomon 1:6",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 17544,
+          "text": "Do not look upon me, because I am dark, Because the sun has tanned me. My mother's sons were angry with me; They made me the keeper of the vineyards, But my own vineyard I have not kept."
+        },
+        {
+          "citation": "Song of Solomon 1:7",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 17545,
+          "text": "Tell me, O you whom I love, Where you feed your flock, Where you make it rest at noon. For why should I be as one who veils herself By the flocks of your companions?"
+        },
+        {
+          "citation": "Song of Solomon 1:8",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 17546,
+          "text": "If you do not know, O fairest among women, Follow in the footsteps of the flock, And feed your little goats Beside the shepherds' tents."
+        },
+        {
+          "citation": "Song of Solomon 1:9",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 17547,
+          "text": "I have compared you, my love, To my filly among Pharaoh's chariots."
+        },
+        {
+          "citation": "Song of Solomon 1:10",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 17548,
+          "text": "Your cheeks are lovely with ornaments, Your neck with chains of gold."
+        },
+        {
+          "citation": "Song of Solomon 1:11",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 17549,
+          "text": "We will make you ornaments of gold With studs of silver."
+        },
+        {
+          "citation": "Song of Solomon 1:12",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 17550,
+          "text": "While the king is at his table, My spikenard sends forth its fragrance."
+        },
+        {
+          "citation": "Song of Solomon 1:13",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 17551,
+          "text": "A bundle of myrrh is my beloved to me, That lies all night between my breasts."
+        },
+        {
+          "citation": "Song of Solomon 1:14",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 17552,
+          "text": "My beloved is to me a cluster of henna blooms In the vineyards of En Gedi."
+        },
+        {
+          "citation": "Song of Solomon 1:15",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 17553,
+          "text": "Behold, you are fair, my love! Behold, you are fair! You have dove's eyes."
+        },
+        {
+          "citation": "Song of Solomon 1:16",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 17554,
+          "text": "Behold, you are handsome, my beloved! Yes, pleasant! Also our bed is green."
+        },
+        {
+          "citation": "Song of Solomon 1:17",
+          "bookKey": "SNG",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 17555,
+          "text": "The beams of our houses are cedar, And our rafters of fir."
+        },
+        {
+          "citation": "Song of Solomon 2:1",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 17556,
+          "text": "I am the rose of Sharon, And the lily of the valleys."
+        },
+        {
+          "citation": "Song of Solomon 2:2",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 17557,
+          "text": "Like a lily among thorns, So is my love among the daughters."
+        },
+        {
+          "citation": "Song of Solomon 2:3",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 17558,
+          "text": "Like an apple tree among the trees of the woods, So is my beloved among the sons. I sat down in his shade with great delight, And his fruit was sweet to my taste."
+        },
+        {
+          "citation": "Song of Solomon 2:4",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 17559,
+          "text": "He brought me to the banqueting house, And his banner over me was love."
+        },
+        {
+          "citation": "Song of Solomon 2:5",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 17560,
+          "text": "Sustain me with cakes of raisins, Refresh me with apples, For I am lovesick."
+        },
+        {
+          "citation": "Song of Solomon 2:6",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 17561,
+          "text": "His left hand is under my head, And his right hand embraces me."
+        },
+        {
+          "citation": "Song of Solomon 2:7",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 17562,
+          "text": "I charge you, O daughters of Jerusalem, By the gazelles or by the does of the field, Do not stir up nor awaken love Until it pleases."
+        },
+        {
+          "citation": "Song of Solomon 2:8",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 17563,
+          "text": "The voice of my beloved! Behold, he comes Leaping upon the mountains, Skipping upon the hills."
+        },
+        {
+          "citation": "Song of Solomon 2:9",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 17564,
+          "text": "My beloved is like a gazelle or a young stag. Behold, he stands behind our wall; He is looking through the windows, Gazing through the lattice."
+        },
+        {
+          "citation": "Song of Solomon 2:10",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 17565,
+          "text": "My beloved spoke, and said to me: \"Rise up, my love, my fair one, And come away."
+        },
+        {
+          "citation": "Song of Solomon 2:11",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 17566,
+          "text": "For lo, the winter is past, The rain is over and gone."
+        },
+        {
+          "citation": "Song of Solomon 2:12",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 17567,
+          "text": "The flowers appear on the earth; The time of singing has come, And the voice of the turtledove Is heard in our land."
+        },
+        {
+          "citation": "Song of Solomon 2:13",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 17568,
+          "text": "The fig tree puts forth her green figs, And the vines with the tender grapes Give a good smell. Rise up, my love, my fair one, And come away!"
+        },
+        {
+          "citation": "Song of Solomon 2:14",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 17569,
+          "text": "\"O my dove, in the clefts of the rock, In the secret places of the cliff, Let me see your face, Let me hear your voice; For your voice is sweet, And your face is lovely.\""
+        },
+        {
+          "citation": "Song of Solomon 2:15",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 17570,
+          "text": "Catch us the foxes, The little foxes that spoil the vines, For our vines have tender grapes."
+        },
+        {
+          "citation": "Song of Solomon 2:16",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 17571,
+          "text": "My beloved is mine, and I am his. He feeds his flock among the lilies."
+        },
+        {
+          "citation": "Song of Solomon 2:17",
+          "bookKey": "SNG",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 17572,
+          "text": "Until the day breaks And the shadows flee away, Turn, my beloved, And be like a gazelle Or a young stag Upon the mountains of Bether."
+        },
+        {
+          "citation": "Song of Solomon 3:1",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 17573,
+          "text": "By night on my bed I sought the one I love; I sought him, but I did not find him."
+        },
+        {
+          "citation": "Song of Solomon 3:2",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 17574,
+          "text": "\"I will rise now,\" I said, \"And go about the city; In the streets and in the squares I will seek the one I love.\" I sought him, but I did not find him."
+        },
+        {
+          "citation": "Song of Solomon 3:3",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 17575,
+          "text": "The watchmen who go about the city found me; I said, \"Have you seen the one I love?\""
+        },
+        {
+          "citation": "Song of Solomon 3:4",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 17576,
+          "text": "Scarcely had I passed by them, When I found the one I love. I held him and would not let him go, Until I had brought him to the house of my mother, And into the chamber of her who conceived me."
+        },
+        {
+          "citation": "Song of Solomon 3:5",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 17577,
+          "text": "I charge you, O daughters of Jerusalem, By the gazelles or by the does of the field, Do not stir up nor awaken love Until it pleases."
+        },
+        {
+          "citation": "Song of Solomon 3:6",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 17578,
+          "text": "Who is this coming out of the wilderness Like pillars of smoke, Perfumed with myrrh and frankincense, With all the merchant's fragrant powders?"
+        },
+        {
+          "citation": "Song of Solomon 3:7",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 17579,
+          "text": "Behold, it is Solomon's couch, With sixty valiant men around it, Of the valiant of Israel."
+        },
+        {
+          "citation": "Song of Solomon 3:8",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 17580,
+          "text": "They all hold swords, Being expert in war. Every man has his sword on his thigh Because of fear in the night."
+        },
+        {
+          "citation": "Song of Solomon 3:9",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 17581,
+          "text": "Of the wood of Lebanon Solomon the King Made himself a palanquin:"
+        },
+        {
+          "citation": "Song of Solomon 3:10",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 17582,
+          "text": "He made its pillars of silver, Its support of gold, Its seat of purple, Its interior paved with love By the daughters of Jerusalem."
+        },
+        {
+          "citation": "Song of Solomon 3:11",
+          "bookKey": "SNG",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 17583,
+          "text": "Go forth, O daughters of Zion, And see King Solomon with the crown With which his mother crowned him On the day of his wedding, The day of the gladness of his heart."
+        },
+        {
+          "citation": "Song of Solomon 4:1",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 17584,
+          "text": "Behold, you are fair, my love! Behold, you are fair! You have dove's eyes behind your veil. Your hair is like a flock of goats, Going down from Mount Gilead."
+        },
+        {
+          "citation": "Song of Solomon 4:2",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 17585,
+          "text": "Your teeth are like a flock of shorn sheep Which have come up from the washing, Every one of which bears twins, And none is barren among them."
+        },
+        {
+          "citation": "Song of Solomon 4:3",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 17586,
+          "text": "Your lips are like a strand of scarlet, And your mouth is lovely. Your temples behind your veil Are like a piece of pomegranate."
+        },
+        {
+          "citation": "Song of Solomon 4:4",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 17587,
+          "text": "Your neck is like the tower of David, Built for an armory, On which hang a thousand bucklers, All shields of mighty men."
+        },
+        {
+          "citation": "Song of Solomon 4:5",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 17588,
+          "text": "Your two breasts are like two fawns, Twins of a gazelle, Which feed among the lilies."
+        },
+        {
+          "citation": "Song of Solomon 4:6",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 17589,
+          "text": "Until the day breaks And the shadows flee away, I will go my way to the mountain of myrrh And to the hill of frankincense."
+        },
+        {
+          "citation": "Song of Solomon 4:7",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 17590,
+          "text": "You are all fair, my love, And there is no spot in you."
+        },
+        {
+          "citation": "Song of Solomon 4:8",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 17591,
+          "text": "Come with me from Lebanon, my spouse, With me from Lebanon. Look from the top of Amana, From the top of Senir and Hermon, From the lions' dens, From the mountains of the leopards."
+        },
+        {
+          "citation": "Song of Solomon 4:9",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 17592,
+          "text": "You have ravished my heart, My sister, my spouse; You have ravished my heart With one look of your eyes, With one link of your necklace."
+        },
+        {
+          "citation": "Song of Solomon 4:10",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 17593,
+          "text": "How fair is your love, My sister, my spouse! How much better than wine is your love, And the scent of your perfumes Than all spices!"
+        },
+        {
+          "citation": "Song of Solomon 4:11",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 17594,
+          "text": "Your lips, O my spouse, Drip as the honeycomb; Honey and milk are under your tongue; And the fragrance of your garments Is like the fragrance of Lebanon."
+        },
+        {
+          "citation": "Song of Solomon 4:12",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 17595,
+          "text": "A garden enclosed Is my sister, my spouse, A spring shut up, A fountain sealed."
+        },
+        {
+          "citation": "Song of Solomon 4:13",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 17596,
+          "text": "Your plants are an orchard of pomegranates With pleasant fruits, Fragrant henna with spikenard,"
+        },
+        {
+          "citation": "Song of Solomon 4:14",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 17597,
+          "text": "Spikenard and saffron, Calamus and cinnamon, With all trees of frankincense, Myrrh and aloes, With all the chief spices--"
+        },
+        {
+          "citation": "Song of Solomon 4:15",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 17598,
+          "text": "A fountain of gardens, A well of living waters, And streams from Lebanon."
+        },
+        {
+          "citation": "Song of Solomon 4:16",
+          "bookKey": "SNG",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 17599,
+          "text": "Awake, O north wind, And come, O south! Blow upon my garden, That its spices may flow out. Let my beloved come to his garden And eat its pleasant fruits."
+        },
+        {
+          "citation": "Song of Solomon 5:1",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 17600,
+          "text": "I have come to my garden, my sister, my spouse; I have gathered my myrrh with my spice; I have eaten my honeycomb with my honey; I have drunk my wine with my milk. Eat, O friends! Drink, yes, drink deeply, O beloved ones!"
+        },
+        {
+          "citation": "Song of Solomon 5:2",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 17601,
+          "text": "I sleep, but my heart is awake; It is the voice of my beloved! He knocks, saying, \"Open for me, my sister, my love, My dove, my perfect one; For my head is covered with dew, My locks with the drops of the night.\""
+        },
+        {
+          "citation": "Song of Solomon 5:3",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 17602,
+          "text": "I have taken off my robe; How can I put it on again? I have washed my feet; How can I defile them?"
+        },
+        {
+          "citation": "Song of Solomon 5:4",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 17603,
+          "text": "My beloved put his hand By the latch of the door, And my heart yearned for him."
+        },
+        {
+          "citation": "Song of Solomon 5:5",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 17604,
+          "text": "I arose to open for my beloved, And my hands dripped with myrrh, My fingers with liquid myrrh, On the handles of the lock."
+        },
+        {
+          "citation": "Song of Solomon 5:6",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 17605,
+          "text": "I opened for my beloved, But my beloved had turned away and was gone. My heart leaped up when he spoke. I sought him, but I could not find him; I called him, but he gave me no answer."
+        },
+        {
+          "citation": "Song of Solomon 5:7",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 17606,
+          "text": "The watchmen who went about the city found me. They struck me, they wounded me; The keepers of the walls Took my veil away from me."
+        },
+        {
+          "citation": "Song of Solomon 5:8",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 17607,
+          "text": "I charge you, O daughters of Jerusalem, If you find my beloved, That you tell him I am lovesick!"
+        },
+        {
+          "citation": "Song of Solomon 5:9",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 17608,
+          "text": "What is your beloved More than another beloved, O fairest among women? What is your beloved More than another beloved, That you so charge us?"
+        },
+        {
+          "citation": "Song of Solomon 5:10",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 17609,
+          "text": "My beloved is white and ruddy, Chief among ten thousand."
+        },
+        {
+          "citation": "Song of Solomon 5:11",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 17610,
+          "text": "His head is like the finest gold; His locks are wavy, And black as a raven."
+        },
+        {
+          "citation": "Song of Solomon 5:12",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 17611,
+          "text": "His eyes are like doves By the rivers of waters, Washed with milk, And fitly set."
+        },
+        {
+          "citation": "Song of Solomon 5:13",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 17612,
+          "text": "His cheeks are like a bed of spices, Banks of scented herbs. His lips are lilies, Dripping liquid myrrh."
+        },
+        {
+          "citation": "Song of Solomon 5:14",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 14,
+          "ordinal": 17613,
+          "text": "His hands are rods of gold Set with beryl. His body is carved ivory Inlaid with sapphires."
+        },
+        {
+          "citation": "Song of Solomon 5:15",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 15,
+          "ordinal": 17614,
+          "text": "His legs are pillars of marble Set on bases of fine gold. His countenance is like Lebanon, Excellent as the cedars."
+        },
+        {
+          "citation": "Song of Solomon 5:16",
+          "bookKey": "SNG",
+          "chapter": 5,
+          "verse": 16,
+          "ordinal": 17615,
+          "text": "His mouth is most sweet, Yes, he is altogether lovely. This is my beloved, And this is my friend, O daughters of Jerusalem!"
+        },
+        {
+          "citation": "Song of Solomon 6:1",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 17616,
+          "text": "Where has your beloved gone, O fairest among women? Where has your beloved turned aside, That we may seek him with you?"
+        },
+        {
+          "citation": "Song of Solomon 6:2",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 17617,
+          "text": "My beloved has gone to his garden, To the beds of spices, To feed his flock in the gardens, And to gather lilies."
+        },
+        {
+          "citation": "Song of Solomon 6:3",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 17618,
+          "text": "I am my beloved's, And my beloved is mine. He feeds his flock among the lilies."
+        },
+        {
+          "citation": "Song of Solomon 6:4",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 17619,
+          "text": "O my love, you are as beautiful as Tirzah, Lovely as Jerusalem, Awesome as an army with banners!"
+        },
+        {
+          "citation": "Song of Solomon 6:5",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 17620,
+          "text": "Turn your eyes away from me, For they have overcome me. Your hair is like a flock of goats Going down from Gilead."
+        },
+        {
+          "citation": "Song of Solomon 6:6",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 17621,
+          "text": "Your teeth are like a flock of sheep Which have come up from the washing; Every one bears twins, And none is barren among them."
+        },
+        {
+          "citation": "Song of Solomon 6:7",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 17622,
+          "text": "Like a piece of pomegranate Are your temples behind your veil."
+        },
+        {
+          "citation": "Song of Solomon 6:8",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 17623,
+          "text": "There are sixty queens And eighty concubines, And virgins without number."
+        },
+        {
+          "citation": "Song of Solomon 6:9",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 17624,
+          "text": "My dove, my perfect one, Is the only one, The only one of her mother, The favorite of the one who bore her. The daughters saw her And called her blessed, The queens and the concubines, And they praised her."
+        },
+        {
+          "citation": "Song of Solomon 6:10",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 17625,
+          "text": "Who is she who looks forth as the morning, Fair as the moon, Clear as the sun, Awesome as an army with banners?"
+        },
+        {
+          "citation": "Song of Solomon 6:11",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 17626,
+          "text": "I went down to the garden of nuts To see the verdure of the valley, To see whether the vine had budded And the pomegranates had bloomed."
+        },
+        {
+          "citation": "Song of Solomon 6:12",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 17627,
+          "text": "Before I was even aware, My soul had made me As the chariots of my noble people."
+        },
+        {
+          "citation": "Song of Solomon 6:13",
+          "bookKey": "SNG",
+          "chapter": 6,
+          "verse": 13,
+          "ordinal": 17628,
+          "text": "Return, return, O Shulamite; Return, return, that we may look upon you! What would you see in the Shulamite-- As it were, the dance of the two camps?"
+        },
+        {
+          "citation": "Song of Solomon 7:1",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 1,
+          "ordinal": 17629,
+          "text": "How beautiful are your feet in sandals, O prince's daughter! The curves of your thighs are like jewels, The work of the hands of a skillful workman."
+        },
+        {
+          "citation": "Song of Solomon 7:2",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 2,
+          "ordinal": 17630,
+          "text": "Your navel is a rounded goblet; It lacks no blended beverage. Your waist is a heap of wheat Set about with lilies."
+        },
+        {
+          "citation": "Song of Solomon 7:3",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 3,
+          "ordinal": 17631,
+          "text": "Your two breasts are like two fawns, Twins of a gazelle."
+        },
+        {
+          "citation": "Song of Solomon 7:4",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 4,
+          "ordinal": 17632,
+          "text": "Your neck is like an ivory tower, Your eyes like the pools in Heshbon By the gate of Bath Rabbim. Your nose is like the tower of Lebanon Which looks toward Damascus."
+        },
+        {
+          "citation": "Song of Solomon 7:5",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 5,
+          "ordinal": 17633,
+          "text": "Your head crowns you like Mount Carmel, And the hair of your head is like purple; A king is held captive by your tresses."
+        },
+        {
+          "citation": "Song of Solomon 7:6",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 6,
+          "ordinal": 17634,
+          "text": "How fair and how pleasant you are, O love, with your delights!"
+        },
+        {
+          "citation": "Song of Solomon 7:7",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 7,
+          "ordinal": 17635,
+          "text": "This stature of yours is like a palm tree, And your breasts like its clusters."
+        },
+        {
+          "citation": "Song of Solomon 7:8",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 8,
+          "ordinal": 17636,
+          "text": "I said, \"I will go up to the palm tree, I will take hold of its branches.\" Let now your breasts be like clusters of the vine, The fragrance of your breath like apples,"
+        },
+        {
+          "citation": "Song of Solomon 7:9",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 9,
+          "ordinal": 17637,
+          "text": "And the roof of your mouth like the best wine. The wine goes down smoothly for my beloved, Moving gently the lips of sleepers."
+        },
+        {
+          "citation": "Song of Solomon 7:10",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 10,
+          "ordinal": 17638,
+          "text": "I am my beloved's, And his desire is toward me."
+        },
+        {
+          "citation": "Song of Solomon 7:11",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 11,
+          "ordinal": 17639,
+          "text": "Come, my beloved, Let us go forth to the field; Let us lodge in the villages."
+        },
+        {
+          "citation": "Song of Solomon 7:12",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 12,
+          "ordinal": 17640,
+          "text": "Let us get up early to the vineyards; Let us see if the vine has budded, Whether the grape blossoms are open, And the pomegranates are in bloom. There I will give you my love."
+        },
+        {
+          "citation": "Song of Solomon 7:13",
+          "bookKey": "SNG",
+          "chapter": 7,
+          "verse": 13,
+          "ordinal": 17641,
+          "text": "The mandrakes give off a fragrance, And at our gates are pleasant fruits, All manner, new and old, Which I have laid up for you, my beloved."
+        },
+        {
+          "citation": "Song of Solomon 8:1",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 1,
+          "ordinal": 17642,
+          "text": "Oh, that you were like my brother, Who nursed at my mother's breasts! If I should find you outside, I would kiss you; I would not be despised."
+        },
+        {
+          "citation": "Song of Solomon 8:2",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 2,
+          "ordinal": 17643,
+          "text": "I would lead you and bring you Into the house of my mother, She who used to instruct me. I would cause you to drink of spiced wine, Of the juice of my pomegranate."
+        },
+        {
+          "citation": "Song of Solomon 8:3",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 3,
+          "ordinal": 17644,
+          "text": "His left hand is under my head, And his right hand embraces me."
+        },
+        {
+          "citation": "Song of Solomon 8:4",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 4,
+          "ordinal": 17645,
+          "text": "I charge you, O daughters of Jerusalem, Do not stir up nor awaken love Until it pleases."
+        },
+        {
+          "citation": "Song of Solomon 8:5",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 5,
+          "ordinal": 17646,
+          "text": "Who is this coming up from the wilderness, Leaning upon her beloved? I awakened you under the apple tree. There your mother brought you forth; There she who bore you brought you forth."
+        },
+        {
+          "citation": "Song of Solomon 8:6",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 6,
+          "ordinal": 17647,
+          "text": "Set me as a seal upon your heart, As a seal upon your arm; For love is as strong as death, Jealousy as cruel as the grave; Its flames are flames of fire, A most vehement flame."
+        },
+        {
+          "citation": "Song of Solomon 8:7",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 7,
+          "ordinal": 17648,
+          "text": "Many waters cannot quench love, Nor can the floods drown it. If a man would give for love All the wealth of his house, It would be utterly despised."
+        },
+        {
+          "citation": "Song of Solomon 8:8",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 8,
+          "ordinal": 17649,
+          "text": "We have a little sister, And she has no breasts. What shall we do for our sister In the day when she is spoken for?"
+        },
+        {
+          "citation": "Song of Solomon 8:9",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 9,
+          "ordinal": 17650,
+          "text": "If she is a wall, We will build upon her A battlement of silver; And if she is a door, We will enclose her With boards of cedar."
+        },
+        {
+          "citation": "Song of Solomon 8:10",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 10,
+          "ordinal": 17651,
+          "text": "I am a wall, And my breasts like towers; Then I became in his eyes As one who found peace."
+        },
+        {
+          "citation": "Song of Solomon 8:11",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 11,
+          "ordinal": 17652,
+          "text": "Solomon had a vineyard at Baal Hamon; He leased the vineyard to keepers; Everyone was to bring for its fruit A thousand silver coins."
+        },
+        {
+          "citation": "Song of Solomon 8:12",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 12,
+          "ordinal": 17653,
+          "text": "My own vineyard is before me. You, O Solomon, may have a thousand, And those who tend its fruit two hundred."
+        },
+        {
+          "citation": "Song of Solomon 8:13",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 13,
+          "ordinal": 17654,
+          "text": "You who dwell in the gardens, The companions listen for your voice-- Let me hear it!"
+        },
+        {
+          "citation": "Song of Solomon 8:14",
+          "bookKey": "SNG",
+          "chapter": 8,
+          "verse": 14,
+          "ordinal": 17655,
+          "text": "Make haste, my beloved, And be like a gazelle Or a young stag On the mountains of spices."
+        }
+      ]
+    }
+  ]
+}

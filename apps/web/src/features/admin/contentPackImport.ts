@@ -17,6 +17,7 @@ export type ImportContentPackRequest = {
   version: number;
   locale: string;
   sourceType: string;
+  licensingStatus?: string;
   documents: ImportDocument[];
 };
 
@@ -80,6 +81,12 @@ export function parseContentPackImport(raw: string): ImportContentPackRequest {
   const version = requiredPositiveInt(parsed.version, "version");
   const locale = optionalString(parsed.locale) || "en";
   const sourceType = optionalString(parsed.sourceType) || "Scripture";
+  const licensingStatus = parsed.licensingStatus;
+  if (licensingStatus != null && (
+    typeof licensingStatus !== "string" || !licensingStatus.trim() || licensingStatus.length > 100
+  )) {
+    throw new Error("licensingStatus must be a non-empty string of at most 100 characters.");
+  }
   const documentsRaw = parsed.documents;
   if (!Array.isArray(documentsRaw) || documentsRaw.length === 0) {
     throw new Error("A content pack needs at least one verse.");
@@ -99,7 +106,10 @@ export function parseContentPackImport(raw: string): ImportContentPackRequest {
     };
   });
 
-  return { packKey, version, locale, sourceType, documents };
+  return {
+    packKey, version, locale, sourceType, documents,
+    ...(typeof licensingStatus === "string" ? { licensingStatus: licensingStatus.trim() } : {}),
+  };
 }
 
 function parseUnit(unit: unknown, index: number): ImportUnit {

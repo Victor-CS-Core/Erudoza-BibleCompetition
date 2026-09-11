@@ -1,0 +1,671 @@
+{
+  "schema": "erudoza-kjv-import-manifest-v1",
+  "sourcePackKey": "kjv-1769-pdf",
+  "sourceMasterSha256": "0e1901ef0d7fcd933b459174a129f88f7be19842e1403372ec10546a168db2e2",
+  "packCount": 66,
+  "verseCount": 31102,
+  "maxVersesPerPack": 5000,
+  "maxBytesPerPack": 1800000,
+  "packs": [
+    {
+      "file": "01-gen.json",
+      "packKey": "kjv-1769-pdf-gen",
+      "version": 1,
+      "verseCount": 1533,
+      "bytes": 475686,
+      "sha256": "f0286e045be5dba13b5ef3745e59818b2b352281db55a0cdef4750b15780980d",
+      "firstVerse": "Genesis 1:1",
+      "lastVerse": "Genesis 50:26"
+    },
+    {
+      "file": "02-exo.json",
+      "packKey": "kjv-1769-pdf-exo",
+      "version": 1,
+      "verseCount": 1213,
+      "bytes": 389406,
+      "sha256": "7157f68e11cede827ef9ebd21d140fbd6df6001928f003898c68d4e4a097ab57",
+      "firstVerse": "Exodus 1:1",
+      "lastVerse": "Exodus 40:38"
+    },
+    {
+      "file": "03-lev.json",
+      "packKey": "kjv-1769-pdf-lev",
+      "version": 1,
+      "verseCount": 859,
+      "bytes": 285239,
+      "sha256": "65d3f43c3d76522f70698f634e5c9bb70ce01642582787780f16c4be4a60953f",
+      "firstVerse": "Leviticus 1:1",
+      "lastVerse": "Leviticus 27:34"
+    },
+    {
+      "file": "04-num.json",
+      "packKey": "kjv-1769-pdf-num",
+      "version": 1,
+      "verseCount": 1288,
+      "bytes": 410288,
+      "sha256": "ef71e52921b4927b774fb6ef2f08971822a85853c9c45eb844f8deb761753acf",
+      "firstVerse": "Numbers 1:1",
+      "lastVerse": "Numbers 36:13"
+    },
+    {
+      "file": "05-deu.json",
+      "packKey": "kjv-1769-pdf-deu",
+      "version": 1,
+      "verseCount": 959,
+      "bytes": 324913,
+      "sha256": "6f06a129767a64d5172bcdcf83e5bee40bd0e871aac727240e523a0701d4d28f",
+      "firstVerse": "Deuteronomy 1:1",
+      "lastVerse": "Deuteronomy 34:12"
+    },
+    {
+      "file": "06-jos.json",
+      "packKey": "kjv-1769-pdf-jos",
+      "version": 1,
+      "verseCount": 658,
+      "bytes": 219415,
+      "sha256": "1407065d884d0e9c500f7413973dd8fa1c699b5e8b74bcaf2697f65c37fafca4",
+      "firstVerse": "Joshua 1:1",
+      "lastVerse": "Joshua 24:33"
+    },
+    {
+      "file": "07-jdg.json",
+      "packKey": "kjv-1769-pdf-jdg",
+      "version": 1,
+      "verseCount": 618,
+      "bytes": 210546,
+      "sha256": "f24d09ec7da14af2f119a42cbba49b9ba023e7daf1f72962e1a18d96b0677e0d",
+      "firstVerse": "Judges 1:1",
+      "lastVerse": "Judges 21:25"
+    },
+    {
+      "file": "08-rut.json",
+      "packKey": "kjv-1769-pdf-rut",
+      "version": 1,
+      "verseCount": 85,
+      "bytes": 28306,
+      "sha256": "c1bb20ff907c33ca9d26505fe455f61719c706c7c0a4de337d2b320a91cffb01",
+      "firstVerse": "Ruth 1:1",
+      "lastVerse": "Ruth 4:22"
+    },
+    {
+      "file": "09-1sa.json",
+      "packKey": "kjv-1769-pdf-1sa",
+      "version": 1,
+      "verseCount": 810,
+      "bytes": 277808,
+      "sha256": "e512d94ca1ea81dd106b26bea3638c35f5fcd5e51b2e5e53d43084e2b277dcec",
+      "firstVerse": "1 Samuel 1:1",
+      "lastVerse": "1 Samuel 31:13"
+    },
+    {
+      "file": "10-2sa.json",
+      "packKey": "kjv-1769-pdf-2sa",
+      "version": 1,
+      "verseCount": 695,
+      "bytes": 233907,
+      "sha256": "d2b68304f72fadcff0f044be37c93570de3e0a81529a20dcc0e3730da6d060ab",
+      "firstVerse": "2 Samuel 1:1",
+      "lastVerse": "2 Samuel 24:25"
+    },
+    {
+      "file": "11-1ki.json",
+      "packKey": "kjv-1769-pdf-1ki",
+      "version": 1,
+      "verseCount": 816,
+      "bytes": 275612,
+      "sha256": "acd749cef75b6d9964e11778215285a850c2d75248778cd154e543a16afcce48",
+      "firstVerse": "1 Kings 1:1",
+      "lastVerse": "1 Kings 22:53"
+    },
+    {
+      "file": "12-2ki.json",
+      "packKey": "kjv-1769-pdf-2ki",
+      "version": 1,
+      "verseCount": 719,
+      "bytes": 252028,
+      "sha256": "84935632a1625c76622b4c23257892c9ee1117b7b791e63bd7b209aebc80d59c",
+      "firstVerse": "2 Kings 1:1",
+      "lastVerse": "2 Kings 25:30"
+    },
+    {
+      "file": "13-1ch.json",
+      "packKey": "kjv-1769-pdf-1ch",
+      "version": 1,
+      "verseCount": 942,
+      "bytes": 288071,
+      "sha256": "357af3bceae5e9d219d254dc1bc5c45602f1b3246b0e12f6ad4fd0566ca19dad",
+      "firstVerse": "1 Chronicles 1:1",
+      "lastVerse": "1 Chronicles 29:30"
+    },
+    {
+      "file": "14-2ch.json",
+      "packKey": "kjv-1769-pdf-2ch",
+      "version": 1,
+      "verseCount": 822,
+      "bytes": 293732,
+      "sha256": "13603ff28a68277d6c98daa7292212fae47e81daac2eb92aee57ccd9a3443b23",
+      "firstVerse": "2 Chronicles 1:1",
+      "lastVerse": "2 Chronicles 36:23"
+    },
+    {
+      "file": "15-ezr.json",
+      "packKey": "kjv-1769-pdf-ezr",
+      "version": 1,
+      "verseCount": 280,
+      "bytes": 90676,
+      "sha256": "6dc87bae677be2c7acc60d01ac8ce897e4a1872f7e5239facdd2b5f68e61985b",
+      "firstVerse": "Ezra 1:1",
+      "lastVerse": "Ezra 10:44"
+    },
+    {
+      "file": "16-neh.json",
+      "packKey": "kjv-1769-pdf-neh",
+      "version": 1,
+      "verseCount": 406,
+      "bytes": 131776,
+      "sha256": "aa2716588b2356f926c3c9ee6159155b8383a82b7f53e3251569109704662556",
+      "firstVerse": "Nehemiah 1:1",
+      "lastVerse": "Nehemiah 13:31"
+    },
+    {
+      "file": "17-est.json",
+      "packKey": "kjv-1769-pdf-est",
+      "version": 1,
+      "verseCount": 167,
+      "bytes": 60685,
+      "sha256": "b4f97cdb0d0eb5e1deed5a77801b4a1b1dd8cf6da9bac9514859c1ad0c82ee15",
+      "firstVerse": "Esther 1:1",
+      "lastVerse": "Esther 10:3"
+    },
+    {
+      "file": "18-job.json",
+      "packKey": "kjv-1769-pdf-job",
+      "version": 1,
+      "verseCount": 1070,
+      "bytes": 285923,
+      "sha256": "4b02a17067f0eb039b50c509d7a6cfb17b1c653ac869ae9098831b7bd9fe74d8",
+      "firstVerse": "Job 1:1",
+      "lastVerse": "Job 42:17"
+    },
+    {
+      "file": "19-psa.json",
+      "packKey": "kjv-1769-pdf-psa",
+      "version": 1,
+      "verseCount": 2461,
+      "bytes": 673644,
+      "sha256": "d06a90a077d87653c0e86e82563994b622509856e0ba33d93b706e04655d3add",
+      "firstVerse": "Psalms 1:1",
+      "lastVerse": "Psalms 150:6"
+    },
+    {
+      "file": "20-pro.json",
+      "packKey": "kjv-1769-pdf-pro",
+      "version": 1,
+      "verseCount": 915,
+      "bytes": 248480,
+      "sha256": "c595c82d4551cc5e77641762b9895d76ae6635901d3385d6b637f1c46839628c",
+      "firstVerse": "Proverbs 1:1",
+      "lastVerse": "Proverbs 31:31"
+    },
+    {
+      "file": "21-ecc.json",
+      "packKey": "kjv-1769-pdf-ecc",
+      "version": 1,
+      "verseCount": 222,
+      "bytes": 69996,
+      "sha256": "912abd808148cc47e65365c49a9508d98a9ae41a083128de0bc6b2a737bb21d8",
+      "firstVerse": "Ecclesiastes 1:1",
+      "lastVerse": "Ecclesiastes 12:14"
+    },
+    {
+      "file": "22-sng.json",
+      "packKey": "kjv-1769-pdf-sng",
+      "version": 1,
+      "verseCount": 117,
+      "bytes": 36029,
+      "sha256": "54a8325b2fa2063d6d498218d9155ec4813eb200e6dee2c672212d13e710a487",
+      "firstVerse": "Song of Solomon 1:1",
+      "lastVerse": "Song of Solomon 8:14"
+    },
+    {
+      "file": "23-isa.json",
+      "packKey": "kjv-1769-pdf-isa",
+      "version": 1,
+      "verseCount": 1292,
+      "bytes": 429191,
+      "sha256": "6d3ae8211ccca56905622cc33728fe5431438c01dc36e8137f23821cb8b2a396",
+      "firstVerse": "Isaiah 1:1",
+      "lastVerse": "Isaiah 66:24"
+    },
+    {
+      "file": "24-jer.json",
+      "packKey": "kjv-1769-pdf-jer",
+      "version": 1,
+      "verseCount": 1364,
+      "bytes": 475026,
+      "sha256": "388485b3f8489d8ed04c7ef93f925a5bee39182a547bcaaa90c7cd85def0fcdb",
+      "firstVerse": "Jeremiah 1:1",
+      "lastVerse": "Jeremiah 52:34"
+    },
+    {
+      "file": "25-lam.json",
+      "packKey": "kjv-1769-pdf-lam",
+      "version": 1,
+      "verseCount": 154,
+      "bytes": 47023,
+      "sha256": "b360b532b8a03779939b4b5c17f1ac5a2d882d3030f090554e2cd99b9c0de2d3",
+      "firstVerse": "Lamentations 1:1",
+      "lastVerse": "Lamentations 5:22"
+    },
+    {
+      "file": "26-ezk.json",
+      "packKey": "kjv-1769-pdf-ezk",
+      "version": 1,
+      "verseCount": 1273,
+      "bytes": 438616,
+      "sha256": "9be6299da60f36b303ff09bd282039624ca9a0cb41f2b4bad7c901e733766914",
+      "firstVerse": "Ezekiel 1:1",
+      "lastVerse": "Ezekiel 48:35"
+    },
+    {
+      "file": "27-dan.json",
+      "packKey": "kjv-1769-pdf-dan",
+      "version": 1,
+      "verseCount": 357,
+      "bytes": 126732,
+      "sha256": "7cefe2327eb1089fec48b2da81cbb4ffdf8dd2f2412a498ad2bfb38e584ad1e3",
+      "firstVerse": "Daniel 1:1",
+      "lastVerse": "Daniel 12:13"
+    },
+    {
+      "file": "28-hos.json",
+      "packKey": "kjv-1769-pdf-hos",
+      "version": 1,
+      "verseCount": 197,
+      "bytes": 62694,
+      "sha256": "3e7a7f2adf7270a587228f778cab270c1b15889c83675c3355c0cf0ff3e1e606",
+      "firstVerse": "Hosea 1:1",
+      "lastVerse": "Hosea 14:9"
+    },
+    {
+      "file": "29-jol.json",
+      "packKey": "kjv-1769-pdf-jol",
+      "version": 1,
+      "verseCount": 73,
+      "bytes": 23948,
+      "sha256": "202c00714353d1dc58bc4a2de26bca8abaf5a56ea5f1545ff4df9d254c295075",
+      "firstVerse": "Joel 1:1",
+      "lastVerse": "Joel 3:21"
+    },
+    {
+      "file": "30-amo.json",
+      "packKey": "kjv-1769-pdf-amo",
+      "version": 1,
+      "verseCount": 146,
+      "bytes": 48068,
+      "sha256": "a359d59965644f8d6ec3f1f01195983dae4e37ce246218964cf20c792d2553f0",
+      "firstVerse": "Amos 1:1",
+      "lastVerse": "Amos 9:15"
+    },
+    {
+      "file": "31-oba.json",
+      "packKey": "kjv-1769-pdf-oba",
+      "version": 1,
+      "verseCount": 21,
+      "bytes": 7604,
+      "sha256": "b0869fe4cdea66736d27d4b5e414dc28d5f5cfac1fb065db41d5cdc108853184",
+      "firstVerse": "Obadiah 1:1",
+      "lastVerse": "Obadiah 1:21"
+    },
+    {
+      "file": "32-jon.json",
+      "packKey": "kjv-1769-pdf-jon",
+      "version": 1,
+      "verseCount": 48,
+      "bytes": 15423,
+      "sha256": "4a392418323cd6480a82c057bfbe634ffd3856d9df478988c095a30e2ff45afb",
+      "firstVerse": "Jonah 1:1",
+      "lastVerse": "Jonah 4:11"
+    },
+    {
+      "file": "33-mic.json",
+      "packKey": "kjv-1769-pdf-mic",
+      "version": 1,
+      "verseCount": 105,
+      "bytes": 35330,
+      "sha256": "db3a4446c3489a00499fbbe18155f07e581901b73962993f45004f4b06e7287b",
+      "firstVerse": "Micah 1:1",
+      "lastVerse": "Micah 7:20"
+    },
+    {
+      "file": "34-nam.json",
+      "packKey": "kjv-1769-pdf-nam",
+      "version": 1,
+      "verseCount": 47,
+      "bytes": 15538,
+      "sha256": "97b35d310d3656ae14820bb1712f6d4ccda8cf6a5bccb033277bfbab30af41c8",
+      "firstVerse": "Nahum 1:1",
+      "lastVerse": "Nahum 3:19"
+    },
+    {
+      "file": "35-hab.json",
+      "packKey": "kjv-1769-pdf-hab",
+      "version": 1,
+      "verseCount": 56,
+      "bytes": 18346,
+      "sha256": "ca7532f8c29b76302fe03a26625690d70fd51e4ac4862dd333986963d92d4739",
+      "firstVerse": "Habakkuk 1:1",
+      "lastVerse": "Habakkuk 3:19"
+    },
+    {
+      "file": "36-zep.json",
+      "packKey": "kjv-1769-pdf-zep",
+      "version": 1,
+      "verseCount": 53,
+      "bytes": 18432,
+      "sha256": "2b3d1bec8e8e217c7e6a881ece54c07d343d9c147ce4524c9b246807e0eadf2d",
+      "firstVerse": "Zephaniah 1:1",
+      "lastVerse": "Zephaniah 3:20"
+    },
+    {
+      "file": "37-hag.json",
+      "packKey": "kjv-1769-pdf-hag",
+      "version": 1,
+      "verseCount": 38,
+      "bytes": 12804,
+      "sha256": "ebeab2352faafd0e43627637d810e8788f16f407c141b53dc5649c8b60da16ee",
+      "firstVerse": "Haggai 1:1",
+      "lastVerse": "Haggai 2:23"
+    },
+    {
+      "file": "38-zec.json",
+      "packKey": "kjv-1769-pdf-zec",
+      "version": 1,
+      "verseCount": 211,
+      "bytes": 71903,
+      "sha256": "45df5f67a85607a688684d3a4fb76efd50b9a405ac7b9bf539155c6da96509c9",
+      "firstVerse": "Zechariah 1:1",
+      "lastVerse": "Zechariah 14:21"
+    },
+    {
+      "file": "39-mal.json",
+      "packKey": "kjv-1769-pdf-mal",
+      "version": 1,
+      "verseCount": 55,
+      "bytes": 19365,
+      "sha256": "e991a7ad9595ddcaaefb8836bb448448a6fd1d26fd1b9ee27658870cb267cc34",
+      "firstVerse": "Malachi 1:1",
+      "lastVerse": "Malachi 4:6"
+    },
+    {
+      "file": "40-mat.json",
+      "packKey": "kjv-1769-pdf-mat",
+      "version": 1,
+      "verseCount": 1071,
+      "bytes": 320756,
+      "sha256": "404e02f62979317676148ca73ab84f0540e3b4639a1bf89eb7cb8a1dd559f282",
+      "firstVerse": "Matthew 1:1",
+      "lastVerse": "Matthew 28:20"
+    },
+    {
+      "file": "41-mrk.json",
+      "packKey": "kjv-1769-pdf-mrk",
+      "version": 1,
+      "verseCount": 678,
+      "bytes": 201064,
+      "sha256": "dcbf91573a0ee913a3f1e546ebbb2e979518abc10367d14f982644ad7a2dad60",
+      "firstVerse": "Mark 1:1",
+      "lastVerse": "Mark 16:20"
+    },
+    {
+      "file": "42-luk.json",
+      "packKey": "kjv-1769-pdf-luk",
+      "version": 1,
+      "verseCount": 1151,
+      "bytes": 341954,
+      "sha256": "25473a29bbe67f217b96e0dbb3edf80ec0ff0e9b971e19ce582bab67de1e644d",
+      "firstVerse": "Luke 1:1",
+      "lastVerse": "Luke 24:53"
+    },
+    {
+      "file": "43-jhn.json",
+      "packKey": "kjv-1769-pdf-jhn",
+      "version": 1,
+      "verseCount": 879,
+      "bytes": 256180,
+      "sha256": "f326fb48245735b6e8237b154939116f8b4f1615ef5dbaf73611483abfa06473",
+      "firstVerse": "John 1:1",
+      "lastVerse": "John 21:25"
+    },
+    {
+      "file": "44-act.json",
+      "packKey": "kjv-1769-pdf-act",
+      "version": 1,
+      "verseCount": 1007,
+      "bytes": 311239,
+      "sha256": "a4144e64851802da5358f00b013afd09685508a8fc37cf5b08a75a14c190b2bd",
+      "firstVerse": "Acts 1:1",
+      "lastVerse": "Acts 28:31"
+    },
+    {
+      "file": "45-rom.json",
+      "packKey": "kjv-1769-pdf-rom",
+      "version": 1,
+      "verseCount": 433,
+      "bytes": 128906,
+      "sha256": "f45cc581cc19b97eaabb21889f0056aa32f7e135a378c36794cfe1f185ae4ae6",
+      "firstVerse": "Romans 1:1",
+      "lastVerse": "Romans 16:27"
+    },
+    {
+      "file": "46-1co.json",
+      "packKey": "kjv-1769-pdf-1co",
+      "version": 1,
+      "verseCount": 437,
+      "bytes": 131541,
+      "sha256": "99dab897e2729032d1827620c7d025c097e383a167b2c5385dc4470032bae902",
+      "firstVerse": "1 Corinthians 1:1",
+      "lastVerse": "1 Corinthians 16:24"
+    },
+    {
+      "file": "47-2co.json",
+      "packKey": "kjv-1769-pdf-2co",
+      "version": 1,
+      "verseCount": 257,
+      "bytes": 80505,
+      "sha256": "645df558442a52bcbf89b5c407efa89b255e6ea7b4ca8af35252577ad203ecb6",
+      "firstVerse": "2 Corinthians 1:1",
+      "lastVerse": "2 Corinthians 13:14"
+    },
+    {
+      "file": "48-gal.json",
+      "packKey": "kjv-1769-pdf-gal",
+      "version": 1,
+      "verseCount": 149,
+      "bytes": 43783,
+      "sha256": "5017abf58214ac7fbe7138ac627118614ff9f1fb5e45f7f24e00ea7a026ca7f1",
+      "firstVerse": "Galatians 1:1",
+      "lastVerse": "Galatians 6:18"
+    },
+    {
+      "file": "49-eph.json",
+      "packKey": "kjv-1769-pdf-eph",
+      "version": 1,
+      "verseCount": 155,
+      "bytes": 44920,
+      "sha256": "90fa89cf5436b0993a9a096dbd739262a466ca0357ad898e63e86f6174ac103d",
+      "firstVerse": "Ephesians 1:1",
+      "lastVerse": "Ephesians 6:24"
+    },
+    {
+      "file": "50-php.json",
+      "packKey": "kjv-1769-pdf-php",
+      "version": 1,
+      "verseCount": 104,
+      "bytes": 31058,
+      "sha256": "1a5b2914f59e0df690e37d3a3d794b88806cf0e914229ba9c21d1212bb10b416",
+      "firstVerse": "Philippians 1:1",
+      "lastVerse": "Philippians 4:23"
+    },
+    {
+      "file": "51-col.json",
+      "packKey": "kjv-1769-pdf-col",
+      "version": 1,
+      "verseCount": 95,
+      "bytes": 28452,
+      "sha256": "d9d132d66fefadff03c97fc789fbaa10fc1e1497a297899ba99719bd78b9ae5b",
+      "firstVerse": "Colossians 1:1",
+      "lastVerse": "Colossians 4:18"
+    },
+    {
+      "file": "52-1th.json",
+      "packKey": "kjv-1769-pdf-1th",
+      "version": 1,
+      "verseCount": 89,
+      "bytes": 26713,
+      "sha256": "71e395ac478717de8f3bbebd0bffb314b9865cd488c7e411b478f4860e5fb5bc",
+      "firstVerse": "1 Thessalonians 1:1",
+      "lastVerse": "1 Thessalonians 5:28"
+    },
+    {
+      "file": "53-2th.json",
+      "packKey": "kjv-1769-pdf-2th",
+      "version": 1,
+      "verseCount": 47,
+      "bytes": 14548,
+      "sha256": "f9c7777b853b3a123bfca4b75f920b44312e3f5996b95ffbce7c7478694f0f23",
+      "firstVerse": "2 Thessalonians 1:1",
+      "lastVerse": "2 Thessalonians 3:18"
+    },
+    {
+      "file": "54-1ti.json",
+      "packKey": "kjv-1769-pdf-1ti",
+      "version": 1,
+      "verseCount": 113,
+      "bytes": 33614,
+      "sha256": "305bff6b7984b754ed48101f37d77713b5dbe31cb663ffe281106fdc7e75e780",
+      "firstVerse": "1 Timothy 1:1",
+      "lastVerse": "1 Timothy 6:21"
+    },
+    {
+      "file": "55-2ti.json",
+      "packKey": "kjv-1769-pdf-2ti",
+      "version": 1,
+      "verseCount": 83,
+      "bytes": 24615,
+      "sha256": "e2d3a9643ededb6a9fcbc87fe358292566be76c1c82646e3142264f292265ab8",
+      "firstVerse": "2 Timothy 1:1",
+      "lastVerse": "2 Timothy 4:22"
+    },
+    {
+      "file": "56-tit.json",
+      "packKey": "kjv-1769-pdf-tit",
+      "version": 1,
+      "verseCount": 46,
+      "bytes": 13578,
+      "sha256": "271e27cf27dc46c66b2a18790a537d6e51dbfd2eccb399c432d1aaf5b7bc0f1d",
+      "firstVerse": "Titus 1:1",
+      "lastVerse": "Titus 3:15"
+    },
+    {
+      "file": "57-phm.json",
+      "packKey": "kjv-1769-pdf-phm",
+      "version": 1,
+      "verseCount": 25,
+      "bytes": 7100,
+      "sha256": "f5505759b3e73d4cf04875ff8a14d85551c868cf985f222fa3e0a6d0216510b1",
+      "firstVerse": "Philemon 1:1",
+      "lastVerse": "Philemon 1:25"
+    },
+    {
+      "file": "58-heb.json",
+      "packKey": "kjv-1769-pdf-heb",
+      "version": 1,
+      "verseCount": 303,
+      "bytes": 92616,
+      "sha256": "11226ea56b2e66fe5ad93ac9480eef066bd436b42f8ec0405b5870de6e112843",
+      "firstVerse": "Hebrews 1:1",
+      "lastVerse": "Hebrews 13:25"
+    },
+    {
+      "file": "59-jas.json",
+      "packKey": "kjv-1769-pdf-jas",
+      "version": 1,
+      "verseCount": 108,
+      "bytes": 31709,
+      "sha256": "250357e3724bfe5f183019c8cd122087219ea2dd68292afebf8b83d89e2ecb94",
+      "firstVerse": "James 1:1",
+      "lastVerse": "James 5:20"
+    },
+    {
+      "file": "60-1pe.json",
+      "packKey": "kjv-1769-pdf-1pe",
+      "version": 1,
+      "verseCount": 105,
+      "bytes": 32715,
+      "sha256": "cb61f6473ea6e07f03a5360bf5820af96b5d265acc3798bfd1e3e8918d2cdb53",
+      "firstVerse": "1 Peter 1:1",
+      "lastVerse": "1 Peter 5:14"
+    },
+    {
+      "file": "61-2pe.json",
+      "packKey": "kjv-1769-pdf-2pe",
+      "version": 1,
+      "verseCount": 61,
+      "bytes": 19970,
+      "sha256": "14b82dbb61b158e5214f4e6f63bad40655a9292d5ec882f5406904b0a3ee35b2",
+      "firstVerse": "2 Peter 1:1",
+      "lastVerse": "2 Peter 3:18"
+    },
+    {
+      "file": "62-1jn.json",
+      "packKey": "kjv-1769-pdf-1jn",
+      "version": 1,
+      "verseCount": 105,
+      "bytes": 31899,
+      "sha256": "21ce56e81bdf7db4c0039584984e5a7c4203a373d15d955cafba15d6ef596a16",
+      "firstVerse": "1 John 1:1",
+      "lastVerse": "1 John 5:21"
+    },
+    {
+      "file": "63-2jn.json",
+      "packKey": "kjv-1769-pdf-2jn",
+      "version": 1,
+      "verseCount": 13,
+      "bytes": 4109,
+      "sha256": "6d1f55c13ffe09fd16e7be16337da2e0b23a1b215c0ad40934a8d4d7b05b7019",
+      "firstVerse": "2 John 1:1",
+      "lastVerse": "2 John 1:13"
+    },
+    {
+      "file": "64-3jn.json",
+      "packKey": "kjv-1769-pdf-3jn",
+      "version": 1,
+      "verseCount": 14,
+      "bytes": 4330,
+      "sha256": "312b8d491dac91fcd850404545ec8d132c74f8cd03cbf8509b212906767d7cfc",
+      "firstVerse": "3 John 1:1",
+      "lastVerse": "3 John 1:14"
+    },
+    {
+      "file": "65-jud.json",
+      "packKey": "kjv-1769-pdf-jud",
+      "version": 1,
+      "verseCount": 25,
+      "bytes": 8199,
+      "sha256": "b3cc7da6faff47b9b85c2783e7916c9ba690082ac223b649576b29257b243646",
+      "firstVerse": "Jude 1:1",
+      "lastVerse": "Jude 1:25"
+    },
+    {
+      "file": "66-rev.json",
+      "packKey": "kjv-1769-pdf-rev",
+      "version": 1,
+      "verseCount": 404,
+      "bytes": 137137,
+      "sha256": "015af23ce244120e500bd834df4814888ec18fbeed077184d6df812f115c019b",
+      "firstVerse": "Revelation 1:1",
+      "lastVerse": "Revelation 22:21"
+    }
+  ]
+}

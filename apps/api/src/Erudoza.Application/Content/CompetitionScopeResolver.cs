@@ -24,9 +24,10 @@ public sealed class CompetitionScopeResolver(IErudozaDbContext db) : ICompetitio
         var packIds = entries.Select(entry => entry.ContentPackId).Distinct().ToList();
         var units = await db.SourceUnits
             .AsNoTracking()
-            .Where(unit => unit.OrganizationId == organizationId
+            .Where(unit => (unit.OrganizationId == organizationId && unit.ContentPack!.OrganizationId == organizationId || unit.OrganizationId == BuiltInLibrary.OrganizationId && unit.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && unit.ContentPack.IsBuiltIn)
                 && packIds.Contains(unit.ContentPackId)
                 && unit.IsActive
+                && unit.ContentPack!.IsActive
                 && !unit.IsRetired)
             .ToListAsync(cancellationToken);
 

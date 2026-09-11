@@ -1,0 +1,115 @@
+/* bm-design-system:start — shared product primitives and type */
+:where(.training-app, .training-login, .training-public) { color: var(--er-ink-navy); font: var(--er-text-base)/1.55 var(--er-font-ui); -webkit-font-smoothing: antialiased; }
+:where(.training-app, .training-login, .training-public) :where(h1,h2,h3,h4,h5,h6) { color: var(--er-ink-navy); font-family: var(--er-font-ui); font-weight: 650; line-height: 1.25; letter-spacing: -.025em; text-wrap: balance; }
+:where(.training-app, .training-login, .training-public) h1 { font-size: var(--er-text-page); margin: 0; }
+:where(.training-app, .training-login, .training-public) h2 { font-size: var(--er-text-title); margin: 0 0 var(--er-space-3); }
+:where(.training-app, .training-login, .training-public) h3 { font-size: var(--er-text-lg); margin: 0 0 var(--er-space-2); }
+:where(.training-app, .training-login, .training-public) :where(h4,h5,h6) { font-size: var(--er-text-base); }
+:where(.training-app, .training-login, .training-public) :where(p,ul,ol,dl) { margin-top: 0; }
+:where(.training-app, .training-login, .training-public) :where(label,legend) { color: var(--er-ink-navy); font-size: var(--er-text-sm); font-weight: 600; }
+:where(.training-app, .training-login, .training-public) small { font-size: var(--er-text-xs); line-height: 1.5; }
+:where(.training-app, .training-login, .training-public) a { text-underline-offset: .2em; }
+:where(.training-app, .training-login, .training-public) :where(button,a,input,select,textarea,summary):focus-visible { outline: 2px solid var(--er-teal); outline-offset: 3px; }
+:where(.training-app, .training-login, .training-public) :where(input,textarea) { caret-color: var(--er-teal); }
+:where(.training-app, .training-login, .training-public) ::selection { color: var(--er-ink-navy); background: var(--er-selected); }
+:where(.training-app, .training-login, .training-public) :where(input,select,textarea,button):disabled { cursor: not-allowed; }
+.ds-button { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--er-space-2); min-height: var(--er-control-height); padding: 10px var(--er-space-5); border: 1px solid transparent; border-radius: var(--er-radius-control); font: 600 var(--er-text-sm)/1.4 var(--er-font-ui); text-decoration: none; text-align: center; cursor: pointer; flex-shrink: 0; }
+.ds-button-primary { color: var(--er-on-navy); background: var(--er-action-blue); }
+.ds-button-secondary { color: var(--er-ink-navy); background: var(--er-card); border-color: var(--er-border-strong); }
+.ds-button-ghost { color: var(--er-action-blue); background: transparent; }
+.ds-button-danger { color: var(--er-stamp-red); background: var(--er-danger-surface); }
+.ds-button-primary:hover:not(:disabled) { background: color-mix(in srgb,var(--er-action-blue) 85%,var(--er-ink-navy)); }
+.ds-button-secondary:hover:not(:disabled), .ds-button-ghost:hover:not(:disabled) { background: var(--er-selected); }
+.ds-button-danger:hover:not(:disabled) { background: color-mix(in srgb,var(--er-danger-surface) 85%,var(--er-stamp-red)); }
+.ds-button:active:not(:disabled) { transform: translateY(1px); }
+.ds-button:disabled, fieldset:disabled .ds-button { opacity: .46; }
+.ds-button-compact { min-height:32px; padding:4px var(--er-space-3); font-size:var(--er-text-xs); }
+@media(pointer:coarse){.ds-button-compact{min-height:44px}}
+.ds-input { appearance: auto; width: 100%; min-width: 0; min-height: var(--er-control-height); padding: 10px var(--er-space-3); border: 1px solid var(--er-border-strong); border-radius: var(--er-radius-control); background: var(--er-card); color: var(--er-ink-navy); font: 400 var(--er-text-base)/1.5 var(--er-font-ui); accent-color: var(--er-teal); }
+.ds-select { padding-right: var(--er-space-7); }
+.ds-textarea { min-height: 120px; resize: vertical; }
+.ds-input::placeholder { color: var(--er-muted-ink); opacity: 1; }
+.ds-input:hover:not(:disabled) { border-color: var(--er-teal); }
+.ds-input:focus-visible { outline-offset: 1px; }
+.ds-input:disabled, fieldset:disabled .ds-input { background: var(--er-surface-soft); color: var(--er-muted-ink); }
+.ds-input[aria-invalid=true] { border-color: var(--er-stamp-red); }
+.ds-input:is([type=radio],[type=checkbox]) { width: 18px; min-height: 18px; padding: 0; }
+.ds-panel { padding: var(--er-space-6); border: 1px solid var(--er-border); border-radius: var(--er-radius-card); background: var(--er-card); min-width: 0; }
+.ds-page-header { display: flex; justify-content: space-between; align-items: center; gap: var(--er-space-6); margin-bottom: var(--er-space-6); }
+.ds-page-header p { margin: var(--er-space-2) 0 0; color: var(--er-muted-ink); max-width: 70ch; }
+.ds-page-action { display: flex; align-items: center; gap: var(--er-space-3); flex-shrink: 0; }
+.ds-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 7px; font: 600 var(--er-text-xs)/1.5 var(--er-font-ui); white-space: nowrap; }
+.ds-badge-neutral { background: var(--er-surface-soft); color: var(--er-graphite); }
+.ds-badge-info { background: var(--er-selected); color: var(--er-action-blue); }
+.ds-badge-success { background: var(--er-success-surface); color: var(--er-success-ink); }
+.ds-badge-warning { background: var(--er-warning-surface); color: var(--er-warning-ink); }
+.ds-badge-danger { background: var(--er-danger-surface); color: var(--er-stamp-red); }
+.ds-notice { padding: var(--er-space-4); border-radius: var(--er-radius-control); font-size: var(--er-text-sm); }
+.ds-notice-info { background: var(--er-selected); color: var(--er-ink-navy); }
+.ds-notice-success { background: var(--er-success-surface); color: var(--er-success-ink); }
+.ds-notice-danger { background: var(--er-danger-surface); color: var(--er-stamp-red); }
+.ds-choice { display: flex; flex-direction: column; gap: var(--er-space-2); border: 1px solid var(--er-border-strong); border-radius: var(--er-radius-control); padding: var(--er-space-4); background: var(--er-card); cursor: pointer; min-width: 0; }
+.ds-choice:has(input:checked) { border-color: var(--er-teal); background: var(--er-selected); }
+.ds-choice:hover { border-color: var(--er-teal); }
+.ds-choice input { accent-color: var(--er-teal); width: 18px; height: 18px; min-height: 18px; }
+.ds-choice small { font-weight: 400; color: var(--er-muted-ink); }
+.ds-dialog { width: min(480px,calc(100% - 32px)); padding: var(--er-space-7); border: 0; border-radius: var(--er-radius-card); background: var(--er-card); color: var(--er-ink-navy); box-shadow: var(--er-shadow-overlay); }
+.ds-dialog::backdrop { background: #102e4770; }
+.ds-table, .training-table { width: 100%; border-collapse: collapse; text-align: left; font-variant-numeric: tabular-nums; }
+:is(.ds-table,.training-table) th { color: var(--er-muted-ink); background: var(--er-surface-soft); padding: var(--er-space-3) var(--er-space-4); font-size: var(--er-text-xs); font-weight: 600; white-space: nowrap; }
+:is(.ds-table,.training-table) td { padding: var(--er-space-3) var(--er-space-4); border-bottom: 1px solid var(--er-border); font-size: var(--er-text-sm); }
+:is(.ds-table,.training-table) small { color: var(--er-muted-ink); }
+/* Keep absolutely positioned accessible labels inside the table's scroll region. */
+.ds-table-scroll, .training-table-scroll { position: relative; overflow-x: auto; }
+:where(.training-app) progress { appearance: none; border: 0; border-radius: 8px; overflow: hidden; background: var(--er-surface-soft); }
+:where(.training-app) progress::-webkit-progress-bar { background: var(--er-surface-soft); }
+:where(.training-app) progress::-webkit-progress-value { background: var(--er-teal); border-radius: 8px; }
+:where(.training-app) progress::-moz-progress-bar { background: var(--er-teal); border-radius: 8px; }
+@media(max-width:760px) {
+  .ds-page-header { align-items: flex-start; flex-wrap: wrap; gap: var(--er-space-4); }
+  .ds-page-action { flex-wrap: wrap; flex-shrink: 1; }
+  .ds-panel { padding: var(--er-space-5); }
+  .ds-input { font-size: 1rem; }
+}
+@media(prefers-reduced-motion:no-preference) {
+  .ds-button,.ds-input,.ds-choice { transition: background-color var(--er-duration),border-color var(--er-duration),color var(--er-duration); }
+}
+/* bm-design-system:end */
+
+/* Consistent content surfaces for the command workspace. */
+:where(.training-app, .training-login, .training-public) { scrollbar-color: var(--er-border-strong) var(--er-paper); }
+:where(.training-app) [id] { scroll-margin-block-start: 160px; }
+.ds-panel > p:last-child { margin-bottom: 0; }
+.ds-page-header > div:first-child { min-width: 0; }
+.ds-page-header h1 { overflow-wrap: anywhere; }
+.ds-page-header p { font-size: var(--er-text-sm); }
+.ds-panel > h2 + p { color: var(--er-muted-ink); font-size: var(--er-text-sm); max-width: 75ch; }
+:is(.ds-table,.training-table) :is(th,td) { vertical-align: middle; }
+:is(.ds-table,.training-table) td > p { margin: var(--er-space-1) 0 0; color: var(--er-muted-ink); font-size: var(--er-text-xs); }
+:is(.ds-table,.training-table) tbody tr:hover { background: color-mix(in srgb,var(--er-selected) 35%,transparent); }
+:is(.ds-table,.training-table) thead th:first-child { border-radius: 8px 0 0 8px; }
+:is(.ds-table,.training-table) thead th:last-child { border-radius: 0 8px 8px 0; }
+:is(.ds-table-scroll,.training-table-scroll,.student-table-scroll) { scrollbar-width: thin; }
+
+.ds-section-tabs { display: flex; gap: var(--er-space-4); border-bottom: 1px solid var(--er-border); overflow-x: auto; }
+.ds-section-tabs .ds-button { background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: var(--er-muted-ink); white-space: nowrap; }
+.ds-section-tabs .ds-button[aria-current] { color: var(--er-action-blue); border-bottom-color: var(--er-teal); }
+.ds-section-tabs .ds-button:hover:not(:disabled) { background: var(--er-selected); }
+
+.ds-input-compact { min-height: 36px; padding-block: 6px; font-size: var(--er-text-sm); }
+@media(pointer:coarse) { .ds-input-compact { min-height:44px; font-size:1rem; } }
+
+/* Task feedback and optional controls shared across every workspace. */
+.ds-loading { display:flex; align-items:center; gap:12px; padding:24px 0; color:var(--er-muted-ink); font-size:var(--er-text-sm); }
+.ds-loading>span { width:18px; height:18px; flex-shrink:0; border:2px solid var(--er-border); border-top-color:var(--er-teal); border-radius:50%; }
+.ds-empty { padding:32px 0; max-width:60ch; }
+.ds-empty p { color:var(--er-muted-ink); font-size:var(--er-text-sm); margin:8px 0 0; }
+.ds-empty-action { display:flex; flex-wrap:wrap; gap:12px; margin-top:20px; }
+.ds-disclosure { border-top:1px solid var(--er-border); padding-block:8px; }
+.ds-disclosure>summary { cursor:pointer; color:var(--er-action-blue); font-size:var(--er-text-sm); font-weight:600; padding:12px 4px; min-height:44px; }
+.ds-disclosure>summary:hover { background:var(--er-selected); }
+.ds-disclosure[open]>summary { margin-bottom:12px; }
+.ds-dialog h2 { overflow-wrap:anywhere; }
+@media(prefers-reduced-motion:no-preference) { .ds-loading>span { animation:ds-loading-turn 1s linear infinite; } }
+@keyframes ds-loading-turn { to { transform:rotate(360deg); } }
+@media(max-width:760px) { .ds-section-tabs { gap:0; } .ds-section-tabs .ds-button { padding-inline:12px; font-size:var(--er-text-xs); } }

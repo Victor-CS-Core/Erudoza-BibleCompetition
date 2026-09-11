@@ -33,7 +33,11 @@ public sealed record BibleChapter(
     string License,
     IReadOnlyList<BibleChapterVerse> Verses);
 
+public sealed record ScriptureChaptersDto(IReadOnlyList<int> Chapters, int MaxChaptersPerImport);
+
 public interface IBibleTextClient
 {
+    Task<IReadOnlyList<ScriptureBookDto>> GetBooksAsync(string translationId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<int>> GetChaptersAsync(string translationId, string bookKey, CancellationToken cancellationToken);
     Task<BibleChapter> GetChapterAsync(string translationId, string bookKey, int chapter, CancellationToken cancellationToken);
 }

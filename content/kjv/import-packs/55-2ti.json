@@ -1,0 +1,678 @@
+{
+  "packKey": "kjv-1769-pdf-2ti",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "public-domain",
+  "documents": [
+    {
+      "name": "2 Timothy",
+      "units": [
+        {
+          "citation": "2 Timothy 1:1",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 29866,
+          "text": "Paul, an apostle of Jesus Christ by the will of God, according to the promise of life which is in Christ Jesus,"
+        },
+        {
+          "citation": "2 Timothy 1:2",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 29867,
+          "text": "To Timothy, my dearly beloved son: Grace, mercy, and peace, from God the Father and Christ Jesus our Lord."
+        },
+        {
+          "citation": "2 Timothy 1:3",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 29868,
+          "text": "I thank God, whom I serve from my forefathers with pure conscience, that without ceasing I have remembrance of thee in my prayers night and day;"
+        },
+        {
+          "citation": "2 Timothy 1:4",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 29869,
+          "text": "Greatly desiring to see thee, being mindful of thy tears, that I may be filled with joy;"
+        },
+        {
+          "citation": "2 Timothy 1:5",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 29870,
+          "text": "When I call to remembrance the unfeigned faith that is in thee, which dwelt first in thy grandmother Lois, and thy mother Eunice; and I am persuaded that in thee also."
+        },
+        {
+          "citation": "2 Timothy 1:6",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 29871,
+          "text": "Wherefore I put thee in remembrance that thou stir up the gift of God, which is in thee by the putting on of my hands."
+        },
+        {
+          "citation": "2 Timothy 1:7",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 29872,
+          "text": "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind."
+        },
+        {
+          "citation": "2 Timothy 1:8",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 29873,
+          "text": "Be not thou therefore ashamed of the testimony of our Lord, nor of me his prisoner: but be thou partaker of the afflictions of the gospel according to the power of God;"
+        },
+        {
+          "citation": "2 Timothy 1:9",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 29874,
+          "text": "Who hath saved us, and called us with an holy calling, not according to our works, but according to his own purpose and grace, which was given us in Christ Jesus before the world began,"
+        },
+        {
+          "citation": "2 Timothy 1:10",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 29875,
+          "text": "But is now made manifest by the appearing of our Saviour Jesus Christ, who hath abolished death, and hath brought life and immortality to light through the gospel:"
+        },
+        {
+          "citation": "2 Timothy 1:11",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 29876,
+          "text": "Whereunto I am appointed a preacher, and an apostle, and a teacher of the Gentiles."
+        },
+        {
+          "citation": "2 Timothy 1:12",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 29877,
+          "text": "For the which cause I also suffer these things: nevertheless I am not ashamed: for I know whom I have believed, and am persuaded that he is able to keep that which I have committed unto him against that day."
+        },
+        {
+          "citation": "2 Timothy 1:13",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 29878,
+          "text": "Hold fast the form of sound words, which thou hast heard of me, in faith and love which is in Christ Jesus."
+        },
+        {
+          "citation": "2 Timothy 1:14",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 29879,
+          "text": "That good thing which was committed unto thee keep by the Holy Ghost which dwelleth in us."
+        },
+        {
+          "citation": "2 Timothy 1:15",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 29880,
+          "text": "This thou knowest, that all they which are in Asia be turned away from me; of whom are Phygellus and Hermogenes."
+        },
+        {
+          "citation": "2 Timothy 1:16",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 29881,
+          "text": "The Lord give mercy unto the house of Onesiphorus; for he oft refreshed me, and was not ashamed of my chain:"
+        },
+        {
+          "citation": "2 Timothy 1:17",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 29882,
+          "text": "But, when he was in Rome, he sought me out very diligently, and found me."
+        },
+        {
+          "citation": "2 Timothy 1:18",
+          "bookKey": "2TI",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 29883,
+          "text": "The Lord grant unto him that he may find mercy of the Lord in that day: and in how many things he ministered unto me at Ephesus, thou knowest very well."
+        },
+        {
+          "citation": "2 Timothy 2:1",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 29884,
+          "text": "Thou therefore, my son, be strong in the grace that is in Christ Jesus."
+        },
+        {
+          "citation": "2 Timothy 2:2",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 29885,
+          "text": "And the things that thou hast heard of me among many witnesses, the same commit thou to faithful men, who shall be able to teach others also."
+        },
+        {
+          "citation": "2 Timothy 2:3",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 29886,
+          "text": "Thou therefore endure hardness, as a good soldier of Jesus Christ."
+        },
+        {
+          "citation": "2 Timothy 2:4",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 29887,
+          "text": "No man that warreth entangleth himself with the affairs of this life; that he may please him who hath chosen him to be a soldier."
+        },
+        {
+          "citation": "2 Timothy 2:5",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 29888,
+          "text": "And if a man also strive for masteries, yet is he not crowned, except he strive lawfully."
+        },
+        {
+          "citation": "2 Timothy 2:6",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 29889,
+          "text": "The husbandman that laboureth must be first partaker of the fruits."
+        },
+        {
+          "citation": "2 Timothy 2:7",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 29890,
+          "text": "Consider what I say; and the Lord give thee understanding in all things."
+        },
+        {
+          "citation": "2 Timothy 2:8",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 29891,
+          "text": "Remember that Jesus Christ of the seed of David was raised from the dead according to my gospel:"
+        },
+        {
+          "citation": "2 Timothy 2:9",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 29892,
+          "text": "Wherein I suffer trouble, as an evil doer, even unto bonds; but the word of God is not bound."
+        },
+        {
+          "citation": "2 Timothy 2:10",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 29893,
+          "text": "Therefore I endure all things for the elect’s sakes, that they may also obtain the salvation which is in Christ Jesus with eternal glory."
+        },
+        {
+          "citation": "2 Timothy 2:11",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 29894,
+          "text": "It is a faithful saying: For if we be dead with him, we shall also live with him:"
+        },
+        {
+          "citation": "2 Timothy 2:12",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 29895,
+          "text": "If we suffer, we shall also reign with him: if we deny him, he also will deny us:"
+        },
+        {
+          "citation": "2 Timothy 2:13",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 29896,
+          "text": "If we believe not, yet he abideth faithful: he cannot deny himself."
+        },
+        {
+          "citation": "2 Timothy 2:14",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 29897,
+          "text": "Of these things put them in remembrance, charging them before the Lord that they strive not about words to no profit, but to the subverting of the hearers."
+        },
+        {
+          "citation": "2 Timothy 2:15",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 29898,
+          "text": "Study to shew thyself approved unto God, a workman that needeth not to be ashamed, rightly dividing the word of truth."
+        },
+        {
+          "citation": "2 Timothy 2:16",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 29899,
+          "text": "But shun profane and vain babblings: for they will increase unto more ungodliness."
+        },
+        {
+          "citation": "2 Timothy 2:17",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 29900,
+          "text": "And their word will eat as doth a canker: of whom is Hymenaeus and Philetus;"
+        },
+        {
+          "citation": "2 Timothy 2:18",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 18,
+          "ordinal": 29901,
+          "text": "Who concerning the truth have erred, saying that the resurrection is past already; and overthrow the faith of some."
+        },
+        {
+          "citation": "2 Timothy 2:19",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 19,
+          "ordinal": 29902,
+          "text": "Nevertheless the foundation of God standeth sure, having this seal, The Lord knoweth them that are his. And, Let every one that nameth the name of Christ depart from iniquity."
+        },
+        {
+          "citation": "2 Timothy 2:20",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 20,
+          "ordinal": 29903,
+          "text": "But in a great house there are not only vessels of gold and of silver, but also of wood and of earth; and some to honour, and some to dishonour."
+        },
+        {
+          "citation": "2 Timothy 2:21",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 21,
+          "ordinal": 29904,
+          "text": "If a man therefore purge himself from these, he shall be a vessel unto honour, sanctified, and meet for the master’s use, and prepared unto every good work."
+        },
+        {
+          "citation": "2 Timothy 2:22",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 22,
+          "ordinal": 29905,
+          "text": "Flee also youthful lusts: but follow righteousness, faith, charity, peace, with them that call on the Lord out of a pure heart."
+        },
+        {
+          "citation": "2 Timothy 2:23",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 23,
+          "ordinal": 29906,
+          "text": "But foolish and unlearned questions avoid, knowing that they do gender strifes."
+        },
+        {
+          "citation": "2 Timothy 2:24",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 24,
+          "ordinal": 29907,
+          "text": "And the servant of the Lord must not strive; but be gentle unto all men, apt to teach, patient,"
+        },
+        {
+          "citation": "2 Timothy 2:25",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 25,
+          "ordinal": 29908,
+          "text": "In meekness instructing those that oppose themselves; if God peradventure will give them repentance to the acknowledging of the truth;"
+        },
+        {
+          "citation": "2 Timothy 2:26",
+          "bookKey": "2TI",
+          "chapter": 2,
+          "verse": 26,
+          "ordinal": 29909,
+          "text": "And that they may recover themselves out of the snare of the devil, who are taken captive by him at his will."
+        },
+        {
+          "citation": "2 Timothy 3:1",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 29910,
+          "text": "This know also, that in the last days perilous times shall come."
+        },
+        {
+          "citation": "2 Timothy 3:2",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 29911,
+          "text": "For men shall be lovers of their own selves, covetous, boasters, proud, blasphemers, disobedient to parents, unthankful, unholy,"
+        },
+        {
+          "citation": "2 Timothy 3:3",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 29912,
+          "text": "Without natural affection, trucebreakers, false accusers, incontinent, fierce, despisers of those that are good,"
+        },
+        {
+          "citation": "2 Timothy 3:4",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 29913,
+          "text": "Traitors, heady, highminded, lovers of pleasures more than lovers of God;"
+        },
+        {
+          "citation": "2 Timothy 3:5",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 29914,
+          "text": "Having a form of godliness, but denying the power thereof: from such turn away."
+        },
+        {
+          "citation": "2 Timothy 3:6",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 29915,
+          "text": "For of this sort are they which creep into houses, and lead captive silly women laden with sins, led away with divers lusts,"
+        },
+        {
+          "citation": "2 Timothy 3:7",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 29916,
+          "text": "Ever learning, and never able to come to the knowledge of the truth."
+        },
+        {
+          "citation": "2 Timothy 3:8",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 29917,
+          "text": "Now as Jannes and Jambres withstood Moses, so do these also resist the truth: men of corrupt minds, reprobate concerning the faith."
+        },
+        {
+          "citation": "2 Timothy 3:9",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 29918,
+          "text": "But they shall proceed no further: for their folly shall be manifest unto all men, as theirs also was."
+        },
+        {
+          "citation": "2 Timothy 3:10",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 29919,
+          "text": "But thou hast fully known my doctrine, manner of life, purpose, faith, longsuffering, charity, patience,"
+        },
+        {
+          "citation": "2 Timothy 3:11",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 29920,
+          "text": "Persecutions, afflictions, which came unto me at Antioch, at Iconium, at Lystra; what persecutions I endured: but out of them all the Lord delivered me."
+        },
+        {
+          "citation": "2 Timothy 3:12",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 29921,
+          "text": "Yea, and all that will live godly in Christ Jesus shall suffer persecution."
+        },
+        {
+          "citation": "2 Timothy 3:13",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 29922,
+          "text": "But evil men and seducers shall wax worse and worse, deceiving, and being deceived."
+        },
+        {
+          "citation": "2 Timothy 3:14",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 29923,
+          "text": "But continue thou in the things which thou hast learned and hast been assured of, knowing of whom thou hast learned them;"
+        },
+        {
+          "citation": "2 Timothy 3:15",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 29924,
+          "text": "And that from a child thou hast known the holy scriptures, which are able to make thee wise unto salvation through faith which is in Christ Jesus."
+        },
+        {
+          "citation": "2 Timothy 3:16",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 29925,
+          "text": "All scripture is given by inspiration of God, and is profitable for doctrine, for reproof, for correction, for instruction in righteousness:"
+        },
+        {
+          "citation": "2 Timothy 3:17",
+          "bookKey": "2TI",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 29926,
+          "text": "That the man of God may be perfect, throughly furnished unto all good works."
+        },
+        {
+          "citation": "2 Timothy 4:1",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 29927,
+          "text": "I charge thee therefore before God, and the Lord Jesus Christ, who shall judge the quick and the dead at his appearing and his kingdom;"
+        },
+        {
+          "citation": "2 Timothy 4:2",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 29928,
+          "text": "Preach the word; be instant in season, out of season; reprove, rebuke, exhort with all longsuffering and doctrine."
+        },
+        {
+          "citation": "2 Timothy 4:3",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 29929,
+          "text": "For the time will come when they will not endure sound doctrine; but after their own lusts shall they heap to themselves teachers, having itching ears;"
+        },
+        {
+          "citation": "2 Timothy 4:4",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 29930,
+          "text": "And they shall turn away their ears from the truth, and shall be turned unto fables."
+        },
+        {
+          "citation": "2 Timothy 4:5",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 29931,
+          "text": "But watch thou in all things, endure afflictions, do the work of an evangelist, make full proof of thy ministry."
+        },
+        {
+          "citation": "2 Timothy 4:6",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 29932,
+          "text": "For I am now ready to be offered, and the time of my departure is at hand."
+        },
+        {
+          "citation": "2 Timothy 4:7",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 29933,
+          "text": "I have fought a good fight, I have finished my course, I have kept the faith:"
+        },
+        {
+          "citation": "2 Timothy 4:8",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 29934,
+          "text": "Henceforth there is laid up for me a crown of righteousness, which the Lord, the righteous judge, shall give me at that day: and not to me only, but unto all them also that love his appearing."
+        },
+        {
+          "citation": "2 Timothy 4:9",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 29935,
+          "text": "Do thy diligence to come shortly unto me:"
+        },
+        {
+          "citation": "2 Timothy 4:10",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 29936,
+          "text": "For Demas hath forsaken me, having loved this present world, and is departed unto Thessalonica; Crescens to Galatia, Titus unto Dalmatia."
+        },
+        {
+          "citation": "2 Timothy 4:11",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 29937,
+          "text": "Only Luke is with me. Take Mark, and bring him with thee: for he is profitable to me for the ministry."
+        },
+        {
+          "citation": "2 Timothy 4:12",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 29938,
+          "text": "And Tychicus have I sent to Ephesus."
+        },
+        {
+          "citation": "2 Timothy 4:13",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 29939,
+          "text": "The cloke that I left at Troas with Carpus, when thou comest, bring with thee, and the books, but especially the parchments."
+        },
+        {
+          "citation": "2 Timothy 4:14",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 29940,
+          "text": "Alexander the coppersmith did me much evil: the Lord reward him according to his works:"
+        },
+        {
+          "citation": "2 Timothy 4:15",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 29941,
+          "text": "Of whom be thou ware also; for he hath greatly withstood our words."
+        },
+        {
+          "citation": "2 Timothy 4:16",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 29942,
+          "text": "At my first answer no man stood with me, but all men forsook me: I pray God that it may not be laid to their charge."
+        },
+        {
+          "citation": "2 Timothy 4:17",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 17,
+          "ordinal": 29943,
+          "text": "Notwithstanding the Lord stood with me, and strengthened me; that by me the preaching might be fully known, and that all the Gentiles might hear: and I was delivered out of the mouth of the lion."
+        },
+        {
+          "citation": "2 Timothy 4:18",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 18,
+          "ordinal": 29944,
+          "text": "And the Lord shall deliver me from every evil work, and will preserve me unto his heavenly kingdom: to whom be glory for ever and ever. Amen."
+        },
+        {
+          "citation": "2 Timothy 4:19",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 19,
+          "ordinal": 29945,
+          "text": "Salute Prisca and Aquila, and the household of Onesiphorus."
+        },
+        {
+          "citation": "2 Timothy 4:20",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 20,
+          "ordinal": 29946,
+          "text": "Erastus abode at Corinth: but Trophimus have I left at Miletum sick."
+        },
+        {
+          "citation": "2 Timothy 4:21",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 21,
+          "ordinal": 29947,
+          "text": "Do thy diligence to come before winter. Eubulus greeteth thee, and Pudens, and Linus, and Claudia, and all the brethren."
+        },
+        {
+          "citation": "2 Timothy 4:22",
+          "bookKey": "2TI",
+          "chapter": 4,
+          "verse": 22,
+          "ordinal": 29948,
+          "text": "The Lord Jesus Christ be with thy spirit. Grace be with you. Amen."
+        }
+      ]
+    }
+  ]
+}

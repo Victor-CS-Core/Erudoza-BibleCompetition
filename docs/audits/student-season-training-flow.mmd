@@ -1,0 +1,22 @@
+flowchart TD
+    A["Coach creates season"] --> B["Select competition rules and passage scope"]
+    B --> C["Assign student and passage ranges"]
+    C --> D["NEW: Set difficulty for this student in this season"]
+    D --> E["Preview activities and activate season"]
+    E --> F["Student opens assigned season"]
+    F --> G{"Choose study mode"}
+    G --> P["Practice"]
+    G --> R["Review due passages"]
+    G --> S["Competition simulation"]
+    P --> H["Snapshot difficulty and enforce mode rules"]
+    R --> H
+    S --> H
+    H --> I["Select allowed passage and generate varied activity"]
+    I --> J["Student answers"]
+    J --> K["Save one scored attempt and show feedback"]
+    K --> L{"More cards?"}
+    L -->|Yes| I
+    L -->|No| M["Complete session and update progress"]
+    M --> N["Coach reviews results"]
+    N --> O["Adjust student difficulty for future sessions"]
+    O -.-> H

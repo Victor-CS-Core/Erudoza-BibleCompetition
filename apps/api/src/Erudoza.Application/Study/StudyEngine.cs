@@ -33,6 +33,12 @@ public sealed class StudyEngine(
             throw new DomainException("The study session is already complete.");
         }
 
+        var scope = await studyScope.GetAsync(context.StudentId, context.SeasonId, cancellationToken);
+        if (scope.EligibleSourceUnitIds.Count == 0)
+        {
+            throw new DomainException("The student has no assigned study scope.");
+        }
+
         var answeredCardIds = await db.Attempts
             .AsNoTracking()
             .Where(attempt => attempt.SessionId == session.Id)
@@ -44,6 +50,9 @@ public sealed class StudyEngine(
 
         if (unanswered is not null)
         {
+            if (!scope.EligibleSourceUnitIds.Contains(unanswered.SourceUnitId)
+                || (unanswered.AnswerSourceUnitId is { } answerSourceId && !scope.EligibleSourceUnitIds.Contains(answerSourceId)))
+                throw new DomainException("This card is no longer within the student assignment. Start a new session.");
             return unanswered;
         }
 
@@ -52,13 +61,11 @@ public sealed class StudyEngine(
             throw new DomainException("The session target has been reached.");
         }
 
-        var scope = await studyScope.GetAsync(context.StudentId, context.SeasonId, cancellationToken);
-        if (scope.EligibleSourceUnitIds.Count == 0)
-        {
-            throw new DomainException("The student has no assigned study scope.");
-        }
-
-        var usedKnowledge = session.Cards.Select(card => card.KnowledgeUnitId).ToHashSet();
+        var exposure = await db.ChallengeCards.AsNoTracking()
+            .Where(card => card.OrganizationId == context.OrganizationId
+                && card.StudentUserId == context.StudentId && card.SeasonId == context.SeasonId)
+            .Select(card => new { card.SourceUnitId, card.CreatedAtUtc })
+            .ToListAsync(cancellationToken);
         var now = DateTimeOffset.UtcNow;
         var due = (await db.ReviewSchedules
             .AsNoTracking()
@@ -72,11 +79,15 @@ public sealed class StudyEngine(
 
         var knowledgeUnits = await db.KnowledgeUnits
             .Include(item => item.SourceUnit)
-            .Where(item => item.OrganizationId == context.OrganizationId
+            .Where(item => (item.OrganizationId == context.OrganizationId && item.ContentPack!.OrganizationId == context.OrganizationId || item.OrganizationId == BuiltInLibrary.OrganizationId && item.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && item.ContentPack.IsBuiltIn)
                 && scope.EligibleSourceUnitIds.Contains(item.SourceUnitId)
-                && item.Kind == KnowledgeUnitKind.ExactVerseText)
+                && item.Kind == KnowledgeUnitKind.ExactVerseText
+                && item.SourceUnit != null && item.SourceUnit.IsActive && !item.SourceUnit.IsRetired
+                && item.SourceUnit.OrganizationId == item.OrganizationId)
             .ToListAsync(cancellationToken);
 
+        knowledgeUnits = knowledgeUnits.OrderBy(item => item.SourceUnit!.Ordinal).ThenBy(item => item.Id).ToList();
+        var allEligibleKnowledgeUnits = knowledgeUnits.ToList();
         if (session.Mode == StudyMode.Review)
         {
             knowledgeUnits = knowledgeUnits.Where(item => due.Contains(item.Id)).ToList();
@@ -86,13 +97,17 @@ public sealed class StudyEngine(
             }
         }
 
+        // Exhaust each session cycle first, then balance persisted exposure across sessions.
         var selected = knowledgeUnits
-            .OrderBy(item => usedKnowledge.Contains(item.Id))
+            .OrderBy(item => session.Cards.Count(card => card.SourceUnitId == item.SourceUnitId))
+            .ThenBy(item => exposure.Count(card => card.SourceUnitId == item.SourceUnitId))
             .ThenBy(item => due.Contains(item.Id) ? 0 : 1)
             .ThenBy(item => scope.PrimarySpecialistSourceUnitIds.Contains(item.SourceUnitId) ? 0 : 1)
+            .ThenBy(item => exposure.Where(card => card.SourceUnitId == item.SourceUnitId)
+                .Select(card => card.CreatedAtUtc).DefaultIfEmpty(DateTimeOffset.MinValue).Max())
             .ThenBy(item => item.SourceUnit!.Ordinal)
-            .FirstOrDefault(item => !usedKnowledge.Contains(item.Id))
-            ?? knowledgeUnits.FirstOrDefault()
+            .ThenBy(item => item.Id)
+            .FirstOrDefault()
             ?? throw new DomainException("No eligible knowledge units remain.");
 
         if (selected.SourceUnit is null || !scope.EligibleSourceUnitIds.Contains(selected.SourceUnitId))
@@ -101,45 +116,37 @@ public sealed class StudyEngine(
         }
 
         context = context with { Mode = session.Mode };
-        var snapshot = RuleProfileReader.Read(season.RuleProfile!);
-        var nextUnit = knowledgeUnits
+        var snapshot = RuleProfileReader.ReadSession(session, season.RuleProfile!);
+        var nextUnit = allEligibleKnowledgeUnits
             .Select(item => item.SourceUnit)
             .Where(unit => unit is not null && unit.ContentPackId == selected.SourceUnit.ContentPackId && unit.Ordinal == selected.SourceUnit.Ordinal + 1)
             .Cast<SourceUnit>()
             .FirstOrDefault();
-        var alternate = knowledgeUnits
+        var alternate = allEligibleKnowledgeUnits
             .Select(item => item.SourceUnit)
             .Where(unit => unit is not null && unit.Id != selected.SourceUnit.Id)
             .Cast<SourceUnit>()
             .FirstOrDefault();
-        var distractors = knowledgeUnits
+        var distractors = allEligibleKnowledgeUnits
             .Select(item => item.SourceUnit!.CitationLabel)
             .Where(citation => citation != selected.SourceUnit.CitationLabel)
             .Distinct()
             .Take(6)
             .ToList();
-        var usedTypes = session.Cards.Select(card => card.ActivityType).ToList();
-        var playable = (await db.PlayableQuestions
-            .Include(item => item.QuestionCandidate)
-            .ThenInclude(item => item!.Evidence)
-            .Where(item => item.OrganizationId == context.OrganizationId && item.Status == QuestionLifecycleStatus.Playable)
-            .ToListAsync(cancellationToken))
-            .Where(item => item.QuestionCandidate?.Evidence.Any(evidence => evidence.SourceUnitId == selected.SourceUnitId) == true)
-            .OrderBy(item => item.CreatedAtUtc)
-            .FirstOrDefault();
+        var usedTypes = session.Cards.OrderBy(card => card.Sequence).Select(card => card.ActivityType).ToList();
         var request = new ActivityRequest(
             context,
             selected,
             selected.SourceUnit,
             snapshot,
-            Difficulty: session.Cards.Count >= session.TargetCardCount - 1 ? 3 : 1,
+            Difficulty: (int)session.Difficulty,
             Sequence: session.Cards.Count + 1,
             nextUnit,
             alternate,
             distractors,
             usedTypes,
             session.TargetCardCount,
-            playable);
+            NextKnowledgeUnitId: allEligibleKnowledgeUnits.FirstOrDefault(item => item.SourceUnitId == nextUnit?.Id)?.Id);
 
         var eligible = providers.Where(item => item.CanHandle(request)).ToList();
         var provider = ChooseProvider(eligible, usedTypes, request.Sequence)

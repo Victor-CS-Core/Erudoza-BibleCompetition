@@ -1,0 +1,3510 @@
+{
+  "packKey": "builtin-nkjv-1co",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "1 Corinthians",
+      "units": [
+        {
+          "citation": "1 Corinthians 1:1",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 28365,
+          "text": "Paul, called to be an apostle of Jesus Christ through the will of God, and Sosthenes our brother,"
+        },
+        {
+          "citation": "1 Corinthians 1:2",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 28366,
+          "text": "To the church of God which is at Corinth, to those who are sanctified in Christ Jesus, called to be saints, with all who in every place call on the name of Jesus Christ our Lord, both theirs and ours:"
+        },
+        {
+          "citation": "1 Corinthians 1:3",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 28367,
+          "text": "Grace to you and peace from God our Father and the Lord Jesus Christ."
+        },
+        {
+          "citation": "1 Corinthians 1:4",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 28368,
+          "text": "I thank my God always concerning you for the grace of God which was given to you by Christ Jesus,"
+        },
+        {
+          "citation": "1 Corinthians 1:5",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 28369,
+          "text": "that you were enriched in everything by Him in all utterance and all knowledge,"
+        },
+        {
+          "citation": "1 Corinthians 1:6",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 28370,
+          "text": "even as the testimony of Christ was confirmed in you,"
+        },
+        {
+          "citation": "1 Corinthians 1:7",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 28371,
+          "text": "so that you come short in no gift, eagerly waiting for the revelation of our Lord Jesus Christ,"
+        },
+        {
+          "citation": "1 Corinthians 1:8",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 28372,
+          "text": "who will also confirm you to the end, that you may be blameless in the day of our Lord Jesus Christ."
+        },
+        {
+          "citation": "1 Corinthians 1:9",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 28373,
+          "text": "God is faithful, by whom you were called into the fellowship of His Son, Jesus Christ our Lord."
+        },
+        {
+          "citation": "1 Corinthians 1:10",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 28374,
+          "text": "Now I plead with you, brethren, by the name of our Lord Jesus Christ, that you all speak the same thing, and that there be no divisions among you, but that you be perfectly joined together in the same mind and in the same judgment."
+        },
+        {
+          "citation": "1 Corinthians 1:11",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 28375,
+          "text": "For it has been declared to me concerning you, my brethren, by those of Chloe's household, that there are contentions among you."
+        },
+        {
+          "citation": "1 Corinthians 1:12",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 28376,
+          "text": "Now I say this, that each of you says, \"I am of Paul,\" or \"I am of Apollos,\" or \"I am of Cephas,\" or \"I am of Christ.\""
+        },
+        {
+          "citation": "1 Corinthians 1:13",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 28377,
+          "text": "Is Christ divided? Was Paul crucified for you? Or were you baptized in the name of Paul?"
+        },
+        {
+          "citation": "1 Corinthians 1:14",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 28378,
+          "text": "I thank God that I baptized none of you except Crispus and Gaius,"
+        },
+        {
+          "citation": "1 Corinthians 1:15",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 28379,
+          "text": "lest anyone should say that I had baptized in my own name."
+        },
+        {
+          "citation": "1 Corinthians 1:16",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 28380,
+          "text": "Yes, I also baptized the household of Stephanas. Besides, I do not know whether I baptized any other."
+        },
+        {
+          "citation": "1 Corinthians 1:17",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 28381,
+          "text": "For Christ did not send me to baptize, but to preach the gospel, not with wisdom of words, lest the cross of Christ should be made of no effect."
+        },
+        {
+          "citation": "1 Corinthians 1:18",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 28382,
+          "text": "For the message of the cross is foolishness to those who are perishing, but to us who are being saved it is the power of God."
+        },
+        {
+          "citation": "1 Corinthians 1:19",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 28383,
+          "text": "For it is written: \"I will destroy the wisdom of the wise, And bring to nothing the understanding of the prudent.\""
+        },
+        {
+          "citation": "1 Corinthians 1:20",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 28384,
+          "text": "Where is the wise? Where is the scribe? Where is the disputer of this age? Has not God made foolish the wisdom of this world?"
+        },
+        {
+          "citation": "1 Corinthians 1:21",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 21,
+          "ordinal": 28385,
+          "text": "For since, in the wisdom of God, the world through wisdom did not know God, it pleased God through the foolishness of the message preached to save those who believe."
+        },
+        {
+          "citation": "1 Corinthians 1:22",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 22,
+          "ordinal": 28386,
+          "text": "For Jews request a sign, and Greeks seek after wisdom;"
+        },
+        {
+          "citation": "1 Corinthians 1:23",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 23,
+          "ordinal": 28387,
+          "text": "but we preach Christ crucified, to the Jews a stumbling block and to the Greeks foolishness,"
+        },
+        {
+          "citation": "1 Corinthians 1:24",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 24,
+          "ordinal": 28388,
+          "text": "but to those who are called, both Jews and Greeks, Christ the power of God and the wisdom of God."
+        },
+        {
+          "citation": "1 Corinthians 1:25",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 25,
+          "ordinal": 28389,
+          "text": "Because the foolishness of God is wiser than men, and the weakness of God is stronger than men."
+        },
+        {
+          "citation": "1 Corinthians 1:26",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 26,
+          "ordinal": 28390,
+          "text": "For you see your calling, brethren, that not many wise according to the flesh, not many mighty, not many noble, are called."
+        },
+        {
+          "citation": "1 Corinthians 1:27",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 27,
+          "ordinal": 28391,
+          "text": "But God has chosen the foolish things of the world to put to shame the wise, and God has chosen the weak things of the world to put to shame the things which are mighty;"
+        },
+        {
+          "citation": "1 Corinthians 1:28",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 28,
+          "ordinal": 28392,
+          "text": "and the base things of the world and the things which are despised God has chosen, and the things which are not, to bring to nothing the things that are,"
+        },
+        {
+          "citation": "1 Corinthians 1:29",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 29,
+          "ordinal": 28393,
+          "text": "that no flesh should glory in His presence."
+        },
+        {
+          "citation": "1 Corinthians 1:30",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 30,
+          "ordinal": 28394,
+          "text": "But of Him you are in Christ Jesus, who became for us wisdom from God--and righteousness and sanctification and redemption--"
+        },
+        {
+          "citation": "1 Corinthians 1:31",
+          "bookKey": "1CO",
+          "chapter": 1,
+          "verse": 31,
+          "ordinal": 28395,
+          "text": "that, as it is written, \"He who glories, let him glory in the LORD.\""
+        },
+        {
+          "citation": "1 Corinthians 2:1",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 28396,
+          "text": "And I, brethren, when I came to you, did not come with excellence of speech or of wisdom declaring to you the testimony of God."
+        },
+        {
+          "citation": "1 Corinthians 2:2",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 28397,
+          "text": "For I determined not to know anything among you except Jesus Christ and Him crucified."
+        },
+        {
+          "citation": "1 Corinthians 2:3",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 28398,
+          "text": "I was with you in weakness, in fear, and in much trembling."
+        },
+        {
+          "citation": "1 Corinthians 2:4",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 28399,
+          "text": "And my speech and my preaching were not with persuasive words of human wisdom, but in demonstration of the Spirit and of power,"
+        },
+        {
+          "citation": "1 Corinthians 2:5",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 28400,
+          "text": "that your faith should not be in the wisdom of men but in the power of God."
+        },
+        {
+          "citation": "1 Corinthians 2:6",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 28401,
+          "text": "However, we speak wisdom among those who are mature, yet not the wisdom of this age, nor of the rulers of this age, who are coming to nothing."
+        },
+        {
+          "citation": "1 Corinthians 2:7",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 28402,
+          "text": "But we speak the wisdom of God in a mystery, the hidden wisdom which God ordained before the ages for our glory,"
+        },
+        {
+          "citation": "1 Corinthians 2:8",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 28403,
+          "text": "which none of the rulers of this age knew; for had they known, they would not have crucified the Lord of glory."
+        },
+        {
+          "citation": "1 Corinthians 2:9",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 28404,
+          "text": "But as it is written: \"Eye has not seen, nor ear heard, Nor have entered into the heart of man The things which God has prepared for those who love Him.\""
+        },
+        {
+          "citation": "1 Corinthians 2:10",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 28405,
+          "text": "But God has revealed them to us through His Spirit. For the Spirit searches all things, yes, the deep things of God."
+        },
+        {
+          "citation": "1 Corinthians 2:11",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 28406,
+          "text": "For what man knows the things of a man except the spirit of the man which is in him? Even so no one knows the things of God except the Spirit of God."
+        },
+        {
+          "citation": "1 Corinthians 2:12",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 28407,
+          "text": "Now we have received, not the spirit of the world, but the Spirit who is from God, that we might know the things that have been freely given to us by God."
+        },
+        {
+          "citation": "1 Corinthians 2:13",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 28408,
+          "text": "These things we also speak, not in words which man's wisdom teaches but which the Holy Spirit teaches, comparing spiritual things with spiritual."
+        },
+        {
+          "citation": "1 Corinthians 2:14",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 28409,
+          "text": "But the natural man does not receive the things of the Spirit of God, for they are foolishness to him; nor can he know them, because they are spiritually discerned."
+        },
+        {
+          "citation": "1 Corinthians 2:15",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 28410,
+          "text": "But he who is spiritual judges all things, yet he himself is rightly judged by no one."
+        },
+        {
+          "citation": "1 Corinthians 2:16",
+          "bookKey": "1CO",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 28411,
+          "text": "For \"who has known the mind of the LORD that he may instruct Him?\" But we have the mind of Christ."
+        },
+        {
+          "citation": "1 Corinthians 3:1",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 28412,
+          "text": "And I, brethren, could not speak to you as to spiritual people but as to carnal, as to babes in Christ."
+        },
+        {
+          "citation": "1 Corinthians 3:2",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 28413,
+          "text": "I fed you with milk and not with solid food; for until now you were not able to receive it, and even now you are still not able;"
+        },
+        {
+          "citation": "1 Corinthians 3:3",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 28414,
+          "text": "for you are still carnal. For where there are envy, strife, and divisions among you, are you not carnal and behaving like mere men?"
+        },
+        {
+          "citation": "1 Corinthians 3:4",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 28415,
+          "text": "For when one says, \"I am of Paul,\" and another, \"I am of Apollos,\" are you not carnal?"
+        },
+        {
+          "citation": "1 Corinthians 3:5",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 28416,
+          "text": "Who then is Paul, and who is Apollos, but ministers through whom you believed, as the Lord gave to each one?"
+        },
+        {
+          "citation": "1 Corinthians 3:6",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 28417,
+          "text": "I planted, Apollos watered, but God gave the increase."
+        },
+        {
+          "citation": "1 Corinthians 3:7",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 28418,
+          "text": "So then neither he who plants is anything, nor he who waters, but God who gives the increase."
+        },
+        {
+          "citation": "1 Corinthians 3:8",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 28419,
+          "text": "Now he who plants and he who waters are one, and each one will receive his own reward according to his own labor."
+        },
+        {
+          "citation": "1 Corinthians 3:9",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 28420,
+          "text": "For we are God's fellow workers; you are God's field, you are God's building."
+        },
+        {
+          "citation": "1 Corinthians 3:10",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 28421,
+          "text": "According to the grace of God which was given to me, as a wise master builder I have laid the foundation, and another builds on it. But let each one take heed how he builds on it."
+        },
+        {
+          "citation": "1 Corinthians 3:11",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 28422,
+          "text": "For no other foundation can anyone lay than that which is laid, which is Jesus Christ."
+        },
+        {
+          "citation": "1 Corinthians 3:12",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 28423,
+          "text": "Now if anyone builds on this foundation with gold, silver, precious stones, wood, hay, straw,"
+        },
+        {
+          "citation": "1 Corinthians 3:13",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 28424,
+          "text": "each one's work will become clear; for the Day will declare it, because it will be revealed by fire; and the fire will test each one's work, of what sort it is."
+        },
+        {
+          "citation": "1 Corinthians 3:14",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 28425,
+          "text": "If anyone's work which he has built on it endures, he will receive a reward."
+        },
+        {
+          "citation": "1 Corinthians 3:15",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 28426,
+          "text": "If anyone's work is burned, he will suffer loss; but he himself will be saved, yet so as through fire."
+        },
+        {
+          "citation": "1 Corinthians 3:16",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 28427,
+          "text": "Do you not know that you are the temple of God and that the Spirit of God dwells in you?"
+        },
+        {
+          "citation": "1 Corinthians 3:17",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 28428,
+          "text": "If anyone defiles the temple of God, God will destroy him. For the temple of God is holy, which temple you are."
+        },
+        {
+          "citation": "1 Corinthians 3:18",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 28429,
+          "text": "Let no one deceive himself. If anyone among you seems to be wise in this age, let him become a fool that he may become wise."
+        },
+        {
+          "citation": "1 Corinthians 3:19",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 19,
+          "ordinal": 28430,
+          "text": "For the wisdom of this world is foolishness with God. For it is written, \"He catches the wise in their own craftiness\";"
+        },
+        {
+          "citation": "1 Corinthians 3:20",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 20,
+          "ordinal": 28431,
+          "text": "and again, \"The LORD knows the thoughts of the wise, that they are futile.\""
+        },
+        {
+          "citation": "1 Corinthians 3:21",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 21,
+          "ordinal": 28432,
+          "text": "Therefore let no one boast in men. For all things are yours:"
+        },
+        {
+          "citation": "1 Corinthians 3:22",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 22,
+          "ordinal": 28433,
+          "text": "whether Paul or Apollos or Cephas, or the world or life or death, or things present or things to come--all are yours."
+        },
+        {
+          "citation": "1 Corinthians 3:23",
+          "bookKey": "1CO",
+          "chapter": 3,
+          "verse": 23,
+          "ordinal": 28434,
+          "text": "And you are Christ's, and Christ is God's."
+        },
+        {
+          "citation": "1 Corinthians 4:1",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 28435,
+          "text": "Let a man so consider us, as servants of Christ and stewards of the mysteries of God."
+        },
+        {
+          "citation": "1 Corinthians 4:2",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 28436,
+          "text": "Moreover it is required in stewards that one be found faithful."
+        },
+        {
+          "citation": "1 Corinthians 4:3",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 28437,
+          "text": "But with me it is a very small thing that I should be judged by you or by a human court. In fact, I do not even judge myself."
+        },
+        {
+          "citation": "1 Corinthians 4:4",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 28438,
+          "text": "For I know of nothing against myself, yet I am not justified by this; but He who judges me is the Lord."
+        },
+        {
+          "citation": "1 Corinthians 4:5",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 28439,
+          "text": "Therefore judge nothing before the time, until the Lord comes, who will both bring to light the hidden things of darkness and reveal the counsels of the hearts. Then each one's praise will come from God."
+        },
+        {
+          "citation": "1 Corinthians 4:6",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 28440,
+          "text": "Now these things, brethren, I have figuratively transferred to myself and Apollos for your sakes, that you may learn in us not to think beyond what is written, that none of you may be puffed up on behalf of one against the other."
+        },
+        {
+          "citation": "1 Corinthians 4:7",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 28441,
+          "text": "For who makes you differ from another? And what do you have that you did not receive? Now if you did indeed receive it, why do you boast as if you had not received it?"
+        },
+        {
+          "citation": "1 Corinthians 4:8",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 28442,
+          "text": "You are already full! You are already rich! You have reigned as kings without us--and indeed I could wish you did reign, that we also might reign with you!"
+        },
+        {
+          "citation": "1 Corinthians 4:9",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 28443,
+          "text": "For I think that God has displayed us, the apostles, last, as men condemned to death; for we have been made a spectacle to the world, both to angels and to men."
+        },
+        {
+          "citation": "1 Corinthians 4:10",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 28444,
+          "text": "We are fools for Christ's sake, but you are wise in Christ! We are weak, but you are strong! You are distinguished, but we are dishonored!"
+        },
+        {
+          "citation": "1 Corinthians 4:11",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 28445,
+          "text": "To the present hour we both hunger and thirst, and we are poorly clothed, and beaten, and homeless."
+        },
+        {
+          "citation": "1 Corinthians 4:12",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 28446,
+          "text": "And we labor, working with our own hands. Being reviled, we bless; being persecuted, we endure;"
+        },
+        {
+          "citation": "1 Corinthians 4:13",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 28447,
+          "text": "being defamed, we entreat. We have been made as the filth of the world, the offscouring of all things until now."
+        },
+        {
+          "citation": "1 Corinthians 4:14",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 28448,
+          "text": "I do not write these things to shame you, but as my beloved children I warn you."
+        },
+        {
+          "citation": "1 Corinthians 4:15",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 28449,
+          "text": "For though you might have ten thousand instructors in Christ, yet you do not have many fathers; for in Christ Jesus I have begotten you through the gospel."
+        },
+        {
+          "citation": "1 Corinthians 4:16",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 28450,
+          "text": "Therefore I urge you, imitate me."
+        },
+        {
+          "citation": "1 Corinthians 4:17",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 17,
+          "ordinal": 28451,
+          "text": "For this reason I have sent Timothy to you, who is my beloved and faithful son in the Lord, who will remind you of my ways in Christ, as I teach everywhere in every church."
+        },
+        {
+          "citation": "1 Corinthians 4:18",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 18,
+          "ordinal": 28452,
+          "text": "Now some are puffed up, as though I were not coming to you."
+        },
+        {
+          "citation": "1 Corinthians 4:19",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 19,
+          "ordinal": 28453,
+          "text": "But I will come to you shortly, if the Lord wills, and I will know, not the word of those who are puffed up, but the power."
+        },
+        {
+          "citation": "1 Corinthians 4:20",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 20,
+          "ordinal": 28454,
+          "text": "For the kingdom of God is not in word but in power."
+        },
+        {
+          "citation": "1 Corinthians 4:21",
+          "bookKey": "1CO",
+          "chapter": 4,
+          "verse": 21,
+          "ordinal": 28455,
+          "text": "What do you want? Shall I come to you with a rod, or in love and a spirit of gentleness?"
+        },
+        {
+          "citation": "1 Corinthians 5:1",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 28456,
+          "text": "It is actually reported that there is sexual immorality among you, and such sexual immorality as is not even named among the Gentiles--that a man has his father's wife!"
+        },
+        {
+          "citation": "1 Corinthians 5:2",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 28457,
+          "text": "And you are puffed up, and have not rather mourned, that he who has done this deed might be taken away from among you."
+        },
+        {
+          "citation": "1 Corinthians 5:3",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 28458,
+          "text": "For I indeed, as absent in body but present in spirit, have already judged (as though I were present) him who has so done this deed."
+        },
+        {
+          "citation": "1 Corinthians 5:4",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 28459,
+          "text": "In the name of our Lord Jesus Christ, when you are gathered together, along with my spirit, with the power of our Lord Jesus Christ,"
+        },
+        {
+          "citation": "1 Corinthians 5:5",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 28460,
+          "text": "deliver such a one to Satan for the destruction of the flesh, that his spirit may be saved in the day of the Lord Jesus."
+        },
+        {
+          "citation": "1 Corinthians 5:6",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 28461,
+          "text": "Your glorying is not good. Do you not know that a little leaven leavens the whole lump?"
+        },
+        {
+          "citation": "1 Corinthians 5:7",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 28462,
+          "text": "Therefore purge out the old leaven, that you may be a new lump, since you truly are unleavened. For indeed Christ, our Passover, was sacrificed for us."
+        },
+        {
+          "citation": "1 Corinthians 5:8",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 28463,
+          "text": "Therefore let us keep the feast, not with old leaven, nor with the leaven of malice and wickedness, but with the unleavened bread of sincerity and truth."
+        },
+        {
+          "citation": "1 Corinthians 5:9",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 28464,
+          "text": "I wrote to you in my epistle not to keep company with sexually immoral people."
+        },
+        {
+          "citation": "1 Corinthians 5:10",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 28465,
+          "text": "Yet I certainly did not mean with the sexually immoral people of this world, or with the covetous, or extortioners, or idolaters, since then you would need to go out of the world."
+        },
+        {
+          "citation": "1 Corinthians 5:11",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 28466,
+          "text": "But now I have written to you not to keep company with anyone named a brother, who is sexually immoral, or covetous, or an idolater, or a reviler, or a drunkard, or an extortioner--not even to eat with such a person."
+        },
+        {
+          "citation": "1 Corinthians 5:12",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 28467,
+          "text": "For what have I to do with judging those also who are outside? Do you not judge those who are inside?"
+        },
+        {
+          "citation": "1 Corinthians 5:13",
+          "bookKey": "1CO",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 28468,
+          "text": "But those who are outside God judges. Therefore \"put away from yourselves the evil person.\""
+        },
+        {
+          "citation": "1 Corinthians 6:1",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 28469,
+          "text": "Dare any of you, having a matter against another, go to law before the unrighteous, and not before the saints?"
+        },
+        {
+          "citation": "1 Corinthians 6:2",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 28470,
+          "text": "Do you not know that the saints will judge the world? And if the world will be judged by you, are you unworthy to judge the smallest matters?"
+        },
+        {
+          "citation": "1 Corinthians 6:3",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 28471,
+          "text": "Do you not know that we shall judge angels? How much more, things that pertain to this life?"
+        },
+        {
+          "citation": "1 Corinthians 6:4",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 28472,
+          "text": "If then you have judgments concerning things pertaining to this life, do you appoint those who are least esteemed by the church to judge?"
+        },
+        {
+          "citation": "1 Corinthians 6:5",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 28473,
+          "text": "I say this to your shame. Is it so, that there is not a wise man among you, not even one, who will be able to judge between his brethren?"
+        },
+        {
+          "citation": "1 Corinthians 6:6",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 28474,
+          "text": "But brother goes to law against brother, and that before unbelievers!"
+        },
+        {
+          "citation": "1 Corinthians 6:7",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 28475,
+          "text": "Now therefore, it is already an utter failure for you that you go to law against one another. Why do you not rather accept wrong? Why do you not rather let yourselves be cheated?"
+        },
+        {
+          "citation": "1 Corinthians 6:8",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 28476,
+          "text": "No, you yourselves do wrong and cheat, and you do these things to your brethren!"
+        },
+        {
+          "citation": "1 Corinthians 6:9",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 28477,
+          "text": "Do you not know that the unrighteous will not inherit the kingdom of God? Do not be deceived. Neither fornicators, nor idolaters, nor adulterers, nor homosexuals, nor sodomites,"
+        },
+        {
+          "citation": "1 Corinthians 6:10",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 28478,
+          "text": "nor thieves, nor covetous, nor drunkards, nor revilers, nor extortioners will inherit the kingdom of God."
+        },
+        {
+          "citation": "1 Corinthians 6:11",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 28479,
+          "text": "And such were some of you. But you were washed, but you were sanctified, but you were justified in the name of the Lord Jesus and by the Spirit of our God."
+        },
+        {
+          "citation": "1 Corinthians 6:12",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 28480,
+          "text": "All things are lawful for me, but all things are not helpful. All things are lawful for me, but I will not be brought under the power of any."
+        },
+        {
+          "citation": "1 Corinthians 6:13",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 13,
+          "ordinal": 28481,
+          "text": "Foods for the stomach and the stomach for foods, but God will destroy both it and them. Now the body is not for sexual immorality but for the Lord, and the Lord for the body."
+        },
+        {
+          "citation": "1 Corinthians 6:14",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 14,
+          "ordinal": 28482,
+          "text": "And God both raised up the Lord and will also raise us up by His power."
+        },
+        {
+          "citation": "1 Corinthians 6:15",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 15,
+          "ordinal": 28483,
+          "text": "Do you not know that your bodies are members of Christ? Shall I then take the members of Christ and make them members of a harlot? Certainly not!"
+        },
+        {
+          "citation": "1 Corinthians 6:16",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 16,
+          "ordinal": 28484,
+          "text": "Or do you not know that he who is joined to a harlot is one body with her? For \"the two,\" He says, \"shall become one flesh.\""
+        },
+        {
+          "citation": "1 Corinthians 6:17",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 17,
+          "ordinal": 28485,
+          "text": "But he who is joined to the Lord is one spirit with Him."
+        },
+        {
+          "citation": "1 Corinthians 6:18",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 18,
+          "ordinal": 28486,
+          "text": "Flee sexual immorality. Every sin that a man does is outside the body, but he who commits sexual immorality sins against his own body."
+        },
+        {
+          "citation": "1 Corinthians 6:19",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 19,
+          "ordinal": 28487,
+          "text": "Or do you not know that your body is the temple of the Holy Spirit who is in you, whom you have from God, and you are not your own?"
+        },
+        {
+          "citation": "1 Corinthians 6:20",
+          "bookKey": "1CO",
+          "chapter": 6,
+          "verse": 20,
+          "ordinal": 28488,
+          "text": "For you were bought at a price; therefore glorify God in your body and in your spirit, which are God's."
+        },
+        {
+          "citation": "1 Corinthians 7:1",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 1,
+          "ordinal": 28489,
+          "text": "Now concerning the things of which you wrote to me: It is good for a man not to touch a woman."
+        },
+        {
+          "citation": "1 Corinthians 7:2",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 2,
+          "ordinal": 28490,
+          "text": "Nevertheless, because of sexual immorality, let each man have his own wife, and let each woman have her own husband."
+        },
+        {
+          "citation": "1 Corinthians 7:3",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 3,
+          "ordinal": 28491,
+          "text": "Let the husband render to his wife the affection due her, and likewise also the wife to her husband."
+        },
+        {
+          "citation": "1 Corinthians 7:4",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 4,
+          "ordinal": 28492,
+          "text": "The wife does not have authority over her own body, but the husband does. And likewise the husband does not have authority over his own body, but the wife does."
+        },
+        {
+          "citation": "1 Corinthians 7:5",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 5,
+          "ordinal": 28493,
+          "text": "Do not deprive one another except with consent for a time, that you may give yourselves to fasting and prayer; and come together again so that Satan does not tempt you because of your lack of self-control."
+        },
+        {
+          "citation": "1 Corinthians 7:6",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 6,
+          "ordinal": 28494,
+          "text": "But I say this as a concession, not as a commandment."
+        },
+        {
+          "citation": "1 Corinthians 7:7",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 7,
+          "ordinal": 28495,
+          "text": "For I wish that all men were even as I myself. But each one has his own gift from God, one in this manner and another in that."
+        },
+        {
+          "citation": "1 Corinthians 7:8",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 8,
+          "ordinal": 28496,
+          "text": "But I say to the unmarried and to the widows: It is good for them if they remain even as I am;"
+        },
+        {
+          "citation": "1 Corinthians 7:9",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 9,
+          "ordinal": 28497,
+          "text": "but if they cannot exercise self-control, let them marry. For it is better to marry than to burn with passion."
+        },
+        {
+          "citation": "1 Corinthians 7:10",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 10,
+          "ordinal": 28498,
+          "text": "Now to the married I command, yet not I but the Lord: A wife is not to depart from her husband."
+        },
+        {
+          "citation": "1 Corinthians 7:11",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 11,
+          "ordinal": 28499,
+          "text": "But even if she does depart, let her remain unmarried or be reconciled to her husband. And a husband is not to divorce his wife."
+        },
+        {
+          "citation": "1 Corinthians 7:12",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 12,
+          "ordinal": 28500,
+          "text": "But to the rest I, not the Lord, say: If any brother has a wife who does not believe, and she is willing to live with him, let him not divorce her."
+        },
+        {
+          "citation": "1 Corinthians 7:13",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 13,
+          "ordinal": 28501,
+          "text": "And a woman who has a husband who does not believe, if he is willing to live with her, let her not divorce him."
+        },
+        {
+          "citation": "1 Corinthians 7:14",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 14,
+          "ordinal": 28502,
+          "text": "For the unbelieving husband is sanctified by the wife, and the unbelieving wife is sanctified by the husband; otherwise your children would be unclean, but now they are holy."
+        },
+        {
+          "citation": "1 Corinthians 7:15",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 15,
+          "ordinal": 28503,
+          "text": "But if the unbeliever departs, let him depart; a brother or a sister is not under bondage in such cases. But God has called us to peace."
+        },
+        {
+          "citation": "1 Corinthians 7:16",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 16,
+          "ordinal": 28504,
+          "text": "For how do you know, O wife, whether you will save your husband? Or how do you know, O husband, whether you will save your wife?"
+        },
+        {
+          "citation": "1 Corinthians 7:17",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 17,
+          "ordinal": 28505,
+          "text": "But as God has distributed to each one, as the Lord has called each one, so let him walk. And so I ordain in all the churches."
+        },
+        {
+          "citation": "1 Corinthians 7:18",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 18,
+          "ordinal": 28506,
+          "text": "Was anyone called while circumcised? Let him not become uncircumcised. Was anyone called while uncircumcised? Let him not be circumcised."
+        },
+        {
+          "citation": "1 Corinthians 7:19",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 19,
+          "ordinal": 28507,
+          "text": "Circumcision is nothing and uncircumcision is nothing, but keeping the commandments of God is what matters."
+        },
+        {
+          "citation": "1 Corinthians 7:20",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 20,
+          "ordinal": 28508,
+          "text": "Let each one remain in the same calling in which he was called."
+        },
+        {
+          "citation": "1 Corinthians 7:21",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 21,
+          "ordinal": 28509,
+          "text": "Were you called while a slave? Do not be concerned about it; but if you can be made free, rather use it."
+        },
+        {
+          "citation": "1 Corinthians 7:22",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 22,
+          "ordinal": 28510,
+          "text": "For he who is called in the Lord while a slave is the Lord's freedman. Likewise he who is called while free is Christ's slave."
+        },
+        {
+          "citation": "1 Corinthians 7:23",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 23,
+          "ordinal": 28511,
+          "text": "You were bought at a price; do not become slaves of men."
+        },
+        {
+          "citation": "1 Corinthians 7:24",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 24,
+          "ordinal": 28512,
+          "text": "Brethren, let each one remain with God in that state in which he was called."
+        },
+        {
+          "citation": "1 Corinthians 7:25",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 25,
+          "ordinal": 28513,
+          "text": "Now concerning virgins: I have no commandment from the Lord; yet I give judgment as one whom the Lord in His mercy has made trustworthy."
+        },
+        {
+          "citation": "1 Corinthians 7:26",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 26,
+          "ordinal": 28514,
+          "text": "I suppose therefore that this is good because of the present distress--that it is good for a man to remain as he is:"
+        },
+        {
+          "citation": "1 Corinthians 7:27",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 27,
+          "ordinal": 28515,
+          "text": "Are you bound to a wife? Do not seek to be loosed. Are you loosed from a wife? Do not seek a wife."
+        },
+        {
+          "citation": "1 Corinthians 7:28",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 28,
+          "ordinal": 28516,
+          "text": "But even if you do marry, you have not sinned; and if a virgin marries, she has not sinned. Nevertheless such will have trouble in the flesh, but I would spare you."
+        },
+        {
+          "citation": "1 Corinthians 7:29",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 29,
+          "ordinal": 28517,
+          "text": "But this I say, brethren, the time is short, so that from now on even those who have wives should be as though they had none,"
+        },
+        {
+          "citation": "1 Corinthians 7:30",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 30,
+          "ordinal": 28518,
+          "text": "those who weep as though they did not weep, those who rejoice as though they did not rejoice, those who buy as though they did not possess,"
+        },
+        {
+          "citation": "1 Corinthians 7:31",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 31,
+          "ordinal": 28519,
+          "text": "and those who use this world as not misusing it. For the form of this world is passing away."
+        },
+        {
+          "citation": "1 Corinthians 7:32",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 32,
+          "ordinal": 28520,
+          "text": "But I want you to be without care. He who is unmarried cares for the things of the Lord--how he may please the Lord."
+        },
+        {
+          "citation": "1 Corinthians 7:33",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 33,
+          "ordinal": 28521,
+          "text": "But he who is married cares about the things of the world--how he may please his wife."
+        },
+        {
+          "citation": "1 Corinthians 7:34",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 34,
+          "ordinal": 28522,
+          "text": "There is a difference between a wife and a virgin. The unmarried woman cares about the things of the Lord, that she may be holy both in body and in spirit. But she who is married cares about the things of the world--how she may please her husband."
+        },
+        {
+          "citation": "1 Corinthians 7:35",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 35,
+          "ordinal": 28523,
+          "text": "And this I say for your own profit, not that I may put a leash on you, but for what is proper, and that you may serve the Lord without distraction."
+        },
+        {
+          "citation": "1 Corinthians 7:36",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 36,
+          "ordinal": 28524,
+          "text": "But if any man thinks he is behaving improperly toward his virgin, if she is past the flower of youth, and thus it must be, let him do what he wishes. He does not sin; let them marry."
+        },
+        {
+          "citation": "1 Corinthians 7:37",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 37,
+          "ordinal": 28525,
+          "text": "Nevertheless he who stands steadfast in his heart, having no necessity, but has power over his own will, and has so determined in his heart that he will keep his virgin, does well."
+        },
+        {
+          "citation": "1 Corinthians 7:38",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 38,
+          "ordinal": 28526,
+          "text": "So then he who gives her in marriage does well, but he who does not give her in marriage does better."
+        },
+        {
+          "citation": "1 Corinthians 7:39",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 39,
+          "ordinal": 28527,
+          "text": "A wife is bound by law as long as her husband lives; but if her husband dies, she is at liberty to be married to whom she wishes, only in the Lord."
+        },
+        {
+          "citation": "1 Corinthians 7:40",
+          "bookKey": "1CO",
+          "chapter": 7,
+          "verse": 40,
+          "ordinal": 28528,
+          "text": "But she is happier if she remains as she is, according to my judgment--and I think I also have the Spirit of God."
+        },
+        {
+          "citation": "1 Corinthians 8:1",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 1,
+          "ordinal": 28529,
+          "text": "Now concerning things offered to idols: We know that we all have knowledge. Knowledge puffs up, but love edifies."
+        },
+        {
+          "citation": "1 Corinthians 8:2",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 2,
+          "ordinal": 28530,
+          "text": "And if anyone thinks that he knows anything, he knows nothing yet as he ought to know."
+        },
+        {
+          "citation": "1 Corinthians 8:3",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 3,
+          "ordinal": 28531,
+          "text": "But if anyone loves God, this one is known by Him."
+        },
+        {
+          "citation": "1 Corinthians 8:4",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 4,
+          "ordinal": 28532,
+          "text": "Therefore concerning the eating of things offered to idols, we know that an idol is nothing in the world, and that there is no other God but one."
+        },
+        {
+          "citation": "1 Corinthians 8:5",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 5,
+          "ordinal": 28533,
+          "text": "For even if there are so-called gods, whether in heaven or on earth (as there are many gods and many lords),"
+        },
+        {
+          "citation": "1 Corinthians 8:6",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 6,
+          "ordinal": 28534,
+          "text": "yet for us there is one God, the Father, of whom are all things, and we for Him; and one Lord Jesus Christ, through whom are all things, and through whom we live."
+        },
+        {
+          "citation": "1 Corinthians 8:7",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 7,
+          "ordinal": 28535,
+          "text": "However, there is not in everyone that knowledge; for some, with consciousness of the idol, until now eat it as a thing offered to an idol; and their conscience, being weak, is defiled."
+        },
+        {
+          "citation": "1 Corinthians 8:8",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 8,
+          "ordinal": 28536,
+          "text": "But food does not commend us to God; for neither if we eat are we the better, nor if we do not eat are we the worse."
+        },
+        {
+          "citation": "1 Corinthians 8:9",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 9,
+          "ordinal": 28537,
+          "text": "But beware lest somehow this liberty of yours become a stumbling block to those who are weak."
+        },
+        {
+          "citation": "1 Corinthians 8:10",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 10,
+          "ordinal": 28538,
+          "text": "For if anyone sees you who have knowledge eating in an idol's temple, will not the conscience of him who is weak be emboldened to eat those things offered to idols?"
+        },
+        {
+          "citation": "1 Corinthians 8:11",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 11,
+          "ordinal": 28539,
+          "text": "And because of your knowledge shall the weak brother perish, for whom Christ died?"
+        },
+        {
+          "citation": "1 Corinthians 8:12",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 12,
+          "ordinal": 28540,
+          "text": "But when you thus sin against the brethren, and wound their weak conscience, you sin against Christ."
+        },
+        {
+          "citation": "1 Corinthians 8:13",
+          "bookKey": "1CO",
+          "chapter": 8,
+          "verse": 13,
+          "ordinal": 28541,
+          "text": "Therefore, if food makes my brother stumble, I will never again eat meat, lest I make my brother stumble."
+        },
+        {
+          "citation": "1 Corinthians 9:1",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 1,
+          "ordinal": 28542,
+          "text": "Am I not an apostle? Am I not free? Have I not seen Jesus Christ our Lord? Are you not my work in the Lord?"
+        },
+        {
+          "citation": "1 Corinthians 9:2",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 2,
+          "ordinal": 28543,
+          "text": "If I am not an apostle to others, yet doubtless I am to you. For you are the seal of my apostleship in the Lord."
+        },
+        {
+          "citation": "1 Corinthians 9:3",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 3,
+          "ordinal": 28544,
+          "text": "My defense to those who examine me is this:"
+        },
+        {
+          "citation": "1 Corinthians 9:4",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 4,
+          "ordinal": 28545,
+          "text": "Do we have no right to eat and drink?"
+        },
+        {
+          "citation": "1 Corinthians 9:5",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 5,
+          "ordinal": 28546,
+          "text": "Do we have no right to take along a believing wife, as do also the other apostles, the brothers of the Lord, and Cephas?"
+        },
+        {
+          "citation": "1 Corinthians 9:6",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 6,
+          "ordinal": 28547,
+          "text": "Or is it only Barnabas and I who have no right to refrain from working?"
+        },
+        {
+          "citation": "1 Corinthians 9:7",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 7,
+          "ordinal": 28548,
+          "text": "Who ever goes to war at his own expense? Who plants a vineyard and does not eat of its fruit? Or who tends a flock and does not drink of the milk of the flock?"
+        },
+        {
+          "citation": "1 Corinthians 9:8",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 8,
+          "ordinal": 28549,
+          "text": "Do I say these things as a mere man? Or does not the law say the same also?"
+        },
+        {
+          "citation": "1 Corinthians 9:9",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 9,
+          "ordinal": 28550,
+          "text": "For it is written in the law of Moses, \"You shall not muzzle an ox while it treads out the grain.\" Is it oxen God is concerned about?"
+        },
+        {
+          "citation": "1 Corinthians 9:10",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 10,
+          "ordinal": 28551,
+          "text": "Or does He say it altogether for our sakes? For our sakes, no doubt, this is written, that he who plows should plow in hope, and he who threshes in hope should be partaker of his hope."
+        },
+        {
+          "citation": "1 Corinthians 9:11",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 11,
+          "ordinal": 28552,
+          "text": "If we have sown spiritual things for you, is it a great thing if we reap your material things?"
+        },
+        {
+          "citation": "1 Corinthians 9:12",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 12,
+          "ordinal": 28553,
+          "text": "If others are partakers of this right over you, are we not even more? Nevertheless we have not used this right, but endure all things lest we hinder the gospel of Christ."
+        },
+        {
+          "citation": "1 Corinthians 9:13",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 13,
+          "ordinal": 28554,
+          "text": "Do you not know that those who minister the holy things eat of the things of the temple, and those who serve at the altar partake of the offerings of the altar?"
+        },
+        {
+          "citation": "1 Corinthians 9:14",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 14,
+          "ordinal": 28555,
+          "text": "Even so the Lord has commanded that those who preach the gospel should live from the gospel."
+        },
+        {
+          "citation": "1 Corinthians 9:15",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 15,
+          "ordinal": 28556,
+          "text": "But I have used none of these things, nor have I written these things that it should be done so to me; for it would be better for me to die than that anyone should make my boasting void."
+        },
+        {
+          "citation": "1 Corinthians 9:16",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 16,
+          "ordinal": 28557,
+          "text": "For if I preach the gospel, I have nothing to boast of, for necessity is laid upon me; yes, woe is me if I do not preach the gospel!"
+        },
+        {
+          "citation": "1 Corinthians 9:17",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 17,
+          "ordinal": 28558,
+          "text": "For if I do this willingly, I have a reward; but if against my will, I have been entrusted with a stewardship."
+        },
+        {
+          "citation": "1 Corinthians 9:18",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 18,
+          "ordinal": 28559,
+          "text": "What is my reward then? That when I preach the gospel, I may present the gospel of Christ without charge, that I may not abuse my authority in the gospel."
+        },
+        {
+          "citation": "1 Corinthians 9:19",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 19,
+          "ordinal": 28560,
+          "text": "For though I am free from all men, I have made myself a servant to all, that I might win the more;"
+        },
+        {
+          "citation": "1 Corinthians 9:20",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 20,
+          "ordinal": 28561,
+          "text": "and to the Jews I became as a Jew, that I might win Jews; to those who are under the law, as under the law, that I might win those who are under the law;"
+        },
+        {
+          "citation": "1 Corinthians 9:21",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 21,
+          "ordinal": 28562,
+          "text": "to those who are without law, as without law (not being without law toward God, but under law toward Christ ), that I might win those who are without law;"
+        },
+        {
+          "citation": "1 Corinthians 9:22",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 22,
+          "ordinal": 28563,
+          "text": "to the weak I became as weak, that I might win the weak. I have become all things to all men, that I might by all means save some."
+        },
+        {
+          "citation": "1 Corinthians 9:23",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 23,
+          "ordinal": 28564,
+          "text": "Now this I do for the gospel's sake, that I may be partaker of it with you."
+        },
+        {
+          "citation": "1 Corinthians 9:24",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 24,
+          "ordinal": 28565,
+          "text": "Do you not know that those who run in a race all run, but one receives the prize? Run in such a way that you may obtain it."
+        },
+        {
+          "citation": "1 Corinthians 9:25",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 25,
+          "ordinal": 28566,
+          "text": "And everyone who competes for the prize is temperate in all things. Now they do it to obtain a perishable crown, but we for an imperishable crown."
+        },
+        {
+          "citation": "1 Corinthians 9:26",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 26,
+          "ordinal": 28567,
+          "text": "Therefore I run thus: not with uncertainty. Thus I fight: not as one who beats the air."
+        },
+        {
+          "citation": "1 Corinthians 9:27",
+          "bookKey": "1CO",
+          "chapter": 9,
+          "verse": 27,
+          "ordinal": 28568,
+          "text": "But I discipline my body and bring it into subjection, lest, when I have preached to others, I myself should become disqualified."
+        },
+        {
+          "citation": "1 Corinthians 10:1",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 1,
+          "ordinal": 28569,
+          "text": "Moreover, brethren, I do not want you to be unaware that all our fathers were under the cloud, all passed through the sea,"
+        },
+        {
+          "citation": "1 Corinthians 10:2",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 2,
+          "ordinal": 28570,
+          "text": "all were baptized into Moses in the cloud and in the sea,"
+        },
+        {
+          "citation": "1 Corinthians 10:3",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 3,
+          "ordinal": 28571,
+          "text": "all ate the same spiritual food,"
+        },
+        {
+          "citation": "1 Corinthians 10:4",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 4,
+          "ordinal": 28572,
+          "text": "and all drank the same spiritual drink. For they drank of that spiritual Rock that followed them, and that Rock was Christ."
+        },
+        {
+          "citation": "1 Corinthians 10:5",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 5,
+          "ordinal": 28573,
+          "text": "But with most of them God was not well pleased, for their bodies were scattered in the wilderness."
+        },
+        {
+          "citation": "1 Corinthians 10:6",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 6,
+          "ordinal": 28574,
+          "text": "Now these things became our examples, to the intent that we should not lust after evil things as they also lusted."
+        },
+        {
+          "citation": "1 Corinthians 10:7",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 7,
+          "ordinal": 28575,
+          "text": "And do not become idolaters as were some of them. As it is written, \"The people sat down to eat and drink, and rose up to play.\""
+        },
+        {
+          "citation": "1 Corinthians 10:8",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 8,
+          "ordinal": 28576,
+          "text": "Nor let us commit sexual immorality, as some of them did, and in one day twenty-three thousand fell;"
+        },
+        {
+          "citation": "1 Corinthians 10:9",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 9,
+          "ordinal": 28577,
+          "text": "nor let us tempt Christ, as some of them also tempted, and were destroyed by serpents;"
+        },
+        {
+          "citation": "1 Corinthians 10:10",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 10,
+          "ordinal": 28578,
+          "text": "nor complain, as some of them also complained, and were destroyed by the destroyer."
+        },
+        {
+          "citation": "1 Corinthians 10:11",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 11,
+          "ordinal": 28579,
+          "text": "Now all these things happened to them as examples, and they were written for our admonition, upon whom the ends of the ages have come."
+        },
+        {
+          "citation": "1 Corinthians 10:12",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 12,
+          "ordinal": 28580,
+          "text": "Therefore let him who thinks he stands take heed lest he fall."
+        },
+        {
+          "citation": "1 Corinthians 10:13",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 13,
+          "ordinal": 28581,
+          "text": "No temptation has overtaken you except such as is common to man; but God is faithful, who will not allow you to be tempted beyond what you are able, but with the temptation will also make the way of escape, that you may be able to bear it."
+        },
+        {
+          "citation": "1 Corinthians 10:14",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 14,
+          "ordinal": 28582,
+          "text": "Therefore, my beloved, flee from idolatry."
+        },
+        {
+          "citation": "1 Corinthians 10:15",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 15,
+          "ordinal": 28583,
+          "text": "I speak as to wise men; judge for yourselves what I say."
+        },
+        {
+          "citation": "1 Corinthians 10:16",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 16,
+          "ordinal": 28584,
+          "text": "The cup of blessing which we bless, is it not the communion of the blood of Christ? The bread which we break, is it not the communion of the body of Christ?"
+        },
+        {
+          "citation": "1 Corinthians 10:17",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 17,
+          "ordinal": 28585,
+          "text": "For we, though many, are one bread and one body; for we all partake of that one bread."
+        },
+        {
+          "citation": "1 Corinthians 10:18",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 18,
+          "ordinal": 28586,
+          "text": "Observe Israel after the flesh: Are not those who eat of the sacrifices partakers of the altar?"
+        },
+        {
+          "citation": "1 Corinthians 10:19",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 19,
+          "ordinal": 28587,
+          "text": "What am I saying then? That an idol is anything, or what is offered to idols is anything?"
+        },
+        {
+          "citation": "1 Corinthians 10:20",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 20,
+          "ordinal": 28588,
+          "text": "Rather, that the things which the Gentiles sacrifice they sacrifice to demons and not to God, and I do not want you to have fellowship with demons."
+        },
+        {
+          "citation": "1 Corinthians 10:21",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 21,
+          "ordinal": 28589,
+          "text": "You cannot drink the cup of the Lord and the cup of demons; you cannot partake of the Lord's table and of the table of demons."
+        },
+        {
+          "citation": "1 Corinthians 10:22",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 22,
+          "ordinal": 28590,
+          "text": "Or do we provoke the Lord to jealousy? Are we stronger than He?"
+        },
+        {
+          "citation": "1 Corinthians 10:23",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 23,
+          "ordinal": 28591,
+          "text": "All things are lawful for me, but not all things are helpful; all things are lawful for me, but not all things edify."
+        },
+        {
+          "citation": "1 Corinthians 10:24",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 24,
+          "ordinal": 28592,
+          "text": "Let no one seek his own, but each one the other's well-being."
+        },
+        {
+          "citation": "1 Corinthians 10:25",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 25,
+          "ordinal": 28593,
+          "text": "Eat whatever is sold in the meat market, asking no questions for conscience' sake;"
+        },
+        {
+          "citation": "1 Corinthians 10:26",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 26,
+          "ordinal": 28594,
+          "text": "for \"the earth is the LORD's, and all its fullness.\""
+        },
+        {
+          "citation": "1 Corinthians 10:27",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 27,
+          "ordinal": 28595,
+          "text": "If any of those who do not believe invites you to dinner, and you desire to go, eat whatever is set before you, asking no question for conscience' sake."
+        },
+        {
+          "citation": "1 Corinthians 10:28",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 28,
+          "ordinal": 28596,
+          "text": "But if anyone says to you, \"This was offered to idols,\" do not eat it for the sake of the one who told you, and for conscience' sake; for \"the earth is the LORD's, and all its fullness.\""
+        },
+        {
+          "citation": "1 Corinthians 10:29",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 29,
+          "ordinal": 28597,
+          "text": "\"Conscience,\" I say, not your own, but that of the other. For why is my liberty judged by another man's conscience?"
+        },
+        {
+          "citation": "1 Corinthians 10:30",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 30,
+          "ordinal": 28598,
+          "text": "But if I partake with thanks, why am I evil spoken of for the food over which I give thanks?"
+        },
+        {
+          "citation": "1 Corinthians 10:31",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 31,
+          "ordinal": 28599,
+          "text": "Therefore, whether you eat or drink, or whatever you do, do all to the glory of God."
+        },
+        {
+          "citation": "1 Corinthians 10:32",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 32,
+          "ordinal": 28600,
+          "text": "Give no offense, either to the Jews or to the Greeks or to the church of God,"
+        },
+        {
+          "citation": "1 Corinthians 10:33",
+          "bookKey": "1CO",
+          "chapter": 10,
+          "verse": 33,
+          "ordinal": 28601,
+          "text": "just as I also please all men in all things, not seeking my own profit, but the profit of many, that they may be saved."
+        },
+        {
+          "citation": "1 Corinthians 11:1",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 1,
+          "ordinal": 28602,
+          "text": "Imitate me, just as I also imitate Christ."
+        },
+        {
+          "citation": "1 Corinthians 11:2",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 2,
+          "ordinal": 28603,
+          "text": "Now I praise you, brethren, that you remember me in all things and keep the traditions just as I delivered them to you."
+        },
+        {
+          "citation": "1 Corinthians 11:3",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 3,
+          "ordinal": 28604,
+          "text": "But I want you to know that the head of every man is Christ, the head of woman is man, and the head of Christ is God."
+        },
+        {
+          "citation": "1 Corinthians 11:4",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 4,
+          "ordinal": 28605,
+          "text": "Every man praying or prophesying, having his head covered, dishonors his head."
+        },
+        {
+          "citation": "1 Corinthians 11:5",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 5,
+          "ordinal": 28606,
+          "text": "But every woman who prays or prophesies with her head uncovered dishonors her head, for that is one and the same as if her head were shaved."
+        },
+        {
+          "citation": "1 Corinthians 11:6",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 6,
+          "ordinal": 28607,
+          "text": "For if a woman is not covered, let her also be shorn. But if it is shameful for a woman to be shorn or shaved, let her be covered."
+        },
+        {
+          "citation": "1 Corinthians 11:7",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 7,
+          "ordinal": 28608,
+          "text": "For a man indeed ought not to cover his head, since he is the image and glory of God; but woman is the glory of man."
+        },
+        {
+          "citation": "1 Corinthians 11:8",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 8,
+          "ordinal": 28609,
+          "text": "For man is not from woman, but woman from man."
+        },
+        {
+          "citation": "1 Corinthians 11:9",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 9,
+          "ordinal": 28610,
+          "text": "Nor was man created for the woman, but woman for the man."
+        },
+        {
+          "citation": "1 Corinthians 11:10",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 10,
+          "ordinal": 28611,
+          "text": "For this reason the woman ought to have a symbol of authority on her head, because of the angels."
+        },
+        {
+          "citation": "1 Corinthians 11:11",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 11,
+          "ordinal": 28612,
+          "text": "Nevertheless, neither is man independent of woman, nor woman independent of man, in the Lord."
+        },
+        {
+          "citation": "1 Corinthians 11:12",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 12,
+          "ordinal": 28613,
+          "text": "For as woman came from man, even so man also comes through woman; but all things are from God."
+        },
+        {
+          "citation": "1 Corinthians 11:13",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 13,
+          "ordinal": 28614,
+          "text": "Judge among yourselves. Is it proper for a woman to pray to God with her head uncovered?"
+        },
+        {
+          "citation": "1 Corinthians 11:14",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 14,
+          "ordinal": 28615,
+          "text": "Does not even nature itself teach you that if a man has long hair, it is a dishonor to him?"
+        },
+        {
+          "citation": "1 Corinthians 11:15",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 15,
+          "ordinal": 28616,
+          "text": "But if a woman has long hair, it is a glory to her; for her hair is given to her for a covering."
+        },
+        {
+          "citation": "1 Corinthians 11:16",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 16,
+          "ordinal": 28617,
+          "text": "But if anyone seems to be contentious, we have no such custom, nor do the churches of God."
+        },
+        {
+          "citation": "1 Corinthians 11:17",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 17,
+          "ordinal": 28618,
+          "text": "Now in giving these instructions I do not praise you, since you come together not for the better but for the worse."
+        },
+        {
+          "citation": "1 Corinthians 11:18",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 18,
+          "ordinal": 28619,
+          "text": "For first of all, when you come together as a church, I hear that there are divisions among you, and in part I believe it."
+        },
+        {
+          "citation": "1 Corinthians 11:19",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 19,
+          "ordinal": 28620,
+          "text": "For there must also be factions among you, that those who are approved may be recognized among you."
+        },
+        {
+          "citation": "1 Corinthians 11:20",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 20,
+          "ordinal": 28621,
+          "text": "Therefore when you come together in one place, it is not to eat the Lord's Supper."
+        },
+        {
+          "citation": "1 Corinthians 11:21",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 21,
+          "ordinal": 28622,
+          "text": "For in eating, each one takes his own supper ahead of others; and one is hungry and another is drunk."
+        },
+        {
+          "citation": "1 Corinthians 11:22",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 22,
+          "ordinal": 28623,
+          "text": "What! Do you not have houses to eat and drink in? Or do you despise the church of God and shame those who have nothing? What shall I say to you? Shall I praise you in this? I do not praise you."
+        },
+        {
+          "citation": "1 Corinthians 11:23",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 23,
+          "ordinal": 28624,
+          "text": "For I received from the Lord that which I also delivered to you: that the Lord Jesus on the same night in which He was betrayed took bread;"
+        },
+        {
+          "citation": "1 Corinthians 11:24",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 24,
+          "ordinal": 28625,
+          "text": "and when He had given thanks, He broke it and said, \"Take, eat; this is My body which is broken for you; do this in remembrance of Me.\""
+        },
+        {
+          "citation": "1 Corinthians 11:25",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 25,
+          "ordinal": 28626,
+          "text": "In the same manner He also took the cup after supper, saying, \"This cup is the new covenant in My blood. This do, as often as you drink it, in remembrance of Me.\""
+        },
+        {
+          "citation": "1 Corinthians 11:26",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 26,
+          "ordinal": 28627,
+          "text": "For as often as you eat this bread and drink this cup, you proclaim the Lord's death till He comes."
+        },
+        {
+          "citation": "1 Corinthians 11:27",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 27,
+          "ordinal": 28628,
+          "text": "Therefore whoever eats this bread or drinks this cup of the Lord in an unworthy manner will be guilty of the body and blood of the Lord."
+        },
+        {
+          "citation": "1 Corinthians 11:28",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 28,
+          "ordinal": 28629,
+          "text": "But let a man examine himself, and so let him eat of the bread and drink of the cup."
+        },
+        {
+          "citation": "1 Corinthians 11:29",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 29,
+          "ordinal": 28630,
+          "text": "For he who eats and drinks in an unworthy manner eats and drinks judgment to himself, not discerning the Lord's body."
+        },
+        {
+          "citation": "1 Corinthians 11:30",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 30,
+          "ordinal": 28631,
+          "text": "For this reason many are weak and sick among you, and many sleep."
+        },
+        {
+          "citation": "1 Corinthians 11:31",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 31,
+          "ordinal": 28632,
+          "text": "For if we would judge ourselves, we would not be judged."
+        },
+        {
+          "citation": "1 Corinthians 11:32",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 32,
+          "ordinal": 28633,
+          "text": "But when we are judged, we are chastened by the Lord, that we may not be condemned with the world."
+        },
+        {
+          "citation": "1 Corinthians 11:33",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 33,
+          "ordinal": 28634,
+          "text": "Therefore, my brethren, when you come together to eat, wait for one another."
+        },
+        {
+          "citation": "1 Corinthians 11:34",
+          "bookKey": "1CO",
+          "chapter": 11,
+          "verse": 34,
+          "ordinal": 28635,
+          "text": "But if anyone is hungry, let him eat at home, lest you come together for judgment. And the rest I will set in order when I come."
+        },
+        {
+          "citation": "1 Corinthians 12:1",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 1,
+          "ordinal": 28636,
+          "text": "Now concerning spiritual gifts, brethren, I do not want you to be ignorant:"
+        },
+        {
+          "citation": "1 Corinthians 12:2",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 2,
+          "ordinal": 28637,
+          "text": "You know that you were Gentiles, carried away to these dumb idols, however you were led."
+        },
+        {
+          "citation": "1 Corinthians 12:3",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 3,
+          "ordinal": 28638,
+          "text": "Therefore I make known to you that no one speaking by the Spirit of God calls Jesus accursed, and no one can say that Jesus is Lord except by the Holy Spirit."
+        },
+        {
+          "citation": "1 Corinthians 12:4",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 4,
+          "ordinal": 28639,
+          "text": "There are diversities of gifts, but the same Spirit."
+        },
+        {
+          "citation": "1 Corinthians 12:5",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 5,
+          "ordinal": 28640,
+          "text": "There are differences of ministries, but the same Lord."
+        },
+        {
+          "citation": "1 Corinthians 12:6",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 6,
+          "ordinal": 28641,
+          "text": "And there are diversities of activities, but it is the same God who works all in all."
+        },
+        {
+          "citation": "1 Corinthians 12:7",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 7,
+          "ordinal": 28642,
+          "text": "But the manifestation of the Spirit is given to each one for the profit of all:"
+        },
+        {
+          "citation": "1 Corinthians 12:8",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 8,
+          "ordinal": 28643,
+          "text": "for to one is given the word of wisdom through the Spirit, to another the word of knowledge through the same Spirit,"
+        },
+        {
+          "citation": "1 Corinthians 12:9",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 9,
+          "ordinal": 28644,
+          "text": "to another faith by the same Spirit, to another gifts of healings by the same Spirit,"
+        },
+        {
+          "citation": "1 Corinthians 12:10",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 10,
+          "ordinal": 28645,
+          "text": "to another the working of miracles, to another prophecy, to another discerning of spirits, to another different kinds of tongues, to another the interpretation of tongues."
+        },
+        {
+          "citation": "1 Corinthians 12:11",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 11,
+          "ordinal": 28646,
+          "text": "But one and the same Spirit works all these things, distributing to each one individually as He wills."
+        },
+        {
+          "citation": "1 Corinthians 12:12",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 12,
+          "ordinal": 28647,
+          "text": "For as the body is one and has many members, but all the members of that one body, being many, are one body, so also is Christ."
+        },
+        {
+          "citation": "1 Corinthians 12:13",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 13,
+          "ordinal": 28648,
+          "text": "For by one Spirit we were all baptized into one body--whether Jews or Greeks, whether slaves or free--and have all been made to drink into one Spirit."
+        },
+        {
+          "citation": "1 Corinthians 12:14",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 14,
+          "ordinal": 28649,
+          "text": "For in fact the body is not one member but many."
+        },
+        {
+          "citation": "1 Corinthians 12:15",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 15,
+          "ordinal": 28650,
+          "text": "If the foot should say, \"Because I am not a hand, I am not of the body,\" is it therefore not of the body?"
+        },
+        {
+          "citation": "1 Corinthians 12:16",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 16,
+          "ordinal": 28651,
+          "text": "And if the ear should say, \"Because I am not an eye, I am not of the body,\" is it therefore not of the body?"
+        },
+        {
+          "citation": "1 Corinthians 12:17",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 17,
+          "ordinal": 28652,
+          "text": "If the whole body were an eye, where would be the hearing? If the whole were hearing, where would be the smelling?"
+        },
+        {
+          "citation": "1 Corinthians 12:18",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 18,
+          "ordinal": 28653,
+          "text": "But now God has set the members, each one of them, in the body just as He pleased."
+        },
+        {
+          "citation": "1 Corinthians 12:19",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 19,
+          "ordinal": 28654,
+          "text": "And if they were all one member, where would the body be?"
+        },
+        {
+          "citation": "1 Corinthians 12:20",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 20,
+          "ordinal": 28655,
+          "text": "But now indeed there are many members, yet one body."
+        },
+        {
+          "citation": "1 Corinthians 12:21",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 21,
+          "ordinal": 28656,
+          "text": "And the eye cannot say to the hand, \"I have no need of you\"; nor again the head to the feet, \"I have no need of you.\""
+        },
+        {
+          "citation": "1 Corinthians 12:22",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 22,
+          "ordinal": 28657,
+          "text": "No, much rather, those members of the body which seem to be weaker are necessary."
+        },
+        {
+          "citation": "1 Corinthians 12:23",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 23,
+          "ordinal": 28658,
+          "text": "And those members of the body which we think to be less honorable, on these we bestow greater honor; and our unpresentable parts have greater modesty,"
+        },
+        {
+          "citation": "1 Corinthians 12:24",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 24,
+          "ordinal": 28659,
+          "text": "but our presentable parts have no need. But God composed the body, having given greater honor to that part which lacks it,"
+        },
+        {
+          "citation": "1 Corinthians 12:25",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 25,
+          "ordinal": 28660,
+          "text": "that there should be no schism in the body, but that the members should have the same care for one another."
+        },
+        {
+          "citation": "1 Corinthians 12:26",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 26,
+          "ordinal": 28661,
+          "text": "And if one member suffers, all the members suffer with it; or if one member is honored, all the members rejoice with it."
+        },
+        {
+          "citation": "1 Corinthians 12:27",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 27,
+          "ordinal": 28662,
+          "text": "Now you are the body of Christ, and members individually."
+        },
+        {
+          "citation": "1 Corinthians 12:28",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 28,
+          "ordinal": 28663,
+          "text": "And God has appointed these in the church: first apostles, second prophets, third teachers, after that miracles, then gifts of healings, helps, administrations, varieties of tongues."
+        },
+        {
+          "citation": "1 Corinthians 12:29",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 29,
+          "ordinal": 28664,
+          "text": "Are all apostles? Are all prophets? Are all teachers? Are all workers of miracles?"
+        },
+        {
+          "citation": "1 Corinthians 12:30",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 30,
+          "ordinal": 28665,
+          "text": "Do all have gifts of healings? Do all speak with tongues? Do all interpret?"
+        },
+        {
+          "citation": "1 Corinthians 12:31",
+          "bookKey": "1CO",
+          "chapter": 12,
+          "verse": 31,
+          "ordinal": 28666,
+          "text": "But earnestly desire the best gifts. And yet I show you a more excellent way."
+        },
+        {
+          "citation": "1 Corinthians 13:1",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 1,
+          "ordinal": 28667,
+          "text": "Though I speak with the tongues of men and of angels, but have not love, I have become sounding brass or a clanging cymbal."
+        },
+        {
+          "citation": "1 Corinthians 13:2",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 2,
+          "ordinal": 28668,
+          "text": "And though I have the gift of prophecy, and understand all mysteries and all knowledge, and though I have all faith, so that I could remove mountains, but have not love, I am nothing."
+        },
+        {
+          "citation": "1 Corinthians 13:3",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 3,
+          "ordinal": 28669,
+          "text": "And though I bestow all my goods to feed the poor, and though I give my body to be burned, but have not love, it profits me nothing."
+        },
+        {
+          "citation": "1 Corinthians 13:4",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 4,
+          "ordinal": 28670,
+          "text": "Love suffers long and is kind; love does not envy; love does not parade itself, is not puffed up;"
+        },
+        {
+          "citation": "1 Corinthians 13:5",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 5,
+          "ordinal": 28671,
+          "text": "does not behave rudely, does not seek its own, is not provoked, thinks no evil;"
+        },
+        {
+          "citation": "1 Corinthians 13:6",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 6,
+          "ordinal": 28672,
+          "text": "does not rejoice in iniquity, but rejoices in the truth;"
+        },
+        {
+          "citation": "1 Corinthians 13:7",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 7,
+          "ordinal": 28673,
+          "text": "bears all things, believes all things, hopes all things, endures all things."
+        },
+        {
+          "citation": "1 Corinthians 13:8",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 8,
+          "ordinal": 28674,
+          "text": "Love never fails. But whether there are prophecies, they will fail; whether there are tongues, they will cease; whether there is knowledge, it will vanish away."
+        },
+        {
+          "citation": "1 Corinthians 13:9",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 9,
+          "ordinal": 28675,
+          "text": "For we know in part and we prophesy in part."
+        },
+        {
+          "citation": "1 Corinthians 13:10",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 10,
+          "ordinal": 28676,
+          "text": "But when that which is perfect has come, then that which is in part will be done away."
+        },
+        {
+          "citation": "1 Corinthians 13:11",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 11,
+          "ordinal": 28677,
+          "text": "When I was a child, I spoke as a child, I understood as a child, I thought as a child; but when I became a man, I put away childish things."
+        },
+        {
+          "citation": "1 Corinthians 13:12",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 12,
+          "ordinal": 28678,
+          "text": "For now we see in a mirror, dimly, but then face to face. Now I know in part, but then I shall know just as I also am known."
+        },
+        {
+          "citation": "1 Corinthians 13:13",
+          "bookKey": "1CO",
+          "chapter": 13,
+          "verse": 13,
+          "ordinal": 28679,
+          "text": "And now abide faith, hope, love, these three; but the greatest of these is love."
+        },
+        {
+          "citation": "1 Corinthians 14:1",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 1,
+          "ordinal": 28680,
+          "text": "Pursue love, and desire spiritual gifts, but especially that you may prophesy."
+        },
+        {
+          "citation": "1 Corinthians 14:2",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 2,
+          "ordinal": 28681,
+          "text": "For he who speaks in a tongue does not speak to men but to God, for no one understands him; however, in the spirit he speaks mysteries."
+        },
+        {
+          "citation": "1 Corinthians 14:3",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 3,
+          "ordinal": 28682,
+          "text": "But he who prophesies speaks edification and exhortation and comfort to men."
+        },
+        {
+          "citation": "1 Corinthians 14:4",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 4,
+          "ordinal": 28683,
+          "text": "He who speaks in a tongue edifies himself, but he who prophesies edifies the church."
+        },
+        {
+          "citation": "1 Corinthians 14:5",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 5,
+          "ordinal": 28684,
+          "text": "I wish you all spoke with tongues, but even more that you prophesied; for he who prophesies is greater than he who speaks with tongues, unless indeed he interprets, that the church may receive edification."
+        },
+        {
+          "citation": "1 Corinthians 14:6",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 6,
+          "ordinal": 28685,
+          "text": "But now, brethren, if I come to you speaking with tongues, what shall I profit you unless I speak to you either by revelation, by knowledge, by prophesying, or by teaching?"
+        },
+        {
+          "citation": "1 Corinthians 14:7",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 7,
+          "ordinal": 28686,
+          "text": "Even things without life, whether flute or harp, when they make a sound, unless they make a distinction in the sounds, how will it be known what is piped or played?"
+        },
+        {
+          "citation": "1 Corinthians 14:8",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 8,
+          "ordinal": 28687,
+          "text": "For if the trumpet makes an uncertain sound, who will prepare for battle?"
+        },
+        {
+          "citation": "1 Corinthians 14:9",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 9,
+          "ordinal": 28688,
+          "text": "So likewise you, unless you utter by the tongue words easy to understand, how will it be known what is spoken? For you will be speaking into the air."
+        },
+        {
+          "citation": "1 Corinthians 14:10",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 10,
+          "ordinal": 28689,
+          "text": "There are, it may be, so many kinds of languages in the world, and none of them is without significance."
+        },
+        {
+          "citation": "1 Corinthians 14:11",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 11,
+          "ordinal": 28690,
+          "text": "Therefore, if I do not know the meaning of the language, I shall be a foreigner to him who speaks, and he who speaks will be a foreigner to me."
+        },
+        {
+          "citation": "1 Corinthians 14:12",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 12,
+          "ordinal": 28691,
+          "text": "Even so you, since you are zealous for spiritual gifts, let it be for the edification of the church that you seek to excel."
+        },
+        {
+          "citation": "1 Corinthians 14:13",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 13,
+          "ordinal": 28692,
+          "text": "Therefore let him who speaks in a tongue pray that he may interpret."
+        },
+        {
+          "citation": "1 Corinthians 14:14",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 14,
+          "ordinal": 28693,
+          "text": "For if I pray in a tongue, my spirit prays, but my understanding is unfruitful."
+        },
+        {
+          "citation": "1 Corinthians 14:15",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 15,
+          "ordinal": 28694,
+          "text": "What is the conclusion then? I will pray with the spirit, and I will also pray with the understanding. I will sing with the spirit, and I will also sing with the understanding."
+        },
+        {
+          "citation": "1 Corinthians 14:16",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 16,
+          "ordinal": 28695,
+          "text": "Otherwise, if you bless with the spirit, how will he who occupies the place of the uninformed say \"Amen\" at your giving of thanks, since he does not understand what you say?"
+        },
+        {
+          "citation": "1 Corinthians 14:17",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 17,
+          "ordinal": 28696,
+          "text": "For you indeed give thanks well, but the other is not edified."
+        },
+        {
+          "citation": "1 Corinthians 14:18",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 18,
+          "ordinal": 28697,
+          "text": "I thank my God I speak with tongues more than you all;"
+        },
+        {
+          "citation": "1 Corinthians 14:19",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 19,
+          "ordinal": 28698,
+          "text": "yet in the church I would rather speak five words with my understanding, that I may teach others also, than ten thousand words in a tongue."
+        },
+        {
+          "citation": "1 Corinthians 14:20",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 20,
+          "ordinal": 28699,
+          "text": "Brethren, do not be children in understanding; however, in malice be babes, but in understanding be mature."
+        },
+        {
+          "citation": "1 Corinthians 14:21",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 21,
+          "ordinal": 28700,
+          "text": "In the law it is written: \"With men of other tongues and other lips I will speak to this people; And yet, for all that, they will not hear Me,\" says the Lord."
+        },
+        {
+          "citation": "1 Corinthians 14:22",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 22,
+          "ordinal": 28701,
+          "text": "Therefore tongues are for a sign, not to those who believe but to unbelievers; but prophesying is not for unbelievers but for those who believe."
+        },
+        {
+          "citation": "1 Corinthians 14:23",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 23,
+          "ordinal": 28702,
+          "text": "Therefore if the whole church comes together in one place, and all speak with tongues, and there come in those who are uninformed or unbelievers, will they not say that you are out of your mind?"
+        },
+        {
+          "citation": "1 Corinthians 14:24",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 24,
+          "ordinal": 28703,
+          "text": "But if all prophesy, and an unbeliever or an uninformed person comes in, he is convinced by all, he is convicted by all."
+        },
+        {
+          "citation": "1 Corinthians 14:25",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 25,
+          "ordinal": 28704,
+          "text": "And thus the secrets of his heart are revealed; and so, falling down on his face, he will worship God and report that God is truly among you."
+        },
+        {
+          "citation": "1 Corinthians 14:26",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 26,
+          "ordinal": 28705,
+          "text": "How is it then, brethren? Whenever you come together, each of you has a psalm, has a teaching, has a tongue, has a revelation, has an interpretation. Let all things be done for edification."
+        },
+        {
+          "citation": "1 Corinthians 14:27",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 27,
+          "ordinal": 28706,
+          "text": "If anyone speaks in a tongue, let there be two or at the most three, each in turn, and let one interpret."
+        },
+        {
+          "citation": "1 Corinthians 14:28",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 28,
+          "ordinal": 28707,
+          "text": "But if there is no interpreter, let him keep silent in church, and let him speak to himself and to God."
+        },
+        {
+          "citation": "1 Corinthians 14:29",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 29,
+          "ordinal": 28708,
+          "text": "Let two or three prophets speak, and let the others judge."
+        },
+        {
+          "citation": "1 Corinthians 14:30",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 30,
+          "ordinal": 28709,
+          "text": "But if anything is revealed to another who sits by, let the first keep silent."
+        },
+        {
+          "citation": "1 Corinthians 14:31",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 31,
+          "ordinal": 28710,
+          "text": "For you can all prophesy one by one, that all may learn and all may be encouraged."
+        },
+        {
+          "citation": "1 Corinthians 14:32",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 32,
+          "ordinal": 28711,
+          "text": "And the spirits of the prophets are subject to the prophets."
+        },
+        {
+          "citation": "1 Corinthians 14:33",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 33,
+          "ordinal": 28712,
+          "text": "For God is not the author of confusion but of peace, as in all the churches of the saints."
+        },
+        {
+          "citation": "1 Corinthians 14:34",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 34,
+          "ordinal": 28713,
+          "text": "Let your women keep silent in the churches, for they are not permitted to speak; but they are to be submissive, as the law also says."
+        },
+        {
+          "citation": "1 Corinthians 14:35",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 35,
+          "ordinal": 28714,
+          "text": "And if they want to learn something, let them ask their own husbands at home; for it is shameful for women to speak in church."
+        },
+        {
+          "citation": "1 Corinthians 14:36",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 36,
+          "ordinal": 28715,
+          "text": "Or did the word of God come originally from you? Or was it you only that it reached?"
+        },
+        {
+          "citation": "1 Corinthians 14:37",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 37,
+          "ordinal": 28716,
+          "text": "If anyone thinks himself to be a prophet or spiritual, let him acknowledge that the things which I write to you are the commandments of the Lord."
+        },
+        {
+          "citation": "1 Corinthians 14:38",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 38,
+          "ordinal": 28717,
+          "text": "But if anyone is ignorant, let him be ignorant."
+        },
+        {
+          "citation": "1 Corinthians 14:39",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 39,
+          "ordinal": 28718,
+          "text": "Therefore, brethren, desire earnestly to prophesy, and do not forbid to speak with tongues."
+        },
+        {
+          "citation": "1 Corinthians 14:40",
+          "bookKey": "1CO",
+          "chapter": 14,
+          "verse": 40,
+          "ordinal": 28719,
+          "text": "Let all things be done decently and in order."
+        },
+        {
+          "citation": "1 Corinthians 15:1",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 1,
+          "ordinal": 28720,
+          "text": "Moreover, brethren, I declare to you the gospel which I preached to you, which also you received and in which you stand,"
+        },
+        {
+          "citation": "1 Corinthians 15:2",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 2,
+          "ordinal": 28721,
+          "text": "by which also you are saved, if you hold fast that word which I preached to you--unless you believed in vain."
+        },
+        {
+          "citation": "1 Corinthians 15:3",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 3,
+          "ordinal": 28722,
+          "text": "For I delivered to you first of all that which I also received: that Christ died for our sins according to the Scriptures,"
+        },
+        {
+          "citation": "1 Corinthians 15:4",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 4,
+          "ordinal": 28723,
+          "text": "and that He was buried, and that He rose again the third day according to the Scriptures,"
+        },
+        {
+          "citation": "1 Corinthians 15:5",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 5,
+          "ordinal": 28724,
+          "text": "and that He was seen by Cephas, then by the twelve."
+        },
+        {
+          "citation": "1 Corinthians 15:6",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 6,
+          "ordinal": 28725,
+          "text": "After that He was seen by over five hundred brethren at once, of whom the greater part remain to the present, but some have fallen asleep."
+        },
+        {
+          "citation": "1 Corinthians 15:7",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 7,
+          "ordinal": 28726,
+          "text": "After that He was seen by James, then by all the apostles."
+        },
+        {
+          "citation": "1 Corinthians 15:8",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 8,
+          "ordinal": 28727,
+          "text": "Then last of all He was seen by me also, as by one born out of due time."
+        },
+        {
+          "citation": "1 Corinthians 15:9",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 9,
+          "ordinal": 28728,
+          "text": "For I am the least of the apostles, who am not worthy to be called an apostle, because I persecuted the church of God."
+        },
+        {
+          "citation": "1 Corinthians 15:10",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 10,
+          "ordinal": 28729,
+          "text": "But by the grace of God I am what I am, and His grace toward me was not in vain; but I labored more abundantly than they all, yet not I, but the grace of God which was with me."
+        },
+        {
+          "citation": "1 Corinthians 15:11",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 11,
+          "ordinal": 28730,
+          "text": "Therefore, whether it was I or they, so we preach and so you believed."
+        },
+        {
+          "citation": "1 Corinthians 15:12",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 12,
+          "ordinal": 28731,
+          "text": "Now if Christ is preached that He has been raised from the dead, how do some among you say that there is no resurrection of the dead?"
+        },
+        {
+          "citation": "1 Corinthians 15:13",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 13,
+          "ordinal": 28732,
+          "text": "But if there is no resurrection of the dead, then Christ is not risen."
+        },
+        {
+          "citation": "1 Corinthians 15:14",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 14,
+          "ordinal": 28733,
+          "text": "And if Christ is not risen, then our preaching is empty and your faith is also empty."
+        },
+        {
+          "citation": "1 Corinthians 15:15",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 15,
+          "ordinal": 28734,
+          "text": "Yes, and we are found false witnesses of God, because we have testified of God that He raised up Christ, whom He did not raise up--if in fact the dead do not rise."
+        },
+        {
+          "citation": "1 Corinthians 15:16",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 16,
+          "ordinal": 28735,
+          "text": "For if the dead do not rise, then Christ is not risen."
+        },
+        {
+          "citation": "1 Corinthians 15:17",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 17,
+          "ordinal": 28736,
+          "text": "And if Christ is not risen, your faith is futile; you are still in your sins!"
+        },
+        {
+          "citation": "1 Corinthians 15:18",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 18,
+          "ordinal": 28737,
+          "text": "Then also those who have fallen asleep in Christ have perished."
+        },
+        {
+          "citation": "1 Corinthians 15:19",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 19,
+          "ordinal": 28738,
+          "text": "If in this life only we have hope in Christ, we are of all men the most pitiable."
+        },
+        {
+          "citation": "1 Corinthians 15:20",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 20,
+          "ordinal": 28739,
+          "text": "But now Christ is risen from the dead, and has become the firstfruits of those who have fallen asleep."
+        },
+        {
+          "citation": "1 Corinthians 15:21",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 21,
+          "ordinal": 28740,
+          "text": "For since by man came death, by Man also came the resurrection of the dead."
+        },
+        {
+          "citation": "1 Corinthians 15:22",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 22,
+          "ordinal": 28741,
+          "text": "For as in Adam all die, even so in Christ all shall be made alive."
+        },
+        {
+          "citation": "1 Corinthians 15:23",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 23,
+          "ordinal": 28742,
+          "text": "But each one in his own order: Christ the firstfruits, afterward those who are Christ's at His coming."
+        },
+        {
+          "citation": "1 Corinthians 15:24",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 24,
+          "ordinal": 28743,
+          "text": "Then comes the end, when He delivers the kingdom to God the Father, when He puts an end to all rule and all authority and power."
+        },
+        {
+          "citation": "1 Corinthians 15:25",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 25,
+          "ordinal": 28744,
+          "text": "For He must reign till He has put all enemies under His feet."
+        },
+        {
+          "citation": "1 Corinthians 15:26",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 26,
+          "ordinal": 28745,
+          "text": "The last enemy that will be destroyed is death."
+        },
+        {
+          "citation": "1 Corinthians 15:27",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 27,
+          "ordinal": 28746,
+          "text": "For \"He has put all things under His feet.\" But when He says \"all things are put under Him,\" it is evident that He who put all things under Him is excepted."
+        },
+        {
+          "citation": "1 Corinthians 15:28",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 28,
+          "ordinal": 28747,
+          "text": "Now when all things are made subject to Him, then the Son Himself will also be subject to Him who put all things under Him, that God may be all in all."
+        },
+        {
+          "citation": "1 Corinthians 15:29",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 29,
+          "ordinal": 28748,
+          "text": "Otherwise, what will they do who are baptized for the dead, if the dead do not rise at all? Why then are they baptized for the dead?"
+        },
+        {
+          "citation": "1 Corinthians 15:30",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 30,
+          "ordinal": 28749,
+          "text": "And why do we stand in jeopardy every hour?"
+        },
+        {
+          "citation": "1 Corinthians 15:31",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 31,
+          "ordinal": 28750,
+          "text": "I affirm, by the boasting in you which I have in Christ Jesus our Lord, I die daily."
+        },
+        {
+          "citation": "1 Corinthians 15:32",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 32,
+          "ordinal": 28751,
+          "text": "If, in the manner of men, I have fought with beasts at Ephesus, what advantage is it to me? If the dead do not rise, \"Let us eat and drink, for tomorrow we die!\""
+        },
+        {
+          "citation": "1 Corinthians 15:33",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 33,
+          "ordinal": 28752,
+          "text": "Do not be deceived: \"Evil company corrupts good habits.\""
+        },
+        {
+          "citation": "1 Corinthians 15:34",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 34,
+          "ordinal": 28753,
+          "text": "Awake to righteousness, and do not sin; for some do not have the knowledge of God. I speak this to your shame."
+        },
+        {
+          "citation": "1 Corinthians 15:35",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 35,
+          "ordinal": 28754,
+          "text": "But someone will say, \"How are the dead raised up? And with what body do they come?\""
+        },
+        {
+          "citation": "1 Corinthians 15:36",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 36,
+          "ordinal": 28755,
+          "text": "Foolish one, what you sow is not made alive unless it dies."
+        },
+        {
+          "citation": "1 Corinthians 15:37",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 37,
+          "ordinal": 28756,
+          "text": "And what you sow, you do not sow that body that shall be, but mere grain--perhaps wheat or some other grain."
+        },
+        {
+          "citation": "1 Corinthians 15:38",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 38,
+          "ordinal": 28757,
+          "text": "But God gives it a body as He pleases, and to each seed its own body."
+        },
+        {
+          "citation": "1 Corinthians 15:39",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 39,
+          "ordinal": 28758,
+          "text": "All flesh is not the same flesh, but there is one kind of flesh of men, another flesh of animals, another of fish, and another of birds."
+        },
+        {
+          "citation": "1 Corinthians 15:40",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 40,
+          "ordinal": 28759,
+          "text": "There are also celestial bodies and terrestrial bodies; but the glory of the celestial is one, and the glory of the terrestrial is another."
+        },
+        {
+          "citation": "1 Corinthians 15:41",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 41,
+          "ordinal": 28760,
+          "text": "There is one glory of the sun, another glory of the moon, and another glory of the stars; for one star differs from another star in glory."
+        },
+        {
+          "citation": "1 Corinthians 15:42",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 42,
+          "ordinal": 28761,
+          "text": "So also is the resurrection of the dead. The body is sown in corruption, it is raised in incorruption."
+        },
+        {
+          "citation": "1 Corinthians 15:43",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 43,
+          "ordinal": 28762,
+          "text": "It is sown in dishonor, it is raised in glory. It is sown in weakness, it is raised in power."
+        },
+        {
+          "citation": "1 Corinthians 15:44",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 44,
+          "ordinal": 28763,
+          "text": "It is sown a natural body, it is raised a spiritual body. There is a natural body, and there is a spiritual body."
+        },
+        {
+          "citation": "1 Corinthians 15:45",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 45,
+          "ordinal": 28764,
+          "text": "And so it is written, \"The first man Adam became a living being.\" The last Adam became a life-giving spirit."
+        },
+        {
+          "citation": "1 Corinthians 15:46",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 46,
+          "ordinal": 28765,
+          "text": "However, the spiritual is not first, but the natural, and afterward the spiritual."
+        },
+        {
+          "citation": "1 Corinthians 15:47",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 47,
+          "ordinal": 28766,
+          "text": "The first man was of the earth, made of dust; the second Man is the Lord from heaven."
+        },
+        {
+          "citation": "1 Corinthians 15:48",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 48,
+          "ordinal": 28767,
+          "text": "As was the man of dust, so also are those who are made of dust; and as is the heavenly Man, so also are those who are heavenly."
+        },
+        {
+          "citation": "1 Corinthians 15:49",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 49,
+          "ordinal": 28768,
+          "text": "And as we have borne the image of the man of dust, we shall also bear the image of the heavenly Man."
+        },
+        {
+          "citation": "1 Corinthians 15:50",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 50,
+          "ordinal": 28769,
+          "text": "Now this I say, brethren, that flesh and blood cannot inherit the kingdom of God; nor does corruption inherit incorruption."
+        },
+        {
+          "citation": "1 Corinthians 15:51",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 51,
+          "ordinal": 28770,
+          "text": "Behold, I tell you a mystery: We shall not all sleep, but we shall all be changed--"
+        },
+        {
+          "citation": "1 Corinthians 15:52",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 52,
+          "ordinal": 28771,
+          "text": "in a moment, in the twinkling of an eye, at the last trumpet. For the trumpet will sound, and the dead will be raised incorruptible, and we shall be changed."
+        },
+        {
+          "citation": "1 Corinthians 15:53",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 53,
+          "ordinal": 28772,
+          "text": "For this corruptible must put on incorruption, and this mortal must put on immortality."
+        },
+        {
+          "citation": "1 Corinthians 15:54",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 54,
+          "ordinal": 28773,
+          "text": "So when this corruptible has put on incorruption, and this mortal has put on immortality, then shall be brought to pass the saying that is written: \"Death is swallowed up in victory.\""
+        },
+        {
+          "citation": "1 Corinthians 15:55",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 55,
+          "ordinal": 28774,
+          "text": "\"O Death, where is your sting? O Hades, where is your victory?\""
+        },
+        {
+          "citation": "1 Corinthians 15:56",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 56,
+          "ordinal": 28775,
+          "text": "The sting of death is sin, and the strength of sin is the law."
+        },
+        {
+          "citation": "1 Corinthians 15:57",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 57,
+          "ordinal": 28776,
+          "text": "But thanks be to God, who gives us the victory through our Lord Jesus Christ."
+        },
+        {
+          "citation": "1 Corinthians 15:58",
+          "bookKey": "1CO",
+          "chapter": 15,
+          "verse": 58,
+          "ordinal": 28777,
+          "text": "Therefore, my beloved brethren, be steadfast, immovable, always abounding in the work of the Lord, knowing that your labor is not in vain in the Lord."
+        },
+        {
+          "citation": "1 Corinthians 16:1",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 1,
+          "ordinal": 28778,
+          "text": "Now concerning the collection for the saints, as I have given orders to the churches of Galatia, so you must do also:"
+        },
+        {
+          "citation": "1 Corinthians 16:2",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 2,
+          "ordinal": 28779,
+          "text": "On the first day of the week let each one of you lay something aside, storing up as he may prosper, that there be no collections when I come."
+        },
+        {
+          "citation": "1 Corinthians 16:3",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 3,
+          "ordinal": 28780,
+          "text": "And when I come, whomever you approve by your letters I will send to bear your gift to Jerusalem."
+        },
+        {
+          "citation": "1 Corinthians 16:4",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 4,
+          "ordinal": 28781,
+          "text": "But if it is fitting that I go also, they will go with me."
+        },
+        {
+          "citation": "1 Corinthians 16:5",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 5,
+          "ordinal": 28782,
+          "text": "Now I will come to you when I pass through Macedonia (for I am passing through Macedonia)."
+        },
+        {
+          "citation": "1 Corinthians 16:6",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 6,
+          "ordinal": 28783,
+          "text": "And it may be that I will remain, or even spend the winter with you, that you may send me on my journey, wherever I go."
+        },
+        {
+          "citation": "1 Corinthians 16:7",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 7,
+          "ordinal": 28784,
+          "text": "For I do not wish to see you now on the way; but I hope to stay a while with you, if the Lord permits."
+        },
+        {
+          "citation": "1 Corinthians 16:8",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 8,
+          "ordinal": 28785,
+          "text": "But I will tarry in Ephesus until Pentecost."
+        },
+        {
+          "citation": "1 Corinthians 16:9",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 9,
+          "ordinal": 28786,
+          "text": "For a great and effective door has opened to me, and there are many adversaries."
+        },
+        {
+          "citation": "1 Corinthians 16:10",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 10,
+          "ordinal": 28787,
+          "text": "And if Timothy comes, see that he may be with you without fear; for he does the work of the Lord, as I also do."
+        },
+        {
+          "citation": "1 Corinthians 16:11",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 11,
+          "ordinal": 28788,
+          "text": "Therefore let no one despise him. But send him on his journey in peace, that he may come to me; for I am waiting for him with the brethren."
+        },
+        {
+          "citation": "1 Corinthians 16:12",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 12,
+          "ordinal": 28789,
+          "text": "Now concerning our brother Apollos, I strongly urged him to come to you with the brethren, but he was quite unwilling to come at this time; however, he will come when he has a convenient time."
+        },
+        {
+          "citation": "1 Corinthians 16:13",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 13,
+          "ordinal": 28790,
+          "text": "Watch, stand fast in the faith, be brave, be strong."
+        },
+        {
+          "citation": "1 Corinthians 16:14",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 14,
+          "ordinal": 28791,
+          "text": "Let all that you do be done with love."
+        },
+        {
+          "citation": "1 Corinthians 16:15",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 15,
+          "ordinal": 28792,
+          "text": "I urge you, brethren--you know the household of Stephanas, that it is the firstfruits of Achaia, and that they have devoted themselves to the ministry of the saints--"
+        },
+        {
+          "citation": "1 Corinthians 16:16",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 16,
+          "ordinal": 28793,
+          "text": "that you also submit to such, and to everyone who works and labors with us."
+        },
+        {
+          "citation": "1 Corinthians 16:17",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 17,
+          "ordinal": 28794,
+          "text": "I am glad about the coming of Stephanas, Fortunatus, and Achaicus, for what was lacking on your part they supplied."
+        },
+        {
+          "citation": "1 Corinthians 16:18",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 18,
+          "ordinal": 28795,
+          "text": "For they refreshed my spirit and yours. Therefore acknowledge such men."
+        },
+        {
+          "citation": "1 Corinthians 16:19",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 19,
+          "ordinal": 28796,
+          "text": "The churches of Asia greet you. Aquila and Priscilla greet you heartily in the Lord, with the church that is in their house."
+        },
+        {
+          "citation": "1 Corinthians 16:20",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 20,
+          "ordinal": 28797,
+          "text": "All the brethren greet you. Greet one another with a holy kiss."
+        },
+        {
+          "citation": "1 Corinthians 16:21",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 21,
+          "ordinal": 28798,
+          "text": "The salutation with my own hand--Paul's."
+        },
+        {
+          "citation": "1 Corinthians 16:22",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 22,
+          "ordinal": 28799,
+          "text": "If anyone does not love the Lord Jesus Christ, let him be accursed. O Lord, come!"
+        },
+        {
+          "citation": "1 Corinthians 16:23",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 23,
+          "ordinal": 28800,
+          "text": "The grace of our Lord Jesus Christ be with you."
+        },
+        {
+          "citation": "1 Corinthians 16:24",
+          "bookKey": "1CO",
+          "chapter": 16,
+          "verse": 24,
+          "ordinal": 28801,
+          "text": "My love be with you all in Christ Jesus. Amen."
+        }
+      ]
+    }
+  ]
+}

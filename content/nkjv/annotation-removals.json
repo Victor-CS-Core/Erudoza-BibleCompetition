@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "sourceSha256": "980b65ec2b6f0961f4e738129a8da88f497f958578c1a47cdddbe20395e13aa9",
+  "verseCount": 16,
+  "removedCharacterCount": 19,
+  "edits": [
+    {
+      "citation": "Exodus 15:15",
+      "sourcePages": [
+        113
+      ],
+      "removedDigit": "1",
+      "removedCount": 1,
+      "before": "Then the chiefs of Edom will be dismayed; 1 The mighty men of Moab, Trembling will take hold of them; All the inhabitants of Canaan will melt away.",
+      "after": "Then the chiefs of Edom will be dismayed; The mighty men of Moab, Trembling will take hold of them; All the inhabitants of Canaan will melt away.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "Leviticus 26:17",
+      "sourcePages": [
+        207
+      ],
+      "removedDigit": "1",
+      "removedCount": 1,
+      "before": "I will set My face against you, and you shall be defeated by your enemies. 1 Those who hate you shall reign over you, and you shall flee when no one pursues you.",
+      "after": "I will set My face against you, and you shall be defeated by your enemies. Those who hate you shall reign over you, and you shall flee when no one pursues you.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "1 Kings 5:7",
+      "sourcePages": [
+        544
+      ],
+      "removedDigit": "4",
+      "removedCount": 1,
+      "before": "So it was, when Hiram heard the words of Solomon, that he rejoiced greatly and said, 4 Blessed be the LORD this day, for He has given David a wise son over this great people!",
+      "after": "So it was, when Hiram heard the words of Solomon, that he rejoiced greatly and said, Blessed be the LORD this day, for He has given David a wise son over this great people!",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "1 Kings 5:8",
+      "sourcePages": [
+        544
+      ],
+      "removedDigit": "4",
+      "removedCount": 1,
+      "before": "Then Hiram sent to Solomon, saying: 4 I have considered the message which you sent me, and I will do all you desire concerning the cedar and cypress logs.",
+      "after": "Then Hiram sent to Solomon, saying: I have considered the message which you sent me, and I will do all you desire concerning the cedar and cypress logs.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "1 Kings 21:9",
+      "sourcePages": [
+        581
+      ],
+      "removedDigit": "4",
+      "removedCount": 1,
+      "before": "She wrote in the letters, saying, 4 Proclaim a fast, and seat Naboth with high honor among the people;",
+      "after": "She wrote in the letters, saying, Proclaim a fast, and seat Naboth with high honor among the people;",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "2 Kings 5:6",
+      "sourcePages": [
+        594,
+        595
+      ],
+      "removedDigit": "4",
+      "removedCount": 1,
+      "before": "Then he brought the letter to the king of Israel, which said, 4 Now be advised, when this letter comes to you, that I have sent Naaman my servant to you, that you may heal him of his leprosy.",
+      "after": "Then he brought the letter to the king of Israel, which said, Now be advised, when this letter comes to you, that I have sent Naaman my servant to you, that you may heal him of his leprosy.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "2 Kings 10:6",
+      "sourcePages": [
+        604,
+        605
+      ],
+      "removedDigit": "4",
+      "removedCount": 1,
+      "before": "Then he wrote a second letter to them, saying: 4 If you are for me and will obey my voice, take the heads of the men, your master's sons, and come to me at Jezreel by this time tomorrow. Now the king's sons, seventy persons, were with the great men of the city, who were rearing them.",
+      "after": "Then he wrote a second letter to them, saying: If you are for me and will obey my voice, take the heads of the men, your master's sons, and come to me at Jezreel by this time tomorrow. Now the king's sons, seventy persons, were with the great men of the city, who were rearing them.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "2 Chronicles 2:3",
+      "sourcePages": [
+        687
+      ],
+      "removedDigit": "4",
+      "removedCount": 1,
+      "before": "Then Solomon sent to Hiram king of Tyre, saying: 4 As you have dealt with David my father, and sent him cedars to build himself a house to dwell in, so deal with me.",
+      "after": "Then Solomon sent to Hiram king of Tyre, saying: As you have dealt with David my father, and sent him cedars to build himself a house to dwell in, so deal with me.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "2 Chronicles 2:11",
+      "sourcePages": [
+        687
+      ],
+      "removedDigit": "4",
+      "removedCount": 1,
+      "before": "Then Hiram king of Tyre answered in writing, which he sent to Solomon: 4 Because the LORD loves His people, He has made you king over them.",
+      "after": "Then Hiram king of Tyre answered in writing, which he sent to Solomon: Because the LORD loves His people, He has made you king over them.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "2 Chronicles 2:12",
+      "sourcePages": [
+        687,
+        688
+      ],
+      "removedDigit": "4",
+      "removedCount": 1,
+      "before": "Hiram also said: 4 Blessed be the LORD God of Israel, who made heaven and earth, for He has given King David a wise son, endowed with prudence and understanding, who will build a temple for the LORD and a royal house for himself!",
+      "after": "Hiram also said: Blessed be the LORD God of Israel, who made heaven and earth, for He has given King David a wise son, endowed with prudence and understanding, who will build a temple for the LORD and a royal house for himself!",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "2 Chronicles 21:12",
+      "sourcePages": [
+        714
+      ],
+      "removedDigit": "4",
+      "removedCount": 2,
+      "before": "And a letter came to him from Elijah the prophet, saying, 4 Thus says the LORD God of your father David: 4 Because you have not walked in the ways of Jehoshaphat your father, or in the ways of Asa king of Judah,",
+      "after": "And a letter came to him from Elijah the prophet, saying, Thus says the LORD God of your father David: Because you have not walked in the ways of Jehoshaphat your father, or in the ways of Asa king of Judah,",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "Song of Solomon 1:4",
+      "sourcePages": [
+        1013
+      ],
+      "removedDigit": "1",
+      "removedCount": 2,
+      "before": "Draw me away! We will run after you. The king has brought me into his chambers. We will be glad and rejoice in you. We will remember 1your love more than wine. Rightly do they love 1you.",
+      "after": "Draw me away! We will run after you. The king has brought me into his chambers. We will be glad and rejoice in you. We will remember your love more than wine. Rightly do they love you.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "Nahum 2:10",
+      "sourcePages": [
+        1347
+      ],
+      "removedDigit": "1",
+      "removedCount": 1,
+      "before": "She is empty, desolate, and waste! The heart melts, and the knees shake; Much pain is in every side, And all their faces are drained of color. 1",
+      "after": "She is empty, desolate, and waste! The heart melts, and the knees shake; Much pain is in every side, And all their faces are drained of color.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "Romans 1:27",
+      "sourcePages": [
+        1635
+      ],
+      "removedDigit": "1",
+      "removedCount": 2,
+      "before": "Likewise also the men, leaving the natural use of the woman, burned in their lust for one another, 1men with 1men committing what is shameful, and receiving in themselves the penalty of their error which was due.",
+      "after": "Likewise also the men, leaving the natural use of the woman, burned in their lust for one another, men with men committing what is shameful, and receiving in themselves the penalty of their error which was due.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "1 Corinthians 15:47",
+      "sourcePages": [
+        1677
+      ],
+      "removedDigit": "1",
+      "removedCount": 1,
+      "before": "The first man was of the earth, 1made of dust; the second Man is the Lord from heaven.",
+      "after": "The first man was of the earth, made of dust; the second Man is the Lord from heaven.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    },
+    {
+      "citation": "Philippians 4:10",
+      "sourcePages": [
+        1715
+      ],
+      "removedDigit": "1",
+      "removedCount": 1,
+      "before": "But I rejoiced in the Lord greatly that now at last your1 care for me has flourished again; though you surely did care, but you lacked opportunity.",
+      "after": "But I rejoiced in the Lord greatly that now at last your care for me has flourished again; though you surely did care, but you lacked opportunity.",
+      "reason": "Visible inline numeric annotation remnants excluded; no words or punctuation replaced."
+    }
+  ]
+}

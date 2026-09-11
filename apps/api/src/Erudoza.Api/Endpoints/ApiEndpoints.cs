@@ -3,13 +3,11 @@ using Erudoza.Application.Abstractions;
 using Erudoza.Application.Competitions;
 using Erudoza.Application.Content;
 using Erudoza.Application.Contracts;
-using Erudoza.Application.Generation;
 using Erudoza.Application.Identity;
 using Erudoza.Application.Mapping;
 using Erudoza.Application.Progress;
 using Erudoza.Application.Study;
 using Erudoza.Domain;
-using Erudoza.Infrastructure.Generation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +59,7 @@ public static class ApiEndpoints
             var claims = new List<Claim>
             {
                 new("sub", user.Id.ToString()),
+                new("credential_version", Erudoza.Api.Auth.SessionValidation.Fingerprint(user)),
                 new("org", membership.OrganizationId.ToString()),
                 new("kind", user.Kind.ToString()),
                 new(ClaimTypes.Role, membership.Role.ToString()),
@@ -70,7 +69,7 @@ public static class ApiEndpoints
             var identity = new ClaimsIdentity(claims, CookieScheme);
             await http.SignInAsync(CookieScheme, new ClaimsPrincipal(identity));
             return Results.Ok(ToMe(user, membership));
-        }).AllowAnonymous();
+        }).AllowAnonymous().RequireRateLimiting("login");
 
         app.MapPost("/api/v1/auth/logout", async (HttpContext http) =>
         {
@@ -216,7 +215,7 @@ public static class ApiEndpoints
             }
 
             var packs = await db.ContentPacks.AsNoTracking()
-                .Where(item => item.OrganizationId == orgId)
+                .Where(item => item.OrganizationId == orgId || item.OrganizationId == BuiltInLibrary.OrganizationId && item.IsBuiltIn)
                 .Select(item => new ContentPackDto(
                     item.Id,
                     item.PackKey,
@@ -224,73 +223,50 @@ public static class ApiEndpoints
                     item.Locale,
                     item.SourceType.ToString(),
                     item.LicensingStatus,
-                    db.SourceUnits.Count(unit => unit.ContentPackId == item.Id)))
+                    db.SourceUnits.Count(unit => unit.ContentPackId == item.Id), item.IsBuiltIn))
                 .ToListAsync(cancellationToken);
             return Results.Ok(packs);
         }).RequireAuthorization("CanManageContent");
 
-        org.MapPost("/content-packs/import", async (
-            Guid orgId,
-            ImportContentPackRequest request,
-            ICurrentUser current,
-            ContentImportService importer,
-            IErudozaDbContext db,
-            CancellationToken cancellationToken) =>
+        org.MapDelete("/content-packs/{contentPackId:guid}", async (
+            Guid orgId, Guid contentPackId, ICurrentUser current, IErudozaDbContext db, CancellationToken cancellationToken) =>
         {
-            if (ForbidAdmin(orgId, current) is { } forbidden)
-            {
-                return forbidden;
-            }
-
-            var pack = await importer.ImportAsync(orgId, request, cancellationToken);
-            var count = await db.SourceUnits.CountAsync(item => item.ContentPackId == pack.Id, cancellationToken);
-            return Results.Ok(new ContentPackDto(pack.Id, pack.PackKey, pack.Version, pack.Locale, pack.SourceType.ToString(), pack.LicensingStatus, count));
+            if (ForbidAdmin(orgId, current) is { } forbidden) return forbidden;
+            await using var transaction = await ((DbContext)db).Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
+            var pack = await db.ContentPacks.SingleOrDefaultAsync(item => item.Id == contentPackId && item.OrganizationId == orgId, cancellationToken);
+            if (pack is null) return Results.NotFound();
+            if (pack.IsBuiltIn || pack.OrganizationId == BuiltInLibrary.OrganizationId) return Results.Problem(statusCode: 409, title: "Built-in library books cannot be changed.");
+            if (await db.ScopeEntries.AnyAsync(item => item.ContentPackId == contentPackId, cancellationToken)
+                || await db.AssignmentScopes.AnyAsync(item => item.ContentPackId == contentPackId, cancellationToken))
+                return Results.Problem(statusCode: 409, title: "Content pack is in use", detail: "This pack is used by a season or student assignment and cannot be deleted. Keep it to preserve their study material.");
+            var knowledgeIds = db.KnowledgeUnits.Where(item => item.ContentPackId == contentPackId).Select(item => item.Id);
+            var sourceIds = db.SourceUnits.Where(item => item.ContentPackId == contentPackId).Select(item => item.Id);
+            if (await db.ChallengeCards.AnyAsync(item => knowledgeIds.Contains(item.KnowledgeUnitId) || sourceIds.Contains(item.SourceUnitId) || (item.AnswerSourceUnitId.HasValue && sourceIds.Contains(item.AnswerSourceUnitId.Value)), cancellationToken)
+                || await db.Attempts.AnyAsync(item => knowledgeIds.Contains(item.KnowledgeUnitId), cancellationToken)
+                || await db.MasteryStates.AnyAsync(item => knowledgeIds.Contains(item.KnowledgeUnitId), cancellationToken)
+                || await db.ReviewSchedules.AnyAsync(item => knowledgeIds.Contains(item.KnowledgeUnitId), cancellationToken))
+                return Results.Problem(statusCode: 409, title: "Content pack has study history", detail: "This pack has saved training activity and cannot be deleted.");
+            db.ContentPacks.Remove(pack);
+            await db.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+            return Results.NoContent();
         }).RequireAuthorization("CanManageContent");
 
-        org.MapGet("/scripture-catalog", (
-            Guid orgId,
-            ICurrentUser current,
-            ScriptureCatalogService catalog) =>
+        org.MapGet("/library", async (Guid orgId, ICurrentUser current, LibraryReadService library, CancellationToken ct) =>
         {
-            if (ForbidAdmin(orgId, current) is { } forbidden)
-            {
-                return forbidden;
-            }
-
-            return Results.Ok(catalog.List());
+            if (ForbidAdmin(orgId, current) is { } forbidden) return forbidden;
+            var installed = await library.GetAsync(ct);
+            return installed is null ? Results.Problem(statusCode: 503, title: "The built-in NKJV library is not installed.") : Results.Ok(installed);
         }).RequireAuthorization("CanManageContent");
 
-        org.MapPost("/content-packs/import-from-catalog", async (
-            Guid orgId,
-            ImportScriptureCatalogRequest request,
-            ICurrentUser current,
-            ScriptureCatalogService catalog,
-            IErudozaDbContext db,
-            CancellationToken cancellationToken) =>
-        {
-            if (ForbidAdmin(orgId, current) is { } forbidden)
-            {
-                return forbidden;
-            }
-
-            var pack = await catalog.ImportAsync(orgId, request, cancellationToken);
-            var count = await db.SourceUnits.CountAsync(item => item.ContentPackId == pack.Id, cancellationToken);
-            return Results.Ok(new ContentPackDto(pack.Id, pack.PackKey, pack.Version, pack.Locale, pack.SourceType.ToString(), pack.LicensingStatus, count));
-        }).RequireAuthorization("CanManageContent");
-
-        org.MapGet("/generation-status", (
-            Guid orgId,
-            ICurrentUser current,
-            IConfiguration configuration) =>
-        {
-            if (ForbidAdmin(orgId, current) is { } forbidden)
-            {
-                return forbidden;
-            }
-
-            var ready = OpenAiOptions.TryResolve(configuration, out _, out var model);
-            return Results.Ok(new GenerationStatusDto(ready, model, ready ? "openai-chat-v1" : "fake-generative-v1"));
-        }).RequireAuthorization("CanManageSeason");
+        foreach (var retired in new[] { "/content-packs/import", "/content-packs/import-from-catalog" })
+            org.MapPost(retired, (Guid orgId, ICurrentUser current) =>
+                ForbidAdmin(orgId, current) ?? Results.Problem(statusCode: 410, title: "Imports have been retired. Use the built-in NKJV library."))
+                .RequireAuthorization("CanManageContent");
+        foreach (var retired in new[] { "/scripture-catalog", "/scripture-catalog/books", "/scripture-catalog/books/{bookKey}/chapters" })
+            org.MapGet(retired, (Guid orgId, ICurrentUser current) =>
+                ForbidAdmin(orgId, current) ?? Results.Problem(statusCode: 410, title: "Use the built-in NKJV library."))
+                .RequireAuthorization("CanManageContent");
 
         org.MapGet("/content-packs/{contentPackId:guid}/source-units", async (
             Guid orgId,
@@ -305,12 +281,24 @@ public static class ApiEndpoints
             }
 
             var units = await db.SourceUnits.AsNoTracking()
-                .Where(item => item.OrganizationId == orgId && item.ContentPackId == contentPackId)
+                .Where(item => item.ContentPackId == contentPackId && (item.OrganizationId == orgId && item.ContentPack!.OrganizationId == orgId
+                    || item.OrganizationId == BuiltInLibrary.OrganizationId && item.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && item.ContentPack.IsBuiltIn))
                 .OrderBy(item => item.Ordinal)
                 .Select(item => new SourceUnitDto(item.Id, item.CitationLabel, item.BookKey, item.Chapter, item.Verse, item.Ordinal, item.CanonicalText))
                 .ToListAsync(cancellationToken);
             return Results.Ok(units);
         }).RequireAuthorization("CanManageContent");
+
+        org.MapGet("/seasons/{seasonId:guid}/scope", async (
+            Guid orgId,
+            Guid seasonId,
+            ICurrentUser current,
+            SeasonWorkflowService seasons,
+            CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden) return forbidden;
+            return Results.Ok(await seasons.GetScopeAsync(orgId, seasonId, cancellationToken));
+        }).RequireAuthorization("CanManageSeason");
 
         org.MapPost("/seasons/{seasonId:guid}/scope", async (
             Guid orgId,
@@ -360,8 +348,12 @@ public static class ApiEndpoints
                 .Where(item => userIds.Contains(item.Id))
                 .ToListAsync(cancellationToken);
             var byId = users.ToDictionary(item => item.Id);
+            var difficulties = await db.CompetitionMembers.AsNoTracking()
+                .Where(item => item.OrganizationId == orgId && item.SeasonId == seasonId)
+                .ToDictionaryAsync(item => item.UserId, item => item.Difficulty, cancellationToken);
             return Results.Ok(assignments.Select(item =>
-                DtoMapper.ToAssignmentDto(item, byId.GetValueOrDefault(item.StudentUserId))));
+                DtoMapper.ToAssignmentDto(item, byId.GetValueOrDefault(item.StudentUserId),
+                    difficulties.GetValueOrDefault(item.StudentUserId, TrainingDifficulty.Standard))));
         });
 
         org.MapPost("/seasons/{seasonId:guid}/assignments", async (
@@ -380,7 +372,19 @@ public static class ApiEndpoints
 
             var assignment = await seasons.AssignAsync(orgId, seasonId, request, cancellationToken);
             assignment = await db.Assignments.Include(item => item.Scopes).SingleAsync(item => item.Id == assignment.Id, cancellationToken);
-            return Results.Ok(DtoMapper.ToAssignmentDto(assignment));
+            var difficulty = await db.CompetitionMembers.Where(item => item.OrganizationId == orgId
+                && item.SeasonId == seasonId && item.UserId == assignment.StudentUserId)
+                .Select(item => item.Difficulty).SingleAsync(cancellationToken);
+            return Results.Ok(DtoMapper.ToAssignmentDto(assignment, difficulty: difficulty));
+        }).RequireAuthorization("CanManageSeason");
+
+        org.MapPut("/seasons/{seasonId:guid}/students/{studentId:guid}/difficulty", async (
+            Guid orgId, Guid seasonId, Guid studentId, SetStudentDifficultyRequest request,
+            ICurrentUser current, SeasonWorkflowService seasons, CancellationToken cancellationToken) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden) return forbidden;
+            await seasons.SetDifficultyAsync(orgId, seasonId, studentId, request.Difficulty, cancellationToken);
+            return Results.Ok(new { difficulty = request.Difficulty.ToString() });
         }).RequireAuthorization("CanManageSeason");
 
         org.MapPost("/seasons/{seasonId:guid}/activate", async (
@@ -414,84 +418,12 @@ public static class ApiEndpoints
             return Results.Ok(await coverage.GetAsync(orgId, seasonId, cancellationToken));
         }).RequireAuthorization("CanManageSeason");
 
-        org.MapGet("/seasons/{seasonId:guid}/generation-jobs", async (
-            Guid orgId,
-            Guid seasonId,
-            ICurrentUser current,
-            QuestionReviewService review,
-            CancellationToken cancellationToken) =>
-        {
-            if (ForbidAdmin(orgId, current) is { } forbidden)
-            {
-                return forbidden;
-            }
-
-            return Results.Ok(await review.ListJobsAsync(orgId, seasonId, cancellationToken));
-        }).RequireAuthorization("CanManageSeason");
-
-        org.MapPost("/seasons/{seasonId:guid}/generation-jobs", async (
-            Guid orgId,
-            Guid seasonId,
-            ICurrentUser current,
-            QuestionReviewService review,
-            CancellationToken cancellationToken) =>
-        {
-            if (ForbidAdmin(orgId, current) is { } forbidden)
-            {
-                return forbidden;
-            }
-
-            return Results.Ok(await review.RunJobAsync(orgId, seasonId, cancellationToken));
-        }).RequireAuthorization("CanManageSeason");
-
-        org.MapGet("/seasons/{seasonId:guid}/questions", async (
-            Guid orgId,
-            Guid seasonId,
-            ICurrentUser current,
-            QuestionReviewService review,
-            CancellationToken cancellationToken) =>
-        {
-            if (ForbidAdmin(orgId, current) is { } forbidden)
-            {
-                return forbidden;
-            }
-
-            return Results.Ok(await review.ListAsync(orgId, seasonId, cancellationToken));
-        }).RequireAuthorization("CanManageSeason");
-
-        org.MapPost("/questions/{candidateId:guid}/approve", async (
-            Guid orgId,
-            Guid candidateId,
-            ICurrentUser current,
-            QuestionReviewService review,
-            CancellationToken cancellationToken) =>
-        {
-            if (ForbidAdmin(orgId, current) is { } forbidden)
-            {
-                return forbidden;
-            }
-
-            var playableId = await review.ApproveAsync(orgId, candidateId, cancellationToken);
-            return Results.Ok(new { playableQuestionId = playableId });
-        }).RequireAuthorization("CanManageSeason");
-
-        org.MapPost("/questions/{candidateId:guid}/reject", async (
-            Guid orgId,
-            Guid candidateId,
-            ICurrentUser current,
-            QuestionReviewService review,
-            CancellationToken cancellationToken) =>
-        {
-            if (ForbidAdmin(orgId, current) is { } forbidden)
-            {
-                return forbidden;
-            }
-
-            await review.RejectAsync(orgId, candidateId, cancellationToken);
-            return Results.NoContent();
-        }).RequireAuthorization("CanManageSeason");
-
         var study = app.MapGroup("/api/v1/study").RequireAuthorization("CanStudy");
+
+        study.MapGet("/sessions/{sessionId:guid}", async (Guid sessionId, ICurrentUser current,
+            StudySessionService sessions, IConfiguration configuration, CancellationToken cancellationToken) =>
+            Results.Ok(await sessions.ResumeAsync(current.OrganizationId, current.UserId, sessionId,
+                ExposeDebug(configuration, app.Environment), cancellationToken)));
 
         study.MapPost("/sessions", async (
             StartSessionRequest request,
@@ -500,7 +432,7 @@ public static class ApiEndpoints
             CancellationToken cancellationToken) =>
         {
             var session = await sessions.StartAsync(current.OrganizationId, current.UserId, request, cancellationToken);
-            return Results.Ok(new SessionDto(session.Id, session.SeasonId, session.Status.ToString(), session.Mode.ToString(), session.TargetCardCount));
+            return Results.Ok(new SessionDto(session.Id, session.SeasonId, session.Status.ToString(), session.Mode.ToString(), session.TargetCardCount, session.Difficulty.ToString()));
         });
 
         study.MapGet("/sessions/{sessionId:guid}/next", async (
@@ -511,20 +443,20 @@ public static class ApiEndpoints
             IConfiguration configuration,
             CancellationToken cancellationToken) =>
         {
-            var session = await db.StudySessions.SingleAsync(
+            var session = await db.StudySessions.AsNoTracking().SingleAsync(
                 item => item.Id == sessionId
                     && item.OrganizationId == current.OrganizationId
                     && item.StudentUserId == current.UserId,
                 cancellationToken);
-            var season = await db.Seasons.Include(item => item.RuleProfile)
+            var season = await db.Seasons.AsNoTracking().Include(item => item.RuleProfile)
                 .SingleAsync(item => item.Id == session.SeasonId && item.OrganizationId == current.OrganizationId, cancellationToken);
-            var snapshot = RuleProfileReader.Read(season.RuleProfile!);
+            var snapshot = RuleProfileReader.ReadSession(session, season.RuleProfile!);
             var card = await sessions.NextAsync(
                 new StudyContext(current.OrganizationId, current.UserId, session.SeasonId, sessionId, session.Mode),
                 cancellationToken);
             var source = await db.SourceUnits.SingleAsync(item => item.Id == card.SourceUnitId, cancellationToken);
             var showCitation = session.Mode != StudyMode.Simulation || snapshot.ShowReference;
-            return Results.Ok(DtoMapper.ToChallengeCardDto(card, source, session.TargetCardCount, ExposeDebug(configuration), showCitation));
+            return Results.Ok(DtoMapper.ToChallengeCardDto(card, source, session.TargetCardCount, ExposeDebug(configuration, app.Environment), showCitation));
         });
 
         study.MapPost("/sessions/{sessionId:guid}/attempts", async (
@@ -540,7 +472,7 @@ public static class ApiEndpoints
                 current.UserId,
                 sessionId,
                 request,
-                ExposeDebug(configuration),
+                ExposeDebug(configuration, app.Environment),
                 cancellationToken);
             return Results.Ok(result);
         });
@@ -555,14 +487,23 @@ public static class ApiEndpoints
             return Results.Ok(summary);
         });
 
-        app.MapGet("/api/v1/progress/me", async (ICurrentUser current, ProgressQueryService progress, CancellationToken cancellationToken) =>
+        app.MapGet("/api/v1/progress/me/seasons", async (ICurrentUser current, IErudozaDbContext db, CancellationToken cancellationToken) =>
+        {
+            var assigned = await db.Seasons.AsNoTracking().Where(item => item.OrganizationId == current.OrganizationId
+                && item.Status == SeasonStatus.Active && db.Assignments.Any(assignment => assignment.SeasonId == item.Id
+                    && assignment.OrganizationId == current.OrganizationId && assignment.StudentUserId == current.UserId))
+                .Select(item => new { item.Id, item.Name }).ToListAsync(cancellationToken);
+            return Results.Ok(assigned);
+        }).RequireAuthorization("CanStudy");
+
+        app.MapGet("/api/v1/progress/me", async (Guid? seasonId, ICurrentUser current, ProgressQueryService progress, CancellationToken cancellationToken) =>
         {
             if (!current.IsStudent && !current.IsAdmin)
             {
                 return Results.Problem(statusCode: StatusCodes.Status403Forbidden, title: "Progress is limited to the signed-in student.");
             }
 
-            return Results.Ok(await progress.GetAsync(current.OrganizationId, current.UserId, seasonId: null, cancellationToken));
+            return Results.Ok(await progress.GetAsync(current.OrganizationId, current.UserId, seasonId, cancellationToken));
         }).RequireAuthorization("CanViewOwnProgress");
 
         org.MapGet("/seasons/{seasonId:guid}/students/{studentId:guid}/progress", async (
@@ -582,8 +523,8 @@ public static class ApiEndpoints
         }).RequireAuthorization("CanManageSeason");
     }
 
-    private static bool ExposeDebug(IConfiguration configuration) =>
-        configuration.GetValue("ExposeDebugAnswers", false);
+    private static bool ExposeDebug(IConfiguration configuration, IHostEnvironment environment) =>
+        (environment.IsDevelopment() || environment.IsEnvironment("Testing")) && configuration.GetValue("ExposeDebugAnswers", false);
 
     private static async Task<SeasonDto> MapSeason(
         IErudozaDbContext db,

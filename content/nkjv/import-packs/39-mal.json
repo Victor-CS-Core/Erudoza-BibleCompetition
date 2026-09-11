@@ -1,0 +1,454 @@
+{
+  "packKey": "builtin-nkjv-mal",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Malachi",
+      "units": [
+        {
+          "citation": "Malachi 1:1",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 23091,
+          "text": "The burden of the word of the LORD to Israel by Malachi."
+        },
+        {
+          "citation": "Malachi 1:2",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 23092,
+          "text": "\"I have loved you,\" says the LORD. \"Yet you say, \"In what way have You loved us?' Was not Esau Jacob's brother?\" Says the LORD. \"Yet Jacob I have loved;"
+        },
+        {
+          "citation": "Malachi 1:3",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 23093,
+          "text": "But Esau I have hated, And laid waste his mountains and his heritage For the jackals of the wilderness.\""
+        },
+        {
+          "citation": "Malachi 1:4",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 23094,
+          "text": "Even though Edom has said, \"We have been impoverished, But we will return and build the desolate places,\" Thus says the LORD of hosts: \"They may build, but I will throw down; They shall be called the Territory of Wickedness, And the people against whom the LORD will have indignation forever."
+        },
+        {
+          "citation": "Malachi 1:5",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 23095,
+          "text": "Your eyes shall see, And you shall say, \"The LORD is magnified beyond the border of Israel.'"
+        },
+        {
+          "citation": "Malachi 1:6",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 23096,
+          "text": "\"A son honors his father, And a servant his master. If then I am the Father, Where is My honor? And if I am a Master, Where is My reverence? Says the LORD of hosts To you priests who despise My name. Yet you say, \"In what way have we despised Your name?'"
+        },
+        {
+          "citation": "Malachi 1:7",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 23097,
+          "text": "\"You offer defiled food on My altar, But say, \"In what way have we defiled You?' By saying, \"The table of the LORD is contemptible.'"
+        },
+        {
+          "citation": "Malachi 1:8",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 23098,
+          "text": "And when you offer the blind as a sacrifice, Is it not evil? And when you offer the lame and sick, Is it not evil? Offer it then to your governor! Would he be pleased with you? Would he accept you favorably?\" Says the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 1:9",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 23099,
+          "text": "\"But now entreat God's favor, That He may be gracious to us. While this is being done by your hands, Will He accept you favorably?\" Says the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 1:10",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 23100,
+          "text": "\"Who is there even among you who would shut the doors, So that you would not kindle fire on My altar in vain? I have no pleasure in you,\" Says the LORD of hosts, \"Nor will I accept an offering from your hands."
+        },
+        {
+          "citation": "Malachi 1:11",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 23101,
+          "text": "For from the rising of the sun, even to its going down, My name shall be great among the Gentiles; In every place incense shall be offered to My name, And a pure offering; For My name shall be great among the nations,\" Says the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 1:12",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 23102,
+          "text": "\"But you profane it, In that you say, \"The table of the LORD is defiled; And its fruit, its food, is contemptible.'"
+        },
+        {
+          "citation": "Malachi 1:13",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 23103,
+          "text": "You also say, \"Oh, what a weariness!' And you sneer at it,\" Says the LORD of hosts. \"And you bring the stolen, the lame, and the sick; Thus you bring an offering! Should I accept this from your hand?\" Says the LORD."
+        },
+        {
+          "citation": "Malachi 1:14",
+          "bookKey": "MAL",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 23104,
+          "text": "\"But cursed be the deceiver Who has in his flock a male, And takes a vow, But sacrifices to the Lord what is blemished-- For I am a great King,\" Says the LORD of hosts, \"And My name is to be feared among the nations."
+        },
+        {
+          "citation": "Malachi 2:1",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 23105,
+          "text": "\"And now, O priests, this commandment is for you."
+        },
+        {
+          "citation": "Malachi 2:2",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 23106,
+          "text": "If you will not hear, And if you will not take it to heart, To give glory to My name,\" Says the LORD of hosts, \"I will send a curse upon you, And I will curse your blessings. Yes, I have cursed them already, Because you do not take it to heart."
+        },
+        {
+          "citation": "Malachi 2:3",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 23107,
+          "text": "\"Behold, I will rebuke your descendants And spread refuse on your faces, The refuse of your solemn feasts; And one will take you away with it."
+        },
+        {
+          "citation": "Malachi 2:4",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 23108,
+          "text": "Then you shall know that I have sent this commandment to you, That My covenant with Levi may continue,\" Says the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 2:5",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 23109,
+          "text": "\"My covenant was with him, one of life and peace, And I gave them to him that he might fear Me; So he feared Me And was reverent before My name."
+        },
+        {
+          "citation": "Malachi 2:6",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 23110,
+          "text": "The law of truth was in his mouth, And injustice was not found on his lips. He walked with Me in peace and equity, And turned many away from iniquity."
+        },
+        {
+          "citation": "Malachi 2:7",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 23111,
+          "text": "\"For the lips of a priest should keep knowledge, And people should seek the law from his mouth; For he is the messenger of the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 2:8",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 23112,
+          "text": "But you have departed from the way; You have caused many to stumble at the law. You have corrupted the covenant of Levi,\" Says the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 2:9",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 23113,
+          "text": "\"Therefore I also have made you contemptible and base Before all the people, Because you have not kept My ways But have shown partiality in the law.\""
+        },
+        {
+          "citation": "Malachi 2:10",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 23114,
+          "text": "Have we not all one Father? Has not one God created us? Why do we deal treacherously with one another By profaning the covenant of the fathers?"
+        },
+        {
+          "citation": "Malachi 2:11",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 23115,
+          "text": "Judah has dealt treacherously, And an abomination has been committed in Israel and in Jerusalem, For Judah has profaned The LORD's holy institution which He loves: He has married the daughter of a foreign god."
+        },
+        {
+          "citation": "Malachi 2:12",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 23116,
+          "text": "May the LORD cut off from the tents of Jacob The man who does this, being awake and aware, Yet who brings an offering to the LORD of hosts!"
+        },
+        {
+          "citation": "Malachi 2:13",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 23117,
+          "text": "And this is the second thing you do: You cover the altar of the LORD with tears, With weeping and crying; So He does not regard the offering anymore, Nor receive it with goodwill from your hands."
+        },
+        {
+          "citation": "Malachi 2:14",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 23118,
+          "text": "Yet you say, \"For what reason?\" Because the LORD has been witness Between you and the wife of your youth, With whom you have dealt treacherously; Yet she is your companion And your wife by covenant."
+        },
+        {
+          "citation": "Malachi 2:15",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 23119,
+          "text": "But did He not make them one, Having a remnant of the Spirit? And why one? He seeks godly offspring. Therefore take heed to your spirit, And let none deal treacherously with the wife of his youth."
+        },
+        {
+          "citation": "Malachi 2:16",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 23120,
+          "text": "\"For the LORD God of Israel says That He hates divorce, For it covers one's garment with violence,\" Says the LORD of hosts. \"Therefore take heed to your spirit, That you do not deal treacherously.\""
+        },
+        {
+          "citation": "Malachi 2:17",
+          "bookKey": "MAL",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 23121,
+          "text": "You have wearied the LORD with your words; Yet you say, \"In what way have we wearied Him?\" In that you say, \"Everyone who does evil Is good in the sight of the LORD, And He delights in them,\" Or, \"Where is the God of justice?\""
+        },
+        {
+          "citation": "Malachi 3:1",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 23122,
+          "text": "\"Behold, I send My messenger, And he will prepare the way before Me. And the Lord, whom you seek, Will suddenly come to His temple, Even the Messenger of the covenant, In whom you delight. Behold, He is coming,\" Says the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 3:2",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 23123,
+          "text": "\"But who can endure the day of His coming? And who can stand when He appears? For He is like a refiner's fire And like launderers' soap."
+        },
+        {
+          "citation": "Malachi 3:3",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 23124,
+          "text": "He will sit as a refiner and a purifier of silver; He will purify the sons of Levi, And purge them as gold and silver, That they may offer to the LORD An offering in righteousness."
+        },
+        {
+          "citation": "Malachi 3:4",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 23125,
+          "text": "\"Then the offering of Judah and Jerusalem Will be pleasant to the LORD, As in the days of old, As in former years."
+        },
+        {
+          "citation": "Malachi 3:5",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 23126,
+          "text": "And I will come near you for judgment; I will be a swift witness Against sorcerers, Against adulterers, Against perjurers, Against those who exploit wage earners and widows and orphans, And against those who turn away an alien-- Because they do not fear Me,\" Says the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 3:6",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 23127,
+          "text": "\"For I am the LORD, I do not change; Therefore you are not consumed, O sons of Jacob."
+        },
+        {
+          "citation": "Malachi 3:7",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 23128,
+          "text": "Yet from the days of your fathers You have gone away from My ordinances And have not kept them. Return to Me, and I will return to you,\" Says the LORD of hosts. \"But you said, \"In what way shall we return?'"
+        },
+        {
+          "citation": "Malachi 3:8",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 23129,
+          "text": "\"Will a man rob God? Yet you have robbed Me! But you say, \"In what way have we robbed You?' In tithes and offerings."
+        },
+        {
+          "citation": "Malachi 3:9",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 23130,
+          "text": "You are cursed with a curse, For you have robbed Me, Even this whole nation."
+        },
+        {
+          "citation": "Malachi 3:10",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 23131,
+          "text": "Bring all the tithes into the storehouse, That there may be food in My house, And try Me now in this,\" Says the LORD of hosts, \"If I will not open for you the windows of heaven And pour out for you such blessing That there will not be room enough to receive it."
+        },
+        {
+          "citation": "Malachi 3:11",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 23132,
+          "text": "\"And I will rebuke the devourer for your sakes, So that he will not destroy the fruit of your ground, Nor shall the vine fail to bear fruit for you in the field,\" Says the LORD of hosts;"
+        },
+        {
+          "citation": "Malachi 3:12",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 23133,
+          "text": "And all nations will call you blessed, For you will be a delightful land,\" Says the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 3:13",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 23134,
+          "text": "\"Your words have been harsh against Me,\" Says the LORD, \"Yet you say, \"What have we spoken against You?'"
+        },
+        {
+          "citation": "Malachi 3:14",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 23135,
+          "text": "You have said, \"It is useless to serve God; What profit is it that we have kept His ordinance, And that we have walked as mourners Before the LORD of hosts?"
+        },
+        {
+          "citation": "Malachi 3:15",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 23136,
+          "text": "So now we call the proud blessed, For those who do wickedness are raised up; They even tempt God and go free.\"'"
+        },
+        {
+          "citation": "Malachi 3:16",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 23137,
+          "text": "Then those who feared the LORD spoke to one another, And the LORD listened and heard them; So a book of remembrance was written before Him For those who fear the LORD And who meditate on His name."
+        },
+        {
+          "citation": "Malachi 3:17",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 23138,
+          "text": "\"They shall be Mine,\" says the LORD of hosts, \"On the day that I make them My jewels. And I will spare them As a man spares his own son who serves him.\""
+        },
+        {
+          "citation": "Malachi 3:18",
+          "bookKey": "MAL",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 23139,
+          "text": "Then you shall again discern Between the righteous and the wicked, Between one who serves God And one who does not serve Him."
+        },
+        {
+          "citation": "Malachi 4:1",
+          "bookKey": "MAL",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 23140,
+          "text": "\"For behold, the day is coming, Burning like an oven, And all the proud, yes, all who do wickedly will be stubble. And the day which is coming shall burn them up,\" Says the LORD of hosts, \"That will leave them neither root nor branch."
+        },
+        {
+          "citation": "Malachi 4:2",
+          "bookKey": "MAL",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 23141,
+          "text": "But to you who fear My name The Sun of Righteousness shall arise With healing in His wings; And you shall go out And grow fat like stall-fed calves."
+        },
+        {
+          "citation": "Malachi 4:3",
+          "bookKey": "MAL",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 23142,
+          "text": "You shall trample the wicked, For they shall be ashes under the soles of your feet On the day that I do this,\" Says the LORD of hosts."
+        },
+        {
+          "citation": "Malachi 4:4",
+          "bookKey": "MAL",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 23143,
+          "text": "\"Remember the Law of Moses, My servant, Which I commanded him in Horeb for all Israel, With the statutes and judgments."
+        },
+        {
+          "citation": "Malachi 4:5",
+          "bookKey": "MAL",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 23144,
+          "text": "Behold, I will send you Elijah the prophet Before the coming of the great and dreadful day of the LORD."
+        },
+        {
+          "citation": "Malachi 4:6",
+          "bookKey": "MAL",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 23145,
+          "text": "And he will turn The hearts of the fathers to the children, And the hearts of the children to their fathers, Lest I come and strike the earth with a curse.\""
+        }
+      ]
+    }
+  ]
+}

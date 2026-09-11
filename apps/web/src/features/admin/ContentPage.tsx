@@ -1,248 +1,29 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { api } from "../../api/client";
-import type { ContentPack } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { PaperSurface } from "../../components/material/PaperSurface";
-import { CoachFieldGuideCover } from "./academyCover";
-import { parseContentPackImport, sampleJoshuaPackJson } from "./contentPackImport";
-
+import { Badge, Button, Input, LinkButton, Notice, PageHeader, Panel, Select } from "../../components/ui";
+import "./content-library.css";
 export function ContentPage() {
-  const { me } = useAuth();
-  const queryClient = useQueryClient();
-  const [draft, setDraft] = useState("");
-  const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [translationId, setTranslationId] = useState("web");
-  const [catalogBook, setCatalogBook] = useState("DAN");
-  const [catalogStart, setCatalogStart] = useState(1);
-  const [catalogEnd, setCatalogEnd] = useState(1);
-  const packs = useQuery({
-    queryKey: ["packs", me?.organizationId],
-    queryFn: () => api.contentPacks(me!.organizationId),
-    enabled: !!me,
-  });
-  const units = useQuery({
-    queryKey: ["source-units", me?.organizationId, selectedPackId],
-    queryFn: () => api.sourceUnits(me!.organizationId, selectedPackId!),
-    enabled: !!me && !!selectedPackId,
-  });
-  const catalog = useQuery({
-    queryKey: ["scripture-catalog", me?.organizationId],
-    queryFn: () => api.scriptureCatalog(me!.organizationId),
-    enabled: !!me,
-  });
-  const importCatalog = useMutation({
-    mutationFn: () =>
-      api.importFromCatalog(me!.organizationId, {
-        translationId,
-        bookKey: catalogBook,
-        startChapter: catalogStart,
-        endChapter: catalogEnd,
-      }),
-    onSuccess: (pack) => {
-      setError(null);
-      setSelectedPackId(pack.id);
-      void queryClient.invalidateQueries({ queryKey: ["packs"] });
-      void queryClient.invalidateQueries({ queryKey: ["source-units"] });
-    },
-    onError: (err) => setError(err instanceof Error ? err.message : "Unable to import translation."),
-  });
-  const importPack = useMutation({
-    mutationFn: (body: ReturnType<typeof parseContentPackImport>) => api.importContentPack(me!.organizationId, body),
-    onSuccess: (pack) => {
-      setError(null);
-      setSelectedPackId(pack.id);
-      void queryClient.invalidateQueries({ queryKey: ["packs"] });
-      void queryClient.invalidateQueries({ queryKey: ["source-units"] });
-    },
-    onError: (err) => setError(err instanceof Error ? err.message : "Unable to import pack."),
-  });
-
-  const onSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    setError(null);
-    try {
-      importPack.mutate(parseContentPackImport(draft));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to import pack.");
-    }
-  };
-
-  return (
-    <div className="space-y-4">
-      <CoachFieldGuideCover organizationName={me?.organizationName} />
-      <PaperSurface>
-        <h1 className="text-2xl font-semibold">Content packs</h1>
-        <p className="mt-2 text-sm text-[var(--er-graphite)]">
-          Import only text this organization is licensed to store. The catalog below is public-domain English text.
-          Copyrighted translations such as NIV or ESV are not fetched or bundled.
-        </p>
-        <ul className="mt-4 space-y-2">
-          {packs.data?.map((pack) => (
-            <li key={pack.id}>
-              <PackButton pack={pack} selected={selectedPackId === pack.id} onSelect={() => setSelectedPackId(pack.id)} />
-            </li>
-          ))}
-        </ul>
-        {packs.data && packs.data.length === 0 ? (
-          <p className="mt-4 text-[var(--er-graphite)]">No content packs yet.</p>
-        ) : null}
-      </PaperSurface>
-      {selectedPackId ? (
-        <PaperSurface>
-          <h2 className="text-xl font-semibold">Stored verses</h2>
-          <ul className="mt-4 space-y-3" data-testid="source-unit-list">
-            {units.data?.map((unit) => (
-              <li key={unit.id} className="border-t border-[var(--er-border)] pt-3">
-                <p className="font-medium">{unit.citation}</p>
-                <p className="er-scripture mt-1 text-sm">{unit.canonicalText}</p>
-              </li>
-            ))}
-          </ul>
-          {units.data && units.data.length === 0 ? (
-            <p className="mt-4 text-[var(--er-graphite)]">No stored verses yet.</p>
-          ) : null}
-        </PaperSurface>
-      ) : null}
-      <PaperSurface>
-        <h2 className="text-xl font-semibold">Import a public-domain translation</h2>
-        <p className="mt-2 text-sm text-[var(--er-muted-ink)]">
-          Stored verses become the season pack. Study games use that text directly, so OpenAI never writes Scripture.
-        </p>
-        <form
-          className="mt-4 grid gap-3 md:grid-cols-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            importCatalog.mutate();
-          }}
-        >
-          <label className="text-sm font-medium">
-            Translation
-            <select
-              data-testid="catalog-translation"
-              className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
-              value={translationId}
-              onChange={(event) => setTranslationId(event.target.value)}
-            >
-              {catalog.data?.translations.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm font-medium">
-            Book
-            <select
-              data-testid="catalog-book"
-              className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
-              value={catalogBook}
-              onChange={(event) => setCatalogBook(event.target.value)}
-            >
-              {catalog.data?.books.map((item) => (
-                <option key={item.bookKey} value={item.bookKey}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-sm font-medium">
-            Start chapter
-            <input
-              data-testid="catalog-start-chapter"
-              type="number"
-              min={1}
-              className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
-              value={catalogStart}
-              onChange={(event) => setCatalogStart(Number(event.target.value))}
-            />
-          </label>
-          <label className="text-sm font-medium">
-            End chapter
-            <input
-              data-testid="catalog-end-chapter"
-              type="number"
-              min={1}
-              className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
-              value={catalogEnd}
-              onChange={(event) => setCatalogEnd(Number(event.target.value))}
-            />
-          </label>
-          <button
-            data-testid="import-catalog-submit"
-            className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-4 text-[var(--er-card)] md:col-span-4"
-            type="submit"
-            disabled={importCatalog.isPending}
-          >
-            Import translation
-          </button>
-        </form>
-      </PaperSurface>
-      <PaperSurface>
-        <h2 className="text-xl font-semibold">Import a versioned pack</h2>
-        <p className="mt-2 text-sm text-[var(--er-muted-ink)]">
-          Changed wording needs a new version. Re-importing the same pack key, version, and hashes is idempotent.
-        </p>
-        <form className="mt-4 grid gap-3" onSubmit={onSubmit}>
-          <label className="text-sm font-medium">
-            Pack JSON
-            <textarea
-              data-testid="import-pack-json"
-              className="mt-1 min-h-48 w-full rounded-[var(--er-radius-control)] border border-[var(--er-border)] px-3 py-2 font-mono text-sm"
-              value={draft}
-              onChange={(event) => setDraft(event.target.value)}
-              spellCheck={false}
-            />
-          </label>
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              data-testid="load-sample-pack"
-              className="rounded-[var(--er-radius-control)] border px-4"
-              onClick={() => setDraft(sampleJoshuaPackJson())}
-            >
-              Load sample pack
-            </button>
-            <button
-              type="submit"
-              data-testid="import-pack-submit"
-              className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-4 text-[var(--er-card)]"
-              disabled={importPack.isPending}
-            >
-              Import pack
-            </button>
-          </div>
-          {error ? (
-            <p className="text-sm text-[var(--er-stamp-red)]" data-testid="import-pack-error">
-              {error}
-            </p>
-          ) : null}
-        </form>
-      </PaperSurface>
-    </div>
-  );
-}
-
-function PackButton({
-  pack,
-  selected,
-  onSelect,
-}: {
-  pack: ContentPack;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      data-testid="content-pack"
-      className={`w-full rounded-[var(--er-radius-control)] border px-3 py-3 text-left ${
-        selected ? "border-[var(--er-ink-navy)] bg-[var(--er-parchment)]" : "border-[var(--er-border)]"
-      }`}
-      onClick={onSelect}
-    >
-      {pack.packKey} v{pack.version} · {pack.unitCount} units · {pack.licensingStatus}
-    </button>
-  );
+  const { me } = useAuth(), org = me!.organizationId;
+  const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState("");
+  const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
+  const library = useQuery({ queryKey: ["library", org], queryFn: () => api.library(org) });
+  const selected = library.data?.books.find(book => book.contentPackId === selectedId);
+  const chapter = selected?.chapters.find(c => c.number === selectedChapter)?.number ?? selected?.chapters[0]?.number;
+  const units = useQuery({ queryKey: ["source-units", org, selectedId], queryFn: () => api.sourceUnits(org, selectedId), enabled: !!selected });
+  const books = library.data?.books.filter(book => (book.name + " " + book.bookKey).toLowerCase().includes(search.trim().toLowerCase())) ?? [];
+  return <div className="training-page"><PageHeader title="Scripture library" description="New King James Version" action={<LinkButton to="/admin/seasons">Choose season passages</LinkButton>} />
+    {library.isPending ? <Notice>Loading the NKJV library…</Notice> : library.isError ? <Notice tone="danger">{library.error.message} <Button variant="secondary" onClick={() => void library.refetch()}>Retry library</Button></Notice> : <div className="content-library-grid">
+      <Panel id="library-books"><h2>Books of the Bible <Badge>{library.data.books.length}</Badge></h2><p>Choose passages from the shared NKJV library for each season and student.</p>
+        <label className="content-library-search">Search books<Input type="search" value={search} placeholder="Book name" onChange={event => setSearch(event.target.value)} /></label>
+        {!books.length && <p>{library.data.books.length ? "No books match your search." : "The library has no installed books."}</p>}
+        <ul className="content-pack-list">{books.map(book => <li key={book.contentPackId} className="content-pack-row"><Button data-testid="library-book" variant={selectedId === book.contentPackId ? "primary" : "secondary"} aria-pressed={selectedId === book.contentPackId} onClick={() => { setSelectedId(book.contentPackId); setSelectedChapter(null); }}><span className="content-pack-label"><strong>{book.name}</strong><span>{book.chapters.length} chapters · {book.verseCount} verses</span></span></Button></li>)}</ul>
+      </Panel>
+      <Panel id="library-preview" className="content-verses"><h2>{selected?.name ?? "Preview Scripture"}</h2>{!selected ? <p>Select a book to read its stored verses.</p> : <><label>Preview chapter<Select value={chapter ?? ""} onChange={event => setSelectedChapter(Number(event.target.value))}>{selected.chapters.map(c => <option key={c.number} value={c.number}>{c.number}</option>)}</Select></label>
+        {units.isPending ? <Notice>Loading verses…</Notice> : units.isError ? <Notice tone="danger">Stored verses could not load. <Button variant="secondary" onClick={() => void units.refetch()}>Retry verses</Button></Notice> : <div data-testid="source-unit-list" role="region" aria-label="Stored verses" tabIndex={0}>{units.data.filter(u => u.chapter === chapter).map(unit => <article key={unit.id}><h3>{unit.citation}</h3><p className="font-serif">{unit.canonicalText}</p></article>)}{!units.data.some(u => u.chapter === chapter) && <p>No stored verses are available for this chapter.</p>}</div>}
+      </>}</Panel>
+    </div>}
+  </div>;
 }

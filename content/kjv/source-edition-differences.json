@@ -1,0 +1,476 @@
+{
+  "schema": "erudoza-kjv-source-edition-differences-v1",
+  "sourceFile": "KJVtext.pdf",
+  "sourceSha256": "054f5da38def88f1dfab9cee7f24488308f4a9cde414f500a53ff31dfb961361",
+  "referenceUrl": "https://ebible.org/Scriptures/eng-kjv2006_vpl.zip",
+  "referenceArchiveSha256": "0e25bcf54415dcd6f38032f75b64a5eecd8c2e6aa0057e6e9f0bac85f7c11bbf",
+  "method": "Read the source PDF glyph sequences and positions using pdfplumber. The combined source words and parentheses are present with no positive internal spacing; preserve PDF text rather than replacing it with publisher VPL wording. Coordinates are PDF points, measured from page top. Page numbers are one-based PDF pages.",
+  "differences": [
+    {
+      "key": "ACT:4:16",
+      "sourceForm": "cannot",
+      "publisherVplForm": "can not",
+      "pdfMatches": [
+        {
+          "page": 812,
+          "line": "is manifest to all them that dwell in Jerusalem; and we cannot",
+          "glyphSequence": "cannot",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            469.1763024,
+            250.9213408,
+            478.14270239999996
+          ]
+        },
+        {
+          "page": 812,
+          "line": "be right in the sight of God to hearken unto you more than unto God, judge ye. 20 For we cannot",
+          "glyphSequence": "cannot",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            506.4264768,
+            374.8443408,
+            516.2127024
+          ]
+        }
+      ]
+    },
+    {
+      "key": "ACT:4:20",
+      "sourceForm": "cannot",
+      "publisherVplForm": "can not",
+      "pdfMatches": [
+        {
+          "page": 812,
+          "line": "is manifest to all them that dwell in Jerusalem; and we cannot",
+          "glyphSequence": "cannot",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            469.1763024,
+            250.9213408,
+            478.14270239999996
+          ]
+        },
+        {
+          "page": 812,
+          "line": "be right in the sight of God to hearken unto you more than unto God, judge ye. 20 For we cannot",
+          "glyphSequence": "cannot",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            506.4264768,
+            374.8443408,
+            516.2127024
+          ]
+        }
+      ]
+    },
+    {
+      "key": "ACT:5:39",
+      "sourceForm": "cannot",
+      "publisherVplForm": "can not",
+      "pdfMatches": [
+        {
+          "page": 814,
+          "line": "nought: 39 But if it be of God, ye cannot",
+          "glyphSequence": "cannot",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            157.4024768,
+            167.9743408,
+            167.1897024
+          ]
+        }
+      ]
+    },
+    {
+      "key": "COL:3:17",
+      "sourceForm": "whatsoever",
+      "publisherVplForm": "what soever",
+      "pdfMatches": [
+        {
+          "page": 874,
+          "line": "hymns and spiritual songs, singing with grace in your hearts to the Lord. 17 And whatsoever",
+          "glyphSequence": "whatsoever",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.20623,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            356.8964768,
+            361.498736,
+            366.6827024
+          ]
+        },
+        {
+          "page": 874,
+          "line": "but in singleness of heart, fearing God: 23 And whatsoever",
+          "glyphSequence": "whatsoever",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.20623,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            426.4674768,
+            236.45573599999997,
+            436.25470240000004
+          ]
+        }
+      ]
+    },
+    {
+      "key": "COL:3:23",
+      "sourceForm": "whatsoever",
+      "publisherVplForm": "what soever",
+      "pdfMatches": [
+        {
+          "page": 874,
+          "line": "hymns and spiritual songs, singing with grace in your hearts to the Lord. 17 And whatsoever",
+          "glyphSequence": "whatsoever",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.20623,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            356.8964768,
+            361.498736,
+            366.6827024
+          ]
+        },
+        {
+          "page": 874,
+          "line": "but in singleness of heart, fearing God: 23 And whatsoever",
+          "glyphSequence": "whatsoever",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.0,
+            0.0,
+            -0.20623,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            426.4674768,
+            236.45573599999997,
+            436.25470240000004
+          ]
+        }
+      ]
+    },
+    {
+      "key": "1TI:2:7",
+      "sourceForm": "Whereunto",
+      "publisherVplForm": "Where unto",
+      "pdfMatches": [
+        {
+          "page": 880,
+          "line": "testified in due time. 7 Whereunto",
+          "glyphSequence": "Whereunto",
+          "internalGlyphGapsPt": [
+            0.0,
+            -0.0,
+            0.0,
+            -0.1345,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            411.5174768,
+            150.0372304,
+            421.3047024
+          ]
+        }
+      ]
+    },
+    {
+      "key": "1TI:5:25",
+      "sourceForm": "cannot",
+      "publisherVplForm": "can not",
+      "pdfMatches": [
+        {
+          "page": 881,
+          "line": "manifest beforehand; and they that are otherwise cannot",
+          "glyphSequence": "cannot",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            36.0,
+            607.0163024,
+            245.6313408,
+            615.9827024
+          ]
+        }
+      ]
+    },
+    {
+      "key": "1TI:6:12",
+      "sourceForm": "whereunto",
+      "publisherVplForm": "where unto",
+      "pdfMatches": [
+        {
+          "page": 882,
+          "line": "faith, love, patience, meekness. 12 Fight the good fight of faith, lay hold on eternal life, whereunto",
+          "glyphSequence": "whereunto",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            -0.1345,
+            0.0,
+            0.0,
+            -0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            198.14547679999998,
+            382.5710688,
+            207.93170239999995
+          ]
+        }
+      ]
+    },
+    {
+      "key": "2TI:1:11",
+      "sourceForm": "Whereunto",
+      "publisherVplForm": "Where unto",
+      "pdfMatches": [
+        {
+          "page": 883,
+          "line": "life and immortality to light through the gospel: 11 Whereunto",
+          "glyphSequence": "Whereunto",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            -0.1345,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            36.0,
+            218.4744768,
+            264.5842304,
+            228.2607024
+          ]
+        }
+      ]
+    },
+    {
+      "key": "2TI:2:9",
+      "sourceForm": "Wherein",
+      "publisherVplForm": "Where in",
+      "pdfMatches": [
+        {
+          "page": 883,
+          "line": "from the dead according to my gospel: 9 Wherein",
+          "glyphSequence": "Wherein",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            -0.1345,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            36.0,
+            418.2654768,
+            215.720392,
+            428.05170239999995
+          ]
+        }
+      ]
+    },
+    {
+      "key": "2TI:2:13",
+      "sourceForm": "cannot",
+      "publisherVplForm": "can not",
+      "pdfMatches": [
+        {
+          "page": 883,
+          "line": "abideth faithful: he cannot",
+          "glyphSequence": "cannot",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            36.0,
+            468.2433024,
+            134.52534079999998,
+            477.20970239999997
+          ]
+        }
+      ]
+    },
+    {
+      "key": "HEB:6:17",
+      "sourceForm": "Wherein",
+      "publisherVplForm": "Where in",
+      "pdfMatches": [
+        {
+          "page": 890,
+          "line": "swear by the greater: and an oath for confirmation is to them an end of all strife. 17 Wherein",
+          "glyphSequence": "Wherein",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            -0.1345,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            188.1734768,
+            362.60339200000004,
+            197.96070239999995
+          ]
+        }
+      ]
+    },
+    {
+      "key": "HEB:9:5",
+      "sourceForm": "cannot",
+      "publisherVplForm": "can not",
+      "pdfMatches": [
+        {
+          "page": 891,
+          "line": "cannot",
+          "glyphSequence": "cannot",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            -0.0,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            36.0,
+            339.40330240000003,
+            61.5273408,
+            348.3697024
+          ]
+        }
+      ]
+    },
+    {
+      "key": "1JN:2:23",
+      "sourceForm": "(but)",
+      "publisherVplForm": "but",
+      "pdfMatches": [
+        {
+          "page": 904,
+          "line": "same hath not the Father: (but) he that acknowledgeth the Son hath the Father also. 24 Let that therefore",
+          "glyphSequence": "(but)",
+          "internalGlyphGapsPt": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxInternalGapPt": 0.0,
+          "bbox": [
+            25.200000000000003,
+            536.5234768,
+            396.0053712,
+            546.3107024
+          ]
+        }
+      ]
+    }
+  ]
+}

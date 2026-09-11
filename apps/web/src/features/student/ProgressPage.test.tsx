@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
@@ -18,7 +18,7 @@ vi.mock("../../auth/AuthContext", () => ({
     me: {
       userId: "user-1",
       organizationId: "org-1",
-      organizationName: "Development Academy",
+      organizationName: "Erudoza Academy",
       displayName: "Coach",
       userName: "coach",
       email: "admin@erudoza.local",
@@ -42,8 +42,8 @@ function progress(overrides: Partial<Progress> = {}): Progress {
         knowledgeUnitId: "ku-1",
         title: "Daniel 1:1",
         level: "Learning",
-        exactWordingScore: 0.8,
-        recognitionScore: 0.8,
+        exactWordingScore: 80,
+        recognitionScore: 80,
         reviewDueAtUtc: null,
       },
     ],
@@ -94,107 +94,64 @@ function renderProgress(path: string, state?: SessionSummary | null) {
   );
 }
 
-describe("ProgressPage Field Guide Academy chrome", () => {
+describe("ProgressPage recorded evidence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(api.progress).mockResolvedValue(progress());
-    vi.mocked(api.studentProgress).mockResolvedValue(
-      progress({ studentDisplayName: "Daniel Student", reviewDueCount: 2 }),
-    );
+    vi.mocked(api.studentProgress).mockResolvedValue(progress({ studentDisplayName: "Daniel Student", reviewDueCount: 2 }));
   });
-
-  it("opens the learner folio on the Field Guide Academy cover", async () => {
+  it("shows real learner records and a completed session summary", async () => {
     renderProgress("/student/progress", summary());
-
-    expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Your progress" })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("progress-student")).toHaveTextContent("Daniel 2026"));
-    expect(screen.getByTestId("session-summary")).toHaveTextContent("Last Learner drill session: 1 / 1 exact");
+    expect(screen.getByTestId("session-summary")).toHaveTextContent("Last Learner drill session: 1 / 1 correct");
     expect(screen.getByTestId("progress-attempts")).toHaveTextContent("3");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Daniel 1:1");
+    expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Exact wording score: 80 / 100");
     expect(screen.getByTestId("recent-attempts")).toHaveTextContent("Missing Words");
-    expect(screen.getByTestId("recent-attempts")).not.toHaveTextContent("MissingWords");
-    expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
+    expect(screen.getByTestId("progress-recent")).toHaveTextContent("100%");
+    expect(screen.queryByTestId("progress-mastery-pathway")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("progress-field-guide-chrome")).not.toBeInTheDocument();
     expect(api.studentProgress).not.toHaveBeenCalled();
   });
-
-  it("stamps DUE on the progress cover only when reviews are due", async () => {
-    vi.mocked(api.progress).mockResolvedValue(progress({ reviewDueCount: 4 }));
+  it("identifies legacy scores without granting a mastered badge", async () => {
     renderProgress("/student/progress");
-
-    expect(await screen.findByLabelText("DUE")).toBeInTheDocument();
-    expect(screen.getByTestId("progress-reviews")).toHaveTextContent("4");
+    expect(await screen.findByText("Legacy scoring")).toBeInTheDocument();
+    expect(screen.getByText("Learning")).toHaveClass("ds-badge-neutral");
   });
-
-  it("opens the coach student folio on the same Field Guide cover", async () => {
+  it("shows the same recorded evidence for the coach", async () => {
     renderProgress("/admin/seasons/season-1/students/student-1/progress");
-
-    expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getByTestId("progress-student")).toHaveTextContent("Daniel Student · Daniel 2026"),
-    );
+    await waitFor(() => expect(screen.getByTestId("progress-student")).toHaveTextContent("Daniel Student · Daniel 2026"));
     expect(screen.getByRole("heading", { name: "Student progress" })).toBeInTheDocument();
     expect(screen.getByLabelText("DUE")).toBeInTheDocument();
     expect(api.studentProgress).toHaveBeenCalledWith("org-1", "season-1", "student-1");
     expect(api.progress).not.toHaveBeenCalled();
+    expect(screen.getByRole("link", { name: "Back to assignments" })).toHaveAttribute("href", "/admin/assignments?studentId=student-1&seasonId=season-1");
+    expect(screen.queryByRole("link", { name: "Start due reviews" })).not.toBeInTheDocument();
   });
-});
-
-describe("ProgressPage TOP FOLIO honesty", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(api.progress).mockResolvedValue(progress());
-    vi.mocked(api.studentProgress).mockResolvedValue(
-      progress({ studentDisplayName: "Daniel Student", reviewDueCount: 2 }),
-    );
-  });
-
-  it("puts Attempts, Due reviews, and Recent in TOP FOLIO from progress truth", async () => {
+  it("lets a student act on due reviews in the recorded season", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ reviewDueCount: 2 }));
     renderProgress("/student/progress");
-
-    const folio = await screen.findByTestId("progress-top-folio");
-    expect(folio).toHaveTextContent("TOP FOLIO");
-    await waitFor(() => expect(within(folio).getByTestId("progress-attempts")).toHaveTextContent("3"));
-    expect(within(folio).getByTestId("progress-reviews")).toHaveTextContent("0");
-    expect(within(folio).getByTestId("progress-recent")).toHaveTextContent("100%");
-    expect(within(folio).queryByText(/strong passages/i)).not.toBeInTheDocument();
-    expect(folio).not.toHaveTextContent("78%");
-    expect(folio).not.toHaveTextContent("streak");
+    expect(await screen.findByRole("link", { name: "Start due reviews" })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=season-1");
   });
-
-  it("shows an em dash for Recent when there are no recent attempts", async () => {
-    vi.mocked(api.progress).mockResolvedValue(progress({ recentAttempts: [], attemptCount: 0 }));
+  it("keeps review actions unavailable for an inactive season", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ reviewDueCount: 2, seasonStatus: "Draft" }));
     renderProgress("/student/progress");
-
-    const folio = await screen.findByTestId("progress-top-folio");
-    await waitFor(() => expect(screen.getByTestId("progress-student")).toHaveTextContent("Daniel 2026"));
-    expect(within(folio).getByTestId("progress-attempts")).toHaveTextContent("0");
-    expect(within(folio).getByTestId("progress-recent")).toHaveTextContent("—");
-    expect(folio).not.toHaveTextContent("%");
+    await screen.findByLabelText("DUE");
+    expect(screen.queryByRole("link", { name: "Start due reviews" })).not.toBeInTheDocument();
   });
-
-  it("keeps the mastery pathway aspirational and does not invent live ring scores", async () => {
+  it("shows empty evidence honestly", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ recentAttempts: [], mastery: [], attemptCount: 0 }));
     renderProgress("/student/progress");
-
-    const pathway = await screen.findByTestId("progress-mastery-pathway");
-    expect(pathway).toHaveAttribute("data-aspirational", "true");
-    await waitFor(() => expect(pathway).toHaveTextContent("Daniel 2026"));
-    expect(pathway).toHaveTextContent("Field Guide Mastery Pathway");
-    expect(pathway).toHaveTextContent("product uses attempts/due until API-backed");
-    expect(pathway).not.toHaveTextContent("6/8");
-    expect(pathway).not.toHaveTextContent("Romans");
-    expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Daniel 1:1");
-    expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Exact wording 0.8");
+    expect(await screen.findByText("No attempts yet.")).toBeInTheDocument();
+    expect(screen.getByText(/No passage progress yet/)).toBeInTheDocument();
+    expect(screen.getByTestId("progress-recent")).toHaveTextContent("—");
   });
-
-  it("keeps Field Guide chrome behind the progress folio", async () => {
+  it("reports a load failure without fabricating zero counts", async () => {
+    vi.mocked(api.progress).mockRejectedValue(new Error("offline"));
     renderProgress("/student/progress");
-
-    const chrome = await screen.findByTestId("progress-field-guide-chrome");
-    expect(chrome).toHaveAttribute("aria-hidden", "true");
-    expect(within(chrome).getByTestId("chrome-compass")).toBeInTheDocument();
-    expect(within(chrome).getByTestId("chrome-mountain")).toBeInTheDocument();
-    expect(within(chrome).getByTestId("chrome-forest")).toBeInTheDocument();
-    expect(await screen.findByTestId("progress-top-folio")).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent("Progress could not load");
+    expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
+    expect(screen.queryByTestId("progress-attempts")).not.toBeInTheDocument();
   });
 });

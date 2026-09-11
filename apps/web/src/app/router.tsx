@@ -1,12 +1,12 @@
+import { Button, LoadingState, Notice, Panel } from "../components/ui";
 import { Navigate, createBrowserRouter } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { AdminHomePage } from "../features/admin/AdminHomePage";
 import { SeasonWizardPage } from "../features/admin/SeasonWizardPage";
 import { ContentPage } from "../features/admin/ContentPage";
 import {
   AssignmentsPage,
-  QuestionsPage,
   SeasonsListPage,
   StudentsPage,
 } from "../features/admin/SimpleAdminPages";
@@ -16,12 +16,19 @@ import { ProgressPage } from "../features/student/ProgressPage";
 import { StudentHomePage } from "../features/student/StudentHomePage";
 import { StudyPage } from "../features/student/StudyPage";
 import { AppShell } from "../layouts/AppShell";
+import { RouteProblemPage } from "./RouteProblemPage";
+import { DesignSystemPage } from "../components/design-system/DesignSystemPage";
+const PracticePage = lazy(() => import("../features/practice/PracticePage").then(module => ({ default: module.PracticePage })));
+function PracticeRoute() {
+  return <Suspense fallback={<LoadingState label="Loading Team Practice…" />}><PracticePage /></Suspense>;
+}
 
 function Guard({ role, children }: { role: "admin" | "student"; children: ReactNode }) {
-  const { me, loading } = useAuth();
+  const { me, loading, error, refresh } = useAuth();
   if (loading) {
-    return <p className="p-6">Loading…</p>;
+    return <main className="training-public public-recovery"><LoadingState label="Opening your workspace…" /></main>;
   }
+  if (error) return <Panel className="m-6"><Notice tone="danger">{error}</Notice><Button onClick={() => void refresh()}>Try again</Button></Panel>;
   if (!me) {
     return <Navigate to="/login" replace />;
   }
@@ -35,10 +42,12 @@ function Guard({ role, children }: { role: "admin" | "student"; children: ReactN
 }
 
 export const router = createBrowserRouter([
-  { path: "/", element: <LandingPage /> },
-  { path: "/login", element: <LoginPage /> },
+  { path: "/", element: <LandingPage />, errorElement: <RouteProblemPage /> },
+  { path: "/login", element: <LoginPage />, errorElement: <RouteProblemPage /> },
+  { path: "*", element: <RouteProblemPage notFound /> },
   {
     path: "/admin",
+    errorElement: <RouteProblemPage />,
     element: (
       <Guard role="admin">
         <AppShell variant="admin" />
@@ -53,11 +62,14 @@ export const router = createBrowserRouter([
       { path: "assignments", element: <AssignmentsPage /> },
       { path: "seasons/:seasonId/students/:studentId/progress", element: <ProgressPage /> },
       { path: "content", element: <ContentPage /> },
-      { path: "questions", element: <QuestionsPage /> },
+      { path: "design-system", element: <DesignSystemPage /> },
+      { path: "practice", element: <PracticeRoute /> },
+      { path: "practice/:roomId", element: <PracticeRoute /> },
     ],
   },
   {
     path: "/student",
+    errorElement: <RouteProblemPage />,
     element: (
       <Guard role="student">
         <AppShell variant="student" />
@@ -67,6 +79,8 @@ export const router = createBrowserRouter([
       { index: true, element: <StudentHomePage /> },
       { path: "study", element: <StudyPage /> },
       { path: "progress", element: <ProgressPage /> },
+      { path: "practice", element: <PracticeRoute /> },
+      { path: "practice/:roomId", element: <PracticeRoute /> },
     ],
   },
 ]);

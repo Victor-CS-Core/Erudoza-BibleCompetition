@@ -23,14 +23,6 @@ public sealed class DomainInvariantTests
     }
 
     [Fact]
-    public void Question_evidence_must_stay_inside_scope()
-    {
-        var allowed = new HashSet<Guid> { Guid.NewGuid() };
-        var act = () => DomainInvariants.EnsureQuestionEvidenceInScope(Guid.NewGuid(), allowed);
-        act.Should().Throw<DomainException>();
-    }
-
-    [Fact]
     public void Attempts_cannot_cross_session_boundaries()
     {
         var session = new StudySession

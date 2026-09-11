@@ -1,0 +1,398 @@
+{
+  "packKey": "builtin-nkjv-jon",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Jonah",
+      "units": [
+        {
+          "citation": "Jonah 1:1",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 22533,
+          "text": "Now the word of the LORD came to Jonah the son of Amittai, saying,"
+        },
+        {
+          "citation": "Jonah 1:2",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 22534,
+          "text": "\"Arise, go to Nineveh, that great city, and cry out against it; for their wickedness has come up before Me.\""
+        },
+        {
+          "citation": "Jonah 1:3",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 22535,
+          "text": "But Jonah arose to flee to Tarshish from the presence of the LORD. He went down to Joppa, and found a ship going to Tarshish; so he paid the fare, and went down into it, to go with them to Tarshish from the presence of the LORD."
+        },
+        {
+          "citation": "Jonah 1:4",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 22536,
+          "text": "But the LORD sent out a great wind on the sea, and there was a mighty tempest on the sea, so that the ship was about to be broken up."
+        },
+        {
+          "citation": "Jonah 1:5",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 22537,
+          "text": "Then the mariners were afraid; and every man cried out to his god, and threw the cargo that was in the ship into the sea, to lighten the load. But Jonah had gone down into the lowest parts of the ship, had lain down, and was fast asleep."
+        },
+        {
+          "citation": "Jonah 1:6",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 22538,
+          "text": "So the captain came to him, and said to him, \"What do you mean, sleeper? Arise, call on your God; perhaps your God will consider us, so that we may not perish.\""
+        },
+        {
+          "citation": "Jonah 1:7",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 22539,
+          "text": "And they said to one another, \"Come, let us cast lots, that we may know for whose cause this trouble has come upon us.\" So they cast lots, and the lot fell on Jonah."
+        },
+        {
+          "citation": "Jonah 1:8",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 22540,
+          "text": "Then they said to him, \"Please tell us! For whose cause is this trouble upon us? What is your occupation? And where do you come from? What is your country? And of what people are you?\""
+        },
+        {
+          "citation": "Jonah 1:9",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 22541,
+          "text": "So he said to them, \"I am a Hebrew; and I fear the LORD, the God of heaven, who made the sea and the dry land.\""
+        },
+        {
+          "citation": "Jonah 1:10",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 22542,
+          "text": "Then the men were exceedingly afraid, and said to him, \"Why have you done this?\" For the men knew that he fled from the presence of the LORD, because he had told them."
+        },
+        {
+          "citation": "Jonah 1:11",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 22543,
+          "text": "Then they said to him, \"What shall we do to you that the sea may be calm for us?\"--for the sea was growing more tempestuous."
+        },
+        {
+          "citation": "Jonah 1:12",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 22544,
+          "text": "And he said to them, \"Pick me up and throw me into the sea; then the sea will become calm for you. For I know that this great tempest is because of me.\""
+        },
+        {
+          "citation": "Jonah 1:13",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 22545,
+          "text": "Nevertheless the men rowed hard to return to land, but they could not, for the sea continued to grow more tempestuous against them."
+        },
+        {
+          "citation": "Jonah 1:14",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 22546,
+          "text": "Therefore they cried out to the LORD and said, \"We pray, O LORD, please do not let us perish for this man's life, and do not charge us with innocent blood; for You, O LORD, have done as it pleased You.\""
+        },
+        {
+          "citation": "Jonah 1:15",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 22547,
+          "text": "So they picked up Jonah and threw him into the sea, and the sea ceased from its raging."
+        },
+        {
+          "citation": "Jonah 1:16",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 22548,
+          "text": "Then the men feared the LORD exceedingly, and offered a sacrifice to the LORD and took vows."
+        },
+        {
+          "citation": "Jonah 1:17",
+          "bookKey": "JON",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 22549,
+          "text": "Now the LORD had prepared a great fish to swallow Jonah. And Jonah was in the belly of the fish three days and three nights."
+        },
+        {
+          "citation": "Jonah 2:1",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 22550,
+          "text": "Then Jonah prayed to the LORD his God from the fish's belly."
+        },
+        {
+          "citation": "Jonah 2:2",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 22551,
+          "text": "And he said: \"I cried out to the LORD because of my affliction, And He answered me. \"Out of the belly of Sheol I cried, And You heard my voice."
+        },
+        {
+          "citation": "Jonah 2:3",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 22552,
+          "text": "For You cast me into the deep, Into the heart of the seas, And the floods surrounded me; All Your billows and Your waves passed over me."
+        },
+        {
+          "citation": "Jonah 2:4",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 22553,
+          "text": "Then I said, \"I have been cast out of Your sight; Yet I will look again toward Your holy temple.'"
+        },
+        {
+          "citation": "Jonah 2:5",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 22554,
+          "text": "The waters surrounded me, even to my soul; The deep closed around me; Weeds were wrapped around my head."
+        },
+        {
+          "citation": "Jonah 2:6",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 22555,
+          "text": "I went down to the moorings of the mountains; The earth with its bars closed behind me forever; Yet You have brought up my life from the pit, O LORD, my God."
+        },
+        {
+          "citation": "Jonah 2:7",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 22556,
+          "text": "\"When my soul fainted within me, I remembered the LORD; And my prayer went up to You, Into Your holy temple."
+        },
+        {
+          "citation": "Jonah 2:8",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 22557,
+          "text": "\"Those who regard worthless idols Forsake their own Mercy."
+        },
+        {
+          "citation": "Jonah 2:9",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 22558,
+          "text": "But I will sacrifice to You With the voice of thanksgiving; I will pay what I have vowed. Salvation is of the LORD.\""
+        },
+        {
+          "citation": "Jonah 2:10",
+          "bookKey": "JON",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 22559,
+          "text": "So the LORD spoke to the fish, and it vomited Jonah onto dry land."
+        },
+        {
+          "citation": "Jonah 3:1",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 22560,
+          "text": "Now the word of the LORD came to Jonah the second time, saying,"
+        },
+        {
+          "citation": "Jonah 3:2",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 22561,
+          "text": "\"Arise, go to Nineveh, that great city, and preach to it the message that I tell you.\""
+        },
+        {
+          "citation": "Jonah 3:3",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 22562,
+          "text": "So Jonah arose and went to Nineveh, according to the word of the LORD. Now Nineveh was an exceedingly great city, a three-day journey in extent."
+        },
+        {
+          "citation": "Jonah 3:4",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 22563,
+          "text": "And Jonah began to enter the city on the first day's walk. Then he cried out and said, \"Yet forty days, and Nineveh shall be overthrown!\""
+        },
+        {
+          "citation": "Jonah 3:5",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 22564,
+          "text": "So the people of Nineveh believed God, proclaimed a fast, and put on sackcloth, from the greatest to the least of them."
+        },
+        {
+          "citation": "Jonah 3:6",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 22565,
+          "text": "Then word came to the king of Nineveh; and he arose from his throne and laid aside his robe, covered himself with sackcloth and sat in ashes."
+        },
+        {
+          "citation": "Jonah 3:7",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 22566,
+          "text": "And he caused it to be proclaimed and published throughout Nineveh by the decree of the king and his nobles, saying, Let neither man nor beast, herd nor flock, taste anything; do not let them eat, or drink water."
+        },
+        {
+          "citation": "Jonah 3:8",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 22567,
+          "text": "But let man and beast be covered with sackcloth, and cry mightily to God; yes, let every one turn from his evil way and from the violence that is in his hands."
+        },
+        {
+          "citation": "Jonah 3:9",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 22568,
+          "text": "Who can tell if God will turn and relent, and turn away from His fierce anger, so that we may not perish?"
+        },
+        {
+          "citation": "Jonah 3:10",
+          "bookKey": "JON",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 22569,
+          "text": "Then God saw their works, that they turned from their evil way; and God relented from the disaster that He had said He would bring upon them, and He did not do it."
+        },
+        {
+          "citation": "Jonah 4:1",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 22570,
+          "text": "But it displeased Jonah exceedingly, and he became angry."
+        },
+        {
+          "citation": "Jonah 4:2",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 22571,
+          "text": "So he prayed to the LORD, and said, \"Ah, LORD, was not this what I said when I was still in my country? Therefore I fled previously to Tarshish; for I know that You are a gracious and merciful God, slow to anger and abundant in lovingkindness, One who relents from doing harm."
+        },
+        {
+          "citation": "Jonah 4:3",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 22572,
+          "text": "Therefore now, O LORD, please take my life from me, for it is better for me to die than to live!\""
+        },
+        {
+          "citation": "Jonah 4:4",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 22573,
+          "text": "Then the LORD said, \"Is it right for you to be angry?\""
+        },
+        {
+          "citation": "Jonah 4:5",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 22574,
+          "text": "So Jonah went out of the city and sat on the east side of the city. There he made himself a shelter and sat under it in the shade, till he might see what would become of the city."
+        },
+        {
+          "citation": "Jonah 4:6",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 22575,
+          "text": "And the LORD God prepared a plant and made it come up over Jonah, that it might be shade for his head to deliver him from his misery. So Jonah was very grateful for the plant."
+        },
+        {
+          "citation": "Jonah 4:7",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 22576,
+          "text": "But as morning dawned the next day God prepared a worm, and it so damaged the plant that it withered."
+        },
+        {
+          "citation": "Jonah 4:8",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 22577,
+          "text": "And it happened, when the sun arose, that God prepared a vehement east wind; and the sun beat on Jonah's head, so that he grew faint. Then he wished death for himself, and said, \"It is better for me to die than to live.\""
+        },
+        {
+          "citation": "Jonah 4:9",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 22578,
+          "text": "Then God said to Jonah, \"Is it right for you to be angry about the plant?\" And he said, \"It is right for me to be angry, even to death!\""
+        },
+        {
+          "citation": "Jonah 4:10",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 22579,
+          "text": "But the LORD said, \"You have had pity on the plant for which you have not labored, nor made it grow, which came up in a night and perished in a night."
+        },
+        {
+          "citation": "Jonah 4:11",
+          "bookKey": "JON",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 22580,
+          "text": "And should I not pity Nineveh, that great city, in which are more than one hundred and twenty thousand persons who cannot discern between their right hand and their left--and much livestock?\""
+        }
+      ]
+    }
+  ]
+}

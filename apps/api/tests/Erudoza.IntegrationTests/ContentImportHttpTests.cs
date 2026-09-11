@@ -13,7 +13,7 @@ public sealed class ContentImportHttpTests(ErudozaApiFactory factory) : IClassFi
     {
         var admin = await TestHttp.LoginAsync(factory, "admin@erudoza.local", "DevAdmin!234");
         var packKey = $"dev-joshua-{Guid.NewGuid():N}";
-        var imported = await admin.PostAsJsonAsync(
+        var imported = await admin.ImportFixtureAsync(
             $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/content-packs/import",
             SamplePack(packKey, "Development sample: Joshua rose early."));
         imported.EnsureSuccessStatusCode();
@@ -22,14 +22,14 @@ public sealed class ContentImportHttpTests(ErudozaApiFactory factory) : IClassFi
         pack!.PackKey.Should().Be(packKey);
         pack.UnitCount.Should().Be(1);
 
-        var again = await admin.PostAsJsonAsync(
+        var again = await admin.ImportFixtureAsync(
             $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/content-packs/import",
             SamplePack(packKey, "Development sample: Joshua rose early."));
         again.EnsureSuccessStatusCode();
         var same = await again.Content.ReadFromJsonAsync<ContentPackDto>();
         same!.Id.Should().Be(pack.Id);
 
-        var changed = await admin.PostAsJsonAsync(
+        var changed = await admin.ImportFixtureAsync(
             $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/content-packs/import",
             SamplePack(packKey, "Changed wording requires a new version."));
         changed.StatusCode.Should().Be(HttpStatusCode.BadRequest);

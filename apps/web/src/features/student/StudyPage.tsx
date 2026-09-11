@@ -1,13 +1,10 @@
+import { useAuth } from "../../auth/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
-import type { ChallengeCard } from "../../api/types";
-import { FieldGuideChrome } from "../../components/material/FieldGuideChrome";
-import { FieldGuideCover } from "../../components/material/FieldGuideCover";
-import { PaperSurface } from "../../components/material/PaperSurface";
-import { Stamp } from "../../components/material/Stamp";
-import { StudyCard } from "../../components/material/StudyCard";
+import type { ChallengeCard, AttemptResult, Session } from "../../api/types";
+import { Badge, Button, Input, LinkButton, Notice, PageHeader, Panel, Textarea } from "../../components/ui";
 import {
   academyActivityName,
   academySessionKicker,
@@ -15,20 +12,31 @@ import {
   academyUnavailableCopy,
   canStartAcademyTrack,
 } from "./academyTracks";
+import "./student.css";
+import { ScriptureReader } from "./ScriptureReader";
 
 export function StudyPage() {
+  const { me } = useAuth();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
+  const requestedSessionId = params.get("sessionId");
   const requested = params.get("mode");
   const mode = requested === "Simulation" || requested === "Review" ? requested : "Practice";
   const track = academyTrackForMode(mode);
   const queryClient = useQueryClient();
-  const progress = useQuery({ queryKey: ["progress"], queryFn: () => api.progress() });
+  const selectedSeasonId = params.get("seasonId") || undefined;
+  const progress = useQuery({ queryKey: ["progress", selectedSeasonId, me?.organizationId, me?.userId], queryFn: () => api.progress(selectedSeasonId) });
   const trackReady = progress.isSuccess && canStartAcademyTrack(track, progress.data);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const loadedSession = useRef<string | null>(null);
+  const [sessionSnapshot, setSessionSnapshot] = useState<Session | null>(null);
+  const [restoredAttempt, setRestoredAttempt] = useState<{ cardId: string; result: AttemptResult } | null>(null);
+  const resume = useMutation({ mutationFn: (id: string) => api.resumeSession(id) });
+  const [startRetry, setStartRetry] = useState(0);
   const [answer, setAnswer] = useState("");
   const [chunks, setChunks] = useState<string[]>([]);
   const startedAt = useRef(Date.now());
+  const pendingAttempt = useRef<Parameters<typeof api.submitAttempt>[1] | null>(null);
 
   const start = useMutation({
     mutationFn: (sessionMode: "Practice" | "Review" | "Simulation") =>
@@ -36,10 +44,14 @@ export function StudyPage() {
   });
 
   const card = useQuery({
-    queryKey: ["card", sessionId],
+    queryKey: ["card", sessionId, me?.organizationId, me?.userId],
     queryFn: () => api.nextCard(sessionId!),
     enabled: !!sessionId,
     retry: false,
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   useEffect(() => {
@@ -47,60 +59,89 @@ export function StudyPage() {
       return;
     }
     startedAt.current = Date.now();
+    pendingAttempt.current = readPendingAttempt(sessionId!, card.data.id);
+    submit.reset();
     if (card.data.activityType === "VerseBuilder") {
       const nextChunks = card.data.tokens.map((token) => token.display);
       setChunks(nextChunks);
       setAnswer(nextChunks.join(" "));
     } else {
       setChunks([]);
-      setAnswer("");
+      setAnswer(pendingAttempt.current?.submittedAnswer ?? "");
     }
     // Reset from the newly drawn card identity only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.data?.id]);
 
   const submit = useMutation({
-    mutationFn: () =>
-      api.submitAttempt(sessionId!, {
+    mutationFn: () => {
+      pendingAttempt.current ??= {
         clientSubmissionId: crypto.randomUUID(),
         challengeCardId: card.data!.id,
         submittedAnswer: answer,
         responseTimeMs: Date.now() - startedAt.current,
-        hintsUsed: false,
-      }),
+        hintsUsed: sessionStorage.getItem(`erudoza:attempt:read:${sessionId}:${card.data!.id}`) === "true",
+      };
+      sessionStorage.setItem("erudoza:attempt:" + sessionId, JSON.stringify(pendingAttempt.current));
+      return api.submitAttempt(sessionId!, pendingAttempt.current);
+    },
+    onSuccess: () => {
+      sessionStorage.removeItem("erudoza:attempt:" + sessionId);
+      sessionStorage.removeItem(`erudoza:attempt:read:${sessionId}:${card.data!.id}`);
+    },
   });
 
   const complete = useMutation({
     mutationFn: () => api.completeSession(sessionId!),
     onSuccess: (summary) => {
       void queryClient.invalidateQueries({ queryKey: ["progress"] });
-      navigate("/student/progress", { state: summary });
+      navigate("/student/progress?seasonId=" + encodeURIComponent(progress.data!.seasonId), { state: summary });
     },
   });
 
   useEffect(() => {
+    if (requestedSessionId && loadedSession.current === requestedSessionId) return;
     let cancelled = false;
     setSessionId(null);
+    setSessionSnapshot(null);
+    setRestoredAttempt(null);
     setAnswer("");
     setChunks([]);
-    if (!progress.data?.seasonId || !trackReady) {
-      return;
+    submit.reset();
+    complete.reset();
+    if (requestedSessionId) {
+      void resume.mutateAsync(requestedSessionId).then((saved) => {
+        if (cancelled) return;
+        if (saved.summary) {
+          navigate("/student/progress?seasonId=" + encodeURIComponent(saved.session.seasonId), { state: saved.summary, replace: true });
+          return;
+        }
+        loadedSession.current = saved.session.id;
+        setSessionSnapshot(saved.session);
+        if (saved.card) queryClient.setQueryData(["card", saved.session.id, me?.organizationId, me?.userId], saved.card);
+        if (saved.card && saved.attempt) {
+          setRestoredAttempt({ cardId: saved.card.id, result: saved.attempt });
+          sessionStorage.removeItem("erudoza:attempt:" + saved.session.id);
+        }
+        setSessionId(saved.session.id);
+        setParams({ sessionId: saved.session.id, seasonId: saved.session.seasonId, mode: saved.session.mode }, { replace: true });
+      }).catch(() => {});
+    } else if (progress.data?.seasonId && trackReady) {
+      void start.mutateAsync(mode).then((session) => {
+        if (cancelled) return;
+        loadedSession.current = session.id;
+        setSessionSnapshot(session);
+        setSessionId(session.id);
+        setParams({ sessionId: session.id, seasonId: session.seasonId, mode: session.mode }, { replace: true });
+      }).catch(() => {});
     }
-    void start.mutateAsync(mode).then((session) => {
-      if (cancelled) {
-        return;
-      }
-      setSessionId(session.id);
-      void queryClient.invalidateQueries({ queryKey: ["card"] });
-    });
-    return () => {
-      cancelled = true;
-    };
-    // Start once per honest mode after progress is known; ignore stale starts.
+    return () => { cancelled = true; };
+    // Navigation owns session identity; ignore late replies after switching modes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [progress.data?.seasonId, trackReady, mode]);
+  }, [requestedSessionId, progress.data?.seasonId, trackReady, mode, startRetry]);
 
-  const result = submit.data;
+  const result = submit.data ?? (restoredAttempt?.cardId === card.data?.id ? restoredAttempt?.result : undefined);
+  const accepted = !!result;
   const current = card.data;
 
   const moveChunk = (index: number, direction: -1 | 1) => {
@@ -114,53 +155,43 @@ export function StudyPage() {
     setAnswer(next.join(" "));
   };
 
-  const due = (progress.data?.reviewDueCount ?? 0) > 0;
   const cover = (
-    <FieldGuideCover stamp={due ? <Stamp label="DUE" tone="due" /> : null}>
-      <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="current-season">
-        {progress.data?.seasonName || "Your study section has not been assigned yet."}
-      </p>
-      <p className="mt-4 text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
-        <span data-testid="academy-session-kicker">{academySessionKicker(mode)}</span>
-      </p>
-      {progress.isSuccess && !canStartAcademyTrack(track, progress.data) ? (
-        <p className="mt-4 text-[var(--er-graphite)]" data-testid="academy-track-unavailable">
-          {academyUnavailableCopy(track, progress.data)}
-        </p>
-      ) : null}
-    </FieldGuideCover>
+    <div data-testid="study-page-title"><PageHeader title={current ? academyActivityName(current.activityType) : "Study"}
+      description={<span data-testid="current-season">{progress.isPending ? "Loading your season…" : progress.data?.seasonName || "Your study section has not been assigned yet."}</span>}
+      action={<Badge data-testid="academy-session-kicker">{academySessionKicker(mode)}</Badge>}>
+      {sessionSnapshot?.difficulty && <p>Session difficulty: {sessionSnapshot.difficulty}</p>}
+      {progress.isSuccess && !canStartAcademyTrack(track, progress.data) && <p data-testid="academy-track-unavailable">{academyUnavailableCopy(track, progress.data)}</p>}
+    </PageHeader></div>
   );
 
-  if (progress.isSuccess && !canStartAcademyTrack(track, progress.data)) {
+  if (!requestedSessionId && progress.isSuccess && !canStartAcademyTrack(track, progress.data)) {
     return (
       <div className="er-study-stage space-y-4">
-        <FieldGuideChrome testId="study-field-guide-chrome" />
         {cover}
+        <LinkButton variant="secondary" to={`/student${selectedSeasonId ? `?seasonId=${encodeURIComponent(selectedSeasonId)}` : ""}`}>Back to training</LinkButton>
       </div>
     );
   }
 
   return (
     <div className="er-study-stage space-y-4">
-      <FieldGuideChrome testId="study-field-guide-chrome" />
       {cover}
-      <StudyCard className="er-bible-challenge">
-        <div className="er-challenge-ribbon" data-testid="challenge-ribbon">
-          <img src="/brand/erudoza-mark.png" alt="" width={36} height={36} />
-        </div>
-        <h2 className="er-challenge-title">Bible Challenge</h2>
+      {resume.isError && <Notice tone="danger">Your saved session is unavailable. <Button variant="secondary" onClick={() => setStartRetry((value) => value + 1)}>Retry saved session</Button><Button variant="secondary" onClick={() => { loadedSession.current = null; resume.reset(); setParams({ mode, ...(selectedSeasonId ? { seasonId: selectedSeasonId } : {}) }); }}>Start a new session</Button></Notice>}
+      {(progress.isError || start.isError || card.isError) && <Notice tone="danger">This study session could not load. <Button variant="secondary" onClick={() => { if (progress.isError) void progress.refetch(); else if (start.isError) setStartRetry((value) => value + 1); else void card.refetch(); }}>Try again</Button></Notice>}
+      <Panel className="student-challenge" data-testid="challenge-card">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm uppercase tracking-wide text-[var(--er-muted-ink)]">
+          <p className="text-sm">
             <span data-testid="academy-activity-name">
               {current ? academyActivityName(current.activityType) : "Loading"}
             </span>
             {" · "}
-            {current?.citation ?? "Loading"}
+            {current ? current.citation : "Loading"}
           </p>
           <div className="flex items-center gap-2">
             <p data-testid="card-progress">{current ? `${current.sequence} / ${current.total}` : "…"}</p>
           </div>
         </div>
+        {current && <progress className="training-session-progress" value={current.sequence} max={current.total || 1} aria-label="Study session progress" />}
         <p className="er-scripture mt-6 text-2xl leading-relaxed" data-testid="challenge-prompt">
           {current?.prompt ?? "Drawing today's challenge card…"}
         </p>
@@ -171,55 +202,20 @@ export function StudyPage() {
             chunks={chunks}
             onAnswer={setAnswer}
             onMove={moveChunk}
-            locked={submit.isSuccess}
+            locked={accepted || submit.isPending || submit.isError || !!pendingAttempt.current}
             allowChoices={mode !== "Simulation"}
           />
         ) : null}
+        {pendingAttempt.current && !accepted && <Notice className="mt-4" data-testid="pending-answer"><p className="font-medium">Saved answer awaiting confirmation</p><p className="mt-2 whitespace-pre-wrap">{pendingAttempt.current.submittedAnswer}</p><p className="mt-2 text-sm">Retry sends this exact saved answer.</p></Notice>}
         {current?.debugAnswer ? (
           <p className="sr-only" data-testid="debug-answer">
             {current.debugAnswer}
           </p>
         ) : null}
-        <div className="mt-5 flex flex-wrap gap-3">
-          <button
-            data-testid="submit-answer"
-            type="button"
-            className="rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-5 text-[var(--er-card)]"
-            onClick={() => submit.mutate()}
-            disabled={!current || submit.isPending}
-          >
-            Submit
-          </button>
-          <button
-            data-testid="next-card"
-            type="button"
-            className="rounded-[var(--er-radius-control)] border px-5"
-            onClick={() => {
-              submit.reset();
-              void queryClient.invalidateQueries({ queryKey: ["card", sessionId] });
-            }}
-            disabled={!submit.isSuccess}
-          >
-            Next card
-          </button>
-          <button
-            data-testid="complete-session"
-            type="button"
-            className="rounded-[var(--er-radius-control)] border px-5"
-            onClick={() => complete.mutate()}
-            disabled={!submit.isSuccess}
-          >
-            Finish session
-          </button>
-        </div>
-        <p className="er-challenge-footer" data-testid="challenge-footer">
-          Scripture Memory & Discipleship Field Guide Academy
-        </p>
-      </StudyCard>
       {result ? (
-        <PaperSurface data-testid="challenge-feedback">
-          {result.isCorrect ? <Stamp label="Exact match" tone="mastered" /> : <Stamp label="Needs another pass" tone="review" />}
-          <p className="mt-3 font-medium">{result.isCorrect ? "Exact match." : "This one needs another pass."}</p>
+        <div className="student-feedback" data-testid="challenge-feedback" role="status" aria-live="polite">
+          {result.isCorrect ? <Badge tone="success">Correct</Badge> : <Badge tone="warning">Needs another pass</Badge>}
+          <h2 className="mt-3">{result.isCorrect ? "Well remembered" : "Read it once more"}</h2>
           <p className="mt-2 text-sm" data-testid="feedback-citation">
             {result.citation}
           </p>
@@ -227,10 +223,53 @@ export function StudyPage() {
             {result.sourceText}
           </p>
           <p className="mt-3 text-sm text-[var(--er-success-ink)]" data-testid="mastery-impact">
-            Mastery {result.masteryLevel} · exact wording {result.exactWordingScore}
+            Mastery {result.masteryLevel} · exact wording {result.exactWordingScore} / 100
           </p>
-        </PaperSurface>
+        </div>
       ) : null}
+        <div className="student-study-actions">
+          <Button
+            data-testid="submit-answer"
+            type="button"
+            variant={accepted ? "secondary" : "primary"}
+            size={accepted ? "compact" : "default"}
+            onClick={() => submit.mutate()}
+            disabled={!current || submit.isPending || accepted || !answer.trim()}
+          >
+            {submit.isPending ? "Checking…" : accepted ? "Answer checked" : pendingAttempt.current ? "Retry saved answer" : "Check answer"}
+          </Button>
+          {accepted && current && current.sequence < current.total && <Button
+            data-testid="next-card"
+            type="button"
+            variant={accepted ? "primary" : "secondary"}
+            onClick={() => {
+              void card.refetch();
+            }}
+            disabled={!accepted || complete.isPending || card.isFetching}
+          >
+            {card.isFetching ? "Loading…" : card.isError ? "Retry next card" : "Next card"}
+          </Button>}
+          <Button
+            data-testid="complete-session"
+            type="button"
+            variant={accepted && current?.sequence === current?.total ? "primary" : "ghost"}
+            onClick={() => complete.mutate()}
+            disabled={!accepted || complete.isPending}
+          >
+            {complete.isPending ? "Finishing…" : "Finish session"}
+          </Button>
+        </div>
+        {(submit.isError || complete.isError) && <p role="alert">{submit.isError ? "Your answer could not be saved. Please try again." : "The session could not be finished. Please try again."}</p>}
+      </Panel>
+      {current && sessionSnapshot && mode !== "Simulation" && <ScriptureReader
+        key={sessionSnapshot.seasonId}
+        seasonId={sessionSnapshot.seasonId}
+        citation={current.citation}
+        onRead={() => {
+          if (!accepted && !submit.isPending && pendingAttempt.current?.challengeCardId !== current.id)
+            sessionStorage.setItem(`erudoza:attempt:read:${sessionId}:${current.id}`, "true");
+        }}
+      />}
     </div>
   );
 }
@@ -255,16 +294,16 @@ function ChallengeInput({
   if (card.activityType === "VerseBuilder") {
     return (
       <div className="mt-6 space-y-2" aria-label="Verse builder">
-        <p className="text-sm font-medium">Use the buttons to place each phrase. Drag is not required.</p>
+        <p className="text-sm font-medium">Put the phrases in order using Up and Down.</p>
         {chunks.map((chunk, index) => (
-          <div key={`${chunk}-${index}`} className="flex items-center gap-2">
-            <p className="er-scripture flex-1 rounded-[var(--er-radius-control)] border bg-white px-3 py-2">{chunk}</p>
-            <button type="button" className="rounded-[var(--er-radius-control)] border px-3" onClick={() => onMove(index, -1)} disabled={locked || index === 0} aria-label={`Move phrase ${index + 1} up`}>
+          <div key={`${chunk}-${index}`} className="student-builder-row">
+            <p className="er-scripture student-builder-phrase">{chunk}</p>
+            <Button type="button" size="compact" variant="secondary" onClick={() => onMove(index, -1)} disabled={locked || index === 0} aria-label={`Move phrase ${index + 1} up`}>
               Up
-            </button>
-            <button type="button" className="rounded-[var(--er-radius-control)] border px-3" onClick={() => onMove(index, 1)} disabled={locked || index === chunks.length - 1} aria-label={`Move phrase ${index + 1} down`}>
+            </Button>
+            <Button type="button" size="compact" variant="secondary" onClick={() => onMove(index, 1)} disabled={locked || index === chunks.length - 1} aria-label={`Move phrase ${index + 1} down`}>
               Down
-            </button>
+            </Button>
           </div>
         ))}
       </div>
@@ -275,16 +314,17 @@ function ChallengeInput({
     return (
       <div className="mt-6 flex flex-wrap gap-3" aria-label="True or false">
         {["True", "False"].map((choice) => (
-          <button
+          <Button
             key={choice}
             type="button"
             data-testid={`true-false-${choice.toLowerCase()}`}
-            className={`rounded-[var(--er-radius-control)] border px-5 ${answer === choice ? "bg-[var(--er-ink-navy)] text-[var(--er-card)]" : ""}`}
+            variant={answer === choice ? "primary" : "secondary"}
+            aria-pressed={answer === choice}
             onClick={() => onAnswer(choice)}
             disabled={locked}
           >
             {choice}
-          </button>
+          </Button>
         ))}
       </div>
     );
@@ -296,8 +336,8 @@ function ChallengeInput({
         <legend className="text-sm font-medium">Choose the reference</legend>
         <div className="mt-3 space-y-2">
           {card.choices.map((choice) => (
-            <label key={choice} className="flex items-center gap-3">
-              <input type="radio" name="reference" value={choice} checked={answer === choice} onChange={() => onAnswer(choice)} disabled={locked} />
+            <label key={choice} className="student-answer-choice">
+              <Input type="radio" name="reference" value={choice} checked={answer === choice} onChange={() => onAnswer(choice)} disabled={locked} />
               <span>{choice}</span>
             </label>
           ))}
@@ -312,16 +352,36 @@ function ChallengeInput({
         ? "Type the next verse"
         : card.activityType === "ReferenceMatch"
           ? "Type the reference"
-          : card.activityType === "ShortAnswer"
-            ? "Type the short answer"
-            : "Type the missing phrase"}
-      <input
+          : card.activityType === "MissingWords"
+            ? "Type the missing phrase"
+            : "Type your answer"}
+      {card.activityType === "ReferenceMatch" ? <Input
         data-testid="missing-words-answer"
-        className="mt-2 w-full rounded-[var(--er-radius-control)] border border-[var(--er-border)] bg-white px-3"
+        className="mt-2 w-full"
         value={answer}
+        placeholder="Book chapter:verse"
+        autoComplete="off"
         onChange={(event) => onAnswer(event.target.value)}
-        disabled={!card || locked}
-      />
+        disabled={locked}
+      /> : <Textarea
+        data-testid="missing-words-answer"
+        className="mt-2 w-full"
+        rows={card.activityType === "WhatComesNext" ? 4 : 3}
+        value={answer}
+        autoComplete="off"
+        spellCheck={false}
+        onChange={(event) => onAnswer(event.target.value)}
+        disabled={locked}
+      />}
     </label>
   );
+}
+
+function readPendingAttempt(sessionId: string, cardId: string): Parameters<typeof api.submitAttempt>[1] | null {
+  try {
+    const stored = sessionStorage.getItem("erudoza:attempt:" + sessionId);
+    if (!stored) return null;
+    const value = JSON.parse(stored) as Parameters<typeof api.submitAttempt>[1];
+    return value.challengeCardId === cardId && typeof value.clientSubmissionId === "string" && typeof value.submittedAnswer === "string" ? value : null;
+  } catch { return null; }
 }

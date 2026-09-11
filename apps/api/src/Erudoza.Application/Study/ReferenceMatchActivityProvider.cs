@@ -13,17 +13,24 @@ public sealed class ReferenceMatchActivityProvider(IClock clock) : IActivityProv
         && request.RuleProfile.AllowsActivity(
             request.Context.Mode,
             ActivityType,
-            isMultipleChoice: request.Context.Mode == StudyMode.Practice);
+            isMultipleChoice: UseChoices(request));
+
+    private static bool UseChoices(ActivityRequest request) =>
+        request.Difficulty < 5
+        && (request.DistractorCitations?.Any(citation => citation != request.SourceUnit.CitationLabel) ?? false)
+        && (request.Context.Mode == StudyMode.Simulation
+            ? request.RuleProfile.SimulationAllowMultipleChoice
+            : request.RuleProfile.StudyAllowMultipleChoice);
 
     public Task<ChallengeCard> CreateAsync(ActivityRequest request, CancellationToken cancellationToken)
     {
         var seed = MissingWordsGenerator.StableSeed(request.SourceUnit.Id, request.Context.SessionId, request.Sequence);
-        var allowChoices = request.Context.Mode == StudyMode.Practice && request.RuleProfile.StudyAllowMultipleChoice;
+        var allowChoices = UseChoices(request);
         var generated = ReferenceMatchGenerator.Create(
             request.SourceUnit,
             request.DistractorCitations ?? [],
             seed,
-            allowChoices);
+            allowChoices, request.Difficulty);
         return Task.FromResult(new ChallengeCard
         {
             Id = Guid.NewGuid(),

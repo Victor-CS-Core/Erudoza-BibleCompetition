@@ -1,0 +1,1705 @@
+{
+  "sourceFile": "KJVtext.pdf",
+  "sourceSha256": "054f5da38def88f1dfab9cee7f24488308f4a9cde414f500a53ff31dfb961361",
+  "extractionVersion": 2,
+  "pdfPages": 921,
+  "bookCount": 66,
+  "verseCount": 31102,
+  "discretionaryHyphensRemoved": {
+    "LEV:4:22": [
+      "command-ments",
+      "commandments"
+    ],
+    "2KI:21:11": [
+      "abomina-tions",
+      "abominations"
+    ],
+    "EPH:2:11": [
+      "Uncircumci-sion",
+      "Uncircumcision"
+    ]
+  },
+  "headings": [
+    {
+      "bookKey": "GEN",
+      "chapter": 1,
+      "page": 5,
+      "kind": "book-title",
+      "text": "The First Book of Moses, called Genesis"
+    },
+    {
+      "bookKey": "EXO",
+      "chapter": 1,
+      "page": 48,
+      "kind": "book-title",
+      "text": "The Second Book of Moses, called Exodus"
+    },
+    {
+      "bookKey": "LEV",
+      "chapter": 1,
+      "page": 84,
+      "kind": "book-title",
+      "text": "The Third Book of Moses, called Leviticus"
+    },
+    {
+      "bookKey": "NUM",
+      "chapter": 1,
+      "page": 110,
+      "kind": "book-title",
+      "text": "The Fourth Book of Moses, called Numbers"
+    },
+    {
+      "bookKey": "DEU",
+      "chapter": 1,
+      "page": 146,
+      "kind": "book-title",
+      "text": "The Fifth Book of Moses, called Deuteronomy"
+    },
+    {
+      "bookKey": "JOS",
+      "chapter": 1,
+      "page": 177,
+      "kind": "book-title",
+      "text": "The Book of Joshua"
+    },
+    {
+      "bookKey": "JDG",
+      "chapter": 1,
+      "page": 198,
+      "kind": "book-title",
+      "text": "The Book of Judges"
+    },
+    {
+      "bookKey": "RUT",
+      "chapter": 1,
+      "page": 220,
+      "kind": "book-title",
+      "text": "The Book of Ruth"
+    },
+    {
+      "bookKey": "1SA",
+      "chapter": 1,
+      "page": 223,
+      "kind": "book-title",
+      "text": "The First Book of Samuel Otherwise Called the First Book of the"
+    },
+    {
+      "bookKey": "1SA",
+      "chapter": 1,
+      "page": 223,
+      "kind": "book-title",
+      "text": "Kings"
+    },
+    {
+      "bookKey": "2SA",
+      "chapter": 1,
+      "page": 251,
+      "kind": "book-title",
+      "text": "The Second Book of Samuel Otherwise Called the Second Book of"
+    },
+    {
+      "bookKey": "2SA",
+      "chapter": 1,
+      "page": 251,
+      "kind": "book-title",
+      "text": "the Kings"
+    },
+    {
+      "bookKey": "1KI",
+      "chapter": 1,
+      "page": 274,
+      "kind": "book-title",
+      "text": "The First Book of the Kings"
+    },
+    {
+      "bookKey": "1KI",
+      "chapter": 1,
+      "page": 274,
+      "kind": "chapter-heading",
+      "text": "Commonly Called the Third Book of the Kings"
+    },
+    {
+      "bookKey": "2KI",
+      "chapter": 1,
+      "page": 301,
+      "kind": "book-title",
+      "text": "The Second Book of the Kings"
+    },
+    {
+      "bookKey": "2KI",
+      "chapter": 1,
+      "page": 301,
+      "kind": "chapter-heading",
+      "text": "Commonly Called the Fourth Book of the Kings"
+    },
+    {
+      "bookKey": "1CH",
+      "chapter": 1,
+      "page": 327,
+      "kind": "book-title",
+      "text": "The First Book of the Chronicles"
+    },
+    {
+      "bookKey": "2CH",
+      "chapter": 1,
+      "page": 351,
+      "kind": "book-title",
+      "text": "The Second Book of the Chronicles"
+    },
+    {
+      "bookKey": "EZR",
+      "chapter": 1,
+      "page": 381,
+      "kind": "book-title",
+      "text": "Ezra"
+    },
+    {
+      "bookKey": "NEH",
+      "chapter": 1,
+      "page": 390,
+      "kind": "book-title",
+      "text": "The Book of Nehemiah"
+    },
+    {
+      "bookKey": "EST",
+      "chapter": 1,
+      "page": 402,
+      "kind": "book-title",
+      "text": "The Book of Esther"
+    },
+    {
+      "bookKey": "JOB",
+      "chapter": 1,
+      "page": 409,
+      "kind": "book-title",
+      "text": "The Book of Job"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 1,
+      "page": 432,
+      "kind": "book-title",
+      "text": "The Book of Psalms"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 3,
+      "page": 432,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David, when he fled from Absalom his son."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 4,
+      "page": 432,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician on Neginoth, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 5,
+      "page": 433,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Nehiloth, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 6,
+      "page": 433,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician on Neginoth upon Sheminith, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 7,
+      "page": 433,
+      "kind": "chapter-heading",
+      "text": "Shiggaion of David, which he sang unto the LORD, concerning the words of Cush the Benjamite."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 8,
+      "page": 434,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Gittith, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 9,
+      "page": 434,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Muthlabben, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 11,
+      "page": 435,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 12,
+      "page": 436,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Sheminith, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 13,
+      "page": 436,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 14,
+      "page": 436,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 15,
+      "page": 436,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 16,
+      "page": 437,
+      "kind": "chapter-heading",
+      "text": "Michtam of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 17,
+      "page": 437,
+      "kind": "chapter-heading",
+      "text": "A Prayer of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 18,
+      "page": 438,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David, the servant of the LORD, who spake unto the LORD the words"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 18,
+      "page": 438,
+      "kind": "chapter-heading",
+      "text": "of this song in the day that the LORD delivered him from the hand of all his enemies, and from the"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 18,
+      "page": 438,
+      "kind": "chapter-heading",
+      "text": "hand of Saul: And he said,"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 19,
+      "page": 439,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 20,
+      "page": 439,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 21,
+      "page": 440,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 22,
+      "page": 440,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Aijeleth Shahar, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 23,
+      "page": 441,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 24,
+      "page": 441,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 25,
+      "page": 442,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 26,
+      "page": 442,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 27,
+      "page": 442,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 28,
+      "page": 443,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 29,
+      "page": 443,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 30,
+      "page": 444,
+      "kind": "chapter-heading",
+      "text": "A Psalm and Song at the dedication of the house of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 31,
+      "page": 444,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 32,
+      "page": 445,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David, Maschil."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 34,
+      "page": 446,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David, when he changed his behaviour before Abimelech; who drove him away, and he"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 34,
+      "page": 446,
+      "kind": "chapter-heading",
+      "text": "departed."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 35,
+      "page": 446,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 36,
+      "page": 447,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David the servant of the LORD."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 37,
+      "page": 448,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 38,
+      "page": 449,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David, to bring to remembrance."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 39,
+      "page": 449,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, even to Jeduthun, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 40,
+      "page": 450,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 41,
+      "page": 450,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 42,
+      "page": 451,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, Maschil, for the sons of Korah."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 44,
+      "page": 451,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician for the sons of Korah, Maschil."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 45,
+      "page": 452,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Shoshannim, for the sons of Korah, Maschil, A Song of loves."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 46,
+      "page": 453,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician for the sons of Korah, A Song upon Alamoth."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 47,
+      "page": 453,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm for the sons of Korah."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 48,
+      "page": 453,
+      "kind": "chapter-heading",
+      "text": "A Song and Psalm for the sons of Korah."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 49,
+      "page": 454,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm for the sons of Korah."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 50,
+      "page": 454,
+      "kind": "chapter-heading",
+      "text": "A Psalm of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 51,
+      "page": 455,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David, when Nathan the prophet came unto him, after he had gone"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 51,
+      "page": 455,
+      "kind": "chapter-heading",
+      "text": "in to Bath-sheba."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 52,
+      "page": 455,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, Maschil, A Psalm of David, when Doeg the Edomite came and told Saul, and said"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 52,
+      "page": 455,
+      "kind": "chapter-heading",
+      "text": "unto him, David is come to the house of Ahimelech."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 53,
+      "page": 456,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Mahalath, Maschil, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 54,
+      "page": 456,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician on Neginoth, Maschil, A Psalm of David, when the Ziphims came and said to Saul,"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 54,
+      "page": 456,
+      "kind": "chapter-heading",
+      "text": "Doth not David hide himself with us?"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 55,
+      "page": 456,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician on Neginoth, Maschil, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 56,
+      "page": 457,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Jonath-elem-rechokim, Michtam of David, when the Philistines took him"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 56,
+      "page": 457,
+      "kind": "chapter-heading",
+      "text": "in Gath."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 57,
+      "page": 457,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, Al-taschith, Michtam of David, when he fled from Saul in the cave."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 58,
+      "page": 458,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, Al-taschith, Michtam of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 59,
+      "page": 458,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, Al-taschith, Michtam of David; when Saul sent, and they watched the house to"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 59,
+      "page": 458,
+      "kind": "chapter-heading",
+      "text": "kill him."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 60,
+      "page": 459,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Shushan-eduth, Michtam of David, to teach; when he strove with Aram-"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 60,
+      "page": 459,
+      "kind": "chapter-heading",
+      "text": "naharaim and with Aram-zobah, when Joab returned, and smote of Edom in the valley of salt twelve"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 60,
+      "page": 459,
+      "kind": "chapter-heading",
+      "text": "thousand."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 61,
+      "page": 459,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Neginah, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 62,
+      "page": 459,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, to Jeduthun, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 63,
+      "page": 460,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David, when he was in the wilderness of Judah."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 64,
+      "page": 460,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 65,
+      "page": 460,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm and Song of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 66,
+      "page": 461,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Song or Psalm."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 67,
+      "page": 461,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician on Neginoth, A Psalm or Song."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 68,
+      "page": 461,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm or Song of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 69,
+      "page": 463,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Shoshannim, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 70,
+      "page": 464,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David, to bring to remembrance."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 72,
+      "page": 464,
+      "kind": "chapter-heading",
+      "text": "A Psalm for Solomon."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 73,
+      "page": 465,
+      "kind": "chapter-heading",
+      "text": "A Psalm of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 74,
+      "page": 466,
+      "kind": "chapter-heading",
+      "text": "Maschil of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 75,
+      "page": 466,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, Al-taschith, A Psalm or Song of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 76,
+      "page": 467,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician on Neginoth, A Psalm or Song of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 77,
+      "page": 467,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, to Jeduthun, A Psalm of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 78,
+      "page": 468,
+      "kind": "chapter-heading",
+      "text": "Maschil of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 79,
+      "page": 469,
+      "kind": "chapter-heading",
+      "text": "A Psalm of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 80,
+      "page": 470,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Shoshannim-eduth, A Psalm of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 81,
+      "page": 470,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Gittith, A Psalm of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 82,
+      "page": 471,
+      "kind": "chapter-heading",
+      "text": "A Psalm of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 83,
+      "page": 471,
+      "kind": "chapter-heading",
+      "text": "A Song or Psalm of Asaph."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 84,
+      "page": 471,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician upon Gittith, A Psalm for the sons of Korah."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 85,
+      "page": 472,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm for the sons of Korah."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 86,
+      "page": 472,
+      "kind": "chapter-heading",
+      "text": "A Prayer of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 87,
+      "page": 473,
+      "kind": "chapter-heading",
+      "text": "A Psalm or Song for the sons of Korah."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 88,
+      "page": 473,
+      "kind": "chapter-heading",
+      "text": "A Song or Psalm for the sons of Korah, to the chief Musician upon Mahalath Leannoth, Maschil of"
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 88,
+      "page": 473,
+      "kind": "chapter-heading",
+      "text": "Heman the Ezrahite."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 89,
+      "page": 473,
+      "kind": "chapter-heading",
+      "text": "Maschil of Ethan the Ezrahite."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 90,
+      "page": 475,
+      "kind": "chapter-heading",
+      "text": "A Prayer of Moses the man of God."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 92,
+      "page": 476,
+      "kind": "chapter-heading",
+      "text": "A Psalm or Song for the sabbath day."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 98,
+      "page": 478,
+      "kind": "chapter-heading",
+      "text": "A Psalm."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 100,
+      "page": 478,
+      "kind": "chapter-heading",
+      "text": "A Psalm of praise."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 101,
+      "page": 478,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 102,
+      "page": 479,
+      "kind": "chapter-heading",
+      "text": "A Prayer of the afflicted, when he is overwhelmed, and poureth out his complaint before the LORD."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 103,
+      "page": 479,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 108,
+      "page": 484,
+      "kind": "chapter-heading",
+      "text": "A Song or Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 109,
+      "page": 484,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 110,
+      "page": 485,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 1,
+      "page": 488,
+      "kind": "acrostic-heading",
+      "text": "א ALEPH."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 9,
+      "page": 488,
+      "kind": "acrostic-heading",
+      "text": "ב BETH."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 17,
+      "page": 488,
+      "kind": "acrostic-heading",
+      "text": "ג GIMEL."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 25,
+      "page": 489,
+      "kind": "acrostic-heading",
+      "text": "ד DALETH."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 33,
+      "page": 489,
+      "kind": "acrostic-heading",
+      "text": "ה HE."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 41,
+      "page": 489,
+      "kind": "acrostic-heading",
+      "text": "ו VAU."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 49,
+      "page": 489,
+      "kind": "acrostic-heading",
+      "text": "ז ZAIN."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 57,
+      "page": 489,
+      "kind": "acrostic-heading",
+      "text": "ח CHETH."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 65,
+      "page": 490,
+      "kind": "acrostic-heading",
+      "text": "ט TETH."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 73,
+      "page": 490,
+      "kind": "acrostic-heading",
+      "text": "י JOD."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 81,
+      "page": 490,
+      "kind": "acrostic-heading",
+      "text": "כ CAPH."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 89,
+      "page": 490,
+      "kind": "acrostic-heading",
+      "text": "ל LAMED."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 97,
+      "page": 490,
+      "kind": "acrostic-heading",
+      "text": "מ MEM."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 105,
+      "page": 491,
+      "kind": "acrostic-heading",
+      "text": "נ NUN."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 113,
+      "page": 491,
+      "kind": "acrostic-heading",
+      "text": "ס SAMECH."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 121,
+      "page": 491,
+      "kind": "acrostic-heading",
+      "text": "ע AIN."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 129,
+      "page": 491,
+      "kind": "acrostic-heading",
+      "text": "פ PE."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 137,
+      "page": 491,
+      "kind": "acrostic-heading",
+      "text": "צ TZADDI."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 145,
+      "page": 492,
+      "kind": "acrostic-heading",
+      "text": "ק KOPH."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 153,
+      "page": 492,
+      "kind": "acrostic-heading",
+      "text": "ר RESH."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 161,
+      "page": 492,
+      "kind": "acrostic-heading",
+      "text": "ש SCHIN."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 119,
+      "beforeVerse": 169,
+      "page": 492,
+      "kind": "acrostic-heading",
+      "text": "ת TAU."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 120,
+      "page": 492,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 121,
+      "page": 493,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 122,
+      "page": 493,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 123,
+      "page": 493,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 124,
+      "page": 493,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 125,
+      "page": 494,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 126,
+      "page": 494,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 127,
+      "page": 494,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees for Solomon."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 128,
+      "page": 494,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 129,
+      "page": 494,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 130,
+      "page": 495,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 131,
+      "page": 495,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 132,
+      "page": 495,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 133,
+      "page": 495,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 134,
+      "page": 496,
+      "kind": "chapter-heading",
+      "text": "A Song of degrees."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 138,
+      "page": 497,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 139,
+      "page": 497,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 140,
+      "page": 498,
+      "kind": "chapter-heading",
+      "text": "To the chief Musician, A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 141,
+      "page": 498,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 142,
+      "page": 499,
+      "kind": "chapter-heading",
+      "text": "Maschil of David; A Prayer when he was in the cave."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 143,
+      "page": 499,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 144,
+      "page": 499,
+      "kind": "chapter-heading",
+      "text": "A Psalm of David."
+    },
+    {
+      "bookKey": "PSA",
+      "chapter": 145,
+      "page": 500,
+      "kind": "chapter-heading",
+      "text": "David’s Psalm of praise."
+    },
+    {
+      "bookKey": "PRO",
+      "chapter": 1,
+      "page": 503,
+      "kind": "book-title",
+      "text": "The Proverbs"
+    },
+    {
+      "bookKey": "ECC",
+      "chapter": 1,
+      "page": 522,
+      "kind": "book-title",
+      "text": "Ecclesiastes or, the Preacher"
+    },
+    {
+      "bookKey": "SNG",
+      "chapter": 1,
+      "page": 529,
+      "kind": "book-title",
+      "text": "The Song of Solomon"
+    },
+    {
+      "bookKey": "ISA",
+      "chapter": 1,
+      "page": 533,
+      "kind": "book-title",
+      "text": "The Book of the Prophet Isaiah"
+    },
+    {
+      "bookKey": "JER",
+      "chapter": 1,
+      "page": 576,
+      "kind": "book-title",
+      "text": "The Book of the Prophet Jeremiah"
+    },
+    {
+      "bookKey": "LAM",
+      "chapter": 1,
+      "page": 623,
+      "kind": "book-title",
+      "text": "The Lamentations of Jeremiah"
+    },
+    {
+      "bookKey": "EZK",
+      "chapter": 1,
+      "page": 627,
+      "kind": "book-title",
+      "text": "The Book of the Prophet Ezekiel"
+    },
+    {
+      "bookKey": "DAN",
+      "chapter": 1,
+      "page": 670,
+      "kind": "book-title",
+      "text": "The Book of Daniel"
+    },
+    {
+      "bookKey": "HOS",
+      "chapter": 1,
+      "page": 684,
+      "kind": "book-title",
+      "text": "Hosea"
+    },
+    {
+      "bookKey": "JOL",
+      "chapter": 1,
+      "page": 691,
+      "kind": "book-title",
+      "text": "Joel"
+    },
+    {
+      "bookKey": "AMO",
+      "chapter": 1,
+      "page": 694,
+      "kind": "book-title",
+      "text": "Amos"
+    },
+    {
+      "bookKey": "OBA",
+      "chapter": 1,
+      "page": 699,
+      "kind": "book-title",
+      "text": "Obadiah"
+    },
+    {
+      "bookKey": "JON",
+      "chapter": 1,
+      "page": 700,
+      "kind": "book-title",
+      "text": "Jonah"
+    },
+    {
+      "bookKey": "MIC",
+      "chapter": 1,
+      "page": 702,
+      "kind": "book-title",
+      "text": "Micah"
+    },
+    {
+      "bookKey": "NAM",
+      "chapter": 1,
+      "page": 706,
+      "kind": "book-title",
+      "text": "Nahum"
+    },
+    {
+      "bookKey": "HAB",
+      "chapter": 1,
+      "page": 708,
+      "kind": "book-title",
+      "text": "Habakkuk"
+    },
+    {
+      "bookKey": "ZEP",
+      "chapter": 1,
+      "page": 711,
+      "kind": "book-title",
+      "text": "Zephaniah"
+    },
+    {
+      "bookKey": "HAG",
+      "chapter": 1,
+      "page": 713,
+      "kind": "book-title",
+      "text": "Haggai"
+    },
+    {
+      "bookKey": "ZEC",
+      "chapter": 1,
+      "page": 715,
+      "kind": "book-title",
+      "text": "Zechariah"
+    },
+    {
+      "bookKey": "MAL",
+      "chapter": 1,
+      "page": 723,
+      "kind": "book-title",
+      "text": "Malachi"
+    },
+    {
+      "bookKey": "MAT",
+      "chapter": 1,
+      "page": 726,
+      "kind": "book-title",
+      "text": "THE GOSPEL ACCORDING TO ST. MATTHEW"
+    },
+    {
+      "bookKey": "MRK",
+      "chapter": 1,
+      "page": 750,
+      "kind": "book-title",
+      "text": "THE GOSPEL ACCORDING TO ST. MARK"
+    },
+    {
+      "bookKey": "LUK",
+      "chapter": 1,
+      "page": 765,
+      "kind": "book-title",
+      "text": "THE GOSPEL ACCORDING TO ST. LUKE"
+    },
+    {
+      "bookKey": "JHN",
+      "chapter": 1,
+      "page": 791,
+      "kind": "book-title",
+      "text": "THE GOSPEL ACCORDING TO ST. JOHN"
+    },
+    {
+      "bookKey": "ACT",
+      "chapter": 1,
+      "page": 810,
+      "kind": "book-title",
+      "text": "THE ACTS OF THE APOSTLES"
+    },
+    {
+      "bookKey": "ROM",
+      "chapter": 1,
+      "page": 835,
+      "kind": "book-title",
+      "text": "THE EPISTLE OF PAUL THE APOSTLE TO THE ROMANS"
+    },
+    {
+      "bookKey": "ROM",
+      "chapter": 16,
+      "page": 844,
+      "kind": "subscription",
+      "text": "Written to the Romans from Corinthus, and sent by Phebe servant of the church at Cenchrea."
+    },
+    {
+      "bookKey": "1CO",
+      "chapter": 1,
+      "page": 845,
+      "kind": "book-title",
+      "text": "THE FIRST EPISTLE OF PAUL THE APOSTLE TO THE CORINTHIANS"
+    },
+    {
+      "bookKey": "1CO",
+      "chapter": 16,
+      "page": 854,
+      "kind": "subscription",
+      "text": "The first epistle to the Corinthians was written from Philippi by Stephanas, and Fortunatus, and Achaicus,"
+    },
+    {
+      "bookKey": "1CO",
+      "chapter": 16,
+      "page": 854,
+      "kind": "subscription",
+      "text": "and Timotheus."
+    },
+    {
+      "bookKey": "2CO",
+      "chapter": 1,
+      "page": 855,
+      "kind": "book-title",
+      "text": "THE SECOND EPISTLE OF PAUL THE APOSTLE TO THE CORINTHIANS"
+    },
+    {
+      "bookKey": "2CO",
+      "chapter": 13,
+      "page": 861,
+      "kind": "subscription",
+      "text": "The second epistle to the Corinthians was written from Philippi, a city of Macedonia, by Titus and Lucas."
+    },
+    {
+      "bookKey": "GAL",
+      "chapter": 1,
+      "page": 862,
+      "kind": "book-title",
+      "text": "THE EPISTLE OF PAUL THE APOSTLE TO THE GALATIANS"
+    },
+    {
+      "bookKey": "GAL",
+      "chapter": 6,
+      "page": 865,
+      "kind": "subscription",
+      "text": "Unto the Galatians written from Rome."
+    },
+    {
+      "bookKey": "EPH",
+      "chapter": 1,
+      "page": 866,
+      "kind": "book-title",
+      "text": "THE EPISTLE OF PAUL THE APOSTLE TO THE EPHESIANS"
+    },
+    {
+      "bookKey": "EPH",
+      "chapter": 6,
+      "page": 869,
+      "kind": "subscription",
+      "text": "Written from Rome unto the Ephesians by Tychicus."
+    },
+    {
+      "bookKey": "PHP",
+      "chapter": 1,
+      "page": 870,
+      "kind": "book-title",
+      "text": "THE EPISTLE OF PAUL THE APOSTLE TO THE PHILIPPIANS"
+    },
+    {
+      "bookKey": "PHP",
+      "chapter": 4,
+      "page": 872,
+      "kind": "subscription",
+      "text": "It was written to the Philippians from Rome by Epaphroditus."
+    },
+    {
+      "bookKey": "COL",
+      "chapter": 1,
+      "page": 873,
+      "kind": "book-title",
+      "text": "THE EPISTLE OF PAUL THE APOSTLE TO THE COLOSSIANS"
+    },
+    {
+      "bookKey": "COL",
+      "chapter": 4,
+      "page": 875,
+      "kind": "subscription",
+      "text": "Written from Rome to the Colossians by Tychicus and Onesimus."
+    },
+    {
+      "bookKey": "1TH",
+      "chapter": 1,
+      "page": 876,
+      "kind": "book-title",
+      "text": "THE FIRST EPISTLE OF PAUL THE APOSTLE TO THE"
+    },
+    {
+      "bookKey": "1TH",
+      "chapter": 1,
+      "page": 876,
+      "kind": "book-title",
+      "text": "THESSALONIANS"
+    },
+    {
+      "bookKey": "1TH",
+      "chapter": 5,
+      "page": 877,
+      "kind": "subscription",
+      "text": "The first epistle unto the Thessalonians was written from Athens."
+    },
+    {
+      "bookKey": "2TH",
+      "chapter": 1,
+      "page": 878,
+      "kind": "book-title",
+      "text": "THE SECOND EPISTLE OF PAUL THE APOSTLE TO THE"
+    },
+    {
+      "bookKey": "2TH",
+      "chapter": 1,
+      "page": 878,
+      "kind": "book-title",
+      "text": "THESSALONIANS"
+    },
+    {
+      "bookKey": "2TH",
+      "chapter": 3,
+      "page": 879,
+      "kind": "subscription",
+      "text": "The second epistle to the Thessalonians was written from Athens."
+    },
+    {
+      "bookKey": "1TI",
+      "chapter": 1,
+      "page": 880,
+      "kind": "book-title",
+      "text": "THE FIRST EPISTLE OF PAUL THE APOSTLE TO TIMOTHY"
+    },
+    {
+      "bookKey": "1TI",
+      "chapter": 6,
+      "page": 882,
+      "kind": "subscription",
+      "text": "The first to Timothy was written from Laodicea, which is the chiefest city of Phrygia Pacatiana."
+    },
+    {
+      "bookKey": "2TI",
+      "chapter": 1,
+      "page": 883,
+      "kind": "book-title",
+      "text": "THE SECOND EPISTLE OF PAUL THE APOSTLE TO TIMOTHY"
+    },
+    {
+      "bookKey": "2TI",
+      "chapter": 4,
+      "page": 884,
+      "kind": "subscription",
+      "text": "The second epistle unto Timotheus, ordained the first bishop of the church of the Ephesians, was written from"
+    },
+    {
+      "bookKey": "2TI",
+      "chapter": 4,
+      "page": 884,
+      "kind": "subscription",
+      "text": "Rome, when Paul was brought before Nero the second time."
+    },
+    {
+      "bookKey": "TIT",
+      "chapter": 1,
+      "page": 885,
+      "kind": "book-title",
+      "text": "THE EPISTLE OF PAUL THE APOSTLE TO TITUS"
+    },
+    {
+      "bookKey": "TIT",
+      "chapter": 3,
+      "page": 886,
+      "kind": "subscription",
+      "text": "It was written to Titus, ordained the first bishop of the church of the Cretians, from Nicopolis of Macedonia."
+    },
+    {
+      "bookKey": "PHM",
+      "chapter": 1,
+      "page": 887,
+      "kind": "book-title",
+      "text": "THE EPISTLE OF PAUL THE APOSTLE TO PHILEMON"
+    },
+    {
+      "bookKey": "PHM",
+      "chapter": 1,
+      "page": 887,
+      "kind": "subscription",
+      "text": "Written from Rome to Philemon, by Onesimus, a servant."
+    },
+    {
+      "bookKey": "HEB",
+      "chapter": 1,
+      "page": 888,
+      "kind": "book-title",
+      "text": "THE EPISTLE OF PAUL THE APOSTLE TO THE HEBREWS"
+    },
+    {
+      "bookKey": "HEB",
+      "chapter": 13,
+      "page": 895,
+      "kind": "subscription",
+      "text": "Written to the Hebrews from Italy by Timothy."
+    },
+    {
+      "bookKey": "JAS",
+      "chapter": 1,
+      "page": 896,
+      "kind": "book-title",
+      "text": "THE GENERAL EPISTLE OF JAMES"
+    },
+    {
+      "bookKey": "1PE",
+      "chapter": 1,
+      "page": 899,
+      "kind": "book-title",
+      "text": "THE FIRST EPISTLE GENERAL OF PETER"
+    },
+    {
+      "bookKey": "2PE",
+      "chapter": 1,
+      "page": 902,
+      "kind": "book-title",
+      "text": "THE SECOND EPISTLE GENERAL OF PETER"
+    },
+    {
+      "bookKey": "1JN",
+      "chapter": 1,
+      "page": 904,
+      "kind": "book-title",
+      "text": "THE FIRST EPISTLE GENERAL OF JOHN"
+    },
+    {
+      "bookKey": "2JN",
+      "chapter": 1,
+      "page": 907,
+      "kind": "book-title",
+      "text": "THE SECOND EPISTLE OF JOHN"
+    },
+    {
+      "bookKey": "3JN",
+      "chapter": 1,
+      "page": 908,
+      "kind": "book-title",
+      "text": "THE THIRD EPISTLE OF JOHN"
+    },
+    {
+      "bookKey": "JUD",
+      "chapter": 1,
+      "page": 909,
+      "kind": "book-title",
+      "text": "THE GENERAL EPISTLE OF JUDE"
+    },
+    {
+      "bookKey": "REV",
+      "chapter": 1,
+      "page": 910,
+      "kind": "book-title",
+      "text": "THE REVELATION OF ST. JOHN THE DIVINE"
+    }
+  ]
+}

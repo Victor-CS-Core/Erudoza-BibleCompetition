@@ -19,7 +19,7 @@ public sealed class VerseBuilderActivityProvider(IClock clock) : IActivityProvid
     public Task<ChallengeCard> CreateAsync(ActivityRequest request, CancellationToken cancellationToken)
     {
         var seed = MissingWordsGenerator.StableSeed(request.SourceUnit.Id, request.Context.SessionId, request.Sequence);
-        var generated = VerseBuilderGenerator.Create(request.SourceUnit, seed);
+        var generated = VerseBuilderGenerator.Create(request.SourceUnit, seed, request.Difficulty);
         return Task.FromResult(new ChallengeCard
         {
             Id = Guid.NewGuid(),

@@ -10,6 +10,7 @@ public sealed class ContentPack
     public SourceType SourceType { get; set; } = SourceType.Scripture;
     public string LicensingStatus { get; set; } = "development-sample";
     public bool IsActive { get; set; } = true;
+    public bool IsBuiltIn { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
 
     public Organization? Organization { get; set; }

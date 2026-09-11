@@ -33,17 +33,39 @@ public sealed class MasteryService(IErudozaDbContext db, IClock clock) : IMaster
             db.MasteryStates.Add(state);
         }
 
-        var updated = ScaffoldMasteryRules.Apply(
-            new MasteryScores(
+        var priorScores = new MasteryScores(
                 state.RecognitionScore,
                 state.ExactWordingScore,
                 state.ReferenceScore,
                 state.SequenceScore,
                 state.FactualRecallScore,
-                state.Level),
+                state.Level);
+        if (state.AlgorithmVersion != ScaffoldMasteryRules.AlgorithmVersion)
+        {
+            // Historic scaffold totals included recognition as exact recall. Rebuild from
+            // persisted evidence on first new attempt, preserving the original attempts.
+            priorScores = new MasteryScores(0, 0, 0, 0, 0, MasteryLevel.Unseen);
+            var history = await db.Attempts.AsNoTracking().Include(item => item.ChallengeCard)
+                .Where(item => item.OrganizationId == attempt.OrganizationId
+                    && item.StudentUserId == attempt.StudentUserId && item.SeasonId == attempt.SeasonId
+                    && item.KnowledgeUnitId == attempt.KnowledgeUnitId && !item.IsLegacyDuplicate).ToListAsync(cancellationToken);
+            foreach (var evidence in history.OrderBy(item => item.CreatedAtUtc).ThenBy(item => item.Id))
+            {
+                // Old sequence cards identified the prompt as the scoring target.
+                // Preserve that record, but do not infer answer evidence it never stored.
+                if (evidence.ActivityType == "WhatComesNext" && evidence.ChallengeCard?.AnswerSourceUnitId is null)
+                    continue;
+                priorScores = ScaffoldMasteryRules.Apply(priorScores, evidence.IsCorrect, evidence.HintsUsed,
+                    evidence.ActivityType, evidence.ChallengeCard?.AnswerMode ?? AnswerMode.SelectedChoice,
+                    evidence.ChallengeCard is { } historicalCard ? ActivitySerialization.ReadPayload(historicalCard.PayloadJson).Difficulty : 1);
+            }
+        }
+        var updated = ScaffoldMasteryRules.Apply(priorScores,
             attempt.IsCorrect,
             attempt.HintsUsed,
-            attempt.ActivityType);
+            attempt.ActivityType,
+            attempt.AnswerMode,
+            attempt.Difficulty);
 
         state.RecognitionScore = updated.Recognition;
         state.ExactWordingScore = updated.ExactWording;

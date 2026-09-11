@@ -1,0 +1,2438 @@
+{
+  "packKey": "builtin-nkjv-heb",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Hebrews",
+      "units": [
+        {
+          "citation": "Hebrews 1:1",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 29965,
+          "text": "God, who at various times and in various ways spoke in time past to the fathers by the prophets,"
+        },
+        {
+          "citation": "Hebrews 1:2",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 29966,
+          "text": "has in these last days spoken to us by His Son, whom He has appointed heir of all things, through whom also He made the worlds;"
+        },
+        {
+          "citation": "Hebrews 1:3",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 29967,
+          "text": "who being the brightness of His glory and the express image of His person, and upholding all things by the word of His power, when He had by Himself purged our sins, sat down at the right hand of the Majesty on high,"
+        },
+        {
+          "citation": "Hebrews 1:4",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 29968,
+          "text": "having become so much better than the angels, as He has by inheritance obtained a more excellent name than they."
+        },
+        {
+          "citation": "Hebrews 1:5",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 29969,
+          "text": "For to which of the angels did He ever say: \"You are My Son, Today I have begotten You\"? And again: \"I will be to Him a Father, And He shall be to Me a Son\"?"
+        },
+        {
+          "citation": "Hebrews 1:6",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 29970,
+          "text": "But when He again brings the firstborn into the world, He says: \"Let all the angels of God worship Him.\""
+        },
+        {
+          "citation": "Hebrews 1:7",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 29971,
+          "text": "And of the angels He says: \"Who makes His angels spirits And His ministers a flame of fire.\""
+        },
+        {
+          "citation": "Hebrews 1:8",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 29972,
+          "text": "But to the Son He says: \"Your throne, O God, is forever and ever; A scepter of righteousness is the scepter of Your kingdom."
+        },
+        {
+          "citation": "Hebrews 1:9",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 29973,
+          "text": "You have loved righteousness and hated lawlessness; Therefore God, Your God, has anointed You With the oil of gladness more than Your companions.\""
+        },
+        {
+          "citation": "Hebrews 1:10",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 29974,
+          "text": "And: \"You, LORD, in the beginning laid the foundation of the earth, And the heavens are the work of Your hands."
+        },
+        {
+          "citation": "Hebrews 1:11",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 29975,
+          "text": "They will perish, but You remain; And they will all grow old like a garment;"
+        },
+        {
+          "citation": "Hebrews 1:12",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 29976,
+          "text": "Like a cloak You will fold them up, And they will be changed. But You are the same, And Your years will not fail.\""
+        },
+        {
+          "citation": "Hebrews 1:13",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 29977,
+          "text": "But to which of the angels has He ever said: \"Sit at My right hand, Till I make Your enemies Your footstool\"?"
+        },
+        {
+          "citation": "Hebrews 1:14",
+          "bookKey": "HEB",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 29978,
+          "text": "Are they not all ministering spirits sent forth to minister for those who will inherit salvation?"
+        },
+        {
+          "citation": "Hebrews 2:1",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 29979,
+          "text": "Therefore we must give the more earnest heed to the things we have heard, lest we drift away."
+        },
+        {
+          "citation": "Hebrews 2:2",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 29980,
+          "text": "For if the word spoken through angels proved steadfast, and every transgression and disobedience received a just reward,"
+        },
+        {
+          "citation": "Hebrews 2:3",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 29981,
+          "text": "how shall we escape if we neglect so great a salvation, which at the first began to be spoken by the Lord, and was confirmed to us by those who heard Him,"
+        },
+        {
+          "citation": "Hebrews 2:4",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 29982,
+          "text": "God also bearing witness both with signs and wonders, with various miracles, and gifts of the Holy Spirit, according to His own will?"
+        },
+        {
+          "citation": "Hebrews 2:5",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 29983,
+          "text": "For He has not put the world to come, of which we speak, in subjection to angels."
+        },
+        {
+          "citation": "Hebrews 2:6",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 29984,
+          "text": "But one testified in a certain place, saying: \"What is man that You are mindful of him, Or the son of man that You take care of him?"
+        },
+        {
+          "citation": "Hebrews 2:7",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 29985,
+          "text": "You have made him a little lower than the angels; You have crowned him with glory and honor, And set him over the works of Your hands."
+        },
+        {
+          "citation": "Hebrews 2:8",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 29986,
+          "text": "You have put all things in subjection under his feet.\" For in that He put all in subjection under him, He left nothing that is not put under him. But now we do not yet see all things put under him."
+        },
+        {
+          "citation": "Hebrews 2:9",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 29987,
+          "text": "But we see Jesus, who was made a little lower than the angels, for the suffering of death crowned with glory and honor, that He, by the grace of God, might taste death for everyone."
+        },
+        {
+          "citation": "Hebrews 2:10",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 29988,
+          "text": "For it was fitting for Him, for whom are all things and by whom are all things, in bringing many sons to glory, to make the captain of their salvation perfect through sufferings."
+        },
+        {
+          "citation": "Hebrews 2:11",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 29989,
+          "text": "For both He who sanctifies and those who are being sanctified are all of one, for which reason He is not ashamed to call them brethren,"
+        },
+        {
+          "citation": "Hebrews 2:12",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 29990,
+          "text": "saying: \"I will declare Your name to My brethren; In the midst of the assembly I will sing praise to You.\""
+        },
+        {
+          "citation": "Hebrews 2:13",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 29991,
+          "text": "And again: \"I will put My trust in Him.\" And again: \"Here am I and the children whom God has given Me.\""
+        },
+        {
+          "citation": "Hebrews 2:14",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 29992,
+          "text": "Inasmuch then as the children have partaken of flesh and blood, He Himself likewise shared in the same, that through death He might destroy him who had the power of death, that is, the devil,"
+        },
+        {
+          "citation": "Hebrews 2:15",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 29993,
+          "text": "and release those who through fear of death were all their lifetime subject to bondage."
+        },
+        {
+          "citation": "Hebrews 2:16",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 29994,
+          "text": "For indeed He does not give aid to angels, but He does give aid to the seed of Abraham."
+        },
+        {
+          "citation": "Hebrews 2:17",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 29995,
+          "text": "Therefore, in all things He had to be made like His brethren, that He might be a merciful and faithful High Priest in things pertaining to God, to make propitiation for the sins of the people."
+        },
+        {
+          "citation": "Hebrews 2:18",
+          "bookKey": "HEB",
+          "chapter": 2,
+          "verse": 18,
+          "ordinal": 29996,
+          "text": "For in that He Himself has suffered, being tempted, He is able to aid those who are tempted."
+        },
+        {
+          "citation": "Hebrews 3:1",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 29997,
+          "text": "Therefore, holy brethren, partakers of the heavenly calling, consider the Apostle and High Priest of our confession, Christ Jesus,"
+        },
+        {
+          "citation": "Hebrews 3:2",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 29998,
+          "text": "who was faithful to Him who appointed Him, as Moses also was faithful in all His house."
+        },
+        {
+          "citation": "Hebrews 3:3",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 29999,
+          "text": "For this One has been counted worthy of more glory than Moses, inasmuch as He who built the house has more honor than the house."
+        },
+        {
+          "citation": "Hebrews 3:4",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 30000,
+          "text": "For every house is built by someone, but He who built all things is God."
+        },
+        {
+          "citation": "Hebrews 3:5",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 30001,
+          "text": "And Moses indeed was faithful in all His house as a servant, for a testimony of those things which would be spoken afterward,"
+        },
+        {
+          "citation": "Hebrews 3:6",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 30002,
+          "text": "but Christ as a Son over His own house, whose house we are if we hold fast the confidence and the rejoicing of the hope firm to the end."
+        },
+        {
+          "citation": "Hebrews 3:7",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 30003,
+          "text": "Therefore, as the Holy Spirit says: \"Today, if you will hear His voice,"
+        },
+        {
+          "citation": "Hebrews 3:8",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 30004,
+          "text": "Do not harden your hearts as in the rebellion, In the day of trial in the wilderness,"
+        },
+        {
+          "citation": "Hebrews 3:9",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 30005,
+          "text": "Where your fathers tested Me, tried Me, And saw My works forty years."
+        },
+        {
+          "citation": "Hebrews 3:10",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 30006,
+          "text": "Therefore I was angry with that generation, And said, \"They always go astray in their heart, And they have not known My ways.'"
+        },
+        {
+          "citation": "Hebrews 3:11",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 30007,
+          "text": "So I swore in My wrath, \"They shall not enter My rest.\"'"
+        },
+        {
+          "citation": "Hebrews 3:12",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 30008,
+          "text": "Beware, brethren, lest there be in any of you an evil heart of unbelief in departing from the living God;"
+        },
+        {
+          "citation": "Hebrews 3:13",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 30009,
+          "text": "but exhort one another daily, while it is called \"Today,\" lest any of you be hardened through the deceitfulness of sin."
+        },
+        {
+          "citation": "Hebrews 3:14",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 30010,
+          "text": "For we have become partakers of Christ if we hold the beginning of our confidence steadfast to the end,"
+        },
+        {
+          "citation": "Hebrews 3:15",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 30011,
+          "text": "while it is said: \"Today, if you will hear His voice, Do not harden your hearts as in the rebellion.\""
+        },
+        {
+          "citation": "Hebrews 3:16",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 30012,
+          "text": "For who, having heard, rebelled? Indeed, was it not all who came out of Egypt, led by Moses?"
+        },
+        {
+          "citation": "Hebrews 3:17",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 30013,
+          "text": "Now with whom was He angry forty years? Was it not with those who sinned, whose corpses fell in the wilderness?"
+        },
+        {
+          "citation": "Hebrews 3:18",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 30014,
+          "text": "And to whom did He swear that they would not enter His rest, but to those who did not obey?"
+        },
+        {
+          "citation": "Hebrews 3:19",
+          "bookKey": "HEB",
+          "chapter": 3,
+          "verse": 19,
+          "ordinal": 30015,
+          "text": "So we see that they could not enter in because of unbelief."
+        },
+        {
+          "citation": "Hebrews 4:1",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 30016,
+          "text": "Therefore, since a promise remains of entering His rest, let us fear lest any of you seem to have come short of it."
+        },
+        {
+          "citation": "Hebrews 4:2",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 30017,
+          "text": "For indeed the gospel was preached to us as well as to them; but the word which they heard did not profit them, not being mixed with faith in those who heard it."
+        },
+        {
+          "citation": "Hebrews 4:3",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 30018,
+          "text": "For we who have believed do enter that rest, as He has said: \"So I swore in My wrath, \"They shall not enter My rest,\"' although the works were finished from the foundation of the world."
+        },
+        {
+          "citation": "Hebrews 4:4",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 30019,
+          "text": "For He has spoken in a certain place of the seventh day in this way: \"And God rested on the seventh day from all His works\";"
+        },
+        {
+          "citation": "Hebrews 4:5",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 30020,
+          "text": "and again in this place: \"They shall not enter My rest.\""
+        },
+        {
+          "citation": "Hebrews 4:6",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 30021,
+          "text": "Since therefore it remains that some must enter it, and those to whom it was first preached did not enter because of disobedience,"
+        },
+        {
+          "citation": "Hebrews 4:7",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 30022,
+          "text": "again He designates a certain day, saying in David, \"Today,\" after such a long time, as it has been said: \"Today, if you will hear His voice, Do not harden your hearts.\""
+        },
+        {
+          "citation": "Hebrews 4:8",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 30023,
+          "text": "For if Joshua had given them rest, then He would not afterward have spoken of another day."
+        },
+        {
+          "citation": "Hebrews 4:9",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 30024,
+          "text": "There remains therefore a rest for the people of God."
+        },
+        {
+          "citation": "Hebrews 4:10",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 30025,
+          "text": "For he who has entered His rest has himself also ceased from his works as God did from His."
+        },
+        {
+          "citation": "Hebrews 4:11",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 30026,
+          "text": "Let us therefore be diligent to enter that rest, lest anyone fall according to the same example of disobedience."
+        },
+        {
+          "citation": "Hebrews 4:12",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 30027,
+          "text": "For the word of God is living and powerful, and sharper than any two-edged sword, piercing even to the division of soul and spirit, and of joints and marrow, and is a discerner of the thoughts and intents of the heart."
+        },
+        {
+          "citation": "Hebrews 4:13",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 30028,
+          "text": "And there is no creature hidden from His sight, but all things are naked and open to the eyes of Him to whom we must give account."
+        },
+        {
+          "citation": "Hebrews 4:14",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 30029,
+          "text": "Seeing then that we have a great High Priest who has passed through the heavens, Jesus the Son of God, let us hold fast our confession."
+        },
+        {
+          "citation": "Hebrews 4:15",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 30030,
+          "text": "For we do not have a High Priest who cannot sympathize with our weaknesses, but was in all points tempted as we are, yet without sin."
+        },
+        {
+          "citation": "Hebrews 4:16",
+          "bookKey": "HEB",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 30031,
+          "text": "Let us therefore come boldly to the throne of grace, that we may obtain mercy and find grace to help in time of need."
+        },
+        {
+          "citation": "Hebrews 5:1",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 30032,
+          "text": "For every high priest taken from among men is appointed for men in things pertaining to God, that he may offer both gifts and sacrifices for sins."
+        },
+        {
+          "citation": "Hebrews 5:2",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 30033,
+          "text": "He can have compassion on those who are ignorant and going astray, since he himself is also subject to weakness."
+        },
+        {
+          "citation": "Hebrews 5:3",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 30034,
+          "text": "Because of this he is required as for the people, so also for himself, to offer sacrifices for sins."
+        },
+        {
+          "citation": "Hebrews 5:4",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 30035,
+          "text": "And no man takes this honor to himself, but he who is called by God, just as Aaron was."
+        },
+        {
+          "citation": "Hebrews 5:5",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 30036,
+          "text": "So also Christ did not glorify Himself to become High Priest, but it was He who said to Him: \"You are My Son, Today I have begotten You.\""
+        },
+        {
+          "citation": "Hebrews 5:6",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 30037,
+          "text": "As He also says in another place: \"You are a priest forever According to the order of Melchizedek\";"
+        },
+        {
+          "citation": "Hebrews 5:7",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 30038,
+          "text": "who, in the days of His flesh, when He had offered up prayers and supplications, with vehement cries and tears to Him who was able to save Him from death, and was heard because of His godly fear,"
+        },
+        {
+          "citation": "Hebrews 5:8",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 30039,
+          "text": "though He was a Son, yet He learned obedience by the things which He suffered."
+        },
+        {
+          "citation": "Hebrews 5:9",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 30040,
+          "text": "And having been perfected, He became the author of eternal salvation to all who obey Him,"
+        },
+        {
+          "citation": "Hebrews 5:10",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 30041,
+          "text": "called by God as High Priest \"according to the order of Melchizedek,\""
+        },
+        {
+          "citation": "Hebrews 5:11",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 30042,
+          "text": "of whom we have much to say, and hard to explain, since you have become dull of hearing."
+        },
+        {
+          "citation": "Hebrews 5:12",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 30043,
+          "text": "For though by this time you ought to be teachers, you need someone to teach you again the first principles of the oracles of God; and you have come to need milk and not solid food."
+        },
+        {
+          "citation": "Hebrews 5:13",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 30044,
+          "text": "For everyone who partakes only of milk is unskilled in the word of righteousness, for he is a babe."
+        },
+        {
+          "citation": "Hebrews 5:14",
+          "bookKey": "HEB",
+          "chapter": 5,
+          "verse": 14,
+          "ordinal": 30045,
+          "text": "But solid food belongs to those who are of full age, that is, those who by reason of use have their senses exercised to discern both good and evil."
+        },
+        {
+          "citation": "Hebrews 6:1",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 30046,
+          "text": "Therefore, leaving the discussion of the elementary principles of Christ, let us go on to perfection, not laying again the foundation of repentance from dead works and of faith toward God,"
+        },
+        {
+          "citation": "Hebrews 6:2",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 30047,
+          "text": "of the doctrine of baptisms, of laying on of hands, of resurrection of the dead, and of eternal judgment."
+        },
+        {
+          "citation": "Hebrews 6:3",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 30048,
+          "text": "And this we will do if God permits."
+        },
+        {
+          "citation": "Hebrews 6:4",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 30049,
+          "text": "For it is impossible for those who were once enlightened, and have tasted the heavenly gift, and have become partakers of the Holy Spirit,"
+        },
+        {
+          "citation": "Hebrews 6:5",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 30050,
+          "text": "and have tasted the good word of God and the powers of the age to come,"
+        },
+        {
+          "citation": "Hebrews 6:6",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 30051,
+          "text": "if they fall away, to renew them again to repentance, since they crucify again for themselves the Son of God, and put Him to an open shame."
+        },
+        {
+          "citation": "Hebrews 6:7",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 30052,
+          "text": "For the earth which drinks in the rain that often comes upon it, and bears herbs useful for those by whom it is cultivated, receives blessing from God;"
+        },
+        {
+          "citation": "Hebrews 6:8",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 30053,
+          "text": "but if it bears thorns and briers, it is rejected and near to being cursed, whose end is to be burned."
+        },
+        {
+          "citation": "Hebrews 6:9",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 30054,
+          "text": "But, beloved, we are confident of better things concerning you, yes, things that accompany salvation, though we speak in this manner."
+        },
+        {
+          "citation": "Hebrews 6:10",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 30055,
+          "text": "For God is not unjust to forget your work and labor of love which you have shown toward His name, in that you have ministered to the saints, and do minister."
+        },
+        {
+          "citation": "Hebrews 6:11",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 30056,
+          "text": "And we desire that each one of you show the same diligence to the full assurance of hope until the end,"
+        },
+        {
+          "citation": "Hebrews 6:12",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 30057,
+          "text": "that you do not become sluggish, but imitate those who through faith and patience inherit the promises."
+        },
+        {
+          "citation": "Hebrews 6:13",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 13,
+          "ordinal": 30058,
+          "text": "For when God made a promise to Abraham, because He could swear by no one greater, He swore by Himself,"
+        },
+        {
+          "citation": "Hebrews 6:14",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 14,
+          "ordinal": 30059,
+          "text": "saying, \"Surely blessing I will bless you, and multiplying I will multiply you.\""
+        },
+        {
+          "citation": "Hebrews 6:15",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 15,
+          "ordinal": 30060,
+          "text": "And so, after he had patiently endured, he obtained the promise."
+        },
+        {
+          "citation": "Hebrews 6:16",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 16,
+          "ordinal": 30061,
+          "text": "For men indeed swear by the greater, and an oath for confirmation is for them an end of all dispute."
+        },
+        {
+          "citation": "Hebrews 6:17",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 17,
+          "ordinal": 30062,
+          "text": "Thus God, determining to show more abundantly to the heirs of promise the immutability of His counsel, confirmed it by an oath,"
+        },
+        {
+          "citation": "Hebrews 6:18",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 18,
+          "ordinal": 30063,
+          "text": "that by two immutable things, in which it is impossible for God to lie, we might have strong consolation, who have fled for refuge to lay hold of the hope set before us."
+        },
+        {
+          "citation": "Hebrews 6:19",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 19,
+          "ordinal": 30064,
+          "text": "This hope we have as an anchor of the soul, both sure and steadfast, and which enters the Presence behind the veil,"
+        },
+        {
+          "citation": "Hebrews 6:20",
+          "bookKey": "HEB",
+          "chapter": 6,
+          "verse": 20,
+          "ordinal": 30065,
+          "text": "where the forerunner has entered for us, even Jesus, having become High Priest forever according to the order of Melchizedek."
+        },
+        {
+          "citation": "Hebrews 7:1",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 1,
+          "ordinal": 30066,
+          "text": "For this Melchizedek, king of Salem, priest of the Most High God, who met Abraham returning from the slaughter of the kings and blessed him,"
+        },
+        {
+          "citation": "Hebrews 7:2",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 2,
+          "ordinal": 30067,
+          "text": "to whom also Abraham gave a tenth part of all, first being translated \"king of righteousness,\" and then also king of Salem, meaning \"king of peace,\""
+        },
+        {
+          "citation": "Hebrews 7:3",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 3,
+          "ordinal": 30068,
+          "text": "without father, without mother, without genealogy, having neither beginning of days nor end of life, but made like the Son of God, remains a priest continually."
+        },
+        {
+          "citation": "Hebrews 7:4",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 4,
+          "ordinal": 30069,
+          "text": "Now consider how great this man was, to whom even the patriarch Abraham gave a tenth of the spoils."
+        },
+        {
+          "citation": "Hebrews 7:5",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 5,
+          "ordinal": 30070,
+          "text": "And indeed those who are of the sons of Levi, who receive the priesthood, have a commandment to receive tithes from the people according to the law, that is, from their brethren, though they have come from the loins of Abraham;"
+        },
+        {
+          "citation": "Hebrews 7:6",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 6,
+          "ordinal": 30071,
+          "text": "but he whose genealogy is not derived from them received tithes from Abraham and blessed him who had the promises."
+        },
+        {
+          "citation": "Hebrews 7:7",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 7,
+          "ordinal": 30072,
+          "text": "Now beyond all contradiction the lesser is blessed by the better."
+        },
+        {
+          "citation": "Hebrews 7:8",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 8,
+          "ordinal": 30073,
+          "text": "Here mortal men receive tithes, but there he receives them, of whom it is witnessed that he lives."
+        },
+        {
+          "citation": "Hebrews 7:9",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 9,
+          "ordinal": 30074,
+          "text": "Even Levi, who receives tithes, paid tithes through Abraham, so to speak,"
+        },
+        {
+          "citation": "Hebrews 7:10",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 10,
+          "ordinal": 30075,
+          "text": "for he was still in the loins of his father when Melchizedek met him."
+        },
+        {
+          "citation": "Hebrews 7:11",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 11,
+          "ordinal": 30076,
+          "text": "Therefore, if perfection were through the Levitical priesthood (for under it the people received the law), what further need was there that another priest should rise according to the order of Melchizedek, and not be called according to the order of Aaron?"
+        },
+        {
+          "citation": "Hebrews 7:12",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 12,
+          "ordinal": 30077,
+          "text": "For the priesthood being changed, of necessity there is also a change of the law."
+        },
+        {
+          "citation": "Hebrews 7:13",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 13,
+          "ordinal": 30078,
+          "text": "For He of whom these things are spoken belongs to another tribe, from which no man has officiated at the altar."
+        },
+        {
+          "citation": "Hebrews 7:14",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 14,
+          "ordinal": 30079,
+          "text": "For it is evident that our Lord arose from Judah, of which tribe Moses spoke nothing concerning priesthood."
+        },
+        {
+          "citation": "Hebrews 7:15",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 15,
+          "ordinal": 30080,
+          "text": "And it is yet far more evident if, in the likeness of Melchizedek, there arises another priest"
+        },
+        {
+          "citation": "Hebrews 7:16",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 16,
+          "ordinal": 30081,
+          "text": "who has come, not according to the law of a fleshly commandment, but according to the power of an endless life."
+        },
+        {
+          "citation": "Hebrews 7:17",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 17,
+          "ordinal": 30082,
+          "text": "For He testifies: \"You are a priest forever According to the order of Melchizedek.\""
+        },
+        {
+          "citation": "Hebrews 7:18",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 18,
+          "ordinal": 30083,
+          "text": "For on the one hand there is an annulling of the former commandment because of its weakness and unprofitableness,"
+        },
+        {
+          "citation": "Hebrews 7:19",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 19,
+          "ordinal": 30084,
+          "text": "for the law made nothing perfect; on the other hand, there is the bringing in of a better hope, through which we draw near to God."
+        },
+        {
+          "citation": "Hebrews 7:20",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 20,
+          "ordinal": 30085,
+          "text": "And inasmuch as He was not made priest without an oath"
+        },
+        {
+          "citation": "Hebrews 7:21",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 21,
+          "ordinal": 30086,
+          "text": "(for they have become priests without an oath, but He with an oath by Him who said to Him: \"The LORD has sworn And will not relent, \"You are a priest forever According to the order of Melchizedek\"'),"
+        },
+        {
+          "citation": "Hebrews 7:22",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 22,
+          "ordinal": 30087,
+          "text": "by so much more Jesus has become a surety of a better covenant."
+        },
+        {
+          "citation": "Hebrews 7:23",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 23,
+          "ordinal": 30088,
+          "text": "Also there were many priests, because they were prevented by death from continuing."
+        },
+        {
+          "citation": "Hebrews 7:24",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 24,
+          "ordinal": 30089,
+          "text": "But He, because He continues forever, has an unchangeable priesthood."
+        },
+        {
+          "citation": "Hebrews 7:25",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 25,
+          "ordinal": 30090,
+          "text": "Therefore He is also able to save to the uttermost those who come to God through Him, since He always lives to make intercession for them."
+        },
+        {
+          "citation": "Hebrews 7:26",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 26,
+          "ordinal": 30091,
+          "text": "For such a High Priest was fitting for us, who is holy, harmless, undefiled, separate from sinners, and has become higher than the heavens;"
+        },
+        {
+          "citation": "Hebrews 7:27",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 27,
+          "ordinal": 30092,
+          "text": "who does not need daily, as those high priests, to offer up sacrifices, first for His own sins and then for the people's, for this He did once for all when He offered up Himself."
+        },
+        {
+          "citation": "Hebrews 7:28",
+          "bookKey": "HEB",
+          "chapter": 7,
+          "verse": 28,
+          "ordinal": 30093,
+          "text": "For the law appoints as high priests men who have weakness, but the word of the oath, which came after the law, appoints the Son who has been perfected forever."
+        },
+        {
+          "citation": "Hebrews 8:1",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 1,
+          "ordinal": 30094,
+          "text": "Now this is the main point of the things we are saying: We have such a High Priest, who is seated at the right hand of the throne of the Majesty in the heavens,"
+        },
+        {
+          "citation": "Hebrews 8:2",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 2,
+          "ordinal": 30095,
+          "text": "a Minister of the sanctuary and of the true tabernacle which the Lord erected, and not man."
+        },
+        {
+          "citation": "Hebrews 8:3",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 3,
+          "ordinal": 30096,
+          "text": "For every high priest is appointed to offer both gifts and sacrifices. Therefore it is necessary that this One also have something to offer."
+        },
+        {
+          "citation": "Hebrews 8:4",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 4,
+          "ordinal": 30097,
+          "text": "For if He were on earth, He would not be a priest, since there are priests who offer the gifts according to the law;"
+        },
+        {
+          "citation": "Hebrews 8:5",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 5,
+          "ordinal": 30098,
+          "text": "who serve the copy and shadow of the heavenly things, as Moses was divinely instructed when he was about to make the tabernacle. For He said, \"See that you make all things according to the pattern shown you on the mountain.\""
+        },
+        {
+          "citation": "Hebrews 8:6",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 6,
+          "ordinal": 30099,
+          "text": "But now He has obtained a more excellent ministry, inasmuch as He is also Mediator of a better covenant, which was established on better promises."
+        },
+        {
+          "citation": "Hebrews 8:7",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 7,
+          "ordinal": 30100,
+          "text": "For if that first covenant had been faultless, then no place would have been sought for a second."
+        },
+        {
+          "citation": "Hebrews 8:8",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 8,
+          "ordinal": 30101,
+          "text": "Because finding fault with them, He says: \"Behold, the days are coming, says the LORD, when I will make a new covenant with the house of Israel and with the house of Judah--"
+        },
+        {
+          "citation": "Hebrews 8:9",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 9,
+          "ordinal": 30102,
+          "text": "not according to the covenant that I made with their fathers in the day when I took them by the hand to lead them out of the land of Egypt; because they did not continue in My covenant, and I disregarded them, says the LORD."
+        },
+        {
+          "citation": "Hebrews 8:10",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 10,
+          "ordinal": 30103,
+          "text": "For this is the covenant that I will make with the house of Israel after those days, says the LORD: I will put My laws in their mind and write them on their hearts; and I will be their God, and they shall be My people."
+        },
+        {
+          "citation": "Hebrews 8:11",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 11,
+          "ordinal": 30104,
+          "text": "None of them shall teach his neighbor, and none his brother, saying, \"Know the LORD,' for all shall know Me, from the least of them to the greatest of them."
+        },
+        {
+          "citation": "Hebrews 8:12",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 12,
+          "ordinal": 30105,
+          "text": "For I will be merciful to their unrighteousness, and their sins and their lawless deeds I will remember no more.\""
+        },
+        {
+          "citation": "Hebrews 8:13",
+          "bookKey": "HEB",
+          "chapter": 8,
+          "verse": 13,
+          "ordinal": 30106,
+          "text": "In that He says, \"A new covenant,\" He has made the first obsolete. Now what is becoming obsolete and growing old is ready to vanish away."
+        },
+        {
+          "citation": "Hebrews 9:1",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 1,
+          "ordinal": 30107,
+          "text": "Then indeed, even the first covenant had ordinances of divine service and the earthly sanctuary."
+        },
+        {
+          "citation": "Hebrews 9:2",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 2,
+          "ordinal": 30108,
+          "text": "For a tabernacle was prepared: the first part, in which was the lampstand, the table, and the showbread, which is called the sanctuary;"
+        },
+        {
+          "citation": "Hebrews 9:3",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 3,
+          "ordinal": 30109,
+          "text": "and behind the second veil, the part of the tabernacle which is called the Holiest of All,"
+        },
+        {
+          "citation": "Hebrews 9:4",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 4,
+          "ordinal": 30110,
+          "text": "which had the golden censer and the ark of the covenant overlaid on all sides with gold, in which were the golden pot that had the manna, Aaron's rod that budded, and the tablets of the covenant;"
+        },
+        {
+          "citation": "Hebrews 9:5",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 5,
+          "ordinal": 30111,
+          "text": "and above it were the cherubim of glory overshadowing the mercy seat. Of these things we cannot now speak in detail."
+        },
+        {
+          "citation": "Hebrews 9:6",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 6,
+          "ordinal": 30112,
+          "text": "Now when these things had been thus prepared, the priests always went into the first part of the tabernacle, performing the services."
+        },
+        {
+          "citation": "Hebrews 9:7",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 7,
+          "ordinal": 30113,
+          "text": "But into the second part the high priest went alone once a year, not without blood, which he offered for himself and for the people's sins committed in ignorance;"
+        },
+        {
+          "citation": "Hebrews 9:8",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 8,
+          "ordinal": 30114,
+          "text": "the Holy Spirit indicating this, that the way into the Holiest of All was not yet made manifest while the first tabernacle was still standing."
+        },
+        {
+          "citation": "Hebrews 9:9",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 9,
+          "ordinal": 30115,
+          "text": "It was symbolic for the present time in which both gifts and sacrifices are offered which cannot make him who performed the service perfect in regard to the conscience--"
+        },
+        {
+          "citation": "Hebrews 9:10",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 10,
+          "ordinal": 30116,
+          "text": "concerned only with foods and drinks, various washings, and fleshly ordinances imposed until the time of reformation."
+        },
+        {
+          "citation": "Hebrews 9:11",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 11,
+          "ordinal": 30117,
+          "text": "But Christ came as High Priest of the good things to come, with the greater and more perfect tabernacle not made with hands, that is, not of this creation."
+        },
+        {
+          "citation": "Hebrews 9:12",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 12,
+          "ordinal": 30118,
+          "text": "Not with the blood of goats and calves, but with His own blood He entered the Most Holy Place once for all, having obtained eternal redemption."
+        },
+        {
+          "citation": "Hebrews 9:13",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 13,
+          "ordinal": 30119,
+          "text": "For if the blood of bulls and goats and the ashes of a heifer, sprinkling the unclean, sanctifies for the purifying of the flesh,"
+        },
+        {
+          "citation": "Hebrews 9:14",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 14,
+          "ordinal": 30120,
+          "text": "how much more shall the blood of Christ, who through the eternal Spirit offered Himself without spot to God, cleanse your conscience from dead works to serve the living God?"
+        },
+        {
+          "citation": "Hebrews 9:15",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 15,
+          "ordinal": 30121,
+          "text": "And for this reason He is the Mediator of the new covenant, by means of death, for the redemption of the transgressions under the first covenant, that those who are called may receive the promise of the eternal inheritance."
+        },
+        {
+          "citation": "Hebrews 9:16",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 16,
+          "ordinal": 30122,
+          "text": "For where there is a testament, there must also of necessity be the death of the testator."
+        },
+        {
+          "citation": "Hebrews 9:17",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 17,
+          "ordinal": 30123,
+          "text": "For a testament is in force after men are dead, since it has no power at all while the testator lives."
+        },
+        {
+          "citation": "Hebrews 9:18",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 18,
+          "ordinal": 30124,
+          "text": "Therefore not even the first covenant was dedicated without blood."
+        },
+        {
+          "citation": "Hebrews 9:19",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 19,
+          "ordinal": 30125,
+          "text": "For when Moses had spoken every precept to all the people according to the law, he took the blood of calves and goats, with water, scarlet wool, and hyssop, and sprinkled both the book itself and all the people,"
+        },
+        {
+          "citation": "Hebrews 9:20",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 20,
+          "ordinal": 30126,
+          "text": "saying, \"This is the blood of the covenant which God has commanded you.\""
+        },
+        {
+          "citation": "Hebrews 9:21",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 21,
+          "ordinal": 30127,
+          "text": "Then likewise he sprinkled with blood both the tabernacle and all the vessels of the ministry."
+        },
+        {
+          "citation": "Hebrews 9:22",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 22,
+          "ordinal": 30128,
+          "text": "And according to the law almost all things are purified with blood, and without shedding of blood there is no remission."
+        },
+        {
+          "citation": "Hebrews 9:23",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 23,
+          "ordinal": 30129,
+          "text": "Therefore it was necessary that the copies of the things in the heavens should be purified with these, but the heavenly things themselves with better sacrifices than these."
+        },
+        {
+          "citation": "Hebrews 9:24",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 24,
+          "ordinal": 30130,
+          "text": "For Christ has not entered the holy places made with hands, which are copies of the true, but into heaven itself, now to appear in the presence of God for us;"
+        },
+        {
+          "citation": "Hebrews 9:25",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 25,
+          "ordinal": 30131,
+          "text": "not that He should offer Himself often, as the high priest enters the Most Holy Place every year with blood of another--"
+        },
+        {
+          "citation": "Hebrews 9:26",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 26,
+          "ordinal": 30132,
+          "text": "He then would have had to suffer often since the foundation of the world; but now, once at the end of the ages, He has appeared to put away sin by the sacrifice of Himself."
+        },
+        {
+          "citation": "Hebrews 9:27",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 27,
+          "ordinal": 30133,
+          "text": "And as it is appointed for men to die once, but after this the judgment,"
+        },
+        {
+          "citation": "Hebrews 9:28",
+          "bookKey": "HEB",
+          "chapter": 9,
+          "verse": 28,
+          "ordinal": 30134,
+          "text": "so Christ was offered once to bear the sins of many. To those who eagerly wait for Him He will appear a second time, apart from sin, for salvation."
+        },
+        {
+          "citation": "Hebrews 10:1",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 1,
+          "ordinal": 30135,
+          "text": "For the law, having a shadow of the good things to come, and not the very image of the things, can never with these same sacrifices, which they offer continually year by year, make those who approach perfect."
+        },
+        {
+          "citation": "Hebrews 10:2",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 2,
+          "ordinal": 30136,
+          "text": "For then would they not have ceased to be offered? For the worshipers, once purified, would have had no more consciousness of sins."
+        },
+        {
+          "citation": "Hebrews 10:3",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 3,
+          "ordinal": 30137,
+          "text": "But in those sacrifices there is a reminder of sins every year."
+        },
+        {
+          "citation": "Hebrews 10:4",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 4,
+          "ordinal": 30138,
+          "text": "For it is not possible that the blood of bulls and goats could take away sins."
+        },
+        {
+          "citation": "Hebrews 10:5",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 5,
+          "ordinal": 30139,
+          "text": "Therefore, when He came into the world, He said: \"Sacrifice and offering You did not desire, But a body You have prepared for Me."
+        },
+        {
+          "citation": "Hebrews 10:6",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 6,
+          "ordinal": 30140,
+          "text": "In burnt offerings and sacrifices for sin You had no pleasure."
+        },
+        {
+          "citation": "Hebrews 10:7",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 7,
+          "ordinal": 30141,
+          "text": "Then I said, \"Behold, I have come-- In the volume of the book it is written of Me-- To do Your will, O God.\"'"
+        },
+        {
+          "citation": "Hebrews 10:8",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 8,
+          "ordinal": 30142,
+          "text": "Previously saying, \"Sacrifice and offering, burnt offerings, and offerings for sin You did not desire, nor had pleasure in them\" (which are offered according to the law),"
+        },
+        {
+          "citation": "Hebrews 10:9",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 9,
+          "ordinal": 30143,
+          "text": "then He said, \"Behold, I have come to do Your will, O God.\" He takes away the first that He may establish the second."
+        },
+        {
+          "citation": "Hebrews 10:10",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 10,
+          "ordinal": 30144,
+          "text": "By that will we have been sanctified through the offering of the body of Jesus Christ once for all."
+        },
+        {
+          "citation": "Hebrews 10:11",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 11,
+          "ordinal": 30145,
+          "text": "And every priest stands ministering daily and offering repeatedly the same sacrifices, which can never take away sins."
+        },
+        {
+          "citation": "Hebrews 10:12",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 12,
+          "ordinal": 30146,
+          "text": "But this Man, after He had offered one sacrifice for sins forever, sat down at the right hand of God,"
+        },
+        {
+          "citation": "Hebrews 10:13",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 13,
+          "ordinal": 30147,
+          "text": "from that time waiting till His enemies are made His footstool."
+        },
+        {
+          "citation": "Hebrews 10:14",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 14,
+          "ordinal": 30148,
+          "text": "For by one offering He has perfected forever those who are being sanctified."
+        },
+        {
+          "citation": "Hebrews 10:15",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 15,
+          "ordinal": 30149,
+          "text": "But the Holy Spirit also witnesses to us; for after He had said before,"
+        },
+        {
+          "citation": "Hebrews 10:16",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 16,
+          "ordinal": 30150,
+          "text": "\"This is the covenant that I will make with them after those days, says the LORD: I will put My laws into their hearts, and in their minds I will write them,\""
+        },
+        {
+          "citation": "Hebrews 10:17",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 17,
+          "ordinal": 30151,
+          "text": "then He adds, \"Their sins and their lawless deeds I will remember no more.\""
+        },
+        {
+          "citation": "Hebrews 10:18",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 18,
+          "ordinal": 30152,
+          "text": "Now where there is remission of these, there is no longer an offering for sin."
+        },
+        {
+          "citation": "Hebrews 10:19",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 19,
+          "ordinal": 30153,
+          "text": "Therefore, brethren, having boldness to enter the Holiest by the blood of Jesus,"
+        },
+        {
+          "citation": "Hebrews 10:20",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 20,
+          "ordinal": 30154,
+          "text": "by a new and living way which He consecrated for us, through the veil, that is, His flesh,"
+        },
+        {
+          "citation": "Hebrews 10:21",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 21,
+          "ordinal": 30155,
+          "text": "and having a High Priest over the house of God,"
+        },
+        {
+          "citation": "Hebrews 10:22",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 22,
+          "ordinal": 30156,
+          "text": "let us draw near with a true heart in full assurance of faith, having our hearts sprinkled from an evil conscience and our bodies washed with pure water."
+        },
+        {
+          "citation": "Hebrews 10:23",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 23,
+          "ordinal": 30157,
+          "text": "Let us hold fast the confession of our hope without wavering, for He who promised is faithful."
+        },
+        {
+          "citation": "Hebrews 10:24",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 24,
+          "ordinal": 30158,
+          "text": "And let us consider one another in order to stir up love and good works,"
+        },
+        {
+          "citation": "Hebrews 10:25",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 25,
+          "ordinal": 30159,
+          "text": "not forsaking the assembling of ourselves together, as is the manner of some, but exhorting one another, and so much the more as you see the Day approaching."
+        },
+        {
+          "citation": "Hebrews 10:26",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 26,
+          "ordinal": 30160,
+          "text": "For if we sin willfully after we have received the knowledge of the truth, there no longer remains a sacrifice for sins,"
+        },
+        {
+          "citation": "Hebrews 10:27",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 27,
+          "ordinal": 30161,
+          "text": "but a certain fearful expectation of judgment, and fiery indignation which will devour the adversaries."
+        },
+        {
+          "citation": "Hebrews 10:28",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 28,
+          "ordinal": 30162,
+          "text": "Anyone who has rejected Moses' law dies without mercy on the testimony of two or three witnesses."
+        },
+        {
+          "citation": "Hebrews 10:29",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 29,
+          "ordinal": 30163,
+          "text": "Of how much worse punishment, do you suppose, will he be thought worthy who has trampled the Son of God underfoot, counted the blood of the covenant by which he was sanctified a common thing, and insulted the Spirit of grace?"
+        },
+        {
+          "citation": "Hebrews 10:30",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 30,
+          "ordinal": 30164,
+          "text": "For we know Him who said, \"Vengeance is Mine, I will repay,\" says the Lord. And again, \"The LORD will judge His people.\""
+        },
+        {
+          "citation": "Hebrews 10:31",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 31,
+          "ordinal": 30165,
+          "text": "It is a fearful thing to fall into the hands of the living God."
+        },
+        {
+          "citation": "Hebrews 10:32",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 32,
+          "ordinal": 30166,
+          "text": "But recall the former days in which, after you were illuminated, you endured a great struggle with sufferings:"
+        },
+        {
+          "citation": "Hebrews 10:33",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 33,
+          "ordinal": 30167,
+          "text": "partly while you were made a spectacle both by reproaches and tribulations, and partly while you became companions of those who were so treated;"
+        },
+        {
+          "citation": "Hebrews 10:34",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 34,
+          "ordinal": 30168,
+          "text": "for you had compassion on me in my chains, and joyfully accepted the plundering of your goods, knowing that you have a better and an enduring possession for yourselves in heaven."
+        },
+        {
+          "citation": "Hebrews 10:35",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 35,
+          "ordinal": 30169,
+          "text": "Therefore do not cast away your confidence, which has great reward."
+        },
+        {
+          "citation": "Hebrews 10:36",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 36,
+          "ordinal": 30170,
+          "text": "For you have need of endurance, so that after you have done the will of God, you may receive the promise:"
+        },
+        {
+          "citation": "Hebrews 10:37",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 37,
+          "ordinal": 30171,
+          "text": "\"For yet a little while, And He who is coming will come and will not tarry."
+        },
+        {
+          "citation": "Hebrews 10:38",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 38,
+          "ordinal": 30172,
+          "text": "Now the just shall live by faith; But if anyone draws back, My soul has no pleasure in him.\""
+        },
+        {
+          "citation": "Hebrews 10:39",
+          "bookKey": "HEB",
+          "chapter": 10,
+          "verse": 39,
+          "ordinal": 30173,
+          "text": "But we are not of those who draw back to perdition, but of those who believe to the saving of the soul."
+        },
+        {
+          "citation": "Hebrews 11:1",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 1,
+          "ordinal": 30174,
+          "text": "Now faith is the substance of things hoped for, the evidence of things not seen."
+        },
+        {
+          "citation": "Hebrews 11:2",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 2,
+          "ordinal": 30175,
+          "text": "For by it the elders obtained a good testimony."
+        },
+        {
+          "citation": "Hebrews 11:3",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 3,
+          "ordinal": 30176,
+          "text": "By faith we understand that the worlds were framed by the word of God, so that the things which are seen were not made of things which are visible."
+        },
+        {
+          "citation": "Hebrews 11:4",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 4,
+          "ordinal": 30177,
+          "text": "By faith Abel offered to God a more excellent sacrifice than Cain, through which he obtained witness that he was righteous, God testifying of his gifts; and through it he being dead still speaks."
+        },
+        {
+          "citation": "Hebrews 11:5",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 5,
+          "ordinal": 30178,
+          "text": "By faith Enoch was taken away so that he did not see death, \"and was not found, because God had taken him\"; for before he was taken he had this testimony, that he pleased God."
+        },
+        {
+          "citation": "Hebrews 11:6",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 6,
+          "ordinal": 30179,
+          "text": "But without faith it is impossible to please Him, for he who comes to God must believe that He is, and that He is a rewarder of those who diligently seek Him."
+        },
+        {
+          "citation": "Hebrews 11:7",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 7,
+          "ordinal": 30180,
+          "text": "By faith Noah, being divinely warned of things not yet seen, moved with godly fear, prepared an ark for the saving of his household, by which he condemned the world and became heir of the righteousness which is according to faith."
+        },
+        {
+          "citation": "Hebrews 11:8",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 8,
+          "ordinal": 30181,
+          "text": "By faith Abraham obeyed when he was called to go out to the place which he would receive as an inheritance. And he went out, not knowing where he was going."
+        },
+        {
+          "citation": "Hebrews 11:9",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 9,
+          "ordinal": 30182,
+          "text": "By faith he dwelt in the land of promise as in a foreign country, dwelling in tents with Isaac and Jacob, the heirs with him of the same promise;"
+        },
+        {
+          "citation": "Hebrews 11:10",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 10,
+          "ordinal": 30183,
+          "text": "for he waited for the city which has foundations, whose builder and maker is God."
+        },
+        {
+          "citation": "Hebrews 11:11",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 11,
+          "ordinal": 30184,
+          "text": "By faith Sarah herself also received strength to conceive seed, and she bore a child when she was past the age, because she judged Him faithful who had promised."
+        },
+        {
+          "citation": "Hebrews 11:12",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 12,
+          "ordinal": 30185,
+          "text": "Therefore from one man, and him as good as dead, were born as many as the stars of the sky in multitude--innumerable as the sand which is by the seashore."
+        },
+        {
+          "citation": "Hebrews 11:13",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 13,
+          "ordinal": 30186,
+          "text": "These all died in faith, not having received the promises, but having seen them afar off were assured of them, embraced them and confessed that they were strangers and pilgrims on the earth."
+        },
+        {
+          "citation": "Hebrews 11:14",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 14,
+          "ordinal": 30187,
+          "text": "For those who say such things declare plainly that they seek a homeland."
+        },
+        {
+          "citation": "Hebrews 11:15",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 15,
+          "ordinal": 30188,
+          "text": "And truly if they had called to mind that country from which they had come out, they would have had opportunity to return."
+        },
+        {
+          "citation": "Hebrews 11:16",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 16,
+          "ordinal": 30189,
+          "text": "But now they desire a better, that is, a heavenly country. Therefore God is not ashamed to be called their God, for He has prepared a city for them."
+        },
+        {
+          "citation": "Hebrews 11:17",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 17,
+          "ordinal": 30190,
+          "text": "By faith Abraham, when he was tested, offered up Isaac, and he who had received the promises offered up his only begotten son,"
+        },
+        {
+          "citation": "Hebrews 11:18",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 18,
+          "ordinal": 30191,
+          "text": "of whom it was said, \"In Isaac your seed shall be called,\""
+        },
+        {
+          "citation": "Hebrews 11:19",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 19,
+          "ordinal": 30192,
+          "text": "concluding that God was able to raise him up, even from the dead, from which he also received him in a figurative sense."
+        },
+        {
+          "citation": "Hebrews 11:20",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 20,
+          "ordinal": 30193,
+          "text": "By faith Isaac blessed Jacob and Esau concerning things to come."
+        },
+        {
+          "citation": "Hebrews 11:21",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 21,
+          "ordinal": 30194,
+          "text": "By faith Jacob, when he was dying, blessed each of the sons of Joseph, and worshiped, leaning on the top of his staff."
+        },
+        {
+          "citation": "Hebrews 11:22",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 22,
+          "ordinal": 30195,
+          "text": "By faith Joseph, when he was dying, made mention of the departure of the children of Israel, and gave instructions concerning his bones."
+        },
+        {
+          "citation": "Hebrews 11:23",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 23,
+          "ordinal": 30196,
+          "text": "By faith Moses, when he was born, was hidden three months by his parents, because they saw he was a beautiful child; and they were not afraid of the king's command."
+        },
+        {
+          "citation": "Hebrews 11:24",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 24,
+          "ordinal": 30197,
+          "text": "By faith Moses, when he became of age, refused to be called the son of Pharaoh's daughter,"
+        },
+        {
+          "citation": "Hebrews 11:25",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 25,
+          "ordinal": 30198,
+          "text": "choosing rather to suffer affliction with the people of God than to enjoy the passing pleasures of sin,"
+        },
+        {
+          "citation": "Hebrews 11:26",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 26,
+          "ordinal": 30199,
+          "text": "esteeming the reproach of Christ greater riches than the treasures in Egypt; for he looked to the reward."
+        },
+        {
+          "citation": "Hebrews 11:27",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 27,
+          "ordinal": 30200,
+          "text": "By faith he forsook Egypt, not fearing the wrath of the king; for he endured as seeing Him who is invisible."
+        },
+        {
+          "citation": "Hebrews 11:28",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 28,
+          "ordinal": 30201,
+          "text": "By faith he kept the Passover and the sprinkling of blood, lest he who destroyed the firstborn should touch them."
+        },
+        {
+          "citation": "Hebrews 11:29",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 29,
+          "ordinal": 30202,
+          "text": "By faith they passed through the Red Sea as by dry land, whereas the Egyptians, attempting to do so, were drowned."
+        },
+        {
+          "citation": "Hebrews 11:30",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 30,
+          "ordinal": 30203,
+          "text": "By faith the walls of Jericho fell down after they were encircled for seven days."
+        },
+        {
+          "citation": "Hebrews 11:31",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 31,
+          "ordinal": 30204,
+          "text": "By faith the harlot Rahab did not perish with those who did not believe, when she had received the spies with peace."
+        },
+        {
+          "citation": "Hebrews 11:32",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 32,
+          "ordinal": 30205,
+          "text": "And what more shall I say? For the time would fail me to tell of Gideon and Barak and Samson and Jephthah, also of David and Samuel and the prophets:"
+        },
+        {
+          "citation": "Hebrews 11:33",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 33,
+          "ordinal": 30206,
+          "text": "who through faith subdued kingdoms, worked righteousness, obtained promises, stopped the mouths of lions,"
+        },
+        {
+          "citation": "Hebrews 11:34",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 34,
+          "ordinal": 30207,
+          "text": "quenched the violence of fire, escaped the edge of the sword, out of weakness were made strong, became valiant in battle, turned to flight the armies of the aliens."
+        },
+        {
+          "citation": "Hebrews 11:35",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 35,
+          "ordinal": 30208,
+          "text": "Women received their dead raised to life again. Others were tortured, not accepting deliverance, that they might obtain a better resurrection."
+        },
+        {
+          "citation": "Hebrews 11:36",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 36,
+          "ordinal": 30209,
+          "text": "Still others had trial of mockings and scourgings, yes, and of chains and imprisonment."
+        },
+        {
+          "citation": "Hebrews 11:37",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 37,
+          "ordinal": 30210,
+          "text": "They were stoned, they were sawn in two, were tempted, were slain with the sword. They wandered about in sheepskins and goatskins, being destitute, afflicted, tormented--"
+        },
+        {
+          "citation": "Hebrews 11:38",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 38,
+          "ordinal": 30211,
+          "text": "of whom the world was not worthy. They wandered in deserts and mountains, in dens and caves of the earth."
+        },
+        {
+          "citation": "Hebrews 11:39",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 39,
+          "ordinal": 30212,
+          "text": "And all these, having obtained a good testimony through faith, did not receive the promise,"
+        },
+        {
+          "citation": "Hebrews 11:40",
+          "bookKey": "HEB",
+          "chapter": 11,
+          "verse": 40,
+          "ordinal": 30213,
+          "text": "God having provided something better for us, that they should not be made perfect apart from us."
+        },
+        {
+          "citation": "Hebrews 12:1",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 1,
+          "ordinal": 30214,
+          "text": "Therefore we also, since we are surrounded by so great a cloud of witnesses, let us lay aside every weight, and the sin which so easily ensnares us, and let us run with endurance the race that is set before us,"
+        },
+        {
+          "citation": "Hebrews 12:2",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 2,
+          "ordinal": 30215,
+          "text": "looking unto Jesus, the author and finisher of our faith, who for the joy that was set before Him endured the cross, despising the shame, and has sat down at the right hand of the throne of God."
+        },
+        {
+          "citation": "Hebrews 12:3",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 3,
+          "ordinal": 30216,
+          "text": "For consider Him who endured such hostility from sinners against Himself, lest you become weary and discouraged in your souls."
+        },
+        {
+          "citation": "Hebrews 12:4",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 4,
+          "ordinal": 30217,
+          "text": "You have not yet resisted to bloodshed, striving against sin."
+        },
+        {
+          "citation": "Hebrews 12:5",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 5,
+          "ordinal": 30218,
+          "text": "And you have forgotten the exhortation which speaks to you as to sons: \"My son, do not despise the chastening of the LORD, Nor be discouraged when you are rebuked by Him;"
+        },
+        {
+          "citation": "Hebrews 12:6",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 6,
+          "ordinal": 30219,
+          "text": "For whom the LORD loves He chastens, And scourges every son whom He receives.\""
+        },
+        {
+          "citation": "Hebrews 12:7",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 7,
+          "ordinal": 30220,
+          "text": "If you endure chastening, God deals with you as with sons; for what son is there whom a father does not chasten?"
+        },
+        {
+          "citation": "Hebrews 12:8",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 8,
+          "ordinal": 30221,
+          "text": "But if you are without chastening, of which all have become partakers, then you are illegitimate and not sons."
+        },
+        {
+          "citation": "Hebrews 12:9",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 9,
+          "ordinal": 30222,
+          "text": "Furthermore, we have had human fathers who corrected us, and we paid them respect. Shall we not much more readily be in subjection to the Father of spirits and live?"
+        },
+        {
+          "citation": "Hebrews 12:10",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 10,
+          "ordinal": 30223,
+          "text": "For they indeed for a few days chastened us as seemed best to them, but He for our profit, that we may be partakers of His holiness."
+        },
+        {
+          "citation": "Hebrews 12:11",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 11,
+          "ordinal": 30224,
+          "text": "Now no chastening seems to be joyful for the present, but painful; nevertheless, afterward it yields the peaceable fruit of righteousness to those who have been trained by it."
+        },
+        {
+          "citation": "Hebrews 12:12",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 12,
+          "ordinal": 30225,
+          "text": "Therefore strengthen the hands which hang down, and the feeble knees,"
+        },
+        {
+          "citation": "Hebrews 12:13",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 13,
+          "ordinal": 30226,
+          "text": "and make straight paths for your feet, so that what is lame may not be dislocated, but rather be healed."
+        },
+        {
+          "citation": "Hebrews 12:14",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 14,
+          "ordinal": 30227,
+          "text": "Pursue peace with all people, and holiness, without which no one will see the Lord:"
+        },
+        {
+          "citation": "Hebrews 12:15",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 15,
+          "ordinal": 30228,
+          "text": "looking carefully lest anyone fall short of the grace of God; lest any root of bitterness springing up cause trouble, and by this many become defiled;"
+        },
+        {
+          "citation": "Hebrews 12:16",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 16,
+          "ordinal": 30229,
+          "text": "lest there be any fornicator or profane person like Esau, who for one morsel of food sold his birthright."
+        },
+        {
+          "citation": "Hebrews 12:17",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 17,
+          "ordinal": 30230,
+          "text": "For you know that afterward, when he wanted to inherit the blessing, he was rejected, for he found no place for repentance, though he sought it diligently with tears."
+        },
+        {
+          "citation": "Hebrews 12:18",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 18,
+          "ordinal": 30231,
+          "text": "For you have not come to the mountain that may be touched and that burned with fire, and to blackness and darkness and tempest,"
+        },
+        {
+          "citation": "Hebrews 12:19",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 19,
+          "ordinal": 30232,
+          "text": "and the sound of a trumpet and the voice of words, so that those who heard it begged that the word should not be spoken to them anymore."
+        },
+        {
+          "citation": "Hebrews 12:20",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 20,
+          "ordinal": 30233,
+          "text": "(For they could not endure what was commanded: \"And if so much as a beast touches the mountain, it shall be stoned or shot with an arrow.\""
+        },
+        {
+          "citation": "Hebrews 12:21",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 21,
+          "ordinal": 30234,
+          "text": "And so terrifying was the sight that Moses said, \"I am exceedingly afraid and trembling.\" )"
+        },
+        {
+          "citation": "Hebrews 12:22",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 22,
+          "ordinal": 30235,
+          "text": "But you have come to Mount Zion and to the city of the living God, the heavenly Jerusalem, to an innumerable company of angels,"
+        },
+        {
+          "citation": "Hebrews 12:23",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 23,
+          "ordinal": 30236,
+          "text": "to the general assembly and church of the firstborn who are registered in heaven, to God the Judge of all, to the spirits of just men made perfect,"
+        },
+        {
+          "citation": "Hebrews 12:24",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 24,
+          "ordinal": 30237,
+          "text": "to Jesus the Mediator of the new covenant, and to the blood of sprinkling that speaks better things than that of Abel."
+        },
+        {
+          "citation": "Hebrews 12:25",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 25,
+          "ordinal": 30238,
+          "text": "See that you do not refuse Him who speaks. For if they did not escape who refused Him who spoke on earth, much more shall we not escape if we turn away from Him who speaks from heaven,"
+        },
+        {
+          "citation": "Hebrews 12:26",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 26,
+          "ordinal": 30239,
+          "text": "whose voice then shook the earth; but now He has promised, saying, \"Yet once more I shake not only the earth, but also heaven.\""
+        },
+        {
+          "citation": "Hebrews 12:27",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 27,
+          "ordinal": 30240,
+          "text": "Now this, \"Yet once more,\" indicates the removal of those things that are being shaken, as of things that are made, that the things which cannot be shaken may remain."
+        },
+        {
+          "citation": "Hebrews 12:28",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 28,
+          "ordinal": 30241,
+          "text": "Therefore, since we are receiving a kingdom which cannot be shaken, let us have grace, by which we may serve God acceptably with reverence and godly fear."
+        },
+        {
+          "citation": "Hebrews 12:29",
+          "bookKey": "HEB",
+          "chapter": 12,
+          "verse": 29,
+          "ordinal": 30242,
+          "text": "For our God is a consuming fire."
+        },
+        {
+          "citation": "Hebrews 13:1",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 1,
+          "ordinal": 30243,
+          "text": "Let brotherly love continue."
+        },
+        {
+          "citation": "Hebrews 13:2",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 2,
+          "ordinal": 30244,
+          "text": "Do not forget to entertain strangers, for by so doing some have unwittingly entertained angels."
+        },
+        {
+          "citation": "Hebrews 13:3",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 3,
+          "ordinal": 30245,
+          "text": "Remember the prisoners as if chained with them--those who are mistreated--since you yourselves are in the body also."
+        },
+        {
+          "citation": "Hebrews 13:4",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 4,
+          "ordinal": 30246,
+          "text": "Marriage is honorable among all, and the bed undefiled; but fornicators and adulterers God will judge."
+        },
+        {
+          "citation": "Hebrews 13:5",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 5,
+          "ordinal": 30247,
+          "text": "Let your conduct be without covetousness; be content with such things as you have. For He Himself has said, \"I will never leave you nor forsake you.\""
+        },
+        {
+          "citation": "Hebrews 13:6",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 6,
+          "ordinal": 30248,
+          "text": "So we may boldly say: \"The LORD is my helper; I will not fear. What can man do to me?\""
+        },
+        {
+          "citation": "Hebrews 13:7",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 7,
+          "ordinal": 30249,
+          "text": "Remember those who rule over you, who have spoken the word of God to you, whose faith follow, considering the outcome of their conduct."
+        },
+        {
+          "citation": "Hebrews 13:8",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 8,
+          "ordinal": 30250,
+          "text": "Jesus Christ is the same yesterday, today, and forever."
+        },
+        {
+          "citation": "Hebrews 13:9",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 9,
+          "ordinal": 30251,
+          "text": "Do not be carried about with various and strange doctrines. For it is good that the heart be established by grace, not with foods which have not profited those who have been occupied with them."
+        },
+        {
+          "citation": "Hebrews 13:10",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 10,
+          "ordinal": 30252,
+          "text": "We have an altar from which those who serve the tabernacle have no right to eat."
+        },
+        {
+          "citation": "Hebrews 13:11",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 11,
+          "ordinal": 30253,
+          "text": "For the bodies of those animals, whose blood is brought into the sanctuary by the high priest for sin, are burned outside the camp."
+        },
+        {
+          "citation": "Hebrews 13:12",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 12,
+          "ordinal": 30254,
+          "text": "Therefore Jesus also, that He might sanctify the people with His own blood, suffered outside the gate."
+        },
+        {
+          "citation": "Hebrews 13:13",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 13,
+          "ordinal": 30255,
+          "text": "Therefore let us go forth to Him, outside the camp, bearing His reproach."
+        },
+        {
+          "citation": "Hebrews 13:14",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 14,
+          "ordinal": 30256,
+          "text": "For here we have no continuing city, but we seek the one to come."
+        },
+        {
+          "citation": "Hebrews 13:15",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 15,
+          "ordinal": 30257,
+          "text": "Therefore by Him let us continually offer the sacrifice of praise to God, that is, the fruit of our lips, giving thanks to His name."
+        },
+        {
+          "citation": "Hebrews 13:16",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 16,
+          "ordinal": 30258,
+          "text": "But do not forget to do good and to share, for with such sacrifices God is well pleased."
+        },
+        {
+          "citation": "Hebrews 13:17",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 17,
+          "ordinal": 30259,
+          "text": "Obey those who rule over you, and be submissive, for they watch out for your souls, as those who must give account. Let them do so with joy and not with grief, for that would be unprofitable for you."
+        },
+        {
+          "citation": "Hebrews 13:18",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 18,
+          "ordinal": 30260,
+          "text": "Pray for us; for we are confident that we have a good conscience, in all things desiring to live honorably."
+        },
+        {
+          "citation": "Hebrews 13:19",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 19,
+          "ordinal": 30261,
+          "text": "But I especially urge you to do this, that I may be restored to you the sooner."
+        },
+        {
+          "citation": "Hebrews 13:20",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 20,
+          "ordinal": 30262,
+          "text": "Now may the God of peace who brought up our Lord Jesus from the dead, that great Shepherd of the sheep, through the blood of the everlasting covenant,"
+        },
+        {
+          "citation": "Hebrews 13:21",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 21,
+          "ordinal": 30263,
+          "text": "make you complete in every good work to do His will, working in you what is well pleasing in His sight, through Jesus Christ, to whom be glory forever and ever. Amen."
+        },
+        {
+          "citation": "Hebrews 13:22",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 22,
+          "ordinal": 30264,
+          "text": "And I appeal to you, brethren, bear with the word of exhortation, for I have written to you in few words."
+        },
+        {
+          "citation": "Hebrews 13:23",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 23,
+          "ordinal": 30265,
+          "text": "Know that our brother Timothy has been set free, with whom I shall see you if he comes shortly."
+        },
+        {
+          "citation": "Hebrews 13:24",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 24,
+          "ordinal": 30266,
+          "text": "Greet all those who rule over you, and all the saints. Those from Italy greet you."
+        },
+        {
+          "citation": "Hebrews 13:25",
+          "bookKey": "HEB",
+          "chapter": 13,
+          "verse": 25,
+          "ordinal": 30267,
+          "text": "Grace be with you all. Amen."
+        }
+      ]
+    }
+  ]
+}

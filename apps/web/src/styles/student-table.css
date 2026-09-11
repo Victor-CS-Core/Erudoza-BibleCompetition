@@ -1,0 +1,40 @@
+.student-directory{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--er-space-5);min-width:0}
+.student-table-tools{display:flex;align-items:end;justify-content:space-between;gap:var(--er-space-4);flex-wrap:wrap}
+.student-table-tools label:first-child{flex:1;max-width:360px;min-width:180px}
+.student-table-scroll{position:relative;overflow-x:auto;max-width:100%}
+.student-table{min-width:540px}
+.student-table tbody th{background:transparent;color:var(--er-ink-navy);font-size:var(--er-text-sm);border-bottom:1px solid var(--er-border);padding:var(--er-space-4);font-weight:normal;text-align:left;text-transform:none;letter-spacing:normal}
+.student-table tbody th p{margin:var(--er-space-1) 0 0;color:var(--er-muted-ink);font-size:var(--er-text-xs)}
+.student-row-actions{display:flex;align-items:center;gap:var(--er-space-2);flex-wrap:nowrap}
+.student-pagination,.student-pagination>div{display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-3);flex-wrap:wrap}
+.student-table td:last-child{width:1%;white-space:nowrap}
+.student-assignment-page{display:grid;gap:var(--er-space-4);max-width:960px;width:100%;margin-inline:auto}
+
+.student-table tbody :is(th,td){padding-block:var(--er-space-2)}
+.assignment-context{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-5)}
+@media(max-width:600px){.assignment-context{grid-template-columns:1fr}}
+
+.student-table-tools label{display:grid;gap:var(--er-space-2)}
+.student-pagination{font-size:var(--er-text-sm);color:var(--er-muted-ink)}
+
+.season-list-item .training-season-card{padding:0}
+@media(max-width:600px){.student-table-tools label:first-child{flex-basis:100%;max-width:none}.student-table-tools label{flex:1;min-width:130px}}
+
+/* Preserve table semantics while keeping every row action reachable on phones. */
+@media(max-width:600px){
+.student-table{min-width:0;display:block}
+.student-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.student-table tbody{display:block}
+.student-table tbody tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--er-space-2);padding:var(--er-space-4) 0;border-bottom:1px solid var(--er-border)}
+.student-table tbody :is(th,td){display:block;padding:0;border:0;white-space:normal;width:auto;min-width:0;overflow-wrap:anywhere}
+.student-table tbody th{grid-column:1;grid-row:1}
+.student-status-cell{grid-column:2;grid-row:1}
+.student-plan-cell,.student-actions-cell{grid-column:1/-1}
+.student-row-actions{flex-wrap:wrap;gap:var(--er-space-2);margin-top:var(--er-space-2)}
+.student-row-actions .ds-button{min-height:44px;flex:1 1 auto}
+.student-pagination>div{width:100%;justify-content:space-between;gap:var(--er-space-2)}
+.student-table-tools label{min-width:0;flex:1 1 40%}
+}
+
+.assignment-overview{grid-template-columns:minmax(0,1fr);min-width:0;max-width:100%}
+.assignment-coverage-scroll{min-width:0;max-width:100%;overflow-x:auto}

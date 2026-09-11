@@ -1,0 +1,104 @@
+/* App composition. All control and type styles come from design-system.css. */
+.training-app { display:grid; grid-template-columns:224px minmax(0,1fr); min-height:100dvh; background:var(--er-paper); }
+.training-skip { position:fixed;top:12px;left:12px;z-index:60;background:var(--er-card);padding:12px; }
+.training-skip:not(:focus) { clip-path:inset(50%);width:1px;height:1px;overflow:hidden; }
+.training-sidebar { position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;padding:32px 16px 24px;background:var(--er-ink-navy);color:var(--er-on-navy);overflow-y:auto; }
+.training-brand { display:flex;flex-direction:column;align-items:center;gap:12px;padding-bottom:32px; }
+.training-brand .er-wordmark { flex-direction:column;gap:12px; }
+.training-brand .er-wordmark-mark { width:60px;height:60px; }
+.training-brand .er-wordmark-name { font:32px/1 var(--er-font-reading); }
+.training-brand .er-wordmark-tagline { display:none; }
+.training-brand>span { color:var(--er-on-navy-muted);font-size:var(--er-text-xs); }
+.training-sidebar nav { display:grid;gap:8px; }
+.training-sidebar nav a { display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:var(--er-radius-control);color:var(--er-on-navy-muted);font-size:var(--er-text-sm);font-weight:500; }
+.training-sidebar nav a:hover { background:color-mix(in srgb,var(--er-on-navy) 8%,transparent); }
+.training-sidebar nav a[aria-current=page] { background:var(--er-teal);color:var(--er-on-navy); }
+.training-sidebar-foot { margin-top:auto;padding:32px 8px 0; }
+.training-profile { display:flex;align-items:center;gap:12px;overflow-wrap:anywhere;font-size:var(--er-text-sm); }
+.training-profile small { display:block;color:var(--er-on-navy-muted); }
+.training-avatar { width:36px;height:36px;flex:0 0 36px;display:inline-grid;place-items:center;border-radius:50%;background:var(--er-selected);color:var(--er-action-blue);font-size:var(--er-text-sm);font-weight:600; }
+.training-sidebar .ds-button-ghost { color:var(--er-on-navy-muted);margin-top:12px; }
+.training-sidebar .ds-button-ghost:hover { color:var(--er-ink-navy); }
+.training-sidebar-motto { display:block;color:var(--er-on-navy-muted);font-size:var(--er-text-xs);line-height:1.7;margin-top:32px; }
+.training-workspace { min-width:0;display:flex;flex-direction:column; }
+.training-topbar { min-height:72px;padding:12px 32px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--er-border);background:var(--er-card); }
+.training-breadcrumb { font-size:var(--er-text-sm); }.training-breadcrumb>span { color:var(--er-muted-ink);padding:0 12px; }
+.training-org { margin-left:auto;color:var(--er-muted-ink);font-size:var(--er-text-xs); }
+.training-menu { display:none; }.training-back { display:inline-flex;align-items:center;color:var(--er-action-blue);font-size:var(--er-text-sm); }
+.training-main { flex:1;width:100%;max-width:1280px;margin:0 auto;padding:40px 32px;min-width:0; }
+.training-footer { color:var(--er-muted-ink);font-size:var(--er-text-xs);text-align:center;padding:24px 16px; }.training-footer span { margin:0 8px; }
+.training-page { display:grid;gap:24px; }.training-page>.ds-page-header { margin-bottom:0; }
+.training-season { text-align:right;min-width:140px; }.training-season small { display:block;color:var(--er-muted-ink); }.training-season strong { display:block;margin:4px 0 8px; }
+.training-banner { min-height:208px;display:grid;place-items:center;background:var(--er-parchment) url('/brand/training-landscape.webp') center 60%/cover;border-radius:var(--er-radius-card);overflow:hidden;text-align:center;margin-bottom:24px; }
+.training-banner>div { padding:24px 40px;background:radial-gradient(ellipse,var(--er-card),color-mix(in srgb,var(--er-card) 75%,transparent) 45%,transparent 75%); }
+.training-banner p { font:italic 30px/1.35 var(--er-font-reading);margin:0;color:var(--er-ink-navy); }
+.training-banner span { display:block;font-size:var(--er-text-xs);margin-top:12px; }
+.training-dashboard-grid { display:grid;grid-template-columns:1.1fr 1fr;gap:24px; }
+.training-panel-title { display:flex;align-items:center;gap:16px; }.training-panel-title h2 { margin:0; }
+.training-icon-tile { display:inline-grid;place-items:center;width:44px;height:44px;flex:0 0 44px;color:var(--er-action-blue);background:var(--er-selected);border-radius:50%; }
+.training-icon-tile.training-due { color:var(--er-stamp-red);background:var(--er-danger-surface); }
+.training-next { display:flex;flex-direction:column;gap:12px; }.training-next .training-assignment { font-size:var(--er-text-title);font-weight:600;margin:16px 0 0; }.training-next>p { color:var(--er-muted-ink); }.training-next .ds-button { margin:8px 0 12px; }
+.training-next-meta { margin-top:auto;border-top:1px solid var(--er-border);padding-top:16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:var(--er-text-xs);color:var(--er-muted-ink); }.training-next-meta a { margin-left:auto;color:var(--er-action-blue); }
+.training-side-panels { display:grid;gap:12px; }
+.training-mastery-summary { display:flex;align-items:center;gap:20px;margin-top:16px; }
+.training-mastery-count { display:grid;place-items:center;width:76px;height:76px;flex:0 0 76px;border-radius:50%;background:var(--er-selected);color:var(--er-action-blue);font-size:var(--er-text-page);font-weight:650;font-variant-numeric:tabular-nums; }
+.training-mastery-summary strong { font-size:var(--er-text-base); }.training-mastery-summary p,.training-mastery-summary small { display:block;color:var(--er-muted-ink);margin:4px 0 0; }
+.training-action-row { display:flex;align-items:center;gap:12px;padding:16px 20px; }.training-action-row h3 { font-size:var(--er-text-base);margin:0; }.training-action-row p { color:var(--er-muted-ink);font-size:var(--er-text-xs);margin:4px 0 0; }.training-action-row>a { margin-left:auto; }.training-action-row .training-icon-tile { width:36px;height:36px;flex-basis:36px; }
+.training-action-note { color:var(--er-muted-ink);font-size:var(--er-text-xs);margin-left:auto;text-align:right;max-width:110px; }
+.training-empty { padding:24px 0; }.training-empty p { color:var(--er-muted-ink);margin:8px 0; }
+.training-milestones { display:flex;align-items:center;gap:24px;margin-top:24px; }.training-milestones>div { flex:1; }.training-milestones p { color:var(--er-muted-ink);font-size:var(--er-text-xs); }.training-milestones>a { flex:1;display:flex;align-items:center;gap:12px; }.training-milestones strong { font-size:var(--er-text-sm); }.training-milestones small { display:block;color:var(--er-muted-ink);margin-top:4px; }
+.training-badge-art { width:72px;height:72px;flex:0 0 72px;display:block;background:url('/brand/training-badges.webp') 0 0/300% 300% no-repeat; }.training-badge-reference { background-position:50% 0; }
+.training-season-toolbar { display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px; }.training-season-toolbar label { display:flex;align-items:center;gap:12px; }.training-season-toolbar>a { margin-left:auto;color:var(--er-action-blue); }
+.training-stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px; }.training-stats>.ds-panel { display:flex;align-items:center;gap:16px; }.training-stats strong { display:block;font-size:var(--er-text-page);font-weight:650;font-variant-numeric:tabular-nums; }.training-stats small { color:var(--er-muted-ink); }
+.training-section-heading { display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px; }.training-section-heading h2 { margin:0; }.training-section-heading a { color:var(--er-action-blue);font-size:var(--er-text-sm); }
+.training-student-link { display:flex;align-items:center;gap:12px;min-width:140px; }.training-table-mastery { display:flex;align-items:center;gap:12px; }.training-table-mastery progress { width:80px;height:6px; }
+.training-coach-actions { display:flex;justify-content:space-between;align-items:center;gap:24px;margin-top:24px; }.training-coach-actions p { color:var(--er-muted-ink);text-align:right;font:italic var(--er-text-base)/1.6 var(--er-font-reading); }
+.training-list { display:grid;gap:12px; }.training-season-card { display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px; }.training-season-card p { color:var(--er-muted-ink);font-size:var(--er-text-sm); }.training-season-card h2 { font-size:var(--er-text-lg);margin-bottom:8px; }
+.training-directory-form { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:24px; }.training-directory-form label { display:grid;gap:8px; }.training-directory-form>h2,.training-directory-form>p,.training-directory-form>button { grid-column:1/-1; }.training-directory-form>button { justify-self:start; }
+/* Coach masthead and student sidebar share the same brand, surfaces and control vocabulary. */
+.training-coach { display:flex;flex-direction:column; }
+.coach-masthead { background:var(--er-ink-navy);color:var(--er-on-navy); }
+.coach-masthead-inner { max-width:1232px;min-height:80px;padding:16px 32px;margin:auto;display:flex;align-items:center;gap:24px; }
+.coach-brand { display:flex;align-items:center;gap:24px;flex-shrink:0; }.coach-brand .er-wordmark-name { font:30px/1 var(--er-font-reading); }.coach-brand .er-wordmark-mark { width:40px;height:40px; }.coach-brand>span { border-left:1px solid color-mix(in srgb,var(--er-on-navy-muted) 35%,transparent);padding-left:24px;font-size:var(--er-text-lg);color:var(--er-on-navy-muted); }
+.coach-academy { color:var(--er-on-navy-muted);font-size:var(--er-text-xs); }.coach-account { margin-left:auto;display:flex;align-items:center;gap:12px;font-size:var(--er-text-sm); }.coach-account .ds-button-ghost { color:var(--er-on-navy); }.coach-account .ds-button-ghost:hover { color:var(--er-ink-navy); }
+.coach-account-error { padding:12px 24px;text-align:right; }
+.coach-navigation { background:var(--er-card);border-bottom:1px solid var(--er-border); }.coach-navigation>div { max-width:1232px;padding:0 32px;margin:auto;display:flex;gap:32px;overflow-x:auto; }.coach-navigation a { display:flex;align-items:center;gap:8px;min-height:60px;padding:0 4px;border-bottom:2px solid transparent;color:var(--er-muted-ink);white-space:nowrap;font-size:var(--er-text-sm); }.coach-navigation a[aria-current=page] { color:var(--er-action-blue);border-bottom-color:var(--er-teal);font-weight:600; }
+.training-coach .training-main { max-width:1232px; }.training-coach .training-workspace { flex:1; }
+.training-focused .training-main { max-width:810px; }
+.training-study-heading { margin-bottom:24px; }.training-study-heading>p { color:var(--er-muted-ink);font-size:var(--er-text-sm);margin-top:8px; }
+.training-session-progress { width:100%;height:6px;margin-top:20px; }
+.student-challenge [data-testid=challenge-prompt] { font:1.625rem/1.6 var(--er-font-reading);margin:28px 0;max-width:65ch; }
+.student-challenge [data-testid=submit-answer] { flex:1 1 100%; }
+.student-challenge [data-testid=challenge-feedback] { margin-top:20px; }
+.student-builder-phrase { flex:1;min-width:0;padding:8px 12px; }
+.student-progress { display:grid;gap:24px; }.student-progress>.ds-page-header { margin-bottom:0; }
+.student-progress-metrics { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin:0; }.student-progress-metrics dt { color:var(--er-muted-ink);font-size:var(--er-text-sm); }.student-progress-metrics dd { margin:8px 0 0;font-size:var(--er-text-page);font-weight:650;font-variant-numeric:tabular-nums; }
+.student-progress-records { list-style:none;padding:0;margin:0; }.student-progress-records>li { display:flex;justify-content:space-between;align-items:flex-start;gap:20px;padding:20px 0;border-bottom:1px solid var(--er-border); }.student-progress-records>li:last-child { border:0;padding-bottom:0; }.student-progress-records>li>div { min-width:0;overflow-wrap:anywhere; }.student-progress-records p { margin:4px 0;color:var(--er-muted-ink); }.student-progress-records strong { font-size:var(--er-text-base); }
+@media(max-width:1100px) { .training-app:not(.training-coach) { grid-template-columns:192px minmax(0,1fr); }.training-main { padding:32px 24px; }.training-dashboard-grid { grid-template-columns:1fr; }.training-side-panels { grid-template-columns:1fr 1fr; }.training-side-panels>section { grid-column:1/-1; }.training-milestones { flex-wrap:wrap; }.training-milestones>div { flex-basis:100%; } }
+@media(max-width:760px) {
+  .training-app { display:flex;flex-direction:column;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px)); }
+  .training-coach,.training-focused { padding-bottom:0; }
+  .training-sidebar { position:fixed;top:auto;bottom:0;left:0;right:0;height:auto;padding:0;z-index:30; }
+  .training-sidebar .training-brand,.training-sidebar-foot { display:none; }.training-sidebar nav { display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;padding:8px 4px max(8px,env(safe-area-inset-bottom)); }.training-sidebar nav a { flex-direction:column;gap:4px;padding:8px 2px;min-width:0;text-align:center;overflow-wrap:anywhere;font-size:var(--er-text-xs);border-radius:8px; }.training-sidebar nav a span { max-width:100%; }
+  .training-sidebar.is-open { max-height:65dvh;overflow-y:auto; }.training-sidebar.is-open .training-sidebar-foot { display:block;padding:16px 24px; }.training-sidebar.is-open .training-sidebar-motto { display:none; }.training-focused .training-sidebar:not(.is-open) { display:none; }
+  .training-workspace { flex:1; }.training-main { padding:24px 20px; }.training-topbar { padding:12px 16px;min-height:64px;position:sticky;top:0;z-index:35; }.training-menu.ds-button { display:inline-flex;padding:8px; }.training-org { display:none; }.training-breadcrumb { font-size:var(--er-text-xs); }.training-breadcrumb>span { padding:0 6px; }
+  .training-banner { min-height:176px; }.training-banner p { font-size:26px; }.training-banner>div { padding:20px; }
+  .training-side-panels { grid-template-columns:1fr; }.training-milestones { gap:20px; }.training-milestones>a { flex-basis:100%; }
+  .training-stats { gap:8px; }.training-stats>.ds-panel { padding:16px 12px;display:block; }.training-stats .training-icon-tile { display:none; }.training-stats strong { font-size:1.75rem; }.training-stats small { font-size:var(--er-text-xs); }
+  .training-season { text-align:left; }.training-season-toolbar label { flex:1 1 100%;min-width:0; }.training-season-toolbar .ds-input { min-width:0; }.training-season-toolbar>a { margin-left:0; }
+  .training-coach-actions { align-items:flex-start; }.training-coach-actions p { display:none; }.training-section-heading { flex-wrap:wrap; }
+  .training-directory-form { grid-template-columns:1fr; }.training-season-card { padding:20px;align-items:flex-start; }.training-season-card .ds-badge { flex-shrink:0; }
+  .coach-masthead-inner { min-height:76px;padding:16px 20px;gap:12px; }.coach-brand { gap:12px; }.coach-brand>span { padding-left:12px;font-size:var(--er-text-sm); }.coach-brand .er-wordmark-name { font-size:25px; }.coach-brand .er-wordmark-mark { width:32px;height:32px; }.coach-academy,.coach-account>span { display:none; }.coach-account { gap:0; }.coach-account .ds-button { padding:8px;white-space:nowrap; }
+  .coach-navigation>div { padding:0 20px;gap:24px; }.coach-navigation a { min-height:52px; }.coach-navigation svg { display:none; }
+  .student-progress-metrics { grid-template-columns:repeat(2,minmax(0,1fr));gap:24px; }.student-progress-records>li { gap:12px;flex-wrap:wrap; }
+  .student-challenge [data-testid=challenge-prompt] { font-size:1.375rem; }
+  .training-footer { font-size:.6875rem;padding:24px 12px; }
+}
+@media(max-width:600px) {
+  .training-progress-table,.training-progress-table tbody { display:block; }.training-progress-table thead { position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%); }
+  .training-progress-table tr { display:grid;grid-template-columns:1fr 1fr;padding:16px 0;border-bottom:1px solid var(--er-border);gap:16px; }.training-progress-table td { display:block;border:0;padding:0; }.training-progress-table td:first-child,.training-progress-table td:nth-child(2) { grid-column:1/-1; }.training-progress-table td[data-label]::before { content:attr(data-label);display:block;color:var(--er-muted-ink);font-size:var(--er-text-xs);margin-bottom:8px; }.training-progress-table .training-table-mastery { flex-wrap:wrap; }
+}
+
+/* Long imported season names must wrap within the card at narrow widths. */
+.training-season-card { flex-wrap:wrap; }
+.training-season-card > div { min-width:0; flex:1 1 180px; overflow-wrap:anywhere; }

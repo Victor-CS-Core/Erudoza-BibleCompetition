@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 208" role="img" aria-labelledby="title"><title id="title">First Fellowship achievement</title>
+<defs><linearGradient id="metal" x2="1" y2="1"><stop stop-color="#fffefa"/><stop offset=".5" stop-color="#c8a978"/><stop offset="1" stop-color="#f3eddf"/></linearGradient></defs>
+<path d="m52 140-21 53 33-9 16 18 16-49 16 49 16-18 33 9-21-53" fill="#087d80" stroke="#102e47" stroke-width="3"/>
+<path d="m96 7 16 13 21-2 10 18 20 6 2 21 15 16-7 20 7 20-15 16-2 21-20 6-10 18-21-2-16 13-16-13-21 2-10-18-20-6-2-21-15-16 7-20-7-20 15-16 2-21 20-6 10-18 21 2z" fill="#102e47" stroke="url(#metal)" stroke-width="5"/>
+<circle cx="96" cy="99" r="69" fill="none" stroke="#087d80" stroke-width="3"/><circle cx="96" cy="99" r="63" fill="none" stroke="url(#metal)" stroke-width="3"/>
+<path d="m96 39 4 10 11 1-8 7 2 11-9-6-9 6 2-11-8-7 11-1z" fill="#d64a28" stroke="#f3eddf"/>
+<g fill="none" stroke="#f3eddf" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="78" cy="89" r="12"/><circle cx="114" cy="89" r="12"/><path d="M58 127v-10c0-17 40-17 40 0v10m-4-10c0-17 40-17 40 0v10"/><path d="m86 130 10 9 18-20" stroke="#30aaa3"/></g>
+<g fill="#30aaa3"><path d="M48 132q-18-9-14-24 15 4 14 24m-5-27q-15-12-7-25 13 8 7 25m8-27q-10-14 0-24 11 10 0 24M144 132q18-9 14-24-15 4-14 24m5-27q15-12 7-25-13 8-7 25m-8-27q10-14 0-24-11 10 0 24"/></g>
+</svg>

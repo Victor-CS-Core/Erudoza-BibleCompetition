@@ -8,18 +8,15 @@ for (const width of phoneWidths) {
     await page.goto("/");
 
     await expect(page.getByTestId("landing-phone-column")).toBeVisible();
-    await expect(page.getByTestId("erudoza-mark")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Erudoza home" })).toBeVisible();
     await expect(page.getByTestId("start-studying")).toBeVisible();
     await expect(page.getByTestId("build-a-season")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "TRAINING DECKS" })).toBeVisible();
-    await expect(page.getByTestId("landing-deck-learner")).toHaveText("Learner");
-    await expect(page.getByTestId("landing-deck-reviews")).toHaveText("Reviews");
-    await expect(page.getByTestId("landing-deck-rehearsal")).toHaveText("Rehearsal");
-    await expect(page.getByTestId("landing-field-guide-chrome")).toHaveAttribute("aria-hidden", "true");
-    await expect(page.getByTestId("chrome-compass")).toBeAttached();
-    await expect(page.getByTestId("chrome-mountain")).toBeAttached();
-    await expect(page.getByTestId("chrome-forest")).toBeAttached();
-    await expect(page.getByTestId("chrome-leaf")).toBeAttached();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Know the passage.");
+    await expect(page.getByRole("heading", { name: "Learn your passages" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Review what needs attention" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Rehearse for competition" })).toBeVisible();
+    await expect(page.getByTestId("start-studying")).toHaveAttribute("href", "/login");
+    await expect(page.getByTestId("build-a-season")).toHaveAttribute("href", "/login");
 
     const overflow = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,

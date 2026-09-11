@@ -1,0 +1,214 @@
+{
+  "packKey": "kjv-1769-pdf-jud",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "public-domain",
+  "documents": [
+    {
+      "name": "Jude",
+      "units": [
+        {
+          "citation": "Jude 1:1",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 30739,
+          "text": "Jude, the servant of Jesus Christ, and brother of James, to them that are sanctified by God the Father, and preserved in Jesus Christ, and called:"
+        },
+        {
+          "citation": "Jude 1:2",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 30740,
+          "text": "Mercy unto you, and peace, and love, be multiplied."
+        },
+        {
+          "citation": "Jude 1:3",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 30741,
+          "text": "Beloved, when I gave all diligence to write unto you of the common salvation, it was needful for me to write unto you, and exhort you that ye should earnestly contend for the faith which was once delivered unto the saints."
+        },
+        {
+          "citation": "Jude 1:4",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 30742,
+          "text": "For there are certain men crept in unawares, who were before of old ordained to this condemnation, ungodly men, turning the grace of our God into lasciviousness, and denying the only Lord God, and our Lord Jesus Christ."
+        },
+        {
+          "citation": "Jude 1:5",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 30743,
+          "text": "I will therefore put you in remembrance, though ye once knew this, how that the Lord, having saved the people out of the land of Egypt, afterward destroyed them that believed not."
+        },
+        {
+          "citation": "Jude 1:6",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 30744,
+          "text": "And the angels which kept not their first estate, but left their own habitation, he hath reserved in everlasting chains under darkness unto the judgment of the great day."
+        },
+        {
+          "citation": "Jude 1:7",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 30745,
+          "text": "Even as Sodom and Gomorrha, and the cities about them in like manner, giving themselves over to fornication, and going after strange flesh, are set forth for an example, suffering the vengeance of eternal fire."
+        },
+        {
+          "citation": "Jude 1:8",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 30746,
+          "text": "Likewise also these filthy dreamers defile the flesh, despise dominion, and speak evil of dignities."
+        },
+        {
+          "citation": "Jude 1:9",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 30747,
+          "text": "Yet Michael the archangel, when contending with the devil he disputed about the body of Moses, durst not bring against him a railing accusation, but said, The Lord rebuke thee."
+        },
+        {
+          "citation": "Jude 1:10",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 30748,
+          "text": "But these speak evil of those things which they know not: but what they know naturally, as brute beasts, in those things they corrupt themselves."
+        },
+        {
+          "citation": "Jude 1:11",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 30749,
+          "text": "Woe unto them! for they have gone in the way of Cain, and ran greedily after the error of Balaam for reward, and perished in the gainsaying of Core."
+        },
+        {
+          "citation": "Jude 1:12",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 30750,
+          "text": "These are spots in your feasts of charity, when they feast with you, feeding themselves without fear: clouds they are without water, carried about of winds; trees whose fruit withereth, without fruit, twice dead, plucked up by the roots;"
+        },
+        {
+          "citation": "Jude 1:13",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 30751,
+          "text": "Raging waves of the sea, foaming out their own shame; wandering stars, to whom is reserved the blackness of darkness for ever."
+        },
+        {
+          "citation": "Jude 1:14",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 30752,
+          "text": "And Enoch also, the seventh from Adam, prophesied of these, saying, Behold, the Lord cometh with ten thousands of his saints,"
+        },
+        {
+          "citation": "Jude 1:15",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 30753,
+          "text": "To execute judgment upon all, and to convince all that are ungodly among them of all their ungodly deeds which they have ungodly committed, and of all their hard speeches which ungodly sinners have spoken against him."
+        },
+        {
+          "citation": "Jude 1:16",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 30754,
+          "text": "These are murmurers, complainers, walking after their own lusts; and their mouth speaketh great swelling words, having men’s persons in admiration because of advantage."
+        },
+        {
+          "citation": "Jude 1:17",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 30755,
+          "text": "But, beloved, remember ye the words which were spoken before of the apostles of our Lord Jesus Christ;"
+        },
+        {
+          "citation": "Jude 1:18",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 30756,
+          "text": "How that they told you there should be mockers in the last time, who should walk after their own ungodly lusts."
+        },
+        {
+          "citation": "Jude 1:19",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 30757,
+          "text": "These be they who separate themselves, sensual, having not the Spirit."
+        },
+        {
+          "citation": "Jude 1:20",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 30758,
+          "text": "But ye, beloved, building up yourselves on your most holy faith, praying in the Holy Ghost,"
+        },
+        {
+          "citation": "Jude 1:21",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 21,
+          "ordinal": 30759,
+          "text": "Keep yourselves in the love of God, looking for the mercy of our Lord Jesus Christ unto eternal life."
+        },
+        {
+          "citation": "Jude 1:22",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 22,
+          "ordinal": 30760,
+          "text": "And of some have compassion, making a difference:"
+        },
+        {
+          "citation": "Jude 1:23",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 23,
+          "ordinal": 30761,
+          "text": "And others save with fear, pulling them out of the fire; hating even the garment spotted by the flesh."
+        },
+        {
+          "citation": "Jude 1:24",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 24,
+          "ordinal": 30762,
+          "text": "Now unto him that is able to keep you from falling, and to present you faultless before the presence of his glory with exceeding joy,"
+        },
+        {
+          "citation": "Jude 1:25",
+          "bookKey": "JUD",
+          "chapter": 1,
+          "verse": 25,
+          "ordinal": 30763,
+          "text": "To the only wise God our Saviour, be glory and majesty, dominion and power, both now and ever. Amen."
+        }
+      ]
+    }
+  ]
+}

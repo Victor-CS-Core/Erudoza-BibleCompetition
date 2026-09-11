@@ -1,0 +1,693 @@
+diff --git a/apps/web/worker/native/application.ts b/apps/web/worker/native/application.ts
+new file mode 100644
+index 0000000..a087579
+--- /dev/null
++++ b/apps/web/worker/native/application.ts
+@@ -0,0 +1,196 @@
++import { coverage } from './application/coverage';
++import type { RequestContext } from './types';
++import { admin, body, HttpError, json, noContent, requiredString } from './types';
++import { hashPassword } from './auth';
++import { content } from './application/content';
++import { catalog } from './application/catalog';
++import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeSources, seasonSummaries, student, students } from './application/model';
++import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
++export { effectiveSources } from './application/model';
++async function mapSeason(ctx: RequestContext, s: Season) { return { ...s, scopeUnitCount: (await effectiveSources(ctx, s.id)).length, assignmentCount: (await ctx.store.list<Assignment>('assignment', ctx.orgId, { seasonId: s.id })).length }; }
++export async function handleApplication(ctx: RequestContext): Promise<Response | null> {
++    const { request, path, store, orgId } = ctx, method = request.method;
++    if (orgId !== ctx.actor.organizationId)
++        throw new HttpError(403, 'Organization access denied.');
++    if ((path === '' || path === '/') && method === 'GET')
++        return json(await ctx.env.DB.prepare('SELECT id,name,slug FROM Organizations WHERE id=?').bind(orgId).first());
++    if (path === '/seasons' && method === 'GET')
++        return json(await seasonSummaries(ctx));
++    const seasonMatch = path.match(/^\/seasons\/([^/]+)(.*)$/);
++    if (seasonMatch && (!seasonMatch[2] || seasonMatch[2] === '/assignments') && method === 'GET') {
++        const s = await store.require<Season>('season', seasonMatch[1], orgId);
++        if (!seasonMatch[2])
++            return json(await mapSeason(ctx, s.value));
++        const list = await store.list<Assignment>('assignment', orgId, { seasonId: s.value.id, ...(ctx.actor.kind === 'Student' ? { ownerId: ctx.actor.userId } : {}) });
++        const usersById = new Map((await students(ctx)).map(u => [u.userId, u]));
++        const memberships = new Map((await store.list<Membership>('membership', orgId, { seasonId: s.value.id })).map(m => [m.studentUserId ?? m.userId, m]));
++        return json(list.map(a => ({ ...a, studentDisplayName: usersById.get(a.studentUserId)?.displayName ?? null, studentUserName: usersById.get(a.studentUserId)?.userName ?? null, difficulty: memberships.get(a.studentUserId)?.difficulty ?? 'Standard' })));
++    }
++    if (!/^\/(students|seasons|content-packs|scripture-catalog)(\/|$)/.test(path))
++        return null;
++    admin(ctx.actor);
++    if (path === '/students' && method === 'GET')
++        return json(await students(ctx));
++    if (path === '/students' && method === 'POST') {
++        const input = await body<{
++            userName: string;
++            displayName: string;
++            password: string;
++        }>(request, 4096), userName = requiredString(input.userName, 'Username', 100).toLowerCase(), displayName = requiredString(input.displayName, 'Display name', 200);
++        if (!/^[a-z0-9][a-z0-9._-]*$/.test(userName))
++            return fail('Use letters, numbers, dots, underscores or hyphens for usernames.');
++        if (await ctx.env.DB.prepare('SELECT id FROM Users WHERE user_name=? OR email=?').bind(userName, userName).first())
++            throw new HttpError(409, 'That username is already in use.');
++        if (typeof input.password !== 'string')
++            return fail('Password is required.');
++        const password = await hashPassword(input.password), userId = id();
++        await atomic(ctx, 'student.create', [ctx.env.DB.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,'Student','Student',?,?)").bind(userId, orgId, userName, displayName, password, id())]);
++        return json({ userId, userName, displayName, email: null, isActive: true }, 201);
++    }
++    const studentMatch = path.match(/^\/students\/([^/]+)\/(password|state)$/);
++    if (studentMatch && (studentMatch[2] === 'password' && method === 'POST' || studentMatch[2] === 'state' && method === 'PUT')) {
++        await student(ctx, studentMatch[1]);
++        const input = await body<{
++            password: string;
++            isActive: boolean;
++        }>(request, 4096);
++        if (studentMatch[2] === 'password') {
++            if (typeof input.password !== 'string')
++                return fail('Password is required.');
++            await atomic(ctx, 'student.password.reset', [ctx.env.DB.prepare("UPDATE Users SET password_hash=?,credential_version=? WHERE id=? AND org_id=? AND kind='Student'").bind(await hashPassword(input.password), id(), studentMatch[1], orgId)]);
++        }
++        else {
++            if (typeof input.isActive !== 'boolean')
++                return fail('isActive must be a boolean.');
++            await atomic(ctx, 'student.state', [ctx.env.DB.prepare("UPDATE Users SET credential_version=CASE WHEN active<>? THEN ? ELSE credential_version END,active=? WHERE id=? AND org_id=? AND kind='Student'").bind(+input.isActive, id(), +input.isActive, studentMatch[1], orgId)]);
++        }
++        return noContent();
++    }
++    const catalogResult = await catalog(ctx);
++    if (catalogResult)
++        return catalogResult;
++    const contentResult = await content(ctx);
++    if (contentResult)
++        return contentResult;
++    if (path === '/seasons' && method === 'POST') {
++        const input = await body<{
++            name: string;
++            yearLabel: string;
++            ruleProfileKey: string;
++            startDate?: string;
++            targetCompetitionDate?: string;
++        }>(request, 4096);
++        if (input.ruleProfileKey !== 'PBE_STYLE_V1')
++            return fail('Rule profile was not found.');
++        const date = (v: unknown) => { if (v == null)
++            return null; if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v) || Number.isNaN(Date.parse(v)))
++            return fail('Use an ISO calendar date.'); return v; };
++        const s: Season = { id: id(), organizationId: orgId, name: requiredString(input.name, 'Season name'), yearLabel: requiredString(input.yearLabel, 'Year label', 40), ruleProfileKey: input.ruleProfileKey, ruleProfileVersion: 1, status: 'Draft', startDate: date(input.startDate), targetCompetitionDate: date(input.targetCompetitionDate), createdAtUtc: new Date().toISOString() };
++        await atomic(ctx, 'season.create', [store.insertion('season', s.id, orgId, s)]);
++        return json({ ...s, scopeUnitCount: 0, assignmentCount: 0 }, 201);
++    }
++    if (!seasonMatch)
++        return null;
++    const seasonId = seasonMatch[1], suffix = seasonMatch[2], saved = await store.require<Season>('season', seasonId, orgId), s = saved.value, guard = { kind: 'season', id: seasonId, revision: saved.revision };
++    const updateSeason = () => store.update('season', seasonId, orgId, s, saved.revision);
++    if (suffix === '/scope' && method === 'GET')
++        return json((await store.get<Scope>('scope', seasonId, orgId))?.value ?? { contentPackId: null, includes: [], excludes: [] });
++    if (suffix === '/scope' && method === 'POST') {
++        editable(s);
++        if (s.status === 'Active')
++            return fail('Season passages are locked.');
++        const input = await body<Scope>(request, 65536);
++        if (!input.contentPackId)
++            return fail('Content pack is required.');
++        const p = await store.require<Pack>('pack', input.contentPackId, orgId);
++        if (!Array.isArray(input.includes) || input.includes.length > 100 || !Array.isArray(input.excludes ?? []) || (input.excludes ?? []).length > 100)
++            return fail('Use at most 100 include and exclude ranges.');
++        const scope: Scope = { contentPackId: p.value.id, includes: input.includes.map(range), excludes: (input.excludes ?? []).map(range) };
++        s.status = (await scopeSources(ctx, scope)).length ? 'ContentReady' : 'Draft';
++        const previous = await store.get<Scope>('scope', seasonId, orgId);
++        await atomic(ctx, 'season.scope', [previous ? store.update('scope', seasonId, orgId, scope, previous.revision) : store.insertion('scope', seasonId, orgId, scope, { seasonId }), updateSeason()], [guard, { kind: 'pack', id: p.value.id, revision: p.revision }]);
++        return noContent();
++    }
++    if (suffix === '/activate' && method === 'POST') {
++        editable(s);
++        const problems: string[] = [];
++        if (s.ruleProfileKey !== 'PBE_STYLE_V1')
++            problems.push('A rule profile version is required.');
++        if (!(await effectiveSources(ctx, seasonId)).length)
++            problems.push('Competition scope must resolve to at least one source unit.');
++        if (problems.length)
++            return json({ activated: false, blockingProblems: problems }, 400);
++        s.status = 'Active';
++        await atomic(ctx, 'season.activate', [updateSeason()], [guard]);
++        return json({ activated: true, blockingProblems: [] });
++    }
++    if (['/close', '/archive'].includes(suffix) && method === 'POST') {
++        const next = suffix === '/close' ? 'Completed' : 'Archived';
++        if (s.status === next)
++            return noContent();
++        if (s.status === 'Archived' || next === 'Completed' && s.status !== 'Active')
++            return fail('Only active seasons can be closed. Archived seasons cannot be reopened.');
++        s.status = next;
++        await atomic(ctx, `season.${suffix.slice(1)}`, [updateSeason()], [guard]);
++        return noContent();
++    }
++    if (suffix === '/assignments' && method === 'POST') {
++        editable(s);
++        const input = await body<{
++            studentUserId: string;
++            contentPackId: string;
++            range: unknown;
++            type: string;
++            difficulty?: string;
++        }>(request, 8192), user = await student(ctx, input.studentUserId);
++        if (!user.isActive)
++            return fail('Reactivate the student before assigning passages.');
++        if (!['PrimarySpecialist', 'RequiredCoverage', 'OptionalReview'].includes(input.type))
++            return fail('Assignment type is invalid.');
++        const r = range(input.range), p = await store.require<Pack>('pack', input.contentPackId, orgId);
++        if (!(await effectiveSources(ctx, seasonId)).some(u => u.contentPackId === p.value.id && contains(r, u)))
++            return fail('This assignment has no available passages inside the season scope.');
++        const mid = memberId(seasonId, user.userId), old = await store.get<Membership>('membership', mid, orgId), d = input.difficulty === undefined ? old?.value.difficulty ?? 'Standard' : difficulty(input.difficulty);
++        const membership: Membership = { id: mid, seasonId, userId: user.userId, studentUserId: user.userId, difficulty: d };
++        const a: Assignment = { id: id(), seasonId, studentUserId: user.userId, contentPackId: p.value.id, type: input.type, ...r, createdAtUtc: new Date().toISOString() };
++        if (['Draft', 'ContentReady'].includes(s.status))
++            s.status = 'AssignmentsReady';
++        await atomic(ctx, 'season.assign', [store.insertion('assignment', a.id, orgId, a, { seasonId, ownerId: user.userId }), old ? store.update('membership', mid, orgId, membership, old.revision) : store.insertion('membership', mid, orgId, membership, { seasonId, ownerId: user.userId }), updateSeason()], [guard, { kind: 'pack', id: p.value.id, revision: p.revision }]);
++        return json({ ...a, difficulty: d });
++    }
++    const diff = suffix.match(/^\/students\/([^/]+)\/difficulty$/);
++    if (diff && method === 'PUT') {
++        editable(s);
++        await student(ctx, diff[1]);
++        const input = await body<{
++            difficulty: string;
++        }>(request, 4096), d = difficulty(input.difficulty);
++        if (!(await store.list<Assignment>('assignment', orgId, { seasonId, ownerId: diff[1] })).length)
++            return fail('Assign this student to the season before setting difficulty.');
++        const mid = memberId(seasonId, diff[1]), old = await store.get<Membership>('membership', mid, orgId), m: Membership = { id: mid, seasonId, userId: diff[1], studentUserId: diff[1], difficulty: d };
++        await atomic(ctx, 'season.student-difficulty', [old ? store.update('membership', mid, orgId, m, old.revision) : store.insertion('membership', mid, orgId, m, { seasonId, ownerId: diff[1] }), updateSeason()], [guard]);
++        return json({ difficulty: d });
++    }
++    const assignmentMatch = suffix.match(/^\/assignments\/([^/]+)(\/passage)?$/);
++    if (assignmentMatch && (method === 'DELETE' && !assignmentMatch[2] || method === 'PUT' && assignmentMatch[2])) {
++        editable(s);
++        const a = await store.require<Assignment>('assignment', assignmentMatch[1], orgId);
++        if (a.value.seasonId !== seasonId)
++            throw new HttpError(404, 'Assignment was not found in this season.');
++        if (method === 'DELETE') {
++            if (s.status === 'AssignmentsReady' && (await store.list<Assignment>('assignment', orgId, { seasonId })).length === 1)
++                s.status = 'ContentReady';
++            await atomic(ctx, 'season.assignment.remove', [deletion(ctx, 'assignment', a.value.id), updateSeason()], [guard, { kind: 'assignment', id: a.value.id, revision: a.revision }]);
++        }
++        else {
++            const r = range(await body(request, 4096));
++            if (!(await effectiveSources(ctx, seasonId)).some(u => u.contentPackId === a.value.contentPackId && contains(r, u)))
++                return fail('This assignment has no available passages inside the season scope.');
++            await atomic(ctx, 'season.assignment.correct', [store.update('assignment', a.value.id, orgId, { ...a.value, ...r }, a.revision), updateSeason()], [guard, { kind: 'assignment', id: a.value.id, revision: a.revision }]);
++        }
++        return noContent();
++    }
++    if (suffix === '/coverage' && method === 'GET')
++        return json(await coverage(ctx, s));
++    return null;
++}
+diff --git a/apps/web/worker/native/application.test.ts b/apps/web/worker/native/application.test.ts
+new file mode 100644
+index 0000000..6e5e4ad
+--- /dev/null
++++ b/apps/web/worker/native/application.test.ts
+@@ -0,0 +1,135 @@
++// @vitest-environment node
++import { afterAll, beforeAll, expect, it } from 'vitest';
++import { createNativeTestApp, TEST_ORG } from './test-runtime';
++let app: Awaited<ReturnType<typeof createNativeTestApp>>, cookie: string;
++beforeAll(async () => { app = await createNativeTestApp(); cookie = (await app.login()).headers.get('set-cookie')!.split(';')[0]; }, 30000);
++afterAll(async () => { await app?.runtime.dispose(); });
++const call = (path: string, method = 'GET', data?: unknown, auth = cookie) => app.fetch(`/api/v1/organizations/${TEST_ORG}${path}`, { method, headers: { Cookie: auth, Origin: 'https://erudoza.test', 'Content-Type': 'application/json' }, ...(data === undefined ? {} : { body: JSON.stringify(data) }) });
++const passage = { bookKey: 'DAN', startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 };
++const payload = (packKey: string) => ({ packKey, version: 1, locale: 'en', sourceType: 'Scripture', documents: [{ name: 'Daniel', units: [1, 2, 3].map(n => ({ citation: `Daniel 1:${n}`, bookKey: 'DAN', chapter: 1, verse: n, ordinal: n, text: `This is canonical verse number ${n}.` })) }] });
++async function setup(key: string) {
++    const packResponse = await call('/content-packs/import', 'POST', payload(key));
++    expect(packResponse.status).toBe(200);
++    const pack = await packResponse.json() as {
++        id: string;
++    };
++    const seasonResponse = await call('/seasons', 'POST', { name: key, yearLabel: '2026', ruleProfileKey: 'PBE_STYLE_V1' });
++    expect(seasonResponse.status).toBe(201);
++    const season = await seasonResponse.json() as {
++        id: string;
++    };
++    const studentResponse = await call('/students', 'POST', { userName: key, displayName: key, password: 'Testing!123' });
++    expect(studentResponse.status).toBe(201);
++    const student = await studentResponse.json() as {
++        userId: string;
++    };
++    expect((await call(`/seasons/${season.id}/scope`, 'POST', { contentPackId: pack.id, includes: [passage], excludes: [{ ...passage, startVerse: 2 }] })).status).toBe(204);
++    return { pack, season, student };
++}
++it('replays coach setup with exclusion-aware scope, assignments, difficulty, coverage and irreversible lifecycle', async () => {
++    const { pack, season, student } = await setup('lifecycle');
++    const prefix = `/seasons/${season.id}`;
++    const assign = await call(`${prefix}/assignments`, 'POST', { studentUserId: student.userId, contentPackId: pack.id, type: 'PrimarySpecialist', range: passage, difficulty: 'Foundation' });
++    expect(assign.status).toBe(200);
++    const assignment = await assign.json() as {
++        id: string;
++    };
++    expect((await (await call(prefix)).json() as {
++        scopeUnitCount: number;
++    }).scopeUnitCount).toBe(1);
++    const summaries = await (await call('/seasons')).json() as {
++        id: string;
++        scopeUnitCount: number;
++        assignmentCount: number;
++    }[];
++    expect(summaries.find(s => s.id === season.id)).toMatchObject({ scopeUnitCount: 1, assignmentCount: 1 });
++    const coverage = await (await call(`${prefix}/coverage`)).json() as {
++        students: {
++            eligibleUnitCount: number;
++        }[];
++    };
++    expect(coverage.students[0].eligibleUnitCount).toBe(1);
++    expect((await call(`${prefix}/students/${student.userId}/difficulty`, 'PUT', { difficulty: 'Advanced' })).status).toBe(200);
++    expect((await call(`${prefix}/activate`, 'POST')).status).toBe(200);
++    expect((await call(`${prefix}/scope`, 'POST', { contentPackId: pack.id, includes: [passage], excludes: [] })).status).toBe(400);
++    expect((await call(`${prefix}/assignments/${assignment.id}/passage`, 'PUT', { ...passage, startVerse: 2 })).status).toBe(400);
++    expect((await call(`/content-packs/${pack.id}`, 'DELETE')).status).toBe(409);
++    expect((await call(`${prefix}/close`, 'POST')).status).toBe(204);
++    expect((await call(`${prefix}/assignments/${assignment.id}`, 'DELETE')).status).toBe(400);
++    expect((await call(`${prefix}/activate`, 'POST')).status).toBe(400);
++    expect((await call(`${prefix}/archive`, 'POST')).status).toBe(204);
++    expect((await call(`${prefix}/close`, 'POST')).status).toBe(400);
++}, 30000);
++it('validates entire import before writes and requires a new version for changed text', async () => {
++    const input = payload('rollback');
++    input.documents[0].units[2].text = '';
++    expect((await call('/content-packs/import', 'POST', input)).status).toBe(400);
++    expect(await app.db.prepare("SELECT COUNT(*) AS count FROM Records WHERE kind='pack' AND json_extract(data,'$.packKey')='rollback'").first('count')).toBe(0);
++    const first = await call('/content-packs/import', 'POST', payload('immutable'));
++    expect(first.status).toBe(200);
++    const saved = await first.json() as {
++        id: string;
++    };
++    expect((await (await call('/content-packs/import', 'POST', payload('immutable'))).json() as {
++        id: string;
++    }).id).toBe(saved.id);
++    const changed = payload('immutable');
++    changed.documents[0].units[0].text = 'Changed wording';
++    expect((await call('/content-packs/import', 'POST', changed)).status).toBe(400);
++    expect((await call(`/content-packs/${saved.id}`, 'DELETE')).status).toBe(204);
++    expect(await app.db.prepare("SELECT COUNT(*) AS count FROM Records WHERE kind='source' AND owner_id=?").bind(saved.id).first('count')).toBe(0);
++});
++it('rolls back a content pack and audit when D1 rejects a source in the transactional import', async () => {
++    await app.db.prepare("CREATE TRIGGER RejectTestSource BEFORE INSERT ON Records WHEN NEW.kind='source' AND json_extract(NEW.data,'$.canonicalText')='REJECT-THIS-SOURCE' BEGIN SELECT RAISE(ABORT,'test source rejection'); END").run();
++    try {
++        const input = payload('database-rollback');
++        input.documents[0].units[1].text = 'REJECT-THIS-SOURCE';
++        expect((await call('/content-packs/import', 'POST', input)).status).toBe(503);
++        expect(await app.db.prepare("SELECT count(*) AS count FROM Records WHERE kind='pack' AND json_extract(data,'$.packKey')='database-rollback'").first('count')).toBe(0);
++    }
++    finally {
++        await app.db.prepare('DROP TRIGGER RejectTestSource').run();
++    }
++});
++it('keeps immutable nested session card history from losing its source pack', async () => {
++    const response = await call('/content-packs/import', 'POST', payload('session-history'));
++    const pack = await response.json() as {
++        id: string;
++    };
++    const sources = await (await call(`/content-packs/${pack.id}/source-units`)).json() as {
++        id: string;
++    }[];
++    await app.db.prepare("INSERT INTO Records(kind,id,org_id,data) VALUES('session','history-session',?,?)").bind(TEST_ORG, JSON.stringify({ cards: [{ sourceUnitId: sources[0].id }] })).run();
++    expect((await call(`/content-packs/${pack.id}`, 'DELETE')).status).toBe(409);
++});
++it('rejects foreign content identifiers and student management while reset and deactivation revoke sessions', async () => {
++    const { pack, season, student } = await setup('privacy');
++    const foreign = '22222222-2222-4222-8222-222222222222';
++    await app.db.prepare('INSERT INTO Organizations(id,name,slug) VALUES(?,?,?)').bind(foreign, 'Foreign', 'foreign').run();
++    await app.db.prepare("INSERT INTO Records(kind,id,org_id,data) VALUES('pack','foreign-pack',?,?)").bind(foreign, JSON.stringify({ id: 'foreign-pack', isActive: true })).run();
++    expect((await call(`/seasons/${season.id}/scope`, 'POST', { contentPackId: 'foreign-pack', includes: [passage], excludes: [] })).status).toBe(404);
++    const login = async (password: string) => (await app.fetch('/api/v1/auth/login', { method: 'POST', headers: { Origin: 'https://erudoza.test' }, body: JSON.stringify({ identifier: 'privacy', password }) }));
++    const studentCookie = (await login('Testing!123')).headers.get('set-cookie')!.split(';')[0];
++    expect((await call('/students', 'GET', undefined, studentCookie)).status).toBe(403);
++    expect((await call(`/content-packs/${pack.id}/source-units`, 'GET', undefined, studentCookie)).status).toBe(403);
++    expect((await call(`/students/${student.userId}/password`, 'POST', { password: 'Changed!123' })).status).toBe(204);
++    expect((await app.fetch('/api/v1/me', { headers: { Cookie: studentCookie } })).status).toBe(401);
++    const freshCookie = (await login('Changed!123')).headers.get('set-cookie')!.split(';')[0];
++    expect((await call(`/students/${student.userId}/state`, 'PUT', { isActive: false })).status).toBe(204);
++    expect((await app.fetch('/api/v1/me', { headers: { Cookie: freshCookie } })).status).toBe(401);
++    expect((await call(`/seasons/${season.id}/assignments`, 'POST', { studentUserId: student.userId, contentPackId: pack.id, type: 'PrimarySpecialist', range: passage })).status).toBe(400);
++}, 30000);
++it('retains membership and history after removing a student assignment', async () => {
++    const { pack, season, student } = await setup('removal');
++    const prefix = `/seasons/${season.id}`;
++    const result = await call(`${prefix}/assignments`, 'POST', { studentUserId: student.userId, contentPackId: pack.id, type: 'RequiredCoverage', range: passage });
++    const a = await result.json() as {
++        id: string;
++    };
++    expect((await call(`${prefix}/assignments/${a.id}`, 'DELETE')).status).toBe(204);
++    expect((await (await call(`${prefix}/assignments`)).json())).toEqual([]);
++    expect(await app.db.prepare("SELECT COUNT(*) AS count FROM Records WHERE kind='membership' AND season_id=?").bind(season.id).first('count')).toBe(1);
++    expect((await (await call(prefix)).json() as {
++        status: string;
++    }).status).toBe('ContentReady');
++});
+diff --git "a/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\catalog.ts" "b/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\catalog.ts"
+new file mode 100644
+index 0000000..1bc4d30
+--- /dev/null
++++ "b/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\catalog.ts"
+@@ -0,0 +1,64 @@
++import type { RequestContext } from '../types';
++import { body, HttpError, json, requiredString } from '../types';
++import { fail, integer } from './model';
++import { importPack } from './content';
++const translations = [['web', 'World English Bible'], ['kjv', 'King James Version'], ['asv', 'American Standard Version (1901)'], ['bbe', 'Bible in Basic English'], ['webbe', 'World English Bible, British Edition'], ['oeb-us', 'Open English Bible, US Edition']].map(([id, name]) => ({ id, name, license: 'Public Domain', language: 'English' }));
++const books = 'GEN:Genesis|EXO:Exodus|LEV:Leviticus|NUM:Numbers|DEU:Deuteronomy|JOS:Joshua|JDG:Judges|RUT:Ruth|1SA:1 Samuel|2SA:2 Samuel|1KI:1 Kings|2KI:2 Kings|EZR:Ezra|NEH:Nehemiah|EST:Esther|JOB:Job|PSA:Psalms|PRO:Proverbs|ECC:Ecclesiastes|SNG:Song of Songs|ISA:Isaiah|JER:Jeremiah|LAM:Lamentations|EZK:Ezekiel|DAN:Daniel|HOS:Hosea|JOL:Joel|AMO:Amos|OBA:Obadiah|JON:Jonah|MIC:Micah|NAM:Nahum|HAB:Habakkuk|ZEP:Zephaniah|HAG:Haggai|ZEC:Zechariah|MAL:Malachi|MAT:Matthew|MRK:Mark|LUK:Luke|JHN:John|ACT:Acts|ROM:Romans|1CO:1 Corinthians|2CO:2 Corinthians|GAL:Galatians|EPH:Ephesians|PHP:Philippians|COL:Colossians|1TH:1 Thessalonians|2TH:2 Thessalonians|1TI:1 Timothy|2TI:2 Timothy|TIT:Titus|PHM:Philemon|HEB:Hebrews|JAS:James|1PE:1 Peter|2PE:2 Peter|1JN:1 John|2JN:2 John|3JN:3 John|JUD:Jude|REV:Revelation'.split('|').map(s => { const [bookKey, name] = s.split(':'); return { bookKey, name }; });
++interface Chapter {
++    translation: {
++        identifier: string;
++        license: string;
++    };
++    verses: {
++        book_id: string;
++        chapter: number;
++        verse: number;
++        text: string;
++    }[];
++}
++export async function catalog(ctx: RequestContext): Promise<Response | null> {
++    if (ctx.path === '/scripture-catalog' && ctx.request.method === 'GET')
++        return json({ translations, books });
++    if (ctx.path !== '/content-packs/import-from-catalog' || ctx.request.method !== 'POST')
++        return null;
++    const input = await body<{
++        translationId: string;
++        bookKey: string;
++        startChapter: number;
++        endChapter: number;
++    }>(ctx.request, 4096);
++    const translation = translations.find(t => t.id === String(input.translationId).toLowerCase()), book = books.find(b => b.bookKey === String(input.bookKey).toUpperCase());
++    if (!translation || !book)
++        return fail('Choose a translation and book from the public-domain catalog.');
++    const start = integer(input.startChapter, 'Start chapter', 150), end = integer(input.endChapter, 'End chapter', 150);
++    if (end < start || end - start >= 8)
++        return fail('Import 1 to 8 consecutive chapters.');
++    const units: {
++        citation: string;
++        bookKey: string;
++        chapter: number;
++        verse: number;
++        ordinal: number;
++        text: string;
++    }[] = [];
++    for (let chapter = start; chapter <= end; chapter++) {
++        let response: Response;
++        try {
++            response = await fetch(`https://bible-api.com/data/${translation.id}/${book.bookKey}/${chapter}`, { signal: AbortSignal.timeout(15000), redirect: 'error' });
++        }
++        catch {
++            throw new HttpError(502, 'The Scripture catalog could not load that chapter.');
++        }
++        if (!response.ok)
++            throw new HttpError(502, 'The Scripture catalog could not load that chapter.');
++        const parsed = await body<Chapter>(new Request('https://catalog.invalid', { method: 'POST', body: response.body, duplex: 'half' } as RequestInit), 512000);
++        if (parsed.translation?.identifier !== translation.id || !/public domain|creative commons/i.test(parsed.translation?.license ?? '') || !Array.isArray(parsed.verses) || !parsed.verses.length || parsed.verses.length > 200)
++            throw new HttpError(502, 'The catalog returned an unexpected chapter payload.');
++        for (const v of parsed.verses.sort((a, b) => a.verse - b.verse)) {
++            if (v.book_id !== book.bookKey || v.chapter !== chapter)
++                throw new HttpError(502, 'The catalog returned mismatched verses.');
++            units.push({ citation: `${book.name} ${chapter}:${integer(v.verse, 'Verse', 200)}`, bookKey: book.bookKey, chapter, verse: v.verse, ordinal: units.length + 1, text: requiredString(v.text, 'Verse text', 12000) });
++        }
++    }
++    return json(await importPack(ctx, { packKey: `${translation.id}-${book.bookKey}-${start}-${end}`.toLowerCase(), version: 1, locale: 'en', sourceType: 'Scripture', licensingStatus: 'public-domain', documents: [{ name: book.name, units }] }));
++}
+diff --git "a/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\content.ts" "b/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\content.ts"
+new file mode 100644
+index 0000000..91185d3
+--- /dev/null
++++ "b/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\content.ts"
+@@ -0,0 +1,100 @@
++import type { RequestContext } from '../types';
++import { body, HttpError, json, noContent, requiredString } from '../types';
++import { sha256 } from '../auth';
++import { atomic, fail, id, integer } from './model';
++import type { Pack, Source } from './model';
++interface ImportUnit {
++    citation: string;
++    bookKey: string;
++    chapter: number;
++    verse: number;
++    ordinal: number;
++    text: string;
++}
++interface ImportRequest {
++    packKey: string;
++    version: number;
++    locale: string;
++    sourceType: string;
++    licensingStatus?: string;
++    documents: {
++        name: string;
++        units: ImportUnit[];
++    }[];
++}
++export async function importPack(ctx: RequestContext, input: ImportRequest): Promise<Pack> {
++    if (!input || typeof input !== 'object')
++        return fail('Invalid content pack.');
++    const packKey = requiredString(input.packKey, 'Pack key', 160), version = integer(input.version, 'Version'), locale = requiredString(input.locale, 'Locale', 20);
++    const sourceType = ['Scripture', 'Supplemental'].find(t => t.toLowerCase() === String(input.sourceType).toLowerCase());
++    if (!sourceType)
++        return fail('Invalid source type.');
++    if (!Array.isArray(input.documents) || !input.documents.length || input.documents.length > 66)
++        return fail('Import between 1 and 66 documents.');
++    const units: ImportUnit[] = [], locators = new Set<string>(), ordinals = new Set<number>();
++    for (const doc of input.documents) {
++        requiredString(doc?.name, 'Document name');
++        if (!Array.isArray(doc.units) || !doc.units.length)
++            return fail('Every document needs source units.');
++        for (const u of doc.units) {
++            if (!u || typeof u !== 'object')
++                return fail('Invalid source unit.');
++            const unit = { citation: requiredString(u.citation, 'Citation', 200), bookKey: requiredString(u.bookKey, 'Book', 20).toUpperCase(), chapter: integer(u.chapter, 'Chapter', 200), verse: integer(u.verse, 'Verse', 1000), ordinal: integer(u.ordinal, 'Ordinal'), text: requiredString(u.text, 'Source text', 12000) };
++            const locator = `${unit.bookKey}:${unit.chapter}:${unit.verse}`;
++            if (locators.has(locator) || ordinals.has(unit.ordinal))
++                return fail('Duplicate source locator or ordinal.');
++            locators.add(locator);
++            ordinals.add(unit.ordinal);
++            units.push(unit);
++            if (units.length > 2000)
++                return fail('Import at most 2000 source units at a time.');
++        }
++    }
++    units.sort((a, b) => a.ordinal - b.ordinal);
++    const fingerprint = await sha256(JSON.stringify(units.map(u => ({ bookKey: u.bookKey, chapter: u.chapter, verse: u.verse, ordinal: u.ordinal, text: u.text }))));
++    const existing = (await ctx.store.list<Pack>('pack', ctx.orgId)).find(p => p.packKey === packKey && p.version === version);
++    if (existing) {
++        const saved = await ctx.store.list<Source>('source', ctx.orgId, { ownerId: existing.id });
++        const oldFingerprint = existing.fingerprint ?? await sha256(JSON.stringify(saved.sort((a, b) => a.ordinal - b.ordinal).map(s => ({ bookKey: s.bookKey, chapter: s.chapter, verse: s.verse, ordinal: s.ordinal, text: s.canonicalText }))));
++        if (oldFingerprint !== fingerprint)
++            return fail('A changed content pack requires a new version.');
++        return existing;
++    }
++    // Stable identity prevents simultaneous imports of the same version from duplicating it.
++    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${ctx.orgId}\n${packKey}\n${version}`)));
++    digest[6] = (digest[6] & 15) | 80;
++    digest[8] = (digest[8] & 63) | 128;
++    const hex = [...digest.slice(0, 16)].map(n => n.toString(16).padStart(2, '0')).join('');
++    const packId = `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
++    const pack: Pack = { id: packId, packKey, version, locale, sourceType, licensingStatus: input.licensingStatus ? requiredString(input.licensingStatus, 'Licensing status', 100) : 'development-sample', unitCount: units.length, isActive: true, fingerprint };
++    const statements = [ctx.store.insertion('pack', pack.id, ctx.orgId, pack)];
++    const sources: Source[] = units.map(u => { const sourceId = id(); return { id: sourceId, knowledgeUnitId: sourceId, contentPackId: pack.id, citation: u.citation, bookKey: u.bookKey, chapter: u.chapter, verse: u.verse, ordinal: u.ordinal, canonicalText: u.text, isActive: true }; });
++    // One set-based statement keeps chapter imports below the Free plan's query budget.
++    statements.push(ctx.env.DB.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) SELECT 'source',json_extract(value,'$.id'),?,?,value FROM json_each(?)").bind(ctx.orgId, pack.id, JSON.stringify(sources)));
++    await atomic(ctx, 'content.import', statements);
++    return pack;
++}
++export async function content(ctx: RequestContext): Promise<Response | null> {
++    const { path, request, orgId, store } = ctx;
++    if (path === '/content-packs' && request.method === 'GET')
++        return json(await store.list<Pack>('pack', orgId));
++    if (path === '/content-packs/import' && request.method === 'POST')
++        return json(await importPack(ctx, await body<ImportRequest>(request)));
++    const match = path.match(/^\/content-packs\/([^/]+)(\/source-units)?$/);
++    if (!match)
++        return null;
++    const pack = await store.require<Pack>('pack', match[1], orgId);
++    if (match[2] && request.method === 'GET')
++        return json((await store.list<Source>('source', orgId, { ownerId: pack.value.id })).sort((a, b) => a.ordinal - b.ordinal));
++    if (!match[2] && request.method === 'DELETE') {
++        // All dependent records are checked by SQL in the mutation transaction, avoiding a check/delete race.
++        const protectedSql = `SELECT 1 FROM Records r WHERE r.org_id=? AND ( (r.kind IN ('scope','assignment') AND json_extract(r.data,'$.contentPackId')=?) OR (r.kind IN ('card','mastery','attempt','review','session') AND (json_extract(r.data,'$.contentPackId')=? OR json_extract(r.data,'$.sourceUnitId') IN (SELECT id FROM Records WHERE kind='source' AND org_id=? AND owner_id=?) OR json_extract(r.data,'$.knowledgeUnitId') IN (SELECT id FROM Records WHERE kind='source' AND org_id=? AND owner_id=?) OR EXISTS(SELECT 1 FROM json_tree(r.data) jt WHERE jt.key IN ('sourceUnitId','answerSourceUnitId','knowledgeUnitId','contentPackId') AND (jt.value=? OR jt.value IN (SELECT id FROM Records WHERE kind='source' AND org_id=? AND owner_id=?))))))`;
++        const args = [orgId, pack.value.id, pack.value.id, orgId, pack.value.id, orgId, pack.value.id, pack.value.id, orgId, pack.value.id];
++        if (await ctx.env.DB.prepare(protectedSql).bind(...args).first())
++            throw new HttpError(409, 'This pack is used by a season, assignment, or study history and cannot be deleted.');
++        const guard = ctx.env.DB.prepare(`INSERT INTO Records(kind,id,org_id,data) SELECT 'audit',?, ?, CASE WHEN EXISTS(${protectedSql}) THEN 'invalid-json' ELSE '{}' END`).bind(id(), orgId, ...args);
++        await atomic(ctx, 'content.delete', [guard, ctx.env.DB.prepare("DELETE FROM Records WHERE org_id=? AND ((kind='source' AND owner_id=?) OR (kind='pack' AND id=?))").bind(orgId, pack.value.id, pack.value.id)], [{ kind: 'pack', id: pack.value.id, revision: pack.revision }]);
++        return noContent();
++    }
++    return null;
++}
+diff --git "a/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\coverage.ts" "b/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\coverage.ts"
+new file mode 100644
+index 0000000..e353b0f
+--- /dev/null
++++ "b/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\coverage.ts"
+@@ -0,0 +1,31 @@
++import type { RequestContext } from '../types';
++import { contains, effectiveSources, students } from './model';
++import type { Assignment, Season } from './model';
++export async function coverage(ctx: RequestContext, season: Season) {
++    const { store, orgId } = ctx, seasonId = season.id;
++    const assignments = await store.list<Assignment>('assignment', orgId, { seasonId });
++    const usersById = new Map((await students(ctx)).map(u => [u.userId, u]));
++    const sources = await effectiveSources(ctx, seasonId);
++    const mastery = await store.list<{
++        studentUserId: string;
++        sourceUnitId: string;
++        level: string;
++        reviewDueAt?: string | null;
++    }>('mastery', orgId, { seasonId });
++    const counts = await ctx.env.DB.prepare("SELECT owner_id AS studentUserId,count(*) AS count FROM Records WHERE kind='attempt' AND org_id=? AND season_id=? AND coalesce(json_extract(data,'$.isLegacyDuplicate'),0)=0 GROUP BY owner_id").bind(orgId, seasonId).all<{
++        studentUserId: string;
++        count: number;
++    }>();
++    const countByStudent = new Map(counts.results.map(r => [r.studentUserId, r.count]));
++    const rows = [];
++    for (const userId of new Set(assignments.map(a => a.studentUserId))) {
++        const user = usersById.get(userId);
++        if (!user)
++            continue;
++        const assigned = assignments.filter(a => a.studentUserId === userId).sort((a, b) => ['PrimarySpecialist', 'RequiredCoverage', 'OptionalReview'].indexOf(a.type) - ['PrimarySpecialist', 'RequiredCoverage', 'OptionalReview'].indexOf(b.type));
++        const a = assigned[0], eligibleIds = new Set(sources.filter(u => assigned.some(a => a.contentPackId === u.contentPackId && contains(a, u))).map(u => u.id));
++        const studentMastery = mastery.filter(m => m.studentUserId === userId && eligibleIds.has(m.sourceUnitId));
++        rows.push({ studentUserId: userId, displayName: user.displayName, userName: user.userName, assignmentType: a.type, bookKey: a.bookKey, startChapter: a.startChapter, startVerse: a.startVerse, endChapter: a.endChapter, endVerse: a.endVerse, eligibleUnitCount: eligibleIds.size, masteredCount: studentMastery.filter(m => m.level === 'Mastered').length, reviewDueCount: studentMastery.filter(m => m.reviewDueAt && Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount: countByStudent.get(userId) ?? 0 });
++    }
++    return { seasonId, seasonName: season.name, seasonStatus: season.status, students: rows };
++}
+diff --git "a/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\model.ts" "b/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\model.ts"
+new file mode 100644
+index 0000000..c9516cd
+--- /dev/null
++++ "b/D:\\dev\\Erudoza\\apps\\web\\worker\\native\\application\\model.ts"
+@@ -0,0 +1,131 @@
++import type { RequestContext } from '../types';
++import { HttpError, requiredString } from '../types';
++import type { D1PreparedStatement } from '@cloudflare/workers-types';
++export interface Range {
++    bookKey: string;
++    startChapter: number;
++    startVerse: number;
++    endChapter: number;
++    endVerse: number;
++}
++export interface Source {
++    id: string;
++    contentPackId: string;
++    citation: string;
++    bookKey: string;
++    chapter: number;
++    verse: number;
++    ordinal: number;
++    canonicalText: string;
++    isActive: boolean;
++    isRetired?: boolean;
++    knowledgeUnitId?: string;
++}
++export interface Pack {
++    id: string;
++    packKey: string;
++    version: number;
++    locale: string;
++    sourceType: string;
++    licensingStatus: string;
++    unitCount: number;
++    isActive: boolean;
++    fingerprint?: string;
++}
++export interface Season {
++    id: string;
++    organizationId: string;
++    name: string;
++    yearLabel: string;
++    status: string;
++    ruleProfileKey: string;
++    ruleProfileVersion: number;
++    startDate: string | null;
++    targetCompetitionDate: string | null;
++    createdAtUtc: string;
++}
++export interface Scope {
++    contentPackId: string | null;
++    includes: Range[];
++    excludes: Range[];
++}
++export interface Assignment extends Range {
++    id: string;
++    seasonId: string;
++    studentUserId: string;
++    contentPackId: string;
++    type: string;
++    createdAtUtc: string;
++}
++export interface Membership {
++    id: string;
++    seasonId: string;
++    userId: string;
++    studentUserId: string;
++    difficulty: string;
++}
++export interface Student {
++    userId: string;
++    userName: string;
++    displayName: string;
++    email: string | null;
++    isActive: boolean;
++}
++export const id = () => crypto.randomUUID();
++export const memberId = (seasonId: string, userId: string) => `${seasonId}:${userId}`;
++export const fail = (message: string): never => { throw new HttpError(400, message); };
++export function integer(value: unknown, name: string, max = 100000): number { if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1 || value > max)
++    return fail(`${name} must be a positive integer no greater than ${max}.`); return value; }
++export function range(value: unknown): Range { if (!value || typeof value !== 'object')
++    return fail('Choose a valid passage range.'); const v = value as Range; const r = { bookKey: requiredString(v.bookKey, 'Book', 20).toUpperCase(), startChapter: integer(v.startChapter, 'Start chapter', 200), startVerse: integer(v.startVerse, 'Start verse', 1000), endChapter: integer(v.endChapter, 'End chapter', 200), endVerse: integer(v.endVerse, 'End verse', 1000) }; if (r.endChapter < r.startChapter || r.endChapter === r.startChapter && r.endVerse < r.startVerse)
++    return fail('Choose a valid passage range.'); return r; }
++export const contains = (r: Range, s: Source) => r.bookKey.toUpperCase() === s.bookKey.toUpperCase() && (s.chapter > r.startChapter || s.chapter === r.startChapter && s.verse >= r.startVerse) && (s.chapter < r.endChapter || s.chapter === r.endChapter && s.verse <= r.endVerse);
++export function editable(s: Season): void { if (['Completed', 'Archived'].includes(s.status))
++    fail('This season is closed. Saved passages and student plans are read-only.'); }
++export function difficulty(v: unknown): string { if (typeof v !== 'string' || !['Foundation', 'Standard', 'Advanced'].includes(v))
++    return fail('Choose Foundation, Standard, or Advanced difficulty.'); return v; }
++export async function students(ctx: RequestContext): Promise<Student[]> { const result = await ctx.env.DB.prepare('SELECT id AS userId,user_name AS userName,display_name AS displayName,email,active AS isActive FROM Users WHERE org_id=? AND kind=\'Student\' AND role=\'Student\' ORDER BY display_name').bind(ctx.orgId).all<Student>(); return result.results.map(s => ({ ...s, isActive: !!s.isActive })); }
++export async function student(ctx: RequestContext, userId: string): Promise<Student> { const s = await ctx.env.DB.prepare('SELECT id AS userId,user_name AS userName,display_name AS displayName,email,active AS isActive FROM Users WHERE org_id=? AND id=? AND kind=\'Student\' AND role=\'Student\'').bind(ctx.orgId, userId).first<Student>(); if (!s)
++    throw new HttpError(404, 'Student was not found in this organization.'); return { ...s, isActive: !!s.isActive }; }
++export const approvedPack = (p: Pack) => p.isActive && ['development-sample', 'public-domain', 'approved', 'creative-commons'].includes(p.licensingStatus.toLowerCase());
++export async function scopeSources(ctx: RequestContext, scope: Scope): Promise<Source[]> { if (!scope.contentPackId)
++    return []; const pack = await ctx.store.get<Pack>('pack', scope.contentPackId, ctx.orgId); if (!pack || !approvedPack(pack.value))
++    return []; const sources = await ctx.store.list<Source>('source', ctx.orgId, { ownerId: scope.contentPackId }); return sources.filter(s => s.isActive && !s.isRetired && scope.includes.some(r => contains(r, s)) && !scope.excludes.some(r => contains(r, s))).sort((a, b) => a.ordinal - b.ordinal || a.id.localeCompare(b.id)); }
++export async function effectiveSources(ctx: RequestContext, seasonId: string, studentId?: string): Promise<Source[]> { await ctx.store.require<Season>('season', seasonId, ctx.orgId); const scope = await ctx.store.get<Scope>('scope', seasonId, ctx.orgId); if (!scope)
++    return []; const all = await scopeSources(ctx, scope.value); if (studentId === undefined)
++    return all; await student(ctx, studentId); const assignments = await ctx.store.list<Assignment>('assignment', ctx.orgId, { seasonId, ownerId: studentId }); return all.filter(s => assignments.some(a => a.contentPackId === s.contentPackId && contains(a, s))); }
++/** Guard checks execute inside the same D1 transaction as every mutation. Invalid JSON
++ * deliberately violates Records' CHECK constraint to roll back a stale multi-record write. */
++export async function atomic(ctx: RequestContext, action: string, statements: D1PreparedStatement[], guards: {
++    kind: string;
++    id: string;
++    revision: number;
++}[] = []): Promise<void> {
++    const auditId = id(), query = guards.map(() => '(SELECT revision FROM Records WHERE kind=? AND id=? AND org_id=?)=?').join(' AND ') || '1';
++    const args = guards.flatMap(g => [g.kind, g.id, ctx.orgId, g.revision]);
++    const audit = JSON.stringify({ id: auditId, actorId: ctx.actor.userId, action, createdAtUtc: new Date().toISOString() });
++    const guard = ctx.env.DB.prepare(`INSERT INTO Records(kind,id,org_id,data) VALUES('audit',?,?,CASE WHEN ${query} THEN ? ELSE 'invalid-json' END)`).bind(auditId, ctx.orgId, ...args, audit);
++    try {
++        await ctx.env.DB.batch([guard, ...statements]);
++    }
++    catch (error) {
++        if (String(error).includes('CHECK constraint failed'))
++            throw new HttpError(409, 'The record changed. Refresh and retry.');
++        throw error;
++    }
++}
++export const deletion = (ctx: RequestContext, kind: string, recordId: string) => ctx.env.DB.prepare('DELETE FROM Records WHERE kind=? AND id=? AND org_id=?').bind(kind, recordId, ctx.orgId);
++export async function seasonSummaries(ctx: RequestContext): Promise<unknown[]> {
++    const inRange = (alias: string) => `upper(json_extract(${alias}.value,'$.bookKey'))=upper(json_extract(u.data,'$.bookKey')) AND (json_extract(u.data,'$.chapter')>json_extract(${alias}.value,'$.startChapter') OR (json_extract(u.data,'$.chapter')=json_extract(${alias}.value,'$.startChapter') AND json_extract(u.data,'$.verse')>=json_extract(${alias}.value,'$.startVerse'))) AND (json_extract(u.data,'$.chapter')<json_extract(${alias}.value,'$.endChapter') OR (json_extract(u.data,'$.chapter')=json_extract(${alias}.value,'$.endChapter') AND json_extract(u.data,'$.verse')<=json_extract(${alias}.value,'$.endVerse')))`;
++    const result = await ctx.env.DB.prepare(`SELECT s.data,
++ (SELECT count(*) FROM Records a WHERE a.kind='assignment' AND a.org_id=s.org_id AND a.season_id=s.id) AS assignmentCount,
++ (SELECT count(*) FROM Records sc JOIN Records p ON p.kind='pack' AND p.org_id=sc.org_id AND p.id=json_extract(sc.data,'$.contentPackId') JOIN Records u ON u.kind='source' AND u.org_id=p.org_id AND u.owner_id=p.id
++ WHERE sc.kind='scope' AND sc.id=s.id AND sc.org_id=s.org_id AND json_extract(p.data,'$.isActive')=1 AND lower(json_extract(p.data,'$.licensingStatus')) IN ('development-sample','public-domain','approved','creative-commons') AND json_extract(u.data,'$.isActive')=1 AND coalesce(json_extract(u.data,'$.isRetired'),0)=0
++ AND EXISTS(SELECT 1 FROM json_each(sc.data,'$.includes') inc WHERE ${inRange('inc')}) AND NOT EXISTS(SELECT 1 FROM json_each(sc.data,'$.excludes') exc WHERE ${inRange('exc')})) AS scopeUnitCount
++ FROM Records s WHERE s.kind='season' AND s.org_id=? ORDER BY json_extract(s.data,'$.createdAtUtc') DESC`).bind(ctx.orgId).all<{
++        data: string;
++        assignmentCount: number;
++        scopeUnitCount: number;
++    }>();
++    return result.results.map(r => ({ ...JSON.parse(r.data), assignmentCount: r.assignmentCount, scopeUnitCount: r.scopeUnitCount }));
++}

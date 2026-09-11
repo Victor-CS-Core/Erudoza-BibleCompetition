@@ -1,0 +1,1590 @@
+{
+  "packKey": "builtin-nkjv-hos",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Hosea",
+      "units": [
+        {
+          "citation": "Hosea 1:1",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 22096,
+          "text": "The word of the LORD that came to Hosea the son of Beeri, in the days of Uzziah, Jotham, Ahaz, and Hezekiah, kings of Judah, and in the days of Jeroboam the son of Joash, king of Israel."
+        },
+        {
+          "citation": "Hosea 1:2",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 22097,
+          "text": "When the LORD began to speak by Hosea, the LORD said to Hosea: \"Go, take yourself a wife of harlotry And children of harlotry, For the land has committed great harlotry By departing from the LORD.\""
+        },
+        {
+          "citation": "Hosea 1:3",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 22098,
+          "text": "So he went and took Gomer the daughter of Diblaim, and she conceived and bore him a son."
+        },
+        {
+          "citation": "Hosea 1:4",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 22099,
+          "text": "Then the LORD said to him: \"Call his name Jezreel, For in a little while I will avenge the bloodshed of Jezreel on the house of Jehu, And bring an end to the kingdom of the house of Israel."
+        },
+        {
+          "citation": "Hosea 1:5",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 22100,
+          "text": "It shall come to pass in that day That I will break the bow of Israel in the Valley of Jezreel.\""
+        },
+        {
+          "citation": "Hosea 1:6",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 22101,
+          "text": "And she conceived again and bore a daughter. Then God said to him: \"Call her name Lo-Ruhamah, For I will no longer have mercy on the house of Israel, But I will utterly take them away."
+        },
+        {
+          "citation": "Hosea 1:7",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 22102,
+          "text": "Yet I will have mercy on the house of Judah, Will save them by the LORD their God, And will not save them by bow, Nor by sword or battle, By horses or horsemen.\""
+        },
+        {
+          "citation": "Hosea 1:8",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 22103,
+          "text": "Now when she had weaned Lo-Ruhamah, she conceived and bore a son."
+        },
+        {
+          "citation": "Hosea 1:9",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 22104,
+          "text": "Then God said: \"Call his name Lo-Ammi, For you are not My people, And I will not be your God."
+        },
+        {
+          "citation": "Hosea 1:10",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 22105,
+          "text": "\"Yet the number of the children of Israel Shall be as the sand of the sea, Which cannot be measured or numbered. And it shall come to pass In the place where it was said to them, \"You are not My people,' There it shall be said to them, \"You are sons of the living God.'"
+        },
+        {
+          "citation": "Hosea 1:11",
+          "bookKey": "HOS",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 22106,
+          "text": "Then the children of Judah and the children of Israel Shall be gathered together, And appoint for themselves one head; And they shall come up out of the land, For great will be the day of Jezreel!"
+        },
+        {
+          "citation": "Hosea 2:1",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 22107,
+          "text": "Say to your brethren, \"My people,' And to your sisters, \"Mercy is shown.'"
+        },
+        {
+          "citation": "Hosea 2:2",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 22108,
+          "text": "\"Bring charges against your mother, bring charges; For she is not My wife, nor am I her Husband! Let her put away her harlotries from her sight, And her adulteries from between her breasts;"
+        },
+        {
+          "citation": "Hosea 2:3",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 22109,
+          "text": "Lest I strip her naked And expose her, as in the day she was born, And make her like a wilderness, And set her like a dry land, And slay her with thirst."
+        },
+        {
+          "citation": "Hosea 2:4",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 22110,
+          "text": "\"I will not have mercy on her children, For they are the children of harlotry."
+        },
+        {
+          "citation": "Hosea 2:5",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 22111,
+          "text": "For their mother has played the harlot; She who conceived them has behaved shamefully. For she said, \"I will go after my lovers, Who give me my bread and my water, My wool and my linen, My oil and my drink.'"
+        },
+        {
+          "citation": "Hosea 2:6",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 22112,
+          "text": "\"Therefore, behold, I will hedge up your way with thorns, And wall her in, So that she cannot find her paths."
+        },
+        {
+          "citation": "Hosea 2:7",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 22113,
+          "text": "She will chase her lovers, But not overtake them; Yes, she will seek them, but not find them. Then she will say, \"I will go and return to my first husband, For then it was better for me than now.'"
+        },
+        {
+          "citation": "Hosea 2:8",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 22114,
+          "text": "For she did not know That I gave her grain, new wine, and oil, And multiplied her silver and gold-- Which they prepared for Baal."
+        },
+        {
+          "citation": "Hosea 2:9",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 22115,
+          "text": "\"Therefore I will return and take away My grain in its time And My new wine in its season, And will take back My wool and My linen, Given to cover her nakedness."
+        },
+        {
+          "citation": "Hosea 2:10",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 22116,
+          "text": "Now I will uncover her lewdness in the sight of her lovers, And no one shall deliver her from My hand."
+        },
+        {
+          "citation": "Hosea 2:11",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 22117,
+          "text": "I will also cause all her mirth to cease, Her feast days, Her New Moons, Her Sabbaths-- All her appointed feasts."
+        },
+        {
+          "citation": "Hosea 2:12",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 22118,
+          "text": "\"And I will destroy her vines and her fig trees, Of which she has said, \"These are my wages that my lovers have given me.' So I will make them a forest, And the beasts of the field shall eat them."
+        },
+        {
+          "citation": "Hosea 2:13",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 22119,
+          "text": "I will punish her For the days of the Baals to which she burned incense. She decked herself with her earrings and jewelry, And went after her lovers; But Me she forgot,\" says the LORD."
+        },
+        {
+          "citation": "Hosea 2:14",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 22120,
+          "text": "\"Therefore, behold, I will allure her, Will bring her into the wilderness, And speak comfort to her."
+        },
+        {
+          "citation": "Hosea 2:15",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 22121,
+          "text": "I will give her her vineyards from there, And the Valley of Achor as a door of hope; She shall sing there, As in the days of her youth, As in the day when she came up from the land of Egypt."
+        },
+        {
+          "citation": "Hosea 2:16",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 22122,
+          "text": "\"And it shall be, in that day,\" Says the LORD, \"That you will call Me \"My Husband,' And no longer call Me \"My Master,'"
+        },
+        {
+          "citation": "Hosea 2:17",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 22123,
+          "text": "For I will take from her mouth the names of the Baals, And they shall be remembered by their name no more."
+        },
+        {
+          "citation": "Hosea 2:18",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 18,
+          "ordinal": 22124,
+          "text": "In that day I will make a covenant for them With the beasts of the field, With the birds of the air, And with the creeping things of the ground. Bow and sword of battle I will shatter from the earth, To make them lie down safely."
+        },
+        {
+          "citation": "Hosea 2:19",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 19,
+          "ordinal": 22125,
+          "text": "\"I will betroth you to Me forever; Yes, I will betroth you to Me In righteousness and justice, In lovingkindness and mercy;"
+        },
+        {
+          "citation": "Hosea 2:20",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 20,
+          "ordinal": 22126,
+          "text": "I will betroth you to Me in faithfulness, And you shall know the LORD."
+        },
+        {
+          "citation": "Hosea 2:21",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 21,
+          "ordinal": 22127,
+          "text": "\"It shall come to pass in that day That I will answer,\" says the LORD; \"I will answer the heavens, And they shall answer the earth."
+        },
+        {
+          "citation": "Hosea 2:22",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 22,
+          "ordinal": 22128,
+          "text": "The earth shall answer With grain, With new wine, And with oil; They shall answer Jezreel."
+        },
+        {
+          "citation": "Hosea 2:23",
+          "bookKey": "HOS",
+          "chapter": 2,
+          "verse": 23,
+          "ordinal": 22129,
+          "text": "Then I will sow her for Myself in the earth, And I will have mercy on her who had not obtained mercy; Then I will say to those who were not My people, \"You are My people!' And they shall say, \"You are my God!\"'"
+        },
+        {
+          "citation": "Hosea 3:1",
+          "bookKey": "HOS",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 22130,
+          "text": "Then the LORD said to me, \"Go again, love a woman who is loved by a lover and is committing adultery, just like the love of the LORD for the children of Israel, who look to other gods and love the raisin cakes of the pagans.\""
+        },
+        {
+          "citation": "Hosea 3:2",
+          "bookKey": "HOS",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 22131,
+          "text": "So I bought her for myself for fifteen shekels of silver, and one and one-half homers of barley."
+        },
+        {
+          "citation": "Hosea 3:3",
+          "bookKey": "HOS",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 22132,
+          "text": "And I said to her, \"You shall stay with me many days; you shall not play the harlot, nor shall you have a man--so, too, will I be toward you.\""
+        },
+        {
+          "citation": "Hosea 3:4",
+          "bookKey": "HOS",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 22133,
+          "text": "For the children of Israel shall abide many days without king or prince, without sacrifice or sacred pillar, without ephod or teraphim."
+        },
+        {
+          "citation": "Hosea 3:5",
+          "bookKey": "HOS",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 22134,
+          "text": "Afterward the children of Israel shall return and seek the LORD their God and David their king. They shall fear the LORD and His goodness in the latter days."
+        },
+        {
+          "citation": "Hosea 4:1",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 22135,
+          "text": "Hear the word of the LORD, You children of Israel, For the LORD brings a charge against the inhabitants of the land: \"There is no truth or mercy Or knowledge of God in the land."
+        },
+        {
+          "citation": "Hosea 4:2",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 22136,
+          "text": "By swearing and lying, Killing and stealing and committing adultery, They break all restraint, With bloodshed upon bloodshed."
+        },
+        {
+          "citation": "Hosea 4:3",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 22137,
+          "text": "Therefore the land will mourn; And everyone who dwells there will waste away With the beasts of the field And the birds of the air; Even the fish of the sea will be taken away."
+        },
+        {
+          "citation": "Hosea 4:4",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 22138,
+          "text": "\"Now let no man contend, or rebuke another; For your people are like those who contend with the priest."
+        },
+        {
+          "citation": "Hosea 4:5",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 22139,
+          "text": "Therefore you shall stumble in the day; The prophet also shall stumble with you in the night; And I will destroy your mother."
+        },
+        {
+          "citation": "Hosea 4:6",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 22140,
+          "text": "My people are destroyed for lack of knowledge. Because you have rejected knowledge, I also will reject you from being priest for Me; Because you have forgotten the law of your God, I also will forget your children."
+        },
+        {
+          "citation": "Hosea 4:7",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 22141,
+          "text": "\"The more they increased, The more they sinned against Me; I will change their glory into shame."
+        },
+        {
+          "citation": "Hosea 4:8",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 22142,
+          "text": "They eat up the sin of My people; They set their heart on their iniquity."
+        },
+        {
+          "citation": "Hosea 4:9",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 22143,
+          "text": "And it shall be: like people, like priest. So I will punish them for their ways, And reward them for their deeds."
+        },
+        {
+          "citation": "Hosea 4:10",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 22144,
+          "text": "For they shall eat, but not have enough; They shall commit harlotry, but not increase; Because they have ceased obeying the LORD."
+        },
+        {
+          "citation": "Hosea 4:11",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 22145,
+          "text": "\"Harlotry, wine, and new wine enslave the heart."
+        },
+        {
+          "citation": "Hosea 4:12",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 22146,
+          "text": "My people ask counsel from their wooden idols, And their staff informs them. For the spirit of harlotry has caused them to stray, And they have played the harlot against their God."
+        },
+        {
+          "citation": "Hosea 4:13",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 22147,
+          "text": "They offer sacrifices on the mountaintops, And burn incense on the hills, Under oaks, poplars, and terebinths, Because their shade is good. Therefore your daughters commit harlotry, And your brides commit adultery."
+        },
+        {
+          "citation": "Hosea 4:14",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 22148,
+          "text": "\"I will not punish your daughters when they commit harlotry, Nor your brides when they commit adultery; For the men themselves go apart with harlots, And offer sacrifices with a ritual harlot. Therefore people who do not understand will be trampled."
+        },
+        {
+          "citation": "Hosea 4:15",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 22149,
+          "text": "\"Though you, Israel, play the harlot, Let not Judah offend. Do not come up to Gilgal, Nor go up to Beth Aven, Nor swear an oath, saying, \"As the LORD lives'--"
+        },
+        {
+          "citation": "Hosea 4:16",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 22150,
+          "text": "\"For Israel is stubborn Like a stubborn calf; Now the LORD will let them forage Like a lamb in open country."
+        },
+        {
+          "citation": "Hosea 4:17",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 17,
+          "ordinal": 22151,
+          "text": "\"Ephraim is joined to idols, Let him alone."
+        },
+        {
+          "citation": "Hosea 4:18",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 18,
+          "ordinal": 22152,
+          "text": "Their drink is rebellion, They commit harlotry continually. Her rulers dearly love dishonor."
+        },
+        {
+          "citation": "Hosea 4:19",
+          "bookKey": "HOS",
+          "chapter": 4,
+          "verse": 19,
+          "ordinal": 22153,
+          "text": "The wind has wrapped her up in its wings, And they shall be ashamed because of their sacrifices."
+        },
+        {
+          "citation": "Hosea 5:1",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 22154,
+          "text": "\"Hear this, O priests! Take heed, O house of Israel! Give ear, O house of the king! For yours is the judgment, Because you have been a snare to Mizpah And a net spread on Tabor."
+        },
+        {
+          "citation": "Hosea 5:2",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 22155,
+          "text": "The revolters are deeply involved in slaughter, Though I rebuke them all."
+        },
+        {
+          "citation": "Hosea 5:3",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 22156,
+          "text": "I know Ephraim, And Israel is not hidden from Me; For now, O Ephraim, you commit harlotry; Israel is defiled."
+        },
+        {
+          "citation": "Hosea 5:4",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 22157,
+          "text": "\"They do not direct their deeds Toward turning to their God, For the spirit of harlotry is in their midst, And they do not know the LORD."
+        },
+        {
+          "citation": "Hosea 5:5",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 22158,
+          "text": "The pride of Israel testifies to his face; Therefore Israel and Ephraim stumble in their iniquity; Judah also stumbles with them."
+        },
+        {
+          "citation": "Hosea 5:6",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 22159,
+          "text": "\"With their flocks and herds They shall go to seek the LORD, But they will not find Him; He has withdrawn Himself from them."
+        },
+        {
+          "citation": "Hosea 5:7",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 22160,
+          "text": "They have dealt treacherously with the LORD, For they have begotten pagan children. Now a New Moon shall devour them and their heritage."
+        },
+        {
+          "citation": "Hosea 5:8",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 22161,
+          "text": "\"Blow the ram's horn in Gibeah, The trumpet in Ramah! Cry aloud at Beth Aven, \"Look behind you, O Benjamin!'"
+        },
+        {
+          "citation": "Hosea 5:9",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 22162,
+          "text": "Ephraim shall be desolate in the day of rebuke; Among the tribes of Israel I make known what is sure."
+        },
+        {
+          "citation": "Hosea 5:10",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 22163,
+          "text": "\"The princes of Judah are like those who remove a landmark; I will pour out My wrath on them like water."
+        },
+        {
+          "citation": "Hosea 5:11",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 22164,
+          "text": "Ephraim is oppressed and broken in judgment, Because he willingly walked by human precept."
+        },
+        {
+          "citation": "Hosea 5:12",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 22165,
+          "text": "Therefore I will be to Ephraim like a moth, And to the house of Judah like rottenness."
+        },
+        {
+          "citation": "Hosea 5:13",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 22166,
+          "text": "\"When Ephraim saw his sickness, And Judah saw his wound, Then Ephraim went to Assyria And sent to King Jareb; Yet he cannot cure you, Nor heal you of your wound."
+        },
+        {
+          "citation": "Hosea 5:14",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 14,
+          "ordinal": 22167,
+          "text": "For I will be like a lion to Ephraim, And like a young lion to the house of Judah. I, even I, will tear them and go away; I will take them away, and no one shall rescue."
+        },
+        {
+          "citation": "Hosea 5:15",
+          "bookKey": "HOS",
+          "chapter": 5,
+          "verse": 15,
+          "ordinal": 22168,
+          "text": "I will return again to My place Till they acknowledge their offense. Then they will seek My face; In their affliction they will earnestly seek Me.\""
+        },
+        {
+          "citation": "Hosea 6:1",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 22169,
+          "text": "Come, and let us return to the LORD; For He has torn, but He will heal us; He has stricken, but He will bind us up."
+        },
+        {
+          "citation": "Hosea 6:2",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 22170,
+          "text": "After two days He will revive us; On the third day He will raise us up, That we may live in His sight."
+        },
+        {
+          "citation": "Hosea 6:3",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 22171,
+          "text": "Let us know, Let us pursue the knowledge of the LORD. His going forth is established as the morning; He will come to us like the rain, Like the latter and former rain to the earth."
+        },
+        {
+          "citation": "Hosea 6:4",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 22172,
+          "text": "\"O Ephraim, what shall I do to you? O Judah, what shall I do to you? For your faithfulness is like a morning cloud, And like the early dew it goes away."
+        },
+        {
+          "citation": "Hosea 6:5",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 22173,
+          "text": "Therefore I have hewn them by the prophets, I have slain them by the words of My mouth; And your judgments are like light that goes forth."
+        },
+        {
+          "citation": "Hosea 6:6",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 22174,
+          "text": "For I desire mercy and not sacrifice, And the knowledge of God more than burnt offerings."
+        },
+        {
+          "citation": "Hosea 6:7",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 22175,
+          "text": "\"But like men they transgressed the covenant; There they dealt treacherously with Me."
+        },
+        {
+          "citation": "Hosea 6:8",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 22176,
+          "text": "Gilead is a city of evildoers And defiled with blood."
+        },
+        {
+          "citation": "Hosea 6:9",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 22177,
+          "text": "As bands of robbers lie in wait for a man, So the company of priests murder on the way to Shechem; Surely they commit lewdness."
+        },
+        {
+          "citation": "Hosea 6:10",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 22178,
+          "text": "I have seen a horrible thing in the house of Israel: There is the harlotry of Ephraim; Israel is defiled."
+        },
+        {
+          "citation": "Hosea 6:11",
+          "bookKey": "HOS",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 22179,
+          "text": "Also, O Judah, a harvest is appointed for you, When I return the captives of My people."
+        },
+        {
+          "citation": "Hosea 7:1",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 1,
+          "ordinal": 22180,
+          "text": "\"When I would have healed Israel, Then the iniquity of Ephraim was uncovered, And the wickedness of Samaria. For they have committed fraud; A thief comes in; A band of robbers takes spoil outside."
+        },
+        {
+          "citation": "Hosea 7:2",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 2,
+          "ordinal": 22181,
+          "text": "They do not consider in their hearts That I remember all their wickedness; Now their own deeds have surrounded them; They are before My face."
+        },
+        {
+          "citation": "Hosea 7:3",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 3,
+          "ordinal": 22182,
+          "text": "They make a king glad with their wickedness, And princes with their lies."
+        },
+        {
+          "citation": "Hosea 7:4",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 4,
+          "ordinal": 22183,
+          "text": "\"They are all adulterers. Like an oven heated by a baker-- He ceases stirring the fire after kneading the dough, Until it is leavened."
+        },
+        {
+          "citation": "Hosea 7:5",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 5,
+          "ordinal": 22184,
+          "text": "In the day of our king Princes have made him sick, inflamed with wine; He stretched out his hand with scoffers."
+        },
+        {
+          "citation": "Hosea 7:6",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 6,
+          "ordinal": 22185,
+          "text": "They prepare their heart like an oven, While they lie in wait; Their baker sleeps all night; In the morning it burns like a flaming fire."
+        },
+        {
+          "citation": "Hosea 7:7",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 7,
+          "ordinal": 22186,
+          "text": "They are all hot, like an oven, And have devoured their judges; All their kings have fallen. None among them calls upon Me."
+        },
+        {
+          "citation": "Hosea 7:8",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 8,
+          "ordinal": 22187,
+          "text": "\"Ephraim has mixed himself among the peoples; Ephraim is a cake unturned."
+        },
+        {
+          "citation": "Hosea 7:9",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 9,
+          "ordinal": 22188,
+          "text": "Aliens have devoured his strength, But he does not know it; Yes, gray hairs are here and there on him, Yet he does not know it."
+        },
+        {
+          "citation": "Hosea 7:10",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 10,
+          "ordinal": 22189,
+          "text": "And the pride of Israel testifies to his face, But they do not return to the LORD their God, Nor seek Him for all this."
+        },
+        {
+          "citation": "Hosea 7:11",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 11,
+          "ordinal": 22190,
+          "text": "\"Ephraim also is like a silly dove, without sense-- They call to Egypt, They go to Assyria."
+        },
+        {
+          "citation": "Hosea 7:12",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 12,
+          "ordinal": 22191,
+          "text": "Wherever they go, I will spread My net on them; I will bring them down like birds of the air; I will chastise them According to what their congregation has heard."
+        },
+        {
+          "citation": "Hosea 7:13",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 13,
+          "ordinal": 22192,
+          "text": "\"Woe to them, for they have fled from Me! Destruction to them, Because they have transgressed against Me! Though I redeemed them, Yet they have spoken lies against Me."
+        },
+        {
+          "citation": "Hosea 7:14",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 14,
+          "ordinal": 22193,
+          "text": "They did not cry out to Me with their heart When they wailed upon their beds. \"They assemble together for grain and new wine, They rebel against Me;"
+        },
+        {
+          "citation": "Hosea 7:15",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 15,
+          "ordinal": 22194,
+          "text": "Though I disciplined and strengthened their arms, Yet they devise evil against Me;"
+        },
+        {
+          "citation": "Hosea 7:16",
+          "bookKey": "HOS",
+          "chapter": 7,
+          "verse": 16,
+          "ordinal": 22195,
+          "text": "They return, but not to the Most High; They are like a treacherous bow. Their princes shall fall by the sword For the cursings of their tongue. This shall be their derision in the land of Egypt."
+        },
+        {
+          "citation": "Hosea 8:1",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 1,
+          "ordinal": 22196,
+          "text": "\"Set the trumpet to your mouth! He shall come like an eagle against the house of the LORD, Because they have transgressed My covenant And rebelled against My law."
+        },
+        {
+          "citation": "Hosea 8:2",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 2,
+          "ordinal": 22197,
+          "text": "Israel will cry to Me, \"My God, we know You!'"
+        },
+        {
+          "citation": "Hosea 8:3",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 3,
+          "ordinal": 22198,
+          "text": "Israel has rejected the good; The enemy will pursue him."
+        },
+        {
+          "citation": "Hosea 8:4",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 4,
+          "ordinal": 22199,
+          "text": "\"They set up kings, but not by Me; They made princes, but I did not acknowledge them. From their silver and gold They made idols for themselves-- That they might be cut off."
+        },
+        {
+          "citation": "Hosea 8:5",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 5,
+          "ordinal": 22200,
+          "text": "Your calf is rejected, O Samaria! My anger is aroused against them-- How long until they attain to innocence?"
+        },
+        {
+          "citation": "Hosea 8:6",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 6,
+          "ordinal": 22201,
+          "text": "For from Israel is even this: A workman made it, and it is not God; But the calf of Samaria shall be broken to pieces."
+        },
+        {
+          "citation": "Hosea 8:7",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 7,
+          "ordinal": 22202,
+          "text": "\"They sow the wind, And reap the whirlwind. The stalk has no bud; It shall never produce meal. If it should produce, Aliens would swallow it up."
+        },
+        {
+          "citation": "Hosea 8:8",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 8,
+          "ordinal": 22203,
+          "text": "Israel is swallowed up; Now they are among the Gentiles Like a vessel in which is no pleasure."
+        },
+        {
+          "citation": "Hosea 8:9",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 9,
+          "ordinal": 22204,
+          "text": "For they have gone up to Assyria, Like a wild donkey alone by itself; Ephraim has hired lovers."
+        },
+        {
+          "citation": "Hosea 8:10",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 10,
+          "ordinal": 22205,
+          "text": "Yes, though they have hired among the nations, Now I will gather them; And they shall sorrow a little, Because of the burden of the king of princes."
+        },
+        {
+          "citation": "Hosea 8:11",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 11,
+          "ordinal": 22206,
+          "text": "\"Because Ephraim has made many altars for sin, They have become for him altars for sinning."
+        },
+        {
+          "citation": "Hosea 8:12",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 12,
+          "ordinal": 22207,
+          "text": "I have written for him the great things of My law, But they were considered a strange thing."
+        },
+        {
+          "citation": "Hosea 8:13",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 13,
+          "ordinal": 22208,
+          "text": "For the sacrifices of My offerings they sacrifice flesh and eat it, But the LORD does not accept them. Now He will remember their iniquity and punish their sins. They shall return to Egypt."
+        },
+        {
+          "citation": "Hosea 8:14",
+          "bookKey": "HOS",
+          "chapter": 8,
+          "verse": 14,
+          "ordinal": 22209,
+          "text": "\"For Israel has forgotten his Maker, And has built temples; Judah also has multiplied fortified cities; But I will send fire upon his cities, And it shall devour his palaces.\""
+        },
+        {
+          "citation": "Hosea 9:1",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 1,
+          "ordinal": 22210,
+          "text": "Do not rejoice, O Israel, with joy like other peoples, For you have played the harlot against your God. You have made love for hire on every threshing floor."
+        },
+        {
+          "citation": "Hosea 9:2",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 2,
+          "ordinal": 22211,
+          "text": "The threshing floor and the winepress Shall not feed them, And the new wine shall fail in her."
+        },
+        {
+          "citation": "Hosea 9:3",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 3,
+          "ordinal": 22212,
+          "text": "They shall not dwell in the LORD's land, But Ephraim shall return to Egypt, And shall eat unclean things in Assyria."
+        },
+        {
+          "citation": "Hosea 9:4",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 4,
+          "ordinal": 22213,
+          "text": "They shall not offer wine offerings to the LORD, Nor shall their sacrifices be pleasing to Him. It shall be like bread of mourners to them; All who eat it shall be defiled. For their bread shall be for their own life; It shall not come into the house of the LORD."
+        },
+        {
+          "citation": "Hosea 9:5",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 5,
+          "ordinal": 22214,
+          "text": "What will you do in the appointed day, And in the day of the feast of the LORD?"
+        },
+        {
+          "citation": "Hosea 9:6",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 6,
+          "ordinal": 22215,
+          "text": "For indeed they are gone because of destruction. Egypt shall gather them up; Memphis shall bury them. Nettles shall possess their valuables of silver; Thorns shall be in their tents."
+        },
+        {
+          "citation": "Hosea 9:7",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 7,
+          "ordinal": 22216,
+          "text": "The days of punishment have come; The days of recompense have come. Israel knows! The prophet is a fool, The spiritual man is insane, Because of the greatness of your iniquity and great enmity."
+        },
+        {
+          "citation": "Hosea 9:8",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 8,
+          "ordinal": 22217,
+          "text": "The watchman of Ephraim is with my God; But the prophet is a fowler's snare in all his ways-- Enmity in the house of his God."
+        },
+        {
+          "citation": "Hosea 9:9",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 9,
+          "ordinal": 22218,
+          "text": "They are deeply corrupted, As in the days of Gibeah. He will remember their iniquity; He will punish their sins."
+        },
+        {
+          "citation": "Hosea 9:10",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 10,
+          "ordinal": 22219,
+          "text": "\"I found Israel Like grapes in the wilderness; I saw your fathers As the firstfruits on the fig tree in its first season. But they went to Baal Peor, And separated themselves to that shame; They became an abomination like the thing they loved."
+        },
+        {
+          "citation": "Hosea 9:11",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 11,
+          "ordinal": 22220,
+          "text": "As for Ephraim, their glory shall fly away like a bird-- No birth, no pregnancy, and no conception!"
+        },
+        {
+          "citation": "Hosea 9:12",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 12,
+          "ordinal": 22221,
+          "text": "Though they bring up their children, Yet I will bereave them to the last man. Yes, woe to them when I depart from them!"
+        },
+        {
+          "citation": "Hosea 9:13",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 13,
+          "ordinal": 22222,
+          "text": "Just as I saw Ephraim like Tyre, planted in a pleasant place, So Ephraim will bring out his children to the murderer.\""
+        },
+        {
+          "citation": "Hosea 9:14",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 14,
+          "ordinal": 22223,
+          "text": "Give them, O LORD-- What will You give? Give them a miscarrying womb And dry breasts!"
+        },
+        {
+          "citation": "Hosea 9:15",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 15,
+          "ordinal": 22224,
+          "text": "\"All their wickedness is in Gilgal, For there I hated them. Because of the evil of their deeds I will drive them from My house; I will love them no more. All their princes are rebellious."
+        },
+        {
+          "citation": "Hosea 9:16",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 16,
+          "ordinal": 22225,
+          "text": "Ephraim is stricken, Their root is dried up; They shall bear no fruit. Yes, were they to bear children, I would kill the darlings of their womb.\""
+        },
+        {
+          "citation": "Hosea 9:17",
+          "bookKey": "HOS",
+          "chapter": 9,
+          "verse": 17,
+          "ordinal": 22226,
+          "text": "My God will cast them away, Because they did not obey Him; And they shall be wanderers among the nations."
+        },
+        {
+          "citation": "Hosea 10:1",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 1,
+          "ordinal": 22227,
+          "text": "Israel empties his vine; He brings forth fruit for himself. According to the multitude of his fruit He has increased the altars; According to the bounty of his land They have embellished his sacred pillars."
+        },
+        {
+          "citation": "Hosea 10:2",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 2,
+          "ordinal": 22228,
+          "text": "Their heart is divided; Now they are held guilty. He will break down their altars; He will ruin their sacred pillars."
+        },
+        {
+          "citation": "Hosea 10:3",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 3,
+          "ordinal": 22229,
+          "text": "For now they say, \"We have no king, Because we did not fear the LORD. And as for a king, what would he do for us?\""
+        },
+        {
+          "citation": "Hosea 10:4",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 4,
+          "ordinal": 22230,
+          "text": "They have spoken words, Swearing falsely in making a covenant. Thus judgment springs up like hemlock in the furrows of the field."
+        },
+        {
+          "citation": "Hosea 10:5",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 5,
+          "ordinal": 22231,
+          "text": "The inhabitants of Samaria fear Because of the calf of Beth Aven. For its people mourn for it, And its priests shriek for it-- Because its glory has departed from it."
+        },
+        {
+          "citation": "Hosea 10:6",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 6,
+          "ordinal": 22232,
+          "text": "The idol also shall be carried to Assyria As a present for King Jareb. Ephraim shall receive shame, And Israel shall be ashamed of his own counsel."
+        },
+        {
+          "citation": "Hosea 10:7",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 7,
+          "ordinal": 22233,
+          "text": "As for Samaria, her king is cut off Like a twig on the water."
+        },
+        {
+          "citation": "Hosea 10:8",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 8,
+          "ordinal": 22234,
+          "text": "Also the high places of Aven, the sin of Israel, Shall be destroyed. The thorn and thistle shall grow on their altars; They shall say to the mountains, \"Cover us!\" And to the hills, \"Fall on us!\""
+        },
+        {
+          "citation": "Hosea 10:9",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 9,
+          "ordinal": 22235,
+          "text": "\"O Israel, you have sinned from the days of Gibeah; There they stood. The battle in Gibeah against the children of iniquity Did not overtake them."
+        },
+        {
+          "citation": "Hosea 10:10",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 10,
+          "ordinal": 22236,
+          "text": "When it is My desire, I will chasten them. Peoples shall be gathered against them When I bind them for their two transgressions."
+        },
+        {
+          "citation": "Hosea 10:11",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 11,
+          "ordinal": 22237,
+          "text": "Ephraim is a trained heifer That loves to thresh grain; But I harnessed her fair neck, I will make Ephraim pull a plow. Judah shall plow; Jacob shall break his clods.\""
+        },
+        {
+          "citation": "Hosea 10:12",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 12,
+          "ordinal": 22238,
+          "text": "Sow for yourselves righteousness; Reap in mercy; Break up your fallow ground, For it is time to seek the LORD, Till He comes and rains righteousness on you."
+        },
+        {
+          "citation": "Hosea 10:13",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 13,
+          "ordinal": 22239,
+          "text": "You have plowed wickedness; You have reaped iniquity. You have eaten the fruit of lies, Because you trusted in your own way, In the multitude of your mighty men."
+        },
+        {
+          "citation": "Hosea 10:14",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 14,
+          "ordinal": 22240,
+          "text": "Therefore tumult shall arise among your people, And all your fortresses shall be plundered As Shalman plundered Beth Arbel in the day of battle-- A mother dashed in pieces upon her children."
+        },
+        {
+          "citation": "Hosea 10:15",
+          "bookKey": "HOS",
+          "chapter": 10,
+          "verse": 15,
+          "ordinal": 22241,
+          "text": "Thus it shall be done to you, O Bethel, Because of your great wickedness. At dawn the king of Israel Shall be cut off utterly."
+        },
+        {
+          "citation": "Hosea 11:1",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 1,
+          "ordinal": 22242,
+          "text": "\"When Israel was a child, I loved him, And out of Egypt I called My son."
+        },
+        {
+          "citation": "Hosea 11:2",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 2,
+          "ordinal": 22243,
+          "text": "As they called them, So they went from them; They sacrificed to the Baals, And burned incense to carved images."
+        },
+        {
+          "citation": "Hosea 11:3",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 3,
+          "ordinal": 22244,
+          "text": "\"I taught Ephraim to walk, Taking them by their arms; But they did not know that I healed them."
+        },
+        {
+          "citation": "Hosea 11:4",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 4,
+          "ordinal": 22245,
+          "text": "I drew them with gentle cords, With bands of love, And I was to them as those who take the yoke from their neck. I stooped and fed them."
+        },
+        {
+          "citation": "Hosea 11:5",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 5,
+          "ordinal": 22246,
+          "text": "\"He shall not return to the land of Egypt; But the Assyrian shall be his king, Because they refused to repent."
+        },
+        {
+          "citation": "Hosea 11:6",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 6,
+          "ordinal": 22247,
+          "text": "And the sword shall slash in his cities, Devour his districts, And consume them, Because of their own counsels."
+        },
+        {
+          "citation": "Hosea 11:7",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 7,
+          "ordinal": 22248,
+          "text": "My people are bent on backsliding from Me. Though they call to the Most High, None at all exalt Him."
+        },
+        {
+          "citation": "Hosea 11:8",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 8,
+          "ordinal": 22249,
+          "text": "\"How can I give you up, Ephraim? How can I hand you over, Israel? How can I make you like Admah? How can I set you like Zeboiim? My heart churns within Me; My sympathy is stirred."
+        },
+        {
+          "citation": "Hosea 11:9",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 9,
+          "ordinal": 22250,
+          "text": "I will not execute the fierceness of My anger; I will not again destroy Ephraim. For I am God, and not man, The Holy One in your midst; And I will not come with terror."
+        },
+        {
+          "citation": "Hosea 11:10",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 10,
+          "ordinal": 22251,
+          "text": "\"They shall walk after the LORD. He will roar like a lion. When He roars, Then His sons shall come trembling from the west;"
+        },
+        {
+          "citation": "Hosea 11:11",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 11,
+          "ordinal": 22252,
+          "text": "They shall come trembling like a bird from Egypt, Like a dove from the land of Assyria. And I will let them dwell in their houses,\" Says the LORD."
+        },
+        {
+          "citation": "Hosea 11:12",
+          "bookKey": "HOS",
+          "chapter": 11,
+          "verse": 12,
+          "ordinal": 22253,
+          "text": "\"Ephraim has encircled Me with lies, And the house of Israel with deceit; But Judah still walks with God, Even with the Holy One who is faithful."
+        },
+        {
+          "citation": "Hosea 12:1",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 1,
+          "ordinal": 22254,
+          "text": "\"Ephraim feeds on the wind, And pursues the east wind; He daily increases lies and desolation. Also they make a covenant with the Assyrians, And oil is carried to Egypt."
+        },
+        {
+          "citation": "Hosea 12:2",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 2,
+          "ordinal": 22255,
+          "text": "\"The LORD also brings a charge against Judah, And will punish Jacob according to his ways; According to his deeds He will recompense him."
+        },
+        {
+          "citation": "Hosea 12:3",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 3,
+          "ordinal": 22256,
+          "text": "He took his brother by the heel in the womb, And in his strength he struggled with God."
+        },
+        {
+          "citation": "Hosea 12:4",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 4,
+          "ordinal": 22257,
+          "text": "Yes, he struggled with the Angel and prevailed; He wept, and sought favor from Him. He found Him in Bethel, And there He spoke to us--"
+        },
+        {
+          "citation": "Hosea 12:5",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 5,
+          "ordinal": 22258,
+          "text": "That is, the LORD God of hosts. The LORD is His memorable name."
+        },
+        {
+          "citation": "Hosea 12:6",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 6,
+          "ordinal": 22259,
+          "text": "So you, by the help of your God, return; Observe mercy and justice, And wait on your God continually."
+        },
+        {
+          "citation": "Hosea 12:7",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 7,
+          "ordinal": 22260,
+          "text": "\"A cunning Canaanite! Deceitful scales are in his hand; He loves to oppress."
+        },
+        {
+          "citation": "Hosea 12:8",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 8,
+          "ordinal": 22261,
+          "text": "And Ephraim said, \"Surely I have become rich, I have found wealth for myself; In all my labors They shall find in me no iniquity that is sin.'"
+        },
+        {
+          "citation": "Hosea 12:9",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 9,
+          "ordinal": 22262,
+          "text": "\"But I am the LORD your God, Ever since the land of Egypt; I will again make you dwell in tents, As in the days of the appointed feast."
+        },
+        {
+          "citation": "Hosea 12:10",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 10,
+          "ordinal": 22263,
+          "text": "I have also spoken by the prophets, And have multiplied visions; I have given symbols through the witness of the prophets.\""
+        },
+        {
+          "citation": "Hosea 12:11",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 11,
+          "ordinal": 22264,
+          "text": "Though Gilead has idols-- Surely they are vanity-- Though they sacrifice bulls in Gilgal, Indeed their altars shall be heaps in the furrows of the field."
+        },
+        {
+          "citation": "Hosea 12:12",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 12,
+          "ordinal": 22265,
+          "text": "Jacob fled to the country of Syria; Israel served for a spouse, And for a wife he tended sheep."
+        },
+        {
+          "citation": "Hosea 12:13",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 13,
+          "ordinal": 22266,
+          "text": "By a prophet the LORD brought Israel out of Egypt, And by a prophet he was preserved."
+        },
+        {
+          "citation": "Hosea 12:14",
+          "bookKey": "HOS",
+          "chapter": 12,
+          "verse": 14,
+          "ordinal": 22267,
+          "text": "Ephraim provoked Him to anger most bitterly; Therefore his Lord will leave the guilt of his bloodshed upon him, And return his reproach upon him."
+        },
+        {
+          "citation": "Hosea 13:1",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 1,
+          "ordinal": 22268,
+          "text": "When Ephraim spoke, trembling, He exalted himself in Israel; But when he offended through Baal worship, he died."
+        },
+        {
+          "citation": "Hosea 13:2",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 2,
+          "ordinal": 22269,
+          "text": "Now they sin more and more, And have made for themselves molded images, Idols of their silver, according to their skill; All of it is the work of craftsmen. They say of them, \"Let the men who sacrifice kiss the calves!\""
+        },
+        {
+          "citation": "Hosea 13:3",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 3,
+          "ordinal": 22270,
+          "text": "Therefore they shall be like the morning cloud And like the early dew that passes away, Like chaff blown off from a threshing floor And like smoke from a chimney."
+        },
+        {
+          "citation": "Hosea 13:4",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 4,
+          "ordinal": 22271,
+          "text": "\"Yet I am the LORD your God Ever since the land of Egypt, And you shall know no God but Me; For there is no savior besides Me."
+        },
+        {
+          "citation": "Hosea 13:5",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 5,
+          "ordinal": 22272,
+          "text": "I knew you in the wilderness, In the land of great drought."
+        },
+        {
+          "citation": "Hosea 13:6",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 6,
+          "ordinal": 22273,
+          "text": "When they had pasture, they were filled; They were filled and their heart was exalted; Therefore they forgot Me."
+        },
+        {
+          "citation": "Hosea 13:7",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 7,
+          "ordinal": 22274,
+          "text": "\"So I will be to them like a lion; Like a leopard by the road I will lurk;"
+        },
+        {
+          "citation": "Hosea 13:8",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 8,
+          "ordinal": 22275,
+          "text": "I will meet them like a bear deprived of her cubs; I will tear open their rib cage, And there I will devour them like a lion. The wild beast shall tear them."
+        },
+        {
+          "citation": "Hosea 13:9",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 9,
+          "ordinal": 22276,
+          "text": "\"O Israel, you are destroyed, But your help is from Me."
+        },
+        {
+          "citation": "Hosea 13:10",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 10,
+          "ordinal": 22277,
+          "text": "I will be your King; Where is any other, That he may save you in all your cities? And your judges to whom you said, \"Give me a king and princes'?"
+        },
+        {
+          "citation": "Hosea 13:11",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 11,
+          "ordinal": 22278,
+          "text": "I gave you a king in My anger, And took him away in My wrath."
+        },
+        {
+          "citation": "Hosea 13:12",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 12,
+          "ordinal": 22279,
+          "text": "\"The iniquity of Ephraim is bound up; His sin is stored up."
+        },
+        {
+          "citation": "Hosea 13:13",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 13,
+          "ordinal": 22280,
+          "text": "The sorrows of a woman in childbirth shall come upon him. He is an unwise son, For he should not stay long where children are born."
+        },
+        {
+          "citation": "Hosea 13:14",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 14,
+          "ordinal": 22281,
+          "text": "\"I will ransom them from the power of the grave; I will redeem them from death. O Death, I will be your plagues! O Grave, I will be your destruction! Pity is hidden from My eyes.\""
+        },
+        {
+          "citation": "Hosea 13:15",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 15,
+          "ordinal": 22282,
+          "text": "Though he is fruitful among his brethren, An east wind shall come; The wind of the LORD shall come up from the wilderness. Then his spring shall become dry, And his fountain shall be dried up. He shall plunder the treasury of every desirable prize."
+        },
+        {
+          "citation": "Hosea 13:16",
+          "bookKey": "HOS",
+          "chapter": 13,
+          "verse": 16,
+          "ordinal": 22283,
+          "text": "Samaria is held guilty, For she has rebelled against her God. They shall fall by the sword, Their infants shall be dashed in pieces, And their women with child ripped open."
+        },
+        {
+          "citation": "Hosea 14:1",
+          "bookKey": "HOS",
+          "chapter": 14,
+          "verse": 1,
+          "ordinal": 22284,
+          "text": "O Israel, return to the LORD your God, For you have stumbled because of your iniquity;"
+        },
+        {
+          "citation": "Hosea 14:2",
+          "bookKey": "HOS",
+          "chapter": 14,
+          "verse": 2,
+          "ordinal": 22285,
+          "text": "Take words with you, And return to the LORD. Say to Him, \"Take away all iniquity; Receive us graciously, For we will offer the sacrifices of our lips."
+        },
+        {
+          "citation": "Hosea 14:3",
+          "bookKey": "HOS",
+          "chapter": 14,
+          "verse": 3,
+          "ordinal": 22286,
+          "text": "Assyria shall not save us, We will not ride on horses, Nor will we say anymore to the work of our hands, \"You are our gods.' For in You the fatherless finds mercy.\""
+        },
+        {
+          "citation": "Hosea 14:4",
+          "bookKey": "HOS",
+          "chapter": 14,
+          "verse": 4,
+          "ordinal": 22287,
+          "text": "\"I will heal their backsliding, I will love them freely, For My anger has turned away from him."
+        },
+        {
+          "citation": "Hosea 14:5",
+          "bookKey": "HOS",
+          "chapter": 14,
+          "verse": 5,
+          "ordinal": 22288,
+          "text": "I will be like the dew to Israel; He shall grow like the lily, And lengthen his roots like Lebanon."
+        },
+        {
+          "citation": "Hosea 14:6",
+          "bookKey": "HOS",
+          "chapter": 14,
+          "verse": 6,
+          "ordinal": 22289,
+          "text": "His branches shall spread; His beauty shall be like an olive tree, And his fragrance like Lebanon."
+        },
+        {
+          "citation": "Hosea 14:7",
+          "bookKey": "HOS",
+          "chapter": 14,
+          "verse": 7,
+          "ordinal": 22290,
+          "text": "Those who dwell under his shadow shall return; They shall be revived like grain, And grow like a vine. Their scent shall be like the wine of Lebanon."
+        },
+        {
+          "citation": "Hosea 14:8",
+          "bookKey": "HOS",
+          "chapter": 14,
+          "verse": 8,
+          "ordinal": 22291,
+          "text": "\"Ephraim shall say, \"What have I to do anymore with idols?' I have heard and observed him. I am like a green cypress tree; Your fruit is found in Me.\""
+        },
+        {
+          "citation": "Hosea 14:9",
+          "bookKey": "HOS",
+          "chapter": 14,
+          "verse": 9,
+          "ordinal": 22292,
+          "text": "Who is wise? Let him understand these things. Who is prudent? Let him know them. For the ways of the LORD are right; The righteous walk in them, But transgressors stumble in them."
+        }
+      ]
+    }
+  ]
+}

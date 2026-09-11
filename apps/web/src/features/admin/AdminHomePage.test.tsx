@@ -1,144 +1,44 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
-import type { Season } from "../../api/types";
+import type { Season, CoverageStudent } from "../../api/types";
 import { AdminHomePage } from "./AdminHomePage";
-
-vi.mock("../../api/client", () => ({
-  api: {
-    organization: vi.fn(),
-    seasons: vi.fn(),
-  },
-}));
-
-vi.mock("../../auth/AuthContext", () => ({
-  useAuth: () => ({
-    me: {
-      userId: "admin-1",
-      organizationId: "org-1",
-      organizationName: "Development Academy",
-      displayName: "Admin",
-      userName: "admin",
-      email: "admin@erudoza.local",
-      kind: "Adult",
-      role: "Admin",
-    },
-  }),
-}));
-
-function season(overrides: Partial<Season> = {}): Season {
-  return {
-    id: "season-1",
-    organizationId: "org-1",
-    name: "Imported Joshua",
-    yearLabel: "2026",
-    status: "Draft",
-    ruleProfileKey: "PBE_STYLE_V1",
-    ruleProfileVersion: 1,
-    startDate: null,
-    targetCompetitionDate: null,
-    scopeUnitCount: 0,
-    assignmentCount: 0,
-    ...overrides,
-  };
-}
-
-function renderHome() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  });
-  return render(
-    <QueryClientProvider client={client}>
-      <MemoryRouter>
-        <AdminHomePage />
-      </MemoryRouter>
-    </QueryClientProvider>,
-  );
-}
-
-describe("AdminHomePage Field Guide Academy", () => {
-  beforeEach(() => {
-    vi.mocked(api.organization).mockResolvedValue({
-      id: "org-1",
-      name: "Development Academy",
-      slug: "development-academy",
-    });
-    vi.mocked(api.seasons).mockResolvedValue([
-      season({ id: "season-draft", name: "Imported Joshua", status: "Draft" }),
-      season({ id: "season-active", name: "Daniel Gauntlet", status: "Active" }),
-    ]);
-  });
-
-  it("opens on the Field Guide Academy cover and keeps create-season", async () => {
-    renderHome();
-
-    expect(await screen.findByTestId("field-guide-academy")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
-    expect(screen.getByTestId("organization-name")).toHaveTextContent("Development Academy");
-    expect(screen.getByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new");
-    expect(screen.getByTestId("create-season")).toHaveClass("er-create-season");
-    expect(screen.getByTestId("create-season")).toHaveTextContent("Create season");
-  });
-
-  it("uses the Field Guide Folio spine and season readiness chapter language", async () => {
-    renderHome();
-
-    const cover = await screen.findByTestId("field-guide-academy");
-    expect(cover).toHaveClass("er-field-guide-folio");
-    expect(screen.getByTestId("folio-spine")).toHaveTextContent("FIELD GUIDE");
-    expect(screen.getByRole("heading", { name: "Season readiness" })).toBeInTheDocument();
-    expect(cover).not.toHaveTextContent("%");
-    expect(cover).not.toHaveTextContent("streak");
-  });
-
-  it("lists season readiness from real season.status values only", async () => {
-    renderHome();
-
-    const folio = await screen.findByTestId("season-readiness-folio");
-    await waitFor(() => expect(folio).toHaveTextContent("Imported Joshua"));
-    expect(folio).toHaveTextContent("Imported Joshua");
-    expect(folio).toHaveTextContent("Draft");
-    expect(folio).toHaveTextContent("Daniel Gauntlet");
-    expect(folio).toHaveTextContent("Active");
-    const badges = within(folio).getAllByTestId("season-status-badge");
-    expect(badges).toHaveLength(2);
-    expect(badges[0]).toHaveTextContent("Draft");
-    expect(badges[0].querySelector("svg")).toBeTruthy();
-    expect(badges[1]).toHaveTextContent("Active");
-    expect(badges[1].querySelector("svg")).toBeTruthy();
-    expect(folio).not.toHaveTextContent("No seasons yet.");
-    expect(folio).not.toHaveTextContent("%");
-    expect(folio).not.toHaveTextContent("streak");
-  });
-
-  it("does not dress a ContentReady season as a Draft badge", async () => {
-    vi.mocked(api.seasons).mockResolvedValue([
-      season({ id: "season-ready", name: "Scope Saved", status: "ContentReady" }),
-    ]);
-
-    renderHome();
-
-    const folio = await screen.findByTestId("season-readiness-folio");
-    const badge = await within(folio).findByTestId("season-status-badge");
-    expect(badge).toHaveTextContent("ContentReady");
-    expect(badge).toHaveClass("er-season-badge-ready");
-    expect(badge).not.toHaveClass("er-season-badge-draft");
-    expect(badge).not.toHaveClass("er-season-badge-active");
-    expect(folio).not.toHaveTextContent("%");
-    expect(folio).not.toHaveTextContent("streak");
-  });
-
-  it("explains an empty seasons folio without inventing readiness", async () => {
-    vi.mocked(api.seasons).mockResolvedValue([]);
-
-    renderHome();
-
-    const folio = await screen.findByTestId("season-readiness-folio");
-    await waitFor(() => expect(folio).toHaveTextContent("No seasons yet."));
-    expect(folio).not.toHaveTextContent("%");
-    expect(folio).not.toHaveTextContent("streak");
-    expect(screen.getByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new");
-  });
+vi.mock("../../api/client", () => ({ api: { seasons: vi.fn(), coverage: vi.fn() } }));
+vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", organizationName: "Academy" } }) }));
+const season = (id: string, status: string): Season => ({ id, organizationId: "org", name: id, status, yearLabel: "2026", ruleProfileKey: "PBE_STYLE_V1", ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, scopeUnitCount: 10, assignmentCount: 2 });
+const student: CoverageStudent = { studentUserId: "u", displayName: "Daniel", userName: "daniel", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 10, eligibleUnitCount: 10, masteredCount: 7, reviewDueCount: 2, attemptCount: 12 };
+function home() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><AdminHomePage /></MemoryRouter></QueryClientProvider>); }
+beforeEach(() => { vi.clearAllMocks(); vi.mocked(api.seasons).mockResolvedValue([season("draft", "Draft"), season("active", "Active")]); vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [student] }); });
+it("defaults to the active season and shows real coverage", async () => {
+  home(); expect(await screen.findByRole("table")).toBeInTheDocument();
+  expect(screen.getByRole("combobox", { name: "Season" })).toHaveValue("active");
+  expect(api.coverage).toHaveBeenCalledWith("org", "active");
+  expect(screen.getByText("70%")).toBeInTheDocument(); expect(screen.getByText("2 due")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "D Daniel" })).toHaveAttribute("href", "/admin/seasons/active/students/u/progress");
+});
+it("loads the selected season independently", async () => {
+  home(); await screen.findByRole("table");
+  fireEvent.change(screen.getByRole("combobox", { name: "Season" }), { target: { value: "draft" } });
+  await waitFor(() => expect(api.coverage).toHaveBeenCalledWith("org", "draft"));
+  expect(screen.getByTestId("season-status-badge")).toHaveTextContent("Draft");
+});
+it("counts a student once even with multiple assignments", async () => {
+  vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [student, { ...student, startChapter: 2 }] });
+  home(); await screen.findByRole("table");
+  expect(screen.getByText("Assigned students").parentElement).toHaveTextContent("1Assigned students");
+  expect(screen.getByText("Need review").parentElement).toHaveTextContent("1Need review");
+});
+it("shows no percentage for an empty scope", async () => {
+  vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [{ ...student, eligibleUnitCount: 0, masteredCount: 0 }] });
+  home(); const table = await screen.findByRole("table"); expect(within(table).getByText("—")).toBeInTheDocument(); expect(within(table).queryByRole("progressbar")).not.toBeInTheDocument();
+});
+it("preserves create-season access with an empty account", async () => {
+  vi.mocked(api.seasons).mockResolvedValue([]); home();
+  expect(await screen.findByText(/No seasons yet/)).toBeInTheDocument(); expect(screen.getByTestId("create-season")).toHaveAttribute("href", "/admin/seasons/new"); expect(api.coverage).not.toHaveBeenCalled();
+});
+it("does not render zero progress after a coverage failure", async () => {
+  vi.mocked(api.coverage).mockRejectedValue(new Error("offline")); home();
+  expect(await screen.findByRole("alert")).toHaveTextContent("could not load"); expect(screen.queryByRole("table")).not.toBeInTheDocument();
 });

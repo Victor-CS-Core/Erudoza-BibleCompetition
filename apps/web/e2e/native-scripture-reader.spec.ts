@@ -1,0 +1,72 @@
+import { expect, test } from "@playwright/test";
+import { assertNoOverflow, login, logout } from "./helpers";
+import type { ScriptureLibrary, Me, SourceUnit, Student } from "../src/api/types";
+
+test("built-in NKJV stays readable by chapter and verse beside an unchanged activity", async ({ page }, info) => {
+  test.setTimeout(120000);
+  await login(page);
+  const me = await (await page.request.get("/api/v1/me")).json() as Me;
+  const org = `/api/v1/organizations/${me.organizationId}`;
+  const library = await (await page.request.get(`${org}/library`)).json() as ScriptureLibrary;
+  const pack = library.books.find(book => book.bookKey === "PSA")!;
+  expect(pack.verseCount).toBe(2461);
+  const students = await (await page.request.get(`${org}/students`)).json() as Student[];
+  const student = students.find(item => item.userName === "student.fixture")!;
+  const created = await page.request.post(`${org}/seasons`, { data: { name: "Psalms reading practice", yearLabel: "2026", ruleProfileKey: "PBE_STYLE_V1" } });
+  expect(created.ok()).toBe(true);
+  const season = await created.json() as { id: string };
+  const range = { bookKey: "PSA", startChapter: 119, startVerse: 1, endChapter: 119, endVerse: 176 };
+  expect((await page.request.post(`${org}/seasons/${season.id}/scope`, { data: { contentPackId: pack.contentPackId, includes: [range], excludes: [] } })).ok()).toBe(true);
+  expect((await page.request.post(`${org}/seasons/${season.id}/assignments`, { data: { studentUserId: student.userId, contentPackId: pack.contentPackId, type: "PrimarySpecialist", difficulty: "Standard", range } })).ok()).toBe(true);
+  expect((await page.request.post(`${org}/seasons/${season.id}/activate`)).ok()).toBe(true);
+
+  await logout(page);
+  await login(page, "student.fixture");
+  let draws = 0, starts = 0, reads = 0;
+  page.on("request", request => { if (/\/study\/sessions\/[^/]+\/next$/.test(request.url())) draws++; if (request.url().endsWith("/study/sessions") && request.method() === "POST") starts++; if (request.url().endsWith("/scripture")) reads++; });
+  await page.goto(`/student/study?seasonId=${season.id}`);
+  const answer = page.getByTestId("missing-words-answer");
+  await expect(answer).toBeVisible({ timeout: 30000 });
+  await answer.fill("My answer in progress");
+  const currentPrompt = await page.getByTestId("challenge-prompt").textContent();
+  const sessionUrl = page.url();
+  expect(reads).toBe(0);
+  const readResponse = page.waitForResponse(response => response.url().endsWith(`/study/seasons/${season.id}/scripture`));
+  await page.getByRole("button", { name: "Read passage", exact: true }).click();
+  const passages = await (await readResponse).json() as { verses: SourceUnit[] };
+  expect(passages.verses).toHaveLength(176);
+  await expect(page.getByRole("combobox", { name: "Chapter", exact: true })).toHaveValue("119");
+  const list = page.getByRole("list", { name: "Scripture verses" });
+  await expect(list.getByRole("listitem")).toHaveCount(40);
+  for (let n = 0; n < 4; n++) await page.getByRole("button", { name: "Next verses" }).click();
+  await expect(list.getByText("Psalms 119:176", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Next verses" })).toBeDisabled();
+  const search = page.getByLabel("Search assigned Scripture");
+  await search.fill("PSA 119:176");
+  await expect(list.getByRole("listitem")).toHaveCount(1);
+  await expect(list).toContainText("I have gone astray like a lost sheep;");
+  await search.fill("lost sheep");
+  await expect(list.getByRole("listitem")).toHaveCount(1);
+  await page.getByRole("button", { name: "Clear search" }).click();
+  await page.getByRole("combobox", { name: "Verse", exact: true }).selectOption("176");
+  await expect(list).toContainText("Psalms 119:176");
+  await page.getByRole("button", { name: "Hide passage" }).click();
+  await expect(answer).toHaveValue("My answer in progress");
+  await expect(page.getByTestId("challenge-prompt")).toHaveText(currentPrompt!);
+  expect(page.url()).toBe(sessionUrl);
+  expect(starts).toBe(1);
+  expect(draws).toBe(1);
+  await page.getByRole("button", { name: "Read passage", exact: true }).click();
+  await expect(page.getByRole("combobox", { name: "Verse", exact: true })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Verse", exact: true })).toHaveValue("176");
+
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await assertNoOverflow(page);
+    await page.screenshot({ path: info.outputPath(`scripture-reader-${width}.png`), fullPage: true });
+  }
+  const submission = page.waitForRequest(request => request.url().endsWith("/attempts") && request.method() === "POST");
+  await page.getByRole("button", { name: "Check answer", exact: true }).click();
+  expect((await submission).postDataJSON()).toMatchObject({ submittedAnswer: "My answer in progress", hintsUsed: true });
+  await expect(page.getByTestId("challenge-feedback")).toBeVisible();
+});

@@ -1,0 +1,1790 @@
+{
+  "packKey": "builtin-nkjv-ecc",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Ecclesiastes",
+      "units": [
+        {
+          "citation": "Ecclesiastes 1:1",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 17317,
+          "text": "The words of the Preacher, the son of David, king in Jerusalem."
+        },
+        {
+          "citation": "Ecclesiastes 1:2",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 17318,
+          "text": "\"Vanity of vanities,\" says the Preacher; \"Vanity of vanities, all is vanity.\""
+        },
+        {
+          "citation": "Ecclesiastes 1:3",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 17319,
+          "text": "What profit has a man from all his labor In which he toils under the sun?"
+        },
+        {
+          "citation": "Ecclesiastes 1:4",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 17320,
+          "text": "One generation passes away, and another generation comes; But the earth abides forever."
+        },
+        {
+          "citation": "Ecclesiastes 1:5",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 17321,
+          "text": "The sun also rises, and the sun goes down, And hastens to the place where it arose."
+        },
+        {
+          "citation": "Ecclesiastes 1:6",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 17322,
+          "text": "The wind goes toward the south, And turns around to the north; The wind whirls about continually, And comes again on its circuit."
+        },
+        {
+          "citation": "Ecclesiastes 1:7",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 17323,
+          "text": "All the rivers run into the sea, Yet the sea is not full; To the place from which the rivers come, There they return again."
+        },
+        {
+          "citation": "Ecclesiastes 1:8",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 17324,
+          "text": "All things are full of labor; Man cannot express it. The eye is not satisfied with seeing, Nor the ear filled with hearing."
+        },
+        {
+          "citation": "Ecclesiastes 1:9",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 17325,
+          "text": "That which has been is what will be, That which is done is what will be done, And there is nothing new under the sun."
+        },
+        {
+          "citation": "Ecclesiastes 1:10",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 17326,
+          "text": "Is there anything of which it may be said, \"See, this is new\"? It has already been in ancient times before us."
+        },
+        {
+          "citation": "Ecclesiastes 1:11",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 17327,
+          "text": "There is no remembrance of former things, Nor will there be any remembrance of things that are to come By those who will come after."
+        },
+        {
+          "citation": "Ecclesiastes 1:12",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 17328,
+          "text": "I, the Preacher, was king over Israel in Jerusalem."
+        },
+        {
+          "citation": "Ecclesiastes 1:13",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 17329,
+          "text": "And I set my heart to seek and search out by wisdom concerning all that is done under heaven; this burdensome task God has given to the sons of man, by which they may be exercised."
+        },
+        {
+          "citation": "Ecclesiastes 1:14",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 17330,
+          "text": "I have seen all the works that are done under the sun; and indeed, all is vanity and grasping for the wind."
+        },
+        {
+          "citation": "Ecclesiastes 1:15",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 17331,
+          "text": "What is crooked cannot be made straight, And what is lacking cannot be numbered."
+        },
+        {
+          "citation": "Ecclesiastes 1:16",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 17332,
+          "text": "I communed with my heart, saying, \"Look, I have attained greatness, and have gained more wisdom than all who were before me in Jerusalem. My heart has understood great wisdom and knowledge.\""
+        },
+        {
+          "citation": "Ecclesiastes 1:17",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 17333,
+          "text": "And I set my heart to know wisdom and to know madness and folly. I perceived that this also is grasping for the wind."
+        },
+        {
+          "citation": "Ecclesiastes 1:18",
+          "bookKey": "ECC",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 17334,
+          "text": "For in much wisdom is much grief, And he who increases knowledge increases sorrow."
+        },
+        {
+          "citation": "Ecclesiastes 2:1",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 17335,
+          "text": "I said in my heart, \"Come now, I will test you with mirth; therefore enjoy pleasure\"; but surely, this also was vanity."
+        },
+        {
+          "citation": "Ecclesiastes 2:2",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 17336,
+          "text": "I said of laughter--\"Madness!\"; and of mirth, \"What does it accomplish?\""
+        },
+        {
+          "citation": "Ecclesiastes 2:3",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 17337,
+          "text": "I searched in my heart how to gratify my flesh with wine, while guiding my heart with wisdom, and how to lay hold on folly, till I might see what was good for the sons of men to do under heaven all the days of their lives."
+        },
+        {
+          "citation": "Ecclesiastes 2:4",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 17338,
+          "text": "I made my works great, I built myself houses, and planted myself vineyards."
+        },
+        {
+          "citation": "Ecclesiastes 2:5",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 17339,
+          "text": "I made myself gardens and orchards, and I planted all kinds of fruit trees in them."
+        },
+        {
+          "citation": "Ecclesiastes 2:6",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 17340,
+          "text": "I made myself water pools from which to water the growing trees of the grove."
+        },
+        {
+          "citation": "Ecclesiastes 2:7",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 17341,
+          "text": "I acquired male and female servants, and had servants born in my house. Yes, I had greater possessions of herds and flocks than all who were in Jerusalem before me."
+        },
+        {
+          "citation": "Ecclesiastes 2:8",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 17342,
+          "text": "I also gathered for myself silver and gold and the special treasures of kings and of the provinces. I acquired male and female singers, the delights of the sons of men, and musical instruments of all kinds."
+        },
+        {
+          "citation": "Ecclesiastes 2:9",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 17343,
+          "text": "So I became great and excelled more than all who were before me in Jerusalem. Also my wisdom remained with me."
+        },
+        {
+          "citation": "Ecclesiastes 2:10",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 17344,
+          "text": "Whatever my eyes desired I did not keep from them. I did not withhold my heart from any pleasure, For my heart rejoiced in all my labor; And this was my reward from all my labor."
+        },
+        {
+          "citation": "Ecclesiastes 2:11",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 17345,
+          "text": "Then I looked on all the works that my hands had done And on the labor in which I had toiled; And indeed all was vanity and grasping for the wind. There was no profit under the sun."
+        },
+        {
+          "citation": "Ecclesiastes 2:12",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 17346,
+          "text": "Then I turned myself to consider wisdom and madness and folly; For what can the man do who succeeds the king?-- Only what he has already done."
+        },
+        {
+          "citation": "Ecclesiastes 2:13",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 17347,
+          "text": "Then I saw that wisdom excels folly As light excels darkness."
+        },
+        {
+          "citation": "Ecclesiastes 2:14",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 17348,
+          "text": "The wise man's eyes are in his head, But the fool walks in darkness. Yet I myself perceived That the same event happens to them all."
+        },
+        {
+          "citation": "Ecclesiastes 2:15",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 17349,
+          "text": "So I said in my heart, \"As it happens to the fool, It also happens to me, And why was I then more wise?\" Then I said in my heart, \"This also is vanity.\""
+        },
+        {
+          "citation": "Ecclesiastes 2:16",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 17350,
+          "text": "For there is no more remembrance of the wise than of the fool forever, Since all that now is will be forgotten in the days to come. And how does a wise man die? As the fool!"
+        },
+        {
+          "citation": "Ecclesiastes 2:17",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 17351,
+          "text": "Therefore I hated life because the work that was done under the sun was distressing to me, for all is vanity and grasping for the wind."
+        },
+        {
+          "citation": "Ecclesiastes 2:18",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 18,
+          "ordinal": 17352,
+          "text": "Then I hated all my labor in which I had toiled under the sun, because I must leave it to the man who will come after me."
+        },
+        {
+          "citation": "Ecclesiastes 2:19",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 19,
+          "ordinal": 17353,
+          "text": "And who knows whether he will be wise or a fool? Yet he will rule over all my labor in which I toiled and in which I have shown myself wise under the sun. This also is vanity."
+        },
+        {
+          "citation": "Ecclesiastes 2:20",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 20,
+          "ordinal": 17354,
+          "text": "Therefore I turned my heart and despaired of all the labor in which I had toiled under the sun."
+        },
+        {
+          "citation": "Ecclesiastes 2:21",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 21,
+          "ordinal": 17355,
+          "text": "For there is a man whose labor is with wisdom, knowledge, and skill; yet he must leave his heritage to a man who has not labored for it. This also is vanity and a great evil."
+        },
+        {
+          "citation": "Ecclesiastes 2:22",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 22,
+          "ordinal": 17356,
+          "text": "For what has man for all his labor, and for the striving of his heart with which he has toiled under the sun?"
+        },
+        {
+          "citation": "Ecclesiastes 2:23",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 23,
+          "ordinal": 17357,
+          "text": "For all his days are sorrowful, and his work burdensome; even in the night his heart takes no rest. This also is vanity."
+        },
+        {
+          "citation": "Ecclesiastes 2:24",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 24,
+          "ordinal": 17358,
+          "text": "Nothing is better for a man than that he should eat and drink, and that his soul should enjoy good in his labor. This also, I saw, was from the hand of God."
+        },
+        {
+          "citation": "Ecclesiastes 2:25",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 25,
+          "ordinal": 17359,
+          "text": "For who can eat, or who can have enjoyment, more than I?"
+        },
+        {
+          "citation": "Ecclesiastes 2:26",
+          "bookKey": "ECC",
+          "chapter": 2,
+          "verse": 26,
+          "ordinal": 17360,
+          "text": "For God gives wisdom and knowledge and joy to a man who is good in His sight; but to the sinner He gives the work of gathering and collecting, that he may give to him who is good before God. This also is vanity and grasping for the wind."
+        },
+        {
+          "citation": "Ecclesiastes 3:1",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 17361,
+          "text": "To everything there is a season, A time for every purpose under heaven:"
+        },
+        {
+          "citation": "Ecclesiastes 3:2",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 17362,
+          "text": "A time to be born, And a time to die; A time to plant, And a time to pluck what is planted;"
+        },
+        {
+          "citation": "Ecclesiastes 3:3",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 17363,
+          "text": "A time to kill, And a time to heal; A time to break down, And a time to build up;"
+        },
+        {
+          "citation": "Ecclesiastes 3:4",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 17364,
+          "text": "A time to weep, And a time to laugh; A time to mourn, And a time to dance;"
+        },
+        {
+          "citation": "Ecclesiastes 3:5",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 17365,
+          "text": "A time to cast away stones, And a time to gather stones; A time to embrace, And a time to refrain from embracing;"
+        },
+        {
+          "citation": "Ecclesiastes 3:6",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 17366,
+          "text": "A time to gain, And a time to lose; A time to keep, And a time to throw away;"
+        },
+        {
+          "citation": "Ecclesiastes 3:7",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 17367,
+          "text": "A time to tear, And a time to sew; A time to keep silence, And a time to speak;"
+        },
+        {
+          "citation": "Ecclesiastes 3:8",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 17368,
+          "text": "A time to love, And a time to hate; A time of war, And a time of peace."
+        },
+        {
+          "citation": "Ecclesiastes 3:9",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 17369,
+          "text": "What profit has the worker from that in which he labors?"
+        },
+        {
+          "citation": "Ecclesiastes 3:10",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 17370,
+          "text": "I have seen the God-given task with which the sons of men are to be occupied."
+        },
+        {
+          "citation": "Ecclesiastes 3:11",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 17371,
+          "text": "He has made everything beautiful in its time. Also He has put eternity in their hearts, except that no one can find out the work that God does from beginning to end."
+        },
+        {
+          "citation": "Ecclesiastes 3:12",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 17372,
+          "text": "I know that nothing is better for them than to rejoice, and to do good in their lives,"
+        },
+        {
+          "citation": "Ecclesiastes 3:13",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 17373,
+          "text": "and also that every man should eat and drink and enjoy the good of all his labor--it is the gift of God."
+        },
+        {
+          "citation": "Ecclesiastes 3:14",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 17374,
+          "text": "I know that whatever God does, It shall be forever. Nothing can be added to it, And nothing taken from it. God does it, that men should fear before Him."
+        },
+        {
+          "citation": "Ecclesiastes 3:15",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 17375,
+          "text": "That which is has already been, And what is to be has already been; And God requires an account of what is past."
+        },
+        {
+          "citation": "Ecclesiastes 3:16",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 17376,
+          "text": "Moreover I saw under the sun: In the place of judgment, Wickedness was there; And in the place of righteousness, Iniquity was there."
+        },
+        {
+          "citation": "Ecclesiastes 3:17",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 17377,
+          "text": "I said in my heart, \"God shall judge the righteous and the wicked, For there is a time there for every purpose and for every work.\""
+        },
+        {
+          "citation": "Ecclesiastes 3:18",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 17378,
+          "text": "I said in my heart, \"Concerning the condition of the sons of men, God tests them, that they may see that they themselves are like animals.\""
+        },
+        {
+          "citation": "Ecclesiastes 3:19",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 19,
+          "ordinal": 17379,
+          "text": "For what happens to the sons of men also happens to animals; one thing befalls them: as one dies, so dies the other. Surely, they all have one breath; man has no advantage over animals, for all is vanity."
+        },
+        {
+          "citation": "Ecclesiastes 3:20",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 20,
+          "ordinal": 17380,
+          "text": "All go to one place: all are from the dust, and all return to dust."
+        },
+        {
+          "citation": "Ecclesiastes 3:21",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 21,
+          "ordinal": 17381,
+          "text": "Who knows the spirit of the sons of men, which goes upward, and the spirit of the animal, which goes down to the earth?"
+        },
+        {
+          "citation": "Ecclesiastes 3:22",
+          "bookKey": "ECC",
+          "chapter": 3,
+          "verse": 22,
+          "ordinal": 17382,
+          "text": "So I perceived that nothing is better than that a man should rejoice in his own works, for that is his heritage. For who can bring him to see what will happen after him?"
+        },
+        {
+          "citation": "Ecclesiastes 4:1",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 17383,
+          "text": "Then I returned and considered all the oppression that is done under the sun: And look! The tears of the oppressed, But they have no comforter-- On the side of their oppressors there is power, But they have no comforter."
+        },
+        {
+          "citation": "Ecclesiastes 4:2",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 17384,
+          "text": "Therefore I praised the dead who were already dead, More than the living who are still alive."
+        },
+        {
+          "citation": "Ecclesiastes 4:3",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 17385,
+          "text": "Yet, better than both is he who has never existed, Who has not seen the evil work that is done under the sun."
+        },
+        {
+          "citation": "Ecclesiastes 4:4",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 17386,
+          "text": "Again, I saw that for all toil and every skillful work a man is envied by his neighbor. This also is vanity and grasping for the wind."
+        },
+        {
+          "citation": "Ecclesiastes 4:5",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 17387,
+          "text": "The fool folds his hands And consumes his own flesh."
+        },
+        {
+          "citation": "Ecclesiastes 4:6",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 17388,
+          "text": "Better a handful with quietness Than both hands full, together with toil and grasping for the wind."
+        },
+        {
+          "citation": "Ecclesiastes 4:7",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 17389,
+          "text": "Then I returned, and I saw vanity under the sun:"
+        },
+        {
+          "citation": "Ecclesiastes 4:8",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 17390,
+          "text": "There is one alone, without companion: He has neither son nor brother. Yet there is no end to all his labors, Nor is his eye satisfied with riches. But he never asks, \"For whom do I toil and deprive myself of good?\" This also is vanity and a grave misfortune."
+        },
+        {
+          "citation": "Ecclesiastes 4:9",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 17391,
+          "text": "Two are better than one, Because they have a good reward for their labor."
+        },
+        {
+          "citation": "Ecclesiastes 4:10",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 17392,
+          "text": "For if they fall, one will lift up his companion. But woe to him who is alone when he falls, For he has no one to help him up."
+        },
+        {
+          "citation": "Ecclesiastes 4:11",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 17393,
+          "text": "Again, if two lie down together, they will keep warm; But how can one be warm alone?"
+        },
+        {
+          "citation": "Ecclesiastes 4:12",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 17394,
+          "text": "Though one may be overpowered by another, two can withstand him. And a threefold cord is not quickly broken."
+        },
+        {
+          "citation": "Ecclesiastes 4:13",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 17395,
+          "text": "Better a poor and wise youth Than an old and foolish king who will be admonished no more."
+        },
+        {
+          "citation": "Ecclesiastes 4:14",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 17396,
+          "text": "For he comes out of prison to be king, Although he was born poor in his kingdom."
+        },
+        {
+          "citation": "Ecclesiastes 4:15",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 17397,
+          "text": "I saw all the living who walk under the sun; They were with the second youth who stands in his place."
+        },
+        {
+          "citation": "Ecclesiastes 4:16",
+          "bookKey": "ECC",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 17398,
+          "text": "There was no end of all the people over whom he was made king; Yet those who come afterward will not rejoice in him. Surely this also is vanity and grasping for the wind."
+        },
+        {
+          "citation": "Ecclesiastes 5:1",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 17399,
+          "text": "Walk prudently when you go to the house of God; and draw near to hear rather than to give the sacrifice of fools, for they do not know that they do evil."
+        },
+        {
+          "citation": "Ecclesiastes 5:2",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 17400,
+          "text": "Do not be rash with your mouth, And let not your heart utter anything hastily before God. For God is in heaven, and you on earth; Therefore let your words be few."
+        },
+        {
+          "citation": "Ecclesiastes 5:3",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 17401,
+          "text": "For a dream comes through much activity, And a fool's voice is known by his many words."
+        },
+        {
+          "citation": "Ecclesiastes 5:4",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 17402,
+          "text": "When you make a vow to God, do not delay to pay it; For He has no pleasure in fools. Pay what you have vowed--"
+        },
+        {
+          "citation": "Ecclesiastes 5:5",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 17403,
+          "text": "Better not to vow than to vow and not pay."
+        },
+        {
+          "citation": "Ecclesiastes 5:6",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 17404,
+          "text": "Do not let your mouth cause your flesh to sin, nor say before the messenger of God that it was an error. Why should God be angry at your excuse and destroy the work of your hands?"
+        },
+        {
+          "citation": "Ecclesiastes 5:7",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 17405,
+          "text": "For in the multitude of dreams and many words there is also vanity. But fear God."
+        },
+        {
+          "citation": "Ecclesiastes 5:8",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 17406,
+          "text": "If you see the oppression of the poor, and the violent perversion of justice and righteousness in a province, do not marvel at the matter; for high official watches over high official, and higher officials are over them."
+        },
+        {
+          "citation": "Ecclesiastes 5:9",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 17407,
+          "text": "Moreover the profit of the land is for all; even the king is served from the field."
+        },
+        {
+          "citation": "Ecclesiastes 5:10",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 17408,
+          "text": "He who loves silver will not be satisfied with silver; Nor he who loves abundance, with increase. This also is vanity."
+        },
+        {
+          "citation": "Ecclesiastes 5:11",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 17409,
+          "text": "When goods increase, They increase who eat them; So what profit have the owners Except to see them with their eyes?"
+        },
+        {
+          "citation": "Ecclesiastes 5:12",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 17410,
+          "text": "The sleep of a laboring man is sweet, Whether he eats little or much; But the abundance of the rich will not permit him to sleep."
+        },
+        {
+          "citation": "Ecclesiastes 5:13",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 17411,
+          "text": "There is a severe evil which I have seen under the sun: Riches kept for their owner to his hurt."
+        },
+        {
+          "citation": "Ecclesiastes 5:14",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 14,
+          "ordinal": 17412,
+          "text": "But those riches perish through misfortune; When he begets a son, there is nothing in his hand."
+        },
+        {
+          "citation": "Ecclesiastes 5:15",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 15,
+          "ordinal": 17413,
+          "text": "As he came from his mother's womb, naked shall he return, To go as he came; And he shall take nothing from his labor Which he may carry away in his hand."
+        },
+        {
+          "citation": "Ecclesiastes 5:16",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 16,
+          "ordinal": 17414,
+          "text": "And this also is a severe evil-- Just exactly as he came, so shall he go. And what profit has he who has labored for the wind?"
+        },
+        {
+          "citation": "Ecclesiastes 5:17",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 17,
+          "ordinal": 17415,
+          "text": "All his days he also eats in darkness, And he has much sorrow and sickness and anger."
+        },
+        {
+          "citation": "Ecclesiastes 5:18",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 18,
+          "ordinal": 17416,
+          "text": "Here is what I have seen: It is good and fitting for one to eat and drink, and to enjoy the good of all his labor in which he toils under the sun all the days of his life which God gives him; for it is his heritage."
+        },
+        {
+          "citation": "Ecclesiastes 5:19",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 19,
+          "ordinal": 17417,
+          "text": "As for every man to whom God has given riches and wealth, and given him power to eat of it, to receive his heritage and rejoice in his labor--this is the gift of God."
+        },
+        {
+          "citation": "Ecclesiastes 5:20",
+          "bookKey": "ECC",
+          "chapter": 5,
+          "verse": 20,
+          "ordinal": 17418,
+          "text": "For he will not dwell unduly on the days of his life, because God keeps him busy with the joy of his heart."
+        },
+        {
+          "citation": "Ecclesiastes 6:1",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 17419,
+          "text": "There is an evil which I have seen under the sun, and it is common among men:"
+        },
+        {
+          "citation": "Ecclesiastes 6:2",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 17420,
+          "text": "A man to whom God has given riches and wealth and honor, so that he lacks nothing for himself of all he desires; yet God does not give him power to eat of it, but a foreigner consumes it. This is vanity, and it is an evil affliction."
+        },
+        {
+          "citation": "Ecclesiastes 6:3",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 17421,
+          "text": "If a man begets a hundred children and lives many years, so that the days of his years are many, but his soul is not satisfied with goodness, or indeed he has no burial, I say that a stillborn child is better than he--"
+        },
+        {
+          "citation": "Ecclesiastes 6:4",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 17422,
+          "text": "for it comes in vanity and departs in darkness, and its name is covered with darkness."
+        },
+        {
+          "citation": "Ecclesiastes 6:5",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 17423,
+          "text": "Though it has not seen the sun or known anything, this has more rest than that man,"
+        },
+        {
+          "citation": "Ecclesiastes 6:6",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 17424,
+          "text": "even if he lives a thousand years twice--but has not seen goodness. Do not all go to one place?"
+        },
+        {
+          "citation": "Ecclesiastes 6:7",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 17425,
+          "text": "All the labor of man is for his mouth, And yet the soul is not satisfied."
+        },
+        {
+          "citation": "Ecclesiastes 6:8",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 17426,
+          "text": "For what more has the wise man than the fool? What does the poor man have, Who knows how to walk before the living?"
+        },
+        {
+          "citation": "Ecclesiastes 6:9",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 17427,
+          "text": "Better is the sight of the eyes than the wandering of desire. This also is vanity and grasping for the wind."
+        },
+        {
+          "citation": "Ecclesiastes 6:10",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 17428,
+          "text": "Whatever one is, he has been named already, For it is known that he is man; And he cannot contend with Him who is mightier than he."
+        },
+        {
+          "citation": "Ecclesiastes 6:11",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 17429,
+          "text": "Since there are many things that increase vanity, How is man the better?"
+        },
+        {
+          "citation": "Ecclesiastes 6:12",
+          "bookKey": "ECC",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 17430,
+          "text": "For who knows what is good for man in life, all the days of his vain life which he passes like a shadow? Who can tell a man what will happen after him under the sun?"
+        },
+        {
+          "citation": "Ecclesiastes 7:1",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 1,
+          "ordinal": 17431,
+          "text": "A good name is better than precious ointment, And the day of death than the day of one's birth;"
+        },
+        {
+          "citation": "Ecclesiastes 7:2",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 2,
+          "ordinal": 17432,
+          "text": "Better to go to the house of mourning Than to go to the house of feasting, For that is the end of all men; And the living will take it to heart."
+        },
+        {
+          "citation": "Ecclesiastes 7:3",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 3,
+          "ordinal": 17433,
+          "text": "Sorrow is better than laughter, For by a sad countenance the heart is made better."
+        },
+        {
+          "citation": "Ecclesiastes 7:4",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 4,
+          "ordinal": 17434,
+          "text": "The heart of the wise is in the house of mourning, But the heart of fools is in the house of mirth."
+        },
+        {
+          "citation": "Ecclesiastes 7:5",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 5,
+          "ordinal": 17435,
+          "text": "It is better to hear the rebuke of the wise Than for a man to hear the song of fools."
+        },
+        {
+          "citation": "Ecclesiastes 7:6",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 6,
+          "ordinal": 17436,
+          "text": "For like the crackling of thorns under a pot, So is the laughter of the fool. This also is vanity."
+        },
+        {
+          "citation": "Ecclesiastes 7:7",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 7,
+          "ordinal": 17437,
+          "text": "Surely oppression destroys a wise man's reason, And a bribe debases the heart."
+        },
+        {
+          "citation": "Ecclesiastes 7:8",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 8,
+          "ordinal": 17438,
+          "text": "The end of a thing is better than its beginning; The patient in spirit is better than the proud in spirit."
+        },
+        {
+          "citation": "Ecclesiastes 7:9",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 9,
+          "ordinal": 17439,
+          "text": "Do not hasten in your spirit to be angry, For anger rests in the bosom of fools."
+        },
+        {
+          "citation": "Ecclesiastes 7:10",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 10,
+          "ordinal": 17440,
+          "text": "Do not say, \"Why were the former days better than these?\" For you do not inquire wisely concerning this."
+        },
+        {
+          "citation": "Ecclesiastes 7:11",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 11,
+          "ordinal": 17441,
+          "text": "Wisdom is good with an inheritance, And profitable to those who see the sun."
+        },
+        {
+          "citation": "Ecclesiastes 7:12",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 12,
+          "ordinal": 17442,
+          "text": "For wisdom is a defense as money is a defense, But the excellence of knowledge is that wisdom gives life to those who have it."
+        },
+        {
+          "citation": "Ecclesiastes 7:13",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 13,
+          "ordinal": 17443,
+          "text": "Consider the work of God; For who can make straight what He has made crooked?"
+        },
+        {
+          "citation": "Ecclesiastes 7:14",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 14,
+          "ordinal": 17444,
+          "text": "In the day of prosperity be joyful, But in the day of adversity consider: Surely God has appointed the one as well as the other, So that man can find out nothing that will come after him."
+        },
+        {
+          "citation": "Ecclesiastes 7:15",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 15,
+          "ordinal": 17445,
+          "text": "I have seen everything in my days of vanity: There is a just man who perishes in his righteousness, And there is a wicked man who prolongs life in his wickedness."
+        },
+        {
+          "citation": "Ecclesiastes 7:16",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 16,
+          "ordinal": 17446,
+          "text": "Do not be overly righteous, Nor be overly wise: Why should you destroy yourself?"
+        },
+        {
+          "citation": "Ecclesiastes 7:17",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 17,
+          "ordinal": 17447,
+          "text": "Do not be overly wicked, Nor be foolish: Why should you die before your time?"
+        },
+        {
+          "citation": "Ecclesiastes 7:18",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 18,
+          "ordinal": 17448,
+          "text": "It is good that you grasp this, And also not remove your hand from the other; For he who fears God will escape them all."
+        },
+        {
+          "citation": "Ecclesiastes 7:19",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 19,
+          "ordinal": 17449,
+          "text": "Wisdom strengthens the wise More than ten rulers of the city."
+        },
+        {
+          "citation": "Ecclesiastes 7:20",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 20,
+          "ordinal": 17450,
+          "text": "For there is not a just man on earth who does good And does not sin."
+        },
+        {
+          "citation": "Ecclesiastes 7:21",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 21,
+          "ordinal": 17451,
+          "text": "Also do not take to heart everything people say, Lest you hear your servant cursing you."
+        },
+        {
+          "citation": "Ecclesiastes 7:22",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 22,
+          "ordinal": 17452,
+          "text": "For many times, also, your own heart has known That even you have cursed others."
+        },
+        {
+          "citation": "Ecclesiastes 7:23",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 23,
+          "ordinal": 17453,
+          "text": "All this I have proved by wisdom. I said, \"I will be wise\"; But it was far from me."
+        },
+        {
+          "citation": "Ecclesiastes 7:24",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 24,
+          "ordinal": 17454,
+          "text": "As for that which is far off and exceedingly deep, Who can find it out?"
+        },
+        {
+          "citation": "Ecclesiastes 7:25",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 25,
+          "ordinal": 17455,
+          "text": "I applied my heart to know, To search and seek out wisdom and the reason of things, To know the wickedness of folly, Even of foolishness and madness."
+        },
+        {
+          "citation": "Ecclesiastes 7:26",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 26,
+          "ordinal": 17456,
+          "text": "And I find more bitter than death The woman whose heart is snares and nets, Whose hands are fetters. He who pleases God shall escape from her, But the sinner shall be trapped by her."
+        },
+        {
+          "citation": "Ecclesiastes 7:27",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 27,
+          "ordinal": 17457,
+          "text": "\"Here is what I have found,\" says the Preacher, \"Adding one thing to the other to find out the reason,"
+        },
+        {
+          "citation": "Ecclesiastes 7:28",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 28,
+          "ordinal": 17458,
+          "text": "Which my soul still seeks but I cannot find: One man among a thousand I have found, But a woman among all these I have not found."
+        },
+        {
+          "citation": "Ecclesiastes 7:29",
+          "bookKey": "ECC",
+          "chapter": 7,
+          "verse": 29,
+          "ordinal": 17459,
+          "text": "Truly, this only I have found: That God made man upright, But they have sought out many schemes.\""
+        },
+        {
+          "citation": "Ecclesiastes 8:1",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 1,
+          "ordinal": 17460,
+          "text": "Who is like a wise man? And who knows the interpretation of a thing? A man's wisdom makes his face shine, And the sternness of his face is changed."
+        },
+        {
+          "citation": "Ecclesiastes 8:2",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 2,
+          "ordinal": 17461,
+          "text": "I say, \"Keep the king's commandment for the sake of your oath to God."
+        },
+        {
+          "citation": "Ecclesiastes 8:3",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 3,
+          "ordinal": 17462,
+          "text": "Do not be hasty to go from his presence. Do not take your stand for an evil thing, for he does whatever pleases him.\""
+        },
+        {
+          "citation": "Ecclesiastes 8:4",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 4,
+          "ordinal": 17463,
+          "text": "Where the word of a king is, there is power; And who may say to him, \"What are you doing?\""
+        },
+        {
+          "citation": "Ecclesiastes 8:5",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 5,
+          "ordinal": 17464,
+          "text": "He who keeps his command will experience nothing harmful; And a wise man's heart discerns both time and judgment,"
+        },
+        {
+          "citation": "Ecclesiastes 8:6",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 6,
+          "ordinal": 17465,
+          "text": "Because for every matter there is a time and judgment, Though the misery of man increases greatly."
+        },
+        {
+          "citation": "Ecclesiastes 8:7",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 7,
+          "ordinal": 17466,
+          "text": "For he does not know what will happen; So who can tell him when it will occur?"
+        },
+        {
+          "citation": "Ecclesiastes 8:8",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 8,
+          "ordinal": 17467,
+          "text": "No one has power over the spirit to retain the spirit, And no one has power in the day of death. There is no release from that war, And wickedness will not deliver those who are given to it."
+        },
+        {
+          "citation": "Ecclesiastes 8:9",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 9,
+          "ordinal": 17468,
+          "text": "All this I have seen, and applied my heart to every work that is done under the sun: There is a time in which one man rules over another to his own hurt."
+        },
+        {
+          "citation": "Ecclesiastes 8:10",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 10,
+          "ordinal": 17469,
+          "text": "Then I saw the wicked buried, who had come and gone from the place of holiness, and they were forgotten in the city where they had so done. This also is vanity."
+        },
+        {
+          "citation": "Ecclesiastes 8:11",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 11,
+          "ordinal": 17470,
+          "text": "Because the sentence against an evil work is not executed speedily, therefore the heart of the sons of men is fully set in them to do evil."
+        },
+        {
+          "citation": "Ecclesiastes 8:12",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 12,
+          "ordinal": 17471,
+          "text": "Though a sinner does evil a hundred times, and his days are prolonged, yet I surely know that it will be well with those who fear God, who fear before Him."
+        },
+        {
+          "citation": "Ecclesiastes 8:13",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 13,
+          "ordinal": 17472,
+          "text": "But it will not be well with the wicked; nor will he prolong his days, which are as a shadow, because he does not fear before God."
+        },
+        {
+          "citation": "Ecclesiastes 8:14",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 14,
+          "ordinal": 17473,
+          "text": "There is a vanity which occurs on earth, that there are just men to whom it happens according to the work of the wicked; again, there are wicked men to whom it happens according to the work of the righteous. I said that this also is vanity."
+        },
+        {
+          "citation": "Ecclesiastes 8:15",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 15,
+          "ordinal": 17474,
+          "text": "So I commended enjoyment, because a man has nothing better under the sun than to eat, drink, and be merry; for this will remain with him in his labor all the days of his life which God gives him under the sun."
+        },
+        {
+          "citation": "Ecclesiastes 8:16",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 16,
+          "ordinal": 17475,
+          "text": "When I applied my heart to know wisdom and to see the business that is done on earth, even though one sees no sleep day or night,"
+        },
+        {
+          "citation": "Ecclesiastes 8:17",
+          "bookKey": "ECC",
+          "chapter": 8,
+          "verse": 17,
+          "ordinal": 17476,
+          "text": "then I saw all the work of God, that a man cannot find out the work that is done under the sun. For though a man labors to discover it, yet he will not find it; moreover, though a wise man attempts to know it, he will not be able to find it."
+        },
+        {
+          "citation": "Ecclesiastes 9:1",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 1,
+          "ordinal": 17477,
+          "text": "For I considered all this in my heart, so that I could declare it all: that the righteous and the wise and their works are in the hand of God. People know neither love nor hatred by anything they see before them."
+        },
+        {
+          "citation": "Ecclesiastes 9:2",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 2,
+          "ordinal": 17478,
+          "text": "All things come alike to all: One event happens to the righteous and the wicked; To the good, the clean, and the unclean; To him who sacrifices and him who does not sacrifice. As is the good, so is the sinner; He who takes an oath as he who fears an oath."
+        },
+        {
+          "citation": "Ecclesiastes 9:3",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 3,
+          "ordinal": 17479,
+          "text": "This is an evil in all that is done under the sun: that one thing happens to all. Truly the hearts of the sons of men are full of evil; madness is in their hearts while they live, and after that they go to the dead."
+        },
+        {
+          "citation": "Ecclesiastes 9:4",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 4,
+          "ordinal": 17480,
+          "text": "But for him who is joined to all the living there is hope, for a living dog is better than a dead lion."
+        },
+        {
+          "citation": "Ecclesiastes 9:5",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 5,
+          "ordinal": 17481,
+          "text": "For the living know that they will die; But the dead know nothing, And they have no more reward, For the memory of them is forgotten."
+        },
+        {
+          "citation": "Ecclesiastes 9:6",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 6,
+          "ordinal": 17482,
+          "text": "Also their love, their hatred, and their envy have now perished; Nevermore will they have a share In anything done under the sun."
+        },
+        {
+          "citation": "Ecclesiastes 9:7",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 7,
+          "ordinal": 17483,
+          "text": "Go, eat your bread with joy, And drink your wine with a merry heart; For God has already accepted your works."
+        },
+        {
+          "citation": "Ecclesiastes 9:8",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 8,
+          "ordinal": 17484,
+          "text": "Let your garments always be white, And let your head lack no oil."
+        },
+        {
+          "citation": "Ecclesiastes 9:9",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 9,
+          "ordinal": 17485,
+          "text": "Live joyfully with the wife whom you love all the days of your vain life which He has given you under the sun, all your days of vanity; for that is your portion in life, and in the labor which you perform under the sun."
+        },
+        {
+          "citation": "Ecclesiastes 9:10",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 10,
+          "ordinal": 17486,
+          "text": "Whatever your hand finds to do, do it with your might; for there is no work or device or knowledge or wisdom in the grave where you are going."
+        },
+        {
+          "citation": "Ecclesiastes 9:11",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 11,
+          "ordinal": 17487,
+          "text": "I returned and saw under the sun that-- The race is not to the swift, Nor the battle to the strong, Nor bread to the wise, Nor riches to men of understanding, Nor favor to men of skill; But time and chance happen to them all."
+        },
+        {
+          "citation": "Ecclesiastes 9:12",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 12,
+          "ordinal": 17488,
+          "text": "For man also does not know his time: Like fish taken in a cruel net, Like birds caught in a snare, So the sons of men are snared in an evil time, When it falls suddenly upon them."
+        },
+        {
+          "citation": "Ecclesiastes 9:13",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 13,
+          "ordinal": 17489,
+          "text": "This wisdom I have also seen under the sun, and it seemed great to me:"
+        },
+        {
+          "citation": "Ecclesiastes 9:14",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 14,
+          "ordinal": 17490,
+          "text": "There was a little city with few men in it; and a great king came against it, besieged it, and built great snares around it."
+        },
+        {
+          "citation": "Ecclesiastes 9:15",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 15,
+          "ordinal": 17491,
+          "text": "Now there was found in it a poor wise man, and he by his wisdom delivered the city. Yet no one remembered that same poor man."
+        },
+        {
+          "citation": "Ecclesiastes 9:16",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 16,
+          "ordinal": 17492,
+          "text": "Then I said: \"Wisdom is better than strength. Nevertheless the poor man's wisdom is despised, And his words are not heard."
+        },
+        {
+          "citation": "Ecclesiastes 9:17",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 17,
+          "ordinal": 17493,
+          "text": "Words of the wise, spoken quietly, should be heard Rather than the shout of a ruler of fools."
+        },
+        {
+          "citation": "Ecclesiastes 9:18",
+          "bookKey": "ECC",
+          "chapter": 9,
+          "verse": 18,
+          "ordinal": 17494,
+          "text": "Wisdom is better than weapons of war; But one sinner destroys much good.\""
+        },
+        {
+          "citation": "Ecclesiastes 10:1",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 1,
+          "ordinal": 17495,
+          "text": "Dead flies putrefy the perfumer's ointment, And cause it to give off a foul odor; So does a little folly to one respected for wisdom and honor."
+        },
+        {
+          "citation": "Ecclesiastes 10:2",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 2,
+          "ordinal": 17496,
+          "text": "A wise man's heart is at his right hand, But a fool's heart at his left."
+        },
+        {
+          "citation": "Ecclesiastes 10:3",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 3,
+          "ordinal": 17497,
+          "text": "Even when a fool walks along the way, He lacks wisdom, And he shows everyone that he is a fool."
+        },
+        {
+          "citation": "Ecclesiastes 10:4",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 4,
+          "ordinal": 17498,
+          "text": "If the spirit of the ruler rises against you, Do not leave your post; For conciliation pacifies great offenses."
+        },
+        {
+          "citation": "Ecclesiastes 10:5",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 5,
+          "ordinal": 17499,
+          "text": "There is an evil I have seen under the sun, As an error proceeding from the ruler:"
+        },
+        {
+          "citation": "Ecclesiastes 10:6",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 6,
+          "ordinal": 17500,
+          "text": "Folly is set in great dignity, While the rich sit in a lowly place."
+        },
+        {
+          "citation": "Ecclesiastes 10:7",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 7,
+          "ordinal": 17501,
+          "text": "I have seen servants on horses, While princes walk on the ground like servants."
+        },
+        {
+          "citation": "Ecclesiastes 10:8",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 8,
+          "ordinal": 17502,
+          "text": "He who digs a pit will fall into it, And whoever breaks through a wall will be bitten by a serpent."
+        },
+        {
+          "citation": "Ecclesiastes 10:9",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 9,
+          "ordinal": 17503,
+          "text": "He who quarries stones may be hurt by them, And he who splits wood may be endangered by it."
+        },
+        {
+          "citation": "Ecclesiastes 10:10",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 10,
+          "ordinal": 17504,
+          "text": "If the ax is dull, And one does not sharpen the edge, Then he must use more strength; But wisdom brings success."
+        },
+        {
+          "citation": "Ecclesiastes 10:11",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 11,
+          "ordinal": 17505,
+          "text": "A serpent may bite when it is not charmed; The babbler is no different."
+        },
+        {
+          "citation": "Ecclesiastes 10:12",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 12,
+          "ordinal": 17506,
+          "text": "The words of a wise man's mouth are gracious, But the lips of a fool shall swallow him up;"
+        },
+        {
+          "citation": "Ecclesiastes 10:13",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 13,
+          "ordinal": 17507,
+          "text": "The words of his mouth begin with foolishness, And the end of his talk is raving madness."
+        },
+        {
+          "citation": "Ecclesiastes 10:14",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 14,
+          "ordinal": 17508,
+          "text": "A fool also multiplies words. No man knows what is to be; Who can tell him what will be after him?"
+        },
+        {
+          "citation": "Ecclesiastes 10:15",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 15,
+          "ordinal": 17509,
+          "text": "The labor of fools wearies them, For they do not even know how to go to the city!"
+        },
+        {
+          "citation": "Ecclesiastes 10:16",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 16,
+          "ordinal": 17510,
+          "text": "Woe to you, O land, when your king is a child, And your princes feast in the morning!"
+        },
+        {
+          "citation": "Ecclesiastes 10:17",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 17,
+          "ordinal": 17511,
+          "text": "Blessed are you, O land, when your king is the son of nobles, And your princes feast at the proper time-- For strength and not for drunkenness!"
+        },
+        {
+          "citation": "Ecclesiastes 10:18",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 18,
+          "ordinal": 17512,
+          "text": "Because of laziness the building decays, And through idleness of hands the house leaks."
+        },
+        {
+          "citation": "Ecclesiastes 10:19",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 19,
+          "ordinal": 17513,
+          "text": "A feast is made for laughter, And wine makes merry; But money answers everything."
+        },
+        {
+          "citation": "Ecclesiastes 10:20",
+          "bookKey": "ECC",
+          "chapter": 10,
+          "verse": 20,
+          "ordinal": 17514,
+          "text": "Do not curse the king, even in your thought; Do not curse the rich, even in your bedroom; For a bird of the air may carry your voice, And a bird in flight may tell the matter."
+        },
+        {
+          "citation": "Ecclesiastes 11:1",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 1,
+          "ordinal": 17515,
+          "text": "Cast your bread upon the waters, For you will find it after many days."
+        },
+        {
+          "citation": "Ecclesiastes 11:2",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 2,
+          "ordinal": 17516,
+          "text": "Give a serving to seven, and also to eight, For you do not know what evil will be on the earth."
+        },
+        {
+          "citation": "Ecclesiastes 11:3",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 3,
+          "ordinal": 17517,
+          "text": "If the clouds are full of rain, They empty themselves upon the earth; And if a tree falls to the south or the north, In the place where the tree falls, there it shall lie."
+        },
+        {
+          "citation": "Ecclesiastes 11:4",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 4,
+          "ordinal": 17518,
+          "text": "He who observes the wind will not sow, And he who regards the clouds will not reap."
+        },
+        {
+          "citation": "Ecclesiastes 11:5",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 5,
+          "ordinal": 17519,
+          "text": "As you do not know what is the way of the wind, Or how the bones grow in the womb of her who is with child, So you do not know the works of God who makes everything."
+        },
+        {
+          "citation": "Ecclesiastes 11:6",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 6,
+          "ordinal": 17520,
+          "text": "In the morning sow your seed, And in the evening do not withhold your hand; For you do not know which will prosper, Either this or that, Or whether both alike will be good."
+        },
+        {
+          "citation": "Ecclesiastes 11:7",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 7,
+          "ordinal": 17521,
+          "text": "Truly the light is sweet, And it is pleasant for the eyes to behold the sun;"
+        },
+        {
+          "citation": "Ecclesiastes 11:8",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 8,
+          "ordinal": 17522,
+          "text": "But if a man lives many years And rejoices in them all, Yet let him remember the days of darkness, For they will be many. All that is coming is vanity."
+        },
+        {
+          "citation": "Ecclesiastes 11:9",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 9,
+          "ordinal": 17523,
+          "text": "Rejoice, O young man, in your youth, And let your heart cheer you in the days of your youth; Walk in the ways of your heart, And in the sight of your eyes; But know that for all these God will bring you into judgment."
+        },
+        {
+          "citation": "Ecclesiastes 11:10",
+          "bookKey": "ECC",
+          "chapter": 11,
+          "verse": 10,
+          "ordinal": 17524,
+          "text": "Therefore remove sorrow from your heart, And put away evil from your flesh, For childhood and youth are vanity."
+        },
+        {
+          "citation": "Ecclesiastes 12:1",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 1,
+          "ordinal": 17525,
+          "text": "Remember now your Creator in the days of your youth, Before the difficult days come, And the years draw near when you say, \"I have no pleasure in them\":"
+        },
+        {
+          "citation": "Ecclesiastes 12:2",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 2,
+          "ordinal": 17526,
+          "text": "While the sun and the light, The moon and the stars, Are not darkened, And the clouds do not return after the rain;"
+        },
+        {
+          "citation": "Ecclesiastes 12:3",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 3,
+          "ordinal": 17527,
+          "text": "In the day when the keepers of the house tremble, And the strong men bow down; When the grinders cease because they are few, And those that look through the windows grow dim;"
+        },
+        {
+          "citation": "Ecclesiastes 12:4",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 4,
+          "ordinal": 17528,
+          "text": "When the doors are shut in the streets, And the sound of grinding is low; When one rises up at the sound of a bird, And all the daughters of music are brought low."
+        },
+        {
+          "citation": "Ecclesiastes 12:5",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 5,
+          "ordinal": 17529,
+          "text": "Also they are afraid of height, And of terrors in the way; When the almond tree blossoms, The grasshopper is a burden, And desire fails. For man goes to his eternal home, And the mourners go about the streets."
+        },
+        {
+          "citation": "Ecclesiastes 12:6",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 6,
+          "ordinal": 17530,
+          "text": "Remember your Creator before the silver cord is loosed, Or the golden bowl is broken, Or the pitcher shattered at the fountain, Or the wheel broken at the well."
+        },
+        {
+          "citation": "Ecclesiastes 12:7",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 7,
+          "ordinal": 17531,
+          "text": "Then the dust will return to the earth as it was, And the spirit will return to God who gave it."
+        },
+        {
+          "citation": "Ecclesiastes 12:8",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 8,
+          "ordinal": 17532,
+          "text": "\"Vanity of vanities,\" says the Preacher, \"All is vanity.\""
+        },
+        {
+          "citation": "Ecclesiastes 12:9",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 9,
+          "ordinal": 17533,
+          "text": "And moreover, because the Preacher was wise, he still taught the people knowledge; yes, he pondered and sought out and set in order many proverbs."
+        },
+        {
+          "citation": "Ecclesiastes 12:10",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 10,
+          "ordinal": 17534,
+          "text": "The Preacher sought to find acceptable words; and what was written was upright--words of truth."
+        },
+        {
+          "citation": "Ecclesiastes 12:11",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 11,
+          "ordinal": 17535,
+          "text": "The words of the wise are like goads, and the words of scholars are like well-driven nails, given by one Shepherd."
+        },
+        {
+          "citation": "Ecclesiastes 12:12",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 12,
+          "ordinal": 17536,
+          "text": "And further, my son, be admonished by these. Of making many books there is no end, and much study is wearisome to the flesh."
+        },
+        {
+          "citation": "Ecclesiastes 12:13",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 13,
+          "ordinal": 17537,
+          "text": "Let us hear the conclusion of the whole matter: Fear God and keep His commandments, For this is man's all."
+        },
+        {
+          "citation": "Ecclesiastes 12:14",
+          "bookKey": "ECC",
+          "chapter": 12,
+          "verse": 14,
+          "ordinal": 17538,
+          "text": "For God will bring every work into judgment, Including every secret thing, Whether good or evil."
+        }
+      ]
+    }
+  ]
+}

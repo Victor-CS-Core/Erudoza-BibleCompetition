@@ -1,5 +1,7 @@
 namespace Erudoza.Domain;
 
+// Archive-only persistence models retained for existing database compatibility.
+// No application service creates, selects, or exposes these historical records.
 public sealed class QuestionCandidate
 {
     public Guid Id { get; set; }

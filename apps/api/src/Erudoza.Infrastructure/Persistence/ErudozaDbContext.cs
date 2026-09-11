@@ -34,8 +34,60 @@ public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
     public DbSet<PromptVersion> PromptVersions => Set<PromptVersion>();
     public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
 
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        ProtectInstalledLibrary();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        ProtectInstalledLibrary();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void ProtectInstalledLibrary()
+    {
+        ChangeTracker.DetectChanges();
+        var changed = ChangeTracker.Entries().Where(e => e.State is EntityState.Modified or EntityState.Deleted or EntityState.Added).ToList();
+        if (changed.Any(e => e.Entity is ContentPack && e.State != EntityState.Added
+            && ((bool)e.OriginalValues[nameof(ContentPack.IsBuiltIn)]! || ((ContentPack)e.Entity).IsBuiltIn
+                || (Guid)e.OriginalValues[nameof(ContentPack.OrganizationId)]! == BuiltInLibrary.OrganizationId
+                || ((ContentPack)e.Entity).OrganizationId == BuiltInLibrary.OrganizationId)))
+            throw new DomainException("The built-in NKJV library is immutable.");
+        var packIds = changed.SelectMany(e => e.Entity switch
+        {
+            SourceUnit u => new[] { u.ContentPackId, e.State == EntityState.Added ? u.ContentPackId : (Guid)e.OriginalValues[nameof(SourceUnit.ContentPackId)]! },
+            SourceDocument d => new[] { d.ContentPackId, e.State == EntityState.Added ? d.ContentPackId : (Guid)e.OriginalValues[nameof(SourceDocument.ContentPackId)]! },
+            KnowledgeUnit k => new[] { k.ContentPackId, e.State == EntityState.Added ? k.ContentPackId : (Guid)e.OriginalValues[nameof(KnowledgeUnit.ContentPackId)]! },
+            _ => Array.Empty<Guid>()
+        }).Distinct().ToArray();
+        if (packIds.Length > 0 && ContentPacks.AsNoTracking().Any(p => packIds.Contains(p.Id)
+                && (p.IsBuiltIn || p.OrganizationId == BuiltInLibrary.OrganizationId)))
+            throw new DomainException("The built-in NKJV library is immutable.");
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<PracticeRoomRecord>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.OrganizationId, x.Status });
+            entity.Property(x => x.Revision).IsConcurrencyToken();
+            entity.Property(x => x.Status).HasMaxLength(24);
+        });
+        modelBuilder.Entity<PracticeQuestionRecord>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.OrganizationId, x.QuestionKey, x.Version }).IsUnique();
+        });
+        modelBuilder.Entity<PracticeSetting>().HasKey(x => x.OrganizationId);
+        modelBuilder.Entity<PracticeAwardRecord>(entity =>
+        {
+            entity.HasKey(x => new { x.OrganizationId, x.SeasonId, x.UserId, x.Key });
+            entity.Property(x => x.Key).HasMaxLength(64);
+            entity.Property(x => x.Title).HasMaxLength(100);
+        });
         modelBuilder.Entity<Organization>(entity =>
         {
             entity.HasIndex(item => item.Slug).IsUnique();
@@ -73,6 +125,11 @@ public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
             entity.HasOne(item => item.Organization).WithMany(item => item.Seasons).HasForeignKey(item => item.OrganizationId);
             entity.HasOne(item => item.RuleProfile).WithMany().HasForeignKey(item => item.RuleProfileId);
             entity.Property(item => item.Name).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<CompetitionMember>(entity =>
+        {
+            entity.HasIndex(item => new { item.OrganizationId, item.SeasonId, item.UserId }).IsUnique();
         });
 
         modelBuilder.Entity<RuleProfile>(entity =>
@@ -150,6 +207,7 @@ public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
 
         modelBuilder.Entity<Attempt>(entity =>
         {
+            entity.HasIndex(item => item.ChallengeCardId).IsUnique().HasFilter("[IsLegacyDuplicate] = 0");
             entity.HasIndex(item => new { item.SessionId, item.ClientSubmissionId }).IsUnique();
             entity.HasIndex(item => new { item.OrganizationId, item.StudentUserId, item.SeasonId });
         });

@@ -13,6 +13,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ["dist/**", "playwright-report/**", "test-results/**"],
+    ignores: ["dist/**", "dist-native/**", ".local/**", "playwright-report/**", "test-results/**"],
   },
 );

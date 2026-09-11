@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Erudoza.Application.Assignments;
 
-public sealed class StudentStudyScopeService(IErudozaDbContext db) : IStudentStudyScopeService
+public sealed class StudentStudyScopeService(IErudozaDbContext db, ICompetitionScopeResolver competitionScope) : IStudentStudyScopeService
 {
     public async Task<StudentStudyScope> GetAsync(
         Guid studentId,
@@ -26,9 +26,11 @@ public sealed class StudentStudyScopeService(IErudozaDbContext db) : IStudentStu
         var packIds = assignments.SelectMany(item => item.Scopes).Select(scope => scope.ContentPackId).Distinct().ToList();
         var units = await db.SourceUnits
             .AsNoTracking()
-            .Where(unit => unit.OrganizationId == season.OrganizationId && packIds.Contains(unit.ContentPackId))
+            .Where(unit => (unit.OrganizationId == season.OrganizationId && unit.ContentPack!.OrganizationId == season.OrganizationId || unit.OrganizationId == BuiltInLibrary.OrganizationId && unit.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && unit.ContentPack.IsBuiltIn) && packIds.Contains(unit.ContentPackId))
             .ToListAsync(cancellationToken);
 
+        var allowed = await competitionScope.ResolveAsync(season.OrganizationId, seasonId, cancellationToken);
+        units = units.Where(unit => allowed.Contains(unit.Id)).ToList();
         var specialist = Resolve(assignments, AssignmentType.PrimarySpecialist, units);
         var required = Resolve(assignments, AssignmentType.RequiredCoverage, units);
         var optional = Resolve(assignments, AssignmentType.OptionalReview, units);

@@ -1,9 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
-import { FieldGuideChrome } from "../../components/material/FieldGuideChrome";
-import { FieldGuideCover } from "../../components/material/FieldGuideCover";
-import { PaperSurface } from "../../components/material/PaperSurface";
+import { AppIcon } from "../../components/AppIcon";
+import { Button, Input, Notice } from "../../components/ui";
 import { useAuth } from "../../auth/AuthContext";
 
 export function LoginPage() {
@@ -12,131 +11,58 @@ export function LoginPage() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
+    if (pending) return;
+    setPending(true);
     setError(null);
     try {
       const me = await login(identifier, password);
       navigate(me.kind === "Student" ? "/student" : "/admin");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");
+    } finally {
+      setPending(false);
     }
   };
 
   return (
-    <div className="er-canvas er-login">
-      <div className="er-login-column" data-testid="login-phone-column">
-        <FieldGuideChrome testId="login-field-guide-chrome" />
-        <header className="er-kraft-banner" data-testid="login-kraft-banner">
-          <span className="er-kraft-grommet" aria-hidden="true" />
-          <span className="er-kraft-banner-mark" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none">
-              <path d="M8 26c2-8 4-14 10-22" stroke="currentColor" strokeWidth="1.4" />
-              <path d="M10 22c-5-1-8-6-6-9 5 1 9 5 6 9Z" fill="currentColor" opacity="0.85" />
-              <path d="M14 16c-4-2-5-7-3-9 4 2 6 6 3 9Z" fill="currentColor" opacity="0.7" />
-            </svg>
-          </span>
-          <div className="er-kraft-banner-copy">
-            <p>FIELD GUIDE</p>
-            <p>• VOL. 7 • FLORA &amp; TERRAIN •</p>
-          </div>
-          <span className="er-kraft-banner-mark" aria-hidden="true">
-            <svg viewBox="0 0 36 24" fill="currentColor">
-              <path d="M0 22 10 10 16 16 24 4 36 22Z" />
-            </svg>
-          </span>
-          <span className="er-kraft-grommet" aria-hidden="true" />
-        </header>
-        <FieldGuideCover>
-          <ErudozaWordmark />
-          <p className="er-login-motto" data-testid="login-motto">
-            Discover · Interpret · Serve
-          </p>
-        </FieldGuideCover>
-        <PaperSurface data-testid="login-signin-sheet" className="er-signin-sheet">
-          <h2 className="er-signin-title">Sign in</h2>
-          <span className="er-signin-flourish" aria-hidden="true" />
-          <form className="er-signin-form" onSubmit={(event) => void onSubmit(event)}>
-            <label className="er-login-field">
-              <span className="sr-only">Email or username</span>
-              <span className="er-login-field-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="6" width="18" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
-                  <path d="M4 7.5 12 13l8-5.5" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-              </span>
-              <input
-                data-testid="login-identifier"
-                className="er-login-input"
-                value={identifier}
-                onChange={(event) => setIdentifier(event.target.value)}
-                autoComplete="username"
-                placeholder="Email or username"
-                required
-              />
-            </label>
-            <label className="er-login-field">
-              <span className="sr-only">Password</span>
-              <span className="er-login-field-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <rect x="5" y="10" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
-                  <path d="M8 10V8a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="1.6" />
-                </svg>
-              </span>
-              <input
-                data-testid="login-password"
-                className="er-login-input"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                placeholder="Password"
-                required
-              />
-              <button
-                type="button"
-                className="er-login-visibility"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                onClick={() => setShowPassword((open) => !open)}
-              >
-                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  {showPassword ? (
-                    <>
-                      <path d="M3 5 21 21" stroke="currentColor" strokeWidth="1.6" />
-                      <path d="M9.5 9.7A3 3 0 0 0 12 15a3 3 0 0 0 2.5-1.3" stroke="currentColor" strokeWidth="1.6" />
-                      <path
-                        d="M4 12s3.2-5 8-5c1.4 0 2.7.4 3.8 1M20 12s-1.2 1.9-3.2 3.3"
-                        stroke="currentColor"
-                        strokeWidth="1.6"
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z" stroke="currentColor" strokeWidth="1.6" />
-                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
-                    </>
-                  )}
-                </svg>
-              </button>
-            </label>
-            {error ? <p className="text-sm text-[var(--er-stamp-red)]">{error}</p> : null}
-            <button data-testid="login-submit" className="er-denim-action" type="submit">
-              Continue
-              <span className="er-denim-action-arrow" aria-hidden="true">
-                ›
-              </span>
-            </button>
+    <main className="training-login">
+      <section className="training-login-hero" aria-label="Field Guide Academy">
+        <Link className="training-login-brand" to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
+        <div className="training-login-message">
+
+          <h2>Know the passage.<br /><em>Own the moment.</em></h2>
+          <p>Build your knowledge, strengthen your recall, and prepare for your next competition.</p>
+        </div>
+        <p className="training-login-motto">Discover · Interpret · Serve</p>
+      </section>
+      <section className="training-login-main" aria-labelledby="login-heading">
+        <Link to="/" className="training-login-back" data-testid="login-join-academy">← Back to home</Link>
+        <div className="training-login-form-wrap">
+
+          <h1 id="login-heading">Sign in</h1>
+          <p className="training-login-intro">Your next step starts here. Continue to your training space.</p>
+          <form onSubmit={(event) => void onSubmit(event)} aria-busy={pending}>
+            <label htmlFor="login-identifier">Email or username</label>
+            <Input id="login-identifier" data-testid="login-identifier" value={identifier} onChange={(event) => setIdentifier(event.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="Enter your email or username" aria-invalid={!!error} aria-describedby={error ? "login-error" : undefined} disabled={pending} required />
+            <label htmlFor="login-password">Password</label>
+            <div className="training-login-password">
+              <Input id="login-password" data-testid="login-password" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" placeholder="Enter your password" aria-invalid={!!error} aria-describedby={[error && "login-error", capsLock && "login-caps-lock"].filter(Boolean).join(" ") || undefined} onKeyDown={event => setCapsLock(event.getModifierState("CapsLock"))} onKeyUp={event => setCapsLock(event.getModifierState("CapsLock"))} onBlur={() => setCapsLock(false)} disabled={pending} required />
+              <Button variant="ghost" size="compact" type="button" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} disabled={pending} onClick={() => setShowPassword((open) => !open)}>{showPassword ? "Hide" : "Show"}</Button>
+            </div>
+            {capsLock && <p id="login-caps-lock" className="training-login-caps" role="status">Caps Lock is on.</p>}
+            {error && <Notice id="login-error" className="training-login-error" tone="danger">{error}</Notice>}
+            <Button data-testid="login-submit" className="training-login-submit" type="submit" disabled={pending}>{pending ? "Signing in…" : "Sign in"}<AppIcon name="arrow" /></Button>
           </form>
-          <div className="er-login-sheet-links">
-            <p className="er-login-forgot">Forgot Password?</p>
-            <Link to="/" data-testid="login-join-academy" className="er-login-join">
-              New Explorer? Join Academy →
-            </Link>
-          </div>
-        </PaperSurface>
-      </div>
-    </div>
+          <p className="training-login-help">Need help signing in?<br />Ask your coach or academy administrator.</p>
+        </div>
+        <p className="training-login-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</p>
+      </section>
+    </main>
   );
 }

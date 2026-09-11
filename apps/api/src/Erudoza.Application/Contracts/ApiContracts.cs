@@ -36,7 +36,7 @@ public sealed record CreateSeasonRequest(
     DateOnly? StartDate,
     DateOnly? TargetCompetitionDate);
 
-public sealed record StudentDto(Guid UserId, string UserName, string DisplayName, string? Email);
+public sealed record StudentDto(Guid UserId, string UserName, string DisplayName, string? Email, bool IsActive = true);
 
 public sealed record CreateStudentRequest(string UserName, string DisplayName, string Password);
 
@@ -49,7 +49,8 @@ public sealed record ContentPackDto(
     string Locale,
     string SourceType,
     string LicensingStatus,
-    int UnitCount);
+    int UnitCount,
+    bool IsBuiltIn = false);
 
 public sealed record SourceUnitDto(
     Guid Id,
@@ -78,7 +79,6 @@ public sealed record ImportContentPackRequest(
     IReadOnlyList<ImportDocumentDto> Documents,
     string? LicensingStatus = null);
 
-public sealed record GenerationStatusDto(bool OpenAiEnabled, string Model, string Generator);
 
 public sealed record ScopeRangeDto(
     string BookKey,
@@ -88,15 +88,30 @@ public sealed record ScopeRangeDto(
     int EndVerse);
 
 public sealed record DefineScopeRequest(
-    Guid ContentPackId,
+    Guid? ContentPackId = null,
+    IReadOnlyList<ScopeRangeDto>? Includes = null,
+    IReadOnlyList<ScopeRangeDto>? Excludes = null,
+    IReadOnlyList<ScopePackDto>? Packs = null);
+
+public sealed record ScopePackDto(Guid ContentPackId, IReadOnlyList<ScopeRangeDto> Includes, IReadOnlyList<ScopeRangeDto>? Excludes = null);
+public sealed record LibraryChapterDto(int Number, IReadOnlyList<int> Verses);
+public sealed record LibraryBookDto(Guid ContentPackId, string BookKey, string Name, int VerseCount, IReadOnlyList<LibraryChapterDto> Chapters);
+public sealed record LibraryDto(string TranslationId, string TranslationName, int Version, IReadOnlyList<LibraryBookDto> Books);
+
+public sealed record SeasonScopeDto(
+    Guid? ContentPackId,
     IReadOnlyList<ScopeRangeDto> Includes,
-    IReadOnlyList<ScopeRangeDto>? Excludes);
+    IReadOnlyList<ScopeRangeDto> Excludes,
+    IReadOnlyList<ScopePackDto>? Packs = null);
 
 public sealed record CreateAssignmentRequest(
     Guid StudentUserId,
     AssignmentType Type,
     Guid ContentPackId,
-    ScopeRangeDto Range);
+    ScopeRangeDto Range,
+    TrainingDifficulty? Difficulty = null);
+
+public sealed record SetStudentDifficultyRequest(TrainingDifficulty Difficulty);
 
 public sealed record AssignmentDto(
     Guid Id,
@@ -108,13 +123,17 @@ public sealed record AssignmentDto(
     int EndChapter,
     int EndVerse,
     string? StudentDisplayName = null,
-    string? StudentUserName = null);
+    string? StudentUserName = null,
+    string Difficulty = "Standard",
+    Guid? ContentPackId = null);
 
 public sealed record ActivationResultDto(bool Activated, IReadOnlyList<string> BlockingProblems);
 
 public sealed record StartSessionRequest(Guid SeasonId, StudyMode Mode);
 
-public sealed record SessionDto(Guid Id, Guid SeasonId, string Status, string Mode, int TargetCardCount);
+public sealed record SessionDto(Guid Id, Guid SeasonId, string Status, string Mode, int TargetCardCount, string Difficulty = "Standard");
+
+public sealed record ResumeSessionDto(SessionDto Session, ChallengeCardDto? Card, AttemptResultDto? Attempt, SessionSummaryDto? Summary);
 
 public sealed record SessionSummaryDto(
     Guid SessionId,
@@ -138,27 +157,6 @@ public sealed record CoverageStudentDto(
     int MasteredCount,
     int ReviewDueCount,
     int AttemptCount);
-
-public sealed record GenerationJobDto(
-    Guid Id,
-    Guid? SeasonId,
-    string Status,
-    string? Error,
-    DateTimeOffset CreatedAtUtc,
-    int CandidateCount);
-
-public sealed record QuestionEvidenceDto(Guid SourceUnitId, string Citation, string EvidenceText);
-
-public sealed record QuestionReviewDto(
-    Guid Id,
-    Guid? SeasonId,
-    string Prompt,
-    string CanonicalAnswer,
-    string Status,
-    string QuestionType,
-    string GeneratorVersion,
-    string? Explanation,
-    IReadOnlyList<QuestionEvidenceDto> Evidence);
 
 public sealed record SeasonCoverageDto(
     Guid SeasonId,
@@ -227,4 +225,5 @@ public sealed record MasteryRowDto(
     string Level,
     int ExactWordingScore,
     int RecognitionScore,
-    DateTimeOffset? ReviewDueAtUtc);
+    DateTimeOffset? ReviewDueAtUtc,
+    string AlgorithmVersion = "v1-scaffold");

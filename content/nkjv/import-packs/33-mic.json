@@ -1,0 +1,854 @@
+{
+  "packKey": "builtin-nkjv-mic",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Micah",
+      "units": [
+        {
+          "citation": "Micah 1:1",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 22581,
+          "text": "The word of the LORD that came to Micah of Moresheth in the days of Jotham, Ahaz, and Hezekiah, kings of Judah, which he saw concerning Samaria and Jerusalem."
+        },
+        {
+          "citation": "Micah 1:2",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 22582,
+          "text": "Hear, all you peoples! Listen, O earth, and all that is in it! Let the Lord GOD be a witness against you, The Lord from His holy temple."
+        },
+        {
+          "citation": "Micah 1:3",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 22583,
+          "text": "For behold, the LORD is coming out of His place; He will come down And tread on the high places of the earth."
+        },
+        {
+          "citation": "Micah 1:4",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 22584,
+          "text": "The mountains will melt under Him, And the valleys will split Like wax before the fire, Like waters poured down a steep place."
+        },
+        {
+          "citation": "Micah 1:5",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 22585,
+          "text": "All this is for the transgression of Jacob And for the sins of the house of Israel. What is the transgression of Jacob? Is it not Samaria? And what are the high places of Judah? Are they not Jerusalem?"
+        },
+        {
+          "citation": "Micah 1:6",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 22586,
+          "text": "\"Therefore I will make Samaria a heap of ruins in the field, Places for planting a vineyard; I will pour down her stones into the valley, And I will uncover her foundations."
+        },
+        {
+          "citation": "Micah 1:7",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 22587,
+          "text": "All her carved images shall be beaten to pieces, And all her pay as a harlot shall be burned with the fire; All her idols I will lay desolate, For she gathered it from the pay of a harlot, And they shall return to the pay of a harlot.\""
+        },
+        {
+          "citation": "Micah 1:8",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 22588,
+          "text": "Therefore I will wail and howl, I will go stripped and naked; I will make a wailing like the jackals And a mourning like the ostriches,"
+        },
+        {
+          "citation": "Micah 1:9",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 22589,
+          "text": "For her wounds are incurable. For it has come to Judah; It has come to the gate of My people-- To Jerusalem."
+        },
+        {
+          "citation": "Micah 1:10",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 22590,
+          "text": "Tell it not in Gath, Weep not at all; In Beth Aphrah Roll yourself in the dust."
+        },
+        {
+          "citation": "Micah 1:11",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 22591,
+          "text": "Pass by in naked shame, you inhabitant of Shaphir; The inhabitant of Zaanan does not go out. Beth Ezel mourns; Its place to stand is taken away from you."
+        },
+        {
+          "citation": "Micah 1:12",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 22592,
+          "text": "For the inhabitant of Maroth pined for good, But disaster came down from the LORD To the gate of Jerusalem."
+        },
+        {
+          "citation": "Micah 1:13",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 22593,
+          "text": "O inhabitant of Lachish, Harness the chariot to the swift steeds (She was the beginning of sin to the daughter of Zion), For the transgressions of Israel were found in you."
+        },
+        {
+          "citation": "Micah 1:14",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 22594,
+          "text": "Therefore you shall give presents to Moresheth Gath; The houses of Achzib shall be a lie to the kings of Israel."
+        },
+        {
+          "citation": "Micah 1:15",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 22595,
+          "text": "I will yet bring an heir to you, O inhabitant of Mareshah; The glory of Israel shall come to Adullam."
+        },
+        {
+          "citation": "Micah 1:16",
+          "bookKey": "MIC",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 22596,
+          "text": "Make yourself bald and cut off your hair, Because of your precious children; Enlarge your baldness like an eagle, For they shall go from you into captivity."
+        },
+        {
+          "citation": "Micah 2:1",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 22597,
+          "text": "Woe to those who devise iniquity, And work out evil on their beds! At morning light they practice it, Because it is in the power of their hand."
+        },
+        {
+          "citation": "Micah 2:2",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 22598,
+          "text": "They covet fields and take them by violence, Also houses, and seize them. So they oppress a man and his house, A man and his inheritance."
+        },
+        {
+          "citation": "Micah 2:3",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 22599,
+          "text": "Therefore thus says the LORD: \"Behold, against this family I am devising disaster, From which you cannot remove your necks; Nor shall you walk haughtily, For this is an evil time."
+        },
+        {
+          "citation": "Micah 2:4",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 22600,
+          "text": "In that day one shall take up a proverb against you, And lament with a bitter lamentation, saying: \"We are utterly destroyed! He has changed the heritage of my people; How He has removed it from me! To a turncoat He has divided our fields.\"'"
+        },
+        {
+          "citation": "Micah 2:5",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 22601,
+          "text": "Therefore you will have no one to determine boundaries by lot In the assembly of the LORD."
+        },
+        {
+          "citation": "Micah 2:6",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 22602,
+          "text": "\"Do not prattle,\" you say to those who prophesy. So they shall not prophesy to you; They shall not return insult for insult."
+        },
+        {
+          "citation": "Micah 2:7",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 22603,
+          "text": "You who are named the house of Jacob: \"Is the Spirit of the LORD restricted? Are these His doings? Do not My words do good To him who walks uprightly?"
+        },
+        {
+          "citation": "Micah 2:8",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 22604,
+          "text": "\"Lately My people have risen up as an enemy-- You pull off the robe with the garment From those who trust you, as they pass by, Like men returned from war."
+        },
+        {
+          "citation": "Micah 2:9",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 22605,
+          "text": "The women of My people you cast out From their pleasant houses; From their children You have taken away My glory forever."
+        },
+        {
+          "citation": "Micah 2:10",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 22606,
+          "text": "\"Arise and depart, For this is not your rest; Because it is defiled, it shall destroy, Yes, with utter destruction."
+        },
+        {
+          "citation": "Micah 2:11",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 22607,
+          "text": "If a man should walk in a false spirit And speak a lie, saying, \"I will prophesy to you of wine and drink,' Even he would be the prattler of this people."
+        },
+        {
+          "citation": "Micah 2:12",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 22608,
+          "text": "\"I will surely assemble all of you, O Jacob, I will surely gather the remnant of Israel; I will put them together like sheep of the fold, Like a flock in the midst of their pasture; They shall make a loud noise because of so many people."
+        },
+        {
+          "citation": "Micah 2:13",
+          "bookKey": "MIC",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 22609,
+          "text": "The one who breaks open will come up before them; They will break out, Pass through the gate, And go out by it; Their king will pass before them, With the LORD at their head.\""
+        },
+        {
+          "citation": "Micah 3:1",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 22610,
+          "text": "And I said: \"Hear now, O heads of Jacob, And you rulers of the house of Israel: Is it not for you to know justice?"
+        },
+        {
+          "citation": "Micah 3:2",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 22611,
+          "text": "You who hate good and love evil; Who strip the skin from My people, And the flesh from their bones;"
+        },
+        {
+          "citation": "Micah 3:3",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 22612,
+          "text": "Who also eat the flesh of My people, Flay their skin from them, Break their bones, And chop them in pieces Like meat for the pot, Like flesh in the caldron.\""
+        },
+        {
+          "citation": "Micah 3:4",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 22613,
+          "text": "Then they will cry to the LORD, But He will not hear them; He will even hide His face from them at that time, Because they have been evil in their deeds."
+        },
+        {
+          "citation": "Micah 3:5",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 22614,
+          "text": "Thus says the LORD concerning the prophets Who make my people stray; Who chant \"Peace\" While they chew with their teeth, But who prepare war against him Who puts nothing into their mouths:"
+        },
+        {
+          "citation": "Micah 3:6",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 22615,
+          "text": "\"Therefore you shall have night without vision, And you shall have darkness without divination; The sun shall go down on the prophets, And the day shall be dark for them."
+        },
+        {
+          "citation": "Micah 3:7",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 22616,
+          "text": "So the seers shall be ashamed, And the diviners abashed; Indeed they shall all cover their lips; For there is no answer from God.\""
+        },
+        {
+          "citation": "Micah 3:8",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 22617,
+          "text": "But truly I am full of power by the Spirit of the LORD, And of justice and might, To declare to Jacob his transgression And to Israel his sin."
+        },
+        {
+          "citation": "Micah 3:9",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 22618,
+          "text": "Now hear this, You heads of the house of Jacob And rulers of the house of Israel, Who abhor justice And pervert all equity,"
+        },
+        {
+          "citation": "Micah 3:10",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 22619,
+          "text": "Who build up Zion with bloodshed And Jerusalem with iniquity:"
+        },
+        {
+          "citation": "Micah 3:11",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 22620,
+          "text": "Her heads judge for a bribe, Her priests teach for pay, And her prophets divine for money. Yet they lean on the LORD, and say, \"Is not the LORD among us? No harm can come upon us.\""
+        },
+        {
+          "citation": "Micah 3:12",
+          "bookKey": "MIC",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 22621,
+          "text": "Therefore because of you Zion shall be plowed like a field, Jerusalem shall become heaps of ruins, And the mountain of the temple Like the bare hills of the forest."
+        },
+        {
+          "citation": "Micah 4:1",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 22622,
+          "text": "Now it shall come to pass in the latter days That the mountain of the LORD's house Shall be established on the top of the mountains, And shall be exalted above the hills; And peoples shall flow to it."
+        },
+        {
+          "citation": "Micah 4:2",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 22623,
+          "text": "Many nations shall come and say, \"Come, and let us go up to the mountain of the LORD, To the house of the God of Jacob; He will teach us His ways, And we shall walk in His paths.\" For out of Zion the law shall go forth, And the word of the LORD from Jerusalem."
+        },
+        {
+          "citation": "Micah 4:3",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 22624,
+          "text": "He shall judge between many peoples, And rebuke strong nations afar off; They shall beat their swords into plowshares, And their spears into pruning hooks; Nation shall not lift up sword against nation, Neither shall they learn war anymore."
+        },
+        {
+          "citation": "Micah 4:4",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 22625,
+          "text": "But everyone shall sit under his vine and under his fig tree, And no one shall make them afraid; For the mouth of the LORD of hosts has spoken."
+        },
+        {
+          "citation": "Micah 4:5",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 22626,
+          "text": "For all people walk each in the name of his god, But we will walk in the name of the LORD our God Forever and ever."
+        },
+        {
+          "citation": "Micah 4:6",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 22627,
+          "text": "\"In that day,\" says the LORD, \"I will assemble the lame, I will gather the outcast And those whom I have afflicted;"
+        },
+        {
+          "citation": "Micah 4:7",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 22628,
+          "text": "I will make the lame a remnant, And the outcast a strong nation; So the LORD will reign over them in Mount Zion From now on, even forever."
+        },
+        {
+          "citation": "Micah 4:8",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 22629,
+          "text": "And you, O tower of the flock, The stronghold of the daughter of Zion, To you shall it come, Even the former dominion shall come, The kingdom of the daughter of Jerusalem.\""
+        },
+        {
+          "citation": "Micah 4:9",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 22630,
+          "text": "Now why do you cry aloud? Is there no king in your midst? Has your counselor perished? For pangs have seized you like a woman in labor."
+        },
+        {
+          "citation": "Micah 4:10",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 22631,
+          "text": "Be in pain, and labor to bring forth, O daughter of Zion, Like a woman in birth pangs. For now you shall go forth from the city, You shall dwell in the field, And to Babylon you shall go. There you shall be delivered; There the LORD will redeem you From the hand of your enemies."
+        },
+        {
+          "citation": "Micah 4:11",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 22632,
+          "text": "Now also many nations have gathered against you, Who say, \"Let her be defiled, And let our eye look upon Zion.\""
+        },
+        {
+          "citation": "Micah 4:12",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 22633,
+          "text": "But they do not know the thoughts of the LORD, Nor do they understand His counsel; For He will gather them like sheaves to the threshing floor."
+        },
+        {
+          "citation": "Micah 4:13",
+          "bookKey": "MIC",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 22634,
+          "text": "\"Arise and thresh, O daughter of Zion; For I will make your horn iron, And I will make your hooves bronze; You shall beat in pieces many peoples; I will consecrate their gain to the LORD, And their substance to the Lord of the whole earth.\""
+        },
+        {
+          "citation": "Micah 5:1",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 22635,
+          "text": "Now gather yourself in troops, O daughter of troops; He has laid siege against us; They will strike the judge of Israel with a rod on the cheek."
+        },
+        {
+          "citation": "Micah 5:2",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 22636,
+          "text": "\"But you, Bethlehem Ephrathah, Though you are little among the thousands of Judah, Yet out of you shall come forth to Me The One to be Ruler in Israel, Whose goings forth are from of old, From everlasting.\""
+        },
+        {
+          "citation": "Micah 5:3",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 22637,
+          "text": "Therefore He shall give them up, Until the time that she who is in labor has given birth; Then the remnant of His brethren Shall return to the children of Israel."
+        },
+        {
+          "citation": "Micah 5:4",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 22638,
+          "text": "And He shall stand and feed His flock In the strength of the LORD, In the majesty of the name of the LORD His God; And they shall abide, For now He shall be great To the ends of the earth;"
+        },
+        {
+          "citation": "Micah 5:5",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 22639,
+          "text": "And this One shall be peace. When the Assyrian comes into our land, And when he treads in our palaces, Then we will raise against him Seven shepherds and eight princely men."
+        },
+        {
+          "citation": "Micah 5:6",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 22640,
+          "text": "They shall waste with the sword the land of Assyria, And the land of Nimrod at its entrances; Thus He shall deliver us from the Assyrian, When he comes into our land And when he treads within our borders."
+        },
+        {
+          "citation": "Micah 5:7",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 22641,
+          "text": "Then the remnant of Jacob Shall be in the midst of many peoples, Like dew from the LORD, Like showers on the grass, That tarry for no man Nor wait for the sons of men."
+        },
+        {
+          "citation": "Micah 5:8",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 22642,
+          "text": "And the remnant of Jacob Shall be among the Gentiles, In the midst of many peoples, Like a lion among the beasts of the forest, Like a young lion among flocks of sheep, Who, if he passes through, Both treads down and tears in pieces, And none can deliver."
+        },
+        {
+          "citation": "Micah 5:9",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 22643,
+          "text": "Your hand shall be lifted against your adversaries, And all your enemies shall be cut off."
+        },
+        {
+          "citation": "Micah 5:10",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 22644,
+          "text": "\"And it shall be in that day,\" says the LORD, \"That I will cut off your horses from your midst And destroy your chariots."
+        },
+        {
+          "citation": "Micah 5:11",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 22645,
+          "text": "I will cut off the cities of your land And throw down all your strongholds."
+        },
+        {
+          "citation": "Micah 5:12",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 22646,
+          "text": "I will cut off sorceries from your hand, And you shall have no soothsayers."
+        },
+        {
+          "citation": "Micah 5:13",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 22647,
+          "text": "Your carved images I will also cut off, And your sacred pillars from your midst; You shall no more worship the work of your hands;"
+        },
+        {
+          "citation": "Micah 5:14",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 14,
+          "ordinal": 22648,
+          "text": "I will pluck your wooden images from your midst; Thus I will destroy your cities."
+        },
+        {
+          "citation": "Micah 5:15",
+          "bookKey": "MIC",
+          "chapter": 5,
+          "verse": 15,
+          "ordinal": 22649,
+          "text": "And I will execute vengeance in anger and fury On the nations that have not heard.\""
+        },
+        {
+          "citation": "Micah 6:1",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 22650,
+          "text": "Hear now what the LORD says: \"Arise, plead your case before the mountains, And let the hills hear your voice."
+        },
+        {
+          "citation": "Micah 6:2",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 22651,
+          "text": "Hear, O you mountains, the LORD's complaint, And you strong foundations of the earth; For the LORD has a complaint against His people, And He will contend with Israel."
+        },
+        {
+          "citation": "Micah 6:3",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 22652,
+          "text": "\"O My people, what have I done to you? And how have I wearied you? Testify against Me."
+        },
+        {
+          "citation": "Micah 6:4",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 22653,
+          "text": "For I brought you up from the land of Egypt, I redeemed you from the house of bondage; And I sent before you Moses, Aaron, and Miriam."
+        },
+        {
+          "citation": "Micah 6:5",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 22654,
+          "text": "O My people, remember now What Balak king of Moab counseled, And what Balaam the son of Beor answered him, From Acacia Grove to Gilgal, That you may know the righteousness of the LORD.\""
+        },
+        {
+          "citation": "Micah 6:6",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 22655,
+          "text": "With what shall I come before the LORD, And bow myself before the High God? Shall I come before Him with burnt offerings, With calves a year old?"
+        },
+        {
+          "citation": "Micah 6:7",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 22656,
+          "text": "Will the LORD be pleased with thousands of rams, Ten thousand rivers of oil? Shall I give my firstborn for my transgression, The fruit of my body for the sin of my soul?"
+        },
+        {
+          "citation": "Micah 6:8",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 22657,
+          "text": "He has shown you, O man, what is good; And what does the LORD require of you But to do justly, To love mercy, And to walk humbly with your God?"
+        },
+        {
+          "citation": "Micah 6:9",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 22658,
+          "text": "The LORD's voice cries to the city-- Wisdom shall see Your name: \"Hear the rod! Who has appointed it?"
+        },
+        {
+          "citation": "Micah 6:10",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 22659,
+          "text": "Are there yet the treasures of wickedness In the house of the wicked, And the short measure that is an abomination?"
+        },
+        {
+          "citation": "Micah 6:11",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 22660,
+          "text": "Shall I count pure those with the wicked scales, And with the bag of deceitful weights?"
+        },
+        {
+          "citation": "Micah 6:12",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 22661,
+          "text": "For her rich men are full of violence, Her inhabitants have spoken lies, And their tongue is deceitful in their mouth."
+        },
+        {
+          "citation": "Micah 6:13",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 13,
+          "ordinal": 22662,
+          "text": "\"Therefore I will also make you sick by striking you, By making you desolate because of your sins."
+        },
+        {
+          "citation": "Micah 6:14",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 14,
+          "ordinal": 22663,
+          "text": "You shall eat, but not be satisfied; Hunger shall be in your midst. You may carry some away, but shall not save them; And what you do rescue I will give over to the sword."
+        },
+        {
+          "citation": "Micah 6:15",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 15,
+          "ordinal": 22664,
+          "text": "\"You shall sow, but not reap; You shall tread the olives, but not anoint yourselves with oil; And make sweet wine, but not drink wine."
+        },
+        {
+          "citation": "Micah 6:16",
+          "bookKey": "MIC",
+          "chapter": 6,
+          "verse": 16,
+          "ordinal": 22665,
+          "text": "For the statutes of Omri are kept; All the works of Ahab's house are done; And you walk in their counsels, That I may make you a desolation, And your inhabitants a hissing. Therefore you shall bear the reproach of My people.\""
+        },
+        {
+          "citation": "Micah 7:1",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 1,
+          "ordinal": 22666,
+          "text": "Woe is me! For I am like those who gather summer fruits, Like those who glean vintage grapes; There is no cluster to eat Of the first-ripe fruit which my soul desires."
+        },
+        {
+          "citation": "Micah 7:2",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 2,
+          "ordinal": 22667,
+          "text": "The faithful man has perished from the earth, And there is no one upright among men. They all lie in wait for blood; Every man hunts his brother with a net."
+        },
+        {
+          "citation": "Micah 7:3",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 3,
+          "ordinal": 22668,
+          "text": "That they may successfully do evil with both hands-- The prince asks for gifts, The judge seeks a bribe, And the great man utters his evil desire; So they scheme together."
+        },
+        {
+          "citation": "Micah 7:4",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 4,
+          "ordinal": 22669,
+          "text": "The best of them is like a brier; The most upright is sharper than a thorn hedge; The day of your watchman and your punishment comes; Now shall be their perplexity."
+        },
+        {
+          "citation": "Micah 7:5",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 5,
+          "ordinal": 22670,
+          "text": "Do not trust in a friend; Do not put your confidence in a companion; Guard the doors of your mouth From her who lies in your bosom."
+        },
+        {
+          "citation": "Micah 7:6",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 6,
+          "ordinal": 22671,
+          "text": "For son dishonors father, Daughter rises against her mother, Daughter-in-law against her mother-in-law; A man's enemies are the men of his own household."
+        },
+        {
+          "citation": "Micah 7:7",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 7,
+          "ordinal": 22672,
+          "text": "Therefore I will look to the LORD; I will wait for the God of my salvation; My God will hear me."
+        },
+        {
+          "citation": "Micah 7:8",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 8,
+          "ordinal": 22673,
+          "text": "Do not rejoice over me, my enemy; When I fall, I will arise; When I sit in darkness, The LORD will be a light to me."
+        },
+        {
+          "citation": "Micah 7:9",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 9,
+          "ordinal": 22674,
+          "text": "I will bear the indignation of the LORD, Because I have sinned against Him, Until He pleads my case And executes justice for me. He will bring me forth to the light; I will see His righteousness."
+        },
+        {
+          "citation": "Micah 7:10",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 10,
+          "ordinal": 22675,
+          "text": "Then she who is my enemy will see, And shame will cover her who said to me, \"Where is the LORD your God?\" My eyes will see her; Now she will be trampled down Like mud in the streets."
+        },
+        {
+          "citation": "Micah 7:11",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 11,
+          "ordinal": 22676,
+          "text": "In the day when your walls are to be built, In that day the decree shall go far and wide."
+        },
+        {
+          "citation": "Micah 7:12",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 12,
+          "ordinal": 22677,
+          "text": "In that day they shall come to you From Assyria and the fortified cities, From the fortress to the River, From sea to sea, And mountain to mountain."
+        },
+        {
+          "citation": "Micah 7:13",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 13,
+          "ordinal": 22678,
+          "text": "Yet the land shall be desolate Because of those who dwell in it, And for the fruit of their deeds."
+        },
+        {
+          "citation": "Micah 7:14",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 14,
+          "ordinal": 22679,
+          "text": "Shepherd Your people with Your staff, The flock of Your heritage, Who dwell solitarily in a woodland, In the midst of Carmel; Let them feed in Bashan and Gilead, As in days of old."
+        },
+        {
+          "citation": "Micah 7:15",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 15,
+          "ordinal": 22680,
+          "text": "\"As in the days when you came out of the land of Egypt, I will show them wonders.\""
+        },
+        {
+          "citation": "Micah 7:16",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 16,
+          "ordinal": 22681,
+          "text": "The nations shall see and be ashamed of all their might; They shall put their hand over their mouth; Their ears shall be deaf."
+        },
+        {
+          "citation": "Micah 7:17",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 17,
+          "ordinal": 22682,
+          "text": "They shall lick the dust like a serpent; They shall crawl from their holes like snakes of the earth. They shall be afraid of the LORD our God, And shall fear because of You."
+        },
+        {
+          "citation": "Micah 7:18",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 18,
+          "ordinal": 22683,
+          "text": "Who is a God like You, Pardoning iniquity And passing over the transgression of the remnant of His heritage? He does not retain His anger forever, Because He delights in mercy."
+        },
+        {
+          "citation": "Micah 7:19",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 19,
+          "ordinal": 22684,
+          "text": "He will again have compassion on us, And will subdue our iniquities. You will cast all our sins Into the depths of the sea."
+        },
+        {
+          "citation": "Micah 7:20",
+          "bookKey": "MIC",
+          "chapter": 7,
+          "verse": 20,
+          "ordinal": 22685,
+          "text": "You will give truth to Jacob And mercy to Abraham, Which You have sworn to our fathers From days of old."
+        }
+      ]
+    }
+  ]
+}

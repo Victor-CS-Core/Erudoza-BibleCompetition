@@ -1,0 +1,694 @@
+{
+  "packKey": "builtin-nkjv-rut",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Ruth",
+      "units": [
+        {
+          "citation": "Ruth 1:1",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 7129,
+          "text": "Now it came to pass, in the days when the judges ruled, that there was a famine in the land. And a certain man of Bethlehem, Judah, went to dwell in the country of Moab, he and his wife and his two sons."
+        },
+        {
+          "citation": "Ruth 1:2",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 7130,
+          "text": "The name of the man was Elimelech, the name of his wife was Naomi, and the names of his two sons were Mahlon and Chilion--Ephrathites of Bethlehem, Judah. And they went to the country of Moab and remained there."
+        },
+        {
+          "citation": "Ruth 1:3",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 7131,
+          "text": "Then Elimelech, Naomi's husband, died; and she was left, and her two sons."
+        },
+        {
+          "citation": "Ruth 1:4",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 7132,
+          "text": "Now they took wives of the women of Moab: the name of the one was Orpah, and the name of the other Ruth. And they dwelt there about ten years."
+        },
+        {
+          "citation": "Ruth 1:5",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 7133,
+          "text": "Then both Mahlon and Chilion also died; so the woman survived her two sons and her husband."
+        },
+        {
+          "citation": "Ruth 1:6",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 7134,
+          "text": "Then she arose with her daughters-in-law that she might return from the country of Moab, for she had heard in the country of Moab that the LORD had visited His people by giving them bread."
+        },
+        {
+          "citation": "Ruth 1:7",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 7135,
+          "text": "Therefore she went out from the place where she was, and her two daughters-in-law with her; and they went on the way to return to the land of Judah."
+        },
+        {
+          "citation": "Ruth 1:8",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 7136,
+          "text": "And Naomi said to her two daughters-in-law, \"Go, return each to her mother's house. The LORD deal kindly with you, as you have dealt with the dead and with me."
+        },
+        {
+          "citation": "Ruth 1:9",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 7137,
+          "text": "The LORD grant that you may find rest, each in the house of her husband.\" So she kissed them, and they lifted up their voices and wept."
+        },
+        {
+          "citation": "Ruth 1:10",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 7138,
+          "text": "And they said to her, \"Surely we will return with you to your people.\""
+        },
+        {
+          "citation": "Ruth 1:11",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 7139,
+          "text": "But Naomi said, \"Turn back, my daughters; why will you go with me? Are there still sons in my womb, that they may be your husbands?"
+        },
+        {
+          "citation": "Ruth 1:12",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 7140,
+          "text": "Turn back, my daughters, go--for I am too old to have a husband. If I should say I have hope, if I should have a husband tonight and should also bear sons,"
+        },
+        {
+          "citation": "Ruth 1:13",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 7141,
+          "text": "would you wait for them till they were grown? Would you restrain yourselves from having husbands? No, my daughters; for it grieves me very much for your sakes that the hand of the LORD has gone out against me!\""
+        },
+        {
+          "citation": "Ruth 1:14",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 7142,
+          "text": "Then they lifted up their voices and wept again; and Orpah kissed her mother-in-law, but Ruth clung to her."
+        },
+        {
+          "citation": "Ruth 1:15",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 7143,
+          "text": "And she said, \"Look, your sister-in-law has gone back to her people and to her gods; return after your sister-in-law.\""
+        },
+        {
+          "citation": "Ruth 1:16",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 7144,
+          "text": "But Ruth said: \"Entreat me not to leave you, Or to turn back from following after you; For wherever you go, I will go; And wherever you lodge, I will lodge; Your people shall be my people, And your God, my God."
+        },
+        {
+          "citation": "Ruth 1:17",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 7145,
+          "text": "Where you die, I will die, And there will I be buried. The LORD do so to me, and more also, If anything but death parts you and me.\""
+        },
+        {
+          "citation": "Ruth 1:18",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 7146,
+          "text": "When she saw that she was determined to go with her, she stopped speaking to her."
+        },
+        {
+          "citation": "Ruth 1:19",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 7147,
+          "text": "Now the two of them went until they came to Bethlehem. And it happened, when they had come to Bethlehem, that all the city was excited because of them; and the women said, \"Is this Naomi?\""
+        },
+        {
+          "citation": "Ruth 1:20",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 7148,
+          "text": "But she said to them, \"Do not call me Naomi; call me Mara, for the Almighty has dealt very bitterly with me."
+        },
+        {
+          "citation": "Ruth 1:21",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 21,
+          "ordinal": 7149,
+          "text": "I went out full, and the LORD has brought me home again empty. Why do you call me Naomi, since the LORD has testified against me, and the Almighty has afflicted me?\""
+        },
+        {
+          "citation": "Ruth 1:22",
+          "bookKey": "RUT",
+          "chapter": 1,
+          "verse": 22,
+          "ordinal": 7150,
+          "text": "So Naomi returned, and Ruth the Moabitess her daughter-in-law with her, who returned from the country of Moab. Now they came to Bethlehem at the beginning of barley harvest."
+        },
+        {
+          "citation": "Ruth 2:1",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 7151,
+          "text": "There was a relative of Naomi's husband, a man of great wealth, of the family of Elimelech. His name was Boaz."
+        },
+        {
+          "citation": "Ruth 2:2",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 7152,
+          "text": "So Ruth the Moabitess said to Naomi, \"Please let me go to the field, and glean heads of grain after him in whose sight I may find favor.\" And she said to her, \"Go, my daughter.\""
+        },
+        {
+          "citation": "Ruth 2:3",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 7153,
+          "text": "Then she left, and went and gleaned in the field after the reapers. And she happened to come to the part of the field belonging to Boaz, who was of the family of Elimelech."
+        },
+        {
+          "citation": "Ruth 2:4",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 7154,
+          "text": "Now behold, Boaz came from Bethlehem, and said to the reapers, \"The LORD be with you!\" And they answered him, \"The LORD bless you!\""
+        },
+        {
+          "citation": "Ruth 2:5",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 7155,
+          "text": "Then Boaz said to his servant who was in charge of the reapers, \"Whose young woman is this?\""
+        },
+        {
+          "citation": "Ruth 2:6",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 7156,
+          "text": "So the servant who was in charge of the reapers answered and said, \"It is the young Moabite woman who came back with Naomi from the country of Moab."
+        },
+        {
+          "citation": "Ruth 2:7",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 7157,
+          "text": "And she said, \"Please let me glean and gather after the reapers among the sheaves.' So she came and has continued from morning until now, though she rested a little in the house.\""
+        },
+        {
+          "citation": "Ruth 2:8",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 7158,
+          "text": "Then Boaz said to Ruth, \"You will listen, my daughter, will you not? Do not go to glean in another field, nor go from here, but stay close by my young women."
+        },
+        {
+          "citation": "Ruth 2:9",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 7159,
+          "text": "Let your eyes be on the field which they reap, and go after them. Have I not commanded the young men not to touch you? And when you are thirsty, go to the vessels and drink from what the young men have drawn.\""
+        },
+        {
+          "citation": "Ruth 2:10",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 7160,
+          "text": "So she fell on her face, bowed down to the ground, and said to him, \"Why have I found favor in your eyes, that you should take notice of me, since I am a foreigner?\""
+        },
+        {
+          "citation": "Ruth 2:11",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 7161,
+          "text": "And Boaz answered and said to her, \"It has been fully reported to me, all that you have done for your mother-in-law since the death of your husband, and how you have left your father and your mother and the land of your birth, and have come to a people whom you did not know before."
+        },
+        {
+          "citation": "Ruth 2:12",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 7162,
+          "text": "The LORD repay your work, and a full reward be given you by the LORD God of Israel, under whose wings you have come for refuge.\""
+        },
+        {
+          "citation": "Ruth 2:13",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 7163,
+          "text": "Then she said, \"Let me find favor in your sight, my lord; for you have comforted me, and have spoken kindly to your maidservant, though I am not like one of your maidservants.\""
+        },
+        {
+          "citation": "Ruth 2:14",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 7164,
+          "text": "Now Boaz said to her at mealtime, \"Come here, and eat of the bread, and dip your piece of bread in the vinegar.\" So she sat beside the reapers, and he passed parched grain to her; and she ate and was satisfied, and kept some back."
+        },
+        {
+          "citation": "Ruth 2:15",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 7165,
+          "text": "And when she rose up to glean, Boaz commanded his young men, saying, \"Let her glean even among the sheaves, and do not reproach her."
+        },
+        {
+          "citation": "Ruth 2:16",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 7166,
+          "text": "Also let grain from the bundles fall purposely for her; leave it that she may glean, and do not rebuke her.\""
+        },
+        {
+          "citation": "Ruth 2:17",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 7167,
+          "text": "So she gleaned in the field until evening, and beat out what she had gleaned, and it was about an ephah of barley."
+        },
+        {
+          "citation": "Ruth 2:18",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 18,
+          "ordinal": 7168,
+          "text": "Then she took it up and went into the city, and her mother-in-law saw what she had gleaned. So she brought out and gave to her what she had kept back after she had been satisfied."
+        },
+        {
+          "citation": "Ruth 2:19",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 19,
+          "ordinal": 7169,
+          "text": "And her mother-in-law said to her, \"Where have you gleaned today? And where did you work? Blessed be the one who took notice of you.\" So she told her mother-in-law with whom she had worked, and said, \"The man's name with whom I worked today is Boaz.\""
+        },
+        {
+          "citation": "Ruth 2:20",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 20,
+          "ordinal": 7170,
+          "text": "Then Naomi said to her daughter-in-law, \"Blessed be he of the LORD, who has not forsaken His kindness to the living and the dead!\" And Naomi said to her, \"This man is a relation of ours, one of our close relatives.\""
+        },
+        {
+          "citation": "Ruth 2:21",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 21,
+          "ordinal": 7171,
+          "text": "Ruth the Moabitess said, \"He also said to me, \"You shall stay close by my young men until they have finished all my harvest.\"'"
+        },
+        {
+          "citation": "Ruth 2:22",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 22,
+          "ordinal": 7172,
+          "text": "And Naomi said to Ruth her daughter-in-law, \"It is good, my daughter, that you go out with his young women, and that people do not meet you in any other field.\""
+        },
+        {
+          "citation": "Ruth 2:23",
+          "bookKey": "RUT",
+          "chapter": 2,
+          "verse": 23,
+          "ordinal": 7173,
+          "text": "So she stayed close by the young women of Boaz, to glean until the end of barley harvest and wheat harvest; and she dwelt with her mother-in-law."
+        },
+        {
+          "citation": "Ruth 3:1",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 7174,
+          "text": "Then Naomi her mother-in-law said to her, \"My daughter, shall I not seek security for you, that it may be well with you?"
+        },
+        {
+          "citation": "Ruth 3:2",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 7175,
+          "text": "Now Boaz, whose young women you were with, is he not our relative? In fact, he is winnowing barley tonight at the threshing floor."
+        },
+        {
+          "citation": "Ruth 3:3",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 7176,
+          "text": "Therefore wash yourself and anoint yourself, put on your best garment and go down to the threshing floor; but do not make yourself known to the man until he has finished eating and drinking."
+        },
+        {
+          "citation": "Ruth 3:4",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 7177,
+          "text": "Then it shall be, when he lies down, that you shall notice the place where he lies; and you shall go in, uncover his feet, and lie down; and he will tell you what you should do.\""
+        },
+        {
+          "citation": "Ruth 3:5",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 7178,
+          "text": "And she said to her, \"All that you say to me I will do.\""
+        },
+        {
+          "citation": "Ruth 3:6",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 7179,
+          "text": "So she went down to the threshing floor and did according to all that her mother-in-law instructed her."
+        },
+        {
+          "citation": "Ruth 3:7",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 7180,
+          "text": "And after Boaz had eaten and drunk, and his heart was cheerful, he went to lie down at the end of the heap of grain; and she came softly, uncovered his feet, and lay down."
+        },
+        {
+          "citation": "Ruth 3:8",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 7181,
+          "text": "Now it happened at midnight that the man was startled, and turned himself; and there, a woman was lying at his feet."
+        },
+        {
+          "citation": "Ruth 3:9",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 7182,
+          "text": "And he said, \"Who are you?\" So she answered, \"I am Ruth, your maidservant. Take your maidservant under your wing, for you are a close relative.\""
+        },
+        {
+          "citation": "Ruth 3:10",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 7183,
+          "text": "Then he said, \"Blessed are you of the LORD, my daughter! For you have shown more kindness at the end than at the beginning, in that you did not go after young men, whether poor or rich."
+        },
+        {
+          "citation": "Ruth 3:11",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 7184,
+          "text": "And now, my daughter, do not fear. I will do for you all that you request, for all the people of my town know that you are a virtuous woman."
+        },
+        {
+          "citation": "Ruth 3:12",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 7185,
+          "text": "Now it is true that I am a close relative; however, there is a relative closer than I."
+        },
+        {
+          "citation": "Ruth 3:13",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 7186,
+          "text": "Stay this night, and in the morning it shall be that if he will perform the duty of a close relative for you--good; let him do it. But if he does not want to perform the duty for you, then I will perform the duty for you, as the LORD lives! Lie down until morning.\""
+        },
+        {
+          "citation": "Ruth 3:14",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 7187,
+          "text": "So she lay at his feet until morning, and she arose before one could recognize another. Then he said, \"Do not let it be known that the woman came to the threshing floor.\""
+        },
+        {
+          "citation": "Ruth 3:15",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 7188,
+          "text": "Also he said, \"Bring the shawl that is on you and hold it.\" And when she held it, he measured six ephahs of barley, and laid it on her. Then she went into the city."
+        },
+        {
+          "citation": "Ruth 3:16",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 7189,
+          "text": "When she came to her mother-in-law, she said, \"Is that you, my daughter?\" Then she told her all that the man had done for her."
+        },
+        {
+          "citation": "Ruth 3:17",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 7190,
+          "text": "And she said, \"These six ephahs of barley he gave me; for he said to me, \"Do not go empty-handed to your mother-in-law.\"'"
+        },
+        {
+          "citation": "Ruth 3:18",
+          "bookKey": "RUT",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 7191,
+          "text": "Then she said, \"Sit still, my daughter, until you know how the matter will turn out; for the man will not rest until he has concluded the matter this day.\""
+        },
+        {
+          "citation": "Ruth 4:1",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 7192,
+          "text": "Now Boaz went up to the gate and sat down there; and behold, the close relative of whom Boaz had spoken came by. So Boaz said, \"Come aside, friend, sit down here.\" So he came aside and sat down."
+        },
+        {
+          "citation": "Ruth 4:2",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 7193,
+          "text": "And he took ten men of the elders of the city, and said, \"Sit down here.\" So they sat down."
+        },
+        {
+          "citation": "Ruth 4:3",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 7194,
+          "text": "Then he said to the close relative, \"Naomi, who has come back from the country of Moab, sold the piece of land which belonged to our brother Elimelech."
+        },
+        {
+          "citation": "Ruth 4:4",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 7195,
+          "text": "And I thought to inform you, saying, \"Buy it back in the presence of the inhabitants and the elders of my people. If you will redeem it, redeem it; but if you will not redeem it, then tell me, that I may know; for there is no one but you to redeem it, and I am next after you.\"' And he said, \"I will redeem it.\""
+        },
+        {
+          "citation": "Ruth 4:5",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 7196,
+          "text": "Then Boaz said, \"On the day you buy the field from the hand of Naomi, you must also buy it from Ruth the Moabitess, the wife of the dead, to perpetuate the name of the dead through his inheritance.\""
+        },
+        {
+          "citation": "Ruth 4:6",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 7197,
+          "text": "And the close relative said, \"I cannot redeem it for myself, lest I ruin my own inheritance. You redeem my right of redemption for yourself, for I cannot redeem it.\""
+        },
+        {
+          "citation": "Ruth 4:7",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 7198,
+          "text": "Now this was the custom in former times in Israel concerning redeeming and exchanging, to confirm anything: one man took off his sandal and gave it to the other, and this was a confirmation in Israel."
+        },
+        {
+          "citation": "Ruth 4:8",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 7199,
+          "text": "Therefore the close relative said to Boaz, \"Buy it for yourself.\" So he took off his sandal."
+        },
+        {
+          "citation": "Ruth 4:9",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 7200,
+          "text": "And Boaz said to the elders and all the people, \"You are witnesses this day that I have bought all that was Elimelech's, and all that was Chilion's and Mahlon's, from the hand of Naomi."
+        },
+        {
+          "citation": "Ruth 4:10",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 7201,
+          "text": "Moreover, Ruth the Moabitess, the widow of Mahlon, I have acquired as my wife, to perpetuate the name of the dead through his inheritance, that the name of the dead may not be cut off from among his brethren and from his position at the gate. You are witnesses this day.\""
+        },
+        {
+          "citation": "Ruth 4:11",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 7202,
+          "text": "And all the people who were at the gate, and the elders, said, \"We are witnesses. The LORD make the woman who is coming to your house like Rachel and Leah, the two who built the house of Israel; and may you prosper in Ephrathah and be famous in Bethlehem."
+        },
+        {
+          "citation": "Ruth 4:12",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 7203,
+          "text": "May your house be like the house of Perez, whom Tamar bore to Judah, because of the offspring which the LORD will give you from this young woman.\""
+        },
+        {
+          "citation": "Ruth 4:13",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 7204,
+          "text": "So Boaz took Ruth and she became his wife; and when he went in to her, the LORD gave her conception, and she bore a son."
+        },
+        {
+          "citation": "Ruth 4:14",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 7205,
+          "text": "Then the women said to Naomi, \"Blessed be the LORD, who has not left you this day without a close relative; and may his name be famous in Israel!"
+        },
+        {
+          "citation": "Ruth 4:15",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 7206,
+          "text": "And may he be to you a restorer of life and a nourisher of your old age; for your daughter-in-law, who loves you, who is better to you than seven sons, has borne him.\""
+        },
+        {
+          "citation": "Ruth 4:16",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 7207,
+          "text": "Then Naomi took the child and laid him on her bosom, and became a nurse to him."
+        },
+        {
+          "citation": "Ruth 4:17",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 17,
+          "ordinal": 7208,
+          "text": "Also the neighbor women gave him a name, saying, \"There is a son born to Naomi.\" And they called his name Obed. He is the father of Jesse, the father of David."
+        },
+        {
+          "citation": "Ruth 4:18",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 18,
+          "ordinal": 7209,
+          "text": "Now this is the genealogy of Perez: Perez begot Hezron;"
+        },
+        {
+          "citation": "Ruth 4:19",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 19,
+          "ordinal": 7210,
+          "text": "Hezron begot Ram, and Ram begot Amminadab;"
+        },
+        {
+          "citation": "Ruth 4:20",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 20,
+          "ordinal": 7211,
+          "text": "Amminadab begot Nahshon, and Nahshon begot Salmon;"
+        },
+        {
+          "citation": "Ruth 4:21",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 21,
+          "ordinal": 7212,
+          "text": "Salmon begot Boaz, and Boaz begot Obed;"
+        },
+        {
+          "citation": "Ruth 4:22",
+          "bookKey": "RUT",
+          "chapter": 4,
+          "verse": 22,
+          "ordinal": 7213,
+          "text": "Obed begot Jesse, and Jesse begot David."
+        }
+      ]
+    }
+  ]
+}

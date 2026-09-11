@@ -1,114 +1,46 @@
 import { useQuery } from "@tanstack/react-query";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import type { SessionSummary } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { FieldGuideChrome } from "../../components/material/FieldGuideChrome";
-import { FieldGuideCover } from "../../components/material/FieldGuideCover";
-import { Stamp } from "../../components/material/Stamp";
-import { academyActivityName, academyRecentExactPercent, academySessionSummaryCopy } from "./academyTracks";
-
-const pathwayNodes = ["Observe", "Identify", "Record", "Interpret", "Apply", "Reflect"] as const;
+import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from "../../components/ui";
+import { academyActivityName, academyRecentExactPercent, academySessionSummaryCopy, canStartAcademyTrack } from "./academyTracks";
+import "./student.css";
 
 export function ProgressPage() {
   const { me } = useAuth();
   const { seasonId, studentId } = useParams();
+  const [params] = useSearchParams();
+  const selectedSeasonId = params.get("seasonId") || undefined;
   const coachView = !!seasonId && !!studentId;
-  const progress = useQuery({
-    queryKey: ["progress", seasonId, studentId],
-    queryFn: () =>
-      coachView ? api.studentProgress(me!.organizationId, seasonId!, studentId!) : api.progress(),
-    enabled: !coachView || !!me,
-  });
+  const progress = useQuery({ queryKey: ["progress", seasonId ?? selectedSeasonId, studentId, me?.organizationId, me?.userId],
+    queryFn: () => coachView ? api.studentProgress(me!.organizationId, seasonId!, studentId!) : api.progress(selectedSeasonId), enabled: !coachView || !!me });
   const data = progress.data;
   const summary = useLocation().state as SessionSummary | null;
   const recent = data?.recentAttempts ?? [];
-  const due = (data?.reviewDueCount ?? 0) > 0;
-
-  return (
-    <div className="er-progress-stage space-y-4">
-      <FieldGuideChrome testId="progress-field-guide-chrome" />
-      <section className="er-top-folio" data-testid="progress-top-folio">
-        <p className="er-top-folio-label">TOP FOLIO</p>
-        <dl className="er-top-folio-stats">
-          <div>
-            <dt>Attempts</dt>
-            <dd data-testid="progress-attempts">{data?.attemptCount ?? 0}</dd>
-          </div>
-          <div>
-            <dt>Due reviews</dt>
-            <dd data-testid="progress-reviews">{data?.reviewDueCount ?? 0}</dd>
-          </div>
-          <div>
-            <dt>Recent</dt>
-            <dd data-testid="progress-recent">{academyRecentExactPercent(data?.recentAttempts)}</dd>
-          </div>
-        </dl>
-      </section>
-      <FieldGuideCover folio stamp={due ? <Stamp label="DUE" tone="due" /> : null}>
-        {coachView ? <h2 className="mt-5 text-xl font-semibold">Student progress</h2> : null}
-        <p className="mt-2 text-[var(--er-muted-ink)]" data-testid="progress-student">
-          {data?.studentDisplayName ? `${data.studentDisplayName} · ` : null}
-          {data?.seasonName}
-        </p>
-        {summary ? (
-          <p className="mt-3 text-sm" data-testid="session-summary">
-            {academySessionSummaryCopy(summary)}
-          </p>
-        ) : null}
-        <div className="er-mastery-pathway" data-testid="progress-mastery-pathway" data-aspirational="true">
-          <h2 className="er-mastery-pathway-title">
-            {data?.seasonName ? `${data.seasonName} progress` : "Progress"} — Field Guide Mastery Pathway
-          </h2>
-          <p className="er-mastery-pathway-quote">
-            “Study to show yourself approved.” — 2 Timothy 2:15
-          </p>
-          <div className="er-pathway-orbit" aria-hidden="true">
-            <span className="er-pathway-core">
-              <img src="/brand/erudoza-mark.png" alt="" width={48} height={48} />
-            </span>
-            {pathwayNodes.map((label, index) => (
-              <span key={label} className={`er-pathway-node er-pathway-node-${index}`}>
-                {label}
-              </span>
-            ))}
-          </div>
-          <p className="er-mastery-pathway-note">
-            Comp mastery ring — product uses attempts/due until API-backed
-          </p>
-        </div>
-        <ul className="mt-6 space-y-3" data-testid="progress-mastery">
-          {data?.mastery.map((item) => (
-            <li key={item.knowledgeUnitId} className="flex items-center justify-between gap-3 border-t border-[var(--er-border)] pt-3">
-              <div>
-                <p className="font-medium">{item.title}</p>
-                <p className="text-sm text-[var(--er-muted-ink)]">Exact wording {item.exactWordingScore}</p>
-              </div>
-              <Stamp label={item.level} tone={item.level === "Review" ? "review" : "mastered"} />
-            </li>
-          ))}
-        </ul>
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold">Recent attempts</h2>
-          <ul className="mt-3 space-y-3" data-testid="recent-attempts">
-            {recent.length ? (
-              recent.map((item) => (
-                <li key={item.id} className="flex items-start justify-between gap-3 border-t border-[var(--er-border)] pt-3">
-                  <div>
-                    <p className="font-medium">
-                      {item.title} · {academyActivityName(item.activityType)}
-                    </p>
-                    <p className="mt-1 text-sm text-[var(--er-graphite)]">{item.submittedAnswer || "—"}</p>
-                  </div>
-                  <Stamp label={item.isCorrect ? "Exact" : "Miss"} tone={item.isCorrect ? "mastered" : "due"} />
-                </li>
-              ))
-            ) : (
-              <li className="text-sm text-[var(--er-graphite)]">No attempts yet.</li>
-            )}
-          </ul>
-        </div>
-      </FieldGuideCover>
-    </div>
-  );
+  return <div className="training-dashboard student-progress">
+    <PageHeader title={coachView ? "Student progress" : "Your progress"} description={<span data-testid="progress-student">{data?.studentDisplayName ? `${data.studentDisplayName} · ` : ""}{data?.seasonName || "Recorded practice and passage progress"}</span>}
+      action={<LinkButton variant="secondary" to={coachView ? `/admin/assignments?studentId=${encodeURIComponent(studentId!)}&seasonId=${encodeURIComponent(seasonId!)}` : `/student${selectedSeasonId ? `?seasonId=${encodeURIComponent(selectedSeasonId)}` : ""}`}>{coachView ? "Back to assignments" : "Back to training"}</LinkButton>} />
+    {summary && <Notice data-testid="session-summary" tone="success">{academySessionSummaryCopy(summary)}</Notice>}
+    {progress.isPending && <Panel aria-busy="true"><LoadingState label="Loading progress…" /></Panel>}
+    {progress.isError && <Notice tone="danger">Progress could not load. <Button variant="secondary" onClick={() => void progress.refetch()}>Try again</Button></Notice>}
+    {data && <>
+      <Panel data-testid="progress-top-folio"><h2>Recorded activity</h2><dl className="student-progress-metrics">
+        <div><dt>Attempts</dt><dd data-testid="progress-attempts">{data.attemptCount}</dd></div>
+        <div><dt>Verses mastered</dt><dd>{data.masteredCount}</dd></div>
+        <div><dt>Due reviews</dt><dd data-testid="progress-reviews">{data.reviewDueCount}</dd></div>
+        <div><dt>Recent correct</dt><dd data-testid="progress-recent">{academyRecentExactPercent(data.recentAttempts)}</dd></div>
+      </dl>{data.reviewDueCount > 0 && <div className="student-progress-next"><Badge tone="warning" aria-label="DUE">{data.reviewDueCount} {data.reviewDueCount === 1 ? "review" : "reviews"} due</Badge>{!coachView && canStartAcademyTrack("review", data) && <LinkButton size="compact" to={`/student/study?mode=Review&seasonId=${encodeURIComponent(data.seasonId)}`}>Start due reviews</LinkButton>}</div>}</Panel>
+      <Panel><h2>Passage progress</h2><p>See which passages need practice and which are mastered.</p>
+        <ul className="training-list student-progress-records" data-testid="progress-mastery">{data.mastery.length ? data.mastery.map(item => <li key={item.knowledgeUnitId}>
+          <div><h3>{item.title}</h3>{(item.algorithmVersion ?? "v1-scaffold") !== "v2-skill-evidence" && <p>Legacy scoring</p>}<p>Exact wording score: {item.exactWordingScore} / 100</p></div>
+          <Badge tone={item.level === "Mastered" ? "success" : item.level === "Review" ? "warning" : "neutral"}>{item.level}</Badge>
+        </li>) : <li>No passage progress yet. Complete a study activity to begin recording progress.</li>}</ul>
+      </Panel>
+      <Panel><h2>Recent attempts</h2><ul className="training-list student-progress-records" data-testid="recent-attempts">{recent.length ? recent.map(item => <li key={item.id}>
+        <div><h3>{item.title}</h3><p>{academyActivityName(item.activityType)} · <time dateTime={item.createdAtUtc}>{new Date(item.createdAtUtc).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</time></p><p className="er-scripture">{item.submittedAnswer || "—"}</p></div>
+        <Badge tone={item.isCorrect ? "success" : "warning"}>{item.isCorrect ? "Correct" : "Keep practicing"}</Badge>
+      </li>) : <li><div><p>No attempts yet.</p>{!coachView && canStartAcademyTrack("learner", data) && data.assignments.length > 0 && <LinkButton size="compact" to={`/student/study?seasonId=${encodeURIComponent(data.seasonId)}`}>Start your first study session</LinkButton>}</div></li>}</ul></Panel>
+    </>}
+  </div>;
 }

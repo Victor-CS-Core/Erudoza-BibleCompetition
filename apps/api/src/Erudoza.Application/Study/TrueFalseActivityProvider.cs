@@ -10,7 +10,7 @@ public sealed class TrueFalseActivityProvider(IClock clock) : IActivityProvider
 
     public bool CanHandle(ActivityRequest request)
     {
-        if (request.KnowledgeUnit.Kind != KnowledgeUnitKind.ExactVerseText)
+        if (request.Difficulty >= 5 || request.KnowledgeUnit.Kind != KnowledgeUnitKind.ExactVerseText)
         {
             return false;
         }
@@ -22,7 +22,7 @@ public sealed class TrueFalseActivityProvider(IClock clock) : IActivityProvider
     public Task<ChallengeCard> CreateAsync(ActivityRequest request, CancellationToken cancellationToken)
     {
         var seed = MissingWordsGenerator.StableSeed(request.SourceUnit.Id, request.Context.SessionId, request.Sequence);
-        var generated = TrueFalseGenerator.Create(request.SourceUnit, request.AlternateSourceUnit, seed);
+        var generated = TrueFalseGenerator.Create(request.SourceUnit, request.AlternateSourceUnit, seed, request.Difficulty);
         return Task.FromResult(new ChallengeCard
         {
             Id = Guid.NewGuid(),

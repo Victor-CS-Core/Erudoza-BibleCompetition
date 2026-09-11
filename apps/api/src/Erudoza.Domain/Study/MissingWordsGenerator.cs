@@ -67,7 +67,11 @@ public static class MissingWordsGenerator
 
     public static int StableSeed(Guid sourceUnitId, Guid sessionId, int sequence)
     {
-        return HashCode.Combine(sourceUnitId, sessionId, sequence);
+        // Stable across processes, unlike the randomized HashCode salt.
+        uint hash = 2166136261;
+        foreach (var value in sourceUnitId.ToByteArray().Concat(sessionId.ToByteArray()))
+            hash = unchecked((hash ^ value) * 16777619);
+        return unchecked((int)((hash ^ (uint)sequence) * 16777619));
     }
 
     private static int ResolveHideCount(int tokenCount, int difficulty)

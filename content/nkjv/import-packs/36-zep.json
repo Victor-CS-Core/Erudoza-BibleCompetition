@@ -1,0 +1,438 @@
+{
+  "packKey": "builtin-nkjv-zep",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Zephaniah",
+      "units": [
+        {
+          "citation": "Zephaniah 1:1",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 22789,
+          "text": "The word of the LORD which came to Zephaniah the son of Cushi, the son of Gedaliah, the son of Amariah, the son of Hezekiah, in the days of Josiah the son of Amon, king of Judah."
+        },
+        {
+          "citation": "Zephaniah 1:2",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 22790,
+          "text": "\"I will utterly consume everything From the face of the land,\" Says the LORD;"
+        },
+        {
+          "citation": "Zephaniah 1:3",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 22791,
+          "text": "\"I will consume man and beast; I will consume the birds of the heavens, The fish of the sea, And the stumbling blocks along with the wicked. I will cut off man from the face of the land,\" Says the LORD."
+        },
+        {
+          "citation": "Zephaniah 1:4",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 22792,
+          "text": "\"I will stretch out My hand against Judah, And against all the inhabitants of Jerusalem. I will cut off every trace of Baal from this place, The names of the idolatrous priests with the pagan priests--"
+        },
+        {
+          "citation": "Zephaniah 1:5",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 22793,
+          "text": "Those who worship the host of heaven on the housetops; Those who worship and swear oaths by the LORD, But who also swear by Milcom;"
+        },
+        {
+          "citation": "Zephaniah 1:6",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 22794,
+          "text": "Those who have turned back from following the LORD, And have not sought the LORD, nor inquired of Him.\""
+        },
+        {
+          "citation": "Zephaniah 1:7",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 22795,
+          "text": "Be silent in the presence of the Lord GOD; For the day of the LORD is at hand, For the LORD has prepared a sacrifice; He has invited His guests."
+        },
+        {
+          "citation": "Zephaniah 1:8",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 22796,
+          "text": "\"And it shall be, In the day of the LORD's sacrifice, That I will punish the princes and the king's children, And all such as are clothed with foreign apparel."
+        },
+        {
+          "citation": "Zephaniah 1:9",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 22797,
+          "text": "In the same day I will punish All those who leap over the threshold, Who fill their masters' houses with violence and deceit."
+        },
+        {
+          "citation": "Zephaniah 1:10",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 22798,
+          "text": "\"And there shall be on that day,\" says the LORD, \"The sound of a mournful cry from the Fish Gate, A wailing from the Second Quarter, And a loud crashing from the hills."
+        },
+        {
+          "citation": "Zephaniah 1:11",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 22799,
+          "text": "Wail, you inhabitants of Maktesh! For all the merchant people are cut down; All those who handle money are cut off."
+        },
+        {
+          "citation": "Zephaniah 1:12",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 22800,
+          "text": "\"And it shall come to pass at that time That I will search Jerusalem with lamps, And punish the men Who are settled in complacency, Who say in their heart, \"The LORD will not do good, Nor will He do evil.'"
+        },
+        {
+          "citation": "Zephaniah 1:13",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 22801,
+          "text": "Therefore their goods shall become booty, And their houses a desolation; They shall build houses, but not inhabit them; They shall plant vineyards, but not drink their wine.\""
+        },
+        {
+          "citation": "Zephaniah 1:14",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 22802,
+          "text": "The great day of the LORD is near; It is near and hastens quickly. The noise of the day of the LORD is bitter; There the mighty men shall cry out."
+        },
+        {
+          "citation": "Zephaniah 1:15",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 22803,
+          "text": "That day is a day of wrath, A day of trouble and distress, A day of devastation and desolation, A day of darkness and gloominess, A day of clouds and thick darkness,"
+        },
+        {
+          "citation": "Zephaniah 1:16",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 22804,
+          "text": "A day of trumpet and alarm Against the fortified cities And against the high towers."
+        },
+        {
+          "citation": "Zephaniah 1:17",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 22805,
+          "text": "\"I will bring distress upon men, And they shall walk like blind men, Because they have sinned against the LORD; Their blood shall be poured out like dust, And their flesh like refuse.\""
+        },
+        {
+          "citation": "Zephaniah 1:18",
+          "bookKey": "ZEP",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 22806,
+          "text": "Neither their silver nor their gold Shall be able to deliver them In the day of the LORD's wrath; But the whole land shall be devoured By the fire of His jealousy, For He will make speedy riddance Of all those who dwell in the land."
+        },
+        {
+          "citation": "Zephaniah 2:1",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 22807,
+          "text": "Gather yourselves together, yes, gather together, O undesirable nation,"
+        },
+        {
+          "citation": "Zephaniah 2:2",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 22808,
+          "text": "Before the decree is issued, Or the day passes like chaff, Before the LORD's fierce anger comes upon you, Before the day of the LORD's anger comes upon you!"
+        },
+        {
+          "citation": "Zephaniah 2:3",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 22809,
+          "text": "Seek the LORD, all you meek of the earth, Who have upheld His justice. Seek righteousness, seek humility. It may be that you will be hidden In the day of the LORD's anger."
+        },
+        {
+          "citation": "Zephaniah 2:4",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 22810,
+          "text": "For Gaza shall be forsaken, And Ashkelon desolate; They shall drive out Ashdod at noonday, And Ekron shall be uprooted."
+        },
+        {
+          "citation": "Zephaniah 2:5",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 22811,
+          "text": "Woe to the inhabitants of the seacoast, The nation of the Cherethites! The word of the LORD is against you, O Canaan, land of the Philistines: \"I will destroy you; So there shall be no inhabitant.\""
+        },
+        {
+          "citation": "Zephaniah 2:6",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 22812,
+          "text": "The seacoast shall be pastures, With shelters for shepherds and folds for flocks."
+        },
+        {
+          "citation": "Zephaniah 2:7",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 22813,
+          "text": "The coast shall be for the remnant of the house of Judah; They shall feed their flocks there; In the houses of Ashkelon they shall lie down at evening. For the LORD their God will intervene for them, And return their captives."
+        },
+        {
+          "citation": "Zephaniah 2:8",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 22814,
+          "text": "\"I have heard the reproach of Moab, And the insults of the people of Ammon, With which they have reproached My people, And made arrogant threats against their borders."
+        },
+        {
+          "citation": "Zephaniah 2:9",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 22815,
+          "text": "Therefore, as I live,\" Says the LORD of hosts, the God of Israel, \"Surely Moab shall be like Sodom, And the people of Ammon like Gomorrah-- Overrun with weeds and saltpits, And a perpetual desolation. The residue of My people shall plunder them, And the remnant of My people shall possess them.\""
+        },
+        {
+          "citation": "Zephaniah 2:10",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 22816,
+          "text": "This they shall have for their pride, Because they have reproached and made arrogant threats Against the people of the LORD of hosts."
+        },
+        {
+          "citation": "Zephaniah 2:11",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 22817,
+          "text": "The LORD will be awesome to them, For He will reduce to nothing all the gods of the earth; People shall worship Him, Each one from his place, Indeed all the shores of the nations."
+        },
+        {
+          "citation": "Zephaniah 2:12",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 22818,
+          "text": "\"You Ethiopians also, You shall be slain by My sword.\""
+        },
+        {
+          "citation": "Zephaniah 2:13",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 22819,
+          "text": "And He will stretch out His hand against the north, Destroy Assyria, And make Nineveh a desolation, As dry as the wilderness."
+        },
+        {
+          "citation": "Zephaniah 2:14",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 22820,
+          "text": "The herds shall lie down in her midst, Every beast of the nation. Both the pelican and the bittern Shall lodge on the capitals of her pillars; Their voice shall sing in the windows; Desolation shall be at the threshold; For He will lay bare the cedar work."
+        },
+        {
+          "citation": "Zephaniah 2:15",
+          "bookKey": "ZEP",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 22821,
+          "text": "This is the rejoicing city That dwelt securely, That said in her heart, \"I am it, and there is none besides me.\" How has she become a desolation, A place for beasts to lie down! Everyone who passes by her Shall hiss and shake his fist."
+        },
+        {
+          "citation": "Zephaniah 3:1",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 22822,
+          "text": "Woe to her who is rebellious and polluted, To the oppressing city!"
+        },
+        {
+          "citation": "Zephaniah 3:2",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 22823,
+          "text": "She has not obeyed His voice, She has not received correction; She has not trusted in the LORD, She has not drawn near to her God."
+        },
+        {
+          "citation": "Zephaniah 3:3",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 22824,
+          "text": "Her princes in her midst are roaring lions; Her judges are evening wolves That leave not a bone till morning."
+        },
+        {
+          "citation": "Zephaniah 3:4",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 22825,
+          "text": "Her prophets are insolent, treacherous people; Her priests have polluted the sanctuary, They have done violence to the law."
+        },
+        {
+          "citation": "Zephaniah 3:5",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 22826,
+          "text": "The LORD is righteous in her midst, He will do no unrighteousness. Every morning He brings His justice to light; He never fails, But the unjust knows no shame."
+        },
+        {
+          "citation": "Zephaniah 3:6",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 22827,
+          "text": "\"I have cut off nations, Their fortresses are devastated; I have made their streets desolate, With none passing by. Their cities are destroyed; There is no one, no inhabitant."
+        },
+        {
+          "citation": "Zephaniah 3:7",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 22828,
+          "text": "I said, \"Surely you will fear Me, You will receive instruction'-- So that her dwelling would not be cut off, Despite everything for which I punished her. But they rose early and corrupted all their deeds."
+        },
+        {
+          "citation": "Zephaniah 3:8",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 22829,
+          "text": "\"Therefore wait for Me,\" says the LORD, \"Until the day I rise up for plunder; My determination is to gather the nations To My assembly of kingdoms, To pour on them My indignation, All My fierce anger; All the earth shall be devoured With the fire of My jealousy."
+        },
+        {
+          "citation": "Zephaniah 3:9",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 22830,
+          "text": "\"For then I will restore to the peoples a pure language, That they all may call on the name of the LORD, To serve Him with one accord."
+        },
+        {
+          "citation": "Zephaniah 3:10",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 22831,
+          "text": "From beyond the rivers of Ethiopia My worshipers, The daughter of My dispersed ones, Shall bring My offering."
+        },
+        {
+          "citation": "Zephaniah 3:11",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 22832,
+          "text": "In that day you shall not be shamed for any of your deeds In which you transgress against Me; For then I will take away from your midst Those who rejoice in your pride, And you shall no longer be haughty In My holy mountain."
+        },
+        {
+          "citation": "Zephaniah 3:12",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 22833,
+          "text": "I will leave in your midst A meek and humble people, And they shall trust in the name of the LORD."
+        },
+        {
+          "citation": "Zephaniah 3:13",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 22834,
+          "text": "The remnant of Israel shall do no unrighteousness And speak no lies, Nor shall a deceitful tongue be found in their mouth; For they shall feed their flocks and lie down, And no one shall make them afraid.\""
+        },
+        {
+          "citation": "Zephaniah 3:14",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 22835,
+          "text": "Sing, O daughter of Zion! Shout, O Israel! Be glad and rejoice with all your heart, O daughter of Jerusalem!"
+        },
+        {
+          "citation": "Zephaniah 3:15",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 22836,
+          "text": "The LORD has taken away your judgments, He has cast out your enemy. The King of Israel, the LORD, is in your midst; You shall see disaster no more."
+        },
+        {
+          "citation": "Zephaniah 3:16",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 22837,
+          "text": "In that day it shall be said to Jerusalem: \"Do not fear; Zion, let not your hands be weak."
+        },
+        {
+          "citation": "Zephaniah 3:17",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 22838,
+          "text": "The LORD your God in your midst, The Mighty One, will save; He will rejoice over you with gladness, He will quiet you with His love, He will rejoice over you with singing.\""
+        },
+        {
+          "citation": "Zephaniah 3:18",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 22839,
+          "text": "\"I will gather those who sorrow over the appointed assembly, Who are among you, To whom its reproach is a burden."
+        },
+        {
+          "citation": "Zephaniah 3:19",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 19,
+          "ordinal": 22840,
+          "text": "Behold, at that time I will deal with all who afflict you; I will save the lame, And gather those who were driven out; I will appoint them for praise and fame In every land where they were put to shame."
+        },
+        {
+          "citation": "Zephaniah 3:20",
+          "bookKey": "ZEP",
+          "chapter": 3,
+          "verse": 20,
+          "ordinal": 22841,
+          "text": "At that time I will bring you back, Even at the time I gather you; For I will give you fame and praise Among all the peoples of the earth, When I return your captives before your eyes,\" Says the LORD."
+        }
+      ]
+    }
+  ]
+}

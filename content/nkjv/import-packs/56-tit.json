@@ -1,0 +1,382 @@
+{
+  "packKey": "builtin-nkjv-tit",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Titus",
+      "units": [
+        {
+          "citation": "Titus 1:1",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 29894,
+          "text": "Paul, a bondservant of God and an apostle of Jesus Christ, according to the faith of God's elect and the acknowledgment of the truth which accords with godliness,"
+        },
+        {
+          "citation": "Titus 1:2",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 29895,
+          "text": "in hope of eternal life which God, who cannot lie, promised before time began,"
+        },
+        {
+          "citation": "Titus 1:3",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 29896,
+          "text": "but has in due time manifested His word through preaching, which was committed to me according to the commandment of God our Savior;"
+        },
+        {
+          "citation": "Titus 1:4",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 29897,
+          "text": "To Titus, a true son in our common faith: Grace, mercy, and peace from God the Father and the Lord Jesus Christ our Savior."
+        },
+        {
+          "citation": "Titus 1:5",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 29898,
+          "text": "For this reason I left you in Crete, that you should set in order the things that are lacking, and appoint elders in every city as I commanded you--"
+        },
+        {
+          "citation": "Titus 1:6",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 29899,
+          "text": "if a man is blameless, the husband of one wife, having faithful children not accused of dissipation or insubordination."
+        },
+        {
+          "citation": "Titus 1:7",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 29900,
+          "text": "For a bishop must be blameless, as a steward of God, not self-willed, not quick-tempered, not given to wine, not violent, not greedy for money,"
+        },
+        {
+          "citation": "Titus 1:8",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 29901,
+          "text": "but hospitable, a lover of what is good, sober-minded, just, holy, self-controlled,"
+        },
+        {
+          "citation": "Titus 1:9",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 29902,
+          "text": "holding fast the faithful word as he has been taught, that he may be able, by sound doctrine, both to exhort and convict those who contradict."
+        },
+        {
+          "citation": "Titus 1:10",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 29903,
+          "text": "For there are many insubordinate, both idle talkers and deceivers, especially those of the circumcision,"
+        },
+        {
+          "citation": "Titus 1:11",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 29904,
+          "text": "whose mouths must be stopped, who subvert whole households, teaching things which they ought not, for the sake of dishonest gain."
+        },
+        {
+          "citation": "Titus 1:12",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 29905,
+          "text": "One of them, a prophet of their own, said, \"Cretans are always liars, evil beasts, lazy gluttons.\""
+        },
+        {
+          "citation": "Titus 1:13",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 29906,
+          "text": "This testimony is true. Therefore rebuke them sharply, that they may be sound in the faith,"
+        },
+        {
+          "citation": "Titus 1:14",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 29907,
+          "text": "not giving heed to Jewish fables and commandments of men who turn from the truth."
+        },
+        {
+          "citation": "Titus 1:15",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 29908,
+          "text": "To the pure all things are pure, but to those who are defiled and unbelieving nothing is pure; but even their mind and conscience are defiled."
+        },
+        {
+          "citation": "Titus 1:16",
+          "bookKey": "TIT",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 29909,
+          "text": "They profess to know God, but in works they deny Him, being abominable, disobedient, and disqualified for every good work."
+        },
+        {
+          "citation": "Titus 2:1",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 29910,
+          "text": "But as for you, speak the things which are proper for sound doctrine:"
+        },
+        {
+          "citation": "Titus 2:2",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 29911,
+          "text": "that the older men be sober, reverent, temperate, sound in faith, in love, in patience;"
+        },
+        {
+          "citation": "Titus 2:3",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 29912,
+          "text": "the older women likewise, that they be reverent in behavior, not slanderers, not given to much wine, teachers of good things--"
+        },
+        {
+          "citation": "Titus 2:4",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 29913,
+          "text": "that they admonish the young women to love their husbands, to love their children,"
+        },
+        {
+          "citation": "Titus 2:5",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 29914,
+          "text": "to be discreet, chaste, homemakers, good, obedient to their own husbands, that the word of God may not be blasphemed."
+        },
+        {
+          "citation": "Titus 2:6",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 29915,
+          "text": "Likewise, exhort the young men to be sober-minded,"
+        },
+        {
+          "citation": "Titus 2:7",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 29916,
+          "text": "in all things showing yourself to be a pattern of good works; in doctrine showing integrity, reverence, incorruptibility,"
+        },
+        {
+          "citation": "Titus 2:8",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 29917,
+          "text": "sound speech that cannot be condemned, that one who is an opponent may be ashamed, having nothing evil to say of you."
+        },
+        {
+          "citation": "Titus 2:9",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 29918,
+          "text": "Exhort bondservants to be obedient to their own masters, to be well pleasing in all things, not answering back,"
+        },
+        {
+          "citation": "Titus 2:10",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 29919,
+          "text": "not pilfering, but showing all good fidelity, that they may adorn the doctrine of God our Savior in all things."
+        },
+        {
+          "citation": "Titus 2:11",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 29920,
+          "text": "For the grace of God that brings salvation has appeared to all men,"
+        },
+        {
+          "citation": "Titus 2:12",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 29921,
+          "text": "teaching us that, denying ungodliness and worldly lusts, we should live soberly, righteously, and godly in the present age,"
+        },
+        {
+          "citation": "Titus 2:13",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 29922,
+          "text": "looking for the blessed hope and glorious appearing of our great God and Savior Jesus Christ,"
+        },
+        {
+          "citation": "Titus 2:14",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 29923,
+          "text": "who gave Himself for us, that He might redeem us from every lawless deed and purify for Himself His own special people, zealous for good works."
+        },
+        {
+          "citation": "Titus 2:15",
+          "bookKey": "TIT",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 29924,
+          "text": "Speak these things, exhort, and rebuke with all authority. Let no one despise you."
+        },
+        {
+          "citation": "Titus 3:1",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 29925,
+          "text": "Remind them to be subject to rulers and authorities, to obey, to be ready for every good work,"
+        },
+        {
+          "citation": "Titus 3:2",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 29926,
+          "text": "to speak evil of no one, to be peaceable, gentle, showing all humility to all men."
+        },
+        {
+          "citation": "Titus 3:3",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 29927,
+          "text": "For we ourselves were also once foolish, disobedient, deceived, serving various lusts and pleasures, living in malice and envy, hateful and hating one another."
+        },
+        {
+          "citation": "Titus 3:4",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 29928,
+          "text": "But when the kindness and the love of God our Savior toward man appeared,"
+        },
+        {
+          "citation": "Titus 3:5",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 29929,
+          "text": "not by works of righteousness which we have done, but according to His mercy He saved us, through the washing of regeneration and renewing of the Holy Spirit,"
+        },
+        {
+          "citation": "Titus 3:6",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 29930,
+          "text": "whom He poured out on us abundantly through Jesus Christ our Savior,"
+        },
+        {
+          "citation": "Titus 3:7",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 29931,
+          "text": "that having been justified by His grace we should become heirs according to the hope of eternal life."
+        },
+        {
+          "citation": "Titus 3:8",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 29932,
+          "text": "This is a faithful saying, and these things I want you to affirm constantly, that those who have believed in God should be careful to maintain good works. These things are good and profitable to men."
+        },
+        {
+          "citation": "Titus 3:9",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 29933,
+          "text": "But avoid foolish disputes, genealogies, contentions, and strivings about the law; for they are unprofitable and useless."
+        },
+        {
+          "citation": "Titus 3:10",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 29934,
+          "text": "Reject a divisive man after the first and second admonition,"
+        },
+        {
+          "citation": "Titus 3:11",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 29935,
+          "text": "knowing that such a person is warped and sinning, being self-condemned."
+        },
+        {
+          "citation": "Titus 3:12",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 29936,
+          "text": "When I send Artemas to you, or Tychicus, be diligent to come to me at Nicopolis, for I have decided to spend the winter there."
+        },
+        {
+          "citation": "Titus 3:13",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 29937,
+          "text": "Send Zenas the lawyer and Apollos on their journey with haste, that they may lack nothing."
+        },
+        {
+          "citation": "Titus 3:14",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 29938,
+          "text": "And let our people also learn to maintain good works, to meet urgent needs, that they may not be unfruitful."
+        },
+        {
+          "citation": "Titus 3:15",
+          "bookKey": "TIT",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 29939,
+          "text": "All who are with me greet you. Greet those who love us in the faith. Grace be with you all. Amen."
+        }
+      ]
+    }
+  ]
+}

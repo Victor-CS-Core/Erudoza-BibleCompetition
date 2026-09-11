@@ -1,0 +1,2 @@
+# Preserve extraction and manifest hashes across Windows Git checkouts.
+*.json -text

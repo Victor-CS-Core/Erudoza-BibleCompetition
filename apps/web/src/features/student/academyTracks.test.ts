@@ -113,7 +113,6 @@ describe("academyActivityName", () => {
     expect(academyActivityName("ReferenceMatch")).toBe("Reference Match");
     expect(academyActivityName("WhatComesNext")).toBe("What Comes Next");
     expect(academyActivityName("TrueFalse")).toBe("True/False");
-    expect(academyActivityName("ShortAnswer")).toBe("Short answer");
   });
 
   it("keeps an unknown API activity type raw", () => {
@@ -124,25 +123,25 @@ describe("academyActivityName", () => {
 describe("academySessionSummaryCopy", () => {
   it("names finished sessions from academy tracks, not raw API mode", () => {
     expect(academySessionSummaryCopy({ mode: "Practice", correct: 1, attempted: 1 })).toBe(
-      "Last Learner drill session: 1 / 1 exact",
+      "Last Learner drill session: 1 / 1 correct",
     );
     expect(academySessionSummaryCopy({ mode: "review", correct: 2, attempted: 3 })).toBe(
-      "Last Due review session: 2 / 3 exact",
+      "Last Due review session: 2 / 3 correct",
     );
     expect(academySessionSummaryCopy({ mode: "SIMULATION", correct: 0, attempted: 2 })).toBe(
-      "Last Rehearsal session: 0 / 2 exact",
+      "Last Rehearsal session: 0 / 2 correct",
     );
   });
 
   it("omits a track name when the API mode is unknown", () => {
     expect(academySessionSummaryCopy({ mode: "Unknown", correct: 1, attempted: 4 })).toBe(
-      "Last session: 1 / 4 exact",
+      "Last session: 1 / 4 correct",
     );
   });
 });
 
 describe("academyRecentExactPercent", () => {
-  it("reports exact-match percent from recent attempts, not an invented score", () => {
+  it("reports the percent of correct recent attempts", () => {
     expect(academyRecentExactPercent(undefined)).toBe("—");
     expect(academyRecentExactPercent([])).toBe("—");
     expect(

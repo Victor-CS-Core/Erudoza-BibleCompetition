@@ -1,0 +1,182 @@
+{
+  "packKey": "kjv-1769-pdf-oba",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "public-domain",
+  "documents": [
+    {
+      "name": "Obadiah",
+      "units": [
+        {
+          "citation": "Obadiah 1:1",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 22543,
+          "text": "The vision of Obadiah. Thus saith the Lord GOD concerning Edom; We have heard a rumour from the LORD, and an ambassador is sent among the heathen, Arise ye, and let us rise up against her in battle."
+        },
+        {
+          "citation": "Obadiah 1:2",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 22544,
+          "text": "Behold, I have made thee small among the heathen: thou art greatly despised."
+        },
+        {
+          "citation": "Obadiah 1:3",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 22545,
+          "text": "The pride of thine heart hath deceived thee, thou that dwellest in the clefts of the rock, whose habitation is high; that saith in his heart, Who shall bring me down to the ground?"
+        },
+        {
+          "citation": "Obadiah 1:4",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 22546,
+          "text": "Though thou exalt thyself as the eagle, and though thou set thy nest among the stars, thence will I bring thee down, saith the LORD."
+        },
+        {
+          "citation": "Obadiah 1:5",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 22547,
+          "text": "If thieves came to thee, if robbers by night, (how art thou cut off!) would they not have stolen till they had enough? if the grapegatherers came to thee, would they not leave some grapes?"
+        },
+        {
+          "citation": "Obadiah 1:6",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 22548,
+          "text": "How are the things of Esau searched out! how are his hidden things sought up!"
+        },
+        {
+          "citation": "Obadiah 1:7",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 22549,
+          "text": "All the men of thy confederacy have brought thee even to the border: the men that were at peace with thee have deceived thee, and prevailed against thee; they that eat thy bread have laid a wound under thee: there is none understanding in him."
+        },
+        {
+          "citation": "Obadiah 1:8",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 22550,
+          "text": "Shall I not in that day, saith the LORD, even destroy the wise men out of Edom, and understanding out of the mount of Esau?"
+        },
+        {
+          "citation": "Obadiah 1:9",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 22551,
+          "text": "And thy mighty men, O Teman, shall be dismayed, to the end that every one of the mount of Esau may be cut off by slaughter."
+        },
+        {
+          "citation": "Obadiah 1:10",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 22552,
+          "text": "For thy violence against thy brother Jacob shame shall cover thee, and thou shalt be cut off for ever."
+        },
+        {
+          "citation": "Obadiah 1:11",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 22553,
+          "text": "In the day that thou stoodest on the other side, in the day that the strangers carried away captive his forces, and foreigners entered into his gates, and cast lots upon Jerusalem, even thou wast as one of them."
+        },
+        {
+          "citation": "Obadiah 1:12",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 22554,
+          "text": "But thou shouldest not have looked on the day of thy brother in the day that he became a stranger; neither shouldest thou have rejoiced over the children of Judah in the day of their destruction; neither shouldest thou have spoken proudly in the day of distress."
+        },
+        {
+          "citation": "Obadiah 1:13",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 22555,
+          "text": "Thou shouldest not have entered into the gate of my people in the day of their calamity; yea, thou shouldest not have looked on their affliction in the day of their calamity, nor have laid hands on their substance in the day of their calamity;"
+        },
+        {
+          "citation": "Obadiah 1:14",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 22556,
+          "text": "Neither shouldest thou have stood in the crossway, to cut off those of his that did escape; neither shouldest thou have delivered up those of his that did remain in the day of distress."
+        },
+        {
+          "citation": "Obadiah 1:15",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 22557,
+          "text": "For the day of the LORD is near upon all the heathen: as thou hast done, it shall be done unto thee: thy reward shall return upon thine own head."
+        },
+        {
+          "citation": "Obadiah 1:16",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 22558,
+          "text": "For as ye have drunk upon my holy mountain, so shall all the heathen drink continually, yea, they shall drink, and they shall swallow down, and they shall be as though they had not been."
+        },
+        {
+          "citation": "Obadiah 1:17",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 22559,
+          "text": "But upon mount Zion shall be deliverance, and there shall be holiness; and the house of Jacob shall possess their possessions."
+        },
+        {
+          "citation": "Obadiah 1:18",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 22560,
+          "text": "And the house of Jacob shall be a fire, and the house of Joseph a flame, and the house of Esau for stubble, and they shall kindle in them, and devour them; and there shall not be any remaining of the house of Esau; for the LORD hath spoken it."
+        },
+        {
+          "citation": "Obadiah 1:19",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 22561,
+          "text": "And they of the south shall possess the mount of Esau; and they of the plain the Philistines: and they shall possess the fields of Ephraim, and the fields of Samaria: and Benjamin shall possess Gilead."
+        },
+        {
+          "citation": "Obadiah 1:20",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 22562,
+          "text": "And the captivity of this host of the children of Israel shall possess that of the Canaanites, even unto Zarephath; and the captivity of Jerusalem, which is in Sepharad, shall possess the cities of the south."
+        },
+        {
+          "citation": "Obadiah 1:21",
+          "bookKey": "OBA",
+          "chapter": 1,
+          "verse": 21,
+          "ordinal": 22563,
+          "text": "And saviours shall come up on mount Zion to judge the mount of Esau; and the kingdom shall be the LORD’s."
+        }
+      ]
+    }
+  ]
+}

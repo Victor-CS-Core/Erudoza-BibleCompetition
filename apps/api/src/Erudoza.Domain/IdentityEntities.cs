@@ -18,6 +18,7 @@ public sealed class ApplicationUser
     public string UserName { get; set; } = string.Empty;
     public string? Email { get; set; }
     public string PasswordHash { get; set; } = string.Empty;
+    public string SecurityStamp { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
     public UserKind Kind { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }

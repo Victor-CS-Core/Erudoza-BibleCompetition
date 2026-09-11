@@ -21,13 +21,18 @@ public sealed class DevelopmentSeeder(ErudozaDbContext db, IPasswordHasher passw
 
     public async Task SeedAsync(string adminEmail, string adminPassword, string studentUsername, string studentPassword, CancellationToken cancellationToken)
     {
-        if (!await db.Organizations.AnyAsync(item => item.Id == SeedIdentifiers.OrganizationId, cancellationToken))
+        var academy = await db.Organizations.SingleOrDefaultAsync(item => item.Id == SeedIdentifiers.OrganizationId, cancellationToken);
+        if (academy?.Name == "Development Academy")
+        {
+            academy.Name = "Erudoza Academy";
+        }
+        if (academy is null)
         {
             db.Organizations.Add(new Organization
             {
                 Id = SeedIdentifiers.OrganizationId,
-                Name = "Development Academy",
-                Slug = "development-academy",
+                Name = "Erudoza Academy",
+                Slug = "erudoza-academy",
                 CreatedAtUtc = clock.UtcNow
             });
         }

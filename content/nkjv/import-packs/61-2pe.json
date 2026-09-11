@@ -1,0 +1,502 @@
+{
+  "packKey": "builtin-nkjv-2pe",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "2 Peter",
+      "units": [
+        {
+          "citation": "2 Peter 1:1",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 30481,
+          "text": "Simon Peter, a bondservant and apostle of Jesus Christ, To those who have obtained like precious faith with us by the righteousness of our God and Savior Jesus Christ:"
+        },
+        {
+          "citation": "2 Peter 1:2",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 30482,
+          "text": "Grace and peace be multiplied to you in the knowledge of God and of Jesus our Lord,"
+        },
+        {
+          "citation": "2 Peter 1:3",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 30483,
+          "text": "as His divine power has given to us all things that pertain to life and godliness, through the knowledge of Him who called us by glory and virtue,"
+        },
+        {
+          "citation": "2 Peter 1:4",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 30484,
+          "text": "by which have been given to us exceedingly great and precious promises, that through these you may be partakers of the divine nature, having escaped the corruption that is in the world through lust."
+        },
+        {
+          "citation": "2 Peter 1:5",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 30485,
+          "text": "But also for this very reason, giving all diligence, add to your faith virtue, to virtue knowledge,"
+        },
+        {
+          "citation": "2 Peter 1:6",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 30486,
+          "text": "to knowledge self-control, to self-control perseverance, to perseverance godliness,"
+        },
+        {
+          "citation": "2 Peter 1:7",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 30487,
+          "text": "to godliness brotherly kindness, and to brotherly kindness love."
+        },
+        {
+          "citation": "2 Peter 1:8",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 30488,
+          "text": "For if these things are yours and abound, you will be neither barren nor unfruitful in the knowledge of our Lord Jesus Christ."
+        },
+        {
+          "citation": "2 Peter 1:9",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 30489,
+          "text": "For he who lacks these things is shortsighted, even to blindness, and has forgotten that he was cleansed from his old sins."
+        },
+        {
+          "citation": "2 Peter 1:10",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 30490,
+          "text": "Therefore, brethren, be even more diligent to make your call and election sure, for if you do these things you will never stumble;"
+        },
+        {
+          "citation": "2 Peter 1:11",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 30491,
+          "text": "for so an entrance will be supplied to you abundantly into the everlasting kingdom of our Lord and Savior Jesus Christ."
+        },
+        {
+          "citation": "2 Peter 1:12",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 30492,
+          "text": "For this reason I will not be negligent to remind you always of these things, though you know and are established in the present truth."
+        },
+        {
+          "citation": "2 Peter 1:13",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 30493,
+          "text": "Yes, I think it is right, as long as I am in this tent, to stir you up by reminding you,"
+        },
+        {
+          "citation": "2 Peter 1:14",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 30494,
+          "text": "knowing that shortly I must put off my tent, just as our Lord Jesus Christ showed me."
+        },
+        {
+          "citation": "2 Peter 1:15",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 30495,
+          "text": "Moreover I will be careful to ensure that you always have a reminder of these things after my decease."
+        },
+        {
+          "citation": "2 Peter 1:16",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 30496,
+          "text": "For we did not follow cunningly devised fables when we made known to you the power and coming of our Lord Jesus Christ, but were eyewitnesses of His majesty."
+        },
+        {
+          "citation": "2 Peter 1:17",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 30497,
+          "text": "For He received from God the Father honor and glory when such a voice came to Him from the Excellent Glory: \"This is My beloved Son, in whom I am well pleased.\""
+        },
+        {
+          "citation": "2 Peter 1:18",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 30498,
+          "text": "And we heard this voice which came from heaven when we were with Him on the holy mountain."
+        },
+        {
+          "citation": "2 Peter 1:19",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 30499,
+          "text": "And so we have the prophetic word confirmed, which you do well to heed as a light that shines in a dark place, until the day dawns and the morning star rises in your hearts;"
+        },
+        {
+          "citation": "2 Peter 1:20",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 30500,
+          "text": "knowing this first, that no prophecy of Scripture is of any private interpretation,"
+        },
+        {
+          "citation": "2 Peter 1:21",
+          "bookKey": "2PE",
+          "chapter": 1,
+          "verse": 21,
+          "ordinal": 30501,
+          "text": "for prophecy never came by the will of man, but holy men of God spoke as they were moved by the Holy Spirit."
+        },
+        {
+          "citation": "2 Peter 2:1",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 30502,
+          "text": "But there were also false prophets among the people, even as there will be false teachers among you, who will secretly bring in destructive heresies, even denying the Lord who bought them, and bring on themselves swift destruction."
+        },
+        {
+          "citation": "2 Peter 2:2",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 30503,
+          "text": "And many will follow their destructive ways, because of whom the way of truth will be blasphemed."
+        },
+        {
+          "citation": "2 Peter 2:3",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 30504,
+          "text": "By covetousness they will exploit you with deceptive words; for a long time their judgment has not been idle, and their destruction does not slumber."
+        },
+        {
+          "citation": "2 Peter 2:4",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 30505,
+          "text": "For if God did not spare the angels who sinned, but cast them down to hell and delivered them into chains of darkness, to be reserved for judgment;"
+        },
+        {
+          "citation": "2 Peter 2:5",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 30506,
+          "text": "and did not spare the ancient world, but saved Noah, one of eight people, a preacher of righteousness, bringing in the flood on the world of the ungodly;"
+        },
+        {
+          "citation": "2 Peter 2:6",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 30507,
+          "text": "and turning the cities of Sodom and Gomorrah into ashes, condemned them to destruction, making them an example to those who afterward would live ungodly;"
+        },
+        {
+          "citation": "2 Peter 2:7",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 30508,
+          "text": "and delivered righteous Lot, who was oppressed by the filthy conduct of the wicked"
+        },
+        {
+          "citation": "2 Peter 2:8",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 30509,
+          "text": "(for that righteous man, dwelling among them, tormented his righteous soul from day to day by seeing and hearing their lawless deeds)--"
+        },
+        {
+          "citation": "2 Peter 2:9",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 30510,
+          "text": "then the Lord knows how to deliver the godly out of temptations and to reserve the unjust under punishment for the day of judgment,"
+        },
+        {
+          "citation": "2 Peter 2:10",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 30511,
+          "text": "and especially those who walk according to the flesh in the lust of uncleanness and despise authority. They are presumptuous, self-willed. They are not afraid to speak evil of dignitaries,"
+        },
+        {
+          "citation": "2 Peter 2:11",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 30512,
+          "text": "whereas angels, who are greater in power and might, do not bring a reviling accusation against them before the Lord."
+        },
+        {
+          "citation": "2 Peter 2:12",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 30513,
+          "text": "But these, like natural brute beasts made to be caught and destroyed, speak evil of the things they do not understand, and will utterly perish in their own corruption,"
+        },
+        {
+          "citation": "2 Peter 2:13",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 30514,
+          "text": "and will receive the wages of unrighteousness, as those who count it pleasure to carouse in the daytime. They are spots and blemishes, carousing in their own deceptions while they feast with you,"
+        },
+        {
+          "citation": "2 Peter 2:14",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 30515,
+          "text": "having eyes full of adultery and that cannot cease from sin, enticing unstable souls. They have a heart trained in covetous practices, and are accursed children."
+        },
+        {
+          "citation": "2 Peter 2:15",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 30516,
+          "text": "They have forsaken the right way and gone astray, following the way of Balaam the son of Beor, who loved the wages of unrighteousness;"
+        },
+        {
+          "citation": "2 Peter 2:16",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 30517,
+          "text": "but he was rebuked for his iniquity: a dumb donkey speaking with a man's voice restrained the madness of the prophet."
+        },
+        {
+          "citation": "2 Peter 2:17",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 30518,
+          "text": "These are wells without water, clouds carried by a tempest, for whom is reserved the blackness of darkness forever."
+        },
+        {
+          "citation": "2 Peter 2:18",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 18,
+          "ordinal": 30519,
+          "text": "For when they speak great swelling words of emptiness, they allure through the lusts of the flesh, through lewdness, the ones who have actually escaped from those who live in error."
+        },
+        {
+          "citation": "2 Peter 2:19",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 19,
+          "ordinal": 30520,
+          "text": "While they promise them liberty, they themselves are slaves of corruption; for by whom a person is overcome, by him also he is brought into bondage."
+        },
+        {
+          "citation": "2 Peter 2:20",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 20,
+          "ordinal": 30521,
+          "text": "For if, after they have escaped the pollutions of the world through the knowledge of the Lord and Savior Jesus Christ, they are again entangled in them and overcome, the latter end is worse for them than the beginning."
+        },
+        {
+          "citation": "2 Peter 2:21",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 21,
+          "ordinal": 30522,
+          "text": "For it would have been better for them not to have known the way of righteousness, than having known it, to turn from the holy commandment delivered to them."
+        },
+        {
+          "citation": "2 Peter 2:22",
+          "bookKey": "2PE",
+          "chapter": 2,
+          "verse": 22,
+          "ordinal": 30523,
+          "text": "But it has happened to them according to the true proverb: \"A dog returns to his own vomit,\" and, \"a sow, having washed, to her wallowing in the mire.\""
+        },
+        {
+          "citation": "2 Peter 3:1",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 30524,
+          "text": "Beloved, I now write to you this second epistle (in both of which I stir up your pure minds by way of reminder),"
+        },
+        {
+          "citation": "2 Peter 3:2",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 30525,
+          "text": "that you may be mindful of the words which were spoken before by the holy prophets, and of the commandment of us, the apostles of the Lord and Savior,"
+        },
+        {
+          "citation": "2 Peter 3:3",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 30526,
+          "text": "knowing this first: that scoffers will come in the last days, walking according to their own lusts,"
+        },
+        {
+          "citation": "2 Peter 3:4",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 30527,
+          "text": "and saying, \"Where is the promise of His coming? For since the fathers fell asleep, all things continue as they were from the beginning of creation.\""
+        },
+        {
+          "citation": "2 Peter 3:5",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 30528,
+          "text": "For this they willfully forget: that by the word of God the heavens were of old, and the earth standing out of water and in the water,"
+        },
+        {
+          "citation": "2 Peter 3:6",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 30529,
+          "text": "by which the world that then existed perished, being flooded with water."
+        },
+        {
+          "citation": "2 Peter 3:7",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 30530,
+          "text": "But the heavens and the earth which are now preserved by the same word, are reserved for fire until the day of judgment and perdition of ungodly men."
+        },
+        {
+          "citation": "2 Peter 3:8",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 30531,
+          "text": "But, beloved, do not forget this one thing, that with the Lord one day is as a thousand years, and a thousand years as one day."
+        },
+        {
+          "citation": "2 Peter 3:9",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 30532,
+          "text": "The Lord is not slack concerning His promise, as some count slackness, but is longsuffering toward us, not willing that any should perish but that all should come to repentance."
+        },
+        {
+          "citation": "2 Peter 3:10",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 30533,
+          "text": "But the day of the Lord will come as a thief in the night, in which the heavens will pass away with a great noise, and the elements will melt with fervent heat; both the earth and the works that are in it will be burned up."
+        },
+        {
+          "citation": "2 Peter 3:11",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 30534,
+          "text": "Therefore, since all these things will be dissolved, what manner of persons ought you to be in holy conduct and godliness,"
+        },
+        {
+          "citation": "2 Peter 3:12",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 30535,
+          "text": "looking for and hastening the coming of the day of God, because of which the heavens will be dissolved, being on fire, and the elements will melt with fervent heat?"
+        },
+        {
+          "citation": "2 Peter 3:13",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 30536,
+          "text": "Nevertheless we, according to His promise, look for new heavens and a new earth in which righteousness dwells."
+        },
+        {
+          "citation": "2 Peter 3:14",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 30537,
+          "text": "Therefore, beloved, looking forward to these things, be diligent to be found by Him in peace, without spot and blameless;"
+        },
+        {
+          "citation": "2 Peter 3:15",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 30538,
+          "text": "and consider that the longsuffering of our Lord is salvation--as also our beloved brother Paul, according to the wisdom given to him, has written to you,"
+        },
+        {
+          "citation": "2 Peter 3:16",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 30539,
+          "text": "as also in all his epistles, speaking in them of these things, in which are some things hard to understand, which untaught and unstable people twist to their own destruction, as they do also the rest of the Scriptures."
+        },
+        {
+          "citation": "2 Peter 3:17",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 30540,
+          "text": "You therefore, beloved, since you know this beforehand, beware lest you also fall from your own steadfastness, being led away with the error of the wicked;"
+        },
+        {
+          "citation": "2 Peter 3:18",
+          "bookKey": "2PE",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 30541,
+          "text": "but grow in the grace and knowledge of our Lord and Savior Jesus Christ. To Him be the glory both now and forever. Amen."
+        }
+      ]
+    }
+  ]
+}

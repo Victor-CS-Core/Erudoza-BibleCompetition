@@ -5,6 +5,9 @@ namespace Erudoza.IntegrationTests;
 
 public sealed class FakeBibleTextClient : IBibleTextClient
 {
+    public Task<IReadOnlyList<ScriptureBookDto>> GetBooksAsync(string translationId, CancellationToken ct) => Task.FromResult<IReadOnlyList<ScriptureBookDto>>([new("DAN", "Daniel"), new("JUD", "Jude"), new("JOS", "Joshua")]);
+    public Task<IReadOnlyList<int>> GetChaptersAsync(string translationId, string bookKey, CancellationToken ct) => Task.FromResult<IReadOnlyList<int>>(Enumerable.Range(1, bookKey == "JUD" ? 1 : bookKey == "JOS" ? 24 : 12).ToArray());
+
     public Task<BibleChapter> GetChapterAsync(
         string translationId,
         string bookKey,

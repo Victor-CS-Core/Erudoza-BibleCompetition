@@ -6,6 +6,11 @@ namespace Erudoza.Application.Competitions;
 
 public static class RuleProfileReader
 {
+    public static RuleProfileSnapshot ReadSession(StudySession session, RuleProfile profile) =>
+        string.IsNullOrWhiteSpace(session.RuleProfileSnapshotJson)
+            ? Read(profile)
+            : JsonSerializer.Deserialize<RuleProfileSnapshot>(session.RuleProfileSnapshotJson)
+                ?? throw new DomainException("The session rule snapshot is invalid.");
     public const string PbeStyleV1 = "PBE_STYLE_V1";
 
     public static readonly string PbeStyleV1Json = """
@@ -16,7 +21,6 @@ public static class RuleProfileReader
             "allowMultipleChoice": false,
             "allowTrueFalse": true,
             "trueFalseMaxRatio": 0.10,
-            "preferShortAnswer": true,
             "showReference": true
           },
           "study": {
@@ -38,7 +42,6 @@ public static class RuleProfileReader
             study.GetProperty("allowMultipleChoice").GetBoolean(),
             simulation.GetProperty("allowMultipleChoice").GetBoolean(),
             simulation.GetProperty("allowTrueFalse").GetBoolean(),
-            simulation.GetProperty("preferShortAnswer").GetBoolean(),
             simulation.GetProperty("showReference").GetBoolean(),
             simulation.GetProperty("trueFalseMaxRatio").GetDouble());
     }

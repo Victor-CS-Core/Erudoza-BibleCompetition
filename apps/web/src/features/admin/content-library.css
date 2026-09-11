@@ -1,0 +1,13 @@
+/* Library composition; shared primitives own surfaces, colors and controls. */
+.content-library-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--er-space-6);align-items:start}
+.content-library-search{display:grid;gap:var(--er-space-2);margin-top:var(--er-space-4)}
+.content-pack-list{display:grid;gap:var(--er-space-3);padding:0;list-style:none;margin-top:var(--er-space-4)}
+.content-pack-row{display:flex;align-items:center;gap:var(--er-space-2);min-width:0}
+.content-pack-row .ds-button[data-testid=library-book]{flex-wrap:wrap;text-align:left;gap:var(--er-space-2)}
+.content-pack-label{display:grid;gap:var(--er-space-1);min-width:0;overflow-wrap:anywhere;flex:1}
+.content-verses [data-testid=source-unit-list]{max-height:460px;overflow-y:auto;overscroll-behavior:contain;padding-right:var(--er-space-2)}
+@media(min-width:960px){.content-library-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media(max-width:430px){.content-pack-row{flex-wrap:wrap}.content-pack-row>div{flex-basis:100%}.content-pack-row>button{margin-left:auto}.content-verses [data-testid=source-unit-list]{max-height:320px}}
+
+.content-pack-list{max-height:560px;overflow-y:auto;overscroll-behavior:contain}
+.content-pack-row>.ds-button{width:100%}

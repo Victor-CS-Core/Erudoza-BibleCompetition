@@ -25,9 +25,9 @@ public static class DtoMapper
             assignmentCount);
 
     public static StudentDto ToStudentDto(ApplicationUser user) =>
-        new(user.Id, user.UserName, user.DisplayName, user.Email);
+        new(user.Id, user.UserName, user.DisplayName, user.Email, user.IsActive);
 
-    public static AssignmentDto ToAssignmentDto(Assignment assignment, ApplicationUser? student = null)
+    public static AssignmentDto ToAssignmentDto(Assignment assignment, ApplicationUser? student = null, TrainingDifficulty difficulty = TrainingDifficulty.Standard)
     {
         var scope = assignment.Scopes.First();
         return new AssignmentDto(
@@ -40,7 +40,9 @@ public static class DtoMapper
             scope.EndChapter,
             scope.EndVerse,
             student?.DisplayName,
-            student?.UserName);
+            student?.UserName,
+            difficulty.ToString(),
+            scope.ContentPackId);
     }
 
     public static ChallengeCardDto ToChallengeCardDto(
@@ -60,11 +62,14 @@ public static class DtoMapper
             prompt = $"{payload.Prompt} {source.CanonicalText}";
         }
 
+        if (!showCitation)
+            prompt = prompt.Replace(source.CitationLabel, "the assigned passage", StringComparison.Ordinal);
+
         return new ChallengeCardDto(
             card.Id,
             card.SessionId,
             card.ActivityType,
-            showCitation ? source.CitationLabel : "Assigned passage",
+            showCitation && card.ActivityType != ReferenceMatchGenerator.ActivityType ? source.CitationLabel : "Assigned passage",
             prompt,
             payload.Tokens.Select(token => new ChallengeTokenDto(token.Hidden ? "____" : token.Text, token.Hidden, token.Index)).ToList(),
             card.Sequence,

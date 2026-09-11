@@ -1,3 +1,5 @@
+> Historical record: AI generation and question-review capabilities were removed on 2026-09-09. References below describe the earlier implementation, not current setup instructions.
+
 # Field Guide Academy — Seasons list SQLite order
 
 Date: 2026-09-07

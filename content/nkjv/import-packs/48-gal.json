@@ -1,0 +1,1206 @@
+{
+  "packKey": "builtin-nkjv-gal",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Galatians",
+      "units": [
+        {
+          "citation": "Galatians 1:1",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 29059,
+          "text": "Paul, an apostle (not from men nor through man, but through Jesus Christ and God the Father who raised Him from the dead),"
+        },
+        {
+          "citation": "Galatians 1:2",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 29060,
+          "text": "and all the brethren who are with me, To the churches of Galatia:"
+        },
+        {
+          "citation": "Galatians 1:3",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 29061,
+          "text": "Grace to you and peace from God the Father and our Lord Jesus Christ,"
+        },
+        {
+          "citation": "Galatians 1:4",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 29062,
+          "text": "who gave Himself for our sins, that He might deliver us from this present evil age, according to the will of our God and Father,"
+        },
+        {
+          "citation": "Galatians 1:5",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 29063,
+          "text": "to whom be glory forever and ever. Amen."
+        },
+        {
+          "citation": "Galatians 1:6",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 29064,
+          "text": "I marvel that you are turning away so soon from Him who called you in the grace of Christ, to a different gospel,"
+        },
+        {
+          "citation": "Galatians 1:7",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 29065,
+          "text": "which is not another; but there are some who trouble you and want to pervert the gospel of Christ."
+        },
+        {
+          "citation": "Galatians 1:8",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 29066,
+          "text": "But even if we, or an angel from heaven, preach any other gospel to you than what we have preached to you, let him be accursed."
+        },
+        {
+          "citation": "Galatians 1:9",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 29067,
+          "text": "As we have said before, so now I say again, if anyone preaches any other gospel to you than what you have received, let him be accursed."
+        },
+        {
+          "citation": "Galatians 1:10",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 29068,
+          "text": "For do I now persuade men, or God? Or do I seek to please men? For if I still pleased men, I would not be a bondservant of Christ."
+        },
+        {
+          "citation": "Galatians 1:11",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 29069,
+          "text": "But I make known to you, brethren, that the gospel which was preached by me is not according to man."
+        },
+        {
+          "citation": "Galatians 1:12",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 29070,
+          "text": "For I neither received it from man, nor was I taught it, but it came through the revelation of Jesus Christ."
+        },
+        {
+          "citation": "Galatians 1:13",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 29071,
+          "text": "For you have heard of my former conduct in Judaism, how I persecuted the church of God beyond measure and tried to destroy it."
+        },
+        {
+          "citation": "Galatians 1:14",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 29072,
+          "text": "And I advanced in Judaism beyond many of my contemporaries in my own nation, being more exceedingly zealous for the traditions of my fathers."
+        },
+        {
+          "citation": "Galatians 1:15",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 29073,
+          "text": "But when it pleased God, who separated me from my mother's womb and called me through His grace,"
+        },
+        {
+          "citation": "Galatians 1:16",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 29074,
+          "text": "to reveal His Son in me, that I might preach Him among the Gentiles, I did not immediately confer with flesh and blood,"
+        },
+        {
+          "citation": "Galatians 1:17",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 29075,
+          "text": "nor did I go up to Jerusalem to those who were apostles before me; but I went to Arabia, and returned again to Damascus."
+        },
+        {
+          "citation": "Galatians 1:18",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 29076,
+          "text": "Then after three years I went up to Jerusalem to see Peter, and remained with him fifteen days."
+        },
+        {
+          "citation": "Galatians 1:19",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 29077,
+          "text": "But I saw none of the other apostles except James, the Lord's brother."
+        },
+        {
+          "citation": "Galatians 1:20",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 29078,
+          "text": "(Now concerning the things which I write to you, indeed, before God, I do not lie.)"
+        },
+        {
+          "citation": "Galatians 1:21",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 21,
+          "ordinal": 29079,
+          "text": "Afterward I went into the regions of Syria and Cilicia."
+        },
+        {
+          "citation": "Galatians 1:22",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 22,
+          "ordinal": 29080,
+          "text": "And I was unknown by face to the churches of Judea which were in Christ."
+        },
+        {
+          "citation": "Galatians 1:23",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 23,
+          "ordinal": 29081,
+          "text": "But they were hearing only, \"He who formerly persecuted us now preaches the faith which he once tried to destroy.\""
+        },
+        {
+          "citation": "Galatians 1:24",
+          "bookKey": "GAL",
+          "chapter": 1,
+          "verse": 24,
+          "ordinal": 29082,
+          "text": "And they glorified God in me."
+        },
+        {
+          "citation": "Galatians 2:1",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 29083,
+          "text": "Then after fourteen years I went up again to Jerusalem with Barnabas, and also took Titus with me."
+        },
+        {
+          "citation": "Galatians 2:2",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 29084,
+          "text": "And I went up by revelation, and communicated to them that gospel which I preach among the Gentiles, but privately to those who were of reputation, lest by any means I might run, or had run, in vain."
+        },
+        {
+          "citation": "Galatians 2:3",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 29085,
+          "text": "Yet not even Titus who was with me, being a Greek, was compelled to be circumcised."
+        },
+        {
+          "citation": "Galatians 2:4",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 29086,
+          "text": "And this occurred because of false brethren secretly brought in (who came in by stealth to spy out our liberty which we have in Christ Jesus, that they might bring us into bondage),"
+        },
+        {
+          "citation": "Galatians 2:5",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 29087,
+          "text": "to whom we did not yield submission even for an hour, that the truth of the gospel might continue with you."
+        },
+        {
+          "citation": "Galatians 2:6",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 29088,
+          "text": "But from those who seemed to be something--whatever they were, it makes no difference to me; God shows personal favoritism to no man--for those who seemed to be something added nothing to me."
+        },
+        {
+          "citation": "Galatians 2:7",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 29089,
+          "text": "But on the contrary, when they saw that the gospel for the uncircumcised had been committed to me, as the gospel for the circumcised was to Peter"
+        },
+        {
+          "citation": "Galatians 2:8",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 29090,
+          "text": "(for He who worked effectively in Peter for the apostleship to the circumcised also worked effectively in me toward the Gentiles),"
+        },
+        {
+          "citation": "Galatians 2:9",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 29091,
+          "text": "and when James, Cephas, and John, who seemed to be pillars, perceived the grace that had been given to me, they gave me and Barnabas the right hand of fellowship, that we should go to the Gentiles and they to the circumcised."
+        },
+        {
+          "citation": "Galatians 2:10",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 29092,
+          "text": "They desired only that we should remember the poor, the very thing which I also was eager to do."
+        },
+        {
+          "citation": "Galatians 2:11",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 29093,
+          "text": "Now when Peter had come to Antioch, I withstood him to his face, because he was to be blamed;"
+        },
+        {
+          "citation": "Galatians 2:12",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 29094,
+          "text": "for before certain men came from James, he would eat with the Gentiles; but when they came, he withdrew and separated himself, fearing those who were of the circumcision."
+        },
+        {
+          "citation": "Galatians 2:13",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 29095,
+          "text": "And the rest of the Jews also played the hypocrite with him, so that even Barnabas was carried away with their hypocrisy."
+        },
+        {
+          "citation": "Galatians 2:14",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 29096,
+          "text": "But when I saw that they were not straightforward about the truth of the gospel, I said to Peter before them all, \"If you, being a Jew, live in the manner of Gentiles and not as the Jews, why do you compel Gentiles to live as Jews?"
+        },
+        {
+          "citation": "Galatians 2:15",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 29097,
+          "text": "We who are Jews by nature, and not sinners of the Gentiles,"
+        },
+        {
+          "citation": "Galatians 2:16",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 29098,
+          "text": "knowing that a man is not justified by the works of the law but by faith in Jesus Christ, even we have believed in Christ Jesus, that we might be justified by faith in Christ and not by the works of the law; for by the works of the law no flesh shall be justified."
+        },
+        {
+          "citation": "Galatians 2:17",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 29099,
+          "text": "\"But if, while we seek to be justified by Christ, we ourselves also are found sinners, is Christ therefore a minister of sin? Certainly not!"
+        },
+        {
+          "citation": "Galatians 2:18",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 18,
+          "ordinal": 29100,
+          "text": "For if I build again those things which I destroyed, I make myself a transgressor."
+        },
+        {
+          "citation": "Galatians 2:19",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 19,
+          "ordinal": 29101,
+          "text": "For I through the law died to the law that I might live to God."
+        },
+        {
+          "citation": "Galatians 2:20",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 20,
+          "ordinal": 29102,
+          "text": "I have been crucified with Christ; it is no longer I who live, but Christ lives in me; and the life which I now live in the flesh I live by faith in the Son of God, who loved me and gave Himself for me."
+        },
+        {
+          "citation": "Galatians 2:21",
+          "bookKey": "GAL",
+          "chapter": 2,
+          "verse": 21,
+          "ordinal": 29103,
+          "text": "I do not set aside the grace of God; for if righteousness comes through the law, then Christ died in vain.\""
+        },
+        {
+          "citation": "Galatians 3:1",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 29104,
+          "text": "O foolish Galatians! Who has bewitched you that you should not obey the truth, before whose eyes Jesus Christ was clearly portrayed among you as crucified?"
+        },
+        {
+          "citation": "Galatians 3:2",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 29105,
+          "text": "This only I want to learn from you: Did you receive the Spirit by the works of the law, or by the hearing of faith?"
+        },
+        {
+          "citation": "Galatians 3:3",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 29106,
+          "text": "Are you so foolish? Having begun in the Spirit, are you now being made perfect by the flesh?"
+        },
+        {
+          "citation": "Galatians 3:4",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 29107,
+          "text": "Have you suffered so many things in vain--if indeed it was in vain?"
+        },
+        {
+          "citation": "Galatians 3:5",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 29108,
+          "text": "Therefore He who supplies the Spirit to you and works miracles among you, does He do it by the works of the law, or by the hearing of faith?--"
+        },
+        {
+          "citation": "Galatians 3:6",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 29109,
+          "text": "just as Abraham \"believed God, and it was accounted to him for righteousness.\""
+        },
+        {
+          "citation": "Galatians 3:7",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 29110,
+          "text": "Therefore know that only those who are of faith are sons of Abraham."
+        },
+        {
+          "citation": "Galatians 3:8",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 29111,
+          "text": "And the Scripture, foreseeing that God would justify the Gentiles by faith, preached the gospel to Abraham beforehand, saying, \"In you all the nations shall be blessed.\""
+        },
+        {
+          "citation": "Galatians 3:9",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 29112,
+          "text": "So then those who are of faith are blessed with believing Abraham."
+        },
+        {
+          "citation": "Galatians 3:10",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 29113,
+          "text": "For as many as are of the works of the law are under the curse; for it is written, \"Cursed is everyone who does not continue in all things which are written in the book of the law, to do them.\""
+        },
+        {
+          "citation": "Galatians 3:11",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 29114,
+          "text": "But that no one is justified by the law in the sight of God is evident, for \"the just shall live by faith.\""
+        },
+        {
+          "citation": "Galatians 3:12",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 29115,
+          "text": "Yet the law is not of faith, but \"the man who does them shall live by them.\""
+        },
+        {
+          "citation": "Galatians 3:13",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 29116,
+          "text": "Christ has redeemed us from the curse of the law, having become a curse for us (for it is written, \"Cursed is everyone who hangs on a tree\" ),"
+        },
+        {
+          "citation": "Galatians 3:14",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 29117,
+          "text": "that the blessing of Abraham might come upon the Gentiles in Christ Jesus, that we might receive the promise of the Spirit through faith."
+        },
+        {
+          "citation": "Galatians 3:15",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 29118,
+          "text": "Brethren, I speak in the manner of men: Though it is only a man's covenant, yet if it is confirmed, no one annuls or adds to it."
+        },
+        {
+          "citation": "Galatians 3:16",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 29119,
+          "text": "Now to Abraham and his Seed were the promises made. He does not say, \"And to seeds,\" as of many, but as of one, \"And to your Seed,\" who is Christ."
+        },
+        {
+          "citation": "Galatians 3:17",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 29120,
+          "text": "And this I say, that the law, which was four hundred and thirty years later, cannot annul the covenant that was confirmed before by God in Christ, that it should make the promise of no effect."
+        },
+        {
+          "citation": "Galatians 3:18",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 29121,
+          "text": "For if the inheritance is of the law, it is no longer of promise; but God gave it to Abraham by promise."
+        },
+        {
+          "citation": "Galatians 3:19",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 19,
+          "ordinal": 29122,
+          "text": "What purpose then does the law serve? It was added because of transgressions, till the Seed should come to whom the promise was made; and it was appointed through angels by the hand of a mediator."
+        },
+        {
+          "citation": "Galatians 3:20",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 20,
+          "ordinal": 29123,
+          "text": "Now a mediator does not mediate for one only, but God is one."
+        },
+        {
+          "citation": "Galatians 3:21",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 21,
+          "ordinal": 29124,
+          "text": "Is the law then against the promises of God? Certainly not! For if there had been a law given which could have given life, truly righteousness would have been by the law."
+        },
+        {
+          "citation": "Galatians 3:22",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 22,
+          "ordinal": 29125,
+          "text": "But the Scripture has confined all under sin, that the promise by faith in Jesus Christ might be given to those who believe."
+        },
+        {
+          "citation": "Galatians 3:23",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 23,
+          "ordinal": 29126,
+          "text": "But before faith came, we were kept under guard by the law, kept for the faith which would afterward be revealed."
+        },
+        {
+          "citation": "Galatians 3:24",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 24,
+          "ordinal": 29127,
+          "text": "Therefore the law was our tutor to bring us to Christ, that we might be justified by faith."
+        },
+        {
+          "citation": "Galatians 3:25",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 25,
+          "ordinal": 29128,
+          "text": "But after faith has come, we are no longer under a tutor."
+        },
+        {
+          "citation": "Galatians 3:26",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 26,
+          "ordinal": 29129,
+          "text": "For you are all sons of God through faith in Christ Jesus."
+        },
+        {
+          "citation": "Galatians 3:27",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 27,
+          "ordinal": 29130,
+          "text": "For as many of you as were baptized into Christ have put on Christ."
+        },
+        {
+          "citation": "Galatians 3:28",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 28,
+          "ordinal": 29131,
+          "text": "There is neither Jew nor Greek, there is neither slave nor free, there is neither male nor female; for you are all one in Christ Jesus."
+        },
+        {
+          "citation": "Galatians 3:29",
+          "bookKey": "GAL",
+          "chapter": 3,
+          "verse": 29,
+          "ordinal": 29132,
+          "text": "And if you are Christ's, then you are Abraham's seed, and heirs according to the promise."
+        },
+        {
+          "citation": "Galatians 4:1",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 29133,
+          "text": "Now I say that the heir, as long as he is a child, does not differ at all from a slave, though he is master of all,"
+        },
+        {
+          "citation": "Galatians 4:2",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 29134,
+          "text": "but is under guardians and stewards until the time appointed by the father."
+        },
+        {
+          "citation": "Galatians 4:3",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 29135,
+          "text": "Even so we, when we were children, were in bondage under the elements of the world."
+        },
+        {
+          "citation": "Galatians 4:4",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 29136,
+          "text": "But when the fullness of the time had come, God sent forth His Son, born of a woman, born under the law,"
+        },
+        {
+          "citation": "Galatians 4:5",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 29137,
+          "text": "to redeem those who were under the law, that we might receive the adoption as sons."
+        },
+        {
+          "citation": "Galatians 4:6",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 29138,
+          "text": "And because you are sons, God has sent forth the Spirit of His Son into your hearts, crying out, \"Abba, Father!\""
+        },
+        {
+          "citation": "Galatians 4:7",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 29139,
+          "text": "Therefore you are no longer a slave but a son, and if a son, then an heir of God through Christ."
+        },
+        {
+          "citation": "Galatians 4:8",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 29140,
+          "text": "But then, indeed, when you did not know God, you served those which by nature are not gods."
+        },
+        {
+          "citation": "Galatians 4:9",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 29141,
+          "text": "But now after you have known God, or rather are known by God, how is it that you turn again to the weak and beggarly elements, to which you desire again to be in bondage?"
+        },
+        {
+          "citation": "Galatians 4:10",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 29142,
+          "text": "You observe days and months and seasons and years."
+        },
+        {
+          "citation": "Galatians 4:11",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 29143,
+          "text": "I am afraid for you, lest I have labored for you in vain."
+        },
+        {
+          "citation": "Galatians 4:12",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 29144,
+          "text": "Brethren, I urge you to become like me, for I became like you. You have not injured me at all."
+        },
+        {
+          "citation": "Galatians 4:13",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 29145,
+          "text": "You know that because of physical infirmity I preached the gospel to you at the first."
+        },
+        {
+          "citation": "Galatians 4:14",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 29146,
+          "text": "And my trial which was in my flesh you did not despise or reject, but you received me as an angel of God, even as Christ Jesus."
+        },
+        {
+          "citation": "Galatians 4:15",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 29147,
+          "text": "What then was the blessing you enjoyed? For I bear you witness that, if possible, you would have plucked out your own eyes and given them to me."
+        },
+        {
+          "citation": "Galatians 4:16",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 29148,
+          "text": "Have I therefore become your enemy because I tell you the truth?"
+        },
+        {
+          "citation": "Galatians 4:17",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 17,
+          "ordinal": 29149,
+          "text": "They zealously court you, but for no good; yes, they want to exclude you, that you may be zealous for them."
+        },
+        {
+          "citation": "Galatians 4:18",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 18,
+          "ordinal": 29150,
+          "text": "But it is good to be zealous in a good thing always, and not only when I am present with you."
+        },
+        {
+          "citation": "Galatians 4:19",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 19,
+          "ordinal": 29151,
+          "text": "My little children, for whom I labor in birth again until Christ is formed in you,"
+        },
+        {
+          "citation": "Galatians 4:20",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 20,
+          "ordinal": 29152,
+          "text": "I would like to be present with you now and to change my tone; for I have doubts about you."
+        },
+        {
+          "citation": "Galatians 4:21",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 21,
+          "ordinal": 29153,
+          "text": "Tell me, you who desire to be under the law, do you not hear the law?"
+        },
+        {
+          "citation": "Galatians 4:22",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 22,
+          "ordinal": 29154,
+          "text": "For it is written that Abraham had two sons: the one by a bondwoman, the other by a freewoman."
+        },
+        {
+          "citation": "Galatians 4:23",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 23,
+          "ordinal": 29155,
+          "text": "But he who was of the bondwoman was born according to the flesh, and he of the freewoman through promise,"
+        },
+        {
+          "citation": "Galatians 4:24",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 24,
+          "ordinal": 29156,
+          "text": "which things are symbolic. For these are the two covenants: the one from Mount Sinai which gives birth to bondage, which is Hagar--"
+        },
+        {
+          "citation": "Galatians 4:25",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 25,
+          "ordinal": 29157,
+          "text": "for this Hagar is Mount Sinai in Arabia, and corresponds to Jerusalem which now is, and is in bondage with her children--"
+        },
+        {
+          "citation": "Galatians 4:26",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 26,
+          "ordinal": 29158,
+          "text": "but the Jerusalem above is free, which is the mother of us all."
+        },
+        {
+          "citation": "Galatians 4:27",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 27,
+          "ordinal": 29159,
+          "text": "For it is written: \"Rejoice, O barren, You who do not bear! Break forth and shout, You who are not in labor! For the desolate has many more children Than she who has a husband.\""
+        },
+        {
+          "citation": "Galatians 4:28",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 28,
+          "ordinal": 29160,
+          "text": "Now we, brethren, as Isaac was, are children of promise."
+        },
+        {
+          "citation": "Galatians 4:29",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 29,
+          "ordinal": 29161,
+          "text": "But, as he who was born according to the flesh then persecuted him who was born according to the Spirit, even so it is now."
+        },
+        {
+          "citation": "Galatians 4:30",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 30,
+          "ordinal": 29162,
+          "text": "Nevertheless what does the Scripture say? \"Cast out the bondwoman and her son, for the son of the bondwoman shall not be heir with the son of the freewoman.\""
+        },
+        {
+          "citation": "Galatians 4:31",
+          "bookKey": "GAL",
+          "chapter": 4,
+          "verse": 31,
+          "ordinal": 29163,
+          "text": "So then, brethren, we are not children of the bondwoman but of the free."
+        },
+        {
+          "citation": "Galatians 5:1",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 29164,
+          "text": "Stand fast therefore in the liberty by which Christ has made us free, and do not be entangled again with a yoke of bondage."
+        },
+        {
+          "citation": "Galatians 5:2",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 29165,
+          "text": "Indeed I, Paul, say to you that if you become circumcised, Christ will profit you nothing."
+        },
+        {
+          "citation": "Galatians 5:3",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 29166,
+          "text": "And I testify again to every man who becomes circumcised that he is a debtor to keep the whole law."
+        },
+        {
+          "citation": "Galatians 5:4",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 29167,
+          "text": "You have become estranged from Christ, you who attempt to be justified by law; you have fallen from grace."
+        },
+        {
+          "citation": "Galatians 5:5",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 29168,
+          "text": "For we through the Spirit eagerly wait for the hope of righteousness by faith."
+        },
+        {
+          "citation": "Galatians 5:6",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 29169,
+          "text": "For in Christ Jesus neither circumcision nor uncircumcision avails anything, but faith working through love."
+        },
+        {
+          "citation": "Galatians 5:7",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 29170,
+          "text": "You ran well. Who hindered you from obeying the truth?"
+        },
+        {
+          "citation": "Galatians 5:8",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 29171,
+          "text": "This persuasion does not come from Him who calls you."
+        },
+        {
+          "citation": "Galatians 5:9",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 29172,
+          "text": "A little leaven leavens the whole lump."
+        },
+        {
+          "citation": "Galatians 5:10",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 29173,
+          "text": "I have confidence in you, in the Lord, that you will have no other mind; but he who troubles you shall bear his judgment, whoever he is."
+        },
+        {
+          "citation": "Galatians 5:11",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 29174,
+          "text": "And I, brethren, if I still preach circumcision, why do I still suffer persecution? Then the offense of the cross has ceased."
+        },
+        {
+          "citation": "Galatians 5:12",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 29175,
+          "text": "I could wish that those who trouble you would even cut themselves off!"
+        },
+        {
+          "citation": "Galatians 5:13",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 29176,
+          "text": "For you, brethren, have been called to liberty; only do not use liberty as an opportunity for the flesh, but through love serve one another."
+        },
+        {
+          "citation": "Galatians 5:14",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 14,
+          "ordinal": 29177,
+          "text": "For all the law is fulfilled in one word, even in this: \"You shall love your neighbor as yourself.\""
+        },
+        {
+          "citation": "Galatians 5:15",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 15,
+          "ordinal": 29178,
+          "text": "But if you bite and devour one another, beware lest you be consumed by one another!"
+        },
+        {
+          "citation": "Galatians 5:16",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 16,
+          "ordinal": 29179,
+          "text": "I say then: Walk in the Spirit, and you shall not fulfill the lust of the flesh."
+        },
+        {
+          "citation": "Galatians 5:17",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 17,
+          "ordinal": 29180,
+          "text": "For the flesh lusts against the Spirit, and the Spirit against the flesh; and these are contrary to one another, so that you do not do the things that you wish."
+        },
+        {
+          "citation": "Galatians 5:18",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 18,
+          "ordinal": 29181,
+          "text": "But if you are led by the Spirit, you are not under the law."
+        },
+        {
+          "citation": "Galatians 5:19",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 19,
+          "ordinal": 29182,
+          "text": "Now the works of the flesh are evident, which are: adultery, fornication, uncleanness, lewdness,"
+        },
+        {
+          "citation": "Galatians 5:20",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 20,
+          "ordinal": 29183,
+          "text": "idolatry, sorcery, hatred, contentions, jealousies, outbursts of wrath, selfish ambitions, dissensions, heresies,"
+        },
+        {
+          "citation": "Galatians 5:21",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 21,
+          "ordinal": 29184,
+          "text": "envy, murders, drunkenness, revelries, and the like; of which I tell you beforehand, just as I also told you in time past, that those who practice such things will not inherit the kingdom of God."
+        },
+        {
+          "citation": "Galatians 5:22",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 22,
+          "ordinal": 29185,
+          "text": "But the fruit of the Spirit is love, joy, peace, longsuffering, kindness, goodness, faithfulness,"
+        },
+        {
+          "citation": "Galatians 5:23",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 23,
+          "ordinal": 29186,
+          "text": "gentleness, self-control. Against such there is no law."
+        },
+        {
+          "citation": "Galatians 5:24",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 24,
+          "ordinal": 29187,
+          "text": "And those who are Christ's have crucified the flesh with its passions and desires."
+        },
+        {
+          "citation": "Galatians 5:25",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 25,
+          "ordinal": 29188,
+          "text": "If we live in the Spirit, let us also walk in the Spirit."
+        },
+        {
+          "citation": "Galatians 5:26",
+          "bookKey": "GAL",
+          "chapter": 5,
+          "verse": 26,
+          "ordinal": 29189,
+          "text": "Let us not become conceited, provoking one another, envying one another."
+        },
+        {
+          "citation": "Galatians 6:1",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 29190,
+          "text": "Brethren, if a man is overtaken in any trespass, you who are spiritual restore such a one in a spirit of gentleness, considering yourself lest you also be tempted."
+        },
+        {
+          "citation": "Galatians 6:2",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 29191,
+          "text": "Bear one another's burdens, and so fulfill the law of Christ."
+        },
+        {
+          "citation": "Galatians 6:3",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 29192,
+          "text": "For if anyone thinks himself to be something, when he is nothing, he deceives himself."
+        },
+        {
+          "citation": "Galatians 6:4",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 29193,
+          "text": "But let each one examine his own work, and then he will have rejoicing in himself alone, and not in another."
+        },
+        {
+          "citation": "Galatians 6:5",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 29194,
+          "text": "For each one shall bear his own load."
+        },
+        {
+          "citation": "Galatians 6:6",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 29195,
+          "text": "Let him who is taught the word share in all good things with him who teaches."
+        },
+        {
+          "citation": "Galatians 6:7",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 29196,
+          "text": "Do not be deceived, God is not mocked; for whatever a man sows, that he will also reap."
+        },
+        {
+          "citation": "Galatians 6:8",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 29197,
+          "text": "For he who sows to his flesh will of the flesh reap corruption, but he who sows to the Spirit will of the Spirit reap everlasting life."
+        },
+        {
+          "citation": "Galatians 6:9",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 29198,
+          "text": "And let us not grow weary while doing good, for in due season we shall reap if we do not lose heart."
+        },
+        {
+          "citation": "Galatians 6:10",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 29199,
+          "text": "Therefore, as we have opportunity, let us do good to all, especially to those who are of the household of faith."
+        },
+        {
+          "citation": "Galatians 6:11",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 29200,
+          "text": "See with what large letters I have written to you with my own hand!"
+        },
+        {
+          "citation": "Galatians 6:12",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 29201,
+          "text": "As many as desire to make a good showing in the flesh, these would compel you to be circumcised, only that they may not suffer persecution for the cross of Christ."
+        },
+        {
+          "citation": "Galatians 6:13",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 13,
+          "ordinal": 29202,
+          "text": "For not even those who are circumcised keep the law, but they desire to have you circumcised that they may boast in your flesh."
+        },
+        {
+          "citation": "Galatians 6:14",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 14,
+          "ordinal": 29203,
+          "text": "But God forbid that I should boast except in the cross of our Lord Jesus Christ, by whom the world has been crucified to me, and I to the world."
+        },
+        {
+          "citation": "Galatians 6:15",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 15,
+          "ordinal": 29204,
+          "text": "For in Christ Jesus neither circumcision nor uncircumcision avails anything, but a new creation."
+        },
+        {
+          "citation": "Galatians 6:16",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 16,
+          "ordinal": 29205,
+          "text": "And as many as walk according to this rule, peace and mercy be upon them, and upon the Israel of God."
+        },
+        {
+          "citation": "Galatians 6:17",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 17,
+          "ordinal": 29206,
+          "text": "From now on let no one trouble me, for I bear in my body the marks of the Lord Jesus."
+        },
+        {
+          "citation": "Galatians 6:18",
+          "bookKey": "GAL",
+          "chapter": 6,
+          "verse": 18,
+          "ordinal": 29207,
+          "text": "Brethren, the grace of our Lord Jesus Christ be with your spirit. Amen."
+        }
+      ]
+    }
+  ]
+}

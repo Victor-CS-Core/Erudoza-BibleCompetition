@@ -33,14 +33,6 @@ public static class DomainInvariants
         }
     }
 
-    public static void EnsureQuestionEvidenceInScope(Guid sourceUnitId, IReadOnlySet<Guid> allowedSourceUnitIds)
-    {
-        if (!allowedSourceUnitIds.Contains(sourceUnitId))
-        {
-            throw new DomainException("Question evidence cites a source unit outside the allowed scope.");
-        }
-    }
-
     public static void EnsureAttemptBoundaries(Attempt attempt, StudySession session, ChallengeCard card)
     {
         if (attempt.OrganizationId != session.OrganizationId

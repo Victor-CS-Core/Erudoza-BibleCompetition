@@ -1,10 +1,11 @@
+import { Badge } from "../../components/ui";
 export function SeasonStatusBadge({ status }: { status: string }) {
   const tone = badgeTone(status);
   return (
-    <span className={`er-season-badge er-season-badge-${tone}`} data-testid="season-status-badge">
+    <Badge tone={tone === "active" ? "success" : tone === "ready" ? "info" : "neutral"} data-testid="season-status-badge">
       <StatusMark tone={tone} />
-      {status}
-    </span>
+      {status === "ContentReady" ? "Passages ready" : status === "AssignmentsReady" ? "Plans ready" : status}
+    </Badge>
   );
 }
 

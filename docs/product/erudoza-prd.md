@@ -1,7 +1,7 @@
 # Erudoza — Product Requirements Document
 
-Status: Implementation-ready product definition, revision 3
-Date: 2026-08-21
+Status: Product definition, revision 4
+Date: 2026-09-09
 Product name: Erudoza
 Primary domain: https://erudoza.com
 Tagline: Study. Master. Compete.
@@ -16,8 +16,8 @@ This file is the authoritative product specification for the scaffold. The full 
 6. Exact approved Scripture is stored in the relational content model.
 7. Students do not require email accounts.
 8. Configurable Rule Profiles, with built-in `PBE_STYLE_V1`.
-9. Deterministic memorization activities precede AI question generation.
-10. AI questions require evidence and validation before play.
+9. All new activities are built from stored Scripture using programmed rules; there is no AI question-generation service.
+10. Coaches select Foundation, Standard or Advanced for each student in each season. Sessions preserve their starting difficulty and rule profile.
 11. The first scaffold proves one admin-to-student vertical slice.
 12. The product name is Erudoza. The public origin is https://erudoza.com. The tagline is Study. Master. Compete.
 13. The final logo remains a separate approval artifact.

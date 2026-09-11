@@ -1,0 +1,846 @@
+{
+  "packKey": "builtin-nkjv-php",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Philippians",
+      "units": [
+        {
+          "citation": "Philippians 1:1",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 29363,
+          "text": "Paul and Timothy, bondservants of Jesus Christ, To all the saints in Christ Jesus who are in Philippi, with the bishops and deacons:"
+        },
+        {
+          "citation": "Philippians 1:2",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 29364,
+          "text": "Grace to you and peace from God our Father and the Lord Jesus Christ."
+        },
+        {
+          "citation": "Philippians 1:3",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 29365,
+          "text": "I thank my God upon every remembrance of you,"
+        },
+        {
+          "citation": "Philippians 1:4",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 29366,
+          "text": "always in every prayer of mine making request for you all with joy,"
+        },
+        {
+          "citation": "Philippians 1:5",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 29367,
+          "text": "for your fellowship in the gospel from the first day until now,"
+        },
+        {
+          "citation": "Philippians 1:6",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 29368,
+          "text": "being confident of this very thing, that He who has begun a good work in you will complete it until the day of Jesus Christ;"
+        },
+        {
+          "citation": "Philippians 1:7",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 29369,
+          "text": "just as it is right for me to think this of you all, because I have you in my heart, inasmuch as both in my chains and in the defense and confirmation of the gospel, you all are partakers with me of grace."
+        },
+        {
+          "citation": "Philippians 1:8",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 29370,
+          "text": "For God is my witness, how greatly I long for you all with the affection of Jesus Christ."
+        },
+        {
+          "citation": "Philippians 1:9",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 29371,
+          "text": "And this I pray, that your love may abound still more and more in knowledge and all discernment,"
+        },
+        {
+          "citation": "Philippians 1:10",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 29372,
+          "text": "that you may approve the things that are excellent, that you may be sincere and without offense till the day of Christ,"
+        },
+        {
+          "citation": "Philippians 1:11",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 29373,
+          "text": "being filled with the fruits of righteousness which are by Jesus Christ, to the glory and praise of God."
+        },
+        {
+          "citation": "Philippians 1:12",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 29374,
+          "text": "But I want you to know, brethren, that the things which happened to me have actually turned out for the furtherance of the gospel,"
+        },
+        {
+          "citation": "Philippians 1:13",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 29375,
+          "text": "so that it has become evident to the whole palace guard, and to all the rest, that my chains are in Christ;"
+        },
+        {
+          "citation": "Philippians 1:14",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 29376,
+          "text": "and most of the brethren in the Lord, having become confident by my chains, are much more bold to speak the word without fear."
+        },
+        {
+          "citation": "Philippians 1:15",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 29377,
+          "text": "Some indeed preach Christ even from envy and strife, and some also from goodwill:"
+        },
+        {
+          "citation": "Philippians 1:16",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 29378,
+          "text": "The former preach Christ from selfish ambition, not sincerely, supposing to add affliction to my chains;"
+        },
+        {
+          "citation": "Philippians 1:17",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 29379,
+          "text": "but the latter out of love, knowing that I am appointed for the defense of the gospel."
+        },
+        {
+          "citation": "Philippians 1:18",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 29380,
+          "text": "What then? Only that in every way, whether in pretense or in truth, Christ is preached; and in this I rejoice, yes, and will rejoice."
+        },
+        {
+          "citation": "Philippians 1:19",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 29381,
+          "text": "For I know that this will turn out for my deliverance through your prayer and the supply of the Spirit of Jesus Christ,"
+        },
+        {
+          "citation": "Philippians 1:20",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 29382,
+          "text": "according to my earnest expectation and hope that in nothing I shall be ashamed, but with all boldness, as always, so now also Christ will be magnified in my body, whether by life or by death."
+        },
+        {
+          "citation": "Philippians 1:21",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 21,
+          "ordinal": 29383,
+          "text": "For to me, to live is Christ, and to die is gain."
+        },
+        {
+          "citation": "Philippians 1:22",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 22,
+          "ordinal": 29384,
+          "text": "But if I live on in the flesh, this will mean fruit from my labor; yet what I shall choose I cannot tell."
+        },
+        {
+          "citation": "Philippians 1:23",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 23,
+          "ordinal": 29385,
+          "text": "For I am hard-pressed between the two, having a desire to depart and be with Christ, which is far better."
+        },
+        {
+          "citation": "Philippians 1:24",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 24,
+          "ordinal": 29386,
+          "text": "Nevertheless to remain in the flesh is more needful for you."
+        },
+        {
+          "citation": "Philippians 1:25",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 25,
+          "ordinal": 29387,
+          "text": "And being confident of this, I know that I shall remain and continue with you all for your progress and joy of faith,"
+        },
+        {
+          "citation": "Philippians 1:26",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 26,
+          "ordinal": 29388,
+          "text": "that your rejoicing for me may be more abundant in Jesus Christ by my coming to you again."
+        },
+        {
+          "citation": "Philippians 1:27",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 27,
+          "ordinal": 29389,
+          "text": "Only let your conduct be worthy of the gospel of Christ, so that whether I come and see you or am absent, I may hear of your affairs, that you stand fast in one spirit, with one mind striving together for the faith of the gospel,"
+        },
+        {
+          "citation": "Philippians 1:28",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 28,
+          "ordinal": 29390,
+          "text": "and not in any way terrified by your adversaries, which is to them a proof of perdition, but to you of salvation, and that from God."
+        },
+        {
+          "citation": "Philippians 1:29",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 29,
+          "ordinal": 29391,
+          "text": "For to you it has been granted on behalf of Christ, not only to believe in Him, but also to suffer for His sake,"
+        },
+        {
+          "citation": "Philippians 1:30",
+          "bookKey": "PHP",
+          "chapter": 1,
+          "verse": 30,
+          "ordinal": 29392,
+          "text": "having the same conflict which you saw in me and now hear is in me."
+        },
+        {
+          "citation": "Philippians 2:1",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 29393,
+          "text": "Therefore if there is any consolation in Christ, if any comfort of love, if any fellowship of the Spirit, if any affection and mercy,"
+        },
+        {
+          "citation": "Philippians 2:2",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 29394,
+          "text": "fulfill my joy by being like-minded, having the same love, being of one accord, of one mind."
+        },
+        {
+          "citation": "Philippians 2:3",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 29395,
+          "text": "Let nothing be done through selfish ambition or conceit, but in lowliness of mind let each esteem others better than himself."
+        },
+        {
+          "citation": "Philippians 2:4",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 29396,
+          "text": "Let each of you look out not only for his own interests, but also for the interests of others."
+        },
+        {
+          "citation": "Philippians 2:5",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 29397,
+          "text": "Let this mind be in you which was also in Christ Jesus,"
+        },
+        {
+          "citation": "Philippians 2:6",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 29398,
+          "text": "who, being in the form of God, did not consider it robbery to be equal with God,"
+        },
+        {
+          "citation": "Philippians 2:7",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 29399,
+          "text": "but made Himself of no reputation, taking the form of a bondservant, and coming in the likeness of men."
+        },
+        {
+          "citation": "Philippians 2:8",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 29400,
+          "text": "And being found in appearance as a man, He humbled Himself and became obedient to the point of death, even the death of the cross."
+        },
+        {
+          "citation": "Philippians 2:9",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 29401,
+          "text": "Therefore God also has highly exalted Him and given Him the name which is above every name,"
+        },
+        {
+          "citation": "Philippians 2:10",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 29402,
+          "text": "that at the name of Jesus every knee should bow, of those in heaven, and of those on earth, and of those under the earth,"
+        },
+        {
+          "citation": "Philippians 2:11",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 29403,
+          "text": "and that every tongue should confess that Jesus Christ is Lord, to the glory of God the Father."
+        },
+        {
+          "citation": "Philippians 2:12",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 29404,
+          "text": "Therefore, my beloved, as you have always obeyed, not as in my presence only, but now much more in my absence, work out your own salvation with fear and trembling;"
+        },
+        {
+          "citation": "Philippians 2:13",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 29405,
+          "text": "for it is God who works in you both to will and to do for His good pleasure."
+        },
+        {
+          "citation": "Philippians 2:14",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 29406,
+          "text": "Do all things without complaining and disputing,"
+        },
+        {
+          "citation": "Philippians 2:15",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 29407,
+          "text": "that you may become blameless and harmless, children of God without fault in the midst of a crooked and perverse generation, among whom you shine as lights in the world,"
+        },
+        {
+          "citation": "Philippians 2:16",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 29408,
+          "text": "holding fast the word of life, so that I may rejoice in the day of Christ that I have not run in vain or labored in vain."
+        },
+        {
+          "citation": "Philippians 2:17",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 29409,
+          "text": "Yes, and if I am being poured out as a drink offering on the sacrifice and service of your faith, I am glad and rejoice with you all."
+        },
+        {
+          "citation": "Philippians 2:18",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 18,
+          "ordinal": 29410,
+          "text": "For the same reason you also be glad and rejoice with me."
+        },
+        {
+          "citation": "Philippians 2:19",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 19,
+          "ordinal": 29411,
+          "text": "But I trust in the Lord Jesus to send Timothy to you shortly, that I also may be encouraged when I know your state."
+        },
+        {
+          "citation": "Philippians 2:20",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 20,
+          "ordinal": 29412,
+          "text": "For I have no one like-minded, who will sincerely care for your state."
+        },
+        {
+          "citation": "Philippians 2:21",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 21,
+          "ordinal": 29413,
+          "text": "For all seek their own, not the things which are of Christ Jesus."
+        },
+        {
+          "citation": "Philippians 2:22",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 22,
+          "ordinal": 29414,
+          "text": "But you know his proven character, that as a son with his father he served with me in the gospel."
+        },
+        {
+          "citation": "Philippians 2:23",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 23,
+          "ordinal": 29415,
+          "text": "Therefore I hope to send him at once, as soon as I see how it goes with me."
+        },
+        {
+          "citation": "Philippians 2:24",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 24,
+          "ordinal": 29416,
+          "text": "But I trust in the Lord that I myself shall also come shortly."
+        },
+        {
+          "citation": "Philippians 2:25",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 25,
+          "ordinal": 29417,
+          "text": "Yet I considered it necessary to send to you Epaphroditus, my brother, fellow worker, and fellow soldier, but your messenger and the one who ministered to my need;"
+        },
+        {
+          "citation": "Philippians 2:26",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 26,
+          "ordinal": 29418,
+          "text": "since he was longing for you all, and was distressed because you had heard that he was sick."
+        },
+        {
+          "citation": "Philippians 2:27",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 27,
+          "ordinal": 29419,
+          "text": "For indeed he was sick almost unto death; but God had mercy on him, and not only on him but on me also, lest I should have sorrow upon sorrow."
+        },
+        {
+          "citation": "Philippians 2:28",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 28,
+          "ordinal": 29420,
+          "text": "Therefore I sent him the more eagerly, that when you see him again you may rejoice, and I may be less sorrowful."
+        },
+        {
+          "citation": "Philippians 2:29",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 29,
+          "ordinal": 29421,
+          "text": "Receive him therefore in the Lord with all gladness, and hold such men in esteem;"
+        },
+        {
+          "citation": "Philippians 2:30",
+          "bookKey": "PHP",
+          "chapter": 2,
+          "verse": 30,
+          "ordinal": 29422,
+          "text": "because for the work of Christ he came close to death, not regarding his life, to supply what was lacking in your service toward me."
+        },
+        {
+          "citation": "Philippians 3:1",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 29423,
+          "text": "Finally, my brethren, rejoice in the Lord. For me to write the same things to you is not tedious, but for you it is safe."
+        },
+        {
+          "citation": "Philippians 3:2",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 29424,
+          "text": "Beware of dogs, beware of evil workers, beware of the mutilation!"
+        },
+        {
+          "citation": "Philippians 3:3",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 29425,
+          "text": "For we are the circumcision, who worship God in the Spirit, rejoice in Christ Jesus, and have no confidence in the flesh,"
+        },
+        {
+          "citation": "Philippians 3:4",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 29426,
+          "text": "though I also might have confidence in the flesh. If anyone else thinks he may have confidence in the flesh, I more so:"
+        },
+        {
+          "citation": "Philippians 3:5",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 29427,
+          "text": "circumcised the eighth day, of the stock of Israel, of the tribe of Benjamin, a Hebrew of the Hebrews; concerning the law, a Pharisee;"
+        },
+        {
+          "citation": "Philippians 3:6",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 29428,
+          "text": "concerning zeal, persecuting the church; concerning the righteousness which is in the law, blameless."
+        },
+        {
+          "citation": "Philippians 3:7",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 29429,
+          "text": "But what things were gain to me, these I have counted loss for Christ."
+        },
+        {
+          "citation": "Philippians 3:8",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 29430,
+          "text": "Yet indeed I also count all things loss for the excellence of the knowledge of Christ Jesus my Lord, for whom I have suffered the loss of all things, and count them as rubbish, that I may gain Christ"
+        },
+        {
+          "citation": "Philippians 3:9",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 29431,
+          "text": "and be found in Him, not having my own righteousness, which is from the law, but that which is through faith in Christ, the righteousness which is from God by faith;"
+        },
+        {
+          "citation": "Philippians 3:10",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 29432,
+          "text": "that I may know Him and the power of His resurrection, and the fellowship of His sufferings, being conformed to His death,"
+        },
+        {
+          "citation": "Philippians 3:11",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 29433,
+          "text": "if, by any means, I may attain to the resurrection from the dead."
+        },
+        {
+          "citation": "Philippians 3:12",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 29434,
+          "text": "Not that I have already attained, or am already perfected; but I press on, that I may lay hold of that for which Christ Jesus has also laid hold of me."
+        },
+        {
+          "citation": "Philippians 3:13",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 29435,
+          "text": "Brethren, I do not count myself to have apprehended; but one thing I do, forgetting those things which are behind and reaching forward to those things which are ahead,"
+        },
+        {
+          "citation": "Philippians 3:14",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 29436,
+          "text": "I press toward the goal for the prize of the upward call of God in Christ Jesus."
+        },
+        {
+          "citation": "Philippians 3:15",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 29437,
+          "text": "Therefore let us, as many as are mature, have this mind; and if in anything you think otherwise, God will reveal even this to you."
+        },
+        {
+          "citation": "Philippians 3:16",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 29438,
+          "text": "Nevertheless, to the degree that we have already attained, let us walk by the same rule, let us be of the same mind."
+        },
+        {
+          "citation": "Philippians 3:17",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 29439,
+          "text": "Brethren, join in following my example, and note those who so walk, as you have us for a pattern."
+        },
+        {
+          "citation": "Philippians 3:18",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 29440,
+          "text": "For many walk, of whom I have told you often, and now tell you even weeping, that they are the enemies of the cross of Christ:"
+        },
+        {
+          "citation": "Philippians 3:19",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 19,
+          "ordinal": 29441,
+          "text": "whose end is destruction, whose god is their belly, and whose glory is in their shame--who set their mind on earthly things."
+        },
+        {
+          "citation": "Philippians 3:20",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 20,
+          "ordinal": 29442,
+          "text": "For our citizenship is in heaven, from which we also eagerly wait for the Savior, the Lord Jesus Christ,"
+        },
+        {
+          "citation": "Philippians 3:21",
+          "bookKey": "PHP",
+          "chapter": 3,
+          "verse": 21,
+          "ordinal": 29443,
+          "text": "who will transform our lowly body that it may be conformed to His glorious body, according to the working by which He is able even to subdue all things to Himself."
+        },
+        {
+          "citation": "Philippians 4:1",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 29444,
+          "text": "Therefore, my beloved and longed-for brethren, my joy and crown, so stand fast in the Lord, beloved."
+        },
+        {
+          "citation": "Philippians 4:2",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 29445,
+          "text": "I implore Euodia and I implore Syntyche to be of the same mind in the Lord."
+        },
+        {
+          "citation": "Philippians 4:3",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 29446,
+          "text": "And I urge you also, true companion, help these women who labored with me in the gospel, with Clement also, and the rest of my fellow workers, whose names are in the Book of Life."
+        },
+        {
+          "citation": "Philippians 4:4",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 29447,
+          "text": "Rejoice in the Lord always. Again I will say, rejoice!"
+        },
+        {
+          "citation": "Philippians 4:5",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 29448,
+          "text": "Let your gentleness be known to all men. The Lord is at hand."
+        },
+        {
+          "citation": "Philippians 4:6",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 29449,
+          "text": "Be anxious for nothing, but in everything by prayer and supplication, with thanksgiving, let your requests be made known to God;"
+        },
+        {
+          "citation": "Philippians 4:7",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 29450,
+          "text": "and the peace of God, which surpasses all understanding, will guard your hearts and minds through Christ Jesus."
+        },
+        {
+          "citation": "Philippians 4:8",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 29451,
+          "text": "Finally, brethren, whatever things are true, whatever things are noble, whatever things are just, whatever things are pure, whatever things are lovely, whatever things are of good report, if there is any virtue and if there is anything praiseworthy--meditate on these things."
+        },
+        {
+          "citation": "Philippians 4:9",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 29452,
+          "text": "The things which you learned and received and heard and saw in me, these do, and the God of peace will be with you."
+        },
+        {
+          "citation": "Philippians 4:10",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 29453,
+          "text": "But I rejoiced in the Lord greatly that now at last your care for me has flourished again; though you surely did care, but you lacked opportunity."
+        },
+        {
+          "citation": "Philippians 4:11",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 29454,
+          "text": "Not that I speak in regard to need, for I have learned in whatever state I am, to be content:"
+        },
+        {
+          "citation": "Philippians 4:12",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 29455,
+          "text": "I know how to be abased, and I know how to abound. Everywhere and in all things I have learned both to be full and to be hungry, both to abound and to suffer need."
+        },
+        {
+          "citation": "Philippians 4:13",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 29456,
+          "text": "I can do all things through Christ who strengthens me."
+        },
+        {
+          "citation": "Philippians 4:14",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 29457,
+          "text": "Nevertheless you have done well that you shared in my distress."
+        },
+        {
+          "citation": "Philippians 4:15",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 29458,
+          "text": "Now you Philippians know also that in the beginning of the gospel, when I departed from Macedonia, no church shared with me concerning giving and receiving but you only."
+        },
+        {
+          "citation": "Philippians 4:16",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 29459,
+          "text": "For even in Thessalonica you sent aid once and again for my necessities."
+        },
+        {
+          "citation": "Philippians 4:17",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 17,
+          "ordinal": 29460,
+          "text": "Not that I seek the gift, but I seek the fruit that abounds to your account."
+        },
+        {
+          "citation": "Philippians 4:18",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 18,
+          "ordinal": 29461,
+          "text": "Indeed I have all and abound. I am full, having received from Epaphroditus the things sent from you, a sweet-smelling aroma, an acceptable sacrifice, well pleasing to God."
+        },
+        {
+          "citation": "Philippians 4:19",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 19,
+          "ordinal": 29462,
+          "text": "And my God shall supply all your need according to His riches in glory by Christ Jesus."
+        },
+        {
+          "citation": "Philippians 4:20",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 20,
+          "ordinal": 29463,
+          "text": "Now to our God and Father be glory forever and ever. Amen."
+        },
+        {
+          "citation": "Philippians 4:21",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 21,
+          "ordinal": 29464,
+          "text": "Greet every saint in Christ Jesus. The brethren who are with me greet you."
+        },
+        {
+          "citation": "Philippians 4:22",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 22,
+          "ordinal": 29465,
+          "text": "All the saints greet you, but especially those who are of Caesar's household."
+        },
+        {
+          "citation": "Philippians 4:23",
+          "bookKey": "PHP",
+          "chapter": 4,
+          "verse": 23,
+          "ordinal": 29466,
+          "text": "The grace of our Lord Jesus Christ be with you all. Amen."
+        }
+      ]
+    }
+  ]
+}

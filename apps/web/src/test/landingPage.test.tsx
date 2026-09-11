@@ -1,118 +1,87 @@
-import { render, screen, within } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { LandingPage } from "../features/marketing/LandingPage";
 
 function renderLanding() {
-  render(
+  return render(
     <MemoryRouter>
-      <LandingPage />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<h1>Account sign in</h1>} />
+      </Routes>
     </MemoryRouter>,
   );
 }
 
 describe("LandingPage", () => {
-  it("opens on the Field Guide Academy cover and keeps the training decks", () => {
+  it("introduces assigned Scripture training and the coach-managed account workflow", () => {
     renderLanding();
 
-    const cover = screen.getByTestId("field-guide-academy");
-    expect(screen.getByRole("heading", { name: "Field Guide Academy" })).toBeInTheDocument();
-    expect(screen.queryByTestId("academy-chapter-line")).not.toBeInTheDocument();
-    expect(cover).not.toHaveTextContent("%");
-    expect(cover).not.toHaveTextContent("streak");
-    expect(screen.getByRole("heading", { name: /Know the passage/ })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Choose today’s training deck" })).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "Learner deck" })).toHaveAttribute("src", "/brand/deck-learner.webp");
-    expect(screen.getByRole("img", { name: "Reviews deck" })).toHaveAttribute("src", "/brand/deck-reviews.webp");
-    expect(screen.getByRole("img", { name: "Rehearsal deck" })).toHaveAttribute(
-      "src",
-      "/brand/deck-rehearsal.webp",
+    const main = screen.getByRole("main");
+    expect(within(main).getByRole("heading", { level: 1 })).toHaveTextContent(
+      "Know the passage.Own the moment.",
     );
-    expect(screen.queryByRole("img", { name: "New deck" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("img", { name: "Review deck" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("img", { name: "Simulation deck" })).not.toBeInTheDocument();
-    const learner = screen.getByRole("link", { name: "Open the learner deck" });
-    const reviews = screen.getByRole("link", { name: "Open the reviews deck" });
-    const rehearsal = screen.getByRole("link", { name: "Open the rehearsal deck" });
-    expect(learner).toHaveClass("er-deck-learner");
-    expect(reviews).toHaveClass("er-deck-reviews");
-    expect(rehearsal).toHaveClass("er-deck-rehearsal");
-    expect(learner).not.toHaveClass("er-deck-new");
-    expect(reviews).not.toHaveClass("er-deck-review");
-    expect(rehearsal).not.toHaveClass("er-deck-simulation");
-    expect(within(learner).getByTestId("landing-deck-learner")).toHaveTextContent("Learner");
-    expect(within(reviews).getByTestId("landing-deck-reviews")).toHaveTextContent("Reviews");
-    expect(within(rehearsal).getByTestId("landing-deck-rehearsal")).toHaveTextContent("Rehearsal");
-    expect(screen.queryByTestId("landing-deck-new")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("landing-deck-simulation")).not.toBeInTheDocument();
-    expect(learner.getAttribute("class") ?? "").not.toMatch(/new|simulation/i);
-    expect(reviews.getAttribute("class") ?? "").not.toMatch(/new|simulation/i);
-    expect(rehearsal.getAttribute("class") ?? "").not.toMatch(/new|simulation/i);
-    expect(screen.getByTestId("start-studying")).toBeInTheDocument();
-    expect(screen.getByTestId("build-a-season")).toBeInTheDocument();
-    expect(screen.getByText(/due reviews, and realistic rehearsal/)).toBeInTheDocument();
-    expect(screen.getByText("Your team chooses the passage. Erudoza deals the deck.")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Drill only the assigned Scripture." })).toBeInTheDocument();
-    expect(
-      screen.getByText("Timed rehearsal turns growing recall into confident Bible Bowl performance."),
-    ).toBeInTheDocument();
-    expect(screen.queryByText(/practice/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/simulation/i)).not.toBeInTheDocument();
+    expect(within(main).getByText(/Study your assigned passages, strengthen your recall, and prepare together/))
+      .toBeInTheDocument();
+    expect(within(main).getByText("Sign in with the account provided by your coach or academy."))
+      .toBeInTheDocument();
+    expect(within(main).getByRole("heading", { level: 2, name: "Give every student a clear next step." }))
+      .toBeInTheDocument();
+    expect(within(main).getByText(/Choose a season’s passages, set each student’s difficulty, and follow their progress/))
+      .toBeInTheDocument();
   });
 
-  it("stacks lockup, CTAs, and TRAINING DECKS in a portrait phone column", () => {
+  it("presents learning, due review, and competition rehearsal in order", () => {
     renderLanding();
 
-    const column = screen.getByTestId("landing-phone-column");
-    expect(column).toHaveClass("er-landing-column");
-
-    const lockup = within(column).getByTestId("field-guide-academy");
-    const start = within(column).getByTestId("start-studying");
-    const season = within(column).getByTestId("build-a-season");
-    const decks = within(column).getByTestId("landing-training-decks");
-
-    expect(lockup.compareDocumentPosition(start) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(start.compareDocumentPosition(season) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(season.compareDocumentPosition(decks) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(within(decks).getByRole("heading", { name: "TRAINING DECKS" })).toBeInTheDocument();
-    expect(within(column).getByTestId("erudoza-mark")).toHaveAttribute("src", "/brand/erudoza-mark.png");
+    const training = screen.getByRole("region", { name: "A clear path to confident recall." });
+    const steps = within(within(training).getByRole("list")).getAllByRole("listitem");
+    expect(steps).toHaveLength(3);
+    expect(within(steps[0]).getByRole("heading", { level: 3, name: "Learn your passages" }))
+      .toBeInTheDocument();
+    expect(steps[0]).toHaveTextContent("Restore missing words, rebuild verses, and match references from the Scripture your coach assigns.");
+    expect(within(steps[1]).getByRole("heading", { level: 3, name: "Review what needs attention" }))
+      .toBeInTheDocument();
+    expect(steps[1]).toHaveTextContent("Return to due verses and follow your saved progress as your recall grows.");
+    expect(within(steps[2]).getByRole("heading", { level: 3, name: "Rehearse for competition" }))
+      .toBeInTheDocument();
+    expect(steps[2]).toHaveTextContent("Practice under time pressure in a simulation or join your team in a coach-led room.");
+    expect(training).not.toHaveTextContent(/%|streak/i);
   });
 
-  it("keeps Field Guide chrome on the landing column", () => {
+  it("routes student and coach calls to action to sign in", () => {
     renderLanding();
 
-    const chrome = within(screen.getByTestId("landing-phone-column")).getByTestId("landing-field-guide-chrome");
-    expect(chrome).toHaveAttribute("aria-hidden", "true");
-    expect(within(chrome).getByTestId("chrome-compass")).toBeInTheDocument();
-    expect(within(chrome).getByTestId("chrome-mountain")).toBeInTheDocument();
-    expect(within(chrome).getByTestId("chrome-forest")).toBeInTheDocument();
-    expect(within(chrome).getByTestId("chrome-leaf")).toBeInTheDocument();
+    const header = screen.getByRole("banner");
+    expect(within(header).getByRole("link", { name: "Erudoza home" })).toHaveAttribute("href", "/");
+    expect(within(header).getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
+    const start = screen.getByRole("link", { name: "Start studying" });
+    expect(start).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: "Coach your team" })).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: "Sign in as a coach" })).toHaveAttribute("href", "/login");
+
+    fireEvent.click(start);
+    expect(screen.getByRole("heading", { name: "Account sign in" })).toBeInTheDocument();
   });
 
-  it("stacks training decks without a horizontal fan", () => {
-    renderLanding();
+  it("provides accessible page landmarks and preserves the Erudoza landscape branding", () => {
+    const { container } = renderLanding();
 
-    const decks = screen.getByTestId("landing-training-decks");
-    expect(decks).toHaveClass("er-deck-stack");
-    expect(decks).not.toHaveClass("er-deck-fan");
-    expect(within(decks).getByTestId("landing-deck-learner")).toHaveTextContent("Learner");
-    expect(within(decks).getByTestId("landing-deck-reviews")).toHaveTextContent("Reviews");
-    expect(within(decks).getByTestId("landing-deck-rehearsal")).toHaveTextContent("Rehearsal");
-    expect(within(decks).getByRole("img", { name: "Learner deck" })).toHaveAttribute(
-      "src",
-      "/brand/deck-learner.webp",
-    );
-    expect(within(decks).getByRole("img", { name: "Reviews deck" })).toHaveAttribute(
-      "src",
-      "/brand/deck-reviews.webp",
-    );
-    expect(within(decks).getByRole("img", { name: "Rehearsal deck" })).toHaveAttribute(
-      "src",
-      "/brand/deck-rehearsal.webp",
-    );
-    expect(decks.innerHTML).not.toMatch(
-      /deck-new\.webp|deck-review\.webp|deck-simulation\.webp|er-deck-new|er-deck-simulation/,
-    );
-    expect(decks).not.toHaveTextContent("%");
-    expect(decks).not.toHaveTextContent("streak");
+    const main = screen.getByRole("main");
+    expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute("href", `#${main.id}`);
+    expect(main.id).not.toBe("");
+    expect(screen.getByRole("banner").compareDocumentPosition(main) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+    expect(main.compareDocumentPosition(screen.getByRole("contentinfo")) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBeTruthy();
+    expect(container.firstElementChild).toHaveClass("training-public");
+    const home = screen.getByRole("link", { name: "Erudoza home" });
+    expect(home).toHaveTextContent("Erudoza");
+    const mark = within(home).getByTestId("erudoza-mark");
+    expect(mark).toHaveAttribute("src", "/brand/erudoza-mark.png");
+    expect(mark).toHaveAttribute("alt", "");
+    expect(screen.getByRole("img", { name: "Mountains and forest surrounding an open valley" }))
+      .toBeInTheDocument();
+    expect(screen.getByRole("contentinfo")).toHaveTextContent("SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH");
   });
 });

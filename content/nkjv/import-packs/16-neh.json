@@ -1,0 +1,3262 @@
+{
+  "packKey": "builtin-nkjv-neh",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Nehemiah",
+      "units": [
+        {
+          "citation": "Nehemiah 1:1",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 12298,
+          "text": "The words of Nehemiah the son of Hachaliah. It came to pass in the month of Chislev, in the twentieth year, as I was in Shushan the citadel,"
+        },
+        {
+          "citation": "Nehemiah 1:2",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 12299,
+          "text": "that Hanani one of my brethren came with men from Judah; and I asked them concerning the Jews who had escaped, who had survived the captivity, and concerning Jerusalem."
+        },
+        {
+          "citation": "Nehemiah 1:3",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 12300,
+          "text": "And they said to me, \"The survivors who are left from the captivity in the province are there in great distress and reproach. The wall of Jerusalem is also broken down, and its gates are burned with fire.\""
+        },
+        {
+          "citation": "Nehemiah 1:4",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 12301,
+          "text": "So it was, when I heard these words, that I sat down and wept, and mourned for many days; I was fasting and praying before the God of heaven."
+        },
+        {
+          "citation": "Nehemiah 1:5",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 12302,
+          "text": "And I said: \"I pray, LORD God of heaven, O great and awesome God, You who keep Your covenant and mercy with those who love You and observe Your commandments,"
+        },
+        {
+          "citation": "Nehemiah 1:6",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 12303,
+          "text": "please let Your ear be attentive and Your eyes open, that You may hear the prayer of Your servant which I pray before You now, day and night, for the children of Israel Your servants, and confess the sins of the children of Israel which we have sinned against You. Both my father's house and I have sinned."
+        },
+        {
+          "citation": "Nehemiah 1:7",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 12304,
+          "text": "We have acted very corruptly against You, and have not kept the commandments, the statutes, nor the ordinances which You commanded Your servant Moses."
+        },
+        {
+          "citation": "Nehemiah 1:8",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 12305,
+          "text": "Remember, I pray, the word that You commanded Your servant Moses, saying, \"If you are unfaithful, I will scatter you among the nations;"
+        },
+        {
+          "citation": "Nehemiah 1:9",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 12306,
+          "text": "but if you return to Me, and keep My commandments and do them, though some of you were cast out to the farthest part of the heavens, yet I will gather them from there, and bring them to the place which I have chosen as a dwelling for My name.'"
+        },
+        {
+          "citation": "Nehemiah 1:10",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 12307,
+          "text": "Now these are Your servants and Your people, whom You have redeemed by Your great power, and by Your strong hand."
+        },
+        {
+          "citation": "Nehemiah 1:11",
+          "bookKey": "NEH",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 12308,
+          "text": "O Lord, I pray, please let Your ear be attentive to the prayer of Your servant, and to the prayer of Your servants who desire to fear Your name; and let Your servant prosper this day, I pray, and grant him mercy in the sight of this man.\" For I was the king's cupbearer."
+        },
+        {
+          "citation": "Nehemiah 2:1",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 12309,
+          "text": "And it came to pass in the month of Nisan, in the twentieth year of King Artaxerxes, when wine was before him, that I took the wine and gave it to the king. Now I had never been sad in his presence before."
+        },
+        {
+          "citation": "Nehemiah 2:2",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 12310,
+          "text": "Therefore the king said to me, \"Why is your face sad, since you are not sick? This is nothing but sorrow of heart.\" So I became dreadfully afraid,"
+        },
+        {
+          "citation": "Nehemiah 2:3",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 12311,
+          "text": "and said to the king, \"May the king live forever! Why should my face not be sad, when the city, the place of my fathers' tombs, lies waste, and its gates are burned with fire?\""
+        },
+        {
+          "citation": "Nehemiah 2:4",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 12312,
+          "text": "Then the king said to me, \"What do you request?\" So I prayed to the God of heaven."
+        },
+        {
+          "citation": "Nehemiah 2:5",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 12313,
+          "text": "And I said to the king, \"If it pleases the king, and if your servant has found favor in your sight, I ask that you send me to Judah, to the city of my fathers' tombs, that I may rebuild it.\""
+        },
+        {
+          "citation": "Nehemiah 2:6",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 12314,
+          "text": "Then the king said to me (the queen also sitting beside him), \"How long will your journey be? And when will you return?\" So it pleased the king to send me; and I set him a time."
+        },
+        {
+          "citation": "Nehemiah 2:7",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 12315,
+          "text": "Furthermore I said to the king, \"If it pleases the king, let letters be given to me for the governors of the region beyond the River, that they must permit me to pass through till I come to Judah,"
+        },
+        {
+          "citation": "Nehemiah 2:8",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 12316,
+          "text": "and a letter to Asaph the keeper of the king's forest, that he must give me timber to make beams for the gates of the citadel which pertains to the temple, for the city wall, and for the house that I will occupy.\" And the king granted them to me according to the good hand of my God upon me."
+        },
+        {
+          "citation": "Nehemiah 2:9",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 12317,
+          "text": "Then I went to the governors in the region beyond the River, and gave them the king's letters. Now the king had sent captains of the army and horsemen with me."
+        },
+        {
+          "citation": "Nehemiah 2:10",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 12318,
+          "text": "When Sanballat the Horonite and Tobiah the Ammonite official heard of it, they were deeply disturbed that a man had come to seek the well-being of the children of Israel."
+        },
+        {
+          "citation": "Nehemiah 2:11",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 12319,
+          "text": "So I came to Jerusalem and was there three days."
+        },
+        {
+          "citation": "Nehemiah 2:12",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 12320,
+          "text": "Then I arose in the night, I and a few men with me; I told no one what my God had put in my heart to do at Jerusalem; nor was there any animal with me, except the one on which I rode."
+        },
+        {
+          "citation": "Nehemiah 2:13",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 12321,
+          "text": "And I went out by night through the Valley Gate to the Serpent Well and the Refuse Gate, and viewed the walls of Jerusalem which were broken down and its gates which were burned with fire."
+        },
+        {
+          "citation": "Nehemiah 2:14",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 12322,
+          "text": "Then I went on to the Fountain Gate and to the King's Pool, but there was no room for the animal under me to pass."
+        },
+        {
+          "citation": "Nehemiah 2:15",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 12323,
+          "text": "So I went up in the night by the valley, and viewed the wall; then I turned back and entered by the Valley Gate, and so returned."
+        },
+        {
+          "citation": "Nehemiah 2:16",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 12324,
+          "text": "And the officials did not know where I had gone or what I had done; I had not yet told the Jews, the priests, the nobles, the officials, or the others who did the work."
+        },
+        {
+          "citation": "Nehemiah 2:17",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 17,
+          "ordinal": 12325,
+          "text": "Then I said to them, \"You see the distress that we are in, how Jerusalem lies waste, and its gates are burned with fire. Come and let us build the wall of Jerusalem, that we may no longer be a reproach.\""
+        },
+        {
+          "citation": "Nehemiah 2:18",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 18,
+          "ordinal": 12326,
+          "text": "And I told them of the hand of my God which had been good upon me, and also of the king's words that he had spoken to me. So they said, \"Let us rise up and build.\" Then they set their hands to this good work."
+        },
+        {
+          "citation": "Nehemiah 2:19",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 19,
+          "ordinal": 12327,
+          "text": "But when Sanballat the Horonite, Tobiah the Ammonite official, and Geshem the Arab heard of it, they laughed at us and despised us, and said, \"What is this thing that you are doing? Will you rebel against the king?\""
+        },
+        {
+          "citation": "Nehemiah 2:20",
+          "bookKey": "NEH",
+          "chapter": 2,
+          "verse": 20,
+          "ordinal": 12328,
+          "text": "So I answered them, and said to them, \"The God of heaven Himself will prosper us; therefore we His servants will arise and build, but you have no heritage or right or memorial in Jerusalem.\""
+        },
+        {
+          "citation": "Nehemiah 3:1",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 12329,
+          "text": "Then Eliashib the high priest rose up with his brethren the priests and built the Sheep Gate; they consecrated it and hung its doors. They built as far as the Tower of the Hundred, and consecrated it, then as far as the Tower of Hananel."
+        },
+        {
+          "citation": "Nehemiah 3:2",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 12330,
+          "text": "Next to Eliashib the men of Jericho built. And next to them Zaccur the son of Imri built."
+        },
+        {
+          "citation": "Nehemiah 3:3",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 12331,
+          "text": "Also the sons of Hassenaah built the Fish Gate; they laid its beams and hung its doors with its bolts and bars."
+        },
+        {
+          "citation": "Nehemiah 3:4",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 12332,
+          "text": "And next to them Meremoth the son of Urijah, the son of Koz, made repairs. Next to them Meshullam the son of Berechiah, the son of Meshezabel, made repairs. Next to them Zadok the son of Baana made repairs."
+        },
+        {
+          "citation": "Nehemiah 3:5",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 12333,
+          "text": "Next to them the Tekoites made repairs; but their nobles did not put their shoulders to the work of their Lord."
+        },
+        {
+          "citation": "Nehemiah 3:6",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 12334,
+          "text": "Moreover Jehoiada the son of Paseah and Meshullam the son of Besodeiah repaired the Old Gate; they laid its beams and hung its doors, with its bolts and bars."
+        },
+        {
+          "citation": "Nehemiah 3:7",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 12335,
+          "text": "And next to them Melatiah the Gibeonite, Jadon the Meronothite, the men of Gibeon and Mizpah, repaired the residence of the governor of the region beyond the River."
+        },
+        {
+          "citation": "Nehemiah 3:8",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 12336,
+          "text": "Next to him Uzziel the son of Harhaiah, one of the goldsmiths, made repairs. Also next to him Hananiah, one of the perfumers, made repairs; and they fortified Jerusalem as far as the Broad Wall."
+        },
+        {
+          "citation": "Nehemiah 3:9",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 12337,
+          "text": "And next to them Rephaiah the son of Hur, leader of half the district of Jerusalem, made repairs."
+        },
+        {
+          "citation": "Nehemiah 3:10",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 12338,
+          "text": "Next to them Jedaiah the son of Harumaph made repairs in front of his house. And next to him Hattush the son of Hashabniah made repairs."
+        },
+        {
+          "citation": "Nehemiah 3:11",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 12339,
+          "text": "Malchijah the son of Harim and Hashub the son of Pahath-Moab repaired another section, as well as the Tower of the Ovens."
+        },
+        {
+          "citation": "Nehemiah 3:12",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 12340,
+          "text": "And next to him was Shallum the son of Hallohesh, leader of half the district of Jerusalem; he and his daughters made repairs."
+        },
+        {
+          "citation": "Nehemiah 3:13",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 12341,
+          "text": "Hanun and the inhabitants of Zanoah repaired the Valley Gate. They built it, hung its doors with its bolts and bars, and repaired a thousand cubits of the wall as far as the Refuse Gate."
+        },
+        {
+          "citation": "Nehemiah 3:14",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 12342,
+          "text": "Malchijah the son of Rechab, leader of the district of Beth Haccerem, repaired the Refuse Gate; he built it and hung its doors with its bolts and bars."
+        },
+        {
+          "citation": "Nehemiah 3:15",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 12343,
+          "text": "Shallun the son of Col-Hozeh, leader of the district of Mizpah, repaired the Fountain Gate; he built it, covered it, hung its doors with its bolts and bars, and repaired the wall of the Pool of Shelah by the King's Garden, as far as the stairs that go down from the City of David."
+        },
+        {
+          "citation": "Nehemiah 3:16",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 16,
+          "ordinal": 12344,
+          "text": "After him Nehemiah the son of Azbuk, leader of half the district of Beth Zur, made repairs as far as the place in front of the tombs of David, to the man-made pool, and as far as the House of the Mighty."
+        },
+        {
+          "citation": "Nehemiah 3:17",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 17,
+          "ordinal": 12345,
+          "text": "After him the Levites, under Rehum the son of Bani, made repairs. Next to him Hashabiah, leader of half the district of Keilah, made repairs for his district."
+        },
+        {
+          "citation": "Nehemiah 3:18",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 18,
+          "ordinal": 12346,
+          "text": "After him their brethren, under Bavai the son of Henadad, leader of the other half of the district of Keilah, made repairs."
+        },
+        {
+          "citation": "Nehemiah 3:19",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 19,
+          "ordinal": 12347,
+          "text": "And next to him Ezer the son of Jeshua, the leader of Mizpah, repaired another section in front of the Ascent to the Armory at the buttress."
+        },
+        {
+          "citation": "Nehemiah 3:20",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 20,
+          "ordinal": 12348,
+          "text": "After him Baruch the son of Zabbai carefully repaired the other section, from the buttress to the door of the house of Eliashib the high priest."
+        },
+        {
+          "citation": "Nehemiah 3:21",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 21,
+          "ordinal": 12349,
+          "text": "After him Meremoth the son of Urijah, the son of Koz, repaired another section, from the door of the house of Eliashib to the end of the house of Eliashib."
+        },
+        {
+          "citation": "Nehemiah 3:22",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 22,
+          "ordinal": 12350,
+          "text": "And after him the priests, the men of the plain, made repairs."
+        },
+        {
+          "citation": "Nehemiah 3:23",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 23,
+          "ordinal": 12351,
+          "text": "After him Benjamin and Hasshub made repairs opposite their house. After them Azariah the son of Maaseiah, the son of Ananiah, made repairs by his house."
+        },
+        {
+          "citation": "Nehemiah 3:24",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 24,
+          "ordinal": 12352,
+          "text": "After him Binnui the son of Henadad repaired another section, from the house of Azariah to the buttress, even as far as the corner."
+        },
+        {
+          "citation": "Nehemiah 3:25",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 25,
+          "ordinal": 12353,
+          "text": "Palal the son of Uzai made repairs opposite the buttress, and on the tower which projects from the king's upper house that was by the court of the prison. After him Pedaiah the son of Parosh made repairs."
+        },
+        {
+          "citation": "Nehemiah 3:26",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 26,
+          "ordinal": 12354,
+          "text": "Moreover the Nethinim who dwelt in Ophel made repairs as far as the place in front of the Water Gate toward the east, and on the projecting tower."
+        },
+        {
+          "citation": "Nehemiah 3:27",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 27,
+          "ordinal": 12355,
+          "text": "After them the Tekoites repaired another section, next to the great projecting tower, and as far as the wall of Ophel."
+        },
+        {
+          "citation": "Nehemiah 3:28",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 28,
+          "ordinal": 12356,
+          "text": "Beyond the Horse Gate the priests made repairs, each in front of his own house."
+        },
+        {
+          "citation": "Nehemiah 3:29",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 29,
+          "ordinal": 12357,
+          "text": "After them Zadok the son of Immer made repairs in front of his own house. After him Shemaiah the son of Shechaniah, the keeper of the East Gate, made repairs."
+        },
+        {
+          "citation": "Nehemiah 3:30",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 30,
+          "ordinal": 12358,
+          "text": "After him Hananiah the son of Shelemiah, and Hanun, the sixth son of Zalaph, repaired another section. After him Meshullam the son of Berechiah made repairs in front of his dwelling."
+        },
+        {
+          "citation": "Nehemiah 3:31",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 31,
+          "ordinal": 12359,
+          "text": "After him Malchijah, one of the goldsmiths, made repairs as far as the house of the Nethinim and of the merchants, in front of the Miphkad Gate, and as far as the upper room at the corner."
+        },
+        {
+          "citation": "Nehemiah 3:32",
+          "bookKey": "NEH",
+          "chapter": 3,
+          "verse": 32,
+          "ordinal": 12360,
+          "text": "And between the upper room at the corner, as far as the Sheep Gate, the goldsmiths and the merchants made repairs."
+        },
+        {
+          "citation": "Nehemiah 4:1",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 12361,
+          "text": "But it so happened, when Sanballat heard that we were rebuilding the wall, that he was furious and very indignant, and mocked the Jews."
+        },
+        {
+          "citation": "Nehemiah 4:2",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 12362,
+          "text": "And he spoke before his brethren and the army of Samaria, and said, \"What are these feeble Jews doing? Will they fortify themselves? Will they offer sacrifices? Will they complete it in a day? Will they revive the stones from the heaps of rubbish--stones that are burned?\""
+        },
+        {
+          "citation": "Nehemiah 4:3",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 12363,
+          "text": "Now Tobiah the Ammonite was beside him, and he said, \"Whatever they build, if even a fox goes up on it, he will break down their stone wall.\""
+        },
+        {
+          "citation": "Nehemiah 4:4",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 12364,
+          "text": "Hear, O our God, for we are despised; turn their reproach on their own heads, and give them as plunder to a land of captivity!"
+        },
+        {
+          "citation": "Nehemiah 4:5",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 12365,
+          "text": "Do not cover their iniquity, and do not let their sin be blotted out from before You; for they have provoked You to anger before the builders."
+        },
+        {
+          "citation": "Nehemiah 4:6",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 12366,
+          "text": "So we built the wall, and the entire wall was joined together up to half its height, for the people had a mind to work."
+        },
+        {
+          "citation": "Nehemiah 4:7",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 12367,
+          "text": "Now it happened, when Sanballat, Tobiah, the Arabs, the Ammonites, and the Ashdodites heard that the walls of Jerusalem were being restored and the gaps were beginning to be closed, that they became very angry,"
+        },
+        {
+          "citation": "Nehemiah 4:8",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 12368,
+          "text": "and all of them conspired together to come and attack Jerusalem and create confusion."
+        },
+        {
+          "citation": "Nehemiah 4:9",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 12369,
+          "text": "Nevertheless we made our prayer to our God, and because of them we set a watch against them day and night."
+        },
+        {
+          "citation": "Nehemiah 4:10",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 12370,
+          "text": "Then Judah said, \"The strength of the laborers is failing, and there is so much rubbish that we are not able to build the wall.\""
+        },
+        {
+          "citation": "Nehemiah 4:11",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 12371,
+          "text": "And our adversaries said, \"They will neither know nor see anything, till we come into their midst and kill them and cause the work to cease.\""
+        },
+        {
+          "citation": "Nehemiah 4:12",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 12372,
+          "text": "So it was, when the Jews who dwelt near them came, that they told us ten times, \"From whatever place you turn, they will be upon us.\""
+        },
+        {
+          "citation": "Nehemiah 4:13",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 12373,
+          "text": "Therefore I positioned men behind the lower parts of the wall, at the openings; and I set the people according to their families, with their swords, their spears, and their bows."
+        },
+        {
+          "citation": "Nehemiah 4:14",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 14,
+          "ordinal": 12374,
+          "text": "And I looked, and arose and said to the nobles, to the leaders, and to the rest of the people, \"Do not be afraid of them. Remember the Lord, great and awesome, and fight for your brethren, your sons, your daughters, your wives, and your houses.\""
+        },
+        {
+          "citation": "Nehemiah 4:15",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 15,
+          "ordinal": 12375,
+          "text": "And it happened, when our enemies heard that it was known to us, and that God had brought their plot to nothing, that all of us returned to the wall, everyone to his work."
+        },
+        {
+          "citation": "Nehemiah 4:16",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 16,
+          "ordinal": 12376,
+          "text": "So it was, from that time on, that half of my servants worked at construction, while the other half held the spears, the shields, the bows, and wore armor; and the leaders were behind all the house of Judah."
+        },
+        {
+          "citation": "Nehemiah 4:17",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 17,
+          "ordinal": 12377,
+          "text": "Those who built on the wall, and those who carried burdens, loaded themselves so that with one hand they worked at construction, and with the other held a weapon."
+        },
+        {
+          "citation": "Nehemiah 4:18",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 18,
+          "ordinal": 12378,
+          "text": "Every one of the builders had his sword girded at his side as he built. And the one who sounded the trumpet was beside me."
+        },
+        {
+          "citation": "Nehemiah 4:19",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 19,
+          "ordinal": 12379,
+          "text": "Then I said to the nobles, the rulers, and the rest of the people, \"The work is great and extensive, and we are separated far from one another on the wall."
+        },
+        {
+          "citation": "Nehemiah 4:20",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 20,
+          "ordinal": 12380,
+          "text": "Wherever you hear the sound of the trumpet, rally to us there. Our God will fight for us.\""
+        },
+        {
+          "citation": "Nehemiah 4:21",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 21,
+          "ordinal": 12381,
+          "text": "So we labored in the work, and half of the men held the spears from daybreak until the stars appeared."
+        },
+        {
+          "citation": "Nehemiah 4:22",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 22,
+          "ordinal": 12382,
+          "text": "At the same time I also said to the people, \"Let each man and his servant stay at night in Jerusalem, that they may be our guard by night and a working party by day.\""
+        },
+        {
+          "citation": "Nehemiah 4:23",
+          "bookKey": "NEH",
+          "chapter": 4,
+          "verse": 23,
+          "ordinal": 12383,
+          "text": "So neither I, my brethren, my servants, nor the men of the guard who followed me took off our clothes, except that everyone took them off for washing."
+        },
+        {
+          "citation": "Nehemiah 5:1",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 12384,
+          "text": "And there was a great outcry of the people and their wives against their Jewish brethren."
+        },
+        {
+          "citation": "Nehemiah 5:2",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 12385,
+          "text": "For there were those who said, \"We, our sons, and our daughters are many; therefore let us get grain, that we may eat and live.\""
+        },
+        {
+          "citation": "Nehemiah 5:3",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 12386,
+          "text": "There were also some who said, \"We have mortgaged our lands and vineyards and houses, that we might buy grain because of the famine.\""
+        },
+        {
+          "citation": "Nehemiah 5:4",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 12387,
+          "text": "There were also those who said, \"We have borrowed money for the king's tax on our lands and vineyards."
+        },
+        {
+          "citation": "Nehemiah 5:5",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 12388,
+          "text": "Yet now our flesh is as the flesh of our brethren, our children as their children; and indeed we are forcing our sons and our daughters to be slaves, and some of our daughters have been brought into slavery. It is not in our power to redeem them, for other men have our lands and vineyards.\""
+        },
+        {
+          "citation": "Nehemiah 5:6",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 12389,
+          "text": "And I became very angry when I heard their outcry and these words."
+        },
+        {
+          "citation": "Nehemiah 5:7",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 12390,
+          "text": "After serious thought, I rebuked the nobles and rulers, and said to them, \"Each of you is exacting usury from his brother.\" So I called a great assembly against them."
+        },
+        {
+          "citation": "Nehemiah 5:8",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 12391,
+          "text": "And I said to them, \"According to our ability we have redeemed our Jewish brethren who were sold to the nations. Now indeed, will you even sell your brethren? Or should they be sold to us?\" Then they were silenced and found nothing to say."
+        },
+        {
+          "citation": "Nehemiah 5:9",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 12392,
+          "text": "Then I said, \"What you are doing is not good. Should you not walk in the fear of our God because of the reproach of the nations, our enemies?"
+        },
+        {
+          "citation": "Nehemiah 5:10",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 12393,
+          "text": "I also, with my brethren and my servants, am lending them money and grain. Please, let us stop this usury!"
+        },
+        {
+          "citation": "Nehemiah 5:11",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 12394,
+          "text": "Restore now to them, even this day, their lands, their vineyards, their olive groves, and their houses, also a hundredth of the money and the grain, the new wine and the oil, that you have charged them.\""
+        },
+        {
+          "citation": "Nehemiah 5:12",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 12395,
+          "text": "So they said, \"We will restore it, and will require nothing from them; we will do as you say.\" Then I called the priests, and required an oath from them that they would do according to this promise."
+        },
+        {
+          "citation": "Nehemiah 5:13",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 12396,
+          "text": "Then I shook out the fold of my garment and said, \"So may God shake out each man from his house, and from his property, who does not perform this promise. Even thus may he be shaken out and emptied.\" And all the assembly said, \"Amen!\" and praised the LORD. Then the people did according to this promise."
+        },
+        {
+          "citation": "Nehemiah 5:14",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 14,
+          "ordinal": 12397,
+          "text": "Moreover, from the time that I was appointed to be their governor in the land of Judah, from the twentieth year until the thirty-second year of King Artaxerxes, twelve years, neither I nor my brothers ate the governor's provisions."
+        },
+        {
+          "citation": "Nehemiah 5:15",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 15,
+          "ordinal": 12398,
+          "text": "But the former governors who were before me laid burdens on the people, and took from them bread and wine, besides forty shekels of silver. Yes, even their servants bore rule over the people, but I did not do so, because of the fear of God."
+        },
+        {
+          "citation": "Nehemiah 5:16",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 16,
+          "ordinal": 12399,
+          "text": "Indeed, I also continued the work on this wall, and we did not buy any land. All my servants were gathered there for the work."
+        },
+        {
+          "citation": "Nehemiah 5:17",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 17,
+          "ordinal": 12400,
+          "text": "And at my table were one hundred and fifty Jews and rulers, besides those who came to us from the nations around us."
+        },
+        {
+          "citation": "Nehemiah 5:18",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 18,
+          "ordinal": 12401,
+          "text": "Now that which was prepared daily was one ox and six choice sheep. Also fowl were prepared for me, and once every ten days an abundance of all kinds of wine. Yet in spite of this I did not demand the governor's provisions, because the bondage was heavy on this people."
+        },
+        {
+          "citation": "Nehemiah 5:19",
+          "bookKey": "NEH",
+          "chapter": 5,
+          "verse": 19,
+          "ordinal": 12402,
+          "text": "Remember me, my God, for good, according to all that I have done for this people."
+        },
+        {
+          "citation": "Nehemiah 6:1",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 12403,
+          "text": "Now it happened when Sanballat, Tobiah, Geshem the Arab, and the rest of our enemies heard that I had rebuilt the wall, and that there were no breaks left in it (though at that time I had not hung the doors in the gates),"
+        },
+        {
+          "citation": "Nehemiah 6:2",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 12404,
+          "text": "that Sanballat and Geshem sent to me, saying, \"Come, let us meet together among the villages in the plain of Ono.\" But they thought to do me harm."
+        },
+        {
+          "citation": "Nehemiah 6:3",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 12405,
+          "text": "So I sent messengers to them, saying, \"I am doing a great work, so that I cannot come down. Why should the work cease while I leave it and go down to you?\""
+        },
+        {
+          "citation": "Nehemiah 6:4",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 12406,
+          "text": "But they sent me this message four times, and I answered them in the same manner."
+        },
+        {
+          "citation": "Nehemiah 6:5",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 12407,
+          "text": "Then Sanballat sent his servant to me as before, the fifth time, with an open letter in his hand."
+        },
+        {
+          "citation": "Nehemiah 6:6",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 12408,
+          "text": "In it was written: It is reported among the nations, and Geshem says, that you and the Jews plan to rebel; therefore, according to these rumors, you are rebuilding the wall, that you may be their king."
+        },
+        {
+          "citation": "Nehemiah 6:7",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 12409,
+          "text": "And you have also appointed prophets to proclaim concerning you at Jerusalem, saying, \"There is a king in Judah!\" Now these matters will be reported to the king. So come, therefore, and let us consult together."
+        },
+        {
+          "citation": "Nehemiah 6:8",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 12410,
+          "text": "Then I sent to him, saying, \"No such things as you say are being done, but you invent them in your own heart.\""
+        },
+        {
+          "citation": "Nehemiah 6:9",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 12411,
+          "text": "For they all were trying to make us afraid, saying, \"Their hands will be weakened in the work, and it will not be done.\" Now therefore, O God, strengthen my hands."
+        },
+        {
+          "citation": "Nehemiah 6:10",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 12412,
+          "text": "Afterward I came to the house of Shemaiah the son of Delaiah, the son of Mehetabel, who was a secret informer; and he said, \"Let us meet together in the house of God, within the temple, and let us close the doors of the temple, for they are coming to kill you; indeed, at night they will come to kill you.\""
+        },
+        {
+          "citation": "Nehemiah 6:11",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 12413,
+          "text": "And I said, \"Should such a man as I flee? And who is there such as I who would go into the temple to save his life? I will not go in!\""
+        },
+        {
+          "citation": "Nehemiah 6:12",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 12414,
+          "text": "Then I perceived that God had not sent him at all, but that he pronounced this prophecy against me because Tobiah and Sanballat had hired him."
+        },
+        {
+          "citation": "Nehemiah 6:13",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 13,
+          "ordinal": 12415,
+          "text": "For this reason he was hired, that I should be afraid and act that way and sin, so that they might have cause for an evil report, that they might reproach me."
+        },
+        {
+          "citation": "Nehemiah 6:14",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 14,
+          "ordinal": 12416,
+          "text": "My God, remember Tobiah and Sanballat, according to these their works, and the prophetess Noadiah and the rest of the prophets who would have made me afraid."
+        },
+        {
+          "citation": "Nehemiah 6:15",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 15,
+          "ordinal": 12417,
+          "text": "So the wall was finished on the twenty-fifth day of Elul, in fifty-two days."
+        },
+        {
+          "citation": "Nehemiah 6:16",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 16,
+          "ordinal": 12418,
+          "text": "And it happened, when all our enemies heard of it, and all the nations around us saw these things, that they were very disheartened in their own eyes; for they perceived that this work was done by our God."
+        },
+        {
+          "citation": "Nehemiah 6:17",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 17,
+          "ordinal": 12419,
+          "text": "Also in those days the nobles of Judah sent many letters to Tobiah, and the letters of Tobiah came to them."
+        },
+        {
+          "citation": "Nehemiah 6:18",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 18,
+          "ordinal": 12420,
+          "text": "For many in Judah were pledged to him, because he was the son-in-law of Shechaniah the son of Arah, and his son Jehohanan had married the daughter of Meshullam the son of Berechiah."
+        },
+        {
+          "citation": "Nehemiah 6:19",
+          "bookKey": "NEH",
+          "chapter": 6,
+          "verse": 19,
+          "ordinal": 12421,
+          "text": "Also they reported his good deeds before me, and reported my words to him. Tobiah sent letters to frighten me."
+        },
+        {
+          "citation": "Nehemiah 7:1",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 1,
+          "ordinal": 12422,
+          "text": "Then it was, when the wall was built and I had hung the doors, when the gatekeepers, the singers, and the Levites had been appointed,"
+        },
+        {
+          "citation": "Nehemiah 7:2",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 2,
+          "ordinal": 12423,
+          "text": "that I gave the charge of Jerusalem to my brother Hanani, and Hananiah the leader of the citadel, for he was a faithful man and feared God more than many."
+        },
+        {
+          "citation": "Nehemiah 7:3",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 3,
+          "ordinal": 12424,
+          "text": "And I said to them, \"Do not let the gates of Jerusalem be opened until the sun is hot; and while they stand guard, let them shut and bar the doors; and appoint guards from among the inhabitants of Jerusalem, one at his watch station and another in front of his own house.\""
+        },
+        {
+          "citation": "Nehemiah 7:4",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 4,
+          "ordinal": 12425,
+          "text": "Now the city was large and spacious, but the people in it were few, and the houses were not rebuilt."
+        },
+        {
+          "citation": "Nehemiah 7:5",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 5,
+          "ordinal": 12426,
+          "text": "Then my God put it into my heart to gather the nobles, the rulers, and the people, that they might be registered by genealogy. And I found a register of the genealogy of those who had come up in the first return, and found written in it:"
+        },
+        {
+          "citation": "Nehemiah 7:6",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 6,
+          "ordinal": 12427,
+          "text": "These are the people of the province who came back from the captivity, of those who had been carried away, whom Nebuchadnezzar the king of Babylon had carried away, and who returned to Jerusalem and Judah, everyone to his city."
+        },
+        {
+          "citation": "Nehemiah 7:7",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 7,
+          "ordinal": 12428,
+          "text": "Those who came with Zerubbabel were Jeshua, Nehemiah, Azariah, Raamiah, Nahamani, Mordecai, Bilshan, Mispereth, Bigvai, Nehum, and Baanah. The number of the men of the people of Israel:"
+        },
+        {
+          "citation": "Nehemiah 7:8",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 8,
+          "ordinal": 12429,
+          "text": "the sons of Parosh, two thousand one hundred and seventy-two;"
+        },
+        {
+          "citation": "Nehemiah 7:9",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 9,
+          "ordinal": 12430,
+          "text": "the sons of Shephatiah, three hundred and seventy-two;"
+        },
+        {
+          "citation": "Nehemiah 7:10",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 10,
+          "ordinal": 12431,
+          "text": "the sons of Arah, six hundred and fifty-two;"
+        },
+        {
+          "citation": "Nehemiah 7:11",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 11,
+          "ordinal": 12432,
+          "text": "the sons of Pahath-Moab, of the sons of Jeshua and Joab, two thousand eight hundred and eighteen;"
+        },
+        {
+          "citation": "Nehemiah 7:12",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 12,
+          "ordinal": 12433,
+          "text": "the sons of Elam, one thousand two hundred and fifty-four;"
+        },
+        {
+          "citation": "Nehemiah 7:13",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 13,
+          "ordinal": 12434,
+          "text": "the sons of Zattu, eight hundred and forty-five;"
+        },
+        {
+          "citation": "Nehemiah 7:14",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 14,
+          "ordinal": 12435,
+          "text": "the sons of Zaccai, seven hundred and sixty;"
+        },
+        {
+          "citation": "Nehemiah 7:15",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 15,
+          "ordinal": 12436,
+          "text": "the sons of Binnui, six hundred and forty-eight;"
+        },
+        {
+          "citation": "Nehemiah 7:16",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 16,
+          "ordinal": 12437,
+          "text": "the sons of Bebai, six hundred and twenty-eight;"
+        },
+        {
+          "citation": "Nehemiah 7:17",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 17,
+          "ordinal": 12438,
+          "text": "the sons of Azgad, two thousand three hundred and twenty-two;"
+        },
+        {
+          "citation": "Nehemiah 7:18",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 18,
+          "ordinal": 12439,
+          "text": "the sons of Adonikam, six hundred and sixty-seven;"
+        },
+        {
+          "citation": "Nehemiah 7:19",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 19,
+          "ordinal": 12440,
+          "text": "the sons of Bigvai, two thousand and sixty-seven;"
+        },
+        {
+          "citation": "Nehemiah 7:20",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 20,
+          "ordinal": 12441,
+          "text": "the sons of Adin, six hundred and fifty-five;"
+        },
+        {
+          "citation": "Nehemiah 7:21",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 21,
+          "ordinal": 12442,
+          "text": "the sons of Ater of Hezekiah, ninety-eight;"
+        },
+        {
+          "citation": "Nehemiah 7:22",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 22,
+          "ordinal": 12443,
+          "text": "the sons of Hashum, three hundred and twenty-eight;"
+        },
+        {
+          "citation": "Nehemiah 7:23",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 23,
+          "ordinal": 12444,
+          "text": "the sons of Bezai, three hundred and twenty-four;"
+        },
+        {
+          "citation": "Nehemiah 7:24",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 24,
+          "ordinal": 12445,
+          "text": "the sons of Hariph, one hundred and twelve;"
+        },
+        {
+          "citation": "Nehemiah 7:25",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 25,
+          "ordinal": 12446,
+          "text": "the sons of Gibeon, ninety-five;"
+        },
+        {
+          "citation": "Nehemiah 7:26",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 26,
+          "ordinal": 12447,
+          "text": "the men of Bethlehem and Netophah, one hundred and eighty-eight;"
+        },
+        {
+          "citation": "Nehemiah 7:27",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 27,
+          "ordinal": 12448,
+          "text": "the men of Anathoth, one hundred and twenty-eight;"
+        },
+        {
+          "citation": "Nehemiah 7:28",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 28,
+          "ordinal": 12449,
+          "text": "the men of Beth Azmaveth, forty-two;"
+        },
+        {
+          "citation": "Nehemiah 7:29",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 29,
+          "ordinal": 12450,
+          "text": "the men of Kirjath Jearim, Chephirah, and Beeroth, seven hundred and forty-three;"
+        },
+        {
+          "citation": "Nehemiah 7:30",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 30,
+          "ordinal": 12451,
+          "text": "the men of Ramah and Geba, six hundred and twenty-one;"
+        },
+        {
+          "citation": "Nehemiah 7:31",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 31,
+          "ordinal": 12452,
+          "text": "the men of Michmas, one hundred and twenty-two;"
+        },
+        {
+          "citation": "Nehemiah 7:32",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 32,
+          "ordinal": 12453,
+          "text": "the men of Bethel and Ai, one hundred and twenty-three;"
+        },
+        {
+          "citation": "Nehemiah 7:33",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 33,
+          "ordinal": 12454,
+          "text": "the men of the other Nebo, fifty-two;"
+        },
+        {
+          "citation": "Nehemiah 7:34",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 34,
+          "ordinal": 12455,
+          "text": "the sons of the other Elam, one thousand two hundred and fifty-four;"
+        },
+        {
+          "citation": "Nehemiah 7:35",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 35,
+          "ordinal": 12456,
+          "text": "the sons of Harim, three hundred and twenty;"
+        },
+        {
+          "citation": "Nehemiah 7:36",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 36,
+          "ordinal": 12457,
+          "text": "the sons of Jericho, three hundred and forty-five;"
+        },
+        {
+          "citation": "Nehemiah 7:37",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 37,
+          "ordinal": 12458,
+          "text": "the sons of Lod, Hadid, and Ono, seven hundred and twenty-one;"
+        },
+        {
+          "citation": "Nehemiah 7:38",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 38,
+          "ordinal": 12459,
+          "text": "the sons of Senaah, three thousand nine hundred and thirty."
+        },
+        {
+          "citation": "Nehemiah 7:39",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 39,
+          "ordinal": 12460,
+          "text": "The priests: the sons of Jedaiah, of the house of Jeshua, nine hundred and seventy-three;"
+        },
+        {
+          "citation": "Nehemiah 7:40",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 40,
+          "ordinal": 12461,
+          "text": "the sons of Immer, one thousand and fifty-two;"
+        },
+        {
+          "citation": "Nehemiah 7:41",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 41,
+          "ordinal": 12462,
+          "text": "the sons of Pashhur, one thousand two hundred and forty-seven;"
+        },
+        {
+          "citation": "Nehemiah 7:42",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 42,
+          "ordinal": 12463,
+          "text": "the sons of Harim, one thousand and seventeen."
+        },
+        {
+          "citation": "Nehemiah 7:43",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 43,
+          "ordinal": 12464,
+          "text": "The Levites: the sons of Jeshua, of Kadmiel, and of the sons of Hodevah, seventy-four."
+        },
+        {
+          "citation": "Nehemiah 7:44",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 44,
+          "ordinal": 12465,
+          "text": "The singers: the sons of Asaph, one hundred and forty-eight."
+        },
+        {
+          "citation": "Nehemiah 7:45",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 45,
+          "ordinal": 12466,
+          "text": "The gatekeepers: the sons of Shallum, the sons of Ater, the sons of Talmon, the sons of Akkub, the sons of Hatita, the sons of Shobai, one hundred and thirty-eight."
+        },
+        {
+          "citation": "Nehemiah 7:46",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 46,
+          "ordinal": 12467,
+          "text": "The Nethinim: the sons of Ziha, the sons of Hasupha, the sons of Tabbaoth,"
+        },
+        {
+          "citation": "Nehemiah 7:47",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 47,
+          "ordinal": 12468,
+          "text": "the sons of Keros, the sons of Sia, the sons of Padon,"
+        },
+        {
+          "citation": "Nehemiah 7:48",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 48,
+          "ordinal": 12469,
+          "text": "the sons of Lebana, the sons of Hagaba, the sons of Salmai,"
+        },
+        {
+          "citation": "Nehemiah 7:49",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 49,
+          "ordinal": 12470,
+          "text": "the sons of Hanan, the sons of Giddel, the sons of Gahar,"
+        },
+        {
+          "citation": "Nehemiah 7:50",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 50,
+          "ordinal": 12471,
+          "text": "the sons of Reaiah, the sons of Rezin, the sons of Nekoda,"
+        },
+        {
+          "citation": "Nehemiah 7:51",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 51,
+          "ordinal": 12472,
+          "text": "the sons of Gazzam, the sons of Uzza, the sons of Paseah,"
+        },
+        {
+          "citation": "Nehemiah 7:52",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 52,
+          "ordinal": 12473,
+          "text": "the sons of Besai, the sons of Meunim, the sons of Nephishesim,"
+        },
+        {
+          "citation": "Nehemiah 7:53",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 53,
+          "ordinal": 12474,
+          "text": "the sons of Bakbuk, the sons of Hakupha, the sons of Harhur,"
+        },
+        {
+          "citation": "Nehemiah 7:54",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 54,
+          "ordinal": 12475,
+          "text": "the sons of Bazlith, the sons of Mehida, the sons of Harsha,"
+        },
+        {
+          "citation": "Nehemiah 7:55",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 55,
+          "ordinal": 12476,
+          "text": "the sons of Barkos, the sons of Sisera, the sons of Tamah,"
+        },
+        {
+          "citation": "Nehemiah 7:56",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 56,
+          "ordinal": 12477,
+          "text": "the sons of Neziah, and the sons of Hatipha."
+        },
+        {
+          "citation": "Nehemiah 7:57",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 57,
+          "ordinal": 12478,
+          "text": "The sons of Solomon's servants: the sons of Sotai, the sons of Sophereth, the sons of Perida,"
+        },
+        {
+          "citation": "Nehemiah 7:58",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 58,
+          "ordinal": 12479,
+          "text": "the sons of Jaala, the sons of Darkon, the sons of Giddel,"
+        },
+        {
+          "citation": "Nehemiah 7:59",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 59,
+          "ordinal": 12480,
+          "text": "the sons of Shephatiah, the sons of Hattil, the sons of Pochereth of Zebaim, and the sons of Amon."
+        },
+        {
+          "citation": "Nehemiah 7:60",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 60,
+          "ordinal": 12481,
+          "text": "All the Nethinim, and the sons of Solomon's servants, were three hundred and ninety-two."
+        },
+        {
+          "citation": "Nehemiah 7:61",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 61,
+          "ordinal": 12482,
+          "text": "And these were the ones who came up from Tel Melah, Tel Harsha, Cherub, Addon, and Immer, but they could not identify their father's house nor their lineage, whether they were of Israel:"
+        },
+        {
+          "citation": "Nehemiah 7:62",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 62,
+          "ordinal": 12483,
+          "text": "the sons of Delaiah, the sons of Tobiah, the sons of Nekoda, six hundred and forty-two;"
+        },
+        {
+          "citation": "Nehemiah 7:63",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 63,
+          "ordinal": 12484,
+          "text": "and of the priests: the sons of Habaiah, the sons of Koz, the sons of Barzillai, who took a wife of the daughters of Barzillai the Gileadite, and was called by their name."
+        },
+        {
+          "citation": "Nehemiah 7:64",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 64,
+          "ordinal": 12485,
+          "text": "These sought their listing among those who were registered by genealogy, but it was not found; therefore they were excluded from the priesthood as defiled."
+        },
+        {
+          "citation": "Nehemiah 7:65",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 65,
+          "ordinal": 12486,
+          "text": "And the governor said to them that they should not eat of the most holy things till a priest could consult with the Urim and Thummim."
+        },
+        {
+          "citation": "Nehemiah 7:66",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 66,
+          "ordinal": 12487,
+          "text": "Altogether the whole assembly was forty-two thousand three hundred and sixty,"
+        },
+        {
+          "citation": "Nehemiah 7:67",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 67,
+          "ordinal": 12488,
+          "text": "besides their male and female servants, of whom there were seven thousand three hundred and thirty-seven; and they had two hundred and forty-five men and women singers."
+        },
+        {
+          "citation": "Nehemiah 7:68",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 68,
+          "ordinal": 12489,
+          "text": "Their horses were seven hundred and thirty-six, their mules two hundred and forty-five,"
+        },
+        {
+          "citation": "Nehemiah 7:69",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 69,
+          "ordinal": 12490,
+          "text": "their camels four hundred and thirty-five, and donkeys six thousand seven hundred and twenty."
+        },
+        {
+          "citation": "Nehemiah 7:70",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 70,
+          "ordinal": 12491,
+          "text": "And some of the heads of the fathers' houses gave to the work. The governor gave to the treasury one thousand gold drachmas, fifty basins, and five hundred and thirty priestly garments."
+        },
+        {
+          "citation": "Nehemiah 7:71",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 71,
+          "ordinal": 12492,
+          "text": "Some of the heads of the fathers' houses gave to the treasury of the work twenty thousand gold drachmas, and two thousand two hundred silver minas."
+        },
+        {
+          "citation": "Nehemiah 7:72",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 72,
+          "ordinal": 12493,
+          "text": "And that which the rest of the people gave was twenty thousand gold drachmas, two thousand silver minas, and sixty-seven priestly garments."
+        },
+        {
+          "citation": "Nehemiah 7:73",
+          "bookKey": "NEH",
+          "chapter": 7,
+          "verse": 73,
+          "ordinal": 12494,
+          "text": "So the priests, the Levites, the gatekeepers, the singers, some of the people, the Nethinim, and all Israel dwelt in their cities. When the seventh month came, the children of Israel were in their cities."
+        },
+        {
+          "citation": "Nehemiah 8:1",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 1,
+          "ordinal": 12495,
+          "text": "Now all the people gathered together as one man in the open square that was in front of the Water Gate; and they told Ezra the scribe to bring the Book of the Law of Moses, which the LORD had commanded Israel."
+        },
+        {
+          "citation": "Nehemiah 8:2",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 2,
+          "ordinal": 12496,
+          "text": "So Ezra the priest brought the Law before the assembly of men and women and all who could hear with understanding on the first day of the seventh month."
+        },
+        {
+          "citation": "Nehemiah 8:3",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 3,
+          "ordinal": 12497,
+          "text": "Then he read from it in the open square that was in front of the Water Gate from morning until midday, before the men and women and those who could understand; and the ears of all the people were attentive to the Book of the Law."
+        },
+        {
+          "citation": "Nehemiah 8:4",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 4,
+          "ordinal": 12498,
+          "text": "So Ezra the scribe stood on a platform of wood which they had made for the purpose; and beside him, at his right hand, stood Mattithiah, Shema, Anaiah, Urijah, Hilkiah, and Maaseiah; and at his left hand Pedaiah, Mishael, Malchijah, Hashum, Hashbadana, Zechariah, and Meshullam."
+        },
+        {
+          "citation": "Nehemiah 8:5",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 5,
+          "ordinal": 12499,
+          "text": "And Ezra opened the book in the sight of all the people, for he was standing above all the people; and when he opened it, all the people stood up."
+        },
+        {
+          "citation": "Nehemiah 8:6",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 6,
+          "ordinal": 12500,
+          "text": "And Ezra blessed the LORD, the great God. Then all the people answered, \"Amen, Amen!\" while lifting up their hands. And they bowed their heads and worshiped the LORD with their faces to the ground."
+        },
+        {
+          "citation": "Nehemiah 8:7",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 7,
+          "ordinal": 12501,
+          "text": "Also Jeshua, Bani, Sherebiah, Jamin, Akkub, Shabbethai, Hodijah, Maaseiah, Kelita, Azariah, Jozabad, Hanan, Pelaiah, and the Levites, helped the people to understand the Law; and the people stood in their place."
+        },
+        {
+          "citation": "Nehemiah 8:8",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 8,
+          "ordinal": 12502,
+          "text": "So they read distinctly from the book, in the Law of God; and they gave the sense, and helped them to understand the reading."
+        },
+        {
+          "citation": "Nehemiah 8:9",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 9,
+          "ordinal": 12503,
+          "text": "And Nehemiah, who was the governor, Ezra the priest and scribe, and the Levites who taught the people said to all the people, \"This day is holy to the LORD your God; do not mourn nor weep.\" For all the people wept, when they heard the words of the Law."
+        },
+        {
+          "citation": "Nehemiah 8:10",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 10,
+          "ordinal": 12504,
+          "text": "Then he said to them, \"Go your way, eat the fat, drink the sweet, and send portions to those for whom nothing is prepared; for this day is holy to our Lord. Do not sorrow, for the joy of the LORD is your strength.\""
+        },
+        {
+          "citation": "Nehemiah 8:11",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 11,
+          "ordinal": 12505,
+          "text": "So the Levites quieted all the people, saying, \"Be still, for the day is holy; do not be grieved.\""
+        },
+        {
+          "citation": "Nehemiah 8:12",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 12,
+          "ordinal": 12506,
+          "text": "And all the people went their way to eat and drink, to send portions and rejoice greatly, because they understood the words that were declared to them."
+        },
+        {
+          "citation": "Nehemiah 8:13",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 13,
+          "ordinal": 12507,
+          "text": "Now on the second day the heads of the fathers' houses of all the people, with the priests and Levites, were gathered to Ezra the scribe, in order to understand the words of the Law."
+        },
+        {
+          "citation": "Nehemiah 8:14",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 14,
+          "ordinal": 12508,
+          "text": "And they found written in the Law, which the LORD had commanded by Moses, that the children of Israel should dwell in booths during the feast of the seventh month,"
+        },
+        {
+          "citation": "Nehemiah 8:15",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 15,
+          "ordinal": 12509,
+          "text": "and that they should announce and proclaim in all their cities and in Jerusalem, saying, \"Go out to the mountain, and bring olive branches, branches of oil trees, myrtle branches, palm branches, and branches of leafy trees, to make booths, as it is written.\""
+        },
+        {
+          "citation": "Nehemiah 8:16",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 16,
+          "ordinal": 12510,
+          "text": "Then the people went out and brought them and made themselves booths, each one on the roof of his house, or in their courtyards or the courts of the house of God, and in the open square of the Water Gate and in the open square of the Gate of Ephraim."
+        },
+        {
+          "citation": "Nehemiah 8:17",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 17,
+          "ordinal": 12511,
+          "text": "So the whole assembly of those who had returned from the captivity made booths and sat under the booths; for since the days of Joshua the son of Nun until that day the children of Israel had not done so. And there was very great gladness."
+        },
+        {
+          "citation": "Nehemiah 8:18",
+          "bookKey": "NEH",
+          "chapter": 8,
+          "verse": 18,
+          "ordinal": 12512,
+          "text": "Also day by day, from the first day until the last day, he read from the Book of the Law of God. And they kept the feast seven days; and on the eighth day there was a sacred assembly, according to the prescribed manner."
+        },
+        {
+          "citation": "Nehemiah 9:1",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 1,
+          "ordinal": 12513,
+          "text": "Now on the twenty-fourth day of this month the children of Israel were assembled with fasting, in sackcloth, and with dust on their heads."
+        },
+        {
+          "citation": "Nehemiah 9:2",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 2,
+          "ordinal": 12514,
+          "text": "Then those of Israelite lineage separated themselves from all foreigners; and they stood and confessed their sins and the iniquities of their fathers."
+        },
+        {
+          "citation": "Nehemiah 9:3",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 3,
+          "ordinal": 12515,
+          "text": "And they stood up in their place and read from the Book of the Law of the LORD their God for one-fourth of the day; and for another fourth they confessed and worshiped the LORD their God."
+        },
+        {
+          "citation": "Nehemiah 9:4",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 4,
+          "ordinal": 12516,
+          "text": "Then Jeshua, Bani, Kadmiel, Shebaniah, Bunni, Sherebiah, Bani, and Chenani stood on the stairs of the Levites and cried out with a loud voice to the LORD their God."
+        },
+        {
+          "citation": "Nehemiah 9:5",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 5,
+          "ordinal": 12517,
+          "text": "And the Levites, Jeshua, Kadmiel, Bani, Hashabniah, Sherebiah, Hodijah, Shebaniah, and Pethahiah, said: \"Stand up and bless the LORD your God Forever and ever! \"Blessed be Your glorious name, Which is exalted above all blessing and praise!"
+        },
+        {
+          "citation": "Nehemiah 9:6",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 6,
+          "ordinal": 12518,
+          "text": "You alone are the LORD; You have made heaven, The heaven of heavens, with all their host, The earth and everything on it, The seas and all that is in them, And You preserve them all. The host of heaven worships You."
+        },
+        {
+          "citation": "Nehemiah 9:7",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 7,
+          "ordinal": 12519,
+          "text": "\"You are the LORD God, Who chose Abram, And brought him out of Ur of the Chaldeans, And gave him the name Abraham;"
+        },
+        {
+          "citation": "Nehemiah 9:8",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 8,
+          "ordinal": 12520,
+          "text": "You found his heart faithful before You, And made a covenant with him To give the land of the Canaanites, The Hittites, the Amorites, The Perizzites, the Jebusites, And the Girgashites-- To give it to his descendants. You have performed Your words, For You are righteous."
+        },
+        {
+          "citation": "Nehemiah 9:9",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 9,
+          "ordinal": 12521,
+          "text": "\"You saw the affliction of our fathers in Egypt, And heard their cry by the Red Sea."
+        },
+        {
+          "citation": "Nehemiah 9:10",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 10,
+          "ordinal": 12522,
+          "text": "You showed signs and wonders against Pharaoh, Against all his servants, And against all the people of his land. For You knew that they acted proudly against them. So You made a name for Yourself, as it is this day."
+        },
+        {
+          "citation": "Nehemiah 9:11",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 11,
+          "ordinal": 12523,
+          "text": "And You divided the sea before them, So that they went through the midst of the sea on the dry land; And their persecutors You threw into the deep, As a stone into the mighty waters."
+        },
+        {
+          "citation": "Nehemiah 9:12",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 12,
+          "ordinal": 12524,
+          "text": "Moreover You led them by day with a cloudy pillar, And by night with a pillar of fire, To give them light on the road Which they should travel."
+        },
+        {
+          "citation": "Nehemiah 9:13",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 13,
+          "ordinal": 12525,
+          "text": "\"You came down also on Mount Sinai, And spoke with them from heaven, And gave them just ordinances and true laws, Good statutes and commandments."
+        },
+        {
+          "citation": "Nehemiah 9:14",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 14,
+          "ordinal": 12526,
+          "text": "You made known to them Your holy Sabbath, And commanded them precepts, statutes and laws, By the hand of Moses Your servant."
+        },
+        {
+          "citation": "Nehemiah 9:15",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 15,
+          "ordinal": 12527,
+          "text": "You gave them bread from heaven for their hunger, And brought them water out of the rock for their thirst, And told them to go in to possess the land Which You had sworn to give them."
+        },
+        {
+          "citation": "Nehemiah 9:16",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 16,
+          "ordinal": 12528,
+          "text": "\"But they and our fathers acted proudly, Hardened their necks, And did not heed Your commandments."
+        },
+        {
+          "citation": "Nehemiah 9:17",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 17,
+          "ordinal": 12529,
+          "text": "They refused to obey, And they were not mindful of Your wonders That You did among them. But they hardened their necks, And in their rebellion They appointed a leader To return to their bondage. But You are God, Ready to pardon, Gracious and merciful, Slow to anger, Abundant in kindness, And did not forsake them."
+        },
+        {
+          "citation": "Nehemiah 9:18",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 18,
+          "ordinal": 12530,
+          "text": "\"Even when they made a molded calf for themselves, And said, \"This is your god That brought you up out of Egypt,' And worked great provocations,"
+        },
+        {
+          "citation": "Nehemiah 9:19",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 19,
+          "ordinal": 12531,
+          "text": "Yet in Your manifold mercies You did not forsake them in the wilderness. The pillar of the cloud did not depart from them by day, To lead them on the road; Nor the pillar of fire by night, To show them light, And the way they should go."
+        },
+        {
+          "citation": "Nehemiah 9:20",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 20,
+          "ordinal": 12532,
+          "text": "You also gave Your good Spirit to instruct them, And did not withhold Your manna from their mouth, And gave them water for their thirst."
+        },
+        {
+          "citation": "Nehemiah 9:21",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 21,
+          "ordinal": 12533,
+          "text": "Forty years You sustained them in the wilderness; They lacked nothing; Their clothes did not wear out And their feet did not swell."
+        },
+        {
+          "citation": "Nehemiah 9:22",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 22,
+          "ordinal": 12534,
+          "text": "\"Moreover You gave them kingdoms and nations, And divided them into districts. So they took possession of the land of Sihon, The land of the king of Heshbon, And the land of Og king of Bashan."
+        },
+        {
+          "citation": "Nehemiah 9:23",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 23,
+          "ordinal": 12535,
+          "text": "You also multiplied their children as the stars of heaven, And brought them into the land Which You had told their fathers To go in and possess."
+        },
+        {
+          "citation": "Nehemiah 9:24",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 24,
+          "ordinal": 12536,
+          "text": "So the people went in And possessed the land; You subdued before them the inhabitants of the land, The Canaanites, And gave them into their hands, With their kings And the people of the land, That they might do with them as they wished."
+        },
+        {
+          "citation": "Nehemiah 9:25",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 25,
+          "ordinal": 12537,
+          "text": "And they took strong cities and a rich land, And possessed houses full of all goods, Cisterns already dug, vineyards, olive groves, And fruit trees in abundance. So they ate and were filled and grew fat, And delighted themselves in Your great goodness."
+        },
+        {
+          "citation": "Nehemiah 9:26",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 26,
+          "ordinal": 12538,
+          "text": "\"Nevertheless they were disobedient And rebelled against You, Cast Your law behind their backs And killed Your prophets, who testified against them To turn them to Yourself; And they worked great provocations."
+        },
+        {
+          "citation": "Nehemiah 9:27",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 27,
+          "ordinal": 12539,
+          "text": "Therefore You delivered them into the hand of their enemies, Who oppressed them; And in the time of their trouble, When they cried to You, You heard from heaven; And according to Your abundant mercies You gave them deliverers who saved them From the hand of their enemies."
+        },
+        {
+          "citation": "Nehemiah 9:28",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 28,
+          "ordinal": 12540,
+          "text": "\"But after they had rest, They again did evil before You. Therefore You left them in the hand of their enemies, So that they had dominion over them; Yet when they returned and cried out to You, You heard from heaven; And many times You delivered them according to Your mercies,"
+        },
+        {
+          "citation": "Nehemiah 9:29",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 29,
+          "ordinal": 12541,
+          "text": "And testified against them, That You might bring them back to Your law. Yet they acted proudly, And did not heed Your commandments, But sinned against Your judgments, \"Which if a man does, he shall live by them.' And they shrugged their shoulders, Stiffened their necks, And would not hear."
+        },
+        {
+          "citation": "Nehemiah 9:30",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 30,
+          "ordinal": 12542,
+          "text": "Yet for many years You had patience with them, And testified against them by Your Spirit in Your prophets. Yet they would not listen; Therefore You gave them into the hand of the peoples of the lands."
+        },
+        {
+          "citation": "Nehemiah 9:31",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 31,
+          "ordinal": 12543,
+          "text": "Nevertheless in Your great mercy You did not utterly consume them nor forsake them; For You are God, gracious and merciful."
+        },
+        {
+          "citation": "Nehemiah 9:32",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 32,
+          "ordinal": 12544,
+          "text": "\"Now therefore, our God, The great, the mighty, and awesome God, Who keeps covenant and mercy: Do not let all the trouble seem small before You That has come upon us, Our kings and our princes, Our priests and our prophets, Our fathers and on all Your people, From the days of the kings of Assyria until this day."
+        },
+        {
+          "citation": "Nehemiah 9:33",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 33,
+          "ordinal": 12545,
+          "text": "However You are just in all that has befallen us; For You have dealt faithfully, But we have done wickedly."
+        },
+        {
+          "citation": "Nehemiah 9:34",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 34,
+          "ordinal": 12546,
+          "text": "Neither our kings nor our princes, Our priests nor our fathers, Have kept Your law, Nor heeded Your commandments and Your testimonies, With which You testified against them."
+        },
+        {
+          "citation": "Nehemiah 9:35",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 35,
+          "ordinal": 12547,
+          "text": "For they have not served You in their kingdom, Or in the many good things that You gave them, Or in the large and rich land which You set before them; Nor did they turn from their wicked works."
+        },
+        {
+          "citation": "Nehemiah 9:36",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 36,
+          "ordinal": 12548,
+          "text": "\"Here we are, servants today! And the land that You gave to our fathers, To eat its fruit and its bounty, Here we are, servants in it!"
+        },
+        {
+          "citation": "Nehemiah 9:37",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 37,
+          "ordinal": 12549,
+          "text": "And it yields much increase to the kings You have set over us, Because of our sins; Also they have dominion over our bodies and our cattle At their pleasure; And we are in great distress."
+        },
+        {
+          "citation": "Nehemiah 9:38",
+          "bookKey": "NEH",
+          "chapter": 9,
+          "verse": 38,
+          "ordinal": 12550,
+          "text": "\"And because of all this, We make a sure covenant and write it; Our leaders, our Levites, and our priests seal it.\""
+        },
+        {
+          "citation": "Nehemiah 10:1",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 1,
+          "ordinal": 12551,
+          "text": "Now those who placed their seal on the document were: Nehemiah the governor, the son of Hacaliah, and Zedekiah,"
+        },
+        {
+          "citation": "Nehemiah 10:2",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 2,
+          "ordinal": 12552,
+          "text": "Seraiah, Azariah, Jeremiah,"
+        },
+        {
+          "citation": "Nehemiah 10:3",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 3,
+          "ordinal": 12553,
+          "text": "Pashhur, Amariah, Malchijah,"
+        },
+        {
+          "citation": "Nehemiah 10:4",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 4,
+          "ordinal": 12554,
+          "text": "Hattush, Shebaniah, Malluch,"
+        },
+        {
+          "citation": "Nehemiah 10:5",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 5,
+          "ordinal": 12555,
+          "text": "Harim, Meremoth, Obadiah,"
+        },
+        {
+          "citation": "Nehemiah 10:6",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 6,
+          "ordinal": 12556,
+          "text": "Daniel, Ginnethon, Baruch,"
+        },
+        {
+          "citation": "Nehemiah 10:7",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 7,
+          "ordinal": 12557,
+          "text": "Meshullam, Abijah, Mijamin,"
+        },
+        {
+          "citation": "Nehemiah 10:8",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 8,
+          "ordinal": 12558,
+          "text": "Maaziah, Bilgai, and Shemaiah. These were the priests."
+        },
+        {
+          "citation": "Nehemiah 10:9",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 9,
+          "ordinal": 12559,
+          "text": "The Levites: Jeshua the son of Azaniah, Binnui of the sons of Henadad, and Kadmiel."
+        },
+        {
+          "citation": "Nehemiah 10:10",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 10,
+          "ordinal": 12560,
+          "text": "Their brethren: Shebaniah, Hodijah, Kelita, Pelaiah, Hanan,"
+        },
+        {
+          "citation": "Nehemiah 10:11",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 11,
+          "ordinal": 12561,
+          "text": "Micha, Rehob, Hashabiah,"
+        },
+        {
+          "citation": "Nehemiah 10:12",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 12,
+          "ordinal": 12562,
+          "text": "Zaccur, Sherebiah, Shebaniah,"
+        },
+        {
+          "citation": "Nehemiah 10:13",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 13,
+          "ordinal": 12563,
+          "text": "Hodijah, Bani, and Beninu."
+        },
+        {
+          "citation": "Nehemiah 10:14",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 14,
+          "ordinal": 12564,
+          "text": "The leaders of the people: Parosh, Pahath-Moab, Elam, Zattu, Bani,"
+        },
+        {
+          "citation": "Nehemiah 10:15",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 15,
+          "ordinal": 12565,
+          "text": "Bunni, Azgad, Bebai,"
+        },
+        {
+          "citation": "Nehemiah 10:16",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 16,
+          "ordinal": 12566,
+          "text": "Adonijah, Bigvai, Adin,"
+        },
+        {
+          "citation": "Nehemiah 10:17",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 17,
+          "ordinal": 12567,
+          "text": "Ater, Hezekiah, Azzur,"
+        },
+        {
+          "citation": "Nehemiah 10:18",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 18,
+          "ordinal": 12568,
+          "text": "Hodijah, Hashum, Bezai,"
+        },
+        {
+          "citation": "Nehemiah 10:19",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 19,
+          "ordinal": 12569,
+          "text": "Hariph, Anathoth, Nebai,"
+        },
+        {
+          "citation": "Nehemiah 10:20",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 20,
+          "ordinal": 12570,
+          "text": "Magpiash, Meshullam, Hezir,"
+        },
+        {
+          "citation": "Nehemiah 10:21",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 21,
+          "ordinal": 12571,
+          "text": "Meshezabel, Zadok, Jaddua,"
+        },
+        {
+          "citation": "Nehemiah 10:22",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 22,
+          "ordinal": 12572,
+          "text": "Pelatiah, Hanan, Anaiah,"
+        },
+        {
+          "citation": "Nehemiah 10:23",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 23,
+          "ordinal": 12573,
+          "text": "Hoshea, Hananiah, Hasshub,"
+        },
+        {
+          "citation": "Nehemiah 10:24",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 24,
+          "ordinal": 12574,
+          "text": "Hallohesh, Pilha, Shobek,"
+        },
+        {
+          "citation": "Nehemiah 10:25",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 25,
+          "ordinal": 12575,
+          "text": "Rehum, Hashabnah, Maaseiah,"
+        },
+        {
+          "citation": "Nehemiah 10:26",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 26,
+          "ordinal": 12576,
+          "text": "Ahijah, Hanan, Anan,"
+        },
+        {
+          "citation": "Nehemiah 10:27",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 27,
+          "ordinal": 12577,
+          "text": "Malluch, Harim, and Baanah."
+        },
+        {
+          "citation": "Nehemiah 10:28",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 28,
+          "ordinal": 12578,
+          "text": "Now the rest of the people--the priests, the Levites, the gatekeepers, the singers, the Nethinim, and all those who had separated themselves from the peoples of the lands to the Law of God, their wives, their sons, and their daughters, everyone who had knowledge and understanding--"
+        },
+        {
+          "citation": "Nehemiah 10:29",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 29,
+          "ordinal": 12579,
+          "text": "these joined with their brethren, their nobles, and entered into a curse and an oath to walk in God's Law, which was given by Moses the servant of God, and to observe and do all the commandments of the LORD our Lord, and His ordinances and His statutes:"
+        },
+        {
+          "citation": "Nehemiah 10:30",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 30,
+          "ordinal": 12580,
+          "text": "We would not give our daughters as wives to the peoples of the land, nor take their daughters for our sons;"
+        },
+        {
+          "citation": "Nehemiah 10:31",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 31,
+          "ordinal": 12581,
+          "text": "if the peoples of the land brought wares or any grain to sell on the Sabbath day, we would not buy it from them on the Sabbath, or on a holy day; and we would forego the seventh year's produce and the exacting of every debt."
+        },
+        {
+          "citation": "Nehemiah 10:32",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 32,
+          "ordinal": 12582,
+          "text": "Also we made ordinances for ourselves, to exact from ourselves yearly one-third of a shekel for the service of the house of our God:"
+        },
+        {
+          "citation": "Nehemiah 10:33",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 33,
+          "ordinal": 12583,
+          "text": "for the showbread, for the regular grain offering, for the regular burnt offering of the Sabbaths, the New Moons, and the set feasts; for the holy things, for the sin offerings to make atonement for Israel, and all the work of the house of our God."
+        },
+        {
+          "citation": "Nehemiah 10:34",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 34,
+          "ordinal": 12584,
+          "text": "We cast lots among the priests, the Levites, and the people, for bringing the wood offering into the house of our God, according to our fathers' houses, at the appointed times year by year, to burn on the altar of the LORD our God as it is written in the Law."
+        },
+        {
+          "citation": "Nehemiah 10:35",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 35,
+          "ordinal": 12585,
+          "text": "And we made ordinances to bring the firstfruits of our ground and the firstfruits of all fruit of all trees, year by year, to the house of the LORD;"
+        },
+        {
+          "citation": "Nehemiah 10:36",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 36,
+          "ordinal": 12586,
+          "text": "to bring the firstborn of our sons and our cattle, as it is written in the Law, and the firstborn of our herds and our flocks, to the house of our God, to the priests who minister in the house of our God;"
+        },
+        {
+          "citation": "Nehemiah 10:37",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 37,
+          "ordinal": 12587,
+          "text": "to bring the firstfruits of our dough, our offerings, the fruit from all kinds of trees, the new wine and oil, to the priests, to the storerooms of the house of our God; and to bring the tithes of our land to the Levites, for the Levites should receive the tithes in all our farming communities."
+        },
+        {
+          "citation": "Nehemiah 10:38",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 38,
+          "ordinal": 12588,
+          "text": "And the priest, the descendant of Aaron, shall be with the Levites when the Levites receive tithes; and the Levites shall bring up a tenth of the tithes to the house of our God, to the rooms of the storehouse."
+        },
+        {
+          "citation": "Nehemiah 10:39",
+          "bookKey": "NEH",
+          "chapter": 10,
+          "verse": 39,
+          "ordinal": 12589,
+          "text": "For the children of Israel and the children of Levi shall bring the offering of the grain, of the new wine and the oil, to the storerooms where the articles of the sanctuary are, where the priests who minister and the gatekeepers and the singers are; and we will not neglect the house of our God."
+        },
+        {
+          "citation": "Nehemiah 11:1",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 1,
+          "ordinal": 12590,
+          "text": "Now the leaders of the people dwelt at Jerusalem; the rest of the people cast lots to bring one out of ten to dwell in Jerusalem, the holy city, and nine-tenths were to dwell in other cities."
+        },
+        {
+          "citation": "Nehemiah 11:2",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 2,
+          "ordinal": 12591,
+          "text": "And the people blessed all the men who willingly offered themselves to dwell at Jerusalem."
+        },
+        {
+          "citation": "Nehemiah 11:3",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 3,
+          "ordinal": 12592,
+          "text": "These are the heads of the province who dwelt in Jerusalem. (But in the cities of Judah everyone dwelt in his own possession in their cities--Israelites, priests, Levites, Nethinim, and descendants of Solomon's servants.)"
+        },
+        {
+          "citation": "Nehemiah 11:4",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 4,
+          "ordinal": 12593,
+          "text": "Also in Jerusalem dwelt some of the children of Judah and of the children of Benjamin. The children of Judah: Athaiah the son of Uzziah, the son of Zechariah, the son of Amariah, the son of Shephatiah, the son of Mahalalel, of the children of Perez;"
+        },
+        {
+          "citation": "Nehemiah 11:5",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 5,
+          "ordinal": 12594,
+          "text": "and Maaseiah the son of Baruch, the son of Col-Hozeh, the son of Hazaiah, the son of Adaiah, the son of Joiarib, the son of Zechariah, the son of Shiloni."
+        },
+        {
+          "citation": "Nehemiah 11:6",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 6,
+          "ordinal": 12595,
+          "text": "All the sons of Perez who dwelt at Jerusalem were four hundred and sixty-eight valiant men."
+        },
+        {
+          "citation": "Nehemiah 11:7",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 7,
+          "ordinal": 12596,
+          "text": "And these are the sons of Benjamin: Sallu the son of Meshullam, the son of Joed, the son of Pedaiah, the son of Kolaiah, the son of Maaseiah, the son of Ithiel, the son of Jeshaiah;"
+        },
+        {
+          "citation": "Nehemiah 11:8",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 8,
+          "ordinal": 12597,
+          "text": "and after him Gabbai and Sallai, nine hundred and twenty-eight."
+        },
+        {
+          "citation": "Nehemiah 11:9",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 9,
+          "ordinal": 12598,
+          "text": "Joel the son of Zichri was their overseer, and Judah the son of Senuah was second over the city."
+        },
+        {
+          "citation": "Nehemiah 11:10",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 10,
+          "ordinal": 12599,
+          "text": "Of the priests: Jedaiah the son of Joiarib, and Jachin;"
+        },
+        {
+          "citation": "Nehemiah 11:11",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 11,
+          "ordinal": 12600,
+          "text": "Seraiah the son of Hilkiah, the son of Meshullam, the son of Zadok, the son of Meraioth, the son of Ahitub, was the leader of the house of God."
+        },
+        {
+          "citation": "Nehemiah 11:12",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 12,
+          "ordinal": 12601,
+          "text": "Their brethren who did the work of the house were eight hundred and twenty-two; and Adaiah the son of Jeroham, the son of Pelaliah, the son of Amzi, the son of Zechariah, the son of Pashhur, the son of Malchijah,"
+        },
+        {
+          "citation": "Nehemiah 11:13",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 13,
+          "ordinal": 12602,
+          "text": "and his brethren, heads of the fathers' houses, were two hundred and forty-two; and Amashai the son of Azarel, the son of Ahzai, the son of Meshillemoth, the son of Immer,"
+        },
+        {
+          "citation": "Nehemiah 11:14",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 14,
+          "ordinal": 12603,
+          "text": "and their brethren, mighty men of valor, were one hundred and twenty-eight. Their overseer was Zabdiel the son of one of the great men."
+        },
+        {
+          "citation": "Nehemiah 11:15",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 15,
+          "ordinal": 12604,
+          "text": "Also of the Levites: Shemaiah the son of Hasshub, the son of Azrikam, the son of Hashabiah, the son of Bunni;"
+        },
+        {
+          "citation": "Nehemiah 11:16",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 16,
+          "ordinal": 12605,
+          "text": "Shabbethai and Jozabad, of the heads of the Levites, had the oversight of the business outside of the house of God;"
+        },
+        {
+          "citation": "Nehemiah 11:17",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 17,
+          "ordinal": 12606,
+          "text": "Mattaniah the son of Micha, the son of Zabdi, the son of Asaph, the leader who began the thanksgiving with prayer; Bakbukiah, the second among his brethren; and Abda the son of Shammua, the son of Galal, the son of Jeduthun."
+        },
+        {
+          "citation": "Nehemiah 11:18",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 18,
+          "ordinal": 12607,
+          "text": "All the Levites in the holy city were two hundred and eighty-four."
+        },
+        {
+          "citation": "Nehemiah 11:19",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 19,
+          "ordinal": 12608,
+          "text": "Moreover the gatekeepers, Akkub, Talmon, and their brethren who kept the gates, were one hundred and seventy-two."
+        },
+        {
+          "citation": "Nehemiah 11:20",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 20,
+          "ordinal": 12609,
+          "text": "And the rest of Israel, of the priests and Levites, were in all the cities of Judah, everyone in his inheritance."
+        },
+        {
+          "citation": "Nehemiah 11:21",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 21,
+          "ordinal": 12610,
+          "text": "But the Nethinim dwelt in Ophel. And Ziha and Gishpa were over the Nethinim."
+        },
+        {
+          "citation": "Nehemiah 11:22",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 22,
+          "ordinal": 12611,
+          "text": "Also the overseer of the Levites at Jerusalem was Uzzi the son of Bani, the son of Hashabiah, the son of Mattaniah, the son of Micha, of the sons of Asaph, the singers in charge of the service of the house of God."
+        },
+        {
+          "citation": "Nehemiah 11:23",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 23,
+          "ordinal": 12612,
+          "text": "For it was the king's command concerning them that a certain portion should be for the singers, a quota day by day."
+        },
+        {
+          "citation": "Nehemiah 11:24",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 24,
+          "ordinal": 12613,
+          "text": "Pethahiah the son of Meshezabel, of the children of Zerah the son of Judah, was the king's deputy in all matters concerning the people."
+        },
+        {
+          "citation": "Nehemiah 11:25",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 25,
+          "ordinal": 12614,
+          "text": "And as for the villages with their fields, some of the children of Judah dwelt in Kirjath Arba and its villages, Dibon and its villages, Jekabzeel and its villages;"
+        },
+        {
+          "citation": "Nehemiah 11:26",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 26,
+          "ordinal": 12615,
+          "text": "in Jeshua, Moladah, Beth Pelet,"
+        },
+        {
+          "citation": "Nehemiah 11:27",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 27,
+          "ordinal": 12616,
+          "text": "Hazar Shual, and Beersheba and its villages;"
+        },
+        {
+          "citation": "Nehemiah 11:28",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 28,
+          "ordinal": 12617,
+          "text": "in Ziklag and Meconah and its villages;"
+        },
+        {
+          "citation": "Nehemiah 11:29",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 29,
+          "ordinal": 12618,
+          "text": "in En Rimmon, Zorah, Jarmuth,"
+        },
+        {
+          "citation": "Nehemiah 11:30",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 30,
+          "ordinal": 12619,
+          "text": "Zanoah, Adullam, and their villages; in Lachish and its fields; in Azekah and its villages. They dwelt from Beersheba to the Valley of Hinnom."
+        },
+        {
+          "citation": "Nehemiah 11:31",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 31,
+          "ordinal": 12620,
+          "text": "Also the children of Benjamin from Geba dwelt in Michmash, Aija, and Bethel, and their villages;"
+        },
+        {
+          "citation": "Nehemiah 11:32",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 32,
+          "ordinal": 12621,
+          "text": "in Anathoth, Nob, Ananiah;"
+        },
+        {
+          "citation": "Nehemiah 11:33",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 33,
+          "ordinal": 12622,
+          "text": "in Hazor, Ramah, Gittaim;"
+        },
+        {
+          "citation": "Nehemiah 11:34",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 34,
+          "ordinal": 12623,
+          "text": "in Hadid, Zeboim, Neballat;"
+        },
+        {
+          "citation": "Nehemiah 11:35",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 35,
+          "ordinal": 12624,
+          "text": "in Lod, Ono, and the Valley of Craftsmen."
+        },
+        {
+          "citation": "Nehemiah 11:36",
+          "bookKey": "NEH",
+          "chapter": 11,
+          "verse": 36,
+          "ordinal": 12625,
+          "text": "Some of the Judean divisions of Levites were in Benjamin."
+        },
+        {
+          "citation": "Nehemiah 12:1",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 1,
+          "ordinal": 12626,
+          "text": "Now these are the priests and the Levites who came up with Zerubbabel the son of Shealtiel, and Jeshua: Seraiah, Jeremiah, Ezra,"
+        },
+        {
+          "citation": "Nehemiah 12:2",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 2,
+          "ordinal": 12627,
+          "text": "Amariah, Malluch, Hattush,"
+        },
+        {
+          "citation": "Nehemiah 12:3",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 3,
+          "ordinal": 12628,
+          "text": "Shechaniah, Rehum, Meremoth,"
+        },
+        {
+          "citation": "Nehemiah 12:4",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 4,
+          "ordinal": 12629,
+          "text": "Iddo, Ginnethoi, Abijah,"
+        },
+        {
+          "citation": "Nehemiah 12:5",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 5,
+          "ordinal": 12630,
+          "text": "Mijamin, Maadiah, Bilgah,"
+        },
+        {
+          "citation": "Nehemiah 12:6",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 6,
+          "ordinal": 12631,
+          "text": "Shemaiah, Joiarib, Jedaiah,"
+        },
+        {
+          "citation": "Nehemiah 12:7",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 7,
+          "ordinal": 12632,
+          "text": "Sallu, Amok, Hilkiah, and Jedaiah. These were the heads of the priests and their brethren in the days of Jeshua."
+        },
+        {
+          "citation": "Nehemiah 12:8",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 8,
+          "ordinal": 12633,
+          "text": "Moreover the Levites were Jeshua, Binnui, Kadmiel, Sherebiah, Judah, and Mattaniah who led the thanksgiving psalms, he and his brethren."
+        },
+        {
+          "citation": "Nehemiah 12:9",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 9,
+          "ordinal": 12634,
+          "text": "Also Bakbukiah and Unni, their brethren, stood across from them in their duties."
+        },
+        {
+          "citation": "Nehemiah 12:10",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 10,
+          "ordinal": 12635,
+          "text": "Jeshua begot Joiakim, Joiakim begot Eliashib, Eliashib begot Joiada,"
+        },
+        {
+          "citation": "Nehemiah 12:11",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 11,
+          "ordinal": 12636,
+          "text": "Joiada begot Jonathan, and Jonathan begot Jaddua."
+        },
+        {
+          "citation": "Nehemiah 12:12",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 12,
+          "ordinal": 12637,
+          "text": "Now in the days of Joiakim, the priests, the heads of the fathers' houses were: of Seraiah, Meraiah; of Jeremiah, Hananiah;"
+        },
+        {
+          "citation": "Nehemiah 12:13",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 13,
+          "ordinal": 12638,
+          "text": "of Ezra, Meshullam; of Amariah, Jehohanan;"
+        },
+        {
+          "citation": "Nehemiah 12:14",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 14,
+          "ordinal": 12639,
+          "text": "of Melichu, Jonathan; of Shebaniah, Joseph;"
+        },
+        {
+          "citation": "Nehemiah 12:15",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 15,
+          "ordinal": 12640,
+          "text": "of Harim, Adna; of Meraioth, Helkai;"
+        },
+        {
+          "citation": "Nehemiah 12:16",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 16,
+          "ordinal": 12641,
+          "text": "of Iddo, Zechariah; of Ginnethon, Meshullam;"
+        },
+        {
+          "citation": "Nehemiah 12:17",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 17,
+          "ordinal": 12642,
+          "text": "of Abijah, Zichri; the son of Minjamin; of Moadiah, Piltai;"
+        },
+        {
+          "citation": "Nehemiah 12:18",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 18,
+          "ordinal": 12643,
+          "text": "of Bilgah, Shammua; of Shemaiah, Jehonathan;"
+        },
+        {
+          "citation": "Nehemiah 12:19",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 19,
+          "ordinal": 12644,
+          "text": "of Joiarib, Mattenai; of Jedaiah, Uzzi;"
+        },
+        {
+          "citation": "Nehemiah 12:20",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 20,
+          "ordinal": 12645,
+          "text": "of Sallai, Kallai; of Amok, Eber;"
+        },
+        {
+          "citation": "Nehemiah 12:21",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 21,
+          "ordinal": 12646,
+          "text": "of Hilkiah, Hashabiah; and of Jedaiah, Nethanel."
+        },
+        {
+          "citation": "Nehemiah 12:22",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 22,
+          "ordinal": 12647,
+          "text": "During the reign of Darius the Persian, a record was also kept of the Levites and priests who had been heads of their fathers' houses in the days of Eliashib, Joiada, Johanan, and Jaddua."
+        },
+        {
+          "citation": "Nehemiah 12:23",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 23,
+          "ordinal": 12648,
+          "text": "The sons of Levi, the heads of the fathers' houses until the days of Johanan the son of Eliashib, were written in the book of the chronicles."
+        },
+        {
+          "citation": "Nehemiah 12:24",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 24,
+          "ordinal": 12649,
+          "text": "And the heads of the Levites were Hashabiah, Sherebiah, and Jeshua the son of Kadmiel, with their brothers across from them, to praise and give thanks, group alternating with group, according to the command of David the man of God."
+        },
+        {
+          "citation": "Nehemiah 12:25",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 25,
+          "ordinal": 12650,
+          "text": "Mattaniah, Bakbukiah, Obadiah, Meshullam, Talmon, and Akkub were gatekeepers keeping the watch at the storerooms of the gates."
+        },
+        {
+          "citation": "Nehemiah 12:26",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 26,
+          "ordinal": 12651,
+          "text": "These lived in the days of Joiakim the son of Jeshua, the son of Jozadak, and in the days of Nehemiah the governor, and of Ezra the priest, the scribe."
+        },
+        {
+          "citation": "Nehemiah 12:27",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 27,
+          "ordinal": 12652,
+          "text": "Now at the dedication of the wall of Jerusalem they sought out the Levites in all their places, to bring them to Jerusalem to celebrate the dedication with gladness, both with thanksgivings and singing, with cymbals and stringed instruments and harps."
+        },
+        {
+          "citation": "Nehemiah 12:28",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 28,
+          "ordinal": 12653,
+          "text": "And the sons of the singers gathered together from the countryside around Jerusalem, from the villages of the Netophathites,"
+        },
+        {
+          "citation": "Nehemiah 12:29",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 29,
+          "ordinal": 12654,
+          "text": "from the house of Gilgal, and from the fields of Geba and Azmaveth; for the singers had built themselves villages all around Jerusalem."
+        },
+        {
+          "citation": "Nehemiah 12:30",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 30,
+          "ordinal": 12655,
+          "text": "Then the priests and Levites purified themselves, and purified the people, the gates, and the wall."
+        },
+        {
+          "citation": "Nehemiah 12:31",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 31,
+          "ordinal": 12656,
+          "text": "So I brought the leaders of Judah up on the wall, and appointed two large thanksgiving choirs. One went to the right hand on the wall toward the Refuse Gate."
+        },
+        {
+          "citation": "Nehemiah 12:32",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 32,
+          "ordinal": 12657,
+          "text": "After them went Hoshaiah and half of the leaders of Judah,"
+        },
+        {
+          "citation": "Nehemiah 12:33",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 33,
+          "ordinal": 12658,
+          "text": "and Azariah, Ezra, Meshullam,"
+        },
+        {
+          "citation": "Nehemiah 12:34",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 34,
+          "ordinal": 12659,
+          "text": "Judah, Benjamin, Shemaiah, Jeremiah,"
+        },
+        {
+          "citation": "Nehemiah 12:35",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 35,
+          "ordinal": 12660,
+          "text": "and some of the priests' sons with trumpets--Zechariah the son of Jonathan, the son of Shemaiah, the son of Mattaniah, the son of Michaiah, the son of Zaccur, the son of Asaph,"
+        },
+        {
+          "citation": "Nehemiah 12:36",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 36,
+          "ordinal": 12661,
+          "text": "and his brethren, Shemaiah, Azarel, Milalai, Gilalai, Maai, Nethanel, Judah, and Hanani, with the musical instruments of David the man of God. And Ezra the scribe went before them."
+        },
+        {
+          "citation": "Nehemiah 12:37",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 37,
+          "ordinal": 12662,
+          "text": "By the Fountain Gate, in front of them, they went up the stairs of the City of David, on the stairway of the wall, beyond the house of David, as far as the Water Gate eastward."
+        },
+        {
+          "citation": "Nehemiah 12:38",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 38,
+          "ordinal": 12663,
+          "text": "The other thanksgiving choir went the opposite way, and I was behind them with half of the people on the wall, going past the Tower of the Ovens as far as the Broad Wall,"
+        },
+        {
+          "citation": "Nehemiah 12:39",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 39,
+          "ordinal": 12664,
+          "text": "and above the Gate of Ephraim, above the Old Gate, above the Fish Gate, the Tower of Hananel, the Tower of the Hundred, as far as the Sheep Gate; and they stopped by the Gate of the Prison."
+        },
+        {
+          "citation": "Nehemiah 12:40",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 40,
+          "ordinal": 12665,
+          "text": "So the two thanksgiving choirs stood in the house of God, likewise I and the half of the rulers with me;"
+        },
+        {
+          "citation": "Nehemiah 12:41",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 41,
+          "ordinal": 12666,
+          "text": "and the priests, Eliakim, Maaseiah, Minjamin, Michaiah, Elioenai, Zechariah, and Hananiah, with trumpets;"
+        },
+        {
+          "citation": "Nehemiah 12:42",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 42,
+          "ordinal": 12667,
+          "text": "also Maaseiah, Shemaiah, Eleazar, Uzzi, Jehohanan, Malchijah, Elam, and Ezer. The singers sang loudly with Jezrahiah the director."
+        },
+        {
+          "citation": "Nehemiah 12:43",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 43,
+          "ordinal": 12668,
+          "text": "Also that day they offered great sacrifices, and rejoiced, for God had made them rejoice with great joy; the women and the children also rejoiced, so that the joy of Jerusalem was heard afar off."
+        },
+        {
+          "citation": "Nehemiah 12:44",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 44,
+          "ordinal": 12669,
+          "text": "And at the same time some were appointed over the rooms of the storehouse for the offerings, the firstfruits, and the tithes, to gather into them from the fields of the cities the portions specified by the Law for the priests and Levites; for Judah rejoiced over the priests and Levites who ministered."
+        },
+        {
+          "citation": "Nehemiah 12:45",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 45,
+          "ordinal": 12670,
+          "text": "Both the singers and the gatekeepers kept the charge of their God and the charge of the purification, according to the command of David and Solomon his son."
+        },
+        {
+          "citation": "Nehemiah 12:46",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 46,
+          "ordinal": 12671,
+          "text": "For in the days of David and Asaph of old there were chiefs of the singers, and songs of praise and thanksgiving to God."
+        },
+        {
+          "citation": "Nehemiah 12:47",
+          "bookKey": "NEH",
+          "chapter": 12,
+          "verse": 47,
+          "ordinal": 12672,
+          "text": "In the days of Zerubbabel and in the days of Nehemiah all Israel gave the portions for the singers and the gatekeepers, a portion for each day. They also consecrated holy things for the Levites, and the Levites consecrated them for the children of Aaron."
+        },
+        {
+          "citation": "Nehemiah 13:1",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 1,
+          "ordinal": 12673,
+          "text": "On that day they read from the Book of Moses in the hearing of the people, and in it was found written that no Ammonite or Moabite should ever come into the assembly of God,"
+        },
+        {
+          "citation": "Nehemiah 13:2",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 2,
+          "ordinal": 12674,
+          "text": "because they had not met the children of Israel with bread and water, but hired Balaam against them to curse them. However, our God turned the curse into a blessing."
+        },
+        {
+          "citation": "Nehemiah 13:3",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 3,
+          "ordinal": 12675,
+          "text": "So it was, when they had heard the Law, that they separated all the mixed multitude from Israel."
+        },
+        {
+          "citation": "Nehemiah 13:4",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 4,
+          "ordinal": 12676,
+          "text": "Now before this, Eliashib the priest, having authority over the storerooms of the house of our God, was allied with Tobiah."
+        },
+        {
+          "citation": "Nehemiah 13:5",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 5,
+          "ordinal": 12677,
+          "text": "And he had prepared for him a large room, where previously they had stored the grain offerings, the frankincense, the articles, the tithes of grain, the new wine and oil, which were commanded to be given to the Levites and singers and gatekeepers, and the offerings for the priests."
+        },
+        {
+          "citation": "Nehemiah 13:6",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 6,
+          "ordinal": 12678,
+          "text": "But during all this I was not in Jerusalem, for in the thirty-second year of Artaxerxes king of Babylon I had returned to the king. Then after certain days I obtained leave from the king,"
+        },
+        {
+          "citation": "Nehemiah 13:7",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 7,
+          "ordinal": 12679,
+          "text": "and I came to Jerusalem and discovered the evil that Eliashib had done for Tobiah, in preparing a room for him in the courts of the house of God."
+        },
+        {
+          "citation": "Nehemiah 13:8",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 8,
+          "ordinal": 12680,
+          "text": "And it grieved me bitterly; therefore I threw all the household goods of Tobiah out of the room."
+        },
+        {
+          "citation": "Nehemiah 13:9",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 9,
+          "ordinal": 12681,
+          "text": "Then I commanded them to cleanse the rooms; and I brought back into them the articles of the house of God, with the grain offering and the frankincense."
+        },
+        {
+          "citation": "Nehemiah 13:10",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 10,
+          "ordinal": 12682,
+          "text": "I also realized that the portions for the Levites had not been given them; for each of the Levites and the singers who did the work had gone back to his field."
+        },
+        {
+          "citation": "Nehemiah 13:11",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 11,
+          "ordinal": 12683,
+          "text": "So I contended with the rulers, and said, \"Why is the house of God forsaken?\" And I gathered them together and set them in their place."
+        },
+        {
+          "citation": "Nehemiah 13:12",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 12,
+          "ordinal": 12684,
+          "text": "Then all Judah brought the tithe of the grain and the new wine and the oil to the storehouse."
+        },
+        {
+          "citation": "Nehemiah 13:13",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 13,
+          "ordinal": 12685,
+          "text": "And I appointed as treasurers over the storehouse Shelemiah the priest and Zadok the scribe, and of the Levites, Pedaiah; and next to them was Hanan the son of Zaccur, the son of Mattaniah; for they were considered faithful, and their task was to distribute to their brethren."
+        },
+        {
+          "citation": "Nehemiah 13:14",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 14,
+          "ordinal": 12686,
+          "text": "Remember me, O my God, concerning this, and do not wipe out my good deeds that I have done for the house of my God, and for its services!"
+        },
+        {
+          "citation": "Nehemiah 13:15",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 15,
+          "ordinal": 12687,
+          "text": "In those days I saw people in Judah treading wine presses on the Sabbath, and bringing in sheaves, and loading donkeys with wine, grapes, figs, and all kinds of burdens, which they brought into Jerusalem on the Sabbath day. And I warned them about the day on which they were selling provisions."
+        },
+        {
+          "citation": "Nehemiah 13:16",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 16,
+          "ordinal": 12688,
+          "text": "Men of Tyre dwelt there also, who brought in fish and all kinds of goods, and sold them on the Sabbath to the children of Judah, and in Jerusalem."
+        },
+        {
+          "citation": "Nehemiah 13:17",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 17,
+          "ordinal": 12689,
+          "text": "Then I contended with the nobles of Judah, and said to them, \"What evil thing is this that you do, by which you profane the Sabbath day?"
+        },
+        {
+          "citation": "Nehemiah 13:18",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 18,
+          "ordinal": 12690,
+          "text": "Did not your fathers do thus, and did not our God bring all this disaster on us and on this city? Yet you bring added wrath on Israel by profaning the Sabbath.\""
+        },
+        {
+          "citation": "Nehemiah 13:19",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 19,
+          "ordinal": 12691,
+          "text": "So it was, at the gates of Jerusalem, as it began to be dark before the Sabbath, that I commanded the gates to be shut, and charged that they must not be opened till after the Sabbath. Then I posted some of my servants at the gates, so that no burdens would be brought in on the Sabbath day."
+        },
+        {
+          "citation": "Nehemiah 13:20",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 20,
+          "ordinal": 12692,
+          "text": "Now the merchants and sellers of all kinds of wares lodged outside Jerusalem once or twice."
+        },
+        {
+          "citation": "Nehemiah 13:21",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 21,
+          "ordinal": 12693,
+          "text": "Then I warned them, and said to them, \"Why do you spend the night around the wall? If you do so again, I will lay hands on you!\" From that time on they came no more on the Sabbath."
+        },
+        {
+          "citation": "Nehemiah 13:22",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 22,
+          "ordinal": 12694,
+          "text": "And I commanded the Levites that they should cleanse themselves, and that they should go and guard the gates, to sanctify the Sabbath day. Remember me, O my God, concerning this also, and spare me according to the greatness of Your mercy!"
+        },
+        {
+          "citation": "Nehemiah 13:23",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 23,
+          "ordinal": 12695,
+          "text": "In those days I also saw Jews who had married women of Ashdod, Ammon, and Moab."
+        },
+        {
+          "citation": "Nehemiah 13:24",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 24,
+          "ordinal": 12696,
+          "text": "And half of their children spoke the language of Ashdod, and could not speak the language of Judah, but spoke according to the language of one or the other people."
+        },
+        {
+          "citation": "Nehemiah 13:25",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 25,
+          "ordinal": 12697,
+          "text": "So I contended with them and cursed them, struck some of them and pulled out their hair, and made them swear by God, saying, \"You shall not give your daughters as wives to their sons, nor take their daughters for your sons or yourselves."
+        },
+        {
+          "citation": "Nehemiah 13:26",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 26,
+          "ordinal": 12698,
+          "text": "Did not Solomon king of Israel sin by these things? Yet among many nations there was no king like him, who was beloved of his God; and God made him king over all Israel. Nevertheless pagan women caused even him to sin."
+        },
+        {
+          "citation": "Nehemiah 13:27",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 27,
+          "ordinal": 12699,
+          "text": "Should we then hear of your doing all this great evil, transgressing against our God by marrying pagan women?\""
+        },
+        {
+          "citation": "Nehemiah 13:28",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 28,
+          "ordinal": 12700,
+          "text": "And one of the sons of Joiada, the son of Eliashib the high priest, was a son-in-law of Sanballat the Horonite; therefore I drove him from me."
+        },
+        {
+          "citation": "Nehemiah 13:29",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 29,
+          "ordinal": 12701,
+          "text": "Remember them, O my God, because they have defiled the priesthood and the covenant of the priesthood and the Levites."
+        },
+        {
+          "citation": "Nehemiah 13:30",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 30,
+          "ordinal": 12702,
+          "text": "Thus I cleansed them of everything pagan. I also assigned duties to the priests and the Levites, each to his service,"
+        },
+        {
+          "citation": "Nehemiah 13:31",
+          "bookKey": "NEH",
+          "chapter": 13,
+          "verse": 31,
+          "ordinal": 12703,
+          "text": "and to bringing the wood offering and the firstfruits at appointed times. Remember me, O my God, for good!"
+        }
+      ]
+    }
+  ]
+}

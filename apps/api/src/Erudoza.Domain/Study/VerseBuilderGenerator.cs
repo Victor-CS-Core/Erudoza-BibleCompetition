@@ -5,7 +5,7 @@ public static class VerseBuilderGenerator
     public const string ActivityType = "VerseBuilder";
     public const string ProviderType = "VerseBuilderActivityProvider";
 
-    public static (ActivityPayload Payload, string AnswerKeyJson) Create(SourceUnit unit, int seed)
+    public static (ActivityPayload Payload, string AnswerKeyJson) Create(SourceUnit unit, int seed, int difficulty = 3)
     {
         ArgumentNullException.ThrowIfNull(unit);
         var words = unit.CanonicalText.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
@@ -14,7 +14,7 @@ public static class VerseBuilderGenerator
             throw new DomainException("Verse Builder needs a longer stored verse.");
         }
 
-        var chunks = Chunk(words);
+        var chunks = Chunk(words, difficulty);
         var random = new Random(seed);
         var shuffled = chunks
             .Select((text, correctIndex) => new { text, correctIndex })
@@ -26,13 +26,13 @@ public static class VerseBuilderGenerator
             unit.CitationLabel,
             "Build the verse in the correct order.",
             shuffled,
-            2);
+            difficulty);
         return (payload, ActivitySerialization.AnswerKey(unit.CanonicalText));
     }
 
-    public static IReadOnlyList<string> Chunk(IReadOnlyList<string> words)
+    public static IReadOnlyList<string> Chunk(IReadOnlyList<string> words, int difficulty = 3)
     {
-        var size = words.Count <= 8 ? 2 : 3;
+        var size = difficulty <= 1 ? Math.Min(4, Math.Max(2, words.Count / 2)) : difficulty >= 5 ? 1 : 2;
         var chunks = new List<string>();
         for (var index = 0; index < words.Count; index += size)
         {

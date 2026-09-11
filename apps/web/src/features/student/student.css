@@ -1,0 +1,25 @@
+/* Student composition uses the shared theme and controls. */
+.student-home-unassigned { grid-template-columns: minmax(0, 1fr); }
+.student-home-unassigned .training-next { max-width: none; }
+.student-home .student-assignment-list { margin-top: var(--er-space-6); }
+.student-study-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--er-space-3); margin-top: var(--er-space-6); }
+.student-challenge .student-study-actions [data-testid=submit-answer] { flex: 1 1 auto; }
+.student-study-actions .ds-button-primary { flex: 1 1 200px; }
+.student-feedback { margin-top: var(--er-space-6); padding-top: var(--er-space-6); border-top: 1px solid var(--er-border); }
+.student-feedback .er-scripture { overflow-wrap: anywhere; }
+.student-answer-choice { display: flex; align-items: center; gap: var(--er-space-3); min-height: 44px; padding-block: var(--er-space-2); }
+.student-builder-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--er-space-2); align-items: center; }
+.student-builder-row .student-builder-phrase { overflow-wrap: anywhere; }
+.student-progress-next { display: flex; flex-wrap: wrap; align-items: center; gap: var(--er-space-3); margin-top: var(--er-space-5, 20px); }
+@media(max-width: 640px) {
+  .student-home .training-banner { min-height: 112px; }
+  .student-home .training-banner > div { padding-block: var(--er-space-3); }
+  .student-home .training-banner span { display: none; }
+  .student-home .training-action-row { flex-wrap: wrap; }
+  .student-home .training-action-row > div { flex: 1 1 140px; }
+  .student-study-actions { gap: var(--er-space-2); }
+  .student-study-actions .ds-button-primary { flex-basis: 100%; }
+  .student-builder-row { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .student-builder-row .ds-button { padding-inline: var(--er-space-3); }
+  .student-progress-records > li { gap: var(--er-space-3); }
+}

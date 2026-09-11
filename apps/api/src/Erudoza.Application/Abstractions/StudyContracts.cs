@@ -27,7 +27,7 @@ public sealed record ActivityRequest(
     IReadOnlyList<string>? DistractorCitations = null,
     IReadOnlyCollection<string>? UsedActivityTypes = null,
     int TargetCardCount = 8,
-    PlayableQuestion? PlayableQuestion = null);
+    Guid? NextKnowledgeUnitId = null);
 
 public interface IActivityProvider
 {
@@ -72,7 +72,8 @@ public sealed record AttemptEvidence(
     bool IsCorrect,
     bool HintsUsed,
     string ActivityType,
-    AnswerMode AnswerMode);
+    AnswerMode AnswerMode,
+    int Difficulty = 3);
 
 public sealed record MasteryUpdateResult(
     MasteryLevel Level,
@@ -94,7 +95,6 @@ public sealed record RuleProfileSnapshot(
     bool StudyAllowMultipleChoice,
     bool SimulationAllowMultipleChoice,
     bool SimulationAllowTrueFalse,
-    bool PreferShortAnswer,
     bool ShowReference,
     double TrueFalseMaxRatio = 0.10)
 {
@@ -115,7 +115,7 @@ public sealed record RuleProfileSnapshot(
             return SimulationAllowTrueFalse;
         }
 
-        return activityType is "MissingWords" or "VerseBuilder" or "WhatComesNext" or "ReferenceMatch" or "ShortAnswer"
+        return activityType is "MissingWords" or "VerseBuilder" or "WhatComesNext" or "ReferenceMatch"
             || !isMultipleChoice;
     }
 

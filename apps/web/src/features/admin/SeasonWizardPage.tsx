@@ -1,281 +1,236 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
+import { lifecycleApi } from "../../api/lifecycle";
+import type { LibraryBook, PackScope, PassageRange, SeasonScope, TrainingDifficulty } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { ChapterTab } from "../../components/material/ChapterTab";
-import { FieldGuideCover } from "../../components/material/FieldGuideCover";
-import { PaperSurface } from "../../components/material/PaperSurface";
+import { Badge, Button, Input, LinkButton, Notice, PageHeader, Panel, Select } from "../../components/ui";
+import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
+import { AppIcon } from "../../components/AppIcon";
+import "../../styles/season-setup.css";
+import { StudentTable } from "./StudentTable";
+import { coordinates, firstRange, multiScope, orderCoordinates, passageSegments, scopePacks, segmentRanges, storedRange, withinRange } from "./passageRanges";
+import type { Coordinate } from "./passageRanges";
+
+const steps = [{ key: "details", title: "Details", note: "Name your season" }, { key: "passages", title: "Passages", note: "Choose what to study" }, { key: "students", title: "Students", note: "Assign a personal plan" }, { key: "review", title: "Review & start", note: "Check you're ready" }] as const;
+type Step = typeof steps[number]["key"];
+const emptyRange: PassageRange = { bookKey: "", startChapter: 0, startVerse: 0, endChapter: 0, endVerse: 0 };
+const levels: { name: TrainingDifficulty; detail: string }[] = [{ name: "Foundation", detail: "More support, smaller steps" }, { name: "Standard", detail: "Balanced recall practice" }, { name: "Advanced", detail: "Fewer clues, deeper recall" }];
+const rangeLabel = (range: PassageRange) => `${range.bookKey} ${range.startChapter}:${range.startVerse}–${range.endChapter}:${range.endVerse}`;
 
 export function SeasonWizardPage() {
-  const { me } = useAuth();
   const { seasonId } = useParams();
+  return <SeasonSetup key={seasonId ?? "new"} seasonId={seasonId} />;
+}
+
+export function SeasonAssignmentEditor({ seasonId, studentId }: { seasonId: string; studentId: string }) {
+  return <SeasonSetup key={`${seasonId}-${studentId}`} seasonId={seasonId} assignmentOnly />;
+}
+
+function SeasonSetup({ seasonId, assignmentOnly = false }: { seasonId?: string; assignmentOnly?: boolean }) {
+  const { me } = useAuth();
+  const orgId = me!.organizationId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const orgId = me!.organizationId;
-  const [name, setName] = useState(`Season ${new Date().getFullYear()}`);
+  const [params, setParams] = useSearchParams();
+  const [confirmStart, setConfirmStart] = useState(false);
+  const [lifecycleAction, setLifecycleAction] = useState<"close" | "archive" | null>(null);
+  const [assignmentAction, setAssignmentAction] = useState<{ id: string; contentPackId?: string; range: PassageRange; action: "remove" | "correct" } | null>(null);
+  const [name, setName] = useState("");
   const [yearLabel, setYearLabel] = useState(String(new Date().getFullYear()));
-  const [bookKey, setBookKey] = useState("DAN");
-  const [startChapter, setStartChapter] = useState(1);
-  const [startVerse, setStartVerse] = useState(1);
-  const [endChapter, setEndChapter] = useState(1);
-  const [endVerse, setEndVerse] = useState(4);
-  const [packId, setPackId] = useState("");
-  const [studentId, setStudentId] = useState("");
-  const [tab, setTab] = useState<"setup" | "roster">("setup");
-  const [message, setMessage] = useState<string | null>(null);
-
-  const packs = useQuery({ queryKey: ["packs", orgId], queryFn: () => api.contentPacks(orgId) });
+  const [scopeDraft, setScopeDraft] = useState<SeasonScope | null>(null);
+  const [passageChoice, setPassageChoice] = useState("0");
+  const [assignmentPackId, setAssignmentPackId] = useState("");
+  const [customRange, setCustomRange] = useState<PassageRange | null>(null);
+  const [assignmentType, setAssignmentType] = useState("PrimarySpecialist");
+  const [difficultyEdits, setDifficultyEdits] = useState<Record<string, TrainingDifficulty>>({});
+  const [message, setMessage] = useState("");
+  const [formError, setFormError] = useState("");
+  const library = useQuery({ queryKey: ["library", orgId], queryFn: () => api.library(orgId), retry: false });
   const students = useQuery({ queryKey: ["students", orgId], queryFn: () => api.students(orgId) });
-  const season = useQuery({
-    queryKey: ["season", orgId, seasonId],
-    queryFn: () => api.season(orgId, seasonId!),
-    enabled: !!seasonId,
-  });
-  const assignments = useQuery({
-    queryKey: ["assignments", orgId, seasonId],
-    queryFn: () => api.assignments(orgId, seasonId!),
-    enabled: !!seasonId,
-  });
-  const selectedPackId = packId || packs.data?.[0]?.id || "";
-  const selectedStudentId = studentId || students.data?.[0]?.userId || "";
-
+  const season = useQuery({ queryKey: ["season", orgId, seasonId], queryFn: () => api.season(orgId, seasonId!), enabled: !!seasonId });
+  const scope = useQuery({ queryKey: ["season-scope", orgId, seasonId], queryFn: () => api.seasonScope(orgId, seasonId!), enabled: !!seasonId });
+  const assignments = useQuery({ queryKey: ["assignments", orgId, seasonId], queryFn: () => api.assignments(orgId, seasonId!), enabled: !!seasonId });
+  const savedPacks = scopePacks(scope.data);
+  const draftPacks = scopePacks(scopeDraft);
+  const libraryUnits = useMemo(() => new Map(library.data?.books.map(book => [book.contentPackId, coordinates(book)])), [library.data]);
+  const legacyIds = [...new Set([...savedPacks, ...draftPacks].map(p => p.contentPackId))].filter(id => !libraryUnits.has(id));
+  const legacySources = useQueries({ queries: legacyIds.map(id => ({ queryKey: ["source-units", orgId, id], queryFn: () => api.sourceUnits(orgId, id), enabled: !library.isPending })) });
+  const unitsForPack = (id: string): Coordinate[] => libraryUnits.get(id) ?? legacySources[legacyIds.indexOf(id)]?.data ?? [];
+  const eligibleUnits = (pack?: PackScope) => pack ? unitsForPack(pack.contentPackId).filter(unit => pack.includes.some(range => withinRange(unit, range)) && !pack.excludes.some(range => withinRange(unit, range))) : [];
+  const selectedPack = savedPacks.find(pack => pack.contentPackId === assignmentPackId) ?? savedPacks[0];
+  const assignmentUnits = eligibleUnits(selectedPack);
+  const allAssignmentUnits = selectedPack ? unitsForPack(selectedPack.contentPackId) : [];
+  const availableRanges = segmentRanges(assignmentUnits, allAssignmentUnits);
+  const correctionPack = savedPacks.find(pack => assignmentAction?.contentPackId ? pack.contentPackId === assignmentAction.contentPackId : pack.includes.some(range => range.bookKey === assignmentAction?.range.bookKey));
+  const correctionUnits = eligibleUnits(correctionPack);
+  const hasScope = savedPacks.some(pack => pack.includes.length > 0);
+  const active = season.data?.status === "Active";
+  const closed = season.data?.status === "Completed" || season.data?.status === "Archived";
+  const statusLabel = ({ ContentReady: "Passages ready", AssignmentsReady: "Plans ready" } as Record<string, string>)[season.data?.status ?? ""] ?? season.data?.status ?? "Draft";
+  const requestedStep = params.get("step");
+  const step: Step = assignmentOnly ? "students" : !seasonId ? "details" : steps.some((item) => item.key === requestedStep) ? requestedStep as Step : hasScope ? "students" : "passages";
+  const stepIndex = steps.findIndex((item) => item.key === step);
+  const selectedStudentId = params.get("studentId") ?? "";
+  const selectedStudent = students.data?.find((item) => item.userId === selectedStudentId);
+  const studentAssignments = assignments.data?.filter((item) => item.studentUserId === selectedStudentId) ?? [];
+  const difficulty = difficultyEdits[selectedStudentId] ?? studentAssignments[0]?.difficulty ?? "Standard";
+  const assignedStudents = students.data?.filter((student) => assignments.data?.some((item) => item.studentUserId === student.userId)) ?? [];
+  const assignmentRange = passageChoice === "custom" ? customRange ?? availableRanges[0] ?? emptyRange : availableRanges[Number(passageChoice)] ?? availableRanges[0] ?? emptyRange;
+  const alreadyAssigned = studentAssignments.some((item) => item.type === assignmentType && rangeLabel(item) === rangeLabel(assignmentRange) && (!item.contentPackId || item.contentPackId === selectedPack?.contentPackId));
+  const go = (next: Step) => { setMessage(""); setFormError(""); setParams({ step: next }); };
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: ["season", orgId, seasonId] });
+    void queryClient.invalidateQueries({ queryKey: ["seasons"] });
+    void queryClient.invalidateQueries({ queryKey: ["assignments", orgId, seasonId] });
+    void queryClient.invalidateQueries({ queryKey: ["coverage"] });
+  };
   const create = useMutation({
-    mutationFn: () => api.createSeason(orgId, { name, yearLabel, ruleProfileKey: "PBE_STYLE_V1" }),
-    onSuccess: (created) => {
-      void queryClient.invalidateQueries({ queryKey: ["seasons"] });
-      navigate(`/admin/seasons/${created.id}`);
-    },
+    mutationFn: () => api.createSeason(orgId, { name: name.trim(), yearLabel: yearLabel.trim(), ruleProfileKey: "PBE_STYLE_V1" }),
+    onSuccess: (created) => { void queryClient.invalidateQueries({ queryKey: ["seasons"] }); navigate(`/admin/seasons/${created.id}?step=passages`); },
   });
-
   const saveScope = useMutation({
-    mutationFn: () =>
-      api.defineScope(orgId, seasonId!, {
-        contentPackId: selectedPackId,
-        includes: [{ bookKey, startChapter, startVerse, endChapter, endVerse }],
-        excludes: [],
-      }),
-    onSuccess: () => setMessage("Scope saved."),
-  });
-
-  const assign = useMutation({
-    mutationFn: () =>
-      api.assign(orgId, seasonId!, {
-        studentUserId: selectedStudentId,
-        type: "PrimarySpecialist",
-        contentPackId: selectedPackId,
-        range: { bookKey, startChapter, startVerse, endChapter, endVerse },
-      }),
-    onSuccess: () => {
-      setMessage("Assignment saved.");
-      void queryClient.invalidateQueries({ queryKey: ["assignments", orgId, seasonId] });
+    mutationFn: (draft: SeasonScope) => api.defineScope(orgId, seasonId!, multiScope(scopePacks(draft))),
+    onSuccess: (_, savedScope) => {
+      queryClient.setQueryData(["season-scope", orgId, seasonId], savedScope);
+      setScopeDraft(null); refresh(); go("students"); setMessage("Season passages saved. Now choose a student.");
     },
   });
-
+  const assign = useMutation({
+    mutationFn: () => api.assign(orgId, seasonId!, { studentUserId: selectedStudentId, type: assignmentType, difficulty, contentPackId: selectedPack!.contentPackId, range: assignmentRange }),
+    onSuccess: () => { setMessage("Assignment saved."); refresh(); },
+  });
+  const saveDifficulty = useMutation({
+    mutationFn: () => api.setDifficulty(orgId, seasonId!, selectedStudentId, difficulty),
+    onSuccess: () => { setMessage("Difficulty saved for future sessions."); refresh(); },
+  });
   const activate = useMutation({
     mutationFn: () => api.activate(orgId, seasonId!),
-    onSuccess: (result) => {
-      setMessage(result.activated ? "Season activated." : result.blockingProblems.join(" "));
-      void queryClient.invalidateQueries({ queryKey: ["season", orgId, seasonId] });
-    },
+    onSuccess: (result) => { if (result.activated) { setConfirmStart(false); setMessage("Season started. Students can begin their training."); refresh(); } else setFormError(result.blockingProblems.join(" ")); },
   });
-
-  const onCreate = (event: FormEvent) => {
-    event.preventDefault();
-    create.mutate();
+  const changeLifecycle = useMutation({
+    mutationFn: () => lifecycleApi.transitionSeason(orgId, seasonId!, lifecycleAction!),
+    onSuccess: () => { setMessage(lifecycleAction === "close" ? "Season closed. Study history is preserved." : "Season archived. Study history is preserved."); setLifecycleAction(null); refresh(); },
+  });
+  const changeAssignment = useMutation({
+    mutationFn: () => assignmentAction!.action === "remove"
+      ? lifecycleApi.removeAssignment(orgId, seasonId!, assignmentAction!.id)
+      : lifecycleApi.correctAssignment(orgId, seasonId!, assignmentAction!.id, assignmentAction!.range),
+    onSuccess: () => { setMessage("Assignment updated. Previous attempts and progress are preserved."); setAssignmentAction(null); refresh(); },
+  });
+  const busy = create.isPending || saveScope.isPending || assign.isPending || saveDifficulty.isPending || activate.isPending || changeLifecycle.isPending || changeAssignment.isPending;
+  const submitScope = (event: FormEvent) => {
+    event.preventDefault(); setFormError("");
+    if (!draftPacks.length || !draftPacks.every(pack => pack.includes.length && [...pack.includes, ...pack.excludes].every(range => storedRange(range, unitsForPack(pack.contentPackId))))) { setFormError("Choose library books and valid passage ranges. Each end must follow its start."); return; }
+    saveScope.mutate(structuredClone(scopeDraft!));
   };
+  const submitAssignment = (event: FormEvent) => { event.preventDefault(); setFormError(""); if (!selectedPack || !storedRange(assignmentRange, assignmentUnits, allAssignmentUnits)) { setFormError("Choose a passage entirely within the saved season scope."); return; } assign.mutate(); };
+  const editScope = () => setScopeDraft(multiScope(structuredClone(savedPacks)));
+  const loading = !!seasonId && (season.isPending || scope.isPending || assignments.isPending || students.isPending || library.isPending || legacySources.some(query => query.isPending));
+  const queryFailed = season.isError || scope.isError || assignments.isError || students.isError;
+  const errors = [create.error, saveScope.error, assign.error, saveDifficulty.error, confirmStart ? null : activate.error].filter(Boolean);
 
-  return (
-    <div className="space-y-4">
-      <FieldGuideCover>
-        <p className="mt-2 text-[var(--er-muted-ink)]">
-          {!seasonId ? "New season" : season.data ? `${season.data.name} · ${season.data.status}` : null}
-        </p>
-      </FieldGuideCover>
-      <div className="flex gap-2">
-        <ChapterTab label="Setup" active={tab === "setup"} testId="chapter-tab-setup" onClick={() => setTab("setup")} />
-        <ChapterTab label="Roster" active={tab === "roster"} testId="chapter-tab-roster" onClick={() => setTab("roster")} />
-      </div>
-      <PaperSurface>
-        <h2 className="text-2xl font-semibold">{season.data?.name ?? (!seasonId ? "New season" : "")}</h2>
-        {season.data ? (
-          <p className="mt-1 text-sm text-[var(--er-muted-ink)]">
-            Status: <span data-testid="season-status">{season.data.status}</span>
-          </p>
-        ) : null}
-        {!seasonId ? (
-          <form className="mt-5 grid gap-3" onSubmit={onCreate}>
-            <label className="text-sm font-medium">
-              Season name
-              <input
-                data-testid="season-name"
-                className="mt-1 w-full rounded-[var(--er-radius-control)] border border-[var(--er-border)] px-3"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </label>
-            <label className="text-sm font-medium">
-              Year label
-              <input
-                className="mt-1 w-full rounded-[var(--er-radius-control)] border border-[var(--er-border)] px-3"
-                value={yearLabel}
-                onChange={(event) => setYearLabel(event.target.value)}
-              />
-            </label>
-            <label className="text-sm font-medium">
-              Rule profile
-              <select data-testid="rule-profile" className="mt-1 w-full rounded-[var(--er-radius-control)] border border-[var(--er-border)] px-3" defaultValue="PBE_STYLE_V1">
-                <option value="PBE_STYLE_V1">PBE_STYLE_V1</option>
-              </select>
-            </label>
-            <button
-              data-testid="save-season"
-              className="min-h-11 rounded-[var(--er-radius-control)] bg-[var(--er-ink-navy)] px-4 py-3 text-[var(--er-card)]"
-              type="submit"
-            >
-              Save season
-            </button>
-          </form>
-        ) : tab === "roster" ? (
-          <div className="mt-5">
-            <h2 className="text-xl font-semibold">Assigned students</h2>
-            {assignments.data?.length ? (
-              <table className="mt-4 w-full text-left text-sm" data-testid="season-roster">
-                <thead>
-                  <tr className="border-b border-[var(--er-border)]">
-                    <th className="py-2">Student</th>
-                    <th>Type</th>
-                    <th>Scope</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {assignments.data.map((item) => (
-                    <tr key={item.id} className="border-b border-[var(--er-border)]">
-                      <td className="py-2">
-                        {item.studentDisplayName} · {item.studentUserName}
-                      </td>
-                      <td>{item.type}</td>
-                      <td>
-                        {item.bookKey} {item.startChapter}:{item.startVerse}–{item.endChapter}:{item.endVerse}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="mt-4 text-[var(--er-graphite)]" data-testid="season-roster">
-                No assignments yet. Create one on Setup.
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="mt-5 space-y-4">
-            <label className="block text-sm font-medium">
-              Content pack
-              <select
-                data-testid="select-content-pack"
-                className="mt-1 w-full rounded-[var(--er-radius-control)] border border-[var(--er-border)] px-3"
-                value={selectedPackId}
-                onChange={(event) => setPackId(event.target.value)}
-              >
-                {packs.data?.map((pack) => (
-                  <option key={pack.id} value={pack.id}>
-                    {pack.packKey} v{pack.version}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="grid gap-3 md:grid-cols-5">
-              <label className="text-sm font-medium">
-                Book
-                <input data-testid="scope-book" className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3" value={bookKey} onChange={(e) => setBookKey(e.target.value)} />
-              </label>
-              <label className="text-sm font-medium">
-                Start chapter
-                <input
-                  data-testid="scope-start-chapter"
-                  type="number"
-                  min={1}
-                  className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
-                  value={startChapter}
-                  onChange={(e) => setStartChapter(Number(e.target.value))}
-                />
-              </label>
-              <label className="text-sm font-medium">
-                Start verse
-                <input data-testid="scope-start" type="number" className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3" value={startVerse} onChange={(e) => setStartVerse(Number(e.target.value))} />
-              </label>
-              <label className="text-sm font-medium">
-                End chapter
-                <input
-                  data-testid="scope-end-chapter"
-                  type="number"
-                  min={1}
-                  className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3"
-                  value={endChapter}
-                  onChange={(e) => setEndChapter(Number(e.target.value))}
-                />
-              </label>
-              <label className="text-sm font-medium">
-                End verse
-                <input data-testid="scope-end" type="number" className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3" value={endVerse} onChange={(e) => setEndVerse(Number(e.target.value))} />
-              </label>
-            </div>
-            <button data-testid="save-scope" type="button" className="rounded-[var(--er-radius-control)] border px-4" onClick={() => saveScope.mutate()}>
-              Save scope
-            </button>
-            <label className="block text-sm font-medium">
-              Assign student
-              <select data-testid="assign-student-select" className="mt-1 w-full rounded-[var(--er-radius-control)] border px-3" value={selectedStudentId} onChange={(event) => setStudentId(event.target.value)}>
-                {students.data?.map((student) => (
-                  <option key={student.userId} value={student.userId}>
-                    {student.displayName}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="flex flex-wrap gap-3">
-              <button data-testid="assign-student" type="button" className="rounded-[var(--er-radius-control)] border px-4" onClick={() => assign.mutate()}>
-                Create specialist assignment
-              </button>
-              <button
-                data-testid="assign-coverage"
-                type="button"
-                className="rounded-[var(--er-radius-control)] border px-4"
-                onClick={() =>
-                  api
-                    .assign(orgId, seasonId!, {
-                      studentUserId: selectedStudentId,
-                      type: "RequiredCoverage",
-                      contentPackId: selectedPackId,
-                      range: { bookKey, startChapter, startVerse, endChapter, endVerse },
-                    })
-                    .then(() => {
-                      setMessage("Required coverage saved.");
-                      void queryClient.invalidateQueries({ queryKey: ["assignments", orgId, seasonId] });
-                    })
-                }
-              >
-                Create required coverage
-              </button>
-            </div>
-            <button
-              data-testid="activate-season"
-              type="button"
-              className="rounded-[var(--er-radius-control)] bg-[var(--er-success-ink)] px-4 text-white"
-              onClick={() => activate.mutate()}
-            >
-              Activate season
-            </button>
-          </div>
-        )}
-        {message ? <p className="mt-4 text-sm text-[var(--er-success-ink)]">{message}</p> : null}
-        <p className="mt-6 text-sm">
-          <Link className="text-[var(--er-action-blue)]" to="/admin/seasons">
-            All seasons
-          </Link>
-        </p>
-      </PaperSurface>
-    </div>
-  );
+  return <div className="season-setup">
+    {!assignmentOnly && <><LinkButton variant="ghost" size="compact" className="season-back" to="/admin/seasons">← All seasons</LinkButton>
+    <PageHeader title={seasonId ? season.data?.name ?? "Season setup" : "Create a season"} description="Choose the passages. Give each student a plan. Start together." action={season.data && <Badge tone={active ? "success" : "neutral"} data-testid="season-status">{statusLabel}</Badge>} />
+    <nav className="season-steps ds-section-tabs" aria-label="Season setup steps">{steps.map((item, index) => <Button variant="ghost" key={item.key} type="button" aria-current={step === item.key ? "step" : undefined} disabled={busy || (!seasonId && index > 0) || (!!scopeDraft && item.key !== "passages")} onClick={() => go(item.key)}><span className="sr-only">Step {index + 1}: </span><span><strong>{item.title}</strong><small className="sr-only">{item.note}</small></span></Button>)}</nav></>}
+    {library.isError && <Notice tone="danger">{library.error.message} Existing saved passages remain available. <Button variant="secondary" onClick={() => void library.refetch()}>Retry library</Button></Notice>}
+    {legacySources.some(query => query.isError) && <Notice tone="danger">Stored passages could not load. <Button variant="secondary" onClick={() => legacySources.forEach(query => void query.refetch())}>Retry passages</Button></Notice>}
+    {message && <Notice tone="success">{message}</Notice>}
+
+    {formError && !confirmStart && <Notice tone="danger">{formError}</Notice>}
+    {errors.map((error, index) => <Notice tone="danger" key={index}>{error!.message}</Notice>)}
+    {queryFailed ? <Notice tone="danger">Your season information could not load. <Button type="button" variant="secondary" onClick={() => { void season.refetch(); void scope.refetch(); void assignments.refetch(); void library.refetch(); void students.refetch(); }}>Try again</Button></Notice> : loading ? <Notice>Loading your saved season…</Notice> : <>
+      {step === "details" && <Panel className="season-details"><div className="season-section-heading"><h2>Give your season a name</h2><p>A clear name helps your students find the right training plan.</p></div>{seasonId ? <><dl className="season-details-list"><div><dt>Season name</dt><dd>{season.data?.name}</dd></div><div><dt>Year</dt><dd>{season.data?.yearLabel}</dd></div><div><dt>Competition format</dt><dd>Bible Experience</dd></div></dl><Button  onClick={() => go("passages")}>Continue to passages →</Button></> : <form onSubmit={(event) => { event.preventDefault(); create.mutate(); }}><label>Season name<Input data-testid="season-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Daniel · Autumn 2026" required maxLength={160} /></label><div className="season-form-pair"><label>Year label<Input value={yearLabel} onChange={(event) => setYearLabel(event.target.value)} required /></label><label>Competition format<Select data-testid="rule-profile" defaultValue="PBE_STYLE_V1"><option value="PBE_STYLE_V1">Bible Experience</option></Select></label></div><p className="season-help">Your season starts as a draft. Students can begin after you review and start it.</p><Button data-testid="save-season"  disabled={create.isPending} type="submit">{create.isPending ? "Saving…" : "Save and choose passages"}</Button></form>}</Panel>}
+      {step === "passages" && <Panel ><div className="season-section-heading"><h2>Choose season passages</h2><p>This is the season's study material. You'll give each student a passage from it next.</p></div>
+        {scopeDraft ? <form onSubmit={submitScope} className="season-scope-form"><fieldset className="season-edit-fields" disabled={saveScope.isPending}>
+          <ScopeFields packs={draftPacks} books={library.data?.books ?? []} unitsForPack={unitsForPack} onChange={packs => setScopeDraft(multiScope(packs))} />
+          <div className="season-actions"><Button data-testid="save-scope" type="submit" disabled={saveScope.isPending || !draftPacks.length || legacySources.some(query => !query.isSuccess)}>Save passages and continue →</Button><Button type="button" variant="secondary" onClick={() => setScopeDraft(null)} disabled={saveScope.isPending}>Cancel edits</Button></div>
+        </fieldset></form> : <><ScopeSummary scope={scope.data} />{active || closed ? <p className="season-help">{closed ? "This season is closed. Saved passages and student plans are read-only." : "These passages are set for the active season. You can still adjust student plans."}</p> : <Button type="button" variant="secondary" onClick={editScope} disabled={!hasScope && !library.data?.books.length}>{hasScope ? "Edit season passages" : "Choose passages"}</Button>}{!hasScope && !library.data?.books.length && <p className="season-help">The NKJV library must be available before choosing new passages.</p>}<div className="season-actions"><Button type="button" onClick={() => go("students")} disabled={!hasScope}>Continue to students →</Button></div></>}
+
+      </Panel>}
+      {step === "students" && <>{!assignmentOnly && <div className="season-section-heading"><h2>{selectedStudentId ? "Manage assignments" : "Students"}</h2><p>{selectedStudentId ? "Manage this student's passages and training difficulty for the season." : "Find a student and open their assignments to build a personal training plan."}</p></div>}{!hasScope ? <Panel><h3>Choose season passages first</h3><p>Students need a saved passage to study.</p><LinkButton to={`/admin/seasons/${seasonId}?step=passages`}>Choose passages →</LinkButton></Panel> : !students.data?.length ? <Panel><h3>Your roster is empty</h3><p>Add students before creating their plans.</p><LinkButton to="/admin/students">Add students →</LinkButton></Panel> : !selectedStudentId ? <Panel><div className="season-editor-heading"><h3>Season roster</h3><Badge>{assignedStudents.length} / {students.data.length} assigned</Badge></div><StudentTable students={students.data} renderPlan={student => {
+          const plans = assignments.data?.filter(item => item.studentUserId === student.userId) ?? [];
+          return <><Badge tone={plans.length ? "success" : "neutral"}>{plans.length ? "Assigned" : "Needs a plan"}</Badge><p>{plans.length ? `${plans.length} passage${plans.length === 1 ? "" : "s"} · ${plans[0].difficulty ?? "Standard"}` : "No passages assigned"}</p></>;
+        }} renderActions={student => <LinkButton size="compact" variant="secondary" to={`?${new URLSearchParams({ ...Object.fromEntries(params), step: "students", studentId: student.userId })}`} onClick={() => { setPassageChoice("0"); setCustomRange(null); setAssignmentType("PrimarySpecialist"); setMessage(""); setFormError(""); }}>Manage assignments<span className="sr-only"> for {student.displayName}</span></LinkButton>} /></Panel> : <div className="student-assignment-page">{!assignmentOnly && <Button variant="secondary" disabled={busy} onClick={() => { setMessage(""); setFormError(""); setParams(previous => { const next = new URLSearchParams(previous); next.delete("studentId"); return next; }); }}>Back to students</Button>}{!selectedStudent ? <Notice tone="danger">This student is unavailable. Return to students and choose another student.</Notice> : <>
+        <Panel className="season-student-editor"><div className="season-editor-heading"><div><h2>{selectedStudent?.displayName}</h2></div><Badge tone={studentAssignments.length ? "success" : "neutral"}>{studentAssignments.length ? "Assigned" : "Not assigned yet"}</Badge></div>
+          {studentAssignments.length > 0 && <div className="season-saved-assignments"><h3>Saved passages</h3><ul>{studentAssignments.map((item) => <li key={item.id}><strong>{rangeLabel(item)}</strong><span>{item.type === "PrimarySpecialist" ? "Specialist study" : "Required coverage"}</span><div className="season-actions"><Button variant="secondary" size="compact" disabled={busy || closed} onClick={() => { changeAssignment.reset(); setAssignmentAction({ id: item.id, contentPackId: item.contentPackId, range: { ...item }, action: "correct" }); }}>Correct passage<span className="sr-only"> {rangeLabel(item)}</span></Button><Button variant="ghost" size="compact" disabled={busy || closed} onClick={() => { changeAssignment.reset(); setAssignmentAction({ id: item.id, contentPackId: item.contentPackId, range: { ...item }, action: "remove" }); }}>Remove assignment<span className="sr-only"> {rangeLabel(item)}</span></Button></div></li>)}</ul></div>}
+          <form onSubmit={submitAssignment}><fieldset className="season-edit-fields" disabled={closed || assign.isPending || saveDifficulty.isPending}>
+          <label>Assignment book<Select value={selectedPack?.contentPackId ?? ""} onChange={event => { setAssignmentPackId(event.target.value); setPassageChoice("0"); setCustomRange(null); }}>{savedPacks.map(pack => <option key={pack.contentPackId} value={pack.contentPackId}>{library.data?.books.find(book => book.contentPackId === pack.contentPackId)?.name ?? [...new Set(pack.includes.map(range => range.bookKey))].join(", ")}</option>)}</Select></label>
+          <label>Passage to assign<Select value={passageChoice} onChange={(event) => { setPassageChoice(event.target.value); if (event.target.value === "custom") setCustomRange({ ...assignmentRange }); }}>{availableRanges.map((range, index) => <option key={index} value={String(index)}>{rangeLabel(range)}</option>)}<option value="custom">Choose a specific range…</option></Select></label>{passageChoice === "custom" && <RangeFields units={assignmentUnits} allUnits={allAssignmentUnits} books={library.data?.books} prefix="assignment" label="Student passage" range={assignmentRange} onChange={setCustomRange} />}
+
+          <p className="season-help">Assignments use the saved season passages. Any season exclusions still apply.</p><label>Assignment role<Select value={assignmentType} onChange={(event) => setAssignmentType(event.target.value)}><option value="PrimarySpecialist">Specialist study</option><option value="RequiredCoverage">Required coverage</option></Select></label><p className="season-help">{assignmentType === "PrimarySpecialist" ? "This student’s focus passage." : "Shared passages for the whole team to study."}</p>
+          <fieldset className="season-difficulty"><legend>Training difficulty</legend><p>One setting for this student throughout this season.</p><div className="season-difficulty-options">{levels.map((level) => <label key={level.name} className="ds-choice"><Input type="radio" name="difficulty" value={level.name} checked={difficulty === level.name} onChange={() => setDifficultyEdits((edits) => ({ ...edits, [selectedStudentId]: level.name }))} aria-label={level.name} /><strong>{level.name}</strong><small>{level.detail}</small></label>)}</div></fieldset>
+          <DifficultyPreview difficulty={difficulty} /><div className="season-actions"><Button data-testid="assign-student" type="submit"  disabled={busy || closed || alreadyAssigned || !selectedStudentId || !storedRange(assignmentRange, assignmentUnits, allAssignmentUnits)}>Add passage assignment</Button>{studentAssignments.length > 0 && <Button type="button" variant="secondary" disabled={busy || closed} onClick={() => saveDifficulty.mutate()}>Save difficulty for future sessions</Button>}</div><p className="season-help">Difficulty changes apply to future sessions. Sessions already started keep their original setting.</p>{alreadyAssigned && <p className="season-help">This passage and role are already assigned. Choose another range to add a passage.</p>}{closed && <p className="season-help">This season is closed. Saved student plans are read-only.</p>}</fieldset></form>
+        </Panel></>}</div>}{!assignmentOnly && <div className="season-step-footer"><Button disabled={busy} variant="secondary" onClick={() => go("passages")}>← Back to passages</Button><Button disabled={busy}  onClick={() => go("review")}>Review season →</Button></div>}</>}
+      {step === "review" && <Panel  data-testid="season-review"><div className="season-section-heading"><h2>{closed ? "Season " + statusLabel.toLowerCase() : active ? "Your season is underway" : "Ready to start?"}</h2><p>{closed ? "Review the saved passages and student plans for this season." : active ? "Keep student plans up to date as your team makes progress." : "Check the passages and student plans before opening training."}</p></div><div className="season-review-grid"><div><h3>Season passages</h3><ScopeSummary scope={scope.data} /><Button variant="ghost" size="compact" onClick={() => go("passages")}>View passages →</Button></div><div><h3>Student plans <Badge>{assignedStudents.length}</Badge></h3>{assignedStudents.length ? <ul className="season-review-roster">{assignedStudents.map((student) => { const plans = assignments.data!.filter((item) => item.studentUserId === student.userId); return <li key={student.userId}><div><strong>{student.displayName}</strong><Badge tone="info">{plans[0].difficulty ?? "Standard"}</Badge></div><p>{plans.map(rangeLabel).join(" · ")}</p></li>; })}</ul> : <p className="season-help">No students have a passage yet.</p>}<Button variant="ghost" size="compact" onClick={() => go("students")}>Manage student plans →</Button></div></div><div className="season-start-panel"><div><strong>{closed ? "This season is closed" : active ? "Training is open" : "Start when your team is ready"}</strong><p>{closed ? "Create a new season when your team is ready to begin again." : active ? "Students can practice, review, and rehearse." : "Starting makes this season available to assigned students."}</p></div>{closed ? <LinkButton variant="secondary" to="/admin/seasons">All seasons →</LinkButton> : active ? <LinkButton to="/admin">Go to coach overview →</LinkButton> : <Button data-testid="activate-season"  disabled={!hasScope || !assignedStudents.length || activate.isPending} onClick={() => { setFormError(""); activate.reset(); setConfirmStart(true); }}>{activate.isPending ? "Starting…" : "Start season"}</Button>}</div></Panel>}
+    </>}
+    {!assignmentOnly && season.data && season.data.status !== "Archived" && <div className="season-lifecycle-actions">
+      {active && <Button size="compact" variant="secondary" disabled={busy} onClick={() => { changeLifecycle.reset(); setLifecycleAction("close"); }}>Close season</Button>}
+      <Button size="compact" variant="ghost" disabled={busy} onClick={() => { changeLifecycle.reset(); setLifecycleAction("archive"); }}>Archive season</Button>
+    </div>}
+    {confirmStart && <ConfirmationDialog title={`Start ${season.data?.name ?? "this season"}?`} description="Assigned students will be able to begin training. Season passages will be locked; you can still adjust student assignments and difficulty."
+      confirmLabel="Start season" pendingLabel="Starting…" pending={activate.isPending} error={formError || activate.error?.message}
+      onCancel={() => { setConfirmStart(false); setFormError(""); activate.reset(); }} onConfirm={() => { setFormError(""); activate.mutate(); }} />}
+    {lifecycleAction && <ConfirmationDialog title={`${lifecycleAction === "close" ? "Close" : "Archive"} ${season.data?.name}?`}
+      description="Students will no longer be able to study this season, including cards already opened. Saved assignments, attempts and progress are preserved. This season cannot be reopened."
+      confirmLabel={lifecycleAction === "close" ? "Close season" : "Archive season"} pending={changeLifecycle.isPending} error={changeLifecycle.error?.message}
+      onCancel={() => setLifecycleAction(null)} onConfirm={() => changeLifecycle.mutate()} />}
+    {assignmentAction && <ConfirmationDialog title={assignmentAction.action === "remove" ? "Remove this assignment?" : "Correct this passage?"}
+      description="Previous attempts and progress are preserved. Open cards outside the updated assignments cannot be submitted. Students can start a new session with their remaining passages."
+      confirmLabel={assignmentAction.action === "remove" ? "Remove assignment" : "Save corrected passage"} pending={changeAssignment.isPending}
+      disabled={assignmentAction.action === "correct" && !storedRange(assignmentAction.range, correctionUnits, correctionPack ? unitsForPack(correctionPack.contentPackId) : [])} error={changeAssignment.error?.message}
+      onCancel={() => setAssignmentAction(null)} onConfirm={() => changeAssignment.mutate()}>
+      {assignmentAction.action === "correct" && <RangeFields units={correctionUnits} allUnits={correctionPack ? unitsForPack(correctionPack.contentPackId) : []} prefix="correct" label="Replacement passage" range={assignmentAction.range} books={library.data?.books} onChange={range => setAssignmentAction({ ...assignmentAction, range })} />}
+    </ConfirmationDialog>}
+    {!assignmentOnly && <p className="season-progress-note">Step {stepIndex + 1} of 4 · {closed ? "Read-only season" : "Use Save or Add to keep your changes"}</p>}
+  </div>;
+}
+
+function ScopeSummary({ scope }: { scope?: SeasonScope }) {
+  const packs=scopePacks(scope), includes=packs.flatMap(pack=>pack.includes), excludes=packs.flatMap(pack=>pack.excludes);
+  return <div className="season-scope-summary">{includes.length ? <><ul>{includes.map((range,index)=><li key={index}><AppIcon name="book" /><strong>{rangeLabel(range)}</strong></li>)}</ul>{excludes.length>0 && <div className="season-exclusions"><span>Excluded passages</span><ul>{excludes.map((range,index)=><li key={index}>{rangeLabel(range)}</li>)}</ul></div>}</> : <p className="season-help">No season passages saved yet.</p>}</div>;
+}
+function ScopeFields({packs, books, unitsForPack, onChange}: {packs: PackScope[]; books: LibraryBook[]; unitsForPack: (id:string)=>Coordinate[]; onChange:(packs:PackScope[])=>void}) {
+  const [addId,setAddId]=useState("");
+  const available=books.filter(book=>!packs.some(pack=>pack.contentPackId===book.contentPackId));
+  const update=(index:number, value:PackScope)=>onChange(packs.map((pack,i)=>i===index?value:pack));
+  return <>
+    {packs.map((pack,packIndex)=>{const units=unitsForPack(pack.contentPackId);return <div className="season-range-section" key={pack.contentPackId}><div className="season-editor-heading"><h3>{books.find(book=>book.contentPackId===pack.contentPackId)?.name ?? "Saved season content"}</h3><Button type="button" variant="ghost" size="compact" onClick={()=>onChange(packs.filter((_,i)=>i!==packIndex))}>Remove book</Button></div>
+      {(["includes","excludes"] as const).map(kind=><div className="season-range-section" key={kind}><h3>{kind==="includes"?"Passages to include":"Passages to leave out"}</h3>{pack[kind].map((range,index)=><div className="season-range-editor" key={index}><RangeFields units={units} books={books} prefix={packIndex===0&&kind==="includes"&&index===0?"scope":packIndex+"-"+kind+"-"+index} label={(kind==="includes"?"Included":"Excluded")+" passage "+(index+1)} range={range} onChange={range=>update(packIndex,{...pack,[kind]:pack[kind].map((old,i)=>i===index?range:old)})}/><Button type="button" variant="ghost" size="compact" onClick={()=>update(packIndex,{...pack,[kind]:pack[kind].filter((_,i)=>i!==index)})}>Remove {kind==="includes"?"included":"excluded"} passage {index+1}</Button></div>)}<Button type="button" variant="secondary" disabled={!units.length} onClick={()=>{const range=firstRange(units);if(range)update(packIndex,{...pack,[kind]:[...pack[kind],range]});}}>{kind==="includes"?"+ Add another passage":"+ Add an exclusion"}</Button></div>)}
+    </div>;})}
+    <div className="season-form-pair"><label>Add a library book<Select value={addId} onChange={event=>setAddId(event.target.value)}><option value="">Choose an NKJV book</option>{available.map(book=><option key={book.contentPackId} value={book.contentPackId}>{book.name}</option>)}</Select></label><Button type="button" variant="secondary" disabled={!available.some(book=>book.contentPackId===addId)} onClick={()=>{const book=available.find(book=>book.contentPackId===addId);if(!book)return;const range=firstRange(coordinates(book));if(range){onChange([...packs,{contentPackId:book.contentPackId,includes:[range],excludes:[]}]);setAddId("");}}}>Add book</Button></div>
+  </>;
+}
+export function RangeFields({ prefix, label, range, onChange, books, units, allUnits = units }: { prefix: string; label: string; range: PassageRange; onChange: (range: PassageRange) => void; books?: { bookKey: string; name: string }[]; units: Coordinate[]; allUnits?: Coordinate[] }) {
+  const available = orderCoordinates(units);
+  const bookKeys = [...new Set(available.map(unit => unit.bookKey))];
+  const book = bookKeys.includes(range.bookKey) ? range.bookKey : bookKeys[0];
+  const bookUnits = available.filter(unit => unit.bookKey === book);
+  const chapterOptions = [...new Set(bookUnits.map(unit => unit.chapter))];
+  const startChapter = chapterOptions.includes(range.startChapter) ? range.startChapter : chapterOptions[0];
+  const startVerses = [...new Set(bookUnits.filter(unit => unit.chapter === startChapter).map(unit => unit.verse))];
+  const startVerse = startVerses.includes(range.startVerse) ? range.startVerse : startVerses[0];
+  const segment = passageSegments(units, allUnits).find(segment => segment.some(unit => unit.bookKey === book && unit.chapter === startChapter && unit.verse === startVerse)) ?? [];
+  const endUnits = segment.filter(unit => unit.chapter > startChapter || unit.chapter === startChapter && unit.verse >= startVerse);
+  const endChapters = [...new Set(endUnits.map(unit => unit.chapter))];
+  const endChapter = endChapters.includes(range.endChapter) ? range.endChapter : endChapters[0];
+  const endVerses = [...new Set(endUnits.filter(unit => unit.chapter === endChapter).map(unit => unit.verse))];
+  const endVerse = endVerses.includes(range.endVerse) ? range.endVerse : endVerses[0];
+  useEffect(() => {
+    if (book && startVerse !== undefined && endVerse !== undefined && (book !== range.bookKey || startChapter !== range.startChapter || startVerse !== range.startVerse || endChapter !== range.endChapter || endVerse !== range.endVerse)) onChange({ bookKey: book, startChapter, startVerse, endChapter, endVerse });
+  }, [book, startChapter, startVerse, endChapter, endVerse, range, onChange]);
+  const select = (key: "startChapter" | "startVerse" | "endChapter" | "endVerse", value: number) => {
+    const next = { ...range, [key]: value };
+    if (key === "startChapter") { next.startVerse = bookUnits.find(unit => unit.chapter === value)!.verse; next.endChapter = value; next.endVerse = next.startVerse; }
+    if (key === "startVerse") { next.endChapter = startChapter; next.endVerse = value; }
+    if (key === "endChapter") next.endVerse = endUnits.find(unit => unit.chapter === value)!.verse;
+    onChange(next);
+  };
+  return <fieldset className="season-range-fields" disabled={!available.length}><legend>{label}</legend><label className="season-book-field">Book<Select data-testid={prefix + "-book"} value={book ?? ""} onChange={event => { const first = available.find(unit => unit.bookKey === event.target.value)!; onChange({ bookKey: first.bookKey, startChapter: first.chapter, startVerse: first.verse, endChapter: first.chapter, endVerse: first.verse }); }}>{!bookKeys.length && <option value="">No stored passages available</option>}{bookKeys.map(key => <option key={key} value={key}>{books?.find(item => item.bookKey === key)?.name ?? key}</option>)}</Select></label><div className="season-range-numbers">{([{ key: "startChapter", title: "Start chapter", id: "start-chapter", options: chapterOptions, value: startChapter }, { key: "startVerse", title: "Start verse", id: "start", options: startVerses, value: startVerse }, { key: "endChapter", title: "End chapter", id: "end-chapter", options: endChapters, value: endChapter }, { key: "endVerse", title: "End verse", id: "end", options: endVerses, value: endVerse }] as const).map(field => <label key={field.key}>{field.title}<Select required data-testid={prefix + "-" + field.id} value={field.value ?? ""} onChange={event => select(field.key, Number(event.target.value))}>{!field.options.length && <option value="">No verses available</option>}{field.options.map(value => <option key={value} value={value}>{value}</option>)}</Select></label>)}</div><p className="season-help">Only available chapter and verse coordinates are offered.</p></fieldset>;
+}
+function DifficultyPreview({ difficulty }: { difficulty: TrainingDifficulty }) {
+  const examples = { Foundation: ["One missing word", "Larger chunks of four words", "Two reference choices"], Standard: ["Several words (about a quarter)", "Short chunks of two words", "Up to four reference choices"], Advanced: ["Most key words", "Individual words", "Typed book, chapter and verse"] }[difficulty];
+  return <details className="season-preview" data-testid="difficulty-preview"><summary>What changes with {difficulty.toLowerCase()}?</summary><dl>{["Missing Words", "Verse Builder", "Reference Match"].map((name, index) => <div key={name}><dt>{name}</dt><dd>{examples[index]}</dd></div>)}</dl><p>Illustrative formats; available activities depend on assigned passages and season rules. Full mastery requires advanced, unaided recall.</p></details>;
 }

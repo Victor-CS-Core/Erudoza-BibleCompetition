@@ -8,10 +8,10 @@ Date: 2026-08-22
 Erudoza is a multi-organization Scripture competition learning engine.
 
 - Organization is the tenant boundary from the first schema.
-- The React SPA never holds privileged secrets or OpenAI keys.
-- Canonical Scripture lives in the relational content model, not Blob Storage and not model memory.
+- The React SPA never holds privileged secrets.
+- Canonical Scripture lives in the relational content model.
 - Blob Storage is only for file-like imports/exports/media.
-- The Study Engine depends on interfaces. AI is an optional generation path behind validation.
+- The Study Engine depends on deterministic activity-provider interfaces. There is no AI generation path.
 
 ## Consequences
 

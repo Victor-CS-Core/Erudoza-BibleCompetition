@@ -1,0 +1,39 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "erudoza-native",
+  "account_id": "447a556505dd5e72b66e7c1c63d754ae",
+  "main": "worker/native/index.ts",
+  "compatibility_date": "2026-05-22",
+  "workers_dev": true,
+  "preview_urls": false,
+  "routes": [{
+    "pattern": "erudoza.com",
+    "zone_id": "c65e6d9c75bf399c8d726ec2414859d3",
+    "custom_domain": true
+  }],
+  "vars": { "PUBLIC_ORIGIN": "https://erudoza.com" },
+  "assets": {
+    "directory": "dist-native",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "erudoza-native",
+    "database_id": "a1e35f1d-9d11-4379-af14-1c7c71162920",
+    "migrations_dir": "migrations"
+  }],
+  "durable_objects": {
+    "bindings": [
+      { "name": "ROOMS", "class_name": "PracticeRoom" },
+      { "name": "REPORTS", "class_name": "PracticeReports" },
+      { "name": "PASSWORD_CRYPTO", "class_name": "PasswordCrypto" }
+    ]
+  },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["PracticeRoom", "PracticeReports"] },
+    { "tag": "v2-password-crypto", "new_sqlite_classes": ["PasswordCrypto"] }
+  ],
+  "observability": { "enabled": true, "head_sampling_rate": 0.1 }
+}

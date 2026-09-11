@@ -1,0 +1,131 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+import { api } from "../api/client";
+import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
+import { AppIcon } from "../components/AppIcon";
+import { Button, Notice } from "../components/ui";
+import { CommandCenter } from "../components/navigation/CommandCenter";
+import { NavigationMenu } from "../components/navigation/NavigationMenu";
+import { currentDestination, navigation, type Destination } from "../components/navigation/destinations";
+import { CoffeeWidget } from "../features/support/CoffeeWidget";
+import "../styles/command-center.css";
+
+export function TrainingAppFrame({ coach = false }: { coach?: boolean }) {
+  const { me } = useAuth();
+  return <CommandFrame key={`${me?.organizationId}:${me?.userId}:${coach}`} coach={coach} />;
+}
+function CommandFrame({ coach }: { coach: boolean }) {
+  const { me, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const params = new URLSearchParams(location.search);
+  const selectedSeason = params.get("seasonId");
+  const items = navigation(coach, selectedSeason);
+  const active = currentDestination(items, location.pathname, location.search);
+  const route = location.pathname + location.search + location.hash;
+  const [commandRoute, setCommandRoute] = useState<string | null>(null);
+  const commandOpen = commandRoute === route;
+  const commandOpener = useRef<HTMLElement | null>(null);
+  const openCommand = (opener: HTMLElement) => { commandOpener.current = opener; setCommandRoute(route); };
+  const closeCommand = useCallback(() => {
+    setCommandRoute(null);
+    requestAnimationFrame(() => { if (commandOpener.current?.isConnected) commandOpener.current.focus(); });
+  }, []);
+  const shortcuts = useRef<HTMLElement>(null);
+  const [expanded, setExpanded] = useState<string[]>([]);
+  const storageKey = `erudoza:pins:${me?.organizationId}:${me?.userId}:${coach ? "coach" : "student"}`;
+  const [pinned, setPinned] = useState<string[]>(() => {
+    try { const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "null"); if (Array.isArray(saved)) return [...new Set(saved.filter((id): id is string => typeof id === "string" && items.some(item => item.id === id)))]; } catch { /* Browser storage can be unavailable. */ }
+    return items.map(item => item.id);
+  });
+  useEffect(() => {
+    const nav = shortcuts.current;
+    const current = nav?.querySelector<HTMLAnchorElement>('a[aria-current="page"]')?.parentElement;
+    if (!nav || !current) return;
+    const view = nav.getBoundingClientRect(), item = current.getBoundingClientRect();
+    if (item.left < view.left) nav.scrollLeft -= view.left - item.left;
+    else if (item.right > view.right) nav.scrollLeft += item.right - view.right;
+  }, [active?.id]);
+  const [signingOut, setSigningOut] = useState(false);
+  const [error, setError] = useState("");
+  const seasonId = coach ? location.pathname.match(/^\/admin\/seasons\/([^/]+)/)?.[1] : undefined;
+  const season = useQuery({ queryKey: ["season", me?.organizationId, seasonId], queryFn: () => api.season(me!.organizationId, seasonId!), enabled: !!me && !!seasonId && seasonId !== "new" });
+  const focused = !coach && location.pathname === "/student/study";
+  const togglePin = (id: string) => setPinned(previous => {
+    const next = previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id];
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* Pins still work for the current visit. */ }
+    return next;
+  });
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); if (commandRoute === route) closeCommand(); else { commandOpener.current = document.activeElement as HTMLElement | null; setCommandRoute(route); } } };
+    window.addEventListener("keydown", shortcut); return () => window.removeEventListener("keydown", shortcut);
+  }, [route, commandRoute, closeCommand]);
+  useEffect(() => {
+    if (!location.hash) return;
+    let id: string; try { id = decodeURIComponent(location.hash.slice(1)); } catch { return; }
+    const reveal = () => { const target = document.getElementById(id); if (!target) return false; target.scrollIntoView({ block: "start" }); target.tabIndex = -1; target.focus({ preventScroll: true }); return true; };
+    if (reveal()) return;
+    const observer = new MutationObserver(() => { if (reveal()) observer.disconnect(); });
+    observer.observe(document.getElementById("training-main") ?? document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [route, location.hash]);
+  const signOut = async () => {
+    setSigningOut(true); setError("");
+    try { await logout(); navigate("/login"); }
+    catch { setError("Could not sign out. Please try again."); }
+    finally { setSigningOut(false); }
+  };
+  const home = coach ? "/admin" : `/student${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`;
+  const seasonItems: Destination[] = seasonId && seasonId !== "new" ? [
+    { id: "details", label: "Overview", to: `/admin/seasons/${seasonId}?step=details`, icon: "home" },
+    { id: "passages", label: "Passages", to: `/admin/seasons/${seasonId}?step=passages`, icon: "book" },
+    { id: "students", label: "Students", to: `/admin/seasons/${seasonId}?step=students`, icon: "users" },
+    { id: "review", label: "Readiness", to: `/admin/seasons/${seasonId}?step=review`, icon: "flag" },
+  ] : [];
+  const contextItems = seasonItems.length ? seasonItems : active?.children ?? [];
+  const sectionLabel = seasonItems.length ? season.data?.name ?? "Season" : active?.label ?? (coach ? "Coach workspace" : "Training");
+  const currentStep = params.get("step") ?? ((season.data?.scopeUnitCount ?? 0) > 0 ? "students" : "passages");
+  const contextCurrent = (item: Destination) => {
+    if (seasonItems.length) return item.id === currentStep && !location.pathname.endsWith("progress");
+    const target = new URL(item.to, "https://erudoza.local");
+    if (target.pathname !== location.pathname) return false;
+    return location.hash ? target.hash === location.hash : item.id === contextItems.find(entry => new URL(entry.to, "https://erudoza.local").pathname === location.pathname)?.id;
+  };
+  const searchLabel = coach ? "Search sections, students, or actions" : "Search sections, seasons, or actions";
+  return <div className={`training-app command-app ${coach ? "training-coach" : "training-learner"} ${focused ? "training-focused" : ""}`} data-testid={coach ? "coach-app-shell" : "learner-app-shell"}>
+    <CoffeeWidget enabled={coach && me?.kind === "Adult"} accountKey={`${me?.organizationId}:${me?.userId}`} />
+    <a className="training-skip" href="#training-main">Skip to content</a>
+    <header className="command-masthead"><div className="command-masthead-inner">
+      <Link to={home} className="command-brand" aria-label="Erudoza home"><ErudozaWordmark compact inverted /><span>{coach ? "Coach" : "Student"}</span></Link>
+      <Button variant="secondary" className="command-trigger" aria-label={searchLabel} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="search" /><span className="command-trigger-copy">{searchLabel}…</span><span className="command-trigger-short">Search</span><kbd>Ctrl K</kbd></Button>
+      <span className="command-academy">{me?.organizationName}</span>
+      <NavigationMenu key={`account:${route}`} name="Account" label={<><span className="training-avatar">{me?.displayName?.slice(0, 1)}</span><span className="command-account-name">{me?.displayName}</span></>}>
+        <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach account" : "Student account"}</small></div>
+        <Button variant="ghost" onClick={() => void signOut()} disabled={signingOut} data-testid="logout"><AppIcon name="logout" />{signingOut ? "Signing out…" : "Sign out"}</Button>
+      </NavigationMenu>
+    </div></header>
+    {error && <Notice tone="danger">{error}</Notice>}
+    <div className="command-shortcut-bar"><div className="command-shortcut-inner">
+      <nav ref={shortcuts} className="command-shortcuts" aria-label={coach ? "Coach" : "Learner"} data-testid={coach ? "coach-tab-bar" : "learner-tab-bar"}>
+        {pinned.map(id => items.find(item => item.id === id)).filter((item): item is Destination => !!item).map(item => <div key={item.id} className={`command-shortcut ${active?.id === item.id ? "is-current" : ""}`}>
+          <Link to={item.to} data-testid={item.testId} aria-current={active?.id === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.label}</span></Link>
+          <Button variant="ghost" size="compact" className="command-pin" aria-label={`Unpin ${item.label}`} onClick={() => togglePin(item.id)}><AppIcon name="pin" /></Button>
+        </div>)}
+        {!pinned.length && <span className="command-no-pins">Pin your favorite sections from All sections.</span>}
+      </nav>
+      <Button variant="secondary" className="command-all" aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>All sections</span><AppIcon name="chevron" /></Button>
+    </div></div>
+    <div className="command-context"><div className="command-context-inner">
+      <nav aria-label="Breadcrumb" className="command-breadcrumb" data-season={seasonItems.length > 0}><Link to={home}>{coach ? "Coach" : "Training"}</Link><span aria-hidden="true">/</span>{seasonItems.length > 0 && <><Link to="/admin/seasons">Seasons</Link><span aria-hidden="true">/</span></>}
+        {contextItems.length ? <NavigationMenu key={`section:${route}`} name="Switch section" label={<span>{sectionLabel}</span>}>{contextItems.map(item => <Link key={item.id} to={item.to} aria-current={contextCurrent(item) ? "page" : undefined}><AppIcon name={item.icon} />{item.label}</Link>)}</NavigationMenu> : <span aria-current="page">{seasonId === "new" ? "Create season" : sectionLabel}</span>}
+        {seasonItems.length > 0 && <><span aria-hidden="true">/</span><span aria-current="page">{location.pathname.endsWith("progress") ? "Student progress" : seasonItems.find(item => item.id === currentStep)?.label}</span></>}
+      </nav>
+      {focused && <Link to={home} className="command-study-back" data-testid="study-back">Back to training<AppIcon name="arrow" /></Link>}
+      {!seasonItems.length && contextItems.length > 0 && <nav className="command-context-links" aria-label="Section">{contextItems.map(item => <Link key={item.id} to={item.to} aria-current={contextCurrent(item) ? "location" : undefined}>{item.label}</Link>)}</nav>}
+    </div></div>
+    <div className="training-workspace"><main id="training-main" className="training-main" data-testid={coach ? "coach-main" : "learner-main"}><Outlet /></main><footer className="training-footer">SCRIPTURE <span>·</span> DISCIPLESHIP <span>·</span> REAL-WORLD FAITH</footer></div>
+    {commandOpen && <CommandCenter items={items} coach={coach} pinned={pinned} togglePin={togglePin} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
+  </div>;
+}

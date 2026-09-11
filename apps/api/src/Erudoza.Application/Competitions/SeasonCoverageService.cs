@@ -1,13 +1,14 @@
 using Erudoza.Application.Abstractions;
 using Erudoza.Application.Contracts;
 using Erudoza.Domain;
+using Erudoza.Domain.Study;
 using Microsoft.EntityFrameworkCore;
 
 namespace Erudoza.Application.Competitions;
 
 public sealed class SeasonCoverageService(
     IErudozaDbContext db,
-    IStudentStudyScopeService studyScope)
+    ICompetitionScopeResolver competitionScope)
 {
     public async Task<SeasonCoverageDto> GetAsync(
         Guid organizationId,
@@ -37,13 +38,20 @@ public sealed class SeasonCoverageService(
             .Where(item => item.DueAtUtc <= now)
             .ToList();
         var attemptCounts = (await db.Attempts.AsNoTracking()
-            .Where(item => item.OrganizationId == organizationId && item.SeasonId == seasonId)
+            .Where(item => item.OrganizationId == organizationId && item.SeasonId == seasonId && !item.IsLegacyDuplicate)
             .Select(item => item.StudentUserId)
             .ToListAsync(cancellationToken))
             .GroupBy(id => id)
             .ToDictionary(group => group.Key, group => group.Count());
 
         var rows = new List<CoverageStudentDto>();
+        var allowed = await competitionScope.ResolveAsync(organizationId, seasonId, cancellationToken);
+        var knowledge = await db.KnowledgeUnits.AsNoTracking().Include(k => k.SourceUnit)
+            .Where(k => allowed.Contains(k.SourceUnitId)
+                && (k.OrganizationId == organizationId && k.ContentPack!.OrganizationId == organizationId
+                    || k.OrganizationId == BuiltInLibrary.OrganizationId && k.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && k.ContentPack.IsBuiltIn))
+            .ToListAsync(cancellationToken);
+        // Resolve all students against the same bounded season source set, without a query per student/book.
         foreach (var studentId in studentIds)
         {
             var assignment = assignments
@@ -51,8 +59,12 @@ public sealed class SeasonCoverageService(
                 .First(item => item.StudentUserId == studentId);
             var range = assignment.Scopes.First();
             var user = users[studentId];
-            var scope = await studyScope.GetAsync(studentId, seasonId, cancellationToken);
-            var studentMastery = mastery.Where(item => item.StudentUserId == studentId).ToList();
+            var scopes = assignments.Where(a => a.StudentUserId == studentId).SelectMany(a => a.Scopes).ToList();
+            var eligible = knowledge.Where(k => k.SourceUnit is not null && k.SourceUnit.OrganizationId == k.OrganizationId
+                && scopes.Any(s => s.ContentPackId == k.ContentPackId && s.ToRange().Contains(k.SourceUnit.ToLocator()))).ToList();
+            var eligibleKnowledgeIds = eligible.Select(k => k.Id).ToHashSet();
+            var studentMastery = mastery.Where(item => item.StudentUserId == studentId
+                && eligibleKnowledgeIds.Contains(item.KnowledgeUnitId)).ToList();
             rows.Add(new CoverageStudentDto(
                 studentId,
                 user.DisplayName,
@@ -63,9 +75,10 @@ public sealed class SeasonCoverageService(
                 range.StartVerse,
                 range.EndChapter,
                 range.EndVerse,
-                scope.EligibleSourceUnitIds.Count,
-                studentMastery.Count(item => item.Level is MasteryLevel.Strong or MasteryLevel.Mastered),
-                reviews.Count(item => item.StudentUserId == studentId),
+                eligible.Select(k => k.SourceUnitId).Distinct().Count(),
+                studentMastery.Count(item => item.Level == MasteryLevel.Mastered
+                    && item.AlgorithmVersion == ScaffoldMasteryRules.AlgorithmVersion),
+                reviews.Count(item => item.StudentUserId == studentId && eligibleKnowledgeIds.Contains(item.KnowledgeUnitId)),
                 attemptCounts.GetValueOrDefault(studentId)));
         }
 

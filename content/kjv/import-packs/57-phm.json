@@ -1,0 +1,214 @@
+{
+  "packKey": "kjv-1769-pdf-phm",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "public-domain",
+  "documents": [
+    {
+      "name": "Philemon",
+      "units": [
+        {
+          "citation": "Philemon 1:1",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 29997,
+          "text": "Paul, a prisoner of Jesus Christ, and Timothy our brother, unto Philemon our dearly beloved, and fellowlabourer,"
+        },
+        {
+          "citation": "Philemon 1:2",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 29998,
+          "text": "And to our beloved Apphia, and Archippus our fellowsoldier, and to the church in thy house:"
+        },
+        {
+          "citation": "Philemon 1:3",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 29999,
+          "text": "Grace to you, and peace, from God our Father and the Lord Jesus Christ."
+        },
+        {
+          "citation": "Philemon 1:4",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 30000,
+          "text": "I thank my God, making mention of thee always in my prayers,"
+        },
+        {
+          "citation": "Philemon 1:5",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 30001,
+          "text": "Hearing of thy love and faith, which thou hast toward the Lord Jesus, and toward all saints;"
+        },
+        {
+          "citation": "Philemon 1:6",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 30002,
+          "text": "That the communication of thy faith may become effectual by the acknowledging of every good thing which is in you in Christ Jesus."
+        },
+        {
+          "citation": "Philemon 1:7",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 30003,
+          "text": "For we have great joy and consolation in thy love, because the bowels of the saints are refreshed by thee, brother."
+        },
+        {
+          "citation": "Philemon 1:8",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 30004,
+          "text": "Wherefore, though I might be much bold in Christ to enjoin thee that which is convenient,"
+        },
+        {
+          "citation": "Philemon 1:9",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 30005,
+          "text": "Yet for love’s sake I rather beseech thee, being such an one as Paul the aged, and now also a prisoner of Jesus Christ."
+        },
+        {
+          "citation": "Philemon 1:10",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 30006,
+          "text": "I beseech thee for my son Onesimus, whom I have begotten in my bonds:"
+        },
+        {
+          "citation": "Philemon 1:11",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 30007,
+          "text": "Which in time past was to thee unprofitable, but now profitable to thee and to me:"
+        },
+        {
+          "citation": "Philemon 1:12",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 30008,
+          "text": "Whom I have sent again: thou therefore receive him, that is, mine own bowels:"
+        },
+        {
+          "citation": "Philemon 1:13",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 30009,
+          "text": "Whom I would have retained with me, that in thy stead he might have ministered unto me in the bonds of the gospel:"
+        },
+        {
+          "citation": "Philemon 1:14",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 30010,
+          "text": "But without thy mind would I do nothing; that thy benefit should not be as it were of necessity, but willingly."
+        },
+        {
+          "citation": "Philemon 1:15",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 30011,
+          "text": "For perhaps he therefore departed for a season, that thou shouldest receive him for ever;"
+        },
+        {
+          "citation": "Philemon 1:16",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 16,
+          "ordinal": 30012,
+          "text": "Not now as a servant, but above a servant, a brother beloved, specially to me, but how much more unto thee, both in the flesh, and in the Lord?"
+        },
+        {
+          "citation": "Philemon 1:17",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 17,
+          "ordinal": 30013,
+          "text": "If thou count me therefore a partner, receive him as myself."
+        },
+        {
+          "citation": "Philemon 1:18",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 18,
+          "ordinal": 30014,
+          "text": "If he hath wronged thee, or oweth thee ought, put that on mine account;"
+        },
+        {
+          "citation": "Philemon 1:19",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 19,
+          "ordinal": 30015,
+          "text": "I Paul have written it with mine own hand, I will repay it: albeit I do not say to thee how thou owest unto me even thine own self besides."
+        },
+        {
+          "citation": "Philemon 1:20",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 20,
+          "ordinal": 30016,
+          "text": "Yea, brother, let me have joy of thee in the Lord: refresh my bowels in the Lord."
+        },
+        {
+          "citation": "Philemon 1:21",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 21,
+          "ordinal": 30017,
+          "text": "Having confidence in thy obedience I wrote unto thee, knowing that thou wilt also do more than I say."
+        },
+        {
+          "citation": "Philemon 1:22",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 22,
+          "ordinal": 30018,
+          "text": "But withal prepare me also a lodging: for I trust that through your prayers I shall be given unto you."
+        },
+        {
+          "citation": "Philemon 1:23",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 23,
+          "ordinal": 30019,
+          "text": "There salute thee Epaphras, my fellowprisoner in Christ Jesus;"
+        },
+        {
+          "citation": "Philemon 1:24",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 24,
+          "ordinal": 30020,
+          "text": "Marcus, Aristarchus, Demas, Lucas, my fellowlabourers."
+        },
+        {
+          "citation": "Philemon 1:25",
+          "bookKey": "PHM",
+          "chapter": 1,
+          "verse": 25,
+          "ordinal": 30021,
+          "text": "The grace of our Lord Jesus Christ be with your spirit. Amen."
+        }
+      ]
+    }
+  ]
+}

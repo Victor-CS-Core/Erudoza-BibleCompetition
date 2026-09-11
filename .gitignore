@@ -48,3 +48,10 @@ firebase-debug.*.log
 .wrangler/
 apps/web/.dev.vars
 __pycache__/
+
+dist-native/
+.local/
+
+# Local inspection output and source extraction archive (runtime uses book packs)
+/.tmp/
+/content/nkjv/nkjv.master.json

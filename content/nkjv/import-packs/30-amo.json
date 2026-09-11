@@ -1,0 +1,1182 @@
+{
+  "packKey": "builtin-nkjv-amo",
+  "version": 1,
+  "locale": "en",
+  "sourceType": "Scripture",
+  "licensingStatus": "supplied-private",
+  "documents": [
+    {
+      "name": "Amos",
+      "units": [
+        {
+          "citation": "Amos 1:1",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 1,
+          "ordinal": 22366,
+          "text": "The words of Amos, who was among the sheepbreeders of Tekoa, which he saw concerning Israel in the days of Uzziah king of Judah, and in the days of Jeroboam the son of Joash, king of Israel, two years before the earthquake."
+        },
+        {
+          "citation": "Amos 1:2",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 2,
+          "ordinal": 22367,
+          "text": "And he said: \"The LORD roars from Zion, And utters His voice from Jerusalem; The pastures of the shepherds mourn, And the top of Carmel withers.\""
+        },
+        {
+          "citation": "Amos 1:3",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 3,
+          "ordinal": 22368,
+          "text": "Thus says the LORD: \"For three transgressions of Damascus, and for four, I will not turn away its punishment, Because they have threshed Gilead with implements of iron."
+        },
+        {
+          "citation": "Amos 1:4",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 4,
+          "ordinal": 22369,
+          "text": "But I will send a fire into the house of Hazael, Which shall devour the palaces of Ben-Hadad."
+        },
+        {
+          "citation": "Amos 1:5",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 5,
+          "ordinal": 22370,
+          "text": "I will also break the gate bar of Damascus, And cut off the inhabitant from the Valley of Aven, And the one who holds the scepter from Beth Eden. The people of Syria shall go captive to Kir,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 1:6",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 6,
+          "ordinal": 22371,
+          "text": "Thus says the LORD: \"For three transgressions of Gaza, and for four, I will not turn away its punishment, Because they took captive the whole captivity To deliver them up to Edom."
+        },
+        {
+          "citation": "Amos 1:7",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 7,
+          "ordinal": 22372,
+          "text": "But I will send a fire upon the wall of Gaza, Which shall devour its palaces."
+        },
+        {
+          "citation": "Amos 1:8",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 8,
+          "ordinal": 22373,
+          "text": "I will cut off the inhabitant from Ashdod, And the one who holds the scepter from Ashkelon; I will turn My hand against Ekron, And the remnant of the Philistines shall perish,\" Says the Lord GOD."
+        },
+        {
+          "citation": "Amos 1:9",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 9,
+          "ordinal": 22374,
+          "text": "Thus says the LORD: \"For three transgressions of Tyre, and for four, I will not turn away its punishment, Because they delivered up the whole captivity to Edom, And did not remember the covenant of brotherhood."
+        },
+        {
+          "citation": "Amos 1:10",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 10,
+          "ordinal": 22375,
+          "text": "But I will send a fire upon the wall of Tyre, Which shall devour its palaces.\""
+        },
+        {
+          "citation": "Amos 1:11",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 11,
+          "ordinal": 22376,
+          "text": "Thus says the LORD: \"For three transgressions of Edom, and for four, I will not turn away its punishment, Because he pursued his brother with the sword, And cast off all pity; His anger tore perpetually, And he kept his wrath forever."
+        },
+        {
+          "citation": "Amos 1:12",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 12,
+          "ordinal": 22377,
+          "text": "But I will send a fire upon Teman, Which shall devour the palaces of Bozrah.\""
+        },
+        {
+          "citation": "Amos 1:13",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 13,
+          "ordinal": 22378,
+          "text": "Thus says the LORD: \"For three transgressions of the people of Ammon, and for four, I will not turn away its punishment, Because they ripped open the women with child in Gilead, That they might enlarge their territory."
+        },
+        {
+          "citation": "Amos 1:14",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 14,
+          "ordinal": 22379,
+          "text": "But I will kindle a fire in the wall of Rabbah, And it shall devour its palaces, Amid shouting in the day of battle, And a tempest in the day of the whirlwind."
+        },
+        {
+          "citation": "Amos 1:15",
+          "bookKey": "AMO",
+          "chapter": 1,
+          "verse": 15,
+          "ordinal": 22380,
+          "text": "Their king shall go into captivity, He and his princes together,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 2:1",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 1,
+          "ordinal": 22381,
+          "text": "Thus says the LORD: \"For three transgressions of Moab, and for four, I will not turn away its punishment, Because he burned the bones of the king of Edom to lime."
+        },
+        {
+          "citation": "Amos 2:2",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 2,
+          "ordinal": 22382,
+          "text": "But I will send a fire upon Moab, And it shall devour the palaces of Kerioth; Moab shall die with tumult, With shouting and trumpet sound."
+        },
+        {
+          "citation": "Amos 2:3",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 3,
+          "ordinal": 22383,
+          "text": "And I will cut off the judge from its midst, And slay all its princes with him,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 2:4",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 4,
+          "ordinal": 22384,
+          "text": "Thus says the LORD: \"For three transgressions of Judah, and for four, I will not turn away its punishment, Because they have despised the law of the LORD, And have not kept His commandments. Their lies lead them astray, Lies which their fathers followed."
+        },
+        {
+          "citation": "Amos 2:5",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 5,
+          "ordinal": 22385,
+          "text": "But I will send a fire upon Judah, And it shall devour the palaces of Jerusalem.\""
+        },
+        {
+          "citation": "Amos 2:6",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 6,
+          "ordinal": 22386,
+          "text": "Thus says the LORD: \"For three transgressions of Israel, and for four, I will not turn away its punishment, Because they sell the righteous for silver, And the poor for a pair of sandals."
+        },
+        {
+          "citation": "Amos 2:7",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 7,
+          "ordinal": 22387,
+          "text": "They pant after the dust of the earth which is on the head of the poor, And pervert the way of the humble. A man and his father go in to the same girl, To defile My holy name."
+        },
+        {
+          "citation": "Amos 2:8",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 8,
+          "ordinal": 22388,
+          "text": "They lie down by every altar on clothes taken in pledge, And drink the wine of the condemned in the house of their god."
+        },
+        {
+          "citation": "Amos 2:9",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 9,
+          "ordinal": 22389,
+          "text": "\"Yet it was I who destroyed the Amorite before them, Whose height was like the height of the cedars, And he was as strong as the oaks; Yet I destroyed his fruit above And his roots beneath."
+        },
+        {
+          "citation": "Amos 2:10",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 10,
+          "ordinal": 22390,
+          "text": "Also it was I who brought you up from the land of Egypt, And led you forty years through the wilderness, To possess the land of the Amorite."
+        },
+        {
+          "citation": "Amos 2:11",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 11,
+          "ordinal": 22391,
+          "text": "I raised up some of your sons as prophets, And some of your young men as Nazirites. Is it not so, O you children of Israel?\" Says the LORD."
+        },
+        {
+          "citation": "Amos 2:12",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 12,
+          "ordinal": 22392,
+          "text": "\"But you gave the Nazirites wine to drink, And commanded the prophets saying, \"Do not prophesy!'"
+        },
+        {
+          "citation": "Amos 2:13",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 13,
+          "ordinal": 22393,
+          "text": "\"Behold, I am weighed down by you, As a cart full of sheaves is weighed down."
+        },
+        {
+          "citation": "Amos 2:14",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 14,
+          "ordinal": 22394,
+          "text": "Therefore flight shall perish from the swift, The strong shall not strengthen his power, Nor shall the mighty deliver himself;"
+        },
+        {
+          "citation": "Amos 2:15",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 15,
+          "ordinal": 22395,
+          "text": "He shall not stand who handles the bow, The swift of foot shall not escape, Nor shall he who rides a horse deliver himself."
+        },
+        {
+          "citation": "Amos 2:16",
+          "bookKey": "AMO",
+          "chapter": 2,
+          "verse": 16,
+          "ordinal": 22396,
+          "text": "The most courageous men of might Shall flee naked in that day,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 3:1",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 1,
+          "ordinal": 22397,
+          "text": "Hear this word that the LORD has spoken against you, O children of Israel, against the whole family which I brought up from the land of Egypt, saying:"
+        },
+        {
+          "citation": "Amos 3:2",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 2,
+          "ordinal": 22398,
+          "text": "\"You only have I known of all the families of the earth; Therefore I will punish you for all your iniquities.\""
+        },
+        {
+          "citation": "Amos 3:3",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 3,
+          "ordinal": 22399,
+          "text": "Can two walk together, unless they are agreed?"
+        },
+        {
+          "citation": "Amos 3:4",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 4,
+          "ordinal": 22400,
+          "text": "Will a lion roar in the forest, when he has no prey? Will a young lion cry out of his den, if he has caught nothing?"
+        },
+        {
+          "citation": "Amos 3:5",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 5,
+          "ordinal": 22401,
+          "text": "Will a bird fall into a snare on the earth, where there is no trap for it? Will a snare spring up from the earth, if it has caught nothing at all?"
+        },
+        {
+          "citation": "Amos 3:6",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 6,
+          "ordinal": 22402,
+          "text": "If a trumpet is blown in a city, will not the people be afraid? If there is calamity in a city, will not the LORD have done it?"
+        },
+        {
+          "citation": "Amos 3:7",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 7,
+          "ordinal": 22403,
+          "text": "Surely the Lord GOD does nothing, Unless He reveals His secret to His servants the prophets."
+        },
+        {
+          "citation": "Amos 3:8",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 8,
+          "ordinal": 22404,
+          "text": "A lion has roared! Who will not fear? The Lord GOD has spoken! Who can but prophesy?"
+        },
+        {
+          "citation": "Amos 3:9",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 9,
+          "ordinal": 22405,
+          "text": "\"Proclaim in the palaces at Ashdod, And in the palaces in the land of Egypt, and say: \"Assemble on the mountains of Samaria; See great tumults in her midst, And the oppressed within her."
+        },
+        {
+          "citation": "Amos 3:10",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 10,
+          "ordinal": 22406,
+          "text": "For they do not know to do right,' Says the LORD, \"Who store up violence and robbery in their palaces.\"'"
+        },
+        {
+          "citation": "Amos 3:11",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 11,
+          "ordinal": 22407,
+          "text": "Therefore thus says the Lord GOD: \"An adversary shall be all around the land; He shall sap your strength from you, And your palaces shall be plundered.\""
+        },
+        {
+          "citation": "Amos 3:12",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 12,
+          "ordinal": 22408,
+          "text": "Thus says the LORD: \"As a shepherd takes from the mouth of a lion Two legs or a piece of an ear, So shall the children of Israel be taken out Who dwell in Samaria-- In the corner of a bed and on the edge of a couch!"
+        },
+        {
+          "citation": "Amos 3:13",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 13,
+          "ordinal": 22409,
+          "text": "Hear and testify against the house of Jacob,\" Says the Lord GOD, the God of hosts,"
+        },
+        {
+          "citation": "Amos 3:14",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 14,
+          "ordinal": 22410,
+          "text": "\"That in the day I punish Israel for their transgressions, I will also visit destruction on the altars of Bethel; And the horns of the altar shall be cut off And fall to the ground."
+        },
+        {
+          "citation": "Amos 3:15",
+          "bookKey": "AMO",
+          "chapter": 3,
+          "verse": 15,
+          "ordinal": 22411,
+          "text": "I will destroy the winter house along with the summer house; The houses of ivory shall perish, And the great houses shall have an end,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 4:1",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 1,
+          "ordinal": 22412,
+          "text": "Hear this word, you cows of Bashan, who are on the mountain of Samaria, Who oppress the poor, Who crush the needy, Who say to your husbands, \"Bring wine, let us drink!\""
+        },
+        {
+          "citation": "Amos 4:2",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 2,
+          "ordinal": 22413,
+          "text": "The Lord GOD has sworn by His holiness: \"Behold, the days shall come upon you When He will take you away with fishhooks, And your posterity with fishhooks."
+        },
+        {
+          "citation": "Amos 4:3",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 3,
+          "ordinal": 22414,
+          "text": "You will go out through broken walls, Each one straight ahead of her, And you will be cast into Harmon,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 4:4",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 4,
+          "ordinal": 22415,
+          "text": "\"Come to Bethel and transgress, At Gilgal multiply transgression; Bring your sacrifices every morning, Your tithes every three days."
+        },
+        {
+          "citation": "Amos 4:5",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 5,
+          "ordinal": 22416,
+          "text": "Offer a sacrifice of thanksgiving with leaven, Proclaim and announce the freewill offerings; For this you love, You children of Israel!\" Says the Lord GOD."
+        },
+        {
+          "citation": "Amos 4:6",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 6,
+          "ordinal": 22417,
+          "text": "\"Also I gave you cleanness of teeth in all your cities. And lack of bread in all your places; Yet you have not returned to Me,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 4:7",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 7,
+          "ordinal": 22418,
+          "text": "\"I also withheld rain from you, When there were still three months to the harvest. I made it rain on one city, I withheld rain from another city. One part was rained upon, And where it did not rain the part withered."
+        },
+        {
+          "citation": "Amos 4:8",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 8,
+          "ordinal": 22419,
+          "text": "So two or three cities wandered to another city to drink water, But they were not satisfied; Yet you have not returned to Me,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 4:9",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 9,
+          "ordinal": 22420,
+          "text": "\"I blasted you with blight and mildew. When your gardens increased, Your vineyards, Your fig trees, And your olive trees, The locust devoured them; Yet you have not returned to Me,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 4:10",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 10,
+          "ordinal": 22421,
+          "text": "\"I sent among you a plague after the manner of Egypt; Your young men I killed with a sword, Along with your captive horses; I made the stench of your camps come up into your nostrils; Yet you have not returned to Me,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 4:11",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 11,
+          "ordinal": 22422,
+          "text": "\"I overthrew some of you, As God overthrew Sodom and Gomorrah, And you were like a firebrand plucked from the burning; Yet you have not returned to Me,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 4:12",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 12,
+          "ordinal": 22423,
+          "text": "\"Therefore thus will I do to you, O Israel; Because I will do this to you, Prepare to meet your God, O Israel!\""
+        },
+        {
+          "citation": "Amos 4:13",
+          "bookKey": "AMO",
+          "chapter": 4,
+          "verse": 13,
+          "ordinal": 22424,
+          "text": "For behold, He who forms mountains, And creates the wind, Who declares to man what his thought is, And makes the morning darkness, Who treads the high places of the earth-- The LORD God of hosts is His name."
+        },
+        {
+          "citation": "Amos 5:1",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 1,
+          "ordinal": 22425,
+          "text": "Hear this word which I take up against you, a lamentation, O house of Israel:"
+        },
+        {
+          "citation": "Amos 5:2",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 2,
+          "ordinal": 22426,
+          "text": "The virgin of Israel has fallen; She will rise no more. She lies forsaken on her land; There is no one to raise her up."
+        },
+        {
+          "citation": "Amos 5:3",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 3,
+          "ordinal": 22427,
+          "text": "For thus says the Lord GOD: \"The city that goes out by a thousand Shall have a hundred left, And that which goes out by a hundred Shall have ten left to the house of Israel.\""
+        },
+        {
+          "citation": "Amos 5:4",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 4,
+          "ordinal": 22428,
+          "text": "For thus says the LORD to the house of Israel: \"Seek Me and live;"
+        },
+        {
+          "citation": "Amos 5:5",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 5,
+          "ordinal": 22429,
+          "text": "But do not seek Bethel, Nor enter Gilgal, Nor pass over to Beersheba; For Gilgal shall surely go into captivity, And Bethel shall come to nothing."
+        },
+        {
+          "citation": "Amos 5:6",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 6,
+          "ordinal": 22430,
+          "text": "Seek the LORD and live, Lest He break out like fire in the house of Joseph, And devour it, With no one to quench it in Bethel--"
+        },
+        {
+          "citation": "Amos 5:7",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 7,
+          "ordinal": 22431,
+          "text": "You who turn justice to wormwood, And lay righteousness to rest in the earth!\""
+        },
+        {
+          "citation": "Amos 5:8",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 8,
+          "ordinal": 22432,
+          "text": "He made the Pleiades and Orion; He turns the shadow of death into morning And makes the day dark as night; He calls for the waters of the sea And pours them out on the face of the earth; The LORD is His name."
+        },
+        {
+          "citation": "Amos 5:9",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 9,
+          "ordinal": 22433,
+          "text": "He rains ruin upon the strong, So that fury comes upon the fortress."
+        },
+        {
+          "citation": "Amos 5:10",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 10,
+          "ordinal": 22434,
+          "text": "They hate the one who rebukes in the gate, And they abhor the one who speaks uprightly."
+        },
+        {
+          "citation": "Amos 5:11",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 11,
+          "ordinal": 22435,
+          "text": "Therefore, because you tread down the poor And take grain taxes from him, Though you have built houses of hewn stone, Yet you shall not dwell in them; You have planted pleasant vineyards, But you shall not drink wine from them."
+        },
+        {
+          "citation": "Amos 5:12",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 12,
+          "ordinal": 22436,
+          "text": "For I know your manifold transgressions And your mighty sins: Afflicting the just and taking bribes; Diverting the poor from justice at the gate."
+        },
+        {
+          "citation": "Amos 5:13",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 13,
+          "ordinal": 22437,
+          "text": "Therefore the prudent keep silent at that time, For it is an evil time."
+        },
+        {
+          "citation": "Amos 5:14",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 14,
+          "ordinal": 22438,
+          "text": "Seek good and not evil, That you may live; So the LORD God of hosts will be with you, As you have spoken."
+        },
+        {
+          "citation": "Amos 5:15",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 15,
+          "ordinal": 22439,
+          "text": "Hate evil, love good; Establish justice in the gate. It may be that the LORD God of hosts Will be gracious to the remnant of Joseph."
+        },
+        {
+          "citation": "Amos 5:16",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 16,
+          "ordinal": 22440,
+          "text": "Therefore the LORD God of hosts, the Lord, says this: \"There shall be wailing in all streets, And they shall say in all the highways, \"Alas! Alas!' They shall call the farmer to mourning, And skillful lamenters to wailing."
+        },
+        {
+          "citation": "Amos 5:17",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 17,
+          "ordinal": 22441,
+          "text": "In all vineyards there shall be wailing, For I will pass through you,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 5:18",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 18,
+          "ordinal": 22442,
+          "text": "Woe to you who desire the day of the LORD! For what good is the day of the LORD to you? It will be darkness, and not light."
+        },
+        {
+          "citation": "Amos 5:19",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 19,
+          "ordinal": 22443,
+          "text": "It will be as though a man fled from a lion, And a bear met him! Or as though he went into the house, Leaned his hand on the wall, And a serpent bit him!"
+        },
+        {
+          "citation": "Amos 5:20",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 20,
+          "ordinal": 22444,
+          "text": "Is not the day of the LORD darkness, and not light? Is it not very dark, with no brightness in it?"
+        },
+        {
+          "citation": "Amos 5:21",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 21,
+          "ordinal": 22445,
+          "text": "\"I hate, I despise your feast days, And I do not savor your sacred assemblies."
+        },
+        {
+          "citation": "Amos 5:22",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 22,
+          "ordinal": 22446,
+          "text": "Though you offer Me burnt offerings and your grain offerings, I will not accept them, Nor will I regard your fattened peace offerings."
+        },
+        {
+          "citation": "Amos 5:23",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 23,
+          "ordinal": 22447,
+          "text": "Take away from Me the noise of your songs, For I will not hear the melody of your stringed instruments."
+        },
+        {
+          "citation": "Amos 5:24",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 24,
+          "ordinal": 22448,
+          "text": "But let justice run down like water, And righteousness like a mighty stream."
+        },
+        {
+          "citation": "Amos 5:25",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 25,
+          "ordinal": 22449,
+          "text": "\"Did you offer Me sacrifices and offerings In the wilderness forty years, O house of Israel?"
+        },
+        {
+          "citation": "Amos 5:26",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 26,
+          "ordinal": 22450,
+          "text": "You also carried Sikkuth your king And Chiun, your idols, The star of your gods, Which you made for yourselves."
+        },
+        {
+          "citation": "Amos 5:27",
+          "bookKey": "AMO",
+          "chapter": 5,
+          "verse": 27,
+          "ordinal": 22451,
+          "text": "Therefore I will send you into captivity beyond Damascus,\" Says the LORD, whose name is the God of hosts."
+        },
+        {
+          "citation": "Amos 6:1",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 1,
+          "ordinal": 22452,
+          "text": "Woe to you who are at ease in Zion, And trust in Mount Samaria, Notable persons in the chief nation, To whom the house of Israel comes!"
+        },
+        {
+          "citation": "Amos 6:2",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 2,
+          "ordinal": 22453,
+          "text": "Go over to Calneh and see; And from there go to Hamath the great; Then go down to Gath of the Philistines. Are you better than these kingdoms? Or is their territory greater than your territory?"
+        },
+        {
+          "citation": "Amos 6:3",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 3,
+          "ordinal": 22454,
+          "text": "Woe to you who put far off the day of doom, Who cause the seat of violence to come near;"
+        },
+        {
+          "citation": "Amos 6:4",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 4,
+          "ordinal": 22455,
+          "text": "Who lie on beds of ivory, Stretch out on your couches, Eat lambs from the flock And calves from the midst of the stall;"
+        },
+        {
+          "citation": "Amos 6:5",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 5,
+          "ordinal": 22456,
+          "text": "Who sing idly to the sound of stringed instruments, And invent for yourselves musical instruments like David;"
+        },
+        {
+          "citation": "Amos 6:6",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 6,
+          "ordinal": 22457,
+          "text": "Who drink wine from bowls, And anoint yourselves with the best ointments, But are not grieved for the affliction of Joseph."
+        },
+        {
+          "citation": "Amos 6:7",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 7,
+          "ordinal": 22458,
+          "text": "Therefore they shall now go captive as the first of the captives, And those who recline at banquets shall be removed."
+        },
+        {
+          "citation": "Amos 6:8",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 8,
+          "ordinal": 22459,
+          "text": "The Lord GOD has sworn by Himself, The LORD God of hosts says: \"I abhor the pride of Jacob, And hate his palaces; Therefore I will deliver up the city And all that is in it.\""
+        },
+        {
+          "citation": "Amos 6:9",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 9,
+          "ordinal": 22460,
+          "text": "Then it shall come to pass, that if ten men remain in one house, they shall die."
+        },
+        {
+          "citation": "Amos 6:10",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 10,
+          "ordinal": 22461,
+          "text": "And when a relative of the dead, with one who will burn the bodies, picks up the bodies to take them out of the house, he will say to one inside the house, \"Are there any more with you?\" Then someone will say, \"None.\" And he will say, \"Hold your tongue! For we dare not mention the name of the LORD.\""
+        },
+        {
+          "citation": "Amos 6:11",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 11,
+          "ordinal": 22462,
+          "text": "For behold, the LORD gives a command: He will break the great house into bits, And the little house into pieces."
+        },
+        {
+          "citation": "Amos 6:12",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 12,
+          "ordinal": 22463,
+          "text": "Do horses run on rocks? Does one plow there with oxen? Yet you have turned justice into gall, And the fruit of righteousness into wormwood,"
+        },
+        {
+          "citation": "Amos 6:13",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 13,
+          "ordinal": 22464,
+          "text": "You who rejoice over Lo Debar, Who say, \"Have we not taken Karnaim for ourselves By our own strength?\""
+        },
+        {
+          "citation": "Amos 6:14",
+          "bookKey": "AMO",
+          "chapter": 6,
+          "verse": 14,
+          "ordinal": 22465,
+          "text": "\"But, behold, I will raise up a nation against you, O house of Israel,\" Says the LORD God of hosts; \"And they will afflict you from the entrance of Hamath To the Valley of the Arabah.\""
+        },
+        {
+          "citation": "Amos 7:1",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 1,
+          "ordinal": 22466,
+          "text": "Thus the Lord GOD showed me: Behold, He formed locust swarms at the beginning of the late crop; indeed it was the late crop after the king's mowings."
+        },
+        {
+          "citation": "Amos 7:2",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 2,
+          "ordinal": 22467,
+          "text": "And so it was, when they had finished eating the grass of the land, that I said: \"O Lord GOD, forgive, I pray! Oh, that Jacob may stand, For he is small!\""
+        },
+        {
+          "citation": "Amos 7:3",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 3,
+          "ordinal": 22468,
+          "text": "So the LORD relented concerning this. \"It shall not be,\" said the LORD."
+        },
+        {
+          "citation": "Amos 7:4",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 4,
+          "ordinal": 22469,
+          "text": "Thus the Lord GOD showed me: Behold, the Lord GOD called for conflict by fire, and it consumed the great deep and devoured the territory."
+        },
+        {
+          "citation": "Amos 7:5",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 5,
+          "ordinal": 22470,
+          "text": "Then I said: \"O Lord GOD, cease, I pray! Oh, that Jacob may stand, For he is small!\""
+        },
+        {
+          "citation": "Amos 7:6",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 6,
+          "ordinal": 22471,
+          "text": "So the LORD relented concerning this. \"This also shall not be,\" said the Lord GOD."
+        },
+        {
+          "citation": "Amos 7:7",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 7,
+          "ordinal": 22472,
+          "text": "Thus He showed me: Behold, the Lord stood on a wall made with a plumb line, with a plumb line in His hand."
+        },
+        {
+          "citation": "Amos 7:8",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 8,
+          "ordinal": 22473,
+          "text": "And the LORD said to me, \"Amos, what do you see?\" And I said, \"A plumb line.\" Then the Lord said: \"Behold, I am setting a plumb line In the midst of My people Israel; I will not pass by them anymore."
+        },
+        {
+          "citation": "Amos 7:9",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 9,
+          "ordinal": 22474,
+          "text": "The high places of Isaac shall be desolate, And the sanctuaries of Israel shall be laid waste. I will rise with the sword against the house of Jeroboam.\""
+        },
+        {
+          "citation": "Amos 7:10",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 10,
+          "ordinal": 22475,
+          "text": "Then Amaziah the priest of Bethel sent to Jeroboam king of Israel, saying, \"Amos has conspired against you in the midst of the house of Israel. The land is not able to bear all his words."
+        },
+        {
+          "citation": "Amos 7:11",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 11,
+          "ordinal": 22476,
+          "text": "For thus Amos has said: \"Jeroboam shall die by the sword, And Israel shall surely be led away captive From their own land.\"'"
+        },
+        {
+          "citation": "Amos 7:12",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 12,
+          "ordinal": 22477,
+          "text": "Then Amaziah said to Amos: \"Go, you seer! Flee to the land of Judah. There eat bread, And there prophesy."
+        },
+        {
+          "citation": "Amos 7:13",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 13,
+          "ordinal": 22478,
+          "text": "But never again prophesy at Bethel, For it is the king's sanctuary, And it is the royal residence.\""
+        },
+        {
+          "citation": "Amos 7:14",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 14,
+          "ordinal": 22479,
+          "text": "Then Amos answered, and said to Amaziah: \"I was no prophet, Nor was I a son of a prophet, But I was a sheepbreeder And a tender of sycamore fruit."
+        },
+        {
+          "citation": "Amos 7:15",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 15,
+          "ordinal": 22480,
+          "text": "Then the LORD took me as I followed the flock, And the LORD said to me, \"Go, prophesy to My people Israel.'"
+        },
+        {
+          "citation": "Amos 7:16",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 16,
+          "ordinal": 22481,
+          "text": "Now therefore, hear the word of the LORD: You say, \"Do not prophesy against Israel, And do not spout against the house of Isaac.'"
+        },
+        {
+          "citation": "Amos 7:17",
+          "bookKey": "AMO",
+          "chapter": 7,
+          "verse": 17,
+          "ordinal": 22482,
+          "text": "\"Therefore thus says the LORD: \"Your wife shall be a harlot in the city; Your sons and daughters shall fall by the sword; Your land shall be divided by survey line; You shall die in a defiled land; And Israel shall surely be led away captive From his own land.\"'"
+        },
+        {
+          "citation": "Amos 8:1",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 1,
+          "ordinal": 22483,
+          "text": "Thus the Lord GOD showed me: Behold, a basket of summer fruit."
+        },
+        {
+          "citation": "Amos 8:2",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 2,
+          "ordinal": 22484,
+          "text": "And He said, \"Amos, what do you see?\" So I said, \"A basket of summer fruit.\" Then the LORD said to me: \"The end has come upon My people Israel; I will not pass by them anymore."
+        },
+        {
+          "citation": "Amos 8:3",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 3,
+          "ordinal": 22485,
+          "text": "And the songs of the temple Shall be wailing in that day,\" Says the Lord GOD-- \"Many dead bodies everywhere, They shall be thrown out in silence.\""
+        },
+        {
+          "citation": "Amos 8:4",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 4,
+          "ordinal": 22486,
+          "text": "Hear this, you who swallow up the needy, And make the poor of the land fail,"
+        },
+        {
+          "citation": "Amos 8:5",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 5,
+          "ordinal": 22487,
+          "text": "Saying: \"When will the New Moon be past, That we may sell grain? And the Sabbath, That we may trade wheat? Making the ephah small and the shekel large, Falsifying the scales by deceit,"
+        },
+        {
+          "citation": "Amos 8:6",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 6,
+          "ordinal": 22488,
+          "text": "That we may buy the poor for silver, And the needy for a pair of sandals-- Even sell the bad wheat?\""
+        },
+        {
+          "citation": "Amos 8:7",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 7,
+          "ordinal": 22489,
+          "text": "The LORD has sworn by the pride of Jacob: \"Surely I will never forget any of their works."
+        },
+        {
+          "citation": "Amos 8:8",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 8,
+          "ordinal": 22490,
+          "text": "Shall the land not tremble for this, And everyone mourn who dwells in it? All of it shall swell like the River, Heave and subside Like the River of Egypt."
+        },
+        {
+          "citation": "Amos 8:9",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 9,
+          "ordinal": 22491,
+          "text": "\"And it shall come to pass in that day,\" says the Lord GOD, \"That I will make the sun go down at noon, And I will darken the earth in broad daylight;"
+        },
+        {
+          "citation": "Amos 8:10",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 10,
+          "ordinal": 22492,
+          "text": "I will turn your feasts into mourning, And all your songs into lamentation; I will bring sackcloth on every waist, And baldness on every head; I will make it like mourning for an only son, And its end like a bitter day."
+        },
+        {
+          "citation": "Amos 8:11",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 11,
+          "ordinal": 22493,
+          "text": "\"Behold, the days are coming,\" says the Lord GOD, \"That I will send a famine on the land, Not a famine of bread, Nor a thirst for water, But of hearing the words of the LORD."
+        },
+        {
+          "citation": "Amos 8:12",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 12,
+          "ordinal": 22494,
+          "text": "They shall wander from sea to sea, And from north to east; They shall run to and fro, seeking the word of the LORD, But shall not find it."
+        },
+        {
+          "citation": "Amos 8:13",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 13,
+          "ordinal": 22495,
+          "text": "\"In that day the fair virgins And strong young men Shall faint from thirst."
+        },
+        {
+          "citation": "Amos 8:14",
+          "bookKey": "AMO",
+          "chapter": 8,
+          "verse": 14,
+          "ordinal": 22496,
+          "text": "Those who swear by the sin of Samaria, Who say, \"As your god lives, O Dan!' And, \"As the way of Beersheba lives!' They shall fall and never rise again.\""
+        },
+        {
+          "citation": "Amos 9:1",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 1,
+          "ordinal": 22497,
+          "text": "I saw the Lord standing by the altar, and He said: \"Strike the doorposts, that the thresholds may shake, And break them on the heads of them all. I will slay the last of them with the sword. He who flees from them shall not get away, And he who escapes from them shall not be delivered."
+        },
+        {
+          "citation": "Amos 9:2",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 2,
+          "ordinal": 22498,
+          "text": "\"Though they dig into hell, From there My hand shall take them; Though they climb up to heaven, From there I will bring them down;"
+        },
+        {
+          "citation": "Amos 9:3",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 3,
+          "ordinal": 22499,
+          "text": "And though they hide themselves on top of Carmel, From there I will search and take them; Though they hide from My sight at the bottom of the sea, From there I will command the serpent, and it shall bite them;"
+        },
+        {
+          "citation": "Amos 9:4",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 4,
+          "ordinal": 22500,
+          "text": "Though they go into captivity before their enemies, From there I will command the sword, And it shall slay them. I will set My eyes on them for harm and not for good.\""
+        },
+        {
+          "citation": "Amos 9:5",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 5,
+          "ordinal": 22501,
+          "text": "The Lord GOD of hosts, He who touches the earth and it melts, And all who dwell there mourn; All of it shall swell like the River, And subside like the River of Egypt."
+        },
+        {
+          "citation": "Amos 9:6",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 6,
+          "ordinal": 22502,
+          "text": "He who builds His layers in the sky, And has founded His strata in the earth; Who calls for the waters of the sea, And pours them out on the face of the earth-- The LORD is His name."
+        },
+        {
+          "citation": "Amos 9:7",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 7,
+          "ordinal": 22503,
+          "text": "\"Are you not like the people of Ethiopia to Me, O children of Israel?\" says the LORD. \"Did I not bring up Israel from the land of Egypt, The Philistines from Caphtor, And the Syrians from Kir?"
+        },
+        {
+          "citation": "Amos 9:8",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 8,
+          "ordinal": 22504,
+          "text": "\"Behold, the eyes of the Lord GOD are on the sinful kingdom, And I will destroy it from the face of the earth; Yet I will not utterly destroy the house of Jacob,\" Says the LORD."
+        },
+        {
+          "citation": "Amos 9:9",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 9,
+          "ordinal": 22505,
+          "text": "\"For surely I will command, And will sift the house of Israel among all nations, As grain is sifted in a sieve; Yet not the smallest grain shall fall to the ground."
+        },
+        {
+          "citation": "Amos 9:10",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 10,
+          "ordinal": 22506,
+          "text": "All the sinners of My people shall die by the sword, Who say, \"The calamity shall not overtake nor confront us.'"
+        },
+        {
+          "citation": "Amos 9:11",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 11,
+          "ordinal": 22507,
+          "text": "\"On that day I will raise up The tabernacle of David, which has fallen down, And repair its damages; I will raise up its ruins, And rebuild it as in the days of old;"
+        },
+        {
+          "citation": "Amos 9:12",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 12,
+          "ordinal": 22508,
+          "text": "That they may possess the remnant of Edom, And all the Gentiles who are called by My name,\" Says the LORD who does this thing."
+        },
+        {
+          "citation": "Amos 9:13",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 13,
+          "ordinal": 22509,
+          "text": "\"Behold, the days are coming,\" says the LORD, \"When the plowman shall overtake the reaper, And the treader of grapes him who sows seed; The mountains shall drip with sweet wine, And all the hills shall flow with it."
+        },
+        {
+          "citation": "Amos 9:14",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 14,
+          "ordinal": 22510,
+          "text": "I will bring back the captives of My people Israel; They shall build the waste cities and inhabit them; They shall plant vineyards and drink wine from them; They shall also make gardens and eat fruit from them."
+        },
+        {
+          "citation": "Amos 9:15",
+          "bookKey": "AMO",
+          "chapter": 9,
+          "verse": 15,
+          "ordinal": 22511,
+          "text": "I will plant them in their land, And no longer shall they be pulled up From the land I have given them,\" Says the LORD your God."
+        }
+      ]
+    }
+  ]
+}

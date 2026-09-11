@@ -10,9 +10,14 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:native": "tsc --noEmit && tsc -p tsconfig.native.json && vite build --config vite.native.config.ts",
+    "dev:native": "wrangler dev --config wrangler.native.jsonc",
+    "typecheck:native": "tsc -p tsconfig.native.json",
+    "test:native": "vitest run worker/native"
   },
   "dependencies": {
+    "@microsoft/signalr": "^10.0.11",
     "@tanstack/react-query": "^5.90.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
@@ -20,6 +25,7 @@
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.37.1",
+    "@cloudflare/workers-types": "^4.20260702.1",
     "@eslint/js": "^9.34.0",
     "@openai/sites-vite-plugin": "^0.2.0",
     "@playwright/test": "^1.55.0",
@@ -29,9 +35,11 @@
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
+    "esbuild": "^0.27.3",
     "eslint": "^9.34.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^26.1.0",
+    "miniflare": "^4.20260515.0",
     "tailwindcss": "^4.1.12",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.42.0",

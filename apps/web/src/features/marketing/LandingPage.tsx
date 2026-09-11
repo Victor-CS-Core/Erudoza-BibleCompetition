@@ -1,97 +1,33 @@
 import { Link } from "react-router-dom";
-import { ACADEMY_DECK_ART } from "../../components/brand/academyDeckArt";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
-import { FieldGuideChrome } from "../../components/material/FieldGuideChrome";
-import { FieldGuideCover } from "../../components/material/FieldGuideCover";
-import { PaperSurface } from "../../components/material/PaperSurface";
-import { Stamp } from "../../components/material/Stamp";
+import { AppIcon } from "../../components/AppIcon";
+import { LinkButton } from "../../components/ui";
+import { CoffeeWidget } from "../support/CoffeeWidget";
+import "../../styles/training-public.css";
 
 export function LandingPage() {
-  return (
-    <div className="er-canvas er-landing">
-      <div className="er-landing-column" data-testid="landing-phone-column">
-        <FieldGuideChrome testId="landing-field-guide-chrome" />
-        <header className="er-site-header er-landing-header">
-          <ErudozaWordmark />
-          <Link to="/login" className="er-header-action px-4 font-semibold">
-            Sign in
-          </Link>
-        </header>
-        <main className="er-landing-main">
-          <FieldGuideCover />
-          <section className="er-landing-hero">
-            <div className="er-hero-copy">
-              <h1 className="er-hero-title">
-                Know the passage.
-                <span>Own the moment.</span>
-              </h1>
-              <p className="er-hero-summary">
-                Turn your assigned Scripture into focused memorization games, due reviews, and realistic
-                rehearsal.
-              </p>
-              <div className="er-hero-actions">
-                <Link to="/login" data-testid="start-studying" className="er-primary-action">
-                  Start studying
-                </Link>
-                <Link to="/login" data-testid="build-a-season" className="er-secondary-action">
-                  Build a season
-                </Link>
-              </div>
-              <p className="er-hero-note">Your team chooses the passage. Erudoza deals the deck.</p>
-            </div>
-
-            <div
-              className="er-deck-stage er-deck-stack"
-              data-testid="landing-training-decks"
-              aria-labelledby="training-decks-title"
-            >
-              <div className="er-deck-stage-heading">
-                <p className="er-deck-kicker">Learner · Reviews · Rehearsal</p>
-                <h2 id="training-decks-title">TRAINING DECKS</h2>
-                <h3>Choose today’s training deck</h3>
-                <p>Build recall first, reinforce what is due, then test it under pressure.</p>
-              </div>
-              <div className="er-deck-stack-cards">
-                {ACADEMY_DECK_ART.map((deck) => {
-                  const name = `${deck.label} deck`;
-                  return (
-                    <Link
-                      key={deck.id}
-                      to="/login"
-                      className={`er-deck-link ${deck.className}`}
-                      aria-label={`Open the ${name.toLowerCase()}`}
-                    >
-                      <img src={deck.src} alt={name} />
-                      <span className="er-deck-label" data-testid={deck.testId}>
-                        <Stamp label={deck.label} tone={deck.tone} />
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          <section className="er-proof-grid" aria-label="How Erudoza prepares competitors">
-            <PaperSurface as="article" className="er-proof-card">
-              <p className="er-proof-label">Learn exactly</p>
-              <h2>Drill only the assigned Scripture.</h2>
-              <p>Coaches define the season range. Every game stays anchored to that approved material.</p>
-            </PaperSurface>
-            <PaperSurface as="article" className="er-proof-card">
-              <p className="er-proof-label">Remember longer</p>
-              <h2>Meet each verse in more than one way.</h2>
-              <p>Restore words, rebuild verses, match references, and revisit the material that needs attention.</p>
-            </PaperSurface>
-            <PaperSurface as="article" className="er-proof-card">
-              <p className="er-proof-label">Compete calmly</p>
-              <h2>Rehearse before the room gets loud.</h2>
-              <p>Timed rehearsal turns growing recall into confident Bible Bowl performance.</p>
-            </PaperSurface>
-          </section>
-        </main>
-      </div>
-    </div>
-  );
+  return <div className="training-public">
+    <CoffeeWidget />
+    <a className="training-skip" href="#public-main">Skip to content</a>
+    <header className="public-header"><Link to="/" aria-label="Erudoza home"><ErudozaWordmark compact inverted /></Link><LinkButton to="/login" variant="secondary">Sign in<AppIcon name="arrow" /></LinkButton></header>
+    <main id="public-main" className="public-main" data-testid="landing-phone-column">
+      <section className="public-intro">
+        <h1>Know the passage.<br /><em>Own the moment.</em></h1>
+        <p>Focused Scripture training for your next Bible competition. Study your assigned passages, strengthen your recall, and prepare together.</p>
+        <div className="public-actions"><LinkButton to="/login" data-testid="start-studying">Start studying<AppIcon name="arrow" /></LinkButton><LinkButton to="/login" data-testid="build-a-season" variant="secondary">Coach your team</LinkButton></div>
+        <p className="public-access-note">Sign in with the account provided by your coach or academy.</p>
+      </section>
+      <div className="public-landscape" role="img" aria-label="Mountains and forest surrounding an open valley" />
+      <section className="public-training" aria-labelledby="training-title">
+        <div><h2 id="training-title">A clear path to confident recall.</h2><p>One assigned passage. Different ways to make it stick.</p></div>
+        <ol className="public-training-steps">
+          <li><AppIcon name="book" /><div><h3>Learn your passages</h3><p>Restore missing words, rebuild verses, and match references from the Scripture your coach assigns.</p></div></li>
+          <li><AppIcon name="review" /><div><h3>Review what needs attention</h3><p>Return to due verses and follow your saved progress as your recall grows.</p></div></li>
+          <li><AppIcon name="flag" /><div><h3>Rehearse for competition</h3><p>Practice under time pressure in a simulation or join your team in a coach-led room.</p></div></li>
+        </ol>
+      </section>
+      <section className="public-coach"><div><h2>Give every student a clear next step.</h2><p>Choose a season’s passages, set each student’s difficulty, and follow their progress in one place.</p></div><LinkButton to="/login" variant="secondary">Sign in as a coach<AppIcon name="arrow" /></LinkButton></section>
+    </main>
+    <footer className="public-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</footer>
+  </div>;
 }
-

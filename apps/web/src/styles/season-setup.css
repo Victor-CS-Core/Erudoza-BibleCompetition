@@ -1,0 +1,74 @@
+/* Composition only. Shared ui primitives own type, color, controls and surfaces. */
+.season-setup{min-width:0;width:100%;grid-template-columns:minmax(0,1fr);max-width:1120px;margin:0 auto;display:grid;gap:var(--er-space-6)}
+.season-back{justify-self:start}
+.season-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--er-space-2)}
+.season-steps .ds-button{justify-content:flex-start;text-align:left;gap:var(--er-space-3);padding:var(--er-space-3)}
+.season-step-number{flex:none;display:grid;place-items:center;min-width:28px}
+.season-steps strong,.season-steps small{display:block}
+.season-steps small{margin-top:var(--er-space-1)}
+.season-details{max-width:760px;width:100%;justify-self:center}
+.season-section-heading{margin-bottom:var(--er-space-6)}
+.season-setup form>label,.season-edit-fields>label,.season-form-pair>label{display:block;margin-bottom:var(--er-space-5)}
+.season-setup label>.ds-input{margin-top:var(--er-space-2)}
+.season-form-pair{display:grid;grid-template-columns:1fr 1fr;gap:var(--er-space-5)}
+.season-help{margin:var(--er-space-3) 0 var(--er-space-5)}
+.season-actions{display:flex;flex-wrap:wrap;gap:var(--er-space-3);margin-top:var(--er-space-6)}
+.season-details-list{display:grid;gap:var(--er-space-5);margin:0 0 var(--er-space-6)}
+.season-details-list div{display:flex;justify-content:space-between;gap:var(--er-space-4)}
+.season-details-list dd{margin:0}
+.season-scope-summary{margin:var(--er-space-4) 0 var(--er-space-6)}
+.season-scope-summary ul{list-style:none;padding:0;margin:0;display:grid;gap:var(--er-space-3)}
+.season-scope-summary>ul>li{display:flex;align-items:center;gap:var(--er-space-3);padding:var(--er-space-3) 0}
+.season-scope-summary svg{flex:none}
+.season-exclusions{padding-top:var(--er-space-4)}
+.season-exclusions>span{display:block;margin-bottom:var(--er-space-2)}
+.season-range-section{padding-top:var(--er-space-3);margin-bottom:var(--er-space-6)}
+.season-range-editor{margin:var(--er-space-5) 0}
+.season-range-fields,.season-difficulty,.season-edit-fields{border:0;padding:0;margin:0;min-width:0}
+.season-range-fields{margin-bottom:var(--er-space-3)}
+.season-range-fields legend{margin-bottom:var(--er-space-3)}
+.season-range-fields label{display:block}
+.season-book-field{max-width:240px;margin-bottom:var(--er-space-4)}
+.season-range-numbers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--er-space-3)}
+.season-student-layout{display:grid;grid-template-columns:285px minmax(0,1fr);gap:var(--er-space-6);align-items:start}
+.season-roster-heading{padding-bottom:var(--er-space-4)}
+.season-student-list{display:grid;gap:var(--er-space-2);margin-top:var(--er-space-3)}
+.season-student-list .ds-button{justify-content:flex-start;gap:var(--er-space-3);padding:var(--er-space-3);text-align:left;min-width:0}
+.season-avatar{display:grid;place-items:center;width:32px;min-height:32px;flex:none}
+.season-student-list .ds-button>span:nth-child(2){min-width:0;flex:1}
+.season-student-list strong,.season-student-list small{display:block;overflow-wrap:anywhere}
+.season-student-list small{margin-top:var(--er-space-1)}
+.season-editor-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-4);margin-bottom:var(--er-space-6)}
+.season-saved-assignments{margin-bottom:var(--er-space-6)}
+.season-saved-assignments ul{padding:0;list-style:none;margin:0;display:grid;gap:var(--er-space-3)}
+.season-saved-assignments li{display:flex;flex-wrap:wrap;gap:var(--er-space-2) var(--er-space-4);justify-content:space-between}
+.season-difficulty{padding-top:var(--er-space-4)}
+.season-difficulty>p{margin-bottom:var(--er-space-3)}
+.season-difficulty-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--er-space-3)}
+.season-difficulty-options label{display:grid;align-content:start;gap:var(--er-space-2);min-width:0}
+.season-difficulty-options strong,.season-difficulty-options small{display:block}
+.season-preview{margin-top:var(--er-space-5);padding-bottom:var(--er-space-5)}
+.season-preview summary{cursor:pointer;min-height:44px;display:list-item;align-content:center}
+.season-preview dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--er-space-3);margin:var(--er-space-3) 0}
+.season-preview dd{margin:var(--er-space-1) 0 0}
+.season-step-footer{display:flex;justify-content:space-between;gap:var(--er-space-4)}
+.season-review-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--er-space-7);margin-top:var(--er-space-6)}
+.season-review-roster{list-style:none;margin:0;padding:0}
+.season-review-roster li{padding:var(--er-space-3) 0}
+.season-review-roster li>div{display:flex;justify-content:space-between;gap:var(--er-space-3)}
+.season-review-roster p{margin-top:var(--er-space-2)}
+.season-start-panel{display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-6);margin-top:var(--er-space-7)}
+.season-start-panel p{margin-top:var(--er-space-2)}
+.season-progress-note{text-align:center;margin-top:var(--er-space-3)}
+@media(max-width:760px){.season-steps .ds-button{flex-direction:column;text-align:center;padding:var(--er-space-2);gap:var(--er-space-2)}.season-steps small{display:none}.season-student-layout{grid-template-columns:1fr}.season-student-list{grid-template-columns:repeat(2,minmax(0,1fr))}.season-roster-heading{display:flex;justify-content:space-between;gap:var(--er-space-3)}.season-review-grid{grid-template-columns:1fr;gap:var(--er-space-6)}.season-start-panel{flex-direction:column;align-items:stretch}.season-editor-heading{flex-wrap:wrap}}
+@media(max-width:430px){.season-student-list{grid-template-columns:1fr}.season-form-pair{grid-template-columns:1fr;gap:0}.season-range-numbers{grid-template-columns:repeat(2,minmax(0,1fr))}.season-difficulty-options{grid-template-columns:1fr}.season-actions .ds-button{width:100%}.season-step-footer{gap:var(--er-space-3);flex-wrap:wrap}.season-preview dl{grid-template-columns:1fr}.season-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.season-steps .ds-button{flex-direction:row;text-align:left}}
+
+/* Season sections remain visible without opening command search. */
+.season-steps.ds-section-tabs{display:flex;gap:var(--er-space-4)}
+.season-steps.ds-section-tabs .ds-button{position:relative;flex-direction:row;flex-shrink:0;padding:var(--er-space-3) var(--er-space-4);text-align:left}
+.season-setup>.ds-page-header{margin-bottom:0}
+
+.season-saved-assignments .season-actions{margin-top:0}
+.season-saved-assignments li{align-items:center;padding-block:var(--er-space-2)}
+.season-lifecycle-actions{display:flex;justify-content:flex-end;gap:var(--er-space-2);flex-wrap:wrap}
+.season-details-list dd{overflow-wrap:anywhere;min-width:0;text-align:right}

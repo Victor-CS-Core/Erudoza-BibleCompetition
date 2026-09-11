@@ -1,0 +1,46 @@
+/* The payment form remains provider-owned. These rules only position its
+   controls, guard route visibility, and add accessible focus/motion states. */
+:root {
+  --coffee-right: max(18px, env(safe-area-inset-right, 0px));
+  --coffee-bottom: max(18px, env(safe-area-inset-bottom, 0px));
+}
+html:not([data-erudoza-coffee-ready="true"]) :is(#bmc-wbtn, #bmc-iframe, #bmc-close-btn, #erudoza-coffee-overlay) { display: none !important; }
+#bmc-wbtn { right: var(--coffee-right) !important; bottom: var(--coffee-bottom) !important; z-index: 40 !important; }
+#bmc-wbtn:focus-visible, #bmc-close-btn:focus-visible { outline: 3px solid var(--er-teal); outline-offset: 4px; }
+#erudoza-coffee-overlay[hidden] { display: none !important; }
+#erudoza-coffee-overlay { z-index: 1000 !important; background: color-mix(in srgb, var(--er-ink-navy) 44%, transparent) !important; }
+html[data-erudoza-coffee-open="true"] #bmc-wbtn { visibility: hidden !important; }
+#bmc-iframe {
+  right: var(--coffee-right) !important;
+  left: auto !important;
+  top: auto !important;
+  bottom: calc(var(--coffee-bottom) + 72px) !important;
+  width: min(420px, calc(100vw - var(--coffee-right) - 18px)) !important;
+  max-width: calc(100vw - var(--coffee-right) - 18px) !important;
+  height: min(680px, calc(100dvh - var(--coffee-bottom) - env(safe-area-inset-top, 0px) - 128px)) !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 144px) !important;
+}
+#bmc-close-btn {
+  top: auto !important;
+  bottom: calc(var(--coffee-bottom) + 18px) !important;
+  right: var(--coffee-right) !important;
+  width: var(--er-control-height) !important;
+  height: var(--er-control-height) !important;
+  background: var(--er-card);
+}
+html[data-erudoza-coffee-open="true"] #bmc-close-btn { visibility: visible !important; }
+[data-coffee-focus-guard] { position: fixed; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+html[data-erudoza-coffee-ready="true"] :is(.public-footer, .training-footer) { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 479px) {
+  #bmc-iframe {
+    top: calc(64px + env(safe-area-inset-top, 0px)) !important;
+    bottom: var(--coffee-bottom) !important;
+    height: calc(100dvh - 64px - env(safe-area-inset-top, 0px) - var(--coffee-bottom)) !important;
+    max-height: calc(100dvh - 64px - env(safe-area-inset-top, 0px) - var(--coffee-bottom)) !important;
+  }
+  #bmc-close-btn { top: max(10px, env(safe-area-inset-top, 0px)) !important; bottom: auto !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #bmc-wbtn, #bmc-iframe, #bmc-close-btn { transition: none !important; }
+}

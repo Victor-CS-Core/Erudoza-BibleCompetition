@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "editionId": "nkjv-user-supplied-pdf",
+  "status": "passed",
+  "sourceSha256": "980b65ec2b6f0961f4e738129a8da88f497f958578c1a47cdddbe20395e13aa9",
+  "createdAt": "2026-09-10T21:02:37.244268+00:00",
+  "bookCount": 66,
+  "chapterCount": 1189,
+  "verseCount": 31102,
+  "chapterCountsMatch": true,
+  "verseCountsMatch": true,
+  "canonicalSequenceMatch": true,
+  "globalOrdinalRange": [
+    1,
+    31102
+  ],
+  "globalOrdinalsContiguous": true,
+  "duplicateCitations": [],
+  "missingCitations": [],
+  "extraCitations": [],
+  "emptyVerses": [],
+  "unknownFontOrUnassignedBodySegments": [],
+  "bodyGlyphCoverage": "100 percent of body glyphs assigned to source verses before explicit annotation removal",
+  "independentExtraction": {
+    "primary": "pdfplumber/pdfminer character font and size segmentation",
+    "secondary": "pypdf content-order text segmentation",
+    "versesCompared": 31102,
+    "nonWhitespaceGlyphMismatches": 0,
+    "whitespaceOnlyDifferences": 267,
+    "whitespaceResolution": "Preserved actual PDF space glyphs from primary parser; pypdf synthesized spaces around wrapped hyphens and justified words."
+  },
+  "annotationRemovals": {
+    "verses": 16,
+    "characters": 19,
+    "file": "annotation-removals.json",
+    "sha256": "1031e90473c25e458f1da3e4e12e0b48003a7f64fce0414b84e1ed0a77514857"
+  },
+  "intentionalNumericVerseText": {
+    "citation": "Revelation 13:18",
+    "text": "666",
+    "preserved": true
+  },
+  "unresolvedDiscrepancies": [],
+  "sourcePages": {
+    "total": 1815,
+    "frontMatterExcluded": [
+      1,
+      2
+    ],
+    "blankPages": [
+      783,
+      844,
+      1815
+    ],
+    "versePageRange": [
+      3,
+      1814
+    ]
+  },
+  "renderedAndInspectedSamplePages": [
+    3,
+    544,
+    846,
+    1013,
+    1635,
+    1814,
+    1815
+  ],
+  "limitations": [
+    "Validation establishes completeness and faithful extraction of the supplied PDF; it is not an external edition or publisher certification.",
+    "Original capitalization and punctuation retained, including source quirks; only the 19 specifically audited annotation digits are removed.",
+    "PDF and verse text remained local; no deployment, external upload, or publisher rights claim performed."
+  ]
+}
