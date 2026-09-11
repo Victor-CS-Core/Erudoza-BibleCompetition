@@ -13,6 +13,7 @@
   }],
   "vars": {
     "PUBLIC_ORIGIN": "https://erudoza.com",
+    "AUTH_EMAIL_FROM": "Erudoza <accounts@auth.erudoza.com>",
     "TURNSTILE_SITE_KEY": "0x4AAAAAAEwZpS57GPfAZQXr",
     "STRICT_PUBLIC_HOST": "true",
     "ENFORCE_RATE_LIMITS": "true"
