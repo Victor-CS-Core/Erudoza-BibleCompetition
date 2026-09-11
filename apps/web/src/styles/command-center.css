@@ -164,19 +164,40 @@
   .command-app.training-learner .training-main { padding-inline:12px; }
 }
 
-/* Coach phones show complete shortcuts; the command center retains every section and pin. */
+/* Stable phone destinations follow the approved Team Practice composition. */
+.command-bottom-nav { display:none; }
+.command-app:has(.practice-page) .command-context { display:none; }
+.command-app:has(.practice-page) :is(.command-masthead-inner,.command-shortcut-inner,.training-main) { max-width:1200px; padding-inline:28px; }
+.command-app:has(.practice-page) .command-masthead-inner { min-height:70px; padding-block:12px; gap:28px; }
+.command-app:has(.practice-page) .command-brand>span,
+.command-app:has(.practice-page) .command-academy { display:none; }
+.command-app:has(.practice-page) .command-brand .er-wordmark-name { font-size:26px; }
+.command-app:has(.practice-page) .command-trigger.ds-button { max-width:310px; margin-left:auto; border-radius:var(--er-radius-control); }
+.command-app:has(.practice-page) .command-shortcut-inner { padding-block:8px; gap:8px; }
+.command-app:has(.practice-page) .command-shortcuts { gap:8px; }
+.command-app:has(.practice-page) .command-shortcut:not(.is-current) { border-color:transparent; }
+.command-app:has(.practice-page) .training-main { padding-block:28px 40px; }
 @media(max-width:760px) {
+  .command-app.training-app { padding-bottom:calc(76px + env(safe-area-inset-bottom,0px)); }
+  .command-app .command-shortcut-bar { display:none; }
+  .command-bottom-nav { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); position:fixed; bottom:0; left:0; right:0; z-index:30; gap:4px; padding:5px max(10px,env(safe-area-inset-right,0px)) calc(5px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px)); background:var(--er-card); border-top:1px solid var(--er-border); box-shadow:0 -5px 20px color-mix(in srgb,var(--er-ink-navy) 3%,transparent); }
+  .command-bottom-nav>a,.command-bottom-nav>.ds-button { display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:0; min-height:56px; padding:5px 2px; gap:3px; font-size:10px; font-weight:500; line-height:1.5; color:var(--er-muted-ink); border:0; border-radius:10px; }
+  .command-bottom-nav svg { width:21px; height:21px; flex:none; }
+  .command-bottom-nav [aria-current=page],.command-bottom-nav>a:hover { background:var(--er-selected); color:var(--er-action-blue); }
+  .command-bottom-nav>a:focus-visible { outline:2px solid var(--er-teal); outline-offset:2px; }
+  .command-app:has(.practice-room[data-status="Playing"]) { padding-bottom:env(safe-area-inset-bottom,0px); }
+  .command-app:has(.practice-room[data-status="Playing"]) .command-bottom-nav { display:none; }
+  .command-app:has(.practice-page) .command-masthead-inner { padding:10px 16px; gap:12px; }
+  .command-app:has(.practice-page) .training-main { padding:22px 16px 30px; }
+  .command-app:has(.practice-page) .command-brand .er-wordmark-name { font-size:25px; }
+  .command-app:has(.practice-page) .command-trigger.ds-button { width:44px; padding:10px; }
   .training-coach .command-trigger.ds-button { width:44px; padding:10px; justify-content:center; border-radius:var(--er-radius-control); }
   .training-coach .command-trigger-short { display:none; }
-  .training-coach .command-shortcuts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; overflow:visible; }
-  .training-coach .command-shortcut { min-width:0; }
-  .training-coach .command-shortcut[data-mobile-visible=false],
-  .training-coach .command-shortcut .command-pin { display:none; }
-  .training-coach .command-shortcut>a { width:100%; min-width:0; min-height:44px; padding:6px 8px; gap:6px; white-space:normal; font-size:var(--er-text-xs); line-height:1.25; }
-  .training-coach .command-shortcut>a>svg { flex:none; }
-  .training-coach .command-shortcut>a>span { min-width:0; }
-  .training-coach .command-no-pins { grid-column:1 / -1; }
-  .training-coach .command-all.ds-button { width:44px; min-width:44px; height:44px; padding:10px; justify-content:center; }
-  .training-coach .command-all>span { display:none; }
   .training-coach .command-context-home { display:none; }
 }
+@media(max-width:350px) {
+  .command-app:has(.practice-page) :is(.command-masthead-inner,.training-main) { padding-inline:12px; }
+  .command-app:has(.practice-page) .command-masthead-inner { gap:8px; }
+  .command-app:has(.practice-page) .command-brand .er-wordmark-name { font-size:23px; }
+}
+@media(forced-colors:active) { .command-bottom-nav [aria-current=page] { outline:2px solid Highlight; } }

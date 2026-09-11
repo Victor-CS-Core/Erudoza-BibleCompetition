@@ -16,3 +16,12 @@ it("missing and denied recap has safe recovery", async () => { vi.mocked(trainin
 
 it("conflict from incomplete persisted session offers resume", async () => { const { ApiError } = await import("../../api/client"); vi.mocked(trainingApi.recap).mockRejectedValue(new ApiError("Incomplete", 409)); page(); expect(await screen.findByRole("link", { name: "Resume session" })).toHaveAttribute("href", "/student/study?sessionId=session"); });
 it("an early frozen review can still have an actual credited day", async () => { vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ fullTargetReached: false, attempted: 3, targetCardCount: 8, newlyCreditedDay: true })); page(); expect(await screen.findByText("Practice day credited: 2026-09-11.")).toBeInTheDocument(); expect(screen.queryByText(/did not reach the full target for a practice day/)).not.toBeInTheDocument(); });
+
+it("keeps a frozen earlier award as a milestone without granting a profile unlock", async () => {
+  const { honorFixture } = await import("./trainingFixtures");
+  vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ earnedBadges: [honorFixture({ earnedAtUtc: "2026-09-11T12:00:00Z" })] }));
+  page(); expect(await screen.findByText("Milestone recorded")).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Exact Recall" })).toBeInTheDocument();
+  expect(screen.queryByText("Honor earned")).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: /Use .*profile image/ })).not.toBeInTheDocument();
+});

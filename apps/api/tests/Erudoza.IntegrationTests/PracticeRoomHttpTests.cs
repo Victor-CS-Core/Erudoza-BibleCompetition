@@ -228,7 +228,8 @@ public sealed class PracticeRoomHttpTests
             await Submit(owner);
             await Submit(other);
             time.Advance(TimeSpan.FromSeconds(10));
-            await service.Tick(default);
+            if (index == 9) await service.Snapshot(org, id, owner, default);
+            else await service.Tick(default);
         }
         var complete = await State();
         Assert.Equal("Completed", complete.Status);
@@ -237,6 +238,13 @@ public sealed class PracticeRoomHttpTests
         Assert.Equal(200, complete.Submissions.Where(s => s.Team == 1).Sum(s => s.SpeedHundredths));
         Assert.Contains(complete.Awards, a => a.UserId == owner.Id && a.Key == "first-fellowship");
         Assert.Contains(complete.Awards, a => a.UserId == owner.Id && a.Key == "shared-scribe");
+        var mastery = await db.MasteryHonorUnlocks.SingleAsync(a => a.UserId == owner.Id && a.Key == "team:first-fellowship");
+        using var masteryEvidence = JsonDocument.Parse(mastery.EvidenceJson);
+        Assert.Equal(10, masteryEvidence.RootElement.GetProperty("personalQuestions").GetArrayLength());
+        Assert.DoesNotContain(await db.MasteryHonorUnlocks.Where(a => a.UserId == owner.Id).ToListAsync(), a => a.Key == "team:shared-scribe");
+        var frozenMastery = mastery.EvidenceJson;
+        await service.Snapshot(org, id, owner, default);
+        Assert.Equal(frozenMastery, (await db.MasteryHonorUnlocks.SingleAsync(a => a.Id == mastery.Id)).EvidenceJson);
     }
 
     [Theory]

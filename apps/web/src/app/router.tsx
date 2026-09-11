@@ -16,6 +16,7 @@ import { CoachesPage } from "../features/admin/CoachesPage";
 import { LandingPage } from "../features/marketing/LandingPage";
 import { ProgressPage } from "../features/student/ProgressPage";
 import { StudentHomePage } from "../features/student/StudentHomePage";
+import { ProfilePage } from "../features/profile/ProfilePage";
 import { HonorsPage } from "../features/student/HonorsPage";
 import { SessionRecapPage } from "../features/student/SessionRecapPage";
 import { StudyPage } from "../features/student/StudyPage";
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
       { path: "seasons/:seasonId/students/:studentId/progress", element: <ProgressPage /> },
       { path: "content", element: <ContentPage /> },
       { path: "design-system", element: <DesignSystemPage /> },
+      { path: "profile", element: <ProfilePage /> },
       { path: "practice", element: <PracticeRoute /> },
       { path: "practice/:roomId", element: <PracticeRoute /> },
     ],
@@ -89,6 +91,7 @@ export const router = createBrowserRouter([
       { path: "sessions/:sessionId/recap", element: <SessionRecapPage /> },
       { path: "honors", element: <HonorsPage /> },
       { path: "progress", element: <ProgressPage /> },
+      { path: "profile", element: <ProfilePage /> },
       { path: "practice", element: <PracticeRoute /> },
       { path: "practice/:roomId", element: <PracticeRoute /> },
     ],

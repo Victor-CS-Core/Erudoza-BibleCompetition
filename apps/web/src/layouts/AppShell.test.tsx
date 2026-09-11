@@ -6,7 +6,7 @@ import { AppShell } from "./AppShell";
 import { api } from "../api/client";
 const logout = vi.hoisted(() => vi.fn());
 vi.mock("../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "user", organizationId: "org", displayName: "Daniel", organizationName: "Academy" }, logout }) }));
-vi.mock("../api/client", () => ({ api: { seasons: vi.fn(), students: vi.fn(), assignedSeasons: vi.fn(), season: vi.fn() } }));
+vi.mock("../api/client", () => ({ request: vi.fn().mockResolvedValue([]), api: { seasons: vi.fn(), students: vi.fn(), assignedSeasons: vi.fn(), season: vi.fn() } }));
 function shell(path = "/student", variant: "student" | "admin" = "student") {
  return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={[path]}><AppShell variant={variant} /></MemoryRouter></QueryClientProvider>);
 }
@@ -49,34 +49,61 @@ it("keeps all coach tools directly navigable", () => {
  expect(within(nav).getByRole("link", { name: "Assignments" })).toHaveAttribute("aria-current", "page");
 });
 it.each([
- ["/admin", ["overview", "seasons", "students"], ["Overview", "Seasons"], 3],
- ["/admin/seasons", ["students", "seasons", "overview"], ["Students", "Seasons"], 3],
- ["/admin/content", ["overview", "seasons", "library"], ["Overview", "Scripture library"], 3],
- ["/admin/practice", ["library", "students"], ["Scripture library", "Team Practice"], 3],
- ["/admin/coaches", [], ["Coaches"], 1],
-] as const)("selects complete mobile Coach shortcuts without rewriting saved pins: %s", (path, saved, expected, allCount) => {
+ ["/admin", ["overview", "seasons", "students"], "Overview", 3],
+ ["/admin/seasons", ["students", "seasons", "overview"], "Seasons", 3],
+ ["/admin/content", ["overview", "seasons", "library"], "More", 3],
+ ["/admin/practice", ["library", "students"], "More", 3],
+ ["/admin/coaches", [], "More", 1],
+] as const)("keeps stable mobile Coach destinations without rewriting desktop pins: %s", (path, saved, expected, allCount) => {
  localStorage.setItem("erudoza:pins:org:user:coach", JSON.stringify(saved));
  shell(path, "admin");
  const nav = screen.getByRole("navigation", { name: "Coach" });
- const mobileLinks = [...nav.querySelectorAll('[data-mobile-visible="true"] > a')];
- expect(mobileLinks.map(link => link.textContent)).toEqual(expected);
- expect(mobileLinks.some(link => link.getAttribute("aria-current") === "page")).toBe(true);
+ const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
+ expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["Overview", "Seasons", "Students"]);
+ expect(mobile.querySelector('[aria-current="page"]')).toHaveTextContent(expected);
+ expect(mobile.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
  expect(JSON.parse(localStorage.getItem("erudoza:pins:org:user:coach")!)).toEqual(saved);
  expect(within(nav).getAllByRole("link")).toHaveLength(allCount);
 });
-it("keeps an unpinned Coach destination in the mobile pair while preserving desktop shortcuts", () => {
+it("preserves the stable mobile dock when Coach pins change", () => {
  shell("/admin", "admin");
  const nav = screen.getByRole("navigation", { name: "Coach" });
  fireEvent.click(screen.getByRole("button", { name: "All sections" }));
  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Unpin Overview" }));
- expect([...nav.querySelectorAll('[data-mobile-visible="true"] > a')].map(link => link.textContent)).toEqual(["Seasons", "Overview"]);
+ const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
+ expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["Overview", "Seasons", "Students"]);
+ expect(within(mobile).getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
  expect(within(nav).getAllByRole("link")).toHaveLength(7);
  expect(JSON.parse(localStorage.getItem("erudoza:pins:org:user:coach")!)).toEqual(["seasons", "students", "coaches", "assignments", "practice", "library"]);
  expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Pin Overview" })).toBeInTheDocument();
  fireEvent.click(within(screen.getByRole("dialog")).getByRole("link", { name: "Team Practice" }));
- expect([...nav.querySelectorAll('[data-mobile-visible="true"] > a')].map(link => link.textContent)).toEqual(["Seasons", "Team Practice"]);
+ expect(within(mobile).getByRole("button", { name: "More" })).toHaveAttribute("aria-current", "page");
  expect(within(nav).getByRole("link", { name: "Team Practice" })).toHaveAttribute("aria-current", "page");
  expect(within(nav).queryByRole("link", { name: "Overview" })).not.toBeInTheDocument();
+});
+it.each([
+ ["/student?seasonId=season-two", "HQ"],
+ ["/student/study?mode=Review&seasonId=season-two", "Study"],
+ ["/student/study?mode=Simulation&seasonId=season-two", "Study"],
+ ["/student/sessions/session-one/recap?seasonId=season-two", "Study"],
+ ["/student/honors?seasonId=season-two", "Honors"],
+ ["/student/practice/room-one?seasonId=season-two", "More"],
+] as const)("keeps student mobile navigation and season context at %s", (path, selected) => {
+ localStorage.setItem("erudoza:pins:org:user:student", JSON.stringify(["practice", "simulation"]));
+ shell(path);
+ const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
+ expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["HQ", "Study", "Honors"]);
+ for (const link of within(mobile).getAllByRole("link")) expect(link.getAttribute("href")).toContain("seasonId=season-two");
+ expect(mobile.querySelector('[aria-current="page"]')).toHaveTextContent(selected);
+ expect(mobile.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+});
+it("opens all sections from More and restores focus when closed", async () => {
+ shell("/student/practice");
+ const more = within(screen.getByRole("navigation", { name: "Mobile navigation" })).getByRole("button", { name: "More" });
+ fireEvent.click(more);
+ expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Team Practice" })).toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button", { name: "Close command center" }));
+ await waitFor(() => expect(more).toHaveFocus());
 });
 it.each([
  ["/admin/coaches", "admin", "Coach", "Coaches"],

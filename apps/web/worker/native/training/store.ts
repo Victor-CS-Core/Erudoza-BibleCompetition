@@ -1,3 +1,4 @@
+import { prepareSoloHonors } from '../mastery/store';
 import type { D1PreparedStatement } from '@cloudflare/workers-types';
 import type { RequestContext } from '../types';
 import { HttpError } from '../types';
@@ -168,7 +169,7 @@ export function badgeDto(award: BadgeProgress): BadgeProgress {
     return { key: award.key, ruleVersion: award.ruleVersion, title: award.title, completed: award.completed, target: award.target, earnedAtUtc: award.earnedAtUtc, scopeLabel: award.scopeLabel, evidenceSessionId: award.evidenceSessionId };
 }
 export function catalog(counters: ReturnType<typeof badgeCounters>, awards: AwardRecord[], seasonName = 'Assigned scope'): BadgeProgress[] { return (Object.keys(titles) as (keyof typeof titles)[]).map(key => { const earned = awards.find(a => a.key === key); return earned ? badgeDto(earned) : { key, ruleVersion: 'training-v1', title: titles[key], completed: counters[key][0], target: counters[key][1], earnedAtUtc: null, scopeLabel: key === 'steady-study' ? 'Academy practice weeks' : seasonName, evidenceSessionId: null }; }); }
-export async function applyAcceptedAttempt(ctx: RequestContext, session: Session, attempt: Attempt, sources: Source[], mastery: Mastery): Promise<Writes> {
+export async function applyAcceptedAttempt(ctx: RequestContext, session: Session, attempt: Attempt, sources: Source[], mastery: Mastery, dueAtUtc?: string): Promise<Writes> {
     const w: Writes = { statements: [], guards: [] }, old = await preference(ctx), at = old && old.value.lastEventAtUtc > attempt.at ? old.value.lastEventAtUtc : attempt.at, p = resolvePreference(ctx, old, at);
     attempt.at = at;
     mastery.lastSeenAt = at;
@@ -218,6 +219,9 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
         seen.push(attempt.knowledgeUnitId);
     const states = (await ctx.store.list<Mastery>('mastery', ctx.orgId, { seasonId: session.seasonId, ownerId: ctx.actor.userId })).filter(m => m.knowledgeUnitId !== mastery.knowledgeUnitId);
     states.push(mastery);
+    const masteryWrites = await prepareSoloHonors(ctx, session, attempt, sources, states, mastery, dueAtUtc);
+    w.statements.push(...masteryWrites.statements);
+    w.guards.push(...masteryWrites.guards);
     const counters = badgeCounters(sources.map(s => ({ id: kid(s), bookKey: s.bookKey, chapter: s.chapter })), states, seen, p.qualifyingWeekStarts.length, review), projection = { id: pid, seasonId: session.seasonId, scopeVersion: fingerprint, seenKnowledgeUnitIds: seen, counters };
     if (!oldProgress || JSON.stringify(oldProgress.value) !== JSON.stringify(projection))
         write(ctx, w, 'training-season-progress', pid, projection, oldProgress, session.seasonId);

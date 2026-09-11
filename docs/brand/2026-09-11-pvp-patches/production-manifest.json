@@ -1,0 +1,56 @@
+[
+  {
+    "name": "team-a-256.webp",
+    "width": 256,
+    "height": 256,
+    "hasAlpha": true,
+    "bytes": 30646,
+    "sha256": "cb7de13e2434df3139b15eaaa43248d3428a2d56dfac2cf02042c652662a8c18",
+    "sourceSha256": "a88d88d53094f45bdcb62c5d6018ee403ec380cad097258787188a3c65236297"
+  },
+  {
+    "name": "team-a-512.webp",
+    "width": 512,
+    "height": 512,
+    "hasAlpha": true,
+    "bytes": 107924,
+    "sha256": "a02c12b6e2dfe8a4e6eee5c0b8474d8a791d8551c5aa5b5299eb7ec7cc4fb201",
+    "sourceSha256": "a88d88d53094f45bdcb62c5d6018ee403ec380cad097258787188a3c65236297"
+  },
+  {
+    "name": "team-b-256.webp",
+    "width": 256,
+    "height": 256,
+    "hasAlpha": true,
+    "bytes": 32892,
+    "sha256": "8abc1752c6df00497081807dc695173a17f60234c3d4b4487d5f2b26bccec901",
+    "sourceSha256": "839444c5878cd4494e2964986b2fdfed8b082d70bbcc34862d85af7393478319"
+  },
+  {
+    "name": "team-b-512.webp",
+    "width": 512,
+    "height": 512,
+    "hasAlpha": true,
+    "bytes": 119890,
+    "sha256": "78124d8a608aebceb981ee351607224cb6c47fa6b169bd54a8d549c3a8205b89",
+    "sourceSha256": "839444c5878cd4494e2964986b2fdfed8b082d70bbcc34862d85af7393478319"
+  },
+  {
+    "name": "team-practice-256.webp",
+    "width": 256,
+    "height": 256,
+    "hasAlpha": true,
+    "bytes": 35120,
+    "sha256": "0174285c4fd9513ea81d03aeedac20494ddc767a9cee22ff537b0791939a2cbc",
+    "sourceSha256": "59235818cb575043b51ba1252ea26097f12e04330b2e6d41f46a2740b3791774"
+  },
+  {
+    "name": "team-practice-512.webp",
+    "width": 512,
+    "height": 512,
+    "hasAlpha": true,
+    "bytes": 126616,
+    "sha256": "6f391733283102001d264ebf8125b86689d67ae36fe192e1b4d5518e18836eca",
+    "sourceSha256": "59235818cb575043b51ba1252ea26097f12e04330b2e6d41f46a2740b3791774"
+  }
+]

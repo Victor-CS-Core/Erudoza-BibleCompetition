@@ -30,3 +30,7 @@ For canonical hosting, take the same private backup precaution, apply its EF mig
 Retain additive schema/indexes and restore a reviewed compatible Worker/UI pair; do not drop new training records or replay attempts to reconstruct awards. Export new evidence before any data repair. Downgrading code does not undo accepted attempts, sent emails, day credits or earned Honors. A destructive database restore could discard post-backup student work and requires a separate reconciliation decision.
 
 The existing regional 20-room/200-player load gate stays open. Local browser passes and bounded query tests do not establish production capacity or remaining Cloudflare account quota.
+
+## Mastery profiles and cross-backend export
+
+The shared mastery profile extension adds canonical migration `20260911205416_MasteryHonorProfiles` and uses existing native Records storage. Its versioned mastery unlocks are separate from historical practice milestones. The [mastery profile export procedure](mastery-profile-export.md) describes preserved unlocks, selected patches, bounded passage proof and validated migration limits. A release containing this extension must include the matching profile API and frontend together; the earlier Honors-only verification above does not establish that newer release gate.

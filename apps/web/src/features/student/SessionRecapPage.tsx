@@ -17,8 +17,8 @@ export function SessionRecapPage() {
   const { me } = useAuth();
   const recap = useQuery({ queryKey: ["training-recap", sessionId, me?.organizationId, me?.userId], queryFn: () => trainingApi.recap(sessionId!), enabled: !!sessionId });
   const data = recap.data;
-  const earnedHonors = data?.version === "training-v1" ? data.earnedBadges.filter(honor => honor.earnedAtUtc) : [];
-  const featuredHonor = earnedHonors[0];
+  const earnedMilestones = data?.version === "training-v1" ? data.earnedBadges.filter(honor => honor.earnedAtUtc) : [];
+  const featuredMilestone = earnedMilestones[0];
   const seasonId = data?.seasonId ?? params.get("seasonId");
   useEffect(() => {
     if (data?.seasonId && params.get("seasonId") !== data.seasonId) {
@@ -34,11 +34,11 @@ export function SessionRecapPage() {
           <h2 className="training-recap-title">{data.fullTargetReached ? "Practice complete. Keep growing." : "Your practice is saved."}</h2>
           <p>{data.correct} correct from {data.attempted} accepted attempts.</p>
           <div className="training-recap-award">
-            {featuredHonor ? <>
-              <HonorArtwork {...honorAsset(featuredHonor.key)} size={176} />
-              <h3>{featuredHonor.title}</h3>
-              <Badge tone="success">Honor earned</Badge>
-              <p><small>{featuredHonor.scopeLabel} · <time dateTime={featuredHonor.earnedAtUtc!}>{evidenceDate(featuredHonor.earnedAtUtc!)}</time></small></p>
+            {featuredMilestone ? <>
+              <HonorArtwork {...honorAsset(featuredMilestone.key)} size={176} />
+              <h3>{featuredMilestone.title}</h3>
+              <Badge tone="success">Milestone recorded</Badge>
+              <p><small>{featuredMilestone.scopeLabel} · <time dateTime={featuredMilestone.earnedAtUtc!}>{evidenceDate(featuredMilestone.earnedAtUtc!)}</time></small></p>
             </> : <PatchArtwork src="/brand/erudoza-patch-192.webp" size={176} alt="Erudoza field guide patch" />}
           </div>
           <dl className="training-recap-stats" aria-label="Saved session counts">
@@ -51,7 +51,7 @@ export function SessionRecapPage() {
           <div className="training-recap-actions"><LinkButton to={link("/student")}>Back to Training HQ</LinkButton><LinkButton variant="ghost" to={link("/student/honors")}>View Honors</LinkButton></div>
         </Panel>
         <aside className="training-recap-side" aria-label="Saved practice details">
-          {data.version === "legacy-counts" ? <Notice>This earlier session has saved counts only. Passage improvement and Honors evidence are unavailable.</Notice> : <>
+          {data.version === "legacy-counts" ? <Notice>This earlier session has saved counts only. Passage improvement and milestone evidence are unavailable.</Notice> : <>
             <Panel><h2>What you practiced</h2><p>These are this session’s saved contributions. Later practice may change current scores.</p>
               {!data.passageChanges.length && <p>No passage skill changes were recorded.</p>}
               <ul className="training-passage-list">{data.passageChanges.map((passage, index) => <li key={`${data.sessionId}:${passage.knowledgeUnitId}`}>
@@ -67,7 +67,7 @@ export function SessionRecapPage() {
               <LinkButton variant="secondary" to={link("/student/progress")}>View current progress</LinkButton>
             </Panel>
             {!!data.missionSteps.length && <Panel><h2>Daily training evidence</h2><ul className="training-mission-steps">{data.missionSteps.map(step => <li key={step.kind}><strong>{step.kind === "Practice" ? "Daily drill" : "Review"}</strong><span>{step.completed} / {step.target}</span><Badge>{step.status}</Badge></li>)}</ul></Panel>}
-            {earnedHonors.length > 1 && <Panel><h2>More Honors earned in this session</h2><div className="training-honor-preview-items">{earnedHonors.slice(1).map((honor, index) => <div key={`${honor.key}:${index}`}><HonorArtwork {...honorAsset(honor.key)} /><h3>{honor.title}</h3><p>{honor.scopeLabel}</p><time dateTime={honor.earnedAtUtc!}>{evidenceDate(honor.earnedAtUtc!)}</time></div>)}</div></Panel>}
+            {earnedMilestones.length > 1 && <Panel><h2>More milestones recorded in this session</h2><div className="training-honor-preview-items">{earnedMilestones.slice(1).map((honor, index) => <div key={`${honor.key}:${index}`}><HonorArtwork {...honorAsset(honor.key)} /><h3>{honor.title}</h3><p>{honor.scopeLabel}</p><time dateTime={honor.earnedAtUtc!}>{evidenceDate(honor.earnedAtUtc!)}</time></div>)}</div></Panel>}
           </>}
           <Panel><h2>Steady progress counts.</h2>
             {data.newlyCreditedDay && <p>Practice day credited: {data.creditedLocalDate}.</p>}

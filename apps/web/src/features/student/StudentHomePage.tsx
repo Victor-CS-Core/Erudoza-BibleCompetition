@@ -76,7 +76,7 @@ export function StudentHomePage() {
             <p>{todayCredited ? "Today already counts. Keep a pace that works for you." : "A little practice today is a step toward your goal."}</p>
             <div className="training-week-footer"><strong>A fresh start every week.</strong><p>Your learning stays with you after a missed day.</p>{data.preferences.pending && <p>Next week: {data.preferences.pending.weeklyTarget} days.</p>}</div>
           </Panel>
-          <Panel className="training-next-honor"><h2>{nextHonor ? "Your next Honor" : "Your Honors"}</h2>{nextHonor ? <div className="training-next-honor-content"><HonorArtwork {...honorAsset(nextHonor.key)} size={72} muted /><div><h3>{nextHonor.title}</h3><p>{nextHonor.scopeLabel}</p><ProgressMeter label={nextHonor.title} value={nextHonor.completed} max={nextHonor.target} /></div></div> : <p>Visit your collection to explore your recorded Honors.</p>}<Link to={link("/student/honors")}>Explore your Honors<AppIcon name="arrow" /></Link></Panel>
+          <Panel className="training-next-honor"><h2>{nextHonor ? "Your next milestone" : "Practice milestones"}</h2>{nextHonor ? <div className="training-next-honor-content"><HonorArtwork {...honorAsset(nextHonor.key)} size={72} muted /><div><h3>{nextHonor.title}</h3><p>{nextHonor.scopeLabel}</p><ProgressMeter label={nextHonor.title} value={nextHonor.completed} max={nextHonor.target} /></div></div> : <p>Your recorded milestones track practice progress. Honors have separate mastery requirements.</p>}<Link to={link("/student/honors")}>Explore mastery Honors<AppIcon name="arrow" /></Link></Panel>
         </aside>
       </div>
       {seasonId && <PassageJourney key={seasonId} seasonId={seasonId} preview />}

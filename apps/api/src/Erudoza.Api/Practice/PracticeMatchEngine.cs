@@ -191,18 +191,19 @@ public sealed partial class PracticeService
             var row = await Load(id.OrganizationId, id.Id, ct);
             var room = PracticeJson.Read<PracticeRoom>(row.StateJson);
             if (!Advance(room)) continue;
-            using var awards = room.Status == "Completed" ? await runtime.EnterAwards(room.SeasonId, ct) : null;
+            using var awards = room.Status == "Completed" ? await runtime.EnterAwards(id.OrganizationId, ct) : null;
             if (room.Status == "Completed") await ReconcileAwards(id.OrganizationId, room, ct);
             await Save(row, room, ct);
             changed.Add((id.OrganizationId, id.Id));
         }
         return changed;
     }
-    private async Task ReconcileAwards(Guid org, PracticeRoom room, CancellationToken ct)
+    private async Task ReconcileAwards(Guid org, PracticeRoom room, CancellationToken ct, bool issueMastery = true)
     {
         var all = (await Rooms.Where(r => r.OrganizationId == org && r.SeasonId == room.SeasonId && r.Status == "Completed").AsNoTracking().ToListAsync(ct))
             .Where(r => r.Id != room.Id).Select(r => PracticeJson.Read<PracticeRoom>(r.StateJson)).Append(room).ToList();
         room.Awards = CalculateAwards(all).ToList();
+        if (issueMastery) await RecordMasteryHonors(org, room, all, ct);
         var stored = await db.Set<PracticeAwardRecord>().Where(a => a.OrganizationId == org && a.SeasonId == room.SeasonId).ToListAsync(ct);
         var desired = room.Awards.ToDictionary(a => (a.UserId, a.Key));
         foreach (var existing in stored)

@@ -9,10 +9,15 @@ import { libraryRecords, LIBRARY_ORGANIZATION, stableId } from '../apps/web/scri
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const libraryOrg='00000000-0000-4000-8000-000000000066';
 const core = ['Organizations','Users','OrganizationMembers','ContentPacks','SourceDocuments','SourceUnits','KnowledgeUnits','RuleProfiles','Seasons','ScopeEntries','Assignments','AssignmentScopes','CompetitionMembers','StudySessions','ChallengeCards','Attempts','MasteryStates','ReviewSchedules'];
-const trainingTables=['TrainingPreferences','TrainingDays','TrainingWeeks','DailyMissions','TrainingSeasonProgress','SoloBadgeAwards'];
+const trainingTables=['TrainingPreferences','TrainingDays','TrainingWeeks','DailyMissions','TrainingSeasonProgress','SoloBadgeAwards','MasteryHonorUnlocks','MasteryPassageProofs','ProfileAvatarSelections'];
 const archive = ['AuditEvents','GenerationJobs','PromptVersions','QuestionCandidates','PlayableQuestions','StudentProfiles','Teams','QuestionEvidence','__EFMigrationsHistory','__EFMigrationsLock','PracticeRoomRecord','PracticeQuestionRecord','PracticeSetting','PracticeAwardRecord'];
 const enums = {kind:['Adult','Student'],role:['Owner','Admin','Student'],season:['Draft','ContentReady','AssignmentsReady','Active','Completed','Archived'],assignment:['PrimarySpecialist','RequiredCoverage','OptionalReview'],source:['Scripture','Supplemental'],mode:['Practice','Review','Simulation'],session:['Created','Active','Completed','Abandoned'],answer:['ExactText','ShortFact','OrderedSequence','SelectedChoice'],level:['Unseen','Learning','Review','Strong','Mastered']};
 const requiredColumns={Organizations:'Id Name Slug',Users:'Id UserName Email PasswordHash DisplayName Kind IsActive SecurityStamp',OrganizationMembers:'Id OrganizationId UserId Role',ContentPacks:'Id OrganizationId PackKey Version Locale SourceType LicensingStatus IsActive CreatedAtUtc',SourceUnits:'Id OrganizationId ContentPackId SourceDocumentId CanonicalText CitationLabel BookKey Chapter Verse Ordinal IsActive IsRetired ContentHash NormalizedComparisonText LicensingMetadata Locale',KnowledgeUnits:'Id OrganizationId SourceUnitId Kind',RuleProfiles:'Id Key Version ConfigurationJson',Seasons:'Id OrganizationId Name YearLabel Status RuleProfileId StartDate TargetCompetitionDate CreatedAtUtc ActivatedAtUtc',ScopeEntries:'Id OrganizationId SeasonId ContentPackId Kind BookKey StartChapter StartVerse EndChapter EndVerse',Assignments:'Id OrganizationId SeasonId StudentUserId Type CreatedAtUtc',AssignmentScopes:'Id AssignmentId ContentPackId BookKey StartChapter StartVerse EndChapter EndVerse',CompetitionMembers:'Id OrganizationId SeasonId UserId Difficulty TeamId',StudySessions:'Id OrganizationId SeasonId StudentUserId Mode Status Difficulty DifficultyPolicyVersion TargetCardCount RuleProfileSnapshotJson CreatedAtUtc CompletedAtUtc',ChallengeCards:'Id OrganizationId SessionId StudentUserId SeasonId KnowledgeUnitId SourceUnitId AnswerSourceUnitId ActivityType ProviderType AnswerMode EvaluatorVersion PayloadJson AnswerKeyJson Sequence CreatedAtUtc',Attempts:'Id OrganizationId SessionId ChallengeCardId StudentUserId SeasonId KnowledgeUnitId ClientSubmissionId SubmittedAnswer NormalizedAnswer IsCorrect EvaluationResult EvaluatorVersion ResponseTimeMs HintsUsed ActivityType CreatedAtUtc IsLegacyDuplicate ResultJson',MasteryStates:'Id OrganizationId StudentUserId SeasonId KnowledgeUnitId RecognitionScore ExactWordingScore ReferenceScore SequenceScore FactualRecallScore Level AlgorithmVersion UpdatedAtUtc',ReviewSchedules:'Id OrganizationId StudentUserId SeasonId KnowledgeUnitId DueAtUtc AlgorithmVersion'};
+Object.assign(requiredColumns, {
+  MasteryHonorUnlocks:'Id OrganizationId UserId SeasonId Key RuleVersion EarnedAtUtc EvidenceJson',
+  MasteryPassageProofs:'OrganizationId UserId SeasonId KnowledgeUnitId RuleVersion FirstMasteredAtUtc FirstMasteredAttemptId FirstMasteredEvidenceJson RetainedAtUtc RetainedAttemptId RetainedEvidenceJson ReviewedAtUtc ReviewedAttemptId ReviewedEvidenceJson',
+  ProfileAvatarSelections:'OrganizationId UserId UnlockId HonorKey RuleVersion',
+});
 const fail = message => { throw new Error(`Migration blocked: ${message}`); };
 const enumValue = (name,value) => enums[name][value-1] ?? fail(`unsupported ${name} enum ${value}`);
 const difficulty = value => ({1:'Foundation',3:'Standard',5:'Advanced'}[value] ?? fail(`unsupported difficulty ${value}`));
@@ -40,7 +45,7 @@ export function readSource(sourcePath) {
 export function convertSnapshot(snapshot) {
   const {tables} = snapshot;
   for (const name of core) if (!tables[name]) fail(`required table ${name} is absent`);
-  for(const [table,columns]of Object.entries(requiredColumns))for(const row of tables[table])for(const column of columns.split(' '))if(!Object.hasOwn(row,column))fail(`required column ${table}.${column} is absent`);
+  for(const [table,columns]of Object.entries(requiredColumns))for(const row of tables[table]??[])for(const column of columns.split(' '))if(!Object.hasOwn(row,column))fail(`required column ${table}.${column} is absent`);
   for (const [name,rows] of Object.entries(tables)) if (!core.includes(name) && !archive.includes(name) && !trainingTables.includes(name) && rows.length) fail(`unsupported nonempty table ${name}`);
   const rows = name => tables[name] ?? [];
   const index = name => new Map(rows(name).map(r=>[guid(r.Id),r]));
@@ -178,6 +183,57 @@ export function convertSnapshot(snapshot) {
   for(const[id,r]of missionHeads)trainingAdd('daily-mission-head',id,r,{missionId:r.Id,revision:r.Revision});
   for(const r of rows('TrainingSeasonProgress'))trainingAdd('training-season-progress',trainingId(r,guid(r.SeasonId),r.ScopeVersion),r,{seasonId:guid(r.SeasonId),scopeVersion:r.ScopeVersion,seenKnowledgeUnitIds:parsed(r.SeenIdsJson,'seen ids'),counters:Object.fromEntries(parsed(r.BadgesJson,'badge counters').map(b=>[b.key,[b.completed,b.target]]))});
   for(const r of rows('SoloBadgeAwards')){const e=parsed(r.EvidenceJson,'award evidence');trainingAdd('solo-badge-award',trainingId(r,r.Key,r.RuleVersion,r.AwardScope),r,{...e.badge,seasonId:r.SeasonId?guid(r.SeasonId):null,scopeVersion:e.scopeVersion,eligibleKnowledgeUnitIds:e.eligibleKnowledgeUnitIds,...(e.evidence?{evidence:e.evidence}:{}),earnedAtUtc:iso(r.EarnedAtUtc),evidenceSessionId:guid(r.SessionId)});}
+  // Mastery unlocks are immutable credentials; legacy awards never grant avatar eligibility.
+  const masteryVersion='mastery-v1';
+  const masteryKeys=new Set(['solo:exact-recall','solo:reference-ready','solo:chapter-strong','solo:full-coverage','solo:steady-study','solo:review-complete','team:first-fellowship','team:team-steady','team:shared-scribe','team:team-precision','team:rehearsal-complete']);
+  const checkUser=(user,org)=>{requireRef(users,user,'profile user');if(userOrg.get(guid(user))!==guid(org))fail('profile user is outside organization');};
+  const masteryScope=r=>{checkUser(r.UserId,r.OrganizationId);sameOrg(requireRef(seasons,r.SeasonId,'mastery Honor season').OrganizationId,r.OrganizationId,'mastery Honor');if(r.RuleVersion!==masteryVersion)fail('unsupported mastery Honor rule version');};
+  const masteryIdentity=(r,key)=>[guid(r.OrganizationId),guid(r.UserId),masteryVersion,key].join(':');
+  const importedUnlocks=new Map();
+  for(const r of rows('MasteryHonorUnlocks')) {
+    masteryScope(r);if(!masteryKeys.has(r.Key))fail('unknown mastery Honor key');
+    const originalId=guid(r.Id);if(importedUnlocks.has(originalId))fail('duplicate mastery unlock identity');
+    const earnedAtUtc=iso(r.EarnedAtUtc);if(!earnedAtUtc)fail('mastery unlock requires earned evidence date');
+    const evidence=parsed(r.EvidenceJson,'mastery Honor evidence');if(!evidence||typeof evidence!=='object'||Array.isArray(evidence)||evidence.ruleVersion&&evidence.ruleVersion!==masteryVersion)fail('unsupported mastery Honor evidence');
+    if(evidence.userId&&guid(evidence.userId)!==guid(r.UserId))fail('mastery Honor evidence user mismatch');
+    const id=masteryIdentity(r,r.Key),award={id,userId:guid(r.UserId),key:r.Key,ruleVersion:masteryVersion,earnedAtUtc,seasonId:guid(r.SeasonId),evidence};
+    add('mastery-honor',id,r.OrganizationId,award,r.SeasonId,r.UserId);importedUnlocks.set(originalId,{source:r,value:award});
+  }
+  const proofEvidence=(r,prefix)=>{
+    const at=iso(r[`${prefix}AtUtc`]),attemptId=r[`${prefix}AttemptId`],raw=r[`${prefix}EvidenceJson`];
+    if(!at&&!attemptId&&!raw)return null;
+    if(!at||!attemptId||!raw)fail('incomplete mastery passage proof');
+    const frozen=parsed(raw,'mastery passage proof'),attempt=convertedAttempts.find(a=>a.id===guid(attemptId));
+    if(!attempt||attempt.studentUserId!==guid(r.UserId)||attempt.seasonId!==guid(r.SeasonId)||attempt.knowledgeUnitId!==guid(r.KnowledgeUnitId)||attempt.isLegacyDuplicate)fail('mastery proof attempt boundaries differ');
+    const card=convertedCards.get(attempt.cardId),e=frozen?.attempt,p=frozen?.passage;
+    if(!e||!p||guid(e.id)!==attempt.id||guid(p.knowledgeUnitId)!==attempt.knowledgeUnitId||iso(e.atUtc)!==at||attempt.at!==at)fail('mastery proof evidence identity mismatch');
+    const answerMode=typeof e.answerMode==='number'?enumValue('answer',e.answerMode):e.answerMode;
+    if(answerMode!==card.answerMode||e.activityType!==card.activityType||e.difficulty!==card.payload.difficulty||e.isCorrect!==attempt.isCorrect||e.hintsUsed!==attempt.hintsUsed||e.isLegacyDuplicate||p.algorithmVersion!=='v2-skill-evidence'||!['exactWording','reference','recognition'].every(k=>Number.isFinite(p[k])&&p[k]>=0&&p[k]<=100)||p.exactWording<90||p.reference<80||p.recognition<80)fail('unsupported mastery proof evidence');
+    if(prefix!=='FirstMastered'&&(!e.isCorrect||e.hintsUsed||answerMode!=='ExactText'||e.difficulty<5||!['MissingWords','WhatComesNext'].includes(e.activityType)))fail('mastery retest must be an unaided advanced typed answer');
+    if(prefix==='Reviewed'&&(!e.firstDueReviewAttempt||requireRef(sessions,attempt.sessionId,'mastery review session').Mode!==2))fail('mastery review must certify the first due attempt');
+    const knowledgeUnit=requireRef(knowledge,r.KnowledgeUnitId,'mastery proof knowledge');sourceOrg(requireRef(sources,knowledgeUnit.SourceUnitId,'mastery proof source'),r.OrganizationId,'mastery proof');
+    return {attemptId:attempt.id,sessionId:attempt.sessionId,sourceUnitId:guid(knowledgeUnit.SourceUnitId),cardId:attempt.cardId,acceptedAtUtc:at,activityType:e.activityType,answerMode,difficulty:e.difficulty,exactWording:p.exactWording,reference:p.reference,recognition:p.recognition};
+  };
+  for(const r of rows('MasteryPassageProofs')) {
+    masteryScope(r);checkStudent(r.UserId,r.OrganizationId);
+    const k=requireRef(knowledge,r.KnowledgeUnitId,'mastery proof knowledge');sourceOrg(requireRef(sources,k.SourceUnitId,'mastery proof source'),r.OrganizationId,'mastery proof');
+    const first=proofEvidence(r,'FirstMastered'),retained=proofEvidence(r,'Retained'),reviewed=proofEvidence(r,'Reviewed');
+    if((retained||reviewed)&&!first)fail('mastery retest requires first mastery evidence');
+    if(retained&&Date.parse(retained.acceptedAtUtc)<Date.parse(first.acceptedAtUtc)+48*3600000)fail('mastery retention proof is less than 48 hours later');
+    const id=[guid(r.OrganizationId),guid(r.UserId),guid(r.SeasonId),guid(r.KnowledgeUnitId),masteryVersion].join(':');
+    add('mastery-proof',id,r.OrganizationId,{id,knowledgeUnitId:guid(r.KnowledgeUnitId),seasonId:guid(r.SeasonId),userId:guid(r.UserId),firstMasteredAtUtc:first?.acceptedAtUtc??null,retainedAtUtc:retained?.acceptedAtUtc??null,retestAttemptId:retained?.attemptId??null,reviewCertifiedAtUtc:reviewed?.acceptedAtUtc??null,reviewAttemptId:reviewed?.attemptId??null,...(first?{firstMasteryEvidence:first}:{}),...(retained?{retainedEvidence:retained}:{}),...(reviewed?{reviewEvidence:reviewed}:{})},r.SeasonId,r.UserId);
+  }
+  for(const r of rows('ProfileAvatarSelections')) {
+    checkUser(r.UserId,r.OrganizationId);const id=guid(r.UserId);
+    let value={id,userId:id,honorKey:null,unlockId:null,ruleVersion:null};
+    if(r.UnlockId!==null||r.HonorKey!==null||r.RuleVersion!==null) {
+      if(!r.UnlockId||!r.HonorKey||r.RuleVersion!==masteryVersion)fail('incomplete mastery avatar selection');
+      const unlock=importedUnlocks.get(guid(r.UnlockId));
+      if(!unlock||guid(unlock.source.OrganizationId)!==guid(r.OrganizationId)||unlock.value.userId!==id||unlock.value.key!==r.HonorKey||unlock.value.ruleVersion!==r.RuleVersion)fail('avatar selection requires its own valid mastery unlock');
+      value={id,userId:id,honorKey:unlock.value.key,unlockId:unlock.value.id,ruleVersion:masteryVersion};
+    }
+    add('user-profile',id,r.OrganizationId,value,null,r.UserId);
+  }
   for(const r of rows('PracticeRoomRecord'))if(!['Completed','Abandoned'].includes(r.Status))fail('finish or abandon every legacy PVP room before cutover; active timers cannot be converted');
   for(const r of rows('PracticeSetting'))add('practice-setting',guid(r.OrganizationId),r.OrganizationId,{enabled:!!r.Enabled});
   for(const r of rows('PracticeQuestionRecord')) {

@@ -5,7 +5,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import type { Season, CoverageStudent } from "../../api/types";
 import { AdminHomePage } from "./AdminHomePage";
-vi.mock("../../api/client", () => ({ api: { seasons: vi.fn(), coverage: vi.fn() } }));
+vi.mock("../../api/client", () => ({ request: vi.fn().mockResolvedValue([]), api: { seasons: vi.fn(), coverage: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", organizationName: "Academy" } }) }));
 const season = (id: string, status: string): Season => ({ id, organizationId: "org", name: id, status, yearLabel: "2026", ruleProfileKey: "PBE_STYLE_V1", ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, scopeUnitCount: 10, assignmentCount: 2 });
 const student: CoverageStudent = { studentUserId: "u", displayName: "Daniel", userName: "daniel", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 10, eligibleUnitCount: 10, masteredCount: 7, reviewDueCount: 2, attemptCount: 12 };
@@ -16,7 +16,7 @@ it("defaults to the active season and shows real coverage", async () => {
   expect(screen.getByRole("combobox", { name: "Season" })).toHaveValue("active");
   expect(api.coverage).toHaveBeenCalledWith("org", "active");
   expect(screen.getByText("70%")).toBeInTheDocument(); expect(screen.getByText("2 due")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "D Daniel" })).toHaveAttribute("href", "/admin/seasons/active/students/u/progress");
+  expect(screen.getByRole("link", { name: "Daniel" })).toHaveAttribute("href", "/admin/seasons/active/students/u/progress");
 });
 it("loads the selected season independently", async () => {
   home(); await screen.findByRole("table");

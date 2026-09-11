@@ -629,6 +629,93 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                     b.ToTable("KnowledgeUnits");
                 });
 
+            modelBuilder.Entity("Erudoza.Domain.MasteryHonorUnlock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset>("EarnedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EvidenceJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RuleVersion")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SeasonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "UserId", "Key", "RuleVersion")
+                        .IsUnique();
+
+                    b.ToTable("MasteryHonorUnlocks");
+                });
+
+            modelBuilder.Entity("Erudoza.Domain.MasteryPassageProof", b =>
+                {
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("SeasonId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("KnowledgeUnitId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RuleVersion")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FirstMasteredEvidenceJson").HasColumnType("TEXT");
+
+                    b.Property<string>("RetainedEvidenceJson").HasColumnType("TEXT");
+
+                    b.Property<string>("ReviewedEvidenceJson").HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("FirstMasteredAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("FirstMasteredAttemptId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("RetainedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("RetainedAttemptId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("ReviewedAtUtc")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("ReviewedAttemptId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("OrganizationId", "UserId", "SeasonId", "KnowledgeUnitId", "RuleVersion");
+
+                    b.ToTable("MasteryPassageProofs");
+                });
+
             modelBuilder.Entity("Erudoza.Domain.MasteryState", b =>
                 {
                     b.Property<Guid>("Id")
@@ -876,6 +963,30 @@ namespace Erudoza.Infrastructure.Persistence.Migrations
                     b.HasKey("OrganizationId");
 
                     b.ToTable("PracticeSetting");
+                });
+
+            modelBuilder.Entity("Erudoza.Domain.ProfileAvatarSelection", b =>
+                {
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HonorKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RuleVersion")
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("UnlockId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("OrganizationId", "UserId");
+
+                    b.ToTable("ProfileAvatarSelections");
                 });
 
             modelBuilder.Entity("Erudoza.Domain.PromptVersion", b =>

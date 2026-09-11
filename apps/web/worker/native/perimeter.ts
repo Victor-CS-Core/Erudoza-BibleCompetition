@@ -20,7 +20,8 @@ export async function enforcePerimeter(request: Request, env: PerimeterEnv): Pro
     if (!env.PUBLIC_ORIGIN) throw new HttpError(503, "Service configuration is unavailable.");
     if (url.origin !== new URL(env.PUBLIC_ORIGIN).origin) throw new HttpError(404, "Route not found.");
   }
-  if (url.pathname.length + url.search.length > 2048) throw new HttpError(414, "Request URL is too long.");
+  const maxUrlLength = request.method === "GET" && url.pathname === "/api/v1/profile/identities" ? 4096 : 2048;
+  if (url.pathname.length + url.search.length > maxUrlLength) throw new HttpError(414, "Request URL is too long.");
   if (env.ENFORCE_RATE_LIMITS === "true" && (!env.API_RATE_LIMITER || !env.AUTH_RATE_LIMITER)) {
     throw new HttpError(503, "Request protection is unavailable. Please retry later.");
   }

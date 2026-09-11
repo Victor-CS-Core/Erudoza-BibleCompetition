@@ -1,3 +1,4 @@
+import { ProfileAvatar } from "../profile/ProfileAvatar";
 import type { ReactNode } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { Student } from "../../api/types";
@@ -36,7 +37,7 @@ export function StudentTable({ students, renderPlan, renderActions }: {
         <caption className="sr-only">Students and their available actions</caption>
         <thead><tr><th scope="col" aria-sort={sort === "asc" ? "ascending" : "descending"}>Student</th>{renderPlan && <th scope="col">Season plan</th>}<th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
         <tbody>{filtered.slice(start, start + pageSize).map(student => <tr key={student.userId}>
-          <th scope="row"><strong>{student.displayName}</strong><p>{student.userName}</p></th>
+          <th scope="row"><span className="profile-person"><ProfileAvatar userId={student.userId} displayName={student.displayName} /><span><strong>{student.displayName}</strong><p>{student.userName}</p></span></span></th>
           {renderPlan && <td className="student-plan-cell">{renderPlan(student)}</td>}
           <td className="student-status-cell"><Badge tone={student.isActive === false ? "neutral" : "success"}>{student.isActive === false ? "Inactive" : "Active"}</Badge></td>
           <td className="student-actions-cell"><div className="student-row-actions">{renderActions(student)}</div></td>

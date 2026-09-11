@@ -1,3 +1,4 @@
+import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "../../api/client";
@@ -57,7 +58,7 @@ export function CoachesPage() {
         {status && <Notice tone="success">{status}</Notice>}
         {error && !revoking && <Notice id="coach-invite-error" tone="danger">{error}</Notice>}
         <Panel id="coach-directory"><h2>Coach directory</h2>
-          {coaches.data.length ? <ul className="coach-directory">{coaches.data.map(coach => <li key={coach.userId}><div className="coach-directory-detail"><strong>{coach.displayName}</strong><p>{coach.email ?? "No email on file"}{coach.userId === me!.userId ? " · You" : ""}</p></div><Badge>{coach.role}</Badge></li>)}</ul> : <EmptyState title="No coaches to show" description="Refresh the directory to check the latest club access." />}
+          {coaches.data.length ? <ul className="coach-directory">{coaches.data.map(coach => <li key={coach.userId}><ProfileAvatar userId={coach.userId} displayName={coach.displayName} /><div className="coach-directory-detail"><strong>{coach.displayName}</strong><p>{coach.email ?? "No email on file"}{coach.userId === me!.userId ? " · You" : ""}</p></div><Badge>{coach.role}</Badge></li>)}</ul> : <EmptyState title="No coaches to show" description="Refresh the directory to check the latest club access." />}
         </Panel>
         <Panel id="invite-coach"><h2>Invite a coach</h2><p>Send an invitation to another adult. They will verify their email and create a password to join this club.</p>
           <form ref={form} className="coach-invite-form" onSubmit={invite} aria-busy={pending}>

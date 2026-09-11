@@ -1,3 +1,4 @@
+import { ProfileAvatar } from "../features/profile/ProfileAvatar";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -39,11 +40,12 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const storageKey = `erudoza:pins:${me?.organizationId}:${me?.userId}:${coach ? "coach" : "student"}`;
   const [pinned, setPinned] = useState<string[]>(() => {
     try { const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "null"); if (Array.isArray(saved)) return [...new Set(saved.filter((id): id is string => typeof id === "string" && items.some(item => item.id === id)))]; } catch { /* Browser storage can be unavailable. */ }
-    return coach ? items.map(item => item.id) : ["home", "study", "honors"];
+    return coach ? items.filter(item => item.id !== "profile").map(item => item.id) : ["home", "study", "honors"];
   });
   const visibleShortcuts = active && !pinned.includes(active.id) ? [...pinned, active.id] : pinned;
-  const firstPins = pinned.slice(0, 2);
-  const mobileCoachShortcuts = active && !firstPins.includes(active.id) ? [...pinned.slice(0, 1), active.id] : firstPins;
+  const mobileIds = coach ? ["overview", "seasons", "students"] : ["home", "study", "honors"];
+  const mobileActive = !coach && ["review", "simulation"].includes(active?.id ?? "") ? "study" : active?.id;
+  const mobileItems = mobileIds.map(id => items.find(item => item.id === id)!);
   useEffect(() => {
     const nav = shortcuts.current;
     if (!nav) return;
@@ -118,15 +120,16 @@ function CommandFrame({ coach }: { coach: boolean }) {
       <Link to={home} className="command-brand" aria-label="Erudoza home"><ErudozaWordmark compact inverted /><span>{coach ? "Coach" : "Student"}</span></Link>
       <Button variant={coach ? "secondary" : "inverse"} className="command-trigger" aria-label={searchLabel} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="search" /><span className="command-trigger-copy">{coach ? `${searchLabel}…` : "Find a section or season"}</span><span className="command-trigger-short">Search</span><kbd>Ctrl K</kbd></Button>
       <span className="command-academy">{me?.organizationName}</span>
-      <NavigationMenu key={`account:${route}`} name="Account" label={<><span className="training-avatar">{me?.displayName?.slice(0, 1)}</span><span className="command-account-name">{me?.displayName}</span></>}>
+      <NavigationMenu key={`account:${route}`} name="Account" label={<><ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? ""} /><span className="command-account-name">{me?.displayName}</span></>}>
         <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach account" : "Student account"}</small></div>
+        <Link to={coach ? "/admin/profile" : `/student/profile${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`}><AppIcon name="users" />Your profile</Link>
         <Button variant="ghost" onClick={() => void signOut()} disabled={signingOut} data-testid="logout"><AppIcon name="logout" />{signingOut ? "Signing out…" : "Sign out"}</Button>
       </NavigationMenu>
     </div></header>
     {error && <Notice tone="danger">{error}</Notice>}
     <div className="command-shortcut-bar"><div className="command-shortcut-inner">
       <nav ref={shortcuts} className="command-shortcuts" aria-label={coach ? "Coach" : "Learner"} data-testid={coach ? "coach-tab-bar" : "learner-tab-bar"}>
-        {visibleShortcuts.map(id => items.find(item => item.id === id)).filter((item): item is Destination => !!item).map(item => <div key={item.id} className={`command-shortcut ${active?.id === item.id ? "is-current" : ""}`} data-mobile-visible={coach ? mobileCoachShortcuts.includes(item.id) : undefined}>
+        {visibleShortcuts.map(id => items.find(item => item.id === id)).filter((item): item is Destination => !!item).map(item => <div key={item.id} className={`command-shortcut ${active?.id === item.id ? "is-current" : ""}`}>
           <Link to={item.to} data-testid={item.testId} aria-current={active?.id === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.label}</span></Link>
           <Button variant="ghost" size="compact" className="command-pin" aria-label={`${pinned.includes(item.id) ? "Unpin" : "Pin"} ${item.label}`} onClick={() => togglePin(item.id)}><AppIcon name="pin" /></Button>
         </div>)}
@@ -143,6 +146,10 @@ function CommandFrame({ coach }: { coach: boolean }) {
       {!seasonItems.length && contextItems.length > 0 && <nav className="command-context-links" aria-label="Section">{contextItems.map(item => <Link key={item.id} to={item.to} aria-current={contextCurrent(item) ? "location" : undefined}>{item.label}</Link>)}</nav>}
     </div></div>}
     <div className="training-workspace pathfinder-canvas"><PathfinderBackdrop /><main id="training-main" className="training-main" data-testid={coach ? "coach-main" : "learner-main"}><Outlet /></main><footer className="training-footer">{coach ? <>SCRIPTURE <span>·</span> DISCIPLESHIP <span>·</span> REAL-WORLD FAITH</> : <>Study. Master. Compete. <span>·</span> One meaningful step at a time.</>}</footer></div>
+    <nav className="command-bottom-nav" aria-label="Mobile navigation">
+      {mobileItems.map(item => <Link key={item.id} to={item.to} aria-current={mobileActive === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.id === "home" ? "HQ" : item.label}</span></Link>)}
+      <Button variant="ghost" aria-label="More" aria-current={!mobileIds.includes(mobileActive ?? "") ? "page" : undefined} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>More</span></Button>
+    </nav>
     {commandOpen && <CommandCenter items={items} coach={coach} pinned={pinned} togglePin={togglePin} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
   </div>;
 }

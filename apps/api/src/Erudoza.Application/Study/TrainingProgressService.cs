@@ -103,7 +103,7 @@ public sealed class TrainingProgressService(IErudozaDbContext db, IStudentStudyS
         if (season.Status != SeasonStatus.Active || mission.Revision != t.MissionRevision || mission.ScopeVersion != Fingerprint(ids.Select(x => x.Id))) mission.Invalidated = true;
         return mission.Invalidated;
     }
-    internal async Task ApplyAsync(StudySession session, Attempt attempt, CancellationToken ct)
+    internal async Task ApplyAsync(StudySession session, Attempt attempt, CancellationToken ct, ChallengeCard? card = null, bool wasDue = false)
     {
         var org = session.OrganizationId; var student = session.StudentUserId; var at = attempt.CreatedAtUtc;
         var pref = await TouchAsync(org, student, at, null, ct); var p = Read<TrainingPreferencesDto>(pref.PreferencesJson);
@@ -143,6 +143,7 @@ public sealed class TrainingProgressService(IErudozaDbContext db, IStudentStudyS
         // Save the new mastery and current week inside the outer serializable transaction before bounded projections.
         await db.SaveChangesAsync(ct);
         var masters = await db.MasteryStates.AsNoTracking().Where(x => x.OrganizationId == org && x.StudentUserId == student && x.SeasonId == session.SeasonId).ToListAsync(ct);
+        if (card is not null) await new Honors.MasteryHonorService(db).ApplySoloAsync(session, attempt, card, wasDue, eligible, masters, ct);
         var compatible = masters.Where(x => x.AlgorithmVersion == "v2-skill-evidence" && eligible.Any(e => e.Id == x.KnowledgeUnitId)).ToDictionary(x => x.KnowledgeUnitId);
         var qualifyingWeeks = await db.TrainingWeeks.CountAsync(x => x.OrganizationId == org && x.StudentUserId == student && x.QualifiedAtUtc != null, ct);
         var chapters = eligible.GroupBy(x => (x.SourceUnit!.BookKey, x.SourceUnit.Chapter)).Select(g => new { g.Key.BookKey, g.Key.Chapter, Ids = g.Select(x => x.Id).ToArray(), Total = g.Count(), Strong = g.Count(x => compatible.TryGetValue(x.Id, out var state) && state.Level is MasteryLevel.Strong or MasteryLevel.Mastered) }).OrderByDescending(x => x.Total > 0 && (x.Strong == x.Total)).ThenByDescending(x => (double)x.Strong / x.Total).ToList();

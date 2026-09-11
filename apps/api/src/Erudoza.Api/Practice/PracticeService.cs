@@ -128,8 +128,8 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         var room = PracticeJson.Read<PracticeRoom>(record.StateJson);
         if (!Member(room, actor) && !(actor.Admin && room.Submissions.Any(s => s.Appealed))) throw new PracticeForbiddenException();
         var changed = Advance(room);
-        using var awards = room.Status == "Completed" ? await runtime.EnterAwards(room.SeasonId, ct) : null;
-        if (room.Status == "Completed") { await ReconcileAwards(org, room, ct); changed = true; }
+        using var awards = room.Status == "Completed" ? await runtime.EnterAwards(org, ct) : null;
+        if (room.Status == "Completed") { await ReconcileAwards(org, room, ct, issueMastery: changed); changed = true; }
         if (changed) await Save(record, room, ct);
         return View(room, actor);
     }

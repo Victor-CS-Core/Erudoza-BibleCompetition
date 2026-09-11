@@ -7,6 +7,9 @@ namespace Erudoza.Infrastructure.Persistence;
 public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
     : DbContext(options), IErudozaDbContext
 {
+    public DbSet<MasteryHonorUnlock> MasteryHonorUnlocks => Set<MasteryHonorUnlock>();
+    public DbSet<MasteryPassageProof> MasteryPassageProofs => Set<MasteryPassageProof>();
+    public DbSet<ProfileAvatarSelection> ProfileAvatarSelections => Set<ProfileAvatarSelection>();
     public DbSet<TrainingPreference> TrainingPreferences => Set<TrainingPreference>();
     public DbSet<TrainingDay> TrainingDays => Set<TrainingDay>();
     public DbSet<TrainingWeek> TrainingWeeks => Set<TrainingWeek>();
@@ -56,6 +59,8 @@ public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
     {
         ChangeTracker.DetectChanges();
         var changed = ChangeTracker.Entries().Where(e => e.State is EntityState.Modified or EntityState.Deleted or EntityState.Added).ToList();
+        if (changed.Any(e => e.Entity is MasteryHonorUnlock && e.State is EntityState.Modified or EntityState.Deleted))
+            throw new DomainException("Earned mastery Honor evidence is immutable.");
         if (changed.Any(e => e.Entity is ContentPack && e.State != EntityState.Added
             && ((bool)e.OriginalValues[nameof(ContentPack.IsBuiltIn)]! || ((ContentPack)e.Entity).IsBuiltIn
                 || (Guid)e.OriginalValues[nameof(ContentPack.OrganizationId)]! == BuiltInLibrary.OrganizationId
@@ -75,6 +80,24 @@ public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<MasteryHonorUnlock>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.OrganizationId, x.UserId, x.Key, x.RuleVersion }).IsUnique();
+            entity.Property(x => x.Key).HasMaxLength(64);
+            entity.Property(x => x.RuleVersion).HasMaxLength(32);
+        });
+        modelBuilder.Entity<MasteryPassageProof>(entity =>
+        {
+            entity.HasKey(x => new { x.OrganizationId, x.UserId, x.SeasonId, x.KnowledgeUnitId, x.RuleVersion });
+            entity.Property(x => x.RuleVersion).HasMaxLength(32);
+        });
+        modelBuilder.Entity<ProfileAvatarSelection>(entity =>
+        {
+            entity.HasKey(x => new { x.OrganizationId, x.UserId });
+            entity.Property(x => x.HonorKey).HasMaxLength(64);
+            entity.Property(x => x.RuleVersion).HasMaxLength(32);
+        });
         modelBuilder.Entity<TrainingPreference>().HasKey(x => new { x.OrganizationId, x.StudentUserId });
         modelBuilder.Entity<TrainingPreference>().Property(x => x.Revision).IsConcurrencyToken();
         modelBuilder.Entity<TrainingDay>().HasKey(x => new { x.OrganizationId, x.StudentUserId, x.LocalDate });

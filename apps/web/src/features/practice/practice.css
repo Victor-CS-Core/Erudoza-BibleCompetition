@@ -51,3 +51,197 @@
 .practice-review > summary { display: flex; flex-wrap: wrap; align-items: center; gap: var(--er-space-2); }
 .practice-review > summary > span:first-child { flex: 1 1 240px; min-width: 0; }
 .practice-review-content { display: grid; gap: var(--er-space-3); padding-top: var(--er-space-3); }
+
+/* Approved Team Practice composition. Controls and colors remain shared. */
+.practice-room { gap: var(--er-space-6); }
+.practice-room-context { display: flex; justify-content: space-between; align-items: center; gap: var(--er-space-3); }
+.practice-room-context > .ds-button { padding-left: 0; }
+.practice-room-context > div { display: flex; align-items: center; justify-content: end; flex-wrap: wrap; gap: var(--er-space-2); color: var(--er-muted-ink); font-size: var(--er-text-xs); text-align: right; }
+.practice-room .practice-ready-heading { align-items: center; }
+.practice-ready-heading .ds-page-action { flex-shrink: 0; }
+.practice-ready-heading p > span { display: block; margin-top: var(--er-space-1); }
+.practice-room .practice-team-card { padding: 0; min-width: 0; }
+.practice-team-banner { display: flex; align-items: center; gap: var(--er-space-6); padding: var(--er-space-5) var(--er-space-6); border-radius: var(--er-radius-card) var(--er-radius-card) 0 0; background: var(--er-ink-navy); color: var(--er-on-navy); }
+.practice-team-banner > div { min-width: 0; overflow-wrap: anywhere; }
+.practice-team-banner .ds-patch-art { flex: 0 0 112px; width: 112px; height: 112px; }
+.practice-team-banner h2 { color: var(--er-on-navy); margin: 0 0 var(--er-space-2); font-size: var(--er-text-title); }
+.practice-team-banner p { color: var(--er-on-navy-muted); margin: 0; font-size: var(--er-text-xs); }
+.practice-team-readiness { display: block; margin-top: var(--er-space-3); font-size: var(--er-text-xs); }
+.practice-player-list { list-style: none; margin: 0; padding: var(--er-space-1) var(--er-space-6); }
+.practice-player-list > li { display: flex; align-items: center; flex-wrap: wrap; gap: var(--er-space-3); padding-block: var(--er-space-4); min-width: 0; }
+.practice-player-list > li + li { border-top: 1px solid var(--er-border); }
+.practice-player-number { flex: 0 0 32px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: var(--er-surface-soft); color: var(--er-graphite); font-size: var(--er-text-xs); font-variant-numeric: tabular-nums; }
+.practice-player-label { flex: 1 1 80px; min-width: 0; overflow-wrap: anywhere; }
+.practice-player-label strong { display: block; font-size: var(--er-text-sm); }
+.practice-player-label small { display: block; margin-top: var(--er-space-1); color: var(--er-muted-ink); font-size: var(--er-text-xs); }
+.practice-player-empty { color: var(--er-muted-ink); font-size: var(--er-text-sm); }
+.practice-role-actions { display: flex; flex-wrap: wrap; gap: var(--er-space-2); flex-basis: 100%; padding-left: 44px; }
+.practice-team-join { padding: 0 var(--er-space-6) var(--er-space-4); }
+.practice-lobby-foot { display: flex; align-items: start; justify-content: space-between; gap: var(--er-space-6); }
+.practice-lobby-foot > p { margin: 0; max-width: 60ch; color: var(--er-muted-ink); font-size: var(--er-text-sm); }
+.practice-lobby-foot > .ds-button { flex-shrink: 0; }
+.practice-room-setup > .practice-section-heading { margin-bottom: var(--er-space-5); justify-content: space-between; }
+.practice-setup-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: var(--er-space-7); }
+.practice-setup-grid > div { min-width: 0; }
+.practice-room-summary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--er-space-4); margin: var(--er-space-4) 0; }
+.practice-room-summary > div:first-child { grid-column: 1 / -1; }
+.practice-room-summary dt { color: var(--er-muted-ink); font-size: var(--er-text-xs); }
+.practice-room-summary dd { margin: var(--er-space-1) 0 0; font-size: var(--er-text-sm); font-weight: 600; overflow-wrap: anywhere; }
+.practice-capacity { display: grid; grid-template-columns: 1fr 1fr; gap: var(--er-space-4); border-top: 1px solid var(--er-border); padding-top: var(--er-space-4); margin-top: var(--er-space-4); }
+.practice-capacity > div { display: grid; gap: var(--er-space-1); font-size: var(--er-text-sm); }
+.practice-capacity small { color: var(--er-muted-ink); font-size: var(--er-text-xs); }
+.practice-invitations { padding-left: var(--er-space-7); border-left: 1px solid var(--er-border); }
+.practice-invitations .ds-notice { margin-bottom: var(--er-space-4); }
+.practice-invite-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--er-space-4); align-items: end; }
+.practice-invite-form > .ds-button { grid-column: 1 / -1; justify-self: start; }
+.practice-room .practice-note, .practice-room .practice-muted { color: var(--er-muted-ink); font-size: var(--er-text-sm); line-height: 1.55; }
+.practice-room .practice-note { font-size: var(--er-text-xs); margin-top: var(--er-space-4); margin-bottom: 0; }
+.practice-management > .practice-player-manage { border-top: 1px solid var(--er-border); }
+.practice-player-manage > summary { font-weight: 600; overflow-wrap: anywhere; }
+.practice-player-controls { align-items: end; }
+.practice-player-controls > label { flex: 1 1 240px; }
+.practice-player-controls > .ds-button { flex-shrink: 0; }
+.practice-room .practice-scoreboard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, .75fr) minmax(0, 1fr); align-items: center; gap: var(--er-space-5); padding: var(--er-space-6) var(--er-space-7); background: var(--er-ink-navy); color: var(--er-on-navy); border-color: var(--er-ink-navy); }
+.practice-score-team { display: flex; align-items: center; gap: var(--er-space-4); min-width: 0; }
+.practice-score-team:last-child { flex-direction: row-reverse; text-align: right; }
+.practice-score-team > div { min-width: 0; }
+.practice-score-team .ds-patch-art { width: 86px; height: 86px; flex-shrink: 0; }
+.practice-score-team h2 { color: var(--er-on-navy); font-size: var(--er-text-lg); margin: 0 0 var(--er-space-1); }
+.practice-score { display: block; font-size: var(--er-text-page); line-height: 1.15; font-weight: 650; letter-spacing: -.025em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.practice-room .practice-subscore { color: var(--er-on-navy-muted); font-size: var(--er-text-xs); margin: var(--er-space-1) 0 0; }
+.practice-match-center { text-align: center; min-width: 0; }
+.practice-match-center h2 { color: var(--er-on-navy); font-size: var(--er-text-base); margin: 0; }
+.practice-match-center p { color: var(--er-on-navy-muted); font-size: var(--er-text-xs); margin: var(--er-space-1) 0 0; }
+.practice-match-center progress { display: block; width: 100%; max-width: 144px; height: 4px; margin: var(--er-space-4) auto 0; accent-color: var(--er-on-navy); border: 0; border-radius: 2px; background: color-mix(in srgb, var(--er-on-navy-muted) 24%, transparent); overflow: hidden; }
+.practice-match-center progress::-webkit-progress-bar { background: color-mix(in srgb, var(--er-on-navy-muted) 24%, transparent); }
+.practice-match-center progress::-webkit-progress-value { background: var(--er-on-navy); }
+.practice-match-center progress::-moz-progress-bar { background: var(--er-on-navy); }
+.practice-live-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(265px, 1fr); gap: var(--er-space-6); align-items: start; }
+.practice-live-grid > *, .practice-live-side > * { min-width: 0; }
+.practice-live-question { padding: 28px; }
+.practice-question-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--er-space-3); margin-bottom: var(--er-space-6); color: var(--er-muted-ink); font-size: var(--er-text-xs); }
+.practice-question-meta > span:first-child { min-width: 0; }
+.practice-timer { flex-shrink: 0; font-size: var(--er-text-title); font-weight: 650; font-variant-numeric: tabular-nums; color: var(--er-ink-navy); }
+.practice-live-question h1.practice-question-prompt { font-size: var(--er-text-title); line-height: 1.5; letter-spacing: -.02em; margin: 0 0 var(--er-space-4); text-wrap: pretty; overflow-wrap: anywhere; }
+.practice-question-reference { font-family: var(--er-font-reading); color: var(--er-muted-ink); font-size: var(--er-text-base); margin: 0 0 var(--er-space-6); overflow-wrap: anywhere; }
+.practice-answer textarea { min-height: 128px; resize: vertical; }
+.practice-answer-actions { justify-content: space-between; margin-top: var(--er-space-5); }
+.practice-scribe-note { color: var(--er-muted-ink); font-size: var(--er-text-sm); margin-top: var(--er-space-5); }
+.practice-locked-answer { display: grid; gap: var(--er-space-3); padding-top: var(--er-space-4); }
+.practice-locked-answer h2 { margin-bottom: 0; }
+.practice-live-side { display: grid; gap: var(--er-space-4); }
+.practice-discussion > .practice-section-heading { gap: var(--er-space-2); margin-bottom: var(--er-space-5); }
+.practice-discussion h2 { font-size: var(--er-text-lg); }
+.practice-messages { display: grid; gap: var(--er-space-4); margin-bottom: var(--er-space-5); }
+.practice-messages article > strong { display: block; font-size: var(--er-text-xs); margin-bottom: var(--er-space-1); }
+.practice-messages article > p { font-size: var(--er-text-sm); color: var(--er-graphite); margin: 0; }
+.practice-chat-compose { display: flex; align-items: end; gap: var(--er-space-2); }
+.practice-chat-compose > label { min-width: 0; flex: 1; font-size: var(--er-text-xs); }
+.practice-chat-compose > .ds-button { flex: 0 0 44px; width: 44px; padding: 0; font-size: var(--er-text-title); }
+.practice-live-side .practice-roster { border-top: 1px solid var(--er-border); }
+.practice-live-side .practice-roster .practice-teams { grid-template-columns: minmax(0, 1fr); gap: var(--er-space-3); }
+.practice-live-side .practice-team-banner { gap: var(--er-space-3); padding: var(--er-space-3); }
+.practice-live-side .practice-team-banner .ds-patch-art { width: 52px; height: 52px; flex-basis: 52px; }
+.practice-live-side .practice-team-banner h2 { font-size: var(--er-text-base); }
+.practice-live-side .practice-team-readiness { margin-top: var(--er-space-1); }
+.practice-live-side .practice-player-list { padding-inline: var(--er-space-3); }
+.practice-connection { display: flex; align-items: center; gap: var(--er-space-2); color: var(--er-muted-ink); font-size: var(--er-text-xs); }
+.practice-status-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--er-warning-ink); }
+.practice-status-dot.is-connected { background: var(--er-success-ink); }
+.practice-room .practice-connection-details { max-width: none; border-top: 1px solid var(--er-border); font-size: var(--er-text-xs); }
+.practice-room .practice-connection-details > summary { color: var(--er-muted-ink); }
+.practice-coach-panel h2 { font-size: var(--er-text-lg); }
+.practice-coach-panel > .ds-button { width: 100%; margin-top: var(--er-space-3); }
+.practice-phase-flow { display: flex; flex-wrap: wrap; gap: var(--er-space-2); list-style: none; padding: 0; margin: 0 0 var(--er-space-5); font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.practice-phase-flow > li + li::before { content: "→"; margin-right: var(--er-space-2); color: var(--er-muted-ink); }
+.practice-phase-flow > li[aria-current] { color: var(--er-teal); font-weight: 700; }
+.practice-moderation > .practice-discussion { margin-top: var(--er-space-3); }
+.practice-result-heading { text-align: center; justify-content: center; }
+.practice-result-heading > div { display: flex; flex-direction: column; }
+.practice-result-status { display: flex; gap: var(--er-space-2); justify-content: center; order: -1; margin-bottom: var(--er-space-4); }
+.practice-room .practice-result-scoreboard { width: 100%; max-width: 950px; justify-self: center; grid-template-columns: minmax(0, 1fr) 130px minmax(0, 1fr); }
+.practice-result-scoreboard .ds-patch-art { width: 126px; height: 126px; }
+.practice-result-actions { justify-content: center; }
+.practice-result-detail-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr); gap: var(--er-space-6); }
+.practice-score-table { width: 100%; border-collapse: collapse; font-size: var(--er-text-sm); font-variant-numeric: tabular-nums; }
+.practice-score-table th { font-weight: 500; text-align: right; }
+.practice-score-table th:first-child { text-align: left; }
+.practice-score-table thead th { color: var(--er-muted-ink); padding: 0 0 var(--er-space-4); font-size: var(--er-text-xs); }
+.practice-score-table td, .practice-score-table tbody th { border-top: 1px solid var(--er-border); padding: var(--er-space-4) 0; }
+.practice-score-table td { text-align: right; }
+.practice-score-table tbody tr:last-child > * { font-weight: 700; color: var(--er-ink-navy); }
+.practice-judgment-form { display: flex; flex-wrap: wrap; gap: var(--er-space-3); align-items: end; width: 100%; }
+.practice-judgment-form > label { flex: 1 1 140px; min-width: 0; }
+.practice-review-content > p { margin: 0; }
+.practice-room .practice-review { border-top: 1px solid var(--er-border); }
+.practice-room #answer-review { scroll-margin-top: var(--er-space-6); }
+.practice-room .practice-footnote { text-align: center; color: var(--er-muted-ink); font-size: var(--er-text-xs); margin: 0; }
+@media (max-width: 1000px) {
+  .practice-room .practice-scoreboard { padding: var(--er-space-5); gap: var(--er-space-3); }
+  .practice-score-team { gap: var(--er-space-3); }
+  .practice-score-team .ds-patch-art { width: 72px; height: 72px; }
+  .practice-live-grid { grid-template-columns: minmax(0, 1.5fr) minmax(245px, 1fr); }
+  .practice-result-scoreboard .ds-patch-art { width: 95px; height: 95px; }
+  .practice-setup-grid { gap: var(--er-space-6); }
+  .practice-invitations { padding-left: var(--er-space-6); }
+}
+@media (max-width: 760px) {
+  .practice-room { gap: var(--er-space-5); }
+  .practice-room-context { align-items: start; gap: var(--er-space-2); }
+  .practice-room-context > .ds-button { flex-shrink: 0; padding-right: var(--er-space-2); font-size: var(--er-text-xs); }
+  .practice-room-context > div { max-width: 160px; gap: var(--er-space-1); }
+  .practice-room .practice-ready-heading { align-items: start; flex-direction: column; gap: var(--er-space-4); }
+  .practice-ready-heading h1 { font-size: var(--er-text-page); }
+  .practice-ready-heading .ds-page-action, .practice-ready-heading .practice-actions { width: 100%; }
+  .practice-ready-heading .ds-button { flex: 1; }
+  .practice-room .practice-teams { grid-template-columns: minmax(0, 1fr); gap: var(--er-space-5); }
+  .practice-team-banner { padding: var(--er-space-4) var(--er-space-5); gap: var(--er-space-5); }
+  .practice-team-banner .ds-patch-art { width: 90px; height: 90px; flex-basis: 90px; }
+  .practice-player-list { padding-inline: var(--er-space-5); }
+  .practice-player-list > li { padding-block: var(--er-space-3); }
+  .practice-lobby-foot { flex-wrap: wrap; gap: var(--er-space-3); }
+  .practice-setup-grid { grid-template-columns: minmax(0, 1fr); gap: var(--er-space-5); }
+  .practice-invitations { padding: var(--er-space-5) 0 0; border-left: 0; border-top: 1px solid var(--er-border); }
+  .practice-invite-form { grid-template-columns: minmax(0, 1fr); }
+  .practice-invite-form > .ds-button { justify-self: stretch; }
+  .practice-player-controls > .ds-button { flex: 1 1 100%; }
+  .practice-player-controls > label { flex-basis: 100%; }
+  .practice-room .practice-scoreboard { grid-template-columns: minmax(0, 1fr) minmax(78px, .8fr) minmax(0, 1fr); gap: var(--er-space-2); padding: var(--er-space-4) var(--er-space-3); }
+  .practice-score-team, .practice-score-team:last-child { flex-direction: column; text-align: center; gap: var(--er-space-2); }
+  .practice-score-team .ds-patch-art { width: 64px; height: 64px; }
+  .practice-score-team h2 { font-size: var(--er-text-xs); }
+  .practice-score { font-size: 1.6875rem; }
+  .practice-room .practice-subscore { display: none; }
+  .practice-match-center h2, .practice-match-center p { font-size: var(--er-text-xs); }
+  .practice-live-grid { grid-template-columns: minmax(0, 1fr); gap: var(--er-space-5); }
+  .practice-room .practice-live-question { padding: var(--er-space-5); }
+  .practice-question-meta { margin-bottom: var(--er-space-5); gap: var(--er-space-2); }
+  .practice-timer { font-size: var(--er-text-title); }
+  .practice-live-question h1.practice-question-prompt { font-size: 1.25rem; }
+  .practice-question-reference { margin-bottom: var(--er-space-5); }
+  .practice-answer textarea { min-height: 120px; }
+  .practice-room .practice-answer-actions > .ds-button { flex: 1 1 110px; padding-inline: var(--er-space-3); font-size: var(--er-text-xs); }
+  .practice-room .practice-answer-actions > .ds-button-primary { order: 0; }
+  .practice-discussion { padding: var(--er-space-5); }
+  .practice-result-heading h1 { font-size: 1.75rem; }
+  .practice-room .practice-result-scoreboard { grid-template-columns: minmax(0, 1fr) 60px minmax(0, 1fr); padding: var(--er-space-5) var(--er-space-3); }
+  .practice-result-scoreboard .ds-patch-art { width: 98px; height: 98px; }
+  .practice-result-actions > .ds-button { flex: 1 1 120px; font-size: var(--er-text-xs); padding-inline: var(--er-space-3); }
+  .practice-result-detail-grid { grid-template-columns: minmax(0, 1fr); gap: var(--er-space-5); }
+  .practice-judgment-form > .ds-button { width: 100%; }
+}
+@media (max-width: 359px) {
+  .practice-room .practice-scoreboard { padding: var(--er-space-4) var(--er-space-2); }
+  .practice-score-team .ds-patch-art { width: 55px; height: 55px; }
+  .practice-score { font-size: 1.5625rem; }
+  .practice-room .practice-live-question { padding: var(--er-space-4); }
+  .practice-live-question h1.practice-question-prompt { font-size: 1.1875rem; }
+  .practice-result-scoreboard .ds-patch-art { width: 86px; height: 86px; }
+  .practice-player-list { padding-inline: var(--er-space-4); }
+  .practice-team-banner { padding-inline: var(--er-space-4); gap: var(--er-space-3); }
+}
+@media (forced-colors: active) {
+  .practice-room .practice-scoreboard, .practice-team-banner { border: 1px solid CanvasText; }
+  .practice-score-team h2, .practice-match-center h2, .practice-team-banner h2 { color: CanvasText; }
+}
+.practice-messages article { display: flex; align-items: flex-start; gap: var(--er-space-3); } .practice-messages article > div { min-width: 0; flex: 1; overflow-wrap: anywhere; }

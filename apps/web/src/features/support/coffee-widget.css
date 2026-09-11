@@ -44,3 +44,7 @@ html[data-erudoza-coffee-ready="true"] :is(.public-footer, .training-footer) { p
 @media (prefers-reduced-motion: reduce) {
   #bmc-wbtn, #bmc-iframe, #bmc-close-btn { transition: none !important; }
 }
+@media (max-width: 760px) {
+  html:has(.command-app) { --coffee-bottom:calc(84px + env(safe-area-inset-bottom,0px)); }
+  html:has(.practice-room[data-status="Playing"]) { --coffee-bottom:max(18px,env(safe-area-inset-bottom,0px)); }
+}

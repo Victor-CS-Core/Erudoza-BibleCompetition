@@ -1,3 +1,4 @@
+import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { useIsMutating, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
@@ -135,7 +136,7 @@ export function AssignmentsPage() {
       {coverage.data?.students.length === 0 && <p>No assigned students yet. Choose a student above to assign their first passage.</p>}
       {!!coverage.data?.students.length && <div className="training-table-scroll assignment-coverage-scroll" role="region" aria-label="Assigned passage coverage" tabIndex={0}><table className="training-table" data-testid="coverage-table"><thead><tr><th>Student</th><th>Assignment</th><th>Passages</th><th>Mastered</th><th>Due</th><th>Attempts</th><th>Actions</th></tr></thead><tbody>
         {coverage.data.students.filter(student => !studentId || student.studentUserId === studentId).map((student, index) => <tr key={`${student.studentUserId}-${student.assignmentType}-${student.bookKey}-${student.startChapter}-${student.startVerse}-${student.endChapter}-${student.endVerse}-${index}`}>
-          <td><Link to={`/admin/seasons/${season.id}/students/${student.studentUserId}/progress`}>{student.displayName}</Link><p>{student.userName}</p></td>
+          <td><span className="profile-person"><ProfileAvatar userId={student.studentUserId} displayName={student.displayName} /><span><Link to={`/admin/seasons/${season.id}/students/${student.studentUserId}/progress`}>{student.displayName}</Link><p>{student.userName}</p></span></span></td>
           <td>{assignmentLabels[student.assignmentType] ?? "Assigned study"}</td><td>{student.bookKey} {student.startChapter}:{student.startVerse}–{student.endChapter}:{student.endVerse}<p>{student.eligibleUnitCount} verses</p></td>
           <td>{student.masteredCount}</td><td>{student.reviewDueCount}</td><td>{student.attemptCount}</td><td><LinkButton size="compact" variant="secondary" to={`?seasonId=${encodeURIComponent(season.id)}&studentId=${encodeURIComponent(student.studentUserId)}`}>Manage assignments<span className="sr-only"> for {student.displayName}</span></LinkButton></td>
         </tr>)}

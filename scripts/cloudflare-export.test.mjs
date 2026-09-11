@@ -165,3 +165,63 @@ test('all-migration native runtime reads and replays populated canonical Honors 
     assert.deepEqual(await projectionSnapshot(),before,'GETs, repeated start and completion must preserve imported evidence and single day credit');
   } finally {await runtime.dispose();}
 });
+
+function populatedMasteryProfileFixture() {
+  const snap=fixture(),original=snap.tables.Attempts.find(a=>!a.IsLegacyDuplicate),originalSession=snap.tables.StudySessions.find(s=>s.Id===original.SessionId),originalCard=snap.tables.ChallengeCards.find(c=>c.Id===original.ChallengeCardId);
+  const lower=value=>value.toLowerCase(),org=lower(original.OrganizationId),user=lower(original.StudentUserId),season=lower(original.SeasonId),knowledge=lower(original.KnowledgeUnitId),source=snap.tables.SourceUnits.find(s=>lower(s.Id)===lower(originalCard.SourceUnitId));
+  const base={OrganizationId:org,UserId:user,SeasonId:season,KnowledgeUnitId:knowledge,RuleVersion:'mastery-v1'},proof={...base},evidence=[];
+  for(const [i,prefix] of ['FirstMastered','Retained','Reviewed'].entries()) {
+    const sessionId=randomUUID(),cardId=randomUUID(),attemptId=randomUUID(),at=new Date(Date.parse('2026-09-05T12:00:00Z')+i*72*3600000).toISOString();
+    const payload=JSON.parse(originalCard.PayloadJson);delete payload.difficulty;payload.Difficulty=5;
+    const result=JSON.parse(original.ResultJson);delete result.attemptId;delete result.isCorrect;result.AttemptId=attemptId;result.IsCorrect=true;
+    snap.tables.StudySessions.push({...originalSession,Id:sessionId,Mode:i===2?2:1,Status:3,Difficulty:5,TargetCardCount:1,CreatedAtUtc:new Date(Date.parse(at)-60000).toISOString(),CompletedAtUtc:at,TrainingJson:null,RecapJson:null});
+    snap.tables.ChallengeCards.push({...originalCard,Id:cardId,SessionId:sessionId,AnswerMode:1,ActivityType:'MissingWords',PayloadJson:JSON.stringify(payload),Sequence:1,CreatedAtUtc:at});
+    snap.tables.Attempts.push({...original,Id:attemptId,SessionId:sessionId,ChallengeCardId:cardId,ClientSubmissionId:randomUUID(),IsCorrect:1,HintsUsed:0,IsLegacyDuplicate:0,ActivityType:'MissingWords',CreatedAtUtc:at,ResultJson:JSON.stringify(result)});
+    const frozen={attempt:{id:attemptId,atUtc:at,isCorrect:true,hintsUsed:false,isLegacyDuplicate:false,answerMode:1,activityType:'MissingWords',difficulty:5,firstDueReviewAttempt:i===2},passage:{knowledgeUnitId:knowledge,bookKey:source.BookKey,chapter:source.Chapter,exactWording:96,reference:92,recognition:90,algorithmVersion:'v2-skill-evidence',proof:null}};
+    proof[prefix+'AtUtc']=at;proof[prefix+'AttemptId']=attemptId;proof[prefix+'EvidenceJson']=JSON.stringify(frozen);
+    evidence.push({attemptId,sessionId,sourceUnitId:lower(source.Id),cardId,acceptedAtUtc:at,activityType:'MissingWords',answerMode:'ExactText',difficulty:5,exactWording:96,reference:92,recognition:90});
+  }
+  const unlock={Id:randomUUID(),OrganizationId:org,UserId:user,SeasonId:season,Key:'solo:exact-recall',RuleVersion:'mastery-v1',EarnedAtUtc:evidence[0].acceptedAtUtc,EvidenceJson:JSON.stringify({ruleVersion:'mastery-v1',passages:[JSON.parse(proof.FirstMasteredEvidenceJson).passage]})};
+  const team={...unlock,Id:randomUUID(),Key:'team:first-fellowship',EvidenceJson:JSON.stringify({ruleVersion:'mastery-v1',userId:user,personalQuestions:[{questionId:randomUUID(),sourceUnitId:lower(source.Id),manual:true,accuracyHundredths:100,availableHundredths:100}],qualifyingMatchIds:[randomUUID()]})};
+  snap.tables.MasteryHonorUnlocks=[unlock,team];snap.tables.MasteryPassageProofs=[proof];snap.tables.ProfileAvatarSelections=[{OrganizationId:org,UserId:user,UnlockId:unlock.Id,HonorKey:unlock.Key,RuleVersion:'mastery-v1'}];
+  return {snap,org,user,season,knowledge,unlock,team,proof,evidence};
+}
+test('maps immutable mastery unlocks, selected avatar and bounded passage proof to native identities',()=>{
+  const f=populatedMasteryProfileFixture(),{native}=convertSnapshot(f.snap),unlock=native.records.find(r=>r.kind==='mastery-honor'&&r.data.key===f.unlock.Key),proof=native.records.find(r=>r.kind==='mastery-proof'),selection=native.records.find(r=>r.kind==='user-profile');
+  assert.equal(unlock.id,`${f.org}:${f.user}:mastery-v1:${f.unlock.Key}`);assert.equal(unlock.owner_id,f.user);assert.equal(unlock.season_id,f.season);assert.deepEqual(unlock.data.evidence,JSON.parse(f.unlock.EvidenceJson));
+  assert.deepEqual(selection,{kind:'user-profile',id:f.user,org_id:f.org,season_id:null,owner_id:f.user,data:{id:f.user,userId:f.user,honorKey:f.unlock.Key,unlockId:unlock.id,ruleVersion:'mastery-v1'}});
+  assert.equal(proof.id,`${f.org}:${f.user}:${f.season}:${f.knowledge}:mastery-v1`);assert.deepEqual(proof.data.firstMasteryEvidence,f.evidence[0]);assert.deepEqual(proof.data.retainedEvidence,f.evidence[1]);assert.deepEqual(proof.data.reviewEvidence,f.evidence[2]);assert.equal(proof.data.retestAttemptId,f.proof.RetainedAttemptId);assert.equal(proof.data.reviewAttemptId,f.proof.ReviewedAttemptId);
+  assert.equal(native.records.find(r=>r.kind==='legacy:MasteryPassageProofs').data.sourceRow.FirstMasteredEvidenceJson,f.proof.FirstMasteredEvidenceJson);
+  f.snap.tables.ProfileAvatarSelections[0]={OrganizationId:f.org,UserId:f.user,UnlockId:null,HonorKey:null,RuleVersion:null};assert.equal(convertSnapshot(f.snap).native.records.find(r=>r.kind==='user-profile').data.honorKey,null);
+});
+test('rejects foreign, legacy-only and mismatched avatar selections without promoting old awards',()=>{
+  const f=populatedMasteryProfileFixture(),foreign=structuredClone(f.snap),other=foreign.tables.Users.find(u=>u.Id.toLowerCase()!==f.user);foreign.tables.ProfileAvatarSelections[0].UserId=other.Id;assert.throws(()=>convertSnapshot(foreign),/own valid mastery unlock/);
+  const legacy=structuredClone(f.snap);legacy.tables.MasteryHonorUnlocks=[];assert.throws(()=>convertSnapshot(legacy),/own valid mastery unlock/);
+  const wrongKey=structuredClone(f.snap);wrongKey.tables.ProfileAvatarSelections[0].HonorKey='team:first-fellowship';assert.throws(()=>convertSnapshot(wrongKey),/own valid mastery unlock/);
+  const wrongVersion=structuredClone(f.snap);wrongVersion.tables.ProfileAvatarSelections[0].RuleVersion='training-v1';assert.throws(()=>convertSnapshot(wrongVersion),/incomplete mastery avatar selection/);
+  const unknown=structuredClone(f.snap);unknown.tables.MasteryHonorUnlocks[0].Key='solo:attendance';assert.throws(()=>convertSnapshot(unknown),/unknown mastery Honor key/);
+  const missing=structuredClone(f.snap);delete missing.tables.MasteryPassageProofs[0].ReviewedEvidenceJson;assert.throws(()=>convertSnapshot(missing),/required column/);
+});
+test('rejects mismatched or premature frozen mastery proof',()=>{
+  const foreign=populatedMasteryProfileFixture();foreign.snap.tables.MasteryPassageProofs[0].RetainedAttemptId=randomUUID();assert.throws(()=>convertSnapshot(foreign.snap),/mastery proof attempt boundaries differ/);
+  const short=populatedMasteryProfileFixture(),p=short.snap.tables.MasteryPassageProofs[0],at=new Date(Date.parse(p.FirstMasteredAtUtc)+3600000).toISOString(),attempt=short.snap.tables.Attempts.find(a=>a.Id===p.RetainedAttemptId),e=JSON.parse(p.RetainedEvidenceJson);p.RetainedAtUtc=at;attempt.CreatedAtUtc=at;e.attempt.atUtc=at;p.RetainedEvidenceJson=JSON.stringify(e);assert.throws(()=>convertSnapshot(short.snap),/less than 48 hours/);
+  const hinted=populatedMasteryProfileFixture(),proof=hinted.snap.tables.MasteryPassageProofs[0],review=JSON.parse(proof.ReviewedEvidenceJson);review.attempt.hintsUsed=true;hinted.snap.tables.Attempts.find(a=>a.Id===proof.ReviewedAttemptId).HintsUsed=1;proof.ReviewedEvidenceJson=JSON.stringify(review);assert.throws(()=>convertSnapshot(hinted.snap),/unaided advanced typed/);
+});
+test('all-migration Miniflare readback preserves imported mastery selection and rejects locked profile images',async()=>{
+  const f=populatedMasteryProfileFixture();for(const state of f.snap.tables.MasteryStates)Object.assign(state,{ExactWordingScore:0,ReferenceScore:0,RecognitionScore:0});const {native}=convertSnapshot(f.snap);
+  const bundle=await build({entryPoints:['apps/web/worker/native/index.ts'],bundle:true,write:false,format:'esm',platform:'neutral',target:'es2022',external:['cloudflare:workers']});
+  const runtime=new Miniflare({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:'2026-05-22',d1Databases:{DB:'mastery-profile-export-test'},durableObjects:{ROOMS:{className:'PracticeRoom',useSQLite:true},REPORTS:{className:'PracticeReports',useSQLite:true}},bindings:{PUBLIC_ORIGIN:'https://migration.test'}});
+  try {
+    const db=await runtime.getD1Database('DB');await applyAllNativeMigrations(db);
+    for(const [table,rows]of [['Organizations',native.organizations],['Users',native.users],['Records',native.records]])for(const record of rows){const row={...record};if(table==='Records')row.data=JSON.stringify(row.data);await db.prepare(`INSERT INTO ${table}(${Object.keys(row).join(',')}) VALUES(${Object.keys(row).map(()=>'?').join(',')})`).bind(...Object.values(row)).run();}
+    const user=native.users.find(u=>u.id===f.user),token='synthetic-mastery-export-session';await db.prepare('INSERT INTO Sessions(token_hash,user_id,credential_version,expires_at) VALUES(?,?,?,?)').bind(createHash('sha256').update(token).digest('base64'),user.id,user.credential_version,Date.now()+300000).run();
+    const call=(path,method='GET',body)=>runtime.dispatchFetch(`https://migration.test/api/v1${path}`,{method,headers:{Cookie:`__Host-erudoza.session=${token}`,Origin:'https://migration.test','Content-Type':'application/json'},...(body!==undefined?{body:JSON.stringify(body)}:{})});
+    const snapshot=async()=> (await db.prepare("SELECT kind,id,data,revision FROM Records WHERE kind IN ('mastery-honor','mastery-proof','user-profile') ORDER BY kind,id").all()).results;
+    const before=await snapshot(),response=await call('/profile/me');assert.equal(response.status,200);const me=await response.json();assert.equal(me.avatarHonorKey,f.unlock.Key);assert.equal(me.honors.length,11);assert.equal(me.honors.filter(h=>h.earnedAtUtc).length,2);
+    const identity=await call('/profile/identities?userId='+f.user);assert.equal(identity.status,200);assert.deepEqual(await identity.json(),[{userId:f.user,avatarHonorKey:f.unlock.Key}]);assert.deepEqual(await snapshot(),before,'profile GETs preserve imported records byte for byte');
+    const denied=await call('/profile/me/avatar','PUT',{honorKey:'solo:full-coverage'});assert.equal(denied.status,403);assert.deepEqual(await snapshot(),before,'locked choice does not write');
+    const switchResponse=await call('/profile/me/avatar','PUT',{honorKey:f.team.Key});assert.equal(switchResponse.status,200);assert.equal((await switchResponse.json()).avatarHonorKey,f.team.Key);
+    const reset=await call('/profile/me/avatar','PUT',{honorKey:null});assert.equal(reset.status,200);assert.equal((await reset.json()).avatarHonorKey,null);
+    assert.deepEqual((await snapshot()).filter(r=>r.kind!=='user-profile'),before.filter(r=>r.kind!=='user-profile'),'avatar changes preserve mastery/proof evidence');
+  }finally{await runtime.dispose();}
+});

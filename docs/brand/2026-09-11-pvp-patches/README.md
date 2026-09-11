@@ -1,6 +1,6 @@
 # Team Practice patch proposals — September 11, 2026
 
-Status: **new artwork for user review; not applied to the app**. These original assets respond to the request for a more game-like PVP experience while retaining the approved embroidered Pathfinder theme. They preserve the existing Team 1 mountain and Team 2 Bible identities. Erudoza itself remains a text wordmark beside the approved flame-and-Bible patch.
+Status: **approved for app implementation on September 11**. These original assets respond to the request for a more game-like PVP experience while retaining the approved embroidered Pathfinder theme. They preserve the existing Team 1 mountain and Team 2 Bible identities. Erudoza itself remains a text wordmark beside the approved flame-and-Bible patch.
 
 Review the images in the [interactive Team Practice mockup](../../product/mockups/2026-09-11-team-practice.html). All mockup participants, scores and interactions are illustrative. These three emblems represent team identity; they do not create earned Honors or ranks.
 
@@ -21,4 +21,6 @@ All three masters are 1254 × 1254 RGBA PNGs with verified transparent pixels ou
 
 ## Remaining artwork scope
 
-The source-defined Team Honors remain First Fellowship, Team Steady, Shared Scribe, Team Precision and Rehearsal Complete. Their five dedicated patch assets are follow-up implementation work after this core design review. The proposed identity patches must not be substituted for earned award evidence. Existing approved general Honors assets, panorama and page-corner artwork remain unchanged.
+The source-defined Team Honors remain First Fellowship, Team Steady, Shared Scribe, Team Precision and Rehearsal Complete. Their five new proposals are in the [Team Honor package](../2026-09-11-team-honors/README.md), under separate asset approval. Identity patches must not be substituted for earned award evidence. Existing approved general Honors assets, panorama and page-corner artwork remain unchanged.
+
+Production preparation: run `node docs/brand/2026-09-11-pvp-patches/prepare-production.mjs` from the repository root. The script verifies original master hashes and writes six 256/512px WebPs to `apps/web/public/brand/practice`, with [production hashes and metadata](production-manifest.json). The app delegates every core patch to shared `PatchArtwork` via `PracticePatch`.

@@ -1,6 +1,6 @@
 # Team Practice redesign brief — 11 September 2026
 
-Status: proposal for the user's requested design and artwork review. The [interactive mockup](mockups/2026-09-11-team-practice.html) demonstrates the proposed hub, lobby, live match and results using sample data. It does not operate a real room or implement these changes in the app. The separately requested restoration of the Erudoza name to text is outside this proposal.
+Status: approved for implementation on September 11. The user approved the [interactive mockup](mockups/2026-09-11-team-practice.html), its mobile navigation and three core patches, while requesting improvement to Room setup & Invitations. The mockup remains an unchanged visual reference with sample data. Follow the [implementation plan](../superpowers/plans/2026-09-11-team-practice-ui.md) for real-room integration and verification. Erudoza remains a text name.
 
 ## Problem and direction
 
@@ -38,7 +38,7 @@ The [Coach question editor](../../apps/web/src/features/practice/QuestionEditor.
 
 ## Mobile navigation proposal
 
-A bottom navigation bar is recommended for frequent top-level destinations on phones because it keeps them within thumb reach and releases vertical space at the top. This is a proposal shown with the mockup, not an approved or implemented replacement for the current navigation.
+A bottom navigation bar is approved for frequent top-level destinations on phones, keeping them within thumb reach and releasing vertical space at the top.
 
 Use a short, role-specific set with icons and visible labels: HQ, Study, Honors and More for students; Overview, Seasons, Students and More for Coaches. These labels are a starting composition for review, using existing routes. Team Practice and other sections remain reachable through More, which stays selected while viewing those sections; tab positions do not change with the current page. Keep search and account actions in the compact top bar, retain selected-season context and saved navigation preferences, and avoid adding a duplicate horizontal shortcut strip above the page.
 
@@ -52,9 +52,9 @@ Three new original embroidered core patches have been generated for review under
 - [Team 2](../brand/2026-09-11-pvp-patches/team-b.webp): coral open-Bible shield.
 - [Team Practice](../brand/2026-09-11-pvp-patches/team-practice.webp): paired-shield activity emblem.
 
-The package preserves the original masters, prompts and derivative hashes. These files are proposal assets used by the review, not installed replacements in the application.
+The package preserves the original masters, prompts and derivative hashes. The approved three core patches now have 256/512px production derivatives and use shared PatchArtwork in the implementation.
 
-During the approved implementation, create corresponding original embroidered replacements for the five existing Team Honors: **First Fellowship**, **Team Steady**, **Shared Scribe**, **Team Precision** and **Rehearsal Complete**. Those five new replacements have not been created in this review package. Their current keys and finalized-evidence criteria stay unchanged: first completed match; 10 matches over at least three days; manually submitting 10 distinct questions as scribe; at least 90% accuracy across 30 distinct questions; and a completed 90-question Coach-led rehearsal, respectively.
+Five corresponding original embroidered Team Honor proposals are saved in [their artwork package](../brand/2026-09-11-team-honors/README.md): **First Fellowship**, **Team Steady**, **Shared Scribe**, **Team Precision** and **Rehearsal Complete**. They were shown for separate approval before application. Their keys and finalized-evidence criteria stay unchanged: first completed match; 10 matches over at least three days; manually submitting 10 distinct questions as scribe; at least 90% accuracy across 30 distinct questions; and a completed 90-question Coach-led rehearsal, respectively.
 
 Show new artwork for the requested review before application. A decorative outcome emblem must never imply that a user earned an honor. Native room snapshots currently return no room achievement collection; retrieve confirmed awards through the existing bootstrap path instead of assuming every completed room grants a particular patch.
 

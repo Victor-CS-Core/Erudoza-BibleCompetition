@@ -252,6 +252,8 @@ public sealed class StudySessionService(
         db.Attempts.Add(attempt);
 
         var priorMastery = await db.MasteryStates.SingleOrDefaultAsync(x => x.OrganizationId == organizationId && x.StudentUserId == studentId && x.SeasonId == session.SeasonId && x.KnowledgeUnitId == card.KnowledgeUnitId, cancellationToken);
+        var priorReview = await db.ReviewSchedules.AsNoTracking().SingleOrDefaultAsync(x => x.OrganizationId == organizationId && x.StudentUserId == studentId && x.SeasonId == session.SeasonId && x.KnowledgeUnitId == card.KnowledgeUnitId, cancellationToken);
+        var wasDue = priorReview is not null && priorReview.DueAtUtc <= session.CreatedAtUtc;
         attempt.PreviousAttemptId = priorMastery?.LastAttemptId;
         var skillUpdate = await mastery.ApplyAttemptAsync(
             new AttemptEvidence(
@@ -277,7 +279,7 @@ public sealed class StudySessionService(
         updatedMastery.UpdatedAtUtc = acceptedAt;
         var updatedReview = await db.ReviewSchedules.SingleAsync(x => x.OrganizationId == organizationId && x.StudentUserId == studentId && x.SeasonId == session.SeasonId && x.KnowledgeUnitId == card.KnowledgeUnitId, cancellationToken);
         updatedReview.DueAtUtc = ScaffoldMasteryRules.NextReview(acceptedAt, evaluation.IsCorrect);
-        await training.ApplyAsync(session, attempt, cancellationToken);
+        await training.ApplyAsync(session, attempt, cancellationToken, card, wasDue);
         session.Status = StudySessionStatus.Active;
         await db.SaveChangesAsync(cancellationToken);
         var result = await ToResultAsync(attempt, alreadyProcessed: false, exposeDebugAnswer, cancellationToken);

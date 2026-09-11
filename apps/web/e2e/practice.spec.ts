@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext, type Browser, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Browser, type Page, type TestInfo } from "@playwright/test";
 import { login, assertNoOverflow } from "./helpers";
 import { randomUUID } from "node:crypto";
 
@@ -43,6 +43,27 @@ async function newPlayer(browser: Browser, admin: Page, org: string, name: strin
 async function command(page: Page, path: string, room: { id: string; revision: number }, action: string, payload = {}) {
   return json(page.request, `${path}/rooms/${room.id}/commands`, { commandId: randomUUID(), revision: room.revision, action, ...payload });
 }
+async function capturePractice(page: Page, info: TestInfo, role: "coach" | "student", stage: string) {
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect.poll(() => page.locator(".practice-page img:visible").evaluateAll(images => images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
+    await assertNoOverflow(page);
+    const dock = page.getByRole("navigation", { name: "Mobile navigation" });
+    const playing = await page.locator('.practice-room[data-status="Playing"]').count() > 0;
+    if (width <= 760 && !playing) {
+      await expect(dock).toBeVisible();
+      expect(await dock.locator("a span,button span").allTextContents()).toEqual(role === "coach" ? ["Overview", "Seasons", "Students", "More"] : ["HQ", "Study", "Honors", "More"]);
+      for (const target of await dock.locator("a,button").all()) {
+        const bounds = await target.boundingBox();
+        expect(bounds!.height).toBeGreaterThanOrEqual(44);
+        expect(bounds!.width).toBeGreaterThanOrEqual(44);
+      }
+      await expect(page.locator(".command-shortcut-bar")).toBeHidden();
+    } else await expect(dock).toBeHidden();
+    await page.screenshot({ path: info.outputPath(`${role}-${stage}-${width}.png`), fullPage: true });
+  }
+}
 
 test("real browsers invite, synchronize and earn server-measured speed points", async ({ page: admin, browser }, info) => {
   test.setTimeout(150000);
@@ -53,11 +74,7 @@ test("real browsers invite, synchronize and earn server-measured speed points", 
     for (const [page, route, role] of [[admin, "/admin/practice", "coach"], [a.page, "/student/practice", "student"]] as const) {
       await page.goto(route);
       await expect(page.getByRole("heading", { name: "Create a room" })).toBeVisible();
-      for (const width of [1440, 390, 320]) {
-        await page.setViewportSize({ width, height: 1000 });
-        await page.evaluate(() => window.scrollTo(0, 0)); await assertNoOverflow(page);
-        await page.screenshot({ path: info.outputPath(`${role}-${width}.png`), fullPage: true });
-      }
+      await capturePractice(page, info, role, "hub");
     }
     await a.page.setViewportSize({ width: 1440, height: 1000 });
     await a.page.getByRole("combobox", { name: /^Season/ }).selectOption(fixture.seasonId);
@@ -65,6 +82,7 @@ test("real browsers invite, synchronize and earn server-measured speed points", 
     await expect(a.page).toHaveURL(/\/student\/practice\/[a-f0-9-]+$/);
     await expect(a.page.getByText("Live connection", { exact: true })).toBeVisible();
     const roomId = new URL(a.page.url()).pathname.split("/").pop()!;
+    await capturePractice(a.page, info, "student", "lobby");
     await a.page.getByRole("combobox", { name: /^Invite player/ }).selectOption(b.id);
     await a.page.getByRole("combobox", { name: /^Destination/ }).selectOption("2");
     await a.page.getByRole("button", { name: "Send invitation" }).click();
@@ -109,12 +127,13 @@ test("real browsers invite, synchronize and earn server-measured speed points", 
     const judged = (await json(a.page.request, `${fixture.path}/rooms/${roomId}`)).results.find((result: { team: number }) => result.team === 2);
     expect(judged.elapsedMs).toBe(original.elapsedMs);
     expect(judged.speedHundredths).toBe(original.speedHundredths);
-    for (const width of [1440, 390, 320]) { await a.page.setViewportSize({ width, height: 1000 }); await a.page.evaluate(() => window.scrollTo(0, 0)); await assertNoOverflow(a.page); await a.page.screenshot({ path: info.outputPath(`match-${width}.png`), fullPage: true }); }
+    await capturePractice(a.page, info, "student", "match");
+    await capturePractice(admin, info, "coach", "match");
     await command(a.page, fixture.path, room, "abandon");
   } finally { await a.context.close().catch(() => {}); await b.context.close().catch(() => {}); }
 });
 
-test("5v5 completes ten scored questions with ten authenticated players, refresh recovery and achievements", async ({ page: admin, browser }) => {
+test("5v5 completes ten scored questions with ten authenticated players, refresh recovery and achievements", async ({ page: admin, browser }, info) => {
   test.setTimeout(600000);
   const fixture = await setup(admin);
   const players: Awaited<ReturnType<typeof newPlayer>>[] = [];
@@ -142,7 +161,8 @@ test("5v5 completes ten scored questions with ten authenticated players, refresh
         await expect(scribe.page.getByRole("button", { name: "Lock final answer" })).toBeEnabled({ timeout: 35000 });
         await scribe.page.getByLabel("Answer 1", { exact: true }).fill("Daniel");
         await scribe.page.getByRole("button", { name: "Lock final answer" }).click();
-        await expect(scribe.page.getByText("Answer locked. Wait for the question review.")).toBeVisible();
+        // The second final answer can reveal the round before the lock notice paints.
+        await expect(scribe.page.getByText("Answer locked. Wait for the question review.").or(scribe.page.getByRole("heading", { name: "Round review", exact: true }))).toBeVisible();
       }
       await expect.poll(async () => (await json(players[0].page.request, `${fixture.path}/rooms/${room.id}`)).results.length, { timeout: 35000 }).toBe((round + 1) * 2);
       console.info(`5v5 completed scored question ${round + 1}/10`);
@@ -151,10 +171,22 @@ test("5v5 completes ten scored questions with ten authenticated players, refresh
     room = await json(players[0].page.request, `${fixture.path}/rooms/${room.id}`);
     expect(room.results).toHaveLength(20);
     for (const score of room.scores) { expect(score.accuracyHundredths).toBe(1000); expect(score.speedHundredths).toBeGreaterThan(0); expect(score.totalHundredths).toBe(score.accuracyHundredths + score.speedHundredths); }
+    await expect(players[0].page.getByText("Finalized result", { exact: true })).toBeVisible();
+    await capturePractice(players[0].page, info, "student", "results");
     for (const player of players) {
       const bootstrap = await json(player.page.request, `${fixture.path}/bootstrap`);
       expect(bootstrap.achievements.some((award: { key: string; seasonId: string }) => award.key === "first-fellowship" && award.seasonId === fixture.seasonId)).toBe(true);
       if (player === players[0] || player === players[5]) expect(bootstrap.achievements.some((award: { key: string; seasonId: string }) => award.key === "shared-scribe" && award.seasonId === fixture.seasonId)).toBe(true);
+      const profile = await json(player.page.request, "/api/v1/profile/me");
+      const earned = profile.honors.filter((honor: { earnedAtUtc: string | null }) => honor.earnedAtUtc).map((honor: { key: string }) => honor.key);
+      expect(earned).toEqual(player === players[0] || player === players[5] ? ["team:first-fellowship"] : []);
     }
+    await players[0].page.goto("/student/profile");
+    await players[0].page.getByRole("button", { name: "Use First Fellowship as profile image", exact: true }).click();
+    await expect(players[0].page.locator('[data-profile-honor="team:first-fellowship"]')).toHaveCount(2);
+    await players[0].page.reload();
+    await expect(players[0].page.locator('[data-profile-honor="team:first-fellowship"]')).toHaveCount(2);
+    const locked = await players[1].page.request.put("/api/v1/profile/me/avatar", { data: { honorKey: "team:first-fellowship" } });
+    expect(locked.status()).toBe(403);
   } finally { for (const player of players) await player.context.close().catch(() => {}); }
 });

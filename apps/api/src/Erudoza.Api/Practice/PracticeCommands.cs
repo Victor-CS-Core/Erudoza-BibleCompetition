@@ -188,7 +188,7 @@ public sealed partial class PracticeService
             default: throw new DomainException("Unknown room command.");
         }
         room.AppliedCommands[command.CommandId] = actor.Id;
-        using var awards = room.Status == "Completed" ? await runtime.EnterAwards(room.SeasonId, ct) : null;
+        using var awards = room.Status == "Completed" ? await runtime.EnterAwards(org, ct) : null;
         if (room.Status == "Completed") await ReconcileAwards(org, room, ct);
         await Save(row, room, ct);
         return Member(room, actor) || actor.Admin && command.Action == "judge" ? View(room, actor) : new { left = true };

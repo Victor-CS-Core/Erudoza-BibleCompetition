@@ -1,0 +1,109 @@
+.practice-hub > .ds-page-header { align-items: center; flex-wrap: nowrap; }
+.practice-hub > .ds-page-header p { font-size: var(--er-text-sm); }
+.practice-hub .practice-hub-grid,
+.practice-hub .practice-hub-lower { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, 1fr); gap: var(--er-space-6); align-items: stretch; }
+.practice-hub .practice-hub-current { display: flex; flex-direction: column; padding: 28px 30px; background: var(--er-ink-navy); color: var(--er-on-navy); border-color: var(--er-ink-navy); }
+.practice-hub .practice-hub-current h2 { margin: 0 0 10px; max-width: 400px; color: var(--er-on-navy); font-size: var(--er-text-page); }
+.practice-hub .practice-hub-current > p { margin: 0; color: var(--er-on-navy-muted); font-size: var(--er-text-sm); }
+.practice-hub .practice-hub-room-label { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: var(--er-space-5); color: var(--er-on-navy-muted); font-size: var(--er-text-xs); }
+.practice-hub .practice-hub-room-label > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.practice-hub .practice-hub-duel { display: grid; grid-template-columns: minmax(0, 1fr) 50px minmax(0, 1fr); align-items: center; text-align: center; gap: var(--er-space-3); margin: 25px 0; }
+.practice-hub .practice-hub-team { display: flex; flex-direction: column; align-items: center; gap: var(--er-space-2); min-width: 0; }
+.practice-hub .practice-hub-team strong { font-size: var(--er-text-lg); font-weight: 600; }
+.practice-hub .practice-hub-versus { font-size: var(--er-text-sm); font-weight: 700; color: var(--er-on-navy-muted); }
+.practice-hub .practice-hub-room-footer { display: flex; justify-content: space-between; gap: var(--er-space-5); align-items: center; border-top: 1px solid color-mix(in srgb, var(--er-on-navy-muted) 19%, transparent); padding-top: var(--er-space-5); margin-top: auto; }
+.practice-hub .practice-hub-room-footer > span { min-width: 0; color: var(--er-on-navy-muted); font-size: var(--er-text-xs); overflow-wrap: anywhere; }
+.practice-hub .practice-hub-room-footer .ds-button { min-width: 170px; }
+.practice-hub .practice-hub-room-footer svg { width: 20px; height: 20px; flex: none; }
+.practice-hub .practice-hub-create > h2 { margin-bottom: 6px; }
+.practice-hub .practice-hub-create > p { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin-bottom: 22px; }
+.practice-hub .practice-hub-create > .ds-notice { margin-bottom: var(--er-space-4); }
+.practice-hub .practice-hub-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--er-space-4) var(--er-space-3); }
+.practice-hub .practice-hub-form-grid label { min-width: 0; gap: 6px; }
+.practice-hub .practice-hub-field-wide { grid-column: 1 / -1; }
+.practice-hub .practice-hub-create .ds-select { font-size: var(--er-text-sm); }
+.practice-hub .practice-hub-create form > .ds-button { width: 100%; margin-top: 22px; }
+.practice-hub .practice-hub-scope { padding: 0; margin-top: var(--er-space-4); }
+.practice-hub .practice-hub-scope > summary { display: flex; align-items: center; gap: 6px; min-height: 28px; color: var(--er-teal); font-size: var(--er-text-xs); }
+.practice-hub .practice-hub-scope > summary::before { content: "+"; font-size: var(--er-text-lg); }
+.practice-hub .practice-hub-scope[open] > summary::before { content: "−"; }
+.practice-hub .practice-hub-scope > label { margin-top: var(--er-space-2); }
+.practice-hub .practice-hub-scope > p { font-size: var(--er-text-xs); color: var(--er-muted-ink); margin: 7px 0 0; }
+.practice-hub .practice-hub-section-heading { display: flex; justify-content: space-between; align-items: center; gap: var(--er-space-4); margin-bottom: var(--er-space-5); }
+.practice-hub .practice-hub-section-heading h2 { margin: 0; }
+.practice-hub .practice-hub-section-heading > span { font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.practice-hub .practice-hub-rooms,
+.practice-hub .practice-hub-invitations { list-style: none; padding: 0; margin: 0; }
+.practice-hub .practice-hub-rooms > li,
+.practice-hub .practice-hub-invitations > li { display: flex; align-items: center; justify-content: space-between; gap: var(--er-space-5); padding: var(--er-space-4) 0; border-top: 1px solid var(--er-border); }
+.practice-hub .practice-hub-rooms > li > div,
+.practice-hub .practice-hub-invitations > li > div { min-width: 0; overflow-wrap: anywhere; }
+.practice-hub .practice-hub-rooms strong,
+.practice-hub .practice-hub-invitations strong { font-size: var(--er-text-sm); }
+.practice-hub .practice-hub-rooms p,
+.practice-hub .practice-hub-invitations p { font-size: var(--er-text-xs); color: var(--er-muted-ink); margin: 5px 0 0; }
+.practice-hub .practice-hub-list-title { display: flex; gap: var(--er-space-2); align-items: center; flex-wrap: wrap; }
+.practice-hub .practice-hub-rules { padding: 4px 2px; min-width: 0; }
+.practice-hub .practice-hub-rules h2 { font-size: var(--er-text-lg); margin: 0 0 14px; }
+.practice-hub .practice-hub-rules ul { margin: 0; padding-left: 18px; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.practice-hub .practice-hub-rules li + li { margin-top: var(--er-space-3); }
+.practice-hub .practice-hub-rules strong { color: var(--er-ink-navy); font-weight: 600; }
+.practice-hub .practice-hub-rules > p { border-top: 1px solid var(--er-border); margin: 22px 0 0; padding-top: 15px; font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.practice-hub .practice-hub-no-invitations { border-top: 1px solid var(--er-border); margin-top: var(--er-space-2); padding-top: var(--er-space-4); }
+.practice-hub .practice-hub-no-invitations h3 { font-size: var(--er-text-sm); margin-bottom: var(--er-space-1); }
+.practice-hub .practice-hub-no-invitations p { color: var(--er-muted-ink); font-size: var(--er-text-xs); margin: 0; }
+.practice-hub .practice-hub-honors-note { display: flex; align-items: center; gap: 18px; padding-top: var(--er-space-5); margin-top: 18px; border-top: 1px solid var(--er-border); }
+.practice-hub .practice-hub-honors-note h3 { font-size: var(--er-text-base); margin-bottom: var(--er-space-1); }
+.practice-hub .practice-hub-honors-note p { font-size: var(--er-text-xs); margin: 0; color: var(--er-muted-ink); }
+.practice-hub .practice-hub-secondary { color: var(--er-muted-ink); font-size: var(--er-text-sm); }
+.practice-hub .practice-hub-footnote { color: var(--er-muted-ink); font-size: var(--er-text-xs); text-align: center; margin: 4px 0 0; }
+@media (max-width: 1000px) {
+  .practice-hub .practice-hub-grid,
+  .practice-hub .practice-hub-lower { grid-template-columns: minmax(0, 1.15fr) minmax(280px, 1fr); }
+  .practice-hub .practice-hub-current { padding: var(--er-space-6); }
+  .practice-hub .practice-hub-room-footer { flex-wrap: wrap; gap: 14px; }
+  .practice-hub .practice-hub-duel .ds-patch-art { width: 115px; height: 115px; }
+}
+@media (max-width: 760px) {
+  .practice-hub { gap: var(--er-space-5); }
+  .practice-hub > .ds-page-header { gap: var(--er-space-3); }
+  .practice-hub > .ds-page-header > div:first-child { min-width: 0; }
+  .practice-hub > .ds-page-header h1 { font-size: 1.6875rem; }
+  .practice-hub > .ds-page-header p { font-size: var(--er-text-xs); max-width: 28ch; }
+  .practice-hub > .ds-page-header .ds-page-action { flex-shrink: 0; }
+  .practice-hub .practice-hub-heading-art { width: 58px; height: 58px; }
+  .practice-hub .practice-hub-grid,
+  .practice-hub .practice-hub-lower { grid-template-columns: minmax(0, 1fr); gap: var(--er-space-5); }
+  .practice-hub .practice-hub-current h2 { font-size: 1.6875rem; }
+  .practice-hub .practice-hub-duel { margin: 23px 0; gap: var(--er-space-2); grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr); }
+  .practice-hub .practice-hub-duel .ds-patch-art { width: min(120px, 100%); height: auto; aspect-ratio: 1; }
+  .practice-hub .practice-hub-team { gap: 7px; }
+  .practice-hub .practice-hub-team strong { font-size: 1rem; }
+  .practice-hub .practice-hub-room-footer { padding-top: 18px; gap: 13px; align-items: center; flex-wrap: nowrap; }
+  .practice-hub .practice-hub-room-footer > .ds-button { min-width: 0; flex: 1; padding-inline: var(--er-space-3); }
+  .practice-hub .practice-hub-room-footer > span { max-width: 100px; }
+  .practice-hub .practice-hub-create > p { margin-bottom: 18px; }
+  .practice-hub .practice-hub-scope > summary { min-height: 44px; }
+  .practice-hub .practice-hub-rules { padding: 3px var(--er-space-1); }
+  .practice-hub .practice-hub-rooms > li { gap: var(--er-space-3); align-items: start; }
+  .practice-hub .practice-hub-rooms .ds-button { min-height: 44px; padding: var(--er-space-2); }
+  .practice-hub .practice-hub-invitations > li { align-items: start; flex-direction: column; gap: var(--er-space-3); }
+  .practice-hub .practice-hub-invitations .practice-actions { width: 100%; }
+  .practice-hub .practice-hub-invitations .ds-button { flex: 1; }
+}
+@media (forced-colors: active) {
+  .practice-hub .practice-hub-current { border-color: CanvasText; }
+  .practice-hub .practice-hub-current h2 { color: CanvasText; }
+}
+
+/* Mastery Honors reuse shared artwork, controls and semantic text styles. */
+.practice-mastery-honors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--er-space-5); margin-block: var(--er-space-6); }
+.practice-mastery-honors > article { display: flex; flex-direction: column; align-items: center; min-width: 0; gap: var(--er-space-2); text-align: center; }
+.practice-mastery-honors h3 { margin: 0; font-size: var(--er-text-base); }
+.practice-mastery-honors details { width: 100%; text-align: left; font-size: var(--er-text-sm); }
+.practice-mastery-honors details p { margin-block: var(--er-space-3); overflow-wrap: anywhere; }
+.practice-mastery-honors .ds-button { margin-top: auto; width: 100%; white-space: normal; }
+.practice-milestone-history > .practice-awards { margin-top: var(--er-space-4); }
+@media (max-width: 1000px) { .practice-mastery-honors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .practice-mastery-honors { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--er-space-4); } }
+@media (max-width: 359px) { .practice-hub .practice-hub-form-grid { grid-template-columns: minmax(0, 1fr); } .practice-mastery-honors { grid-template-columns: minmax(0, 1fr); } }

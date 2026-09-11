@@ -32,3 +32,9 @@ it("counts an unneeded review as resolved without inventing completed practice",
   expect(screen.getByText("No review needed today")).toBeInTheDocument();
   expect(screen.getByText("0 of 8 cards completed")).toBeInTheDocument();
 });
+
+it("labels effort-based sidebar progress as a milestone", async () => {
+  home(); expect(await screen.findByRole("heading", { name: "Your next milestone" })).toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "Your next Honor" })).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Explore mastery Honors" })).toHaveAttribute("href", "/student/honors?seasonId=s");
+});

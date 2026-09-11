@@ -1,9 +1,10 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Student } from "../../api/types";
 import { StudentTable } from "./StudentTable";
 
+vi.mock("../profile/ProfileAvatar", () => ({ ProfileAvatar: () => null }));
 const students: Student[] = Array.from({ length: 12 }, (_, index) => ({
   userId: String(index), userName: `learner.${index}`, displayName: `Student ${String(index).padStart(2, "0")}`, email: null,
   ...(index === 11 ? { isActive: false } : {}),

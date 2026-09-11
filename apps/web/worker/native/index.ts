@@ -1,3 +1,4 @@
+import { handleProfile } from './mastery/profile';
 import { handleTraining } from './training/routes';
 import type { Env } from "./types";
 import { HttpError, json } from "./types";
@@ -32,6 +33,7 @@ export default {
       const onboarding=await handleOnboarding(request,env); if(onboarding) return onboarding;
       const actor=await authenticate(request,env);
       if(url.pathname==="/api/v1/me"&&request.method==="GET") return json(me(actor));
+      if(url.pathname.startsWith("/api/v1/profile/")){const profile=await handleProfile({request,env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(env.DB)});if(profile)return profile;}
       if(url.pathname.startsWith("/api/v1/study/")||url.pathname.startsWith("/api/v1/progress/")){
         const training=await handleTraining({request,env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(env.DB)});if(training)return training;
         const scripture=await handleScripture({request,env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(env.DB)});if(scripture)return scripture;

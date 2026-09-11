@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<StudySessionService>();
         services.AddScoped<TrainingProgressService>();
         services.AddScoped<TrainingQueryService>();
+        services.AddScoped<Erudoza.Application.Honors.MasteryHonorService>();
         services.AddMemoryCache();
         services.AddHttpClient("bible-api", client =>
         {

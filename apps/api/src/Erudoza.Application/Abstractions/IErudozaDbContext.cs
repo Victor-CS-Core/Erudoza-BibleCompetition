@@ -5,6 +5,9 @@ namespace Erudoza.Application.Abstractions;
 
 public interface IErudozaDbContext
 {
+    DbSet<MasteryHonorUnlock> MasteryHonorUnlocks { get; }
+    DbSet<MasteryPassageProof> MasteryPassageProofs { get; }
+    DbSet<ProfileAvatarSelection> ProfileAvatarSelections { get; }
     DbSet<TrainingPreference> TrainingPreferences { get; }
     DbSet<TrainingDay> TrainingDays { get; }
     DbSet<TrainingWeek> TrainingWeeks { get; }

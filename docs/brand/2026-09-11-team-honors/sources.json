@@ -1,0 +1,25 @@
+[
+  {
+    "key": "first-fellowship",
+    "source": "exec-7ff09015-85ed-42b6-9224-70983e840e93.png"
+  },
+  {
+    "key": "team-steady",
+    "source": "exec-93630602-cb72-4919-a288-7b8b4c4910c3.png",
+    "rejectedAlphaAttempt": "exec-ed60341c-78a2-469c-875d-f060c85b3053.png"
+  },
+  {
+    "key": "shared-scribe",
+    "source": "exec-2029a68a-beee-4d08-ab1b-ba359663a701.png",
+    "rejectedAlphaAttempt": "exec-4320b776-ac73-4c74-a58a-955d6a3c3fef.png"
+  },
+  {
+    "key": "team-precision",
+    "source": "exec-e7dea1f2-0546-4da9-8c2f-1d115c48a5c0.png",
+    "rejectedAlphaAttempt": "exec-4ed2191c-9c2b-403a-8ddb-617ef40aa542.png"
+  },
+  {
+    "key": "rehearsal-complete",
+    "source": "exec-52cb3294-e6a3-4b5c-b3b2-54057e7a2373.png"
+  }
+]
