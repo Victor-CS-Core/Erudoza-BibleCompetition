@@ -24,4 +24,12 @@ Read-only preflight found Worker `1e9d199c-3562-4706-897d-daf92e46e05f` at100%, 
 
 The prepared anonymous production smoke uses bounded GETs, DNS and TLS checks for public pages, private API rejection, redirects and exact published entry/art hashes. Authenticated production smoke is not available: automatic approval review rejected creation of a script that would read the private admin credential file because that conflicted with the preflight's no-credential-read constraint. No retry or credential read occurred. Local authenticated Coach/student/profile/gameplay verification remains separate evidence.
 
-No synthetic hosted accounts, matches, content, messages or email are part of this release. The existing regional20-room/200-player capacity gate remains open. Deployment execution and live results will be added after the verified source checkpoint.
+No synthetic hosted accounts, matches, content, messages or email are part of this release. The existing regional20-room/200-player capacity gate remains open. Deployment execution and live results are recorded below.
+
+## Production result
+
+- Committed and pushed the24-file approved asset/integration gate as `838a066` to the existing private `codex/honors-public` branch before deployment. No merge was performed.
+- Applied only `0004_training_progression.sql`; subsequent remote migration listing reports none pending.
+- Deployed `erudoza-native` to https://erudoza.com with `wrangler.production.jsonc`. Worker `257f14ee-6d2d-4896-9319-de0f4fc283f2` receives100%traffic; deployment54feb062-2ac5-4131-8da1-ff62bac50a03was created22:08:10UTC. The Worker and native frontend were deployed together.
+- Live smoke passed22:08:47UTC: database/APIhealthy, anonymousprivateAPIguards, publiclanding/login/signup, DNS/TLS/wwwredirects, exact entryJS/CSS and all ten approvedWebPhashes. Native entryJS SHA256:`2176796a05640df8353002ddee3718d43076e59cc4a4e1d4a0d8c84010e87251`. Full bounded GET evidence remains in ignored release storage.
+- Authenticated production workflows and regional capacity were not tested in this final live smoke. These limits do not change the separately documented local authenticated/browser/full-match results. No production accounts, content, matches, messages or emails were created for verification.

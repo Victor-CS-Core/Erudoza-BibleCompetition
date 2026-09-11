@@ -1,6 +1,6 @@
 # Honors release change set
 
-Status: the user explicitly approved all five Team Honor designs and instructed commit, push and production deployment on September 11. Release execution and evidence are recorded in PROGRESS.md.
+Status: released to production on September11at22:08UTC from pushed commit838a066. Worker `257f14ee-6d2d-4896-9319-de0f4fc283f2` receives100%traffic; native migration0004is applied and public health/assets smoke passed. See PROGRESS.md and the approved Team Honor release audit for verification limits.
 
 ## Scope
 
