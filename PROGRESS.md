@@ -95,8 +95,9 @@ Checkpoint verification notes: generated `.local` dry-run bundles were excluded 
 
 - Added the [public landing and account entry brief](docs/product/2026-09-11-public-entry-design.md), cross-linked from the existing specification, implementation plan and asset README. Plan Tasks P1–P3 cover concrete page previews, approved composition integration and public/account/shared-brand verification.
 - Scope includes `/`, `/login`, `/signup`, `/forgot-password` and `/join-coach`. Reuse the approved patch logo, no-sun landscape and Coach art; keep form controls readable and honor tilt limited to honor artwork. Preserve coach/student entry, native capability fallback, service-unavailable/retry states, verification and invitation flows, session handling and 300px security-widget space at 320px.
-- Validation: coordinating-agent spec/plan self-review and an independent read-only public/auth source audit; local Markdown links and existing source/test references checked, with Git whitespace review before commit. These are documentation checks, not new public mockups, application tests, browser evidence, email activation or deployment.
-- Next action: produce the public-page preview in Task P1 when that design work is requested; existing patch-family/logo approval remains valid. Commit and push this scoped documentation update to the existing task branch, then record the actual result.
+- Validation: coordinating-agent spec/plan self-review and an independent read-only public/auth source audit; 34 local Markdown links and nine explicit source paths resolved, existing test references checked, and staged Git whitespace review passed. These are documentation checks, not new public mockups, application tests, browser evidence, email activation or deployment.
+- Git gate: the five scoped documentation files were committed as `b9fb19c` (`docs: include public landing and account entry in design plan`); push succeeded `75d3b3b..b9fb19c` to `origin/codex/cloudflare-free-port`. This follow-up log records the confirmed result.
+- Next action: produce the public-page preview in Task P1 when that design work is requested; existing patch-family/logo approval remains valid.
 
 ## Update convention
 
