@@ -10,16 +10,17 @@ Read this file before starting repository work. `AGENTS.md` defines the required
 - Cloudflare DNS is **Active** on Free Website. GoDaddy registration remains unchanged; its nameservers were switched to `elsa.ns.cloudflare.com` and `yevgen.ns.cloudflare.com`. Public resolution through 1.1.1.1 confirms both. All 26 portable DNS records were preserved.
 - The apex and www still point to the previous Sites website. Production Worker binding and www redirect have **not** been applied. Production configuration and a separate production smoke mode are prepared.
 - Hosted application data contains only the admin account/academy plus the immutable shared NKJV library. Synthetic study/PVP fixtures were removed. Credentials and backup files are private ignored artifacts under `.local/`; do not copy their contents into source control or this log.
-- The workflow checkpoint `af237aa` (`docs: require shared progress log and gate checkpoints`) is pushed and confirmed on `origin/codex/cloudflare-free-port`. The integrated implementation/UX source checkpoint has passed its local validation and is ready to commit and push.
+- The workflow checkpoint `af237aa` (`docs: require shared progress log and gate checkpoints`) is pushed and confirmed on `origin/codex/cloudflare-free-port`. The integrated implementation/UX source is committed locally as `912ba0a` (`feat: checkpoint team practice and Cloudflare migration`). Its push was rejected before execution by automatic approval review; the source checkpoint is not yet on the remote.
 
 ## Active work and blockers
 
 The primary agent owns DNS cutover and repository checkpoints. Other agents may inspect or validate bounded scopes, but must coordinate before staging, changing deployment settings, or running database fixtures.
 
-Automatic approval review stopped two operations:
+Automatic approval review stopped these operations:
 
 1. Enabling the www redirect while www was DNS-only. Resolve this by setting and verifying the intended proxied DNS record before enabling the redirect.
 2. Deploying the production Worker and replacing the legacy apex A records. Review required explicit confirmation of that exact replacement and additional target verification. Follow-up verification confirmed the current deployed version and a production dry run with the same D1 and three Durable Object bindings. The remaining confirmation concerns replacing apex A `162.159.143.30` and `172.66.3.26` with the managed `erudoza-native` custom-domain binding, and changing www from `custom-domains.chatgpt.site` to a proxied CNAME at `erudoza.com` followed by a canonical HTTPS redirect.
+3. Pushing source commit `912ba0a` to the existing private origin, `https://github.com/Victor-CS-Core/Erudoza-BibleCompetition.git`, on `codex/cloudflare-free-port`. Review required trusted user confirmation of destination ownership/trust before uploading the full source. The remote URL and private visibility were read back, source/credential artifacts were reviewed, and the user requested gate commits/pushes, but the automatic review still rejected this push. The earlier documentation-only push of `af237aa` succeeded. Obtain explicit confirmation of this exact repository destination before retrying the source push.
 
 Do not retry the rejected deployment through another mechanism. Obtain the required exact confirmation, then carry out the verified sequence in the DNS runbook.
 
@@ -34,7 +35,7 @@ Do not retry the rejected deployment through another mechanism. Obtain the requi
 | Cloudflare DNS delegation, September 11 | Applied and verified | GoDaddy nameserver readback; Cloudflare Active at 14:02:09 UTC; independent public NS resolution. Free Website plan; no paid upgrade or domain transfer. |
 | Production app-domain cutover | Pending exact confirmation | Local dry run passed; no managed custom-domain binding or active www redirect yet. Production-domain HTTPS/login/library acceptance is still unperformed. |
 | Repository checkpoint workflow | Committed and pushed | `af237aa` adds this log and mandatory agent instructions. Push to `origin/codex/cloudflare-free-port` succeeded and `git ls-remote` confirmed the same commit. |
-| Integrated source checkpoint, September 11 | Local validation passed; commit/push pending | Web: 341 tests passed/1 optional skip, web/native type checks, lint, and both production builds passed. .NET: restore, canonical format verification, build with zero warnings/errors, and final 233 tests passed/1 optional load skip. Bicep compilation passed without deployment. Export/recovery Node tests: 13 passed; KJV tooling Python tests: 5 passed. |
+| Integrated source checkpoint, September 11 | Committed locally; push blocked by approval review | `912ba0a` contains the reviewed implementation and gate evidence. Web: 341 tests passed/1 optional skip, web/native type checks, lint, and both production builds passed. .NET: restore, canonical format verification, build with zero warnings/errors, and final 233 tests passed/1 optional load skip. Bicep compilation passed without deployment. Export/recovery Node tests: 13 passed; KJV tooling Python tests: 5 passed. |
 | Browser checkpoint, September 11 | Passed locally | Native Playwright: 5 passed (6.5 minutes). Canonical .NET Playwright: 34 passed/2 opt-in UI audit skips (13.9 minutes), across Chromium and Pixel 7. Both backends completed ten-player 5v5 matches with ten scored questions, refresh recovery, and achievements; study, library bounds, assignments, navigation, login, and password reset checks passed. These local cases supplement, rather than replace, the earlier live staging evidence. |
 | Checkpoint artifact review, September 11 | Reviewed | Origin visibility verified private. All 145 staged KJV/NKJV JSON files are byte-identical to the working sources; all 66 NKJV pack hashes match both manifests. Their intentional CRLF bytes are preserved by `*.json -text`. Source whitespace checks pass with these hash-protected JSON files excluded from whitespace normalization. Credentials, databases, generated SQL/builds, raw PDFs, temporary captures, and the unused NKJV extraction master remain ignored. Candidate-text credential scan found no high-confidence secret matches. |
 
@@ -42,8 +43,8 @@ Checkpoint verification notes: generated `.local` dry-run bundles were excluded 
 
 ## Next actions
 
-1. Finish scope/artifact review and required validation, commit the coherent implementation checkpoint, and push `codex/cloudflare-free-port`. Update this log with the actual result and remaining work.
-2. Obtain the exact website-record replacement confirmation required by automatic approval review.
+1. Obtain explicit confirmation to push the validated source to `Victor-CS-Core/Erudoza-BibleCompetition` on `codex/cloudflare-free-port`, then push and verify the remote commit. Local source commit `912ba0a` is ready; do not repeat completed checks unless changes or new evidence invalidate them.
+2. Obtain the exact website-record replacement confirmation required by automatic approval review. Both this and the repository destination can be confirmed together; retain that authorization for subsequent work.
 3. Deploy `apps/web/wrangler.production.jsonc` to the active zone. Review managed apex DNS changes and certificate readiness.
 4. Set and verify the proxied www record, then enable the host-specific 301 redirect to HTTPS apex with path and query preserved.
 5. Run production-domain smoke checks, record the final version/DNS/certificate state, update this log and the runbooks, then commit and push that gate.
