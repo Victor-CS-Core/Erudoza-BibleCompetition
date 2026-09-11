@@ -51,6 +51,7 @@ __pycache__/
 
 dist-native/
 .local/
+.worktrees/
 
 # Local inspection output and source extraction archive (runtime uses book packs)
 /.tmp/
