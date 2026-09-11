@@ -1,0 +1,96 @@
+{
+  "method": "Local connected-paper extraction and edge dematting; original interior RGB preserved",
+  "sourceSha256": "94483a6e88593a589fb43493ed487c0055d1c2eb4f27b048ab8b036109ace893",
+  "removedRegions": [
+    {
+      "seed": [
+        0,
+        0
+      ],
+      "area": 878164
+    },
+    {
+      "seed": [
+        248,
+        222
+      ],
+      "area": 3676
+    },
+    {
+      "seed": [
+        421,
+        276
+      ],
+      "area": 5491
+    },
+    {
+      "seed": [
+        1426,
+        340
+      ],
+      "area": 5396
+    },
+    {
+      "seed": [
+        820,
+        341
+      ],
+      "area": 1778
+    },
+    {
+      "seed": [
+        1122,
+        343
+      ],
+      "area": 3401
+    },
+    {
+      "seed": [
+        1820,
+        354
+      ],
+      "area": 1980
+    },
+    {
+      "seed": [
+        247,
+        391
+      ],
+      "area": 4331
+    }
+  ],
+  "opaqueInterior": 644531,
+  "edgePixels": 23780,
+  "crop": {
+    "left": 29,
+    "top": 73,
+    "width": 2114,
+    "height": 518
+  },
+  "files": [
+    {
+      "file": "erudoza-wordmark-alpha-v1.png",
+      "bytes": 2044003,
+      "width": 2172,
+      "height": 724,
+      "sha256": "9e2eafa36dbd766287bf715bfa95d553a5b2ef7f9117dc2ae86536e02acec940",
+      "hasAlpha": true
+    },
+    {
+      "file": "apps/web/public/brand/erudoza-wordmark-320.webp",
+      "bytes": 17594,
+      "width": 320,
+      "height": 78,
+      "sha256": "208a43885f40c6d7bd984ab08abba243ad0dedaa3c1e7458a8581d8bd3f88dd3",
+      "hasAlpha": true
+    },
+    {
+      "file": "apps/web/public/brand/erudoza-wordmark-640.webp",
+      "bytes": 51138,
+      "width": 640,
+      "height": 157,
+      "sha256": "21d4ad8165cbfb5bd7c1b999ecfa347dae9bf290816a2deab8d76a837463d2a3",
+      "hasAlpha": true
+    }
+  ]
+}

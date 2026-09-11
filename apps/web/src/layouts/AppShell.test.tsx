@@ -49,6 +49,36 @@ it("keeps all coach tools directly navigable", () => {
  expect(within(nav).getByRole("link", { name: "Assignments" })).toHaveAttribute("aria-current", "page");
 });
 it.each([
+ ["/admin", ["overview", "seasons", "students"], ["Overview", "Seasons"], 3],
+ ["/admin/seasons", ["students", "seasons", "overview"], ["Students", "Seasons"], 3],
+ ["/admin/content", ["overview", "seasons", "library"], ["Overview", "Scripture library"], 3],
+ ["/admin/practice", ["library", "students"], ["Scripture library", "Team Practice"], 3],
+ ["/admin/coaches", [], ["Coaches"], 1],
+] as const)("selects complete mobile Coach shortcuts without rewriting saved pins: %s", (path, saved, expected, allCount) => {
+ localStorage.setItem("erudoza:pins:org:user:coach", JSON.stringify(saved));
+ shell(path, "admin");
+ const nav = screen.getByRole("navigation", { name: "Coach" });
+ const mobileLinks = [...nav.querySelectorAll('[data-mobile-visible="true"] > a')];
+ expect(mobileLinks.map(link => link.textContent)).toEqual(expected);
+ expect(mobileLinks.some(link => link.getAttribute("aria-current") === "page")).toBe(true);
+ expect(JSON.parse(localStorage.getItem("erudoza:pins:org:user:coach")!)).toEqual(saved);
+ expect(within(nav).getAllByRole("link")).toHaveLength(allCount);
+});
+it("keeps an unpinned Coach destination in the mobile pair while preserving desktop shortcuts", () => {
+ shell("/admin", "admin");
+ const nav = screen.getByRole("navigation", { name: "Coach" });
+ fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Unpin Overview" }));
+ expect([...nav.querySelectorAll('[data-mobile-visible="true"] > a')].map(link => link.textContent)).toEqual(["Seasons", "Overview"]);
+ expect(within(nav).getAllByRole("link")).toHaveLength(7);
+ expect(JSON.parse(localStorage.getItem("erudoza:pins:org:user:coach")!)).toEqual(["seasons", "students", "coaches", "assignments", "practice", "library"]);
+ expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Pin Overview" })).toBeInTheDocument();
+ fireEvent.click(within(screen.getByRole("dialog")).getByRole("link", { name: "Team Practice" }));
+ expect([...nav.querySelectorAll('[data-mobile-visible="true"] > a')].map(link => link.textContent)).toEqual(["Seasons", "Team Practice"]);
+ expect(within(nav).getByRole("link", { name: "Team Practice" })).toHaveAttribute("aria-current", "page");
+ expect(within(nav).queryByRole("link", { name: "Overview" })).not.toBeInTheDocument();
+});
+it.each([
  ["/admin/coaches", "admin", "Coach", "Coaches"],
  ["/student/progress", "student", "Learner", "Progress"],
 ] as const)("reveals the active shortcut after resize without overriding manual scrolling: %s", (path, variant, navName, activeName) => {

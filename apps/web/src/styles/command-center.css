@@ -163,3 +163,20 @@
 @media(max-width:350px) {
   .command-app.training-learner .training-main { padding-inline:12px; }
 }
+
+/* Coach phones show complete shortcuts; the command center retains every section and pin. */
+@media(max-width:760px) {
+  .training-coach .command-trigger.ds-button { width:44px; padding:10px; justify-content:center; border-radius:var(--er-radius-control); }
+  .training-coach .command-trigger-short { display:none; }
+  .training-coach .command-shortcuts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; overflow:visible; }
+  .training-coach .command-shortcut { min-width:0; }
+  .training-coach .command-shortcut[data-mobile-visible=false],
+  .training-coach .command-shortcut .command-pin { display:none; }
+  .training-coach .command-shortcut>a { width:100%; min-width:0; min-height:44px; padding:6px 8px; gap:6px; white-space:normal; font-size:var(--er-text-xs); line-height:1.25; }
+  .training-coach .command-shortcut>a>svg { flex:none; }
+  .training-coach .command-shortcut>a>span { min-width:0; }
+  .training-coach .command-no-pins { grid-column:1 / -1; }
+  .training-coach .command-all.ds-button { width:44px; min-width:44px; height:44px; padding:10px; justify-content:center; }
+  .training-coach .command-all>span { display:none; }
+  .training-coach .command-context-home { display:none; }
+}

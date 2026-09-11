@@ -21,8 +21,8 @@ The user approved the artwork review after inspecting all four Pathfinder corner
 
 ## Lettering preparation
 
-The approved [wordmark package](../brand/2026-09-11-patch-wordmark/README.md) remains visually approved. The built-in image tool's further transparency attempt returned a three-channel RGB PNG with a baked checkerboard, so it was rejected. Local background removal needs the user's explicit alternative-method approval under the image-editing tool rules; the question is pending. The current app name remains readable text until a proper alpha asset is ready. No checkerboard/white rectangle was installed as a logo.
+At this checkpoint, the approved [wordmark package](../brand/2026-09-11-patch-wordmark/README.md) still needed transparency. The built-in image tool's further attempt returned a three-channel RGB PNG with a baked checkerboard, so it was rejected. Local background removal needed explicit alternative-method approval under the image-editing tool rules. The user subsequently approved that method; preparation and integration are covered in the [wordmark and mobile-header follow-up](2026-09-11-wordmark-and-mobile-header.md). No checkerboard/white rectangle was installed as a logo.
 
 ## Limits and next step
 
-These are local presentation and browser checks. No new full backend/.NET/gameplay suite, migration, production deployment, real signup, email delivery or regional load test was performed. Apply the approved lettering after resolving its transparent cutout, rerun affected wordmark/header checks, and show the completed preview. Source checkpoint/push status is recorded separately in `PROGRESS.md`.
+These are local presentation and browser checks. No new full backend/.NET/gameplay suite, migration, production deployment, real signup, email delivery or regional load test was performed. The next action at this checkpoint was lettering preparation; its completion is recorded in the follow-up linked above. Source checkpoint/push status is recorded separately in `PROGRESS.md`.
