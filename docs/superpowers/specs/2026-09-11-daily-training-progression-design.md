@@ -10,6 +10,8 @@ The original preview is `erudoza-daily-training.html` in the Codex visualization
 
 Read [DESIGN.md](../../../DESIGN.md), [PRODUCT.md](../../../PRODUCT.md), and [PROGRESS.md](../../../PROGRESS.md) before execution. The [Coach recommendations](../../product/2026-09-11-coach-workspace-recommendations.md) form an independent proposed phase. Student visual approval does not establish approval for a Coach redesign.
 
+The user also requires the public landing, sign-in and signup designs to be considered. The [public entry design brief](../../product/2026-09-11-public-entry-design.md) covers `/`, `/login`, `/signup`, and the related `/forgot-password` and `/join-coach` routes. Extend the approved patch identity coherently across the visitor journey while preserving the current account and availability behavior. These page compositions need their own preview; the existing logo/art approval remains valid.
+
 ## Global constraints
 
 - Preserve the Field Guide Academy brand and Option C command navigation.
@@ -97,6 +99,8 @@ The user approved the embroidered patch style for artwork and logos. A new embro
 The user requested a smooth tilt toward the pointer. On fine-pointer hover, rotate only the honor artwork around its center, bounded to 7 degrees on each axis, with frame-rate-independent easing and perspective. The text, focus target, and card layout stay stable. Ease back to zero on pointer exit/cancellation; stop animation when settled, hidden, unmounted, or disabled. Disable tilt for reduced-motion preferences and touch/coarse input. Motion is decorative and carries no exclusive information. Use one reusable presentation component for HQ, collection, recap, and any future Coach honors; no animation library is necessary.
 
 ## Acceptance and delivery
+
+Public entry is an explicit companion workstream, with page-preview, implementation and verification checkpoints in the plan. It uses the shared logo and optimized original art but does not depend on new student reward projections for sign-in/signup. Public Honors claims wait for the actual feature release. Shared logo/style changes must be checked across landing, account entry, Coach and student screens at desktop and mobile sizes, including signup service-unavailable and verification states.
 
 The implementation plan defines incremental backend, UI, and release checkpoints. Required cases include replay/idempotency, concurrent first awards/days, partial sessions, wrong reviews staying due, refresh-stable recap, midnight/DST/Monday boundaries, assignment changes, old algorithm data, cross-user/org denial, large scopes, error states, keyboard/focus, and reduced motion. Preserve the September 11 foreground/background contrast fix in every shared control state.
 

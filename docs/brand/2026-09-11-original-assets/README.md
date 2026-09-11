@@ -60,6 +60,12 @@ The gallery applies smooth pointer-following tilt to honor art only, bounded to 
 
 ## Recommended next assets
 
+### Public landing and account pages
+
+The [public entry design brief](../../product/2026-09-11-public-entry-design.md) explicitly includes the landing page, sign-in, coach signup, password recovery and coach invitations. Reuse the approved embroidered logo across their shared branding, the refined no-sun landscape on the landing page, and the Coach illustration in an optional desktop account side panel. Keep the phone form compact and readable. These placements need concrete page previews; the logo and patch-family approvals are already recorded. Small-size derivatives and transparent edges must be checked before production integration.
+
+### Additional recognition assets
+
 1. Recreate the session-completion book/laurel emblem as a patch so the recap matches the Honors System.
 2. Recreate the existing Team Practice honors in the same family: first-fellowship, rehearsal-complete, shared-scribe, team-precision, and team-steady. Preserve their actual earning rules and finalized-match evidence.
 3. Add small season crests for collection headers and completed-season keepsakes once their role and criteria are defined.

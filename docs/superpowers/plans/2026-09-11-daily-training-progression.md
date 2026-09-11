@@ -10,6 +10,8 @@
 
 **Spec:** [Daily training progression design](../specs/2026-09-11-daily-training-progression-design.md). Read this specification and this plan together before execution.
 
+**Public entry scope:** The [public landing and account entry brief](../../product/2026-09-11-public-entry-design.md) is included through companion Tasks P1–P3 below. It covers landing, sign-in, coach signup, password recovery and coach invitations. Its design/preview can proceed independently of the training backend; approved public-page implementation is a separate checkpoint.
+
 ## Global Constraints
 
 - Preserve the Field Guide Academy brand and Option C command navigation.
@@ -31,6 +33,7 @@
 - Product naming is **Honors System**; navigation and collection headings use **Honors**. The collection route is `/student/honors`, with matching `trainingApi.honors`, cache keys, and `HonorsPage`. Internal badge/evidence records remain technical names and never appear in product labels.
 - This document is a plan; the planning task does not authorize application implementation or deployment.
 - Implement the approved student design. Coach changes remain a separate recommendation requiring a concrete Coach mockup and approval.
+- Include the public landing and account pages in the shared visual rollout. Preview their compositions before implementation; preserve the current auth flow, role routing, security challenge and service-availability behavior. Existing approval of the patch logo/art is sufficient for those assets.
 - Read `PROGRESS.md` and coordinate active file/fixture ownership before repository work. Preserve unrelated working-tree changes.
 - Read `DESIGN.md` and `PRODUCT.md` before UI changes. Retain the navy, ivory, teal, and mountain identity; page CSS controls layout.
 - Preserve the September 11 button-contrast fix, disabled foregrounds, keyboard focus, reduced motion, and 320px layouts.
@@ -367,6 +370,7 @@ Compatible historic mastery may contribute to a future skill award evaluated on 
 - Create: `apps/web/src/components/ui/ProgressMeter.test.tsx`, `apps/web/src/components/ui/WeeklyProgressStrip.test.tsx`, `apps/web/src/components/ui/TrainingDialog.tsx`, `apps/web/src/components/ui/TrainingDialog.test.tsx`.
 - Add production art only after approval: `apps/web/public/assets/training/` and an explicit asset map in `apps/web/src/features/student/trainingAssets.ts`.
 - Create: `apps/web/src/components/ui/HonorArtwork.tsx` and `apps/web/src/components/ui/HonorArtwork.test.tsx` for the shared pointer-tilt presentation.
+- Coordinate shared brand integration with companion Task P2: `apps/web/src/components/brand/ErudozaWordmark.tsx` and optimized assets in `apps/web/public/brand/`. Public routes must not import student feature code to obtain the logo.
 
 **Interfaces**
 
@@ -385,7 +389,8 @@ expect(screen.getByText("3 of 8")).toBeVisible();
 - [ ] Implement small primitives using existing semantic tokens; do not change primary/disabled foregrounds or reinstate color/background transitions that produced the contrast bug.
 - [ ] Add the new patterns to the actual design-system reference page. Use reduced-motion rules for any fill/reveal animation.
 - [ ] Inspect the original asset package at desktop and phone size. Record asset approval before copying production files; if artwork is pending, use the existing approved brand artwork so functional work can continue.
-- [ ] Review the user's requested Seventh-day Adventist Pathfinders direction in the asset README: use outdoor exploration, mountain trails, field guides, compass/lantern details, a restrained neckerchief accent, Scripture study, teamwork and service as supporting motifs. Keep Erudoza's existing logo and icon system; this is supporting original illustration, not a replacement institutional identity. The Coach field-guide artwork may be reviewed in the package while Coach production UI remains separately proposed.
+- [ ] Follow the public entry brief's asset placement rules. Reuse one optimized shared logo across landing, auth and both workspaces; verify actual 36/48px wordmark slots and 40/56px auth overrides as well as 24/32px compact uses. Keep public asset loading independent of authenticated training requests.
+- [ ] Review the user's requested Seventh-day Adventist Pathfinders direction in the asset README: use outdoor exploration, mountain trails, field guides, compass/lantern details, a restrained neckerchief accent, Scripture study, teamwork and service as supporting motifs. Use the approved embroidered Erudoza logo derivative, preserving its recognizable flame-and-Bible silhouette and the existing navigation icon system. The Coach field-guide artwork may support public account pages while Coach workspace composition remains separately proposed.
 - [ ] For approved art, produce optimized responsive derivatives, genuine badge transparency, explicit width/height, and appropriate lazy loading. Labels and criteria remain HTML outside images; decorative art uses empty alt when adjacent copy supplies its meaning. Keep source masters out of the initial application bundle and record prompts/source lineage in the asset README.
 - [ ] Inspect badges at 48, 96 and 160 pixels and landscape/completion art in actual 320/390px crops. Earned/unearned differences must remain understandable through HTML status text without lowering label contrast or making study appear locked.
 - [ ] Run component tests, visual checks at 1440/390/320, and shared coach/student contrast smoke. Review/commit the design-system gate.
@@ -493,6 +498,7 @@ Run one real HTTP/browser scenario against each supported backend: coach setup c
 - [ ] Add real-browser checks for full/partial completion, unique day credit, direct recap refresh after another session, scope invalidation recovery, goal pending date, and deterministic five-activity study.
 - [ ] Assert no page-level horizontal overflow at 1440, 390 and 320; interactive targets >=44px for coarse pointers; keyboard-only completion and dialog focus; reduced-motion honors user settings.
 - [ ] Capture coach and student shared-component screens together. Check the current button foreground/background behavior through hover, pressed, pending, selected, disabled and focus; do not infer contrast from screenshots alone.
+- [ ] Include `/`, `/login`, `/signup`, `/forgot-password` and `/join-coach` in shared-brand/style regression captures. Include available/unavailable account services and actual verification/error states in isolated fixtures. Public-page redesign follows companion Tasks P1–P3; training delivery alone must not publish unreleased Honors claims on the landing page.
 - [ ] Run the required commands from repository root:
 
 ```powershell
@@ -523,6 +529,59 @@ Use isolated owned fixtures; do not touch the existing API on port 5080 or assum
 - [ ] Record exact executed commands/counts, read/write measurements, browser coverage, skipped gates and limitations. Distinguish local verification, commit, push, and any later deployment.
 - [ ] Explicitly stage only this feature's reviewed files; commit and push the authorized task branch after coordination. No merge, production migration or deployment occurs as an implied effect of writing/executing this plan.
 - [ ] Prepare a concrete deployment change set with migration order, backward-compatible Worker/UI rollout, data backup, and rollback limitations. Obtain any required deployment approval at that final reviewable gate; pending original artwork or Coach approval does not block the verified student implementation using approved assets.
+
+## Public entry companion phase
+
+These tasks are part of the user's requested design scope. They can be scheduled separately from Tasks 1–11 and reuse the same approved art. Read the [public entry design brief](../../product/2026-09-11-public-entry-design.md) for exact hierarchy, role behavior, asset placement and acceptance states. No new authentication backend or email activation is included.
+
+### Task P1: Preview the landing and complete account-entry family
+
+**Files:** Create `docs/product/mockups/2026-09-11-public-entry.html` at preview execution; use the existing original-assets package. Record the selected composition and approval in `docs/product/2026-09-11-public-entry-design.md`.
+
+**Interface:** A local review artifact covers `/`, `/login`, `/signup`, `/forgot-password` and `/join-coach` with clearly synthetic form values and no real account writes. Existing routes and account states determine the preview controls.
+
+- [ ] Inspect the current public/account pages at 1440/390/320 with the current shared components; use isolated local availability fixtures for signup. Do not create production accounts or send verification emails to render a preview.
+- [ ] Build one coherent page family using the approved patch logo, refined landscape and Coach illustration. Show landing entry choices, sign-in, both signup stages, unavailable/retry, invalid code and recovery/invitation examples. Keep the actual security-check space and form behavior recognizable.
+- [ ] Render desktop and mobile previews together. Check form reading order, logo/crops, narrow-screen widget space, notice wrapping and no sideways page movement. Show the concrete page compositions for approval; retain the existing artwork approvals.
+- [ ] Save the approved composition, artifact link and any requested corrections in the brief and `PROGRESS.md`; review and checkpoint the scoped design files.
+
+### Task P2: Integrate the approved public composition and shared brand
+
+**Files:** Modify `apps/web/src/features/marketing/LandingPage.tsx`, `apps/web/src/features/auth/LoginPage.tsx`, `apps/web/src/features/auth/CoachOnboardingPage.tsx`, `apps/web/src/components/brand/ErudozaWordmark.tsx`, `apps/web/src/styles/training-public.css`, `apps/web/src/styles/training-login.css`, and `apps/web/src/styles/coach-onboarding.css`. Add optimized derivatives in `apps/web/public/brand/` and their provenance to the original asset manifest. Read `apps/web/src/features/auth/useCoachOptions.ts`, `TurnstileChallenge.tsx`, `apps/web/src/api/onboarding.ts`, and `apps/web/src/auth/AuthContext.tsx` as behavior boundaries.
+
+**Interface:** Preserve the existing `ErudozaWordmark({ compact, inverted })` API, route identities, login redirects and `CoachOnboardingPage({ mode })` state machine. Reuse existing `onboardingApi` requests and `useCoachOptions()` availability; a visual change does not make the canonical backend support email onboarding.
+
+- [ ] Produce responsive image derivatives from approved source masters, retain transparency and explicit dimensions, and measure transfer sizes. Use a shared brand source without importing `features/student/trainingAssets.ts` into public routes. Show any newly generated simplified derivative for approval before use.
+- [ ] Apply the approved composition using shared Button/Input/LinkButton/Notice/PageHeader primitives. Keep account forms on solid surfaces, restrict patch tilt to honor art, and preserve narrow Turnstile padding and natural scrolling on phones.
+- [ ] Preserve email-or-username/password login, password-manager attributes, Show/Hide, Caps Lock notice, pending/error associations and Student `/student` versus coach `/admin` routing. Keep student account guidance and coach signup/recovery paths explicit.
+- [ ] Preserve signup/recovery/invitation state transitions: availability/error retry, account loading/error/signed-in notice, security challenge, six-digit verification, expiry/resend cooldown, Change email, field/password constraints and successful-session acceptance. Keep invitation token removal and in-memory handling intact.
+- [ ] Keep landing claims tied to released features. Honor samples remain clearly illustrative; a real Honors marketing section goes live only with its working feature. Preserve support access and skip navigation. Run existing login/onboarding tests plus type/lint checks and review the scoped diff before committing.
+
+### Task P3: Verify the full entry journey and checkpoint delivery
+
+**Files:** Extend `apps/web/src/test/landingPage.test.tsx`, `apps/web/src/features/auth/LoginPage.test.tsx`, `apps/web/src/features/auth/CoachOnboardingPage.test.tsx`, `apps/web/e2e/landing-phone.spec.ts`, `apps/web/e2e/login-phone.spec.ts`, and `apps/web/e2e/brand-shell.spec.ts` only for meaningful coverage gaps. Retain behavioral checks in `apps/web/src/api/onboarding.test.ts` and `apps/web/src/auth/AuthContext.test.tsx`. Record browser evidence/limits in a new `docs/audits/2026-09-11-public-entry.md` at execution and `PROGRESS.md`.
+
+**Interface:** Public and auth routes retain their observable behavior; shared wordmark/style changes also render correctly in both workspaces. Native onboarding's isolated local browser scenario remains the verification reference; canonical .NET verifies login and the honest unavailable signup fallback.
+
+- [ ] Run the focused existing behavior suite:
+
+```powershell
+npm --workspace apps/web run test -- src/test/landingPage.test.tsx src/features/auth/LoginPage.test.tsx src/features/auth/CoachOnboardingPage.test.tsx src/api/onboarding.test.ts src/auth/AuthContext.test.tsx
+npm run typecheck:web
+npm run lint:web
+npm run build:web
+npm --workspace apps/web run build:native
+```
+
+- [ ] Run public/account browser checks from `apps/web` with the repository's canonical configuration and owned fixture ports:
+
+```powershell
+npx playwright test e2e/landing-phone.spec.ts e2e/login-phone.spec.ts e2e/brand-shell.spec.ts
+```
+
+- [ ] Reuse the isolated onboarding setup documented in `docs/operations/coach-onboarding.md` for email/code, invitation, recovery and service-unavailable scenarios. The native Playwright config currently includes only selected gameplay/library specs; do not claim the command above validates native signup or a real email delivery. Coordinate setup before touching fixture processes.
+- [ ] Verify all five public/account routes at 1440/390/320 with correct images, readable errors, keyboard focus, password paste/autofill, reduced motion, no page overflow and at least 44px coarse-pointer controls. Include both signup stages, service loading/unavailable, wrong/expired code, resend cooldown, signed-in account, invalid invitation, and recovery success. Confirm Coach/student shells together after the shared logo change.
+- [ ] Self-review against the public brief and record exactly executed checks, image sizes, failures/resolutions and remaining limits. Commit/push only scoped reviewed files. Prepare any later deployment for its required final approval; page design does not activate onboarding services or authorize real email sends.
 
 ## Coach follow-up boundary
 
