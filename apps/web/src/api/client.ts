@@ -18,7 +18,7 @@ import type {
 import { apiUrl } from "./url";
 
 export class ApiError extends Error {
-  constructor(message: string, public readonly status: number) { super(message); }
+  constructor(message: string, public readonly status: number, public readonly retryAfterSeconds?: number) { super(message); }
 }
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -39,7 +39,9 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     } catch {
       // Problem Details may be absent for 401/403 redirects.
     }
-    throw new ApiError(detail, response.status);
+    const retryHeader = response.headers.get("Retry-After");
+    const retrySeconds = retryHeader && /^\d+$/.test(retryHeader) ? Number(retryHeader) : undefined;
+    throw new ApiError(detail, response.status, retrySeconds);
   }
 
   if (response.status === 204) {

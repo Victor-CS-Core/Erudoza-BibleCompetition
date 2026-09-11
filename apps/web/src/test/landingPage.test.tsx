@@ -59,6 +59,7 @@ describe("LandingPage", () => {
     expect(start).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "Coach your team" })).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "Sign in as a coach" })).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: /Create a club with a coach account/ })).toHaveAttribute("href", "/signup");
 
     fireEvent.click(start);
     expect(screen.getByRole("heading", { name: "Account sign in" })).toBeInTheDocument();

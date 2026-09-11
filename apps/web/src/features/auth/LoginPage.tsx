@@ -59,7 +59,7 @@ export function LoginPage() {
             {error && <Notice id="login-error" className="training-login-error" tone="danger">{error}</Notice>}
             <Button data-testid="login-submit" className="training-login-submit" type="submit" disabled={pending}>{pending ? "Signing in…" : "Sign in"}<AppIcon name="arrow" /></Button>
           </form>
-          <p className="training-login-help">Need help signing in?<br />Ask your coach or academy administrator.</p>
+          <p className="training-login-help">Coaches: <Link to="/signup">Create a club</Link> or <Link to="/forgot-password">reset your password</Link>.<br />Students: Ask your coach or academy administrator.</p>
         </div>
         <p className="training-login-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</p>
       </section>

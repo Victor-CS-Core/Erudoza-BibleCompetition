@@ -26,7 +26,7 @@ export function LandingPage() {
           <li><AppIcon name="flag" /><div><h3>Rehearse for competition</h3><p>Practice under time pressure in a simulation or join your team in a coach-led room.</p></div></li>
         </ol>
       </section>
-      <section className="public-coach"><div><h2>Give every student a clear next step.</h2><p>Choose a season’s passages, set each student’s difficulty, and follow their progress in one place.</p></div><LinkButton to="/login" variant="secondary">Sign in as a coach<AppIcon name="arrow" /></LinkButton></section>
+      <section className="public-coach"><div><h2>Give every student a clear next step.</h2><p>Choose a season’s passages, set each student’s difficulty, and follow their progress in one place.</p><Link to="/signup">Create a club with a coach account →</Link></div><LinkButton to="/login" variant="secondary">Sign in as a coach<AppIcon name="arrow" /></LinkButton></section>
     </main>
     <footer className="public-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</footer>
   </div>;

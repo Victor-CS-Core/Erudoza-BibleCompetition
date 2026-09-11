@@ -11,6 +11,8 @@ import {
   StudentsPage,
 } from "../features/admin/SimpleAdminPages";
 import { LoginPage } from "../features/auth/LoginPage";
+import { CoachOnboardingPage } from "../features/auth/CoachOnboardingPage";
+import { CoachesPage } from "../features/admin/CoachesPage";
 import { LandingPage } from "../features/marketing/LandingPage";
 import { ProgressPage } from "../features/student/ProgressPage";
 import { StudentHomePage } from "../features/student/StudentHomePage";
@@ -44,6 +46,9 @@ function Guard({ role, children }: { role: "admin" | "student"; children: ReactN
 export const router = createBrowserRouter([
   { path: "/", element: <LandingPage />, errorElement: <RouteProblemPage /> },
   { path: "/login", element: <LoginPage />, errorElement: <RouteProblemPage /> },
+  { path: "/signup", element: <CoachOnboardingPage key="signup" mode="signup" />, errorElement: <RouteProblemPage /> },
+  { path: "/forgot-password", element: <CoachOnboardingPage key="recovery" mode="recovery" />, errorElement: <RouteProblemPage /> },
+  { path: "/join-coach", element: <CoachOnboardingPage key="invitation" mode="invitation" />, errorElement: <RouteProblemPage /> },
   { path: "*", element: <RouteProblemPage notFound /> },
   {
     path: "/admin",
@@ -59,6 +64,7 @@ export const router = createBrowserRouter([
       { path: "seasons/new", element: <SeasonWizardPage /> },
       { path: "seasons/:seasonId", element: <SeasonWizardPage /> },
       { path: "students", element: <StudentsPage /> },
+      { path: "coaches", element: <CoachesPage /> },
       { path: "assignments", element: <AssignmentsPage /> },
       { path: "seasons/:seasonId/students/:studentId/progress", element: <ProgressPage /> },
       { path: "content", element: <ContentPage /> },

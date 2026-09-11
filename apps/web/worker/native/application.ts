@@ -2,6 +2,7 @@ import { coverage } from './application/coverage';
 import type { RequestContext } from './types';
 import { admin, body, HttpError, json, noContent, requiredString } from './types';
 import { hashUserPassword } from './auth';
+import { administrationBudget, assertStorageCapacity, storageCapacityGuard } from './admin-limits';
 import { content } from './application/content';
 import { library } from './application/library';
 import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeDto, scopePacks, scopeSources, seasonSummaries, student, students, validatePackRanges } from './application/model';
@@ -31,6 +32,8 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     admin(ctx.actor);
     if (path.startsWith('/scripture-catalog') || path === '/content-packs/import' || path === '/content-packs/import-from-catalog')
         throw new HttpError(410, 'Manual imports have been retired. Choose books from the built-in NKJV library.');
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method))
+        await administrationBudget(ctx);
     if (path === '/students' && method === 'GET')
         return json(await students(ctx));
     if (path === '/students' && method === 'POST') {
@@ -45,8 +48,10 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
             throw new HttpError(409, 'That username is already in use.');
         if (typeof input.password !== 'string')
             return fail('Password is required.');
+        await assertStorageCapacity(ctx, 'students');
+        await administrationBudget(ctx, true);
         const userId = id(), password = await hashUserPassword(ctx.env, orgId, userId, input.password);
-        await atomic(ctx, 'student.create', [ctx.env.DB.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,'Student','Student',?,?)").bind(userId, orgId, userName, displayName, password, id())]);
+        await atomic(ctx, 'student.create', [storageCapacityGuard(ctx, 'students'), ctx.env.DB.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,'Student','Student',?,?)").bind(userId, orgId, userName, displayName, password, id())]);
         return json({ userId, userName, displayName, email: null, isActive: true }, 201);
     }
     const studentMatch = path.match(/^\/students\/([^/]+)\/(password|state)$/);
@@ -59,6 +64,7 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         if (studentMatch[2] === 'password') {
             if (typeof input.password !== 'string')
                 return fail('Password is required.');
+            await administrationBudget(ctx, true);
             await atomic(ctx, 'student.password.reset', [ctx.env.DB.prepare("UPDATE Users SET password_hash=?,credential_version=? WHERE id=? AND org_id=? AND kind='Student'").bind(await hashUserPassword(ctx.env, orgId, studentMatch[1], input.password), id(), studentMatch[1], orgId)]);
         }
         else {
@@ -88,7 +94,8 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
             return null; if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v) || Number.isNaN(Date.parse(v)))
             return fail('Use an ISO calendar date.'); return v; };
         const s: Season = { id: id(), organizationId: orgId, name: requiredString(input.name, 'Season name'), yearLabel: requiredString(input.yearLabel, 'Year label', 40), ruleProfileKey: input.ruleProfileKey, ruleProfileVersion: 1, status: 'Draft', startDate: date(input.startDate), targetCompetitionDate: date(input.targetCompetitionDate), createdAtUtc: new Date().toISOString() };
-        await atomic(ctx, 'season.create', [store.insertion('season', s.id, orgId, s)]);
+        await assertStorageCapacity(ctx, 'seasons');
+        await atomic(ctx, 'season.create', [storageCapacityGuard(ctx, 'seasons'), store.insertion('season', s.id, orgId, s)]);
         return json({ ...s, scopeUnitCount: 0, assignmentCount: 0 }, 201);
     }
     if (!seasonMatch)

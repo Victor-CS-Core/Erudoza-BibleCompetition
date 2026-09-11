@@ -42,11 +42,24 @@ function CommandFrame({ coach }: { coach: boolean }) {
   });
   useEffect(() => {
     const nav = shortcuts.current;
-    const current = nav?.querySelector<HTMLAnchorElement>('a[aria-current="page"]')?.parentElement;
-    if (!nav || !current) return;
-    const view = nav.getBoundingClientRect(), item = current.getBoundingClientRect();
-    if (item.left < view.left) nav.scrollLeft -= view.left - item.left;
-    else if (item.right > view.right) nav.scrollLeft += item.right - view.right;
+    if (!nav) return;
+    const revealCurrent = () => {
+      const current = nav.querySelector<HTMLAnchorElement>('a[aria-current="page"]')?.parentElement;
+      if (!current) return;
+      const view = nav.getBoundingClientRect(), item = current.getBoundingClientRect();
+      if (item.left < view.left) nav.scrollLeft -= view.left - item.left;
+      else if (item.right > view.right) nav.scrollLeft += item.right - view.right;
+    };
+    revealCurrent();
+    let width = nav.getBoundingClientRect().width;
+    const onResize = () => {
+      const nextWidth = nav.getBoundingClientRect().width;
+      if (nextWidth === width) return;
+      width = nextWidth;
+      revealCurrent();
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, [active?.id]);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState("");

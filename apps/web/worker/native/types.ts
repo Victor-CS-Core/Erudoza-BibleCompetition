@@ -1,7 +1,8 @@
 import type { D1Database, DurableObjectNamespace } from "@cloudflare/workers-types";
 import type { Store } from "./store";
 import type { PasswordCrypto } from "./password-crypto";
-export interface Env { DB: D1Database; ASSETS?: { fetch(request: Request): Promise<Response> }; ROOMS?: DurableObjectNamespace; REPORTS?: DurableObjectNamespace; PASSWORD_CRYPTO?: DurableObjectNamespace<PasswordCrypto>; PUBLIC_ORIGIN?: string }
+import type { PerimeterEnv } from "./perimeter";
+export interface Env extends PerimeterEnv { DB: D1Database; ASSETS?: { fetch(request: Request): Promise<Response> }; ROOMS?: DurableObjectNamespace; REPORTS?: DurableObjectNamespace; PASSWORD_CRYPTO?: DurableObjectNamespace<PasswordCrypto>; PUBLIC_ORIGIN?: string; RESEND_API_KEY?:string; AUTH_CODE_SECRET?:string; TURNSTILE_SECRET_KEY?:string; TURNSTILE_SITE_KEY?:string; AUTH_EMAIL_FROM?:string }
 export interface Actor {
   userId: string; organizationId: string; organizationName: string; displayName: string; userName: string;
   email: string | null; kind: "Adult" | "Student"; role: "Owner" | "Admin" | "Student"; credentialVersion: string;

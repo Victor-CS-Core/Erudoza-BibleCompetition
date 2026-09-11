@@ -36,6 +36,30 @@ it("keeps all coach tools directly navigable", () => {
  for (const name of ["Overview", "Seasons", "Students", "Assignments", "Scripture library"]) expect(within(nav).getByRole("link", { name })).toBeInTheDocument();
  expect(within(nav).getByRole("link", { name: "Assignments" })).toHaveAttribute("aria-current", "page");
 });
+it.each([
+ ["/admin/coaches", "admin", "Coach", "Coaches"],
+ ["/student/progress", "student", "Learner", "Progress"],
+] as const)("reveals the active shortcut after resize without overriding manual scrolling: %s", (path, variant, navName, activeName) => {
+ const view = shell(path, variant);
+ const nav = screen.getByRole("navigation", { name: navName });
+ const current = within(nav).getByRole("link", { name: activeName }).parentElement!;
+ // A desktop-visible destination moves outside the strip when the viewport narrows.
+ const navBounds = vi.spyOn(nav, "getBoundingClientRect").mockReturnValue({ left: 0, right: 300, width: 300 } as DOMRect);
+ vi.spyOn(current, "getBoundingClientRect").mockImplementation(() => ({ left: 540 - nav.scrollLeft, right: 665 - nav.scrollLeft } as DOMRect));
+ fireEvent.resize(window);
+ expect(nav.scrollLeft).toBe(365);
+ expect(current.getBoundingClientRect().right).toBeLessThanOrEqual(nav.getBoundingClientRect().right);
+ // Scrolling the strip deliberately must not snap back to the active item.
+ nav.scrollLeft = 30;
+ fireEvent.scroll(nav);
+ fireEvent.click(screen.getByRole("button", { name: "Account" }));
+ expect(nav.scrollLeft).toBe(30);
+ // Mobile browser chrome may resize height without changing strip width.
+ fireEvent.resize(window);
+ expect(nav.scrollLeft).toBe(30);
+ view.unmount(); navBounds.mockClear(); fireEvent.resize(window);
+ expect(navBounds).not.toHaveBeenCalled();
+});
 it("handles a sign-out failure without losing the current session", async () => {
  logout.mockRejectedValue(new Error("offline")); shell();
  fireEvent.click(screen.getByRole("button", { name: "Account" }));

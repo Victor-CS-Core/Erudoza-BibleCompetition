@@ -1,0 +1,16 @@
+.coach-onboarding .training-login-form-wrap { max-width: 440px; }
+.coach-onboarding .ds-page-header { margin-bottom: var(--er-space-6); }
+.coach-onboarding .ds-notice { margin-block: var(--er-space-4); overflow-wrap: anywhere; }
+.coach-onboarding form > p { margin-top: var(--er-space-2); }
+.coach-form-actions { display: flex; flex-wrap: wrap; gap: var(--er-space-3); margin-top: var(--er-space-4); }
+.coach-security-check { width: 100%; min-width: 0; margin-block: var(--er-space-4); }
+.coach-code-resend { margin-top: var(--er-space-6); }
+.coach-directory { display: grid; gap: var(--er-space-4); padding: 0; list-style: none; }
+.coach-directory li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--er-space-3); }
+.coach-directory-detail { min-width: 0; flex: 1 1 220px; overflow-wrap: anywhere; }
+.coach-directory-detail p { margin-bottom: 0; }
+.coach-invite-form { display: grid; gap: var(--er-space-3); max-width: 560px; }
+@media (max-width: 380px) {
+  /* Turnstile's flexible widget has a 300px minimum width. */
+  .coach-onboarding .training-login-main { padding-inline: 8px; }
+}

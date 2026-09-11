@@ -66,6 +66,7 @@ describe("LoginPage Field Guide Academy", () => {
       login,
       logout: vi.fn(),
       refresh: vi.fn(),
+      acceptSession: vi.fn(),
     });
   });
 
@@ -77,6 +78,8 @@ describe("LoginPage Field Guide Academy", () => {
     expect(screen.getByTestId("erudoza-mark")).toHaveAttribute("src", "/brand/erudoza-mark.png");
     expect(screen.getByText(/Ask your coach or academy administrator\./)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "← Back to home" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: "Create a club" })).toHaveAttribute("href", "/signup");
+    expect(screen.getByRole("link", { name: "reset your password" })).toHaveAttribute("href", "/forgot-password");
   });
   it("lets the explorer reveal the password without changing the login contract", () => {
     renderLogin();

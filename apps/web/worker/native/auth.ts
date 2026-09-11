@@ -1,5 +1,7 @@
 import type { Actor, Env } from "./types";
 import { body, HttpError, json, noContent, requiredString } from "./types";
+import { ingressBudget } from "./onboarding/limits";
+import { clientIp } from "./onboarding/shared";
 export const COOKIE = "__Host-erudoza.session";
 const bytesToBase64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes));
 export async function sha256(text:string):Promise<string> { return bytesToBase64(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(text)))); }
@@ -40,13 +42,14 @@ export function checkOrigin(request:Request,env:Env):void {
 export async function handleAuth(request:Request,env:Env):Promise<Response|null> {
   const path=new URL(request.url).pathname;
   if(path==="/api/v1/auth/login"&&request.method==="POST") {
+    await ingressBudget(request,env,"login");
     const input=await body<{identifier:unknown;password:unknown}>(request,4096);
     const identifier=requiredString(input.identifier,"Identifier",256).toLowerCase();
     if(typeof input.password!=="string"||input.password.length>256) throw new HttpError(401,"Invalid credentials.");
-    const window=Math.floor(Date.now()/60000), ip=request.headers.get("cf-connecting-ip")||"local";
+    const window=Math.floor(Date.now()/60000), ip=clientIp(request);
     for(const key of [`user:${await sha256(identifier)}`,`ip:${await sha256(ip)}`]) {
       const limit=key.startsWith("user:")?10:50;
-      const row=await env.DB.prepare("INSERT INTO LoginLimits(key,window,attempts) VALUES(?,?,1) ON CONFLICT(key) DO UPDATE SET attempts=CASE WHEN window=excluded.window THEN attempts+1 ELSE 1 END,window=excluded.window RETURNING attempts").bind(key,window).first<{attempts:number}>();
+      const row=await env.DB.prepare("INSERT INTO LoginLimits(key,window,attempts) VALUES(?,?,1) ON CONFLICT(key) DO UPDATE SET attempts=CASE WHEN window=excluded.window THEN attempts+1 ELSE 1 END,window=excluded.window WHERE LoginLimits.window<excluded.window OR (LoginLimits.window=excluded.window AND LoginLimits.attempts<?) RETURNING attempts").bind(key,window,limit).first<{attempts:number}>();
       if((row?.attempts??limit+1)>limit) throw new HttpError(429,"Too many login attempts. Try again in a minute.");
     }
     const row=await env.DB.prepare("SELECT u.*,o.name AS organization_name FROM Users u JOIN Organizations o ON o.id=u.org_id WHERE u.user_name=? OR u.email=? LIMIT 1").bind(identifier,identifier).first<UserRow>();
@@ -56,8 +59,8 @@ export async function handleAuth(request:Request,env:Env):Promise<Response|null>
     if(!row||!valid||row.active!==1) throw new HttpError(401,"Invalid credentials.");
     const value=bytesToBase64(crypto.getRandomValues(new Uint8Array(32))).replaceAll("+","-").replaceAll("/","_").replaceAll("=","");
     await env.DB.batch([
-      env.DB.prepare("DELETE FROM Sessions WHERE expires_at<=?").bind(Date.now()),
-      env.DB.prepare("DELETE FROM LoginLimits WHERE window<?").bind(window-10),
+      env.DB.prepare("DELETE FROM Sessions WHERE token_hash IN (SELECT token_hash FROM Sessions WHERE expires_at<=? ORDER BY expires_at LIMIT 50)").bind(Date.now()),
+      env.DB.prepare("DELETE FROM LoginLimits WHERE key IN (SELECT key FROM LoginLimits WHERE window<? ORDER BY window LIMIT 50)").bind(window-10),
       env.DB.prepare("INSERT INTO Sessions(token_hash,user_id,credential_version,expires_at) VALUES(?,?,?,?)").bind(await sha256(value),row.id,row.credential_version,Date.now()+8*3600_000)
     ]);
     const response=json(me(actor(row))); response.headers.set("Set-Cookie",`${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=28800`); return response;

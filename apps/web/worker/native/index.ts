@@ -6,6 +6,9 @@ import { handleApplication } from "./application";
 import { handlePractice } from "./practice/routes";
 import { handleStudy } from "./study/routes";
 import { handleScripture } from "./study/scripture";
+import { handleOnboarding } from "./onboarding/routes";
+import { handleCoachManagement } from "./onboarding/invitations";
+import { enforcePerimeter } from "./perimeter";
 export { PracticeRoom } from "./practice/room";
 export { PracticeReports } from "./practice/reports";
 export { PasswordCrypto } from "./password-crypto";
@@ -14,6 +17,7 @@ export default {
     try {
       const url=new URL(request.url);
       if(!url.pathname.startsWith("/api/")) return env.ASSETS ? await env.ASSETS.fetch(request) as unknown as Response : new Response("Not found",{status:404});
+      await enforcePerimeter(request,env);
       checkOrigin(request,env);
       // Forward body untouched. The authoritative room captures ingress before authentication.
       const live=url.pathname.match(/^\/api\/v1\/organizations\/([a-f0-9-]{36})\/practice\/rooms\/([a-f0-9-]{36})(?:\/(?:commands|socket))?$/i);
@@ -24,6 +28,7 @@ export default {
       }
       if(url.pathname==="/api/v1/health"&&request.method==="GET") { await env.DB.prepare("SELECT 1").first(); return json({status:"ok",database:true,runtime:"cloudflare",timing:"server-event-time-v1"}); }
       const auth=await handleAuth(request,env); if(auth) return auth;
+      const onboarding=await handleOnboarding(request,env); if(onboarding) return onboarding;
       const actor=await authenticate(request,env);
       if(url.pathname==="/api/v1/me"&&request.method==="GET") return json(me(actor));
       if(url.pathname.startsWith("/api/v1/study/")||url.pathname.startsWith("/api/v1/progress/")){
@@ -35,6 +40,7 @@ export default {
       const orgId=match[1].toLowerCase(); if(orgId!==actor.organizationId) throw new HttpError(403,"Organization access denied.");
       if(!match[2]&&request.method==="GET") return json(await env.DB.prepare("SELECT id,name,slug FROM Organizations WHERE id=?").bind(orgId).first());
       const context={request,env,actor,orgId,path:match[2]??"",store:new Store(env.DB)};
+      const coaches=await handleCoachManagement(context);if(coaches)return coaches;
       const practice=await handlePractice(context);if(practice)return practice;
       const study=await handleStudy(context);if(study)return study;
       const application=await handleApplication(context);if(application)return application;
