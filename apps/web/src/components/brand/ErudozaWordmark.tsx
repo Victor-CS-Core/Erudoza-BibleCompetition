@@ -1,5 +1,4 @@
 import { PatchArtwork } from "../ui/PatchArtwork";
-import "./ErudozaWordmark.css";
 
 type Props = {
   compact?: boolean;
@@ -24,20 +23,7 @@ export function ErudozaWordmark({ compact = false, inverted = false }: Props) {
         data-testid="erudoza-mark"
       />
       <div>
-        <p className="er-wordmark-name flex leading-none">
-          <span className="sr-only">Erudoza</span>
-          <PatchArtwork
-            src="/brand/erudoza-wordmark-320.webp"
-            srcSet="/brand/erudoza-wordmark-320.webp 320w, /brand/erudoza-wordmark-640.webp 640w"
-            sizes={compact ? "(max-width: 760px) 120px, 150px" : "(max-width: 760px) 140px, 160px"}
-            alt=""
-            width={320}
-            height={78}
-            className="er-wordmark-lettering"
-            loading="eager"
-            data-testid="erudoza-lettering"
-          />
-        </p>
+        <p className="er-wordmark-name leading-none">Erudoza</p>
         {compact ? null : <p className={`er-wordmark-tagline mt-1 ${muted}`}>Study. Master. Compete.</p>}
       </div>
     </div>

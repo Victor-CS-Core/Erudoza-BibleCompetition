@@ -1,6 +1,8 @@
-# Approved embroidered Erudoza wordmark
+# Archived embroidered Erudoza wordmark
 
-Status: **approved, transparently prepared and integrated on September 11, 2026**. After approving the visual design, the user explicitly approved local background removal when the built-in tool could not produce transparency. The app uses the transparent derivatives through shared `PatchArtwork`, with an accessible text name and the existing responsive header proportions.
+Status: **archived and inactive; text name restored on September 11, 2026**. After seeing the lettering image in the app, the user requested returning the Erudoza name to text. The approved flame-and-Bible patch, Honors patches, banner and corner illustrations remain active. All lettering source files and derivatives are preserved unchanged as design history.
+
+Earlier that day, the user approved the visual design and explicitly approved local background removal when the built-in tool could not produce transparency. The transparent derivatives were integrated through shared `PatchArtwork` and verified in the app before the later decision to restore text.
 
 The selected concept uses ivory embroidery, navy edging, and a fine gold outer stitch. The spelling and complete letter contours were visually inspected in the original and the 640px preview.
 
@@ -12,10 +14,10 @@ The selected concept uses ivory embroidery, navy edging, and a fine gold outer s
 | [320px preview](preview/erudoza-wordmark-concept-320.webp) | 320 × 107 | RGB WebP; **no alpha** | Small approval preview, 10,182 bytes |
 | [640px preview](preview/erudoza-wordmark-concept-640.webp) | 640 × 213 | RGB WebP; **no alpha** | Large approval preview, 34,768 bytes |
 | [Transparent master](erudoza-wordmark-alpha-v1.png) | 2172 × 724 | RGBA PNG | Original canvas, locally extracted alpha |
-| [Production 320px](../../../apps/web/public/brand/erudoza-wordmark-320.webp) | 320 × 78 | RGBA WebP | Cropped responsive name, 17,594 bytes |
-| [Production 640px](../../../apps/web/public/brand/erudoza-wordmark-640.webp) | 640 × 157 | RGBA WebP | Larger/dense-display name, 51,138 bytes |
+| [Archived 320px derivative](../../../apps/web/public/brand/erudoza-wordmark-320.webp) | 320 × 78 | RGBA WebP | Former cropped responsive name, 17,594 bytes; inactive |
+| [Archived 640px derivative](../../../apps/web/public/brand/erudoza-wordmark-640.webp) | 640 × 157 | RGBA WebP | Former larger/dense-display name, 51,138 bytes; inactive |
 
-The source canvas ratio is 3:1. The opaque review files retain white padding and belong on a white art board. Production derivatives crop to 2114 × 518 around the complete stitched silhouette with eight source pixels of transparent padding; their heights are rounded to whole pixels. Only the production files are used as transparent overlays.
+The source canvas ratio is 3:1. The opaque review files retain white padding and belong on a white art board. The archived app derivatives crop to 2114 × 518 around the complete stitched silhouette with eight source pixels of transparent padding; their heights are rounded to whole pixels. These files have true transparency but are no longer rendered by the app.
 
 ## Provenance and preparation
 
@@ -26,7 +28,7 @@ The source canvas ratio is 3:1. The opaque review files retain white padding and
 - After approval, one further built-in background-extraction attempt (`exec-b30407fb-b1a8-4602-8b86-865288ee7484.png`) again returned RGB with a baked checkerboard, confirmed with Sharp metadata. It was rejected for production. Its exact prompt is preserved in [background-extraction-attempt.txt](background-extraction-attempt.txt).
 - The user then explicitly approved local background removal. [prepare-alpha.mjs](prepare-alpha.mjs) verifies the original SHA-256, identifies eight connected paper regions without erasing the pale thread highlights, resolves only the three-pixel antialiased edge against nearby opaque thread, and crops/resizes the production derivatives. WebP quality is 92, alpha quality 100, effort 6. Run the saved script from the repository root with Node and Sharp available.
 - The master has genuine alpha: 904,219 transparent pixels, 11,860 partially transparent edge pixels and 656,449 opaque pixels. Every opaque pixel retains its original RGB values, including 16,719 near-white thread pixels. The opaque master source and its visual design remain unchanged. Production files and preparation details are recorded in [alpha-manifest.json](alpha-manifest.json).
-- Independent asset/source review and inspection on navy, ivory and white found clean edges and readable lettering at representative header sizes. Rendered app headers and shared motion are verified separately in the integration audit.
+- Independent asset/source review and inspection on navy, ivory and white found clean edges and readable lettering at representative header sizes. The integration audit records the earlier rendered-header and shared-motion checks; those historical checks do not override the user's subsequent preference for the text name.
 
 ## SHA-256
 

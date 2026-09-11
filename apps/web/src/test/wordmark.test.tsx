@@ -10,13 +10,8 @@ describe("ErudozaWordmark", () => {
     expect(screen.getByTestId("erudoza-mark")).toHaveAttribute("alt", "");
     expect(screen.getByTestId("erudoza-mark").parentElement).toHaveClass("ds-patch-art", "er-wordmark-mark");
     expect(screen.getByText("Erudoza").closest(".ds-patch-art")).toBeNull();
-    expect(screen.getByText("Erudoza")).toHaveClass("sr-only");
-    const lettering = screen.getByTestId("erudoza-lettering");
-    expect(lettering).toHaveAttribute("src", "/brand/erudoza-wordmark-320.webp");
-    expect(lettering).toHaveAttribute("srcset", "/brand/erudoza-wordmark-320.webp 320w, /brand/erudoza-wordmark-640.webp 640w");
-    expect(lettering).toHaveAttribute("alt", "");
-    expect(lettering).toHaveAttribute("loading", "eager");
-    expect(lettering.parentElement).toHaveClass("ds-patch-art", "er-wordmark-lettering");
+    expect(screen.getByText("Erudoza")).not.toHaveClass("sr-only");
+    expect(screen.queryByTestId("erudoza-lettering")).not.toBeInTheDocument();
   });
 
   it("keeps compact branding accessible without a tagline or duplicate image names", () => {

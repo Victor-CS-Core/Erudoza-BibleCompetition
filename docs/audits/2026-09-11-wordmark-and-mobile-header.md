@@ -28,4 +28,10 @@ The user approved local background removal for the already-approved stitched Eru
 
 ## Scope limits
 
+### Later text-name correction
+
+After reviewing the integrated image, the user requested restoring Erudoza as text. The shared component now renders its original text name; the embroidered flame-and-Bible emblem and its motion remain. The image-only lettering stylesheet was removed. Masters/derivatives are archived unchanged, and the design guidance/gallery record the superseding decision.
+
+Post-correction checks: **24 focused tests** passed (wordmark and navigation), ESLint, both TypeScript configurations and both production builds passed. **12 browser views** across landing, sign-in, Coach and student at 320/390/1440 confirmed visible text, loaded patch emblem, absent lettering images, and no overflow/JavaScript errors; actual Coach 320 screenshot inspected. Report: ignored `.local/text-wordmark-check/report.json`, completed **2026-09-11T19:33:07.248Z**. Native JavaScript SHA-256: `61e029e01985a6923b5a563c93df3c2f013c11dee2e1cf8949639236dec0abf7`. Earlier 320-test/27-view results remain historical; the complete suites were not repeated for this restoration.
+
 This is local presentation/interaction evidence. No production deployment, merge, hosted data/email/account action, database migration, full backend/.NET/gameplay rerun, or regional load test is implied. The native/canonical builds retain the existing nonblocking 500kB bundle-size and canonical `punycode` dependency advisories. Source checkpoint and push status are recorded in `PROGRESS.md`.
