@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Erudoza · Team Practice design review</title>
+  <link rel="stylesheet" href="../../../apps/web/src/styles/tokens.css">
+  <link rel="stylesheet" href="../../../apps/web/src/styles/design-system.css">
+  <link rel="stylesheet" href="2026-09-11-team-practice.css">
+</head>
+<body>
+  <aside class="review-bar" aria-label="Design preview controls">
+    <div class="review-intro"><strong>Team Practice · design preview</strong><span>Sample data. New artwork and mobile bottom navigation proposed for approval.</span></div>
+    <div class="review-options">
+      <div class="review-stages" aria-label="Preview screen">
+        <button data-stage="hub" aria-pressed="true">Hub</button><button data-stage="lobby" aria-pressed="false">Lobby</button><button data-stage="live" aria-pressed="false">Live match</button><button data-stage="results" aria-pressed="false">Results</button><button data-stage="artwork" aria-pressed="false">Artwork</button>
+      </div>
+      <label class="review-role">View as <select id="role"><option value="student">Student</option><option value="coach">Coach</option></select></label>
+      <button class="review-demo" id="preview-response-end" hidden>Preview response ending</button>
+    </div>
+  </aside>
+  <div id="app" class="training-app">
+    <header class="app-header">
+      <div class="header-inner">
+        <button class="brand" data-stage="hub" aria-label="Erudoza home"><span class="patch brand-patch"><img src="../../../apps/web/public/brand/erudoza-patch-192.webp" width="192" height="192" alt=""></span><span>Erudoza</span></button>
+        <button class="ds-button ds-button-inverse search" data-open-nav><i data-icon="search"></i><span>Find a section</span><kbd>⌘ K</kbd></button>
+        <button class="account" data-account aria-label="View sample account"><span class="avatar">JL</span><span class="account-name">Jordan Lee</span><i data-icon="chevron"></i></button>
+      </div>
+    </header>
+    <nav class="desktop-nav" aria-label="Main navigation"><div id="desktop-links"></div></nav>
+    <main id="content" tabindex="-1"></main>
+    <nav class="bottom-nav" aria-label="Mobile main navigation" id="bottom-nav"></nav>
+  </div>
+  <dialog class="ds-dialog training-app" id="nav-dialog" aria-labelledby="nav-title"><header class="dialog-heading"><h2 id="nav-title">All sections</h2><button class="ds-button ds-button-ghost icon-button" data-close aria-label="Close sections"><i data-icon="close"></i></button></header><label for="nav-search">Find a section</label><input class="ds-input" id="nav-search" type="search" placeholder="Search this navigation proposal"><div id="nav-items" class="nav-items"></div><p class="dialog-note">Navigation preview only. Team Practice is the interactive screen in this concept.</p></dialog>
+  <dialog class="ds-dialog training-app" id="exit-dialog" aria-labelledby="exit-title"><h2 id="exit-title">Return to your rooms?</h2><p>The match continues while you are away. You can reopen it from Team Practice.</p><div class="actions"><button class="ds-button ds-button-secondary" data-close>Keep playing</button><button class="ds-button ds-button-primary" id="confirm-exit">All rooms</button></div></dialog>
+  <div id="announcement" class="announcement" role="status" aria-live="polite" hidden></div>
+  <script src="2026-09-11-team-practice.js"></script>
+</body>
+</html>

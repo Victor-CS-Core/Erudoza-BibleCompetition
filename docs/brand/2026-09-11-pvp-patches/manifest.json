@@ -1,0 +1,50 @@
+[
+  {
+    "key": "team-a",
+    "generated": "exec-dbb8f643-2ab8-42b4-8431-cecd91308df1.png",
+    "approval": "proposal; awaiting user review",
+    "method": "built-in image_gen; original unchanged; resized WebP only",
+    "master": "masters/team-a.png",
+    "width": 1254,
+    "height": 1254,
+    "hasAlpha": true,
+    "transparentPixels": 597049,
+    "bytes": 2602323,
+    "sha256": "a88d88d53094f45bdcb62c5d6018ee403ec380cad097258787188a3c65236297",
+    "preview": "team-a.webp",
+    "previewBytes": 107924,
+    "previewSha256": "a02c12b6e2dfe8a4e6eee5c0b8474d8a791d8551c5aa5b5299eb7ec7cc4fb201"
+  },
+  {
+    "key": "team-b",
+    "generated": "exec-6b0d3b7b-6af2-4269-a158-04ca0527f6bd.png",
+    "approval": "proposal; awaiting user review",
+    "method": "built-in image_gen; original unchanged; resized WebP only",
+    "master": "masters/team-b.png",
+    "width": 1254,
+    "height": 1254,
+    "hasAlpha": true,
+    "transparentPixels": 561059,
+    "bytes": 2756612,
+    "sha256": "839444c5878cd4494e2964986b2fdfed8b082d70bbcc34862d85af7393478319",
+    "preview": "team-b.webp",
+    "previewBytes": 119890,
+    "previewSha256": "78124d8a608aebceb981ee351607224cb6c47fa6b169bd54a8d549c3a8205b89"
+  },
+  {
+    "key": "team-practice",
+    "generated": "exec-29077ea5-7b17-4042-a01b-da15a715e814.png",
+    "approval": "proposal; awaiting user review",
+    "method": "built-in image_gen; original unchanged; resized WebP only",
+    "master": "masters/team-practice.png",
+    "width": 1254,
+    "height": 1254,
+    "hasAlpha": true,
+    "transparentPixels": 412126,
+    "bytes": 3018989,
+    "sha256": "59235818cb575043b51ba1252ea26097f12e04330b2e6d41f46a2740b3791774",
+    "preview": "team-practice.webp",
+    "previewBytes": 126616,
+    "previewSha256": "6f391733283102001d264ebf8125b86689d67ae36fe192e1b4d5518e18836eca"
+  }
+]
