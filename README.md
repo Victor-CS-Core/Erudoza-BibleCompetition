@@ -8,7 +8,7 @@ Erudoza is a Scripture competition training app. Coaches set up seasons, assign 
 
 Primary public origin: https://erudoza.com
 
-Production is live on Cloudflare Free (Workers, Durable Objects, and D1). Worker `4958cd54-65b8-4060-9f68-ca59bdb22a6a` serves the apex; HTTP apex and www requests redirect to HTTPS apex with path and query preserved. Administrator/library, TLS, redirect/no-loop, and WebSocket rejection-guard checks passed on September 11. See [the progress log](PROGRESS.md) and [DNS runbook](docs/operations/erudoza-cloudflare-dns.md) for evidence and limits. OpenAI Sites is the previous host; Firebase Hosting is legacy.
+Production is live on Cloudflare Free (Workers, Durable Objects, and D1). The `erudoza-native` Worker serves the apex; HTTP apex and www requests redirect to HTTPS apex with path and query preserved. Administrator/library, TLS, redirect/no-loop, and WebSocket rejection-guard checks passed on September 11. See [the progress log](PROGRESS.md) and [DNS runbook](docs/operations/erudoza-cloudflare-dns.md) for current deployment evidence and limits. OpenAI Sites is the previous host; Firebase Hosting is legacy.
 
 ## Stack
 

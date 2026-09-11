@@ -1,12 +1,12 @@
 # erudoza.com Cloudflare DNS transition
 
-## Current state — 2026-09-11, verified through 14:56:46 UTC
+## Current state — 2026-09-11, verified through 15:09:57 UTC
 
 GoDaddy saved the custom nameservers **`elsa.ns.cloudflare.com`** and **`yevgen.ns.cloudflare.com`**. The registrar UI was read back and confirmed that setting at 13:59:27 UTC. Registration and renewal remain at GoDaddy; no domain transfer or paid upgrade was made.
 
 Cloudflare zone **`c65e6d9c75bf399c8d726ec2414859d3`** is **Active** on the **Free Website** plan, confirmed by the API at 14:02:09.335 UTC with the same assigned nameservers. [Local zone-status evidence](../../.local/deployment/zone-status.json). The initial import preserved all 26 reviewed portable GoDaddy records. The approved application cutover subsequently replaced the apex records and updated www as recorded below. DNSSEC was verified off in the reviewed GoDaddy UI.
 
-**Production is live and the app-domain gate is complete:** [https://erudoza.com](https://erudoza.com) is bound to `erudoza-native`, deployed version **`4958cd54-65b8-4060-9f68-ca59bdb22a6a`**, with `PUBLIC_ORIGIN=https://erudoza.com`. The user explicitly approved these exact replacements. The existing www record is now a **Proxied CNAME to `erudoza.com`, Automatic TTL**, verified in the Cloudflare UI.
+**Production is live and the app-domain gate is complete:** [https://erudoza.com](https://erudoza.com) is bound to `erudoza-native`, current version **`c254f500-b7ad-4135-b10d-2ac4e43558b7`**, with `PUBLIC_ORIGIN=https://erudoza.com`. The original cutover version was `4958cd54-65b8-4060-9f68-ca59bdb22a6a`; the current version adds the [verified text-contrast fix](../audits/2026-09-11-contrast.md). The user explicitly approved the domain replacements. The existing www record is a **Proxied CNAME to `erudoza.com`, Automatic TTL**, verified in the Cloudflare UI.
 
 Active Single Redirect **`269651cea73a457786211151fda5c516`** uses condition `(http.host eq "www.erudoza.com")`, dynamic target `concat("https://erudoza.com", http.request.uri.path)`, status **301**, and query-string preservation. Both HTTP and HTTPS www requests were verified to redirect directly to HTTPS apex with their path and query intact.
 
@@ -83,7 +83,7 @@ The same approval explicitly covered uploading the reviewed source to the existi
 
 ## Completed gate and remaining work
 
-The production DNS/app-domain gate is complete. No DNS or exact-approval blocker remains. The primary agent still needs to commit and push this final documentation checkpoint; the last confirmed source tip is `47732ba`. The user's new gray-text/green-background contrast audit is a separate active checkpoint tracked in [PROGRESS.md](../../PROGRESS.md).
+The production DNS/app-domain gate is complete. No DNS or exact-approval blocker remains. Production documentation checkpoint `12709c3` is committed and pushed. The subsequent gray-text/green-background fix is locally verified and deployed, with exact served HTML/JS/CSS hashes and API health verified at 15:09:57 UTC. Its source checkpoint is tracked in [PROGRESS.md](../../PROGRESS.md).
 
 The separate 20-room/200-player regional load gate remains open. A successful production-domain 101 upgrade/full match was not added by the bounded guard checks. Keep the reviewed backups available, and use the normal coach workflow to enable Team Practice and prepare academy content when needed.
 
@@ -93,4 +93,4 @@ Before any rollback, compare the current zone with the reviewed backup and prese
 
 The previous Sites host values are apex A **`162.159.143.30`** and **`172.66.3.26`**, plus www CNAME **`custom-domains.chatgpt.site.`**. They were replaced by the approved native binding and proxied redirect configuration. The complete portable backup contains their original TTLs and associated verification records. If reverting the application cutover while keeping Cloudflare authoritative, review and remove the managed apex binding, disable the www redirect, restore the legacy host records, and revalidate the old host's HTTPS and verification state. Preserve unrelated records; do not import the full backup blindly over newer records.
 
-The current Worker version is `4958cd54-65b8-4060-9f68-ca59bdb22a6a` with production `PUBLIC_ORIGIN`. Returning its interactive use to workers.dev also requires a reviewed deployment/origin rollback: the staging configuration targets this same Worker and shared D1/DO bindings. It must not be deployed as though it were a separate staging service. Do not reimport or overwrite hosted user/library data as part of a DNS rollback.
+The current Worker version is `c254f500-b7ad-4135-b10d-2ac4e43558b7` with production `PUBLIC_ORIGIN`. Returning its interactive use to workers.dev also requires a reviewed deployment/origin rollback: the staging configuration targets this same Worker and shared D1/DO bindings. It must not be deployed as though it were a separate staging service. Do not reimport or overwrite hosted user/library data as part of a DNS rollback.
