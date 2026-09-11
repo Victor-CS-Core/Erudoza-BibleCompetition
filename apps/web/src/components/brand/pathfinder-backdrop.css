@@ -1,0 +1,19 @@
+/* Approved corner art is confined to the page canvas and never adds page height. */
+.pathfinder-canvas { position:relative; isolation:isolate; }
+.pathfinder-backdrop { position:absolute; z-index:-1; inset:0; overflow:hidden; pointer-events:none; user-select:none; }
+.pathfinder-backdrop::after {
+  content:""; position:absolute; right:0; bottom:0; width:min(64%, 540px); aspect-ratio:1;
+  background:var(--pathfinder-image) right bottom / contain no-repeat;
+  mix-blend-mode:multiply; opacity:.3;
+  mask-image:linear-gradient(135deg, transparent 18%, #000 85%);
+}
+.pathfinder-backdrop[data-corner="left"]::after {
+  left:0; right:auto; background-position:left bottom;
+  mask-image:linear-gradient(225deg, transparent 18%, #000 85%);
+}
+/* Keep form instructions and all account states on the existing solid paper surface. */
+.training-login-main.pathfinder-canvas > .training-login-form-wrap { background:var(--er-paper); }
+@media(max-width:760px) {
+  .pathfinder-backdrop::after { width:min(62%, 260px); opacity:.2; }
+}
+@media(forced-colors:active), print { .pathfinder-backdrop { display:none; } }

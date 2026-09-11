@@ -1,0 +1,28 @@
+# Approved artwork integration — September 11, 2026
+
+The user approved the artwork review after inspecting all four Pathfinder corner compositions and their alternating page assignments. This gate applies the corners and panoramic placement in the isolated `codex/honors-public` worktree. The approved stitched lettering still needs a transparent production cutout; its separate preparation status is recorded below.
+
+## Implemented scope
+
+- Shared `LandscapeBanner` displays the approved no-sun landscape at its complete 3:1 ratio, with 720/1440 responsive sources and reserved dimensions. Training HQ places it above the mission/sidebar composition; Landing places it above the introduction; desktop sign-in retains a smaller uncropped panorama beside the form. The old duplicate mission image and tall public crop are removed. Dense workspace pages do not receive extra banners.
+- Shared `PathfinderBackdrop` renders the four approved images behind the ivory page canvas. Camp essentials belongs to Landing/Training HQ/recap on the right; Trail navigation to sign-in/Study on the left; Campcraft to signup/Progress on the right; Field notes to Coach overview/Honors on the left. Related routes use explicit stable groups. Seasons, filters and URL fragments do not change the assigned image.
+- The decorative layer is stationary, noninteractive and aria-hidden, with a diagonal fade and restrained opacity. It is smaller on phones and hidden for forced colors/print. It cannot add page height. Account content keeps its solid paper surface. Four copied WebPs match their approved source hashes exactly and total 400,526 bytes; original masters and prompts remain unchanged.
+- Existing logo/Honors patches retain smooth pointer lift/dip, soft contour shadows and reduced-motion/touch behavior. Stored metrics, routes, API calls and onboarding semantics are unchanged.
+
+## Fresh local verification
+
+- Frontend Vitest: **313 passed across 41 files**, with `--maxWorkers=2`. This includes 25 route/decorative semantics checks and existing account, navigation, student and patch behavior regressions.
+- ESLint, web/native TypeScript and both native/canonical production builds passed. Native main JS is `index-DpQ--1dx.js` (505.73 kB; 149.80 kB gzip), canonical main JS `index-CWMrODdG.js` (506.17 kB; 149.95 kB gzip), and shared CSS `index-D21GF7SW.css` (124.73 kB; 22.53 kB gzip). Existing nonblocking 500 kB chunk and `punycode` dependency advisories remain.
+- An isolated, loopback-only native preview at port 8885 passed **33 views** across 1440/390/320: Training HQ, Study, Progress, Honors, saved recap, Coach, Landing, sign-in, signup, password recovery and coach invitation. Every view checked actual image URL/HTTP availability, assigned side/fade, decorative semantics and banner aspect ratio where visible. No page overflow, broken images or JavaScript errors.
+- **12 motion checks** covered logo surfaces across public/account/Coach/student, HQ Honor, collection, details and recap, plus coarse-touch rest. Pointer bounds stayed stationary; opposite corners produced opposite tilt/shadow directions; reduced motion and pointer exit reset effects. Goal/Honor dialogs restored keyboard focus, and an unpinned current shortcut remained visible at 320px.
+- Screenshots were inspected for readable content, corner blending and responsive composition, including desktop HQ/Honors/Landing and phone Coach/Study/HQ/sign-in/signup. Independent source review found no actionable issue.
+- Main preview evidence: ignored `.local/approved-artwork-browser/report.json`, completed at **2026-09-11T18:49:35.924Z**. The preview uses synthetic local accounts/passages and an eight-answer saved recap. It does not send email or write hosted data. Original previews at 4317/4318/8887/8889 were left available.
+- Enabled account forms received a separate **15-view** browser pass at 1440/390/320: signup/recovery email and code-entry states, and invitation missing-token state. A 300px local security-widget substitute fits the 304px form at 320px. Solid paper behind forms, expected art/side, no document/control overflow, broken images or JavaScript errors. Phone and desktop screenshots were inspected. Options, the widget and two code receipts were intercepted only in this test browser; no real CAPTCHA/email/account/password completion occurred. Optional external fonts were blocked and system fonts used. Evidence: ignored `.local/approved-art-account-forms/report.json`. The first harness run completed all 15 views but its strict blocked-request assertion caught the optional Google stylesheet; that first report was preserved and the corrected assertion permits only this expected blocked font. No app fix was required.
+
+## Lettering preparation
+
+The approved [wordmark package](../brand/2026-09-11-patch-wordmark/README.md) remains visually approved. The built-in image tool's further transparency attempt returned a three-channel RGB PNG with a baked checkerboard, so it was rejected. Local background removal needs the user's explicit alternative-method approval under the image-editing tool rules; the question is pending. The current app name remains readable text until a proper alpha asset is ready. No checkerboard/white rectangle was installed as a logo.
+
+## Limits and next step
+
+These are local presentation and browser checks. No new full backend/.NET/gameplay suite, migration, production deployment, real signup, email delivery or regional load test was performed. Apply the approved lettering after resolving its transparent cutout, rerun affected wordmark/header checks, and show the completed preview. Source checkpoint/push status is recorded separately in `PROGRESS.md`.

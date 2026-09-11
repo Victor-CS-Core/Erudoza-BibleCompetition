@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
+import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
+import { PathfinderBackdrop } from "../../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../../components/AppIcon";
 import { Button, Input, Notice, PageHeader } from "../../components/ui";
 import { useAuth } from "../../auth/AuthContext";
@@ -39,10 +41,11 @@ export function LoginPage() {
           <h2>Know the passage.<br /><em>Own the moment.</em></h2>
           <p>Build your knowledge, strengthen your recall, and prepare for your next competition.</p>
         </div>
-        <img className="training-login-art" src="/assets/training/journey-hero-720.webp" width={720} height={240} loading="lazy" alt="" />
+        <LandscapeBanner className="training-login-art" sizes="(min-width: 760px) 50vw, 100vw" />
         <p className="training-login-motto">Discover · Interpret · Serve</p>
       </section>
-      <section className="training-login-main" aria-labelledby="login-heading">
+      <section className="training-login-main pathfinder-canvas" aria-labelledby="login-heading">
+        <PathfinderBackdrop />
         <Link to="/" className="training-login-back" data-testid="login-join-academy">← Back to home</Link>
         <div className="training-login-form-wrap">
 

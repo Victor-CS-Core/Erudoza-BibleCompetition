@@ -1,6 +1,6 @@
 # Embroidered Erudoza wordmark concept
 
-Status: **visual proposal awaiting approval; not a production asset**. The user requested that the Erudoza name match the embroidered patch family and that new artwork be shown before it is applied. No application component or public asset has been replaced by this package.
+Status: **visual design approved on September 11, 2026; transparent production preparation pending**. The user requested that the Erudoza name match the embroidered patch family and approved the artwork set after review. No application lettering has been replaced by this opaque preview.
 
 The selected concept uses ivory embroidery, navy edging, and a fine gold outer stitch. The spelling and complete letter contours were visually inspected in the original and the 640px preview.
 
@@ -20,7 +20,8 @@ The source canvas ratio is 3:1. Preview heights are rounded to whole pixels. The
 - Selected source: `exec-26f5d035-fcef-4401-af3a-169f7b547728.png`, generated September 11, 2026.
 - The source was copied without modification. Sharp created the two downscaled WebP previews at quality 90, effort 6. There was no code-based matting, background removal, recoloring, or retouching.
 - Follow-up built-in transparency requests produced opaque RGB files (a checkerboard depiction and a black background). Their alpha output failed inspection and they were not selected or copied into this package.
-- After visual approval, obtain and validate a clean alpha cutout before application integration. Responsive sizing, text alternatives, and hover motion remain application concerns.
+- After approval, one further built-in background-extraction attempt (`exec-b30407fb-b1a8-4602-8b86-865288ee7484.png`) again returned RGB with a baked checkerboard, confirmed with Sharp metadata. It was rejected for production. Its exact prompt is preserved in [background-extraction-attempt.txt](background-extraction-attempt.txt).
+- The user has been asked to permit local background removal because the image-editing tool rules require explicit authorization to use another method. That choice is pending. Obtain and validate a clean alpha cutout before application integration; keep the approved cream/navy/gold thread and letter geometry. Responsive sizing, text alternatives, and shared `PatchArtwork` hover motion remain application concerns.
 
 ## SHA-256
 

@@ -5,10 +5,11 @@ import { useAuth } from "../../auth/AuthContext";
 import { api } from "../../api/client";
 import { trainingApi } from "../../api/training";
 import { AppIcon } from "../../components/AppIcon";
+import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
 import { Badge, Button, HonorArtwork, LinkButton, LoadingState, Notice, PageHeader, Panel, ProgressMeter, Select, WeeklyProgressStrip } from "../../components/ui";
 import { PassageJourney } from "./PassageJourney";
 import { WeeklyGoalDialog } from "./WeeklyGoalDialog";
-import { honorAsset, trainingAssets, trainingLink } from "./trainingAssets";
+import { honorAsset, trainingLink } from "./trainingAssets";
 import "./student.css";
 export function StudentHomePage() {
   const { me } = useAuth();
@@ -39,13 +40,13 @@ export function StudentHomePage() {
   };
   return <div className="training-dashboard student-home">
     <PageHeader title="Training HQ" description="A little practice. Lasting knowledge." action={data && <div className="training-season" data-testid="current-season"><small>Current season</small><strong>{data.seasonName || "Not assigned"}</strong><Badge tone={data.seasonStatus === "Active" ? "success" : "neutral"}>{data.seasonStatus === "None" ? "Awaiting assignment" : data.seasonStatus}</Badge></div>} />
+    <LandscapeBanner className="training-hq-banner" priority />
     {(seasons.data?.length ?? 0) > 1 && <label className="training-season-select">Assigned season<Select value={seasonId ?? ""} onChange={event => { setGoalOpen(false); setParams({ seasonId: event.target.value }); }}>{seasons.data?.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}
     {seasons.isError && <Notice tone="danger">Assigned seasons could not load. <Button variant="secondary" onClick={() => void seasons.refetch()}>Retry seasons</Button></Notice>}
     {today.isPending ? <LoadingState label="Loading your training plan…" /> : today.isError ? <Notice tone="danger">Your training plan could not load. <Button variant="secondary" onClick={() => void today.refetch()}>Try again</Button></Notice> : data && <>
       <div className="training-hq-grid">
         <div className="training-mission-column">
           <Panel className="training-mission">
-            <img className="training-mission-art" {...trainingAssets.journey} alt="" width="720" height="480" />
             <div className="training-mission-main">
               <h2>{data.mission.status === "Complete" ? "That’s a good day’s practice." : available ? "Strengthen your recall." : "Your next step starts here."}</h2>
               <p className="training-mission-description">{data.mission.explanation || (data.mission.status === "Complete" ? "Your reviews and daily drill are finished. Every saved answer is part of your progress." : "Review what needs another look, then help the wording and references stick.")}</p>

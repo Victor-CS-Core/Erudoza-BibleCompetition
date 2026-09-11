@@ -31,7 +31,6 @@
 .training-hq-grid > * { min-width: 0; }
 .training-hq-aside { display: grid; gap: 24px; }
 .training-mission.ds-panel { position: relative; overflow: hidden; padding: 0; }
-.training-mission-art { position: absolute; inset: 0 0 auto auto; width: 48%; height: 220px; object-fit: cover; object-position: 75% 45%; mask-image: linear-gradient(to right, transparent, #000 44%); }
 .training-mission-main { position: relative; padding: 28px; }
 .training-mission-main h2 { font-size: 1.875rem; max-width: 340px; margin: 0 0 12px; letter-spacing: -.03em; }
 .training-mission-description { max-width: 320px; font-size: var(--er-text-sm); color: var(--er-muted-ink); margin-bottom: 20px; }
@@ -115,7 +114,6 @@
   .training-recap-main > .ds-patch-art { width:140px; height:140px; align-self:center; }
   .training-mission-main { padding: 24px 20px; }
   .training-mission-main h2 { font-size: 1.6875rem; max-width: 240px; }
-  .training-mission-art { width: 42%; height: 200px; opacity: .7; mask-image: linear-gradient(to right, transparent, #000); }
   .training-mission-description { max-width: 250px; }
   .training-mission-main > .ds-button { width: 100%; }
   .training-mission .training-mission-steps { padding: 4px 20px; }

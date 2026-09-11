@@ -4,6 +4,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../api/client";
 import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
+import { PathfinderBackdrop } from "../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../components/AppIcon";
 import { Button, Notice } from "../components/ui";
 import { CommandCenter } from "../components/navigation/CommandCenter";
@@ -139,7 +140,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
       {focused && <Link to={home} className="command-study-back" data-testid="study-back">Back to training<AppIcon name="arrow" /></Link>}
       {!seasonItems.length && contextItems.length > 0 && <nav className="command-context-links" aria-label="Section">{contextItems.map(item => <Link key={item.id} to={item.to} aria-current={contextCurrent(item) ? "location" : undefined}>{item.label}</Link>)}</nav>}
     </div></div>}
-    <div className="training-workspace"><main id="training-main" className="training-main" data-testid={coach ? "coach-main" : "learner-main"}><Outlet /></main><footer className="training-footer">{coach ? <>SCRIPTURE <span>·</span> DISCIPLESHIP <span>·</span> REAL-WORLD FAITH</> : <>Study. Master. Compete. <span>·</span> One meaningful step at a time.</>}</footer></div>
+    <div className="training-workspace pathfinder-canvas"><PathfinderBackdrop /><main id="training-main" className="training-main" data-testid={coach ? "coach-main" : "learner-main"}><Outlet /></main><footer className="training-footer">{coach ? <>SCRIPTURE <span>·</span> DISCIPLESHIP <span>·</span> REAL-WORLD FAITH</> : <>Study. Master. Compete. <span>·</span> One meaningful step at a time.</>}</footer></div>
     {commandOpen && <CommandCenter items={items} coach={coach} pinned={pinned} togglePin={togglePin} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
   </div>;
 }

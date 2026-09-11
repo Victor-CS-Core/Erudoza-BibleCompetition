@@ -4,6 +4,7 @@ import { onboardingApi, type CodeReceipt, type InvitationDetails } from "../../a
 import { ApiError } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
+import { PathfinderBackdrop } from "../../components/brand/PathfinderBackdrop";
 import { Button, Input, LinkButton, LoadingState, Notice, PageHeader } from "../../components/ui";
 import { TurnstileChallenge } from "./TurnstileChallenge";
 import { useCoachOptions } from "./useCoachOptions";
@@ -125,7 +126,8 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
       <img className="training-login-art training-login-coach-art" src="/assets/training/coach-guide-960.webp" width={960} height={640} loading="lazy" alt="" />
       <p className="training-login-motto">Discover · Interpret · Serve</p>
     </section>
-    <section className="training-login-main" aria-label={titles[mode]}>
+    <section className="training-login-main pathfinder-canvas" aria-label={titles[mode]}>
+      <PathfinderBackdrop />
       <Link to="/login" className="training-login-back">Back to sign in</Link>
       <div className="training-login-form-wrap">
         <PageHeader title={titles[mode]} description={messages[mode]} />

@@ -9,8 +9,8 @@
 .training-login-message h2 { color:var(--er-on-navy); margin:0 0 24px; text-wrap:balance; }
 .training-login-message h2 em { font-style:normal; }
 .training-login-message>p { color:var(--er-on-navy); max-width:42ch; }
-.training-login-art { display:block; width:100%; height:auto; max-height:340px; object-fit:cover; object-position:70% center; border-radius:var(--er-radius-card); margin-top:auto; }
-.training-login-coach-art { object-fit:contain; }
+.training-login-art { display:block; width:100%; height:auto; border-radius:var(--er-radius-card); margin-top:auto; }
+.training-login-coach-art { max-height:340px; object-fit:contain; }
 .training-login-motto { font-size:var(--er-text-sm); margin-top:24px; }
 .training-login-main { display:flex; flex-direction:column; min-width:0; padding:32px 48px 24px; }
 .training-login-back { color:var(--er-muted-ink); font-size:var(--er-text-sm); align-self:flex-start; min-height:44px; display:inline-flex; align-items:center; }

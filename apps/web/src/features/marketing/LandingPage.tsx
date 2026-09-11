@@ -1,23 +1,26 @@
 import { Link } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
+import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
+import { PathfinderBackdrop } from "../../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../../components/AppIcon";
 import { LinkButton } from "../../components/ui";
 import { CoffeeWidget } from "../support/CoffeeWidget";
 import "../../styles/training-public.css";
 
 export function LandingPage() {
-  return <div className="training-public">
+  return <div className="training-public pathfinder-canvas">
+    <PathfinderBackdrop />
     <CoffeeWidget />
     <a className="training-skip" href="#public-main">Skip to content</a>
     <header className="public-header"><Link to="/" aria-label="Erudoza home"><ErudozaWordmark compact inverted /></Link><LinkButton to="/login" variant="secondary">Sign in<AppIcon name="arrow" /></LinkButton></header>
     <main id="public-main" className="public-main" data-testid="landing-phone-column">
-      <div className="public-welcome"><section className="public-intro">
+      <div className="public-welcome"><LandscapeBanner className="public-landscape" priority sizes="(min-width: 1200px) 1128px, 100vw" alt="Mountains and forest surrounding an open valley" /><section className="public-intro">
         <h1>Know the passage.<br /><em>Own the moment.</em></h1>
         <p>Focused Scripture training for your next Bible competition. Study your assigned passages, strengthen your recall, and prepare together.</p>
         <div className="public-actions"><LinkButton to="/login" data-testid="start-studying">Start studying<AppIcon name="arrow" /></LinkButton><LinkButton to="/login" data-testid="build-a-season" variant="secondary">Coach your team</LinkButton></div>
         <p className="public-access-note">Sign in with the account provided by your coach or academy.</p>
       </section>
-      <img className="public-landscape" src="/assets/training/journey-hero-1440.webp" srcSet="/assets/training/journey-hero-720.webp 720w, /assets/training/journey-hero-1440.webp 1440w" sizes="(min-width: 900px) 55vw, 100vw" width={1440} height={480} alt="Mountains and forest surrounding an open valley" fetchPriority="high" /></div>
+      </div>
       <section className="public-training" aria-labelledby="training-title">
         <div><h2 id="training-title">A clear path to confident recall.</h2><p>One assigned passage. Different ways to make it stick.</p></div>
         <ol className="public-training-steps">
