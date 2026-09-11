@@ -1,0 +1,51 @@
+[
+  {
+    "key": "first-fellowship",
+    "method": "Original true-alpha master",
+    "sourceSha256": "2dfdde4ac1b61c55b5be538e3b3765462693003ad7984cf6f84d05f6829048cc"
+  },
+  {
+    "key": "team-steady",
+    "method": "Border-connected neutral exterior removal; two-pixel edge dematting; interior RGB preserved",
+    "sourceSha256": "1b14a1ac142d74bd3fe1400ba60356738c2dcb0a2b1fb3116ff69ef1797bb8f0",
+    "file": "prepared/team-steady.png",
+    "sha256": "62c39f7409aab505d6074fc690b1ebf300e3872055500ff942f6e3f815dcfb11",
+    "width": 1254,
+    "height": 1254,
+    "removedExteriorPixels": 404299,
+    "opaqueInteriorPixels": 1161271,
+    "edgePixels": 6946,
+    "hasAlpha": true
+  },
+  {
+    "key": "shared-scribe",
+    "method": "Border-connected neutral exterior removal; two-pixel edge dematting; interior RGB preserved",
+    "sourceSha256": "3427588f4af1048d024283f552e939ff8eb53c9e6682d9c5094ca42b199bffc1",
+    "file": "prepared/shared-scribe.png",
+    "sha256": "8912c1e3762a3748ef324886ef8fc96ffe5a4aaa5e991d0f0aba3e8a7e7ed023",
+    "width": 1254,
+    "height": 1254,
+    "removedExteriorPixels": 414551,
+    "opaqueInteriorPixels": 1151067,
+    "edgePixels": 6898,
+    "hasAlpha": true
+  },
+  {
+    "key": "team-precision",
+    "method": "Border-connected neutral exterior removal; two-pixel edge dematting; interior RGB preserved",
+    "sourceSha256": "03d49f444331a5432d1b1ff412ca1e231c9928d21542c63834248aa5a3c9f7ef",
+    "file": "prepared/team-precision.png",
+    "sha256": "2130f20dddd46c7d78b4ec67a4daca0fc36ca3989128d4b73be30409671033b8",
+    "width": 1254,
+    "height": 1254,
+    "removedExteriorPixels": 409462,
+    "opaqueInteriorPixels": 1156147,
+    "edgePixels": 6907,
+    "hasAlpha": true
+  },
+  {
+    "key": "rehearsal-complete",
+    "method": "Original true-alpha master",
+    "sourceSha256": "0d97e19479c710edb0af82b3336abf2b75935645c6e4444dc120bdd468476d06"
+  }
+]

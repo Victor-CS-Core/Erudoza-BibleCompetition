@@ -11,7 +11,8 @@
     "sha256": "2dfdde4ac1b61c55b5be538e3b3765462693003ad7984cf6f84d05f6829048cc",
     "reviewBytes": 130994,
     "reviewSha256": "ac621d8fa74efeb7e6ba06966cb07a6bb516b0291b5181f85874de6905ca4fd1",
-    "status": "pending-user-approval"
+    "status": "user-approved",
+    "approvedOn": "2026-09-11"
   },
   {
     "key": "team-steady",
@@ -26,7 +27,8 @@
     "sha256": "1b14a1ac142d74bd3fe1400ba60356738c2dcb0a2b1fb3116ff69ef1797bb8f0",
     "reviewBytes": 135208,
     "reviewSha256": "86746ab5649fa6da839de8aff2ddde4d2a630bcb7e504c711bb89269abde8fa9",
-    "status": "pending-user-approval"
+    "status": "user-approved",
+    "approvedOn": "2026-09-11"
   },
   {
     "key": "shared-scribe",
@@ -41,7 +43,8 @@
     "sha256": "3427588f4af1048d024283f552e939ff8eb53c9e6682d9c5094ca42b199bffc1",
     "reviewBytes": 136566,
     "reviewSha256": "1e74d52d14d2725f312a7c9b49c412f44da612fc9eaf60793748d3d582a61890",
-    "status": "pending-user-approval"
+    "status": "user-approved",
+    "approvedOn": "2026-09-11"
   },
   {
     "key": "team-precision",
@@ -56,7 +59,8 @@
     "sha256": "03d49f444331a5432d1b1ff412ca1e231c9928d21542c63834248aa5a3c9f7ef",
     "reviewBytes": 129558,
     "reviewSha256": "e462390bc14a8af0879070075af2454775dc06632984a8a0933384237c78c29d",
-    "status": "pending-user-approval"
+    "status": "user-approved",
+    "approvedOn": "2026-09-11"
   },
   {
     "key": "rehearsal-complete",
@@ -70,6 +74,7 @@
     "sha256": "0d97e19479c710edb0af82b3336abf2b75935645c6e4444dc120bdd468476d06",
     "reviewBytes": 127150,
     "reviewSha256": "c577fdb7cf0ae2791d17e177e431e9ead188d55785194e18e48e98e772a9ae74",
-    "status": "pending-user-approval"
+    "status": "user-approved",
+    "approvedOn": "2026-09-11"
   }
 ]

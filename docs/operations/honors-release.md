@@ -1,6 +1,6 @@
 # Honors release change set
 
-Status: prepared for review; no production action performed by the Honors implementation task.
+Status: the user explicitly approved all five Team Honor designs and instructed commit, push and production deployment on September 11. Release execution and evidence are recorded in PROGRESS.md.
 
 ## Scope
 
@@ -10,10 +10,10 @@ Native storage adds the partial unique `Records_training_start` index in migrati
 
 ## Before an approved native release
 
-1. Confirm the reviewed branch/checkpoint and fresh verification results in [the implementation audit](../audits/2026-09-11-honors-implementation.md). Check concurrent production changes and current Worker version immediately before release; the implementation task did not re-verify live state.
+1. Confirm the reviewed branch/checkpoint and fresh verification results in [the implementation audit](../audits/2026-09-11-honors-implementation.md). Check concurrent production changes and current Worker version immediately before release; recheck live state immediately before rollout even when the preceding preflight passed.
 2. Take a private D1 backup/export and record the current Worker version. Keep any export with account/student data under ignored private storage. Review migration status and ensure exactly the additive 0004 migration remains pending. Never reset, reseed or replace the production database.
 3. Build the native frontend and prepare a Worker dry run with `wrangler.production.jsonc`. Review the artifact/configuration diff and preserve the verified email activation. Do not attach a live log tail during an active Team Practice match.
-4. Present that concrete release and backup/migration status for production approval. The user’s implementation instruction does not imply a production rollout.
+4. The September 11 instruction explicitly authorizes this production rollout after verification, commit and push. Review the concrete artifact, backup and migration status, then proceed without repeating approval. A different deployment scope or destructive data repair is not covered.
 
 ## Approved rollout order
 
