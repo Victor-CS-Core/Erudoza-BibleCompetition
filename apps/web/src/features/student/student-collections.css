@@ -1,0 +1,74 @@
+/* Collection and recap composition from the approved daily-training preview. */
+.training-collection-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--er-space-4) var(--er-space-6);
+  flex-wrap: wrap;
+}
+.training-collection-summary > p,
+.training-collection-note { margin: 0; }
+.training-collection-filters { display: flex; gap: var(--er-space-1); flex-wrap: wrap; margin-left: auto; }
+.training-collection-filters > .ds-button { padding-inline: var(--er-space-4); }
+.training-collection .training-honors-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--er-space-6); }
+.training-collection .training-honor-card { gap: var(--er-space-2); padding: var(--er-space-6) var(--er-space-5) var(--er-space-4); }
+.training-collection .training-honor-card > .ds-patch-art { margin: 0 auto var(--er-space-2); }
+.training-collection .training-honor-card > h2 { margin: 0 0 var(--er-space-1); font-size: var(--er-text-lg); }
+.training-collection .training-honor-criterion { flex: 1; max-width: 30ch; margin-block: var(--er-space-2) var(--er-space-3); }
+.training-honor-evidence { display: grid; gap: var(--er-space-2); width: 100%; }
+.training-honor-evidence .ds-progress-meter > span { display: none; }
+.training-collection .training-honor-card > .ds-button { margin-top: var(--er-space-1); width: 100%; }
+.training-collection-empty { grid-column: 1 / -1; }
+.training-collection-note { text-align: center; }
+.training-collection .training-honor-detail > .ds-patch-art { justify-self: center; }
+
+.training-recap-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr); gap: var(--er-space-6); align-items: start; width: 100%; max-width: 1020px; margin-inline: auto; }
+.training-recap .training-recap-main { display: block; padding: var(--er-space-7); text-align: center; }
+.training-recap-main > .ds-badge { margin-bottom: var(--er-space-3); }
+.training-recap-main > .training-recap-title { font-size: var(--er-text-page); }
+.training-recap-award { display: grid; justify-items: center; gap: var(--er-space-2); margin: var(--er-space-5) 0; }
+.training-recap-award > .ds-patch-art { margin-bottom: var(--er-space-2); }
+.training-recap-award > h3,
+.training-recap-award > p { margin: 0; }
+.training-recap-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: var(--er-space-6) 0; padding-block: var(--er-space-5); border-block: 1px solid var(--er-border); }
+.training-recap-stats > div { display: flex; flex-direction: column-reverse; justify-content: end; gap: var(--er-space-1); padding-inline: var(--er-space-2); }
+.training-recap-stats > div + div { border-left: 1px solid var(--er-border); }
+.training-recap-stats dt { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.training-recap-stats dd { margin: 0; font-size: var(--er-text-page); font-weight: 650; font-variant-numeric: tabular-nums; }
+.training-recap-actions { display: grid; gap: var(--er-space-2); margin-top: var(--er-space-5); }
+.training-recap-side { display: grid; gap: var(--er-space-6); min-width: 0; }
+.training-recap-side .training-passage-list { margin-block: var(--er-space-4); }
+.training-recap-side .training-passage-list > li { padding-block: var(--er-space-4); }
+.training-recap-side .training-passage-list > li:first-child { padding-top: 0; }
+.training-recap-side .training-passage-list > li:last-child { padding-bottom: 0; border-bottom: 0; }
+.training-recap-side .training-passage-list h3 { overflow-wrap: anywhere; }
+.training-recap-passage.ds-disclosure { border-top: 0; padding-block: 0; }
+.training-recap-passage > summary > h3 { display: inline; margin: 0; color: inherit; font-size: inherit; }
+.training-recap-passage[open] > summary { margin-bottom: 0; }
+.training-recap-side .training-recap-skills { gap: var(--er-space-3); }
+.training-recap-skill-progress { display: grid; gap: var(--er-space-4); margin: var(--er-space-4) 0; }
+.training-recap-skill-progress > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--er-space-2); font-size: var(--er-text-sm); }
+.training-recap-skill-progress dd { margin: 0; font-variant-numeric: tabular-nums; }
+.training-recap-skill-meter { grid-column: 1 / -1; }
+.training-recap-skill-meter .ds-progress-meter > span { display: none; }
+.training-recap-side .ds-disclosure { font-size: var(--er-text-sm); }
+.training-recap-side .ds-disclosure .training-recap-skills { margin-block: var(--er-space-3) var(--er-space-5); }
+
+@media (max-width: 760px) {
+  .training-collection-filters { margin-left: 0; }
+  .training-collection .training-honors-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--er-space-3); }
+  .training-collection .training-honor-card { padding: var(--er-space-4) var(--er-space-2) var(--er-space-2); }
+  .training-collection .training-honor-card > .ds-patch-art { width: 112px; height: 112px; }
+  .training-collection .training-honor-card > h2 { font-size: var(--er-text-base); }
+  .training-collection .training-honor-criterion { max-width: 25ch; }
+  .training-recap-layout { grid-template-columns: minmax(0, 1fr); }
+  .training-recap .training-recap-main { padding: var(--er-space-6) var(--er-space-4); }
+  .training-recap-main > .training-recap-title { font-size: var(--er-text-title); }
+  .training-recap-side { gap: var(--er-space-4); }
+}
+@media (max-width: 350px) {
+  .training-collection .training-honors-grid { gap: var(--er-space-2); }
+  .training-collection .training-honor-card > .ds-patch-art { width: 96px; height: 96px; }
+  .training-collection .training-honor-card > .ds-button { padding-inline: var(--er-space-2); }
+  .training-recap-stats > div { padding-inline: var(--er-space-1); }
+}

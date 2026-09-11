@@ -266,7 +266,6 @@
 .er-wordmark-mark {
   flex: none;
   object-fit: contain;
-  filter: drop-shadow(0 4px 7px rgba(13, 43, 79, 0.14));
 }
 
 .er-wordmark-name {

@@ -19,3 +19,16 @@ it("switches the bounded request and retained season", async () => { vi.mocked(t
 
 it("starts an updated invalidated mission without stale identifiers", async () => { const data = todayFixture(); vi.mocked(trainingApi.today).mockResolvedValue({ ...data, mission: { ...data.mission, status: "Invalidated" } }); home(); const action = await screen.findByRole("link", { name: "Start updated training" }); expect(action).toHaveAttribute("href", "/student/study?mode=Review&step=Review&seasonId=s"); });
 it("completed missions link their saved recap without a next action", async () => { const data = todayFixture(); vi.mocked(trainingApi.today).mockResolvedValue({ ...data, nextAction: null, mission: { ...data.mission, status: "Complete", steps: [{ kind: "Review", target: 4, completed: 4, status: "Complete", sessionId: "review-done" }, { kind: "Practice", target: 8, completed: 8, status: "Complete", sessionId: "practice-done" }] } }); home(); expect(await screen.findByRole("link", { name: "See today’s recap" })).toHaveAttribute("href", "/student/sessions/practice-done/recap?seasonId=s"); });
+
+it("counts an unneeded review as resolved without inventing completed practice", async () => {
+  const data = todayFixture();
+  data.mission.steps[0] = { kind: "Review", target: 0, completed: 0, status: "NotNeeded", sessionId: null };
+  data.nextAction = { label: "Start daily drill", mode: "Practice", sessionId: null };
+  vi.mocked(trainingApi.today).mockResolvedValue(data);
+  home();
+  const progress = await screen.findByRole("progressbar", { name: "Today's training steps" });
+  expect(progress).toHaveAttribute("value", "1");
+  expect(progress).toHaveAttribute("max", "2");
+  expect(screen.getByText("No review needed today")).toBeInTheDocument();
+  expect(screen.getByText("0 of 8 cards completed")).toBeInTheDocument();
+});

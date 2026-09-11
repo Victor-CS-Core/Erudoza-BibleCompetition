@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Erudoza — Artwork proposals</title>
+  <link rel="stylesheet" href="../../apps/web/src/styles/tokens.css">
+  <link rel="stylesheet" href="../../apps/web/src/styles/design-system.css">
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scrollbar-color: var(--er-border-strong) var(--er-paper); }
+    body { margin: 0; background: var(--er-paper); color: var(--er-ink-navy); font: 15px/1.6 var(--er-font-ui); }
+    ::selection { background: var(--er-selected); color: var(--er-ink-navy); }
+    h1, h2, h3, p, figure { margin: 0; }
+    h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; letter-spacing: -.03em; }
+    h2 { font-size: 24px; line-height: 1.25; letter-spacing: -.02em; }
+    h3 { font-size: 17px; line-height: 1.4; }
+    a { color: var(--er-action-blue); text-underline-offset: 4px; }
+    a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid var(--er-teal); outline-offset: 4px; }
+    .review-header { background: var(--er-ink-navy); color: var(--er-on-navy); }
+    .review-header-inner { max-width: 1152px; margin: auto; padding: 24px; display: flex; align-items: center; gap: 16px; }
+    .review-header img { width: 48px; height: 48px; object-fit: contain; }
+    .review-header strong { display: block; font: bold 25px/1.2 var(--er-font-reading); }
+    .review-header span { display: block; font-size: 13px; color: var(--er-on-navy-muted); }
+    main { max-width: 1152px; margin: auto; padding: 48px 24px 60px; }
+    .intro { max-width: 760px; }
+    .intro p { margin-top: 16px; color: var(--er-muted-ink); font-size: 16px; }
+    .review-nav { display: flex; gap: 12px 24px; flex-wrap: wrap; padding: 24px 0 32px; border-bottom: 1px solid var(--er-border); }
+    .review-nav a { font-weight: 600; font-size: 14px; }
+    section { margin-top: 48px; scroll-margin-top: 24px; }
+    .section-copy { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+    .status { font-size: 12px; color: var(--er-muted-ink); }
+    .section-description { color: var(--er-muted-ink); max-width: 760px; margin-bottom: 24px; }
+    .lettering-board { background: #fff; border-radius: 16px; padding: clamp(20px, 5vw, 64px); display: grid; place-items: center; min-height: 250px; box-shadow: 0 12px 30px #102e470b; }
+    .lettering-board img { display: block; width: min(100%, 780px); height: auto; }
+    figcaption { margin-top: 14px; font-size: 13px; color: var(--er-muted-ink); max-width: 760px; }
+    .art-link { display: inline-block; margin-top: 8px; font-size: 13px; }
+    .banner { width: 100%; height: auto; display: block; aspect-ratio: 3 / 1; object-fit: contain; border-radius: 16px; }
+    .corner-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 24px; align-items: start; }
+    .corner-grid figcaption strong { display: block; color: var(--er-ink-navy); font-size: 16px; margin-bottom: 4px; }
+    .corner-grid .direction { font-size: 12px; color: var(--er-muted-ink); margin-left: 8px; font-weight: 400; }
+    .corner-original { display: block; width: 100%; height: auto; border-radius: 16px; }
+    .corner-detail { margin-top: 32px; background: var(--er-card); border: 1px solid var(--er-border); border-radius: 16px; padding: 24px; }
+    .corner-detail p { color: var(--er-muted-ink); margin-top: 10px; font-size: 14px; }
+    .corner-detail ul { margin: 16px 0 0; padding-left: 20px; color: var(--er-muted-ink); font-size: 14px; }
+    .corner-detail li + li { margin-top: 8px; }
+    .placement-heading { margin: 30px 0 16px; display: flex; align-items: center; gap: 16px; justify-content: space-between; flex-wrap: wrap; }
+    .placement-heading p { color: var(--er-muted-ink); font-size: 13px; margin-top: 4px; }
+    .placement-heading .ds-button { flex: none; }
+    .placement-controls { display: flex; gap: 16px; align-items: end; flex-wrap: wrap; margin: 0 0 16px; }
+    .placement-controls label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; min-width: min(100%, 250px); }
+    .placement-controls select { width: 100%; }
+    .placement-caption { flex: 1; min-width: 220px; margin-bottom: 10px; color: var(--er-muted-ink); font-size: 13px; }
+    .route-map { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 24px; margin: 20px 0 0; }
+    .route-map div { padding: 12px 0; border-top: 1px solid var(--er-border); }
+    .route-map dt { font-size: 13px; font-weight: 600; }
+    .route-map dd { margin: 2px 0 0; font-size: 12px; color: var(--er-muted-ink); }
+    .placement { position: relative; overflow: hidden; border-radius: 16px; border: 1px solid var(--er-border); background: var(--er-paper); isolation: isolate; }
+    .placement::after { content: ""; position: absolute; z-index: -1; right: 0; bottom: 0; width: min(64%, 540px); aspect-ratio: 1; background: var(--corner-image, url("2026-09-11-pathfinder-corners/pathfinder-corner-v1-960.webp")) right bottom / contain no-repeat; mix-blend-mode: multiply; opacity: .3; mask-image: linear-gradient(135deg, transparent 18%, #000 85%); transition: opacity 250ms ease-out; pointer-events: none; }
+    .placement[data-corner="left"]::after { left: 0; right: auto; background-position: left bottom; mask-image: linear-gradient(225deg, transparent 18%, #000 85%); }
+    .placement[data-art="off"]::after { opacity: 0; }
+    .sample-header { min-height: 65px; padding: 14px 28px; background: var(--er-ink-navy); color: var(--er-on-navy); display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .sample-brand { font: bold 25px/1.2 var(--er-font-reading); display: flex; gap: 10px; align-items: center; }
+    .sample-brand img { width: 34px; height: 34px; object-fit: contain; }
+    .sample-header > span { font-size: 12px; color: var(--er-on-navy-muted); text-align: right; }
+    .sample-shortcuts { display: flex; gap: 24px; padding: 14px 28px; background: var(--er-card); border-bottom: 1px solid var(--er-border); font-size: 13px; color: var(--er-muted-ink); }
+    .sample-shortcuts strong { color: var(--er-action-blue); }
+    .sample-content { padding: 28px 28px 145px; }
+    .sample-content > h3 { font-size: 24px; letter-spacing: -.02em; }
+    .sample-content > p { font-size: 13px; color: var(--er-muted-ink); margin: 4px 0 20px; }
+    .sample-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(220px, 1fr); gap: 24px; align-items: start; }
+    .sample-mission, .sample-week { background: var(--er-card); border: 1px solid var(--er-border); border-radius: 16px; padding: 24px; }
+    .sample-mission { position: relative; overflow: hidden; }
+    .sample-mission > img { position: absolute; top: 0; right: 0; width: 50%; height: 150px; object-fit: cover; object-position: 75% 45%; mask-image: linear-gradient(to right, transparent, #000 55%); }
+    .sample-mission h3, .sample-mission p, .sample-mission .sample-steps { position: relative; }
+    .sample-mission h3 { font-size: 26px; line-height: 1.15; max-width: 270px; letter-spacing: -.025em; }
+    .sample-mission > p { font-size: 13px; color: var(--er-muted-ink); max-width: 260px; margin-top: 12px; }
+    .sample-steps { display: grid; gap: 14px; margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--er-border); }
+    .sample-steps span { font-size: 13px; }
+    .sample-steps small { display: block; font-size: 12px; color: var(--er-muted-ink); }
+    .sample-week > p { color: var(--er-muted-ink); font-size: 13px; margin-top: 10px; }
+    .sample-week > strong { font-size: 25px; display: block; margin-top: 12px; font-weight: 650; }
+    .sample-week > strong small { font-weight: 400; font-size: 13px; color: var(--er-muted-ink); }
+    .sample-week .week { display: flex; gap: 6px; margin-top: 16px; }
+    .week span { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--er-surface-soft); color: var(--er-muted-ink); font-size: 11px; }
+    .week span:nth-child(-n+3) { background: var(--er-teal); color: var(--er-on-navy); }
+    .review-footer { border-top: 1px solid var(--er-border); margin-top: 48px; padding-top: 24px; color: var(--er-muted-ink); font-size: 13px; }
+    @media (max-width: 700px) { main { padding: 32px 20px 40px; } .review-header-inner { padding: 20px; } .corner-grid, .sample-grid { grid-template-columns: 1fr; } .route-map { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; } .lettering-board { min-height: 170px; } section { margin-top: 36px; } .sample-header, .sample-shortcuts { padding-left: 18px; padding-right: 18px; } .sample-shortcuts { gap: 20px; font-size: 12px; } .sample-header > span { max-width: 105px; font-size: 11px; } .sample-content { padding: 24px 18px 130px; } .sample-mission, .sample-week { padding: 20px; } .sample-mission > img { opacity: .7; } .placement::after { width: 100%; max-width: 420px; } .banner { border-radius: 10px; } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .placement::after { transition: none; } }
+  </style>
+</head>
+<body>
+  <header class="review-header">
+    <div class="review-header-inner">
+      <img src="../../apps/web/public/brand/erudoza-patch-192.webp" alt="" width="48" height="48">
+      <div><strong>Erudoza</strong><span>Artwork proposals · Awaiting approval</span></div>
+    </div>
+  </header>
+  <main>
+    <div class="intro">
+      <h1>A little more of the field guide.</h1>
+      <p>Embroidered lettering, the approved landscape as a wide banner, and four distinct Pathfinder illustrations that alternate between the left and right page corners. These proposals are separate from the app. Your approved training layout remains the reference.</p>
+    </div>
+    <nav class="review-nav" aria-label="Artwork proposals">
+      <a href="#lettering">Erudoza lettering</a><a href="#landscape">Landscape banner</a><a href="#corners">Corner artwork</a>
+    </nav>
+    <section id="lettering" aria-labelledby="lettering-title">
+      <div class="section-copy"><h2 id="lettering-title">The name, embroidered.</h2><span class="status">New artwork · For review</span></div>
+      <p class="section-description">Cream stitching, navy edging and a fine gold border echo the approved logo and Honors patches. The serif letterforms keep the Erudoza name familiar.</p>
+      <figure>
+        <div class="lettering-board"><img src="2026-09-11-patch-wordmark/preview/erudoza-wordmark-concept-640.webp" width="640" height="213" alt="Erudoza spelled in cream embroidered serif lettering with navy and gold stitched outlines"></div>
+        <figcaption>This concept is shown on its original white background. A transparent production version and a small-size legibility check would follow approval.</figcaption>
+      </figure>
+      <a class="art-link" href="2026-09-11-patch-wordmark/preview/erudoza-wordmark-concept-640.webp">View lettering artwork</a>
+    </section>
+    <section id="landscape" aria-labelledby="landscape-title">
+      <div class="section-copy"><h2 id="landscape-title">Room for the landscape.</h2><span class="status">Approved artwork · New placement</span></div>
+      <p class="section-description">The same sun-free illustration, opened into a panoramic banner. The lake, mountains, Scripture and detailed compass all remain visible.</p>
+      <figure>
+        <img class="banner" src="../../apps/web/public/assets/training/journey-hero-1440.webp" alt="Panoramic mountain lake and Pathfinder campsite, with an open Bible, neckerchief and detailed compass in the foreground" width="1440" height="480">
+        <figcaption>Shown at the artwork’s original 3:1 proportion. The banner would sit above page content, with headings and actions on their own clear surface.</figcaption>
+      </figure>
+    </section>
+    <section id="corners" aria-labelledby="corners-title">
+      <div class="section-copy"><h2 id="corners-title">Four corners of the field guide.</h2><span class="status">Four original illustrations · For review</span></div>
+      <p class="section-description">Different equipment and arrangements give each page its own character. Two illustrations are composed for the left corner and two for the right, with plenty of pale space for the interface.</p>
+      <div class="corner-grid">
+        <figure>
+          <img class="corner-original" src="2026-09-11-pathfinder-corners/pathfinder-corner-v1-960.webp" alt="Watercolor Pathfinder camping equipment composed in the lower right corner: knotted rope, compass, lantern and a rolled blanket" width="960" height="960" loading="lazy">
+          <figcaption><strong>Camp essentials <span class="direction">Lower right</span></strong>Knotted rope, a brass compass, lantern and rolled blanket. Proposed for the landing page, Training HQ and session recap.</figcaption>
+        </figure>
+        <figure>
+          <img class="corner-original" src="2026-09-11-pathfinder-corners/trail-navigation-left-v1-960.webp" alt="Watercolor trail navigation equipment arranged in the lower left corner: rope, compass, folded map and neckerchief" width="960" height="960" loading="lazy">
+          <figcaption><strong>Trail navigation <span class="direction">Lower left</span></strong>Rope, compass and map for a fresh step on the trail. Proposed for sign-in and study.</figcaption>
+        </figure>
+        <figure>
+          <img class="corner-original" src="2026-09-11-pathfinder-corners/campcraft-right-v1-960.webp" alt="Watercolor campcraft equipment arranged in the lower right corner: sleeping bag, tent stakes and an unlit lantern" width="960" height="960" loading="lazy">
+          <figcaption><strong>Campcraft <span class="direction">Lower right</span></strong>Sleeping gear, tent stakes and an unlit lantern. Proposed for signup and progress.</figcaption>
+        </figure>
+        <figure>
+          <img class="corner-original" src="2026-09-11-pathfinder-corners/field-notes-left-v1-960.webp" alt="Watercolor field notes equipment arranged in the lower left corner: blank navy book, pencil, binoculars, teal and gold neckerchief and knotted cord" width="960" height="960" loading="lazy">
+          <figcaption><strong>Field notes <span class="direction">Lower left</span></strong>A navy journal, pencil, binoculars and folded neckerchief. Proposed for the Coach overview and Honors.</figcaption>
+        </figure>
+      </div>
+      <div class="corner-detail">
+        <h3>Different pages, a shared trail.</h3>
+        <p>Artwork changes by route, alternating sides through the main page sequence. Other account and workspace pages would continue the same left/right pattern with this illustrated family.</p>
+        <dl class="route-map">
+          <div><dt>Public landing</dt><dd>Camp essentials · Right</dd></div><div><dt>Sign-in</dt><dd>Trail navigation · Left</dd></div><div><dt>Signup</dt><dd>Campcraft · Right</dd></div>
+          <div><dt>Coach overview</dt><dd>Field notes · Left</dd></div><div><dt>Training HQ</dt><dd>Camp essentials · Right</dd></div><div><dt>Study</dt><dd>Trail navigation · Left</dd></div>
+          <div><dt>Progress</dt><dd>Campcraft · Right</dd></div><div><dt>Honors</dt><dd>Field notes · Left</dd></div><div><dt>Session recap</dt><dd>Camp essentials · Right</dd></div>
+        </dl>
+        <p>Detail stays at the outer edge. The artwork fades behind solid panels and becomes smaller near the footer on phones. Forms, tables and training controls retain clear, solid surfaces.</p>
+      </div>
+      <div class="placement-heading">
+        <div><h3>Corner fade in the approved composition</h3><p>Placement study only. The app’s layout is not being redesigned here.</p></div>
+        <button class="ds-button ds-button-secondary" type="button" id="art-toggle" aria-pressed="true" aria-controls="placement">Hide corner artwork</button>
+      </div>
+      <div class="placement-controls">
+        <label for="route-select">Show a page’s proposed artwork
+          <select class="ds-input ds-select" id="route-select" aria-controls="placement" aria-describedby="route-caption">
+            <option value="landing">Public landing</option><option value="signin">Sign-in</option><option value="signup">Signup</option><option value="coach">Coach overview</option><option value="training" selected>Training HQ</option><option value="study">Study</option><option value="progress">Progress</option><option value="honors">Honors</option><option value="recap">Session recap</option>
+          </select>
+        </label>
+        <p class="placement-caption" id="route-caption" aria-live="polite">Training HQ: Camp essentials, lower right.</p>
+      </div>
+      <p class="status" style="margin-bottom:16px">The approved Training HQ composition stays fixed below so you can compare the artwork and corner placement. The selector previews each page’s artwork assignment, not a redesign of that page. Sample values are illustrative.</p>
+      <div class="placement" id="placement" data-art="on" data-corner="right">
+        <div class="sample-header"><div class="sample-brand"><img src="../../apps/web/public/brand/erudoza-patch-192.webp" alt="" width="34" height="34">Erudoza</div><span>Artwork placement sample</span></div>
+        <div class="sample-shortcuts"><strong>Training HQ</strong><span>My progress</span><span>Honors</span></div>
+        <div class="sample-content">
+          <h3>Training HQ</h3><p>A little practice. A stronger memory.</p>
+          <div class="sample-grid">
+            <div class="sample-mission">
+              <img src="../../apps/web/public/assets/training/journey-hero-1440.webp" alt="" width="1440" height="480" loading="lazy">
+              <h3>Today’s training.<br>A little stronger.</h3><p>Build on what you know with a short review and your daily drill.</p>
+              <div class="sample-steps"><span><strong>Review your verses</strong><small>Revisit the words you are learning.</small></span><span><strong>Finish your daily drill</strong><small>A short practice session.</small></span></div>
+            </div>
+            <div class="sample-week"><h3>Your week</h3><strong>3 <small>of 5 practice days</small></strong><div class="week" aria-label="Illustrative week: three practice days"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div><p>A steady rhythm, one day at a time.</p></div>
+          </div>
+        </div>
+      </div>
+      <p class="status" style="margin-top:14px">The corner is decorative and stays still. Pointer lift, dip and shadows belong to the patch assets.</p>
+    </section>
+    <footer class="review-footer">Artwork review only. The new lettering, banner placement and corner backgrounds have not been applied to the app.</footer>
+  </main>
+  <script>
+    const toggle = document.getElementById('art-toggle');
+    const placement = document.getElementById('placement');
+    const routeSelect = document.getElementById('route-select');
+    const routeCaption = document.getElementById('route-caption');
+    const artwork = {
+      camp: { file: 'pathfinder-corner-v1-960.webp', name: 'Camp essentials', side: 'right' },
+      trail: { file: 'trail-navigation-left-v1-960.webp', name: 'Trail navigation', side: 'left' },
+      craft: { file: 'campcraft-right-v1-960.webp', name: 'Campcraft', side: 'right' },
+      notes: { file: 'field-notes-left-v1-960.webp', name: 'Field notes', side: 'left' }
+    };
+    const routes = { landing: ['Public landing', 'camp'], signin: ['Sign-in', 'trail'], signup: ['Signup', 'craft'], coach: ['Coach overview', 'notes'], training: ['Training HQ', 'camp'], study: ['Study', 'trail'], progress: ['Progress', 'craft'], honors: ['Honors', 'notes'], recap: ['Session recap', 'camp'] };
+    routeSelect.addEventListener('change', () => {
+      const [page, key] = routes[routeSelect.value];
+      const chosen = artwork[key];
+      placement.dataset.corner = chosen.side;
+      placement.style.setProperty('--corner-image', `url("2026-09-11-pathfinder-corners/${chosen.file}")`);
+      routeCaption.textContent = `${page}: ${chosen.name}, lower ${chosen.side}.`;
+    });
+    toggle.addEventListener('click', () => {
+      const visible = toggle.getAttribute('aria-pressed') !== 'true';
+      toggle.setAttribute('aria-pressed', String(visible));
+      toggle.textContent = visible ? 'Hide corner artwork' : 'Show corner artwork';
+      placement.dataset.art = visible ? 'on' : 'off';
+    });
+  </script>
+</body>
+</html>

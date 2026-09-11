@@ -1,0 +1,21 @@
+{
+  "status": "proposal-awaiting-approval",
+  "assets": [
+    {
+      "filename": "pathfinder-corner-v1.png",
+      "width": 1254,
+      "height": 1254,
+      "hasAlpha": false,
+      "bytes": 1969533,
+      "sha256": "5bb70dd002d290bb8648d1a94c8ecd3fe1bf7a35d2dea2adb6e40533f607e75c"
+    },
+    {
+      "filename": "pathfinder-corner-v1-960.webp",
+      "width": 960,
+      "height": 960,
+      "hasAlpha": false,
+      "bytes": 99500,
+      "sha256": "b477c07dd45753a009be8d54755047a2c9fcfb6fbba05db12890b62760cbd12a"
+    }
+  ]
+}

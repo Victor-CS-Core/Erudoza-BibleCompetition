@@ -1,0 +1,9 @@
+Use case: logo-brand
+Asset type: original Erudoza website wordmark, horizontal embroidered lettering with transparent background.
+Input image 1: approved Erudoza embroidered flame-and-open-Bible emblem, STYLE AND COLOR REFERENCE ONLY. Do not repeat the emblem in this output.
+Primary request: create only the name "Erudoza" as beautiful detailed embroidered patch lettering matching the reference. Exact text (verbatim): "Erudoza" — capital E then lowercase r u d o z a. One word, one straight horizontal line.
+Typography: dignified, highly legible bookish serif lettering, with broad enough strokes for embroidery, subtly rounded stitch edges and confident compact proportions. Preserve straightforward letterforms; no script, swashes or extra words.
+Materials: warm ivory satin-stitched letter faces with visible finely packed directional thread, restrained deep navy stitched outlines and a very fine muted gold embroidered edge. Dimensional tactile thread relief matching the supplied emblem, clean handcrafted precision. Individual letters form the silhouette; no enclosing rectangle or badge backing.
+Composition: generous high resolution detail; word centered occupying most of a wide landscape image; front-facing perfectly flat baseline, evenly spaced. Small transparent padding all around, complete uncut letters. This must remain readable when displayed at 120-180 pixels wide in an app header.
+Background: genuinely transparent alpha, including spaces inside letters. Neutral even studio lighting only on the threads; do not bake a cast shadow into the background (the app supplies interactive shadows).
+Avoid: additional symbols, flame, Bible, sun, needle, cloth backdrop, label rectangle, mockup scene, watermark, duplicated text, excessive flourishes.

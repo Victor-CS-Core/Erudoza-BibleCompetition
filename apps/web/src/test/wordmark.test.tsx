@@ -8,5 +8,7 @@ describe("ErudozaWordmark", () => {
     expect(screen.getByText("Study. Master. Compete.")).toBeInTheDocument();
     expect(screen.getByTestId("erudoza-mark")).toHaveAttribute("src", "/brand/erudoza-patch-96.webp");
     expect(screen.getByTestId("erudoza-mark")).toHaveAttribute("alt", "");
+    expect(screen.getByTestId("erudoza-mark").parentElement).toHaveClass("ds-patch-art", "er-wordmark-mark");
+    expect(screen.getByText("Erudoza").closest(".ds-patch-art")).toBeNull();
   });
 });

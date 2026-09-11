@@ -1,0 +1,65 @@
+{
+  "status": "proposal-awaiting-approval",
+  "date": "2026-09-11",
+  "generator": "built-in image_gen",
+  "styleReference": "pathfinder-corner-v1.png",
+  "preparation": "Unmodified generated PNG masters, resized to 960px WebP with Sharp quality 86 and effort 6. No matting or retouching.",
+  "background": "Opaque warm ivory; intentional for a later CSS edge fade. No app integration.",
+  "validation": "Original outputs visually inspected for placement, distinct objects, palette, no text, no logo and no sun. Dimensions, RGB channels and file hashes verified.",
+  "assets": [
+    {
+      "id": "trail-navigation-left-v1",
+      "placement": "lower-left",
+      "prompt": "trail-navigation-left-v1-prompt.txt",
+      "files": [
+        {
+          "file": "trail-navigation-left-v1-master.png",
+          "width": 1254,
+          "height": 1254,
+          "format": "png",
+          "channels": 3,
+          "hasAlpha": false,
+          "bytes": 1977513,
+          "sha256": "dae59b787aa08eb6ad09b77bfe1d556f8d67364cb00cd30e82bc0b1396815d4a"
+        },
+        {
+          "file": "trail-navigation-left-v1-960.webp",
+          "width": 960,
+          "height": 960,
+          "format": "webp",
+          "channels": 3,
+          "hasAlpha": false,
+          "bytes": 90304,
+          "sha256": "ac164bfdbd7f41d8df7937c4c99e0c2c8bea99c610f82f38c9d8651f69598935"
+        }
+      ]
+    },
+    {
+      "id": "campcraft-right-v1",
+      "placement": "lower-right",
+      "prompt": "campcraft-right-v1-prompt.txt",
+      "files": [
+        {
+          "file": "campcraft-right-v1-master.png",
+          "width": 1254,
+          "height": 1254,
+          "format": "png",
+          "channels": 3,
+          "hasAlpha": false,
+          "bytes": 1975326,
+          "sha256": "0c3c68babc0291919dcfa3dd7f8d1739fb6896973afe6938bf93f29404d95897"
+        },
+        {
+          "file": "campcraft-right-v1-960.webp",
+          "width": 960,
+          "height": 960,
+          "format": "webp",
+          "channels": 3,
+          "hasAlpha": false,
+          "bytes": 97378,
+          "sha256": "8c8874559484bce699c474963ecd562716d6cae8f0189a1f72222b7b35e7610f"
+        }
+      ]
+    }
+  ]
+}

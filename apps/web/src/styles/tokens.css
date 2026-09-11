@@ -48,5 +48,7 @@
   --er-control-height: 44px;
   --er-focus: 0 0 0 3px color-mix(in srgb, var(--er-teal) 24%, transparent);
   --er-shadow-overlay: 0 12px 32px #102e4714;
+  --er-patch-shadow-contact: color-mix(in srgb, var(--er-ink-navy) 22%, transparent);
+  --er-patch-shadow-soft: color-mix(in srgb, var(--er-ink-navy) 24%, transparent);
   --er-duration: 180ms;
 }

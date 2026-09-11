@@ -38,8 +38,9 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const storageKey = `erudoza:pins:${me?.organizationId}:${me?.userId}:${coach ? "coach" : "student"}`;
   const [pinned, setPinned] = useState<string[]>(() => {
     try { const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "null"); if (Array.isArray(saved)) return [...new Set(saved.filter((id): id is string => typeof id === "string" && items.some(item => item.id === id)))]; } catch { /* Browser storage can be unavailable. */ }
-    return items.map(item => item.id);
+    return coach ? items.map(item => item.id) : ["home", "study", "honors"];
   });
+  const visibleShortcuts = active && !pinned.includes(active.id) ? [...pinned, active.id] : pinned;
   useEffect(() => {
     const nav = shortcuts.current;
     if (!nav) return;
@@ -60,7 +61,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [active?.id]);
+  }, [active?.id, pinned]);
   const [signingOut, setSigningOut] = useState(false);
   const [error, setError] = useState("");
   const seasonId = coach ? location.pathname.match(/^\/admin\/seasons\/([^/]+)/)?.[1] : undefined;
@@ -112,7 +113,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
     <a className="training-skip" href="#training-main">Skip to content</a>
     <header className="command-masthead"><div className="command-masthead-inner">
       <Link to={home} className="command-brand" aria-label="Erudoza home"><ErudozaWordmark compact inverted /><span>{coach ? "Coach" : "Student"}</span></Link>
-      <Button variant="secondary" className="command-trigger" aria-label={searchLabel} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="search" /><span className="command-trigger-copy">{searchLabel}…</span><span className="command-trigger-short">Search</span><kbd>Ctrl K</kbd></Button>
+      <Button variant={coach ? "secondary" : "inverse"} className="command-trigger" aria-label={searchLabel} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="search" /><span className="command-trigger-copy">{coach ? `${searchLabel}…` : "Find a section or season"}</span><span className="command-trigger-short">Search</span><kbd>Ctrl K</kbd></Button>
       <span className="command-academy">{me?.organizationName}</span>
       <NavigationMenu key={`account:${route}`} name="Account" label={<><span className="training-avatar">{me?.displayName?.slice(0, 1)}</span><span className="command-account-name">{me?.displayName}</span></>}>
         <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach account" : "Student account"}</small></div>
@@ -122,23 +123,23 @@ function CommandFrame({ coach }: { coach: boolean }) {
     {error && <Notice tone="danger">{error}</Notice>}
     <div className="command-shortcut-bar"><div className="command-shortcut-inner">
       <nav ref={shortcuts} className="command-shortcuts" aria-label={coach ? "Coach" : "Learner"} data-testid={coach ? "coach-tab-bar" : "learner-tab-bar"}>
-        {pinned.map(id => items.find(item => item.id === id)).filter((item): item is Destination => !!item).map(item => <div key={item.id} className={`command-shortcut ${active?.id === item.id ? "is-current" : ""}`}>
+        {visibleShortcuts.map(id => items.find(item => item.id === id)).filter((item): item is Destination => !!item).map(item => <div key={item.id} className={`command-shortcut ${active?.id === item.id ? "is-current" : ""}`}>
           <Link to={item.to} data-testid={item.testId} aria-current={active?.id === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.label}</span></Link>
-          <Button variant="ghost" size="compact" className="command-pin" aria-label={`Unpin ${item.label}`} onClick={() => togglePin(item.id)}><AppIcon name="pin" /></Button>
+          <Button variant="ghost" size="compact" className="command-pin" aria-label={`${pinned.includes(item.id) ? "Unpin" : "Pin"} ${item.label}`} onClick={() => togglePin(item.id)}><AppIcon name="pin" /></Button>
         </div>)}
-        {!pinned.length && <span className="command-no-pins">Pin your favorite sections from All sections.</span>}
+        {!visibleShortcuts.length && <span className="command-no-pins">Pin your favorite sections from All sections.</span>}
       </nav>
-      <Button variant="secondary" className="command-all" aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>All sections</span><AppIcon name="chevron" /></Button>
+      <Button variant={coach ? "secondary" : "ghost"} className="command-all" aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>All sections</span><AppIcon name="chevron" /></Button>
     </div></div>
-    <div className="command-context"><div className="command-context-inner">
+    {(coach || focused || contextItems.length > 0) && <div className="command-context"><div className="command-context-inner">
       <nav aria-label="Breadcrumb" className="command-breadcrumb" data-season={seasonItems.length > 0}><Link to={home}>{coach ? "Coach" : "Training"}</Link><span aria-hidden="true">/</span>{seasonItems.length > 0 && <><Link to="/admin/seasons">Seasons</Link><span aria-hidden="true">/</span></>}
         {contextItems.length ? <NavigationMenu key={`section:${route}`} name="Switch section" label={<span>{sectionLabel}</span>}>{contextItems.map(item => <Link key={item.id} to={item.to} aria-current={contextCurrent(item) ? "page" : undefined}><AppIcon name={item.icon} />{item.label}</Link>)}</NavigationMenu> : <span aria-current="page">{seasonId === "new" ? "Create season" : sectionLabel}</span>}
         {seasonItems.length > 0 && <><span aria-hidden="true">/</span><span aria-current="page">{location.pathname.endsWith("progress") ? "Student progress" : seasonItems.find(item => item.id === currentStep)?.label}</span></>}
       </nav>
       {focused && <Link to={home} className="command-study-back" data-testid="study-back">Back to training<AppIcon name="arrow" /></Link>}
       {!seasonItems.length && contextItems.length > 0 && <nav className="command-context-links" aria-label="Section">{contextItems.map(item => <Link key={item.id} to={item.to} aria-current={contextCurrent(item) ? "location" : undefined}>{item.label}</Link>)}</nav>}
-    </div></div>
-    <div className="training-workspace"><main id="training-main" className="training-main" data-testid={coach ? "coach-main" : "learner-main"}><Outlet /></main><footer className="training-footer">SCRIPTURE <span>·</span> DISCIPLESHIP <span>·</span> REAL-WORLD FAITH</footer></div>
+    </div></div>}
+    <div className="training-workspace"><main id="training-main" className="training-main" data-testid={coach ? "coach-main" : "learner-main"}><Outlet /></main><footer className="training-footer">{coach ? <>SCRIPTURE <span>·</span> DISCIPLESHIP <span>·</span> REAL-WORLD FAITH</> : <>Study. Master. Compete. <span>·</span> One meaningful step at a time.</>}</footer></div>
     {commandOpen && <CommandCenter items={items} coach={coach} pinned={pinned} togglePin={togglePin} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
   </div>;
 }

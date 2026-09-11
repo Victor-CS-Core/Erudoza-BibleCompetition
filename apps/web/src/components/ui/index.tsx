@@ -4,7 +4,7 @@ import { Link, type LinkProps } from "react-router-dom";
 export { ProgressMeter, WeeklyProgressStrip } from "./TrainingProgress";
 export { HonorArtwork } from "./HonorArtwork";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "inverse";
 type ActionStyle = { variant?: Variant; size?: "default" | "compact" };
 const actionClass = (variant: Variant, size: string, extra = "") => `ds-button ds-button-${variant} ds-button-${size} ${extra}`;
 export function Button({ variant = "primary", size = "default", className, type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & ActionStyle & { ref?: Ref<HTMLButtonElement> }) {
