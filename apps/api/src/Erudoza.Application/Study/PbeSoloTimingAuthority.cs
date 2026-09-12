@@ -108,7 +108,10 @@ public sealed class PbeSoloTimingAuthority(TimeProvider time) : IPbeSoloTimingAu
     {
         var entry = Require(sessionId, student, question, revision);
         if (entry.Frozen is not null) return entry.Frozen;
-        var elapsed = Elapsed(entry, ingress);
+        if (ingress is null) throw new DomainException("The response window has not opened.");
+        TimeSpan elapsed;
+        try { elapsed = Elapsed(entry, ingress); }
+        catch (DomainException) { return null; }
         if (elapsed <= TimeSpan.FromSeconds(entry.Schedule!.DurationSeconds)) return null;
         if (entry.Draft is { } draft) return entry.Frozen = new(Guid.NewGuid().ToString(), draft.Answers, draft.Answers, draft.ElapsedMs, draft.LockedAtUtc);
         var answers = Enumerable.Range(0, answerCount).Select(_ => "").ToArray();

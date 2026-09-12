@@ -35,6 +35,16 @@ public sealed class PbePresentationTests
     }
 
     [Fact]
+    public void Automatic_expiry_stays_pending_during_the_pre_start_schedule()
+    {
+        var time = new ManualTime(); var authority = new PbeSoloTimingAuthority(time);
+        var session = Guid.NewGuid(); var student = Guid.NewGuid(); var question = Guid.NewGuid();
+        var shown = authority.Present(session, student, question, 1, "TextFallback");
+        var ack = authority.CaptureIfActive(session)!; authority.Acknowledge(session, student, question, shown.Revision, "TextFallback", ack); ack.Complete();
+        var status = authority.CaptureIfActive(session)!; Assert.Null(authority.Expire(session, student, question, shown.Revision, status, 1)); status.Complete();
+    }
+
+    [Fact]
     public void Solo_authority_does_not_allocate_unknown_ids_and_freezes_a_timely_draft()
     {
         var time = new ManualTime();

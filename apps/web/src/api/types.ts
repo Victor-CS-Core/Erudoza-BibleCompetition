@@ -174,6 +174,9 @@ export type SessionSummary = {
   correct: number;
   targetCardCount: number;
   status: string;
+  earnedPoints?: number;
+  availablePoints?: number;
+  results?: { attemptId:string;earnedPoints:number;availablePoints:number;acceptedAtUtc:string }[];
 };
 
 export type CoverageStudent = {

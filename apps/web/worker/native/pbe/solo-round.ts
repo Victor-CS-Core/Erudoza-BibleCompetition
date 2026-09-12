@@ -3,7 +3,7 @@ import { authenticate, checkOrigin } from '../auth';
 import { Store } from '../store';
 import { body, HttpError, json, requiredString, type Actor, type Env, type RequestContext } from '../types';
 import { acknowledgePresentation, type PresentationState } from './presentation';
-import { submitTimedPbeSession, type PbeSession } from './sessions';
+import { pbeSummary, submitTimedPbeSession, type PbeSession } from './sessions';
 
 interface SubmissionInput { clientSubmissionId:string;challengeCardId:string;answers:string[];hintsUsed:false }
 interface FrozenSubmission { input:SubmissionInput;retryAnswers:string[];elapsedMs:number;lockedAtMs:number }
@@ -70,7 +70,7 @@ export class PbeSoloRound extends DurableObject<Env>{
   async fetch(request:Request):Promise<Response>{
     try{
       const match=new URL(request.url).pathname.match(/^\/api\/v1\/study\/sessions\/([a-f0-9-]{36})\/timed$/i);if(!match)throw new HttpError(404,'Timed rehearsal route not found.');
-      const input=request.method==='POST'?await body<Input>(request,32768):null,ingress=Date.now();
+      const url=new URL(request.url),expected=url.searchParams.get('questionId'),input=request.method==='POST'?await body<Input>(request,32768):null,ingress=Date.now();
       return await this.serialize(async()=>{
         checkOrigin(request,this.env);const actor=await authenticate(request,this.env),session=await this.session(actor,match[1]);let state=this.load();
         const card=session.cards[session.attempts.length],partCount=card?.question.parts.length??0;if(state)await this.recover(state,partCount);
@@ -85,7 +85,16 @@ export class PbeSoloRound extends DurableObject<Env>{
         const startsNextCard=input?.action==='present'&&card!==undefined&&state?.questionId!==card.id;
         if(request.method==='POST'&&state&&(state.status==='Settling'||state.status==='Settled')&&!startsNextCard)throw new HttpError(409,'The frozen response cannot be replaced.');
         if(state?.status==='Interrupted'){
-          await this.recordInterruption(state);throw new HttpError(409,'This rehearsal was interrupted. Start another shortened timed practice.');
+          await this.recordInterruption(state);
+          if(request.method==='GET')return json({status:'Interrupted',restartAllowed:true,session:{id:session.id,format:session.format,seasonId:session.seasonId,mode:session.mode,status:'Interrupted',targetCardCount:session.cards.length},summary:pbeSummary(session,true),interruption:{status:'Interrupted',restartAllowed:true}});
+          throw new HttpError(409,'This rehearsal was interrupted. Start another shortened timed practice.');
+        }
+        if(request.method==='GET'&&expected){
+          const historical=state?.history.find(entry=>entry.questionId===expected);
+          if(historical)return json({...historical.response as Record<string,unknown>,alreadyProcessed:true,questionId:historical.questionId});
+          if(state?.status==='Settled'&&state.questionId===expected)return json({...state.response as Record<string,unknown>,alreadyProcessed:true,questionId:state.questionId});
+          if(card?.id===expected&&state?.questionId!==expected)return json({status:'NotPresented',questionId:card.id,revision:0,serverNow:new Date().toISOString(),feedbackDeferred:true});
+          if(state?.questionId!==expected)throw new HttpError(409,'Choose the active saved card.');
         }
         if(request.method==='GET'&&state?.status==='Settled')return json({...state.response as Record<string,unknown>,alreadyProcessed:true,questionId:state.questionId});
         if(request.method==='GET'&&state?.status==='Settling'){const settled=await this.settle(state,request);return settled instanceof Response?settled:json({...settled as Record<string,unknown>,questionId:state.questionId});}

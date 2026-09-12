@@ -67,8 +67,16 @@ it('shows a terminal interrupted rehearsal with an independent restart instead o
     vi.mocked(api.resumeSession).mockResolvedValue({...saved,session:{...saved.session,mode:'Simulation',status:'Interrupted'},card:null,summary:{sessionId:'pbe-session',format:'Pbe',mode:'Simulation',attempted:1,status:'Interrupted',earnedPoints:1,availablePoints:2,results:[result]},interruption:{status:'Interrupted',restartAllowed:true}} as never);
     mount('/student/study?sessionId=pbe-session&format=Pbe');
     expect(await screen.findByText(/Earlier accepted answers are retained/)).toBeInTheDocument();
+    expect(screen.getByText('1 / 2 points')).toBeVisible();
+    expect(screen.getByRole('link',{name:'View partial recap'})).toHaveAttribute('href',expect.stringContaining('/student/sessions/pbe-session/recap'));
     expect(screen.getByRole('link',{name:'Start another shortened timed practice'})).toHaveAttribute('href',expect.stringContaining('mode=Simulation'));
     expect(api.nextPbeCard).not.toHaveBeenCalled();
+});
+it('rejects an initial receipt for another card instead of advancing',async()=>{
+    vi.mocked(api.resumeSession).mockResolvedValue({...saved,session:{...saved.session,mode:'Simulation'}} as never);
+    vi.mocked(api.pbeTimedStatus).mockResolvedValue({attemptId:'old',acceptedAtUtc:new Date().toISOString(),acceptedSequence:1,alreadyProcessed:true,feedbackDeferred:true,questionId:'previous'});
+    mount('/student/study?sessionId=pbe-session&format=Pbe');await waitFor(()=>expect(api.pbeTimedStatus).toHaveBeenCalled());
+    expect(api.nextPbeCard).not.toHaveBeenCalled();expect(api.completeSession).not.toHaveBeenCalled();
 });
 it('restores an armed Simulation window on refresh without presenting or acknowledging again',async()=>{
     vi.mocked(api.resumeSession).mockResolvedValue({...saved,session:{...saved.session,mode:'Simulation'}} as never);

@@ -158,14 +158,20 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
     public async Task<object> TimedStatusAsync(Guid sessionId, Guid? expectedQuestionId, CancellationToken ct)
     {
         var ingress = timing.CaptureIfActive(sessionId);
-        if (ingress is not null) await ingress.WaitAsync(ct);
-        try { return await TimedCoreAsync(sessionId, null, ingress, expectedQuestionId, ct); }
+        try
+        {
+            if (ingress is not null) await ingress.WaitAsync(ct);
+            return await TimedCoreAsync(sessionId, null, ingress, expectedQuestionId, ct);
+        }
         finally { ingress?.Complete(); }
     }
     public async Task<object> TimedActionAsync(Guid sessionId, JsonElement input, PbeSoloIngress? ingress, CancellationToken ct)
     {
-        if (ingress is not null) await ingress.WaitAsync(ct);
-        try { return await TimedCoreAsync(sessionId, input, ingress, null, ct); }
+        try
+        {
+            if (ingress is not null) await ingress.WaitAsync(ct);
+            return await TimedCoreAsync(sessionId, input, ingress, null, ct);
+        }
         finally { ingress?.Complete(); }
     }
     private async Task<object> TimedCoreAsync(Guid sessionId, JsonElement? input, PbeSoloIngress? ingress, Guid? expectedQuestionId, CancellationToken ct)
@@ -234,9 +240,9 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
             {
                 var captured = ingress ?? timing.CaptureIfActive(sessionId)!;
                 var ownsCapture = ingress is null;
-                if (ownsCapture) await captured.WaitAsync(ct);
                 try
                 {
+                    if (ownsCapture) await captured.WaitAsync(ct);
                     var expired = timing.Expire(sessionId, user.UserId, card.Id, current.Revision, captured, card.Question.Parts.Count);
                     if (expired is null) return current;
                     question = card.Id; revision = current.Revision; return await Project(expired);

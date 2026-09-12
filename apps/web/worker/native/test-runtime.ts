@@ -36,7 +36,7 @@ export async function createNativeTestApp(options:{measureD1?:boolean;beforeD1St
     return {loader:"ts",contents:source.replace(signature,'const unmeteredApp = {')+'\nimport {measureD1Fetch} from "./test-d1-meter";\nexport default {...unmeteredApp,fetch:measureD1Fetch(unmeteredApp.fetch'+hook+')};'};
   });}});
   if(options.replaceSoloAuthority)plugins.push({name:"test-solo-replacement",setup(builder:import("esbuild").PluginBuild){builder.onLoad({filter:/native[/\\]pbe[/\\]solo-round\.ts$/},async args=>{
-    const source=await readFile(args.path,"utf8"),signature="      const input=request.method==='POST'?await body<Input>(request,32768):null,ingress=Date.now();";
+    const source=await readFile(args.path,"utf8"),signature="      const url=new URL(request.url),expected=url.searchParams.get('questionId'),input=request.method==='POST'?await body<Input>(request,32768):null,ingress=Date.now();";
     if(source.split(signature).length!==2)throw new Error("Solo replacement hook no longer matches the authority ingress.");
     const replacement=`${signature}\n      if(request.headers.has('x-test-authority-replaced')){const replaced=this.load();if(replaced){replaced.epoch='test-replaced-authority';this.save(replaced);await this.ctx.storage.setAlarm(Date.now());}return json({status:'replacement-scheduled'});}`;
     return {loader:"ts",contents:source.replace(signature,replacement)};

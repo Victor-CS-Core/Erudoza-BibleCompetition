@@ -21,7 +21,9 @@ public sealed class PbeStudyTests
         var id = started.GetProperty("id").GetGuid(); var card = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}/next"); var cardId = card.GetProperty("id").GetGuid();
         var row = await f.Db.PbeTrainingRecords.SingleAsync(r => r.Kind == "pbe-session" && r.Id == id.ToString()); var snapshot = JsonSerializer.Deserialize<PbeSessionSnapshot>(row.DataJson, PbeQuestionBank.Json)!; snapshot.Mode = "Simulation"; row.DataJson = JsonSerializer.Serialize(snapshot, PbeQuestionBank.Json); await f.Db.SaveChangesAsync();
         var shown = await (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "present", delivery = "TextFallback" })).Content.ReadFromJsonAsync<JsonElement>(); var revision = shown.GetProperty("revision").GetInt32();
-        (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "ack", questionId = cardId, revision, delivery = "TextFallback" })).EnsureSuccessStatusCode(); time.Advance(TimeSpan.FromSeconds(4));
+        (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "ack", questionId = cardId, revision, delivery = "TextFallback" })).EnsureSuccessStatusCode();
+        Assert.Equal("Armed", (await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}/timed?questionId={cardId}")).GetProperty("status").GetString());
+        time.Advance(TimeSpan.FromSeconds(4));
         using var anonymous = f.Factory.CreateClient();
         Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "draft", questionId = cardId, revision, answers = new[] { "ignored", "ignored" } })).StatusCode);
         using var malformed = new StringContent("{", System.Text.Encoding.UTF8, "application/json");
@@ -38,6 +40,18 @@ public sealed class PbeStudyTests
         var middleware = new PracticeIngressMiddleware(_ => throw new OperationCanceledException()); var context = new DefaultHttpContext(); context.Request.Method = "POST"; context.Request.Path = $"/api/v1/study/sessions/{session}/timed"; context.Request.Body = new MemoryStream("{}"u8.ToArray()); context.Request.ContentLength = 2;
         await Assert.ThrowsAsync<OperationCanceledException>(() => middleware.InvokeAsync(context, new PracticeRuntime(time), authority));
         var following = authority.CaptureIfActive(session)!; await following.WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token); following.Complete();
+    }
+    [Fact]
+    public async Task Cancelled_timed_status_releases_its_service_owned_fifo_lease()
+    {
+        var time = new ManualTime(); using var f = await Fixture.Create(time);
+        var started = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Practice" })).Content.ReadFromJsonAsync<JsonElement>();
+        var id = started.GetProperty("id").GetGuid(); var card = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}/next");
+        var row = await f.Db.PbeTrainingRecords.SingleAsync(r => r.Kind == "pbe-session" && r.Id == id.ToString()); var snapshot = JsonSerializer.Deserialize<PbeSessionSnapshot>(row.DataJson, PbeQuestionBank.Json)!; snapshot.Mode = "Simulation"; row.DataJson = JsonSerializer.Serialize(snapshot, PbeQuestionBank.Json); await f.Db.SaveChangesAsync();
+        (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "present", delivery = "TextFallback" })).EnsureSuccessStatusCode();
+        var authority = f.Factory.Services.GetRequiredService<IPbeSoloTimingAuthority>(); var predecessor = authority.CaptureIfActive(id)!;
+        using var cancellation = new CancellationTokenSource(); var cancelled = f.Student.GetAsync($"/api/v1/study/sessions/{id}/timed?questionId={card.GetProperty("id").GetGuid()}", cancellation.Token); await Task.Delay(50); cancellation.Cancel(); await Assert.ThrowsAnyAsync<OperationCanceledException>(() => cancelled);
+        predecessor.Complete(); var following = authority.CaptureIfActive(id)!; await following.WaitAsync(new CancellationTokenSource(TimeSpan.FromSeconds(1)).Token); following.Complete();
     }
     [Fact]
     public async Task Armed_simulation_without_live_authority_resumes_as_restartable_interruption()

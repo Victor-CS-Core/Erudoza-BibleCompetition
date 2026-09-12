@@ -17,7 +17,7 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
     const url = new URL(request.url), seasonId = url.searchParams.get('seasonId');
     if (recap && method === 'GET') {
         const pbe=await ctx.store.get<PbeSession>('pbe-session',recap[1],ctx.orgId);
-        if(pbe){if(pbe.value.studentUserId!==ctx.actor.userId)throw new HttpError(404,'Study session was not found.');if(pbe.value.status!=='Completed')throw new HttpError(409,'Complete your session to save its recap.');return json(pbeSummary(pbe.value).recap);}
+        if(pbe){if(pbe.value.studentUserId!==ctx.actor.userId)throw new HttpError(404,'Study session was not found.');const interruption=await ctx.store.get('pbe-solo-interruption',pbe.value.id,ctx.orgId);if(pbe.value.status!=='Completed'&&!interruption)throw new HttpError(409,'Complete your session to save its recap.');return json(pbeSummary(pbe.value,!!interruption).recap);}
         const s = (await ctx.store.require<Session>('session', recap[1], ctx.orgId)).value;
         if (s.studentUserId !== ctx.actor.userId)
             throw new HttpError(404, 'Study session was not found.');
