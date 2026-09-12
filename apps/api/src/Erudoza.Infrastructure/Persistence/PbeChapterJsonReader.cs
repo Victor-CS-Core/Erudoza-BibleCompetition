@@ -27,33 +27,60 @@ public sealed class PbeChapterJsonReader(ErudozaDbContext db) : IPbeChapterJsonR
             command.Parameters.Add(p);
         }
         var measure = Diagnostics.IsEnabled("Query"); long valueBytes = 0;
-        var items = new List<T>(); await using var reader = await command.ExecuteReaderAsync(ct);
-        while (await reader.ReadAsync(ct))
+        var items = new List<T>(); var rows = 0; await using var reader = await command.ExecuteReaderAsync(ct);
+        try
         {
-            if (measure) for (var i = 0; i < reader.FieldCount; i++) if (!reader.IsDBNull(i)) valueBytes += System.Text.Encoding.UTF8.GetByteCount(Convert.ToString(reader.GetValue(i), System.Globalization.CultureInfo.InvariantCulture) ?? "");
-            items.Add(read(reader));
+            while (await reader.ReadAsync(ct))
+            {
+                rows++;
+                if (measure) for (var i = 0; i < reader.FieldCount; i++) if (!reader.IsDBNull(i)) valueBytes += System.Text.Encoding.UTF8.GetByteCount(Convert.ToString(reader.GetValue(i), System.Globalization.CultureInfo.InvariantCulture) ?? "");
+                items.Add(read(reader));
+            }
         }
-        if (measure) Diagnostics.Write("Query", new QueryMetric(1, items.Count, valueBytes, command.Parameters.Cast<DbParameter>().Select(p => (long)System.Text.Encoding.UTF8.GetByteCount(Convert.ToString(p.Value, System.Globalization.CultureInfo.InvariantCulture) ?? "")).DefaultIfEmpty().Max()));
+        finally
+        {
+            if (measure) Diagnostics.Write("Query", new QueryMetric(1, rows, valueBytes, command.Parameters.Cast<DbParameter>().Select(p => (long)System.Text.Encoding.UTF8.GetByteCount(Convert.ToString(p.Value, System.Globalization.CultureInfo.InvariantCulture) ?? "")).DefaultIfEmpty().Max()));
+        }
         return items;
     }
     static Guid GuidAt(DbDataReader reader, int index) => reader.GetValue(index) is Guid value ? value : Guid.Parse(reader.GetString(index));
     internal static Dictionary<string, object?> Scope(Guid org, Guid season, Guid student) => new() { ["@org"] = org, ["@season"] = season, ["@student"] = student };
     const string SQLiteAssigned = "EXISTS (SELECT 1 FROM PbeTrainingRecords a WHERE a.OrganizationId=i.OrganizationId AND a.SeasonId=i.SeasonId AND a.OwnerId=@student AND a.Kind='pbe-introduction-assignment' AND json_extract(a.DataJson,'$.contentPackId')=i.Id)";
     const string SqlServerAssigned = "EXISTS (SELECT 1 FROM PbeTrainingRecords a WHERE a.OrganizationId=i.OrganizationId AND a.SeasonId=i.SeasonId AND a.OwnerId=@student AND a.Kind='pbe-introduction-assignment' AND JSON_VALUE(a.DataJson,'$.contentPackId')=i.Id)";
+    public Task<IReadOnlyList<PbeSourceUnit>> IntroductionForPublication(Guid org, Guid season, Guid student, CancellationToken ct)
+        => IntroductionQuery(org, season, student, "", 10001, null, true, ct);
     public Task<IReadOnlyList<PbeSourceUnit>> IntroductionPage(Guid org, Guid season, Guid student, string after, int limit, CancellationToken ct)
-        => IntroductionQuery(org, season, student, after, limit, null, ct);
+    {
+        if (limit > 128 || limit < 1) throw new ArgumentException("Bound introduction source page.");
+        return IntroductionQuery(org, season, student, after, limit, null, false, ct);
+    }
     public Task<IReadOnlyList<PbeSourceUnit>> SelectedIntroductionSources(Guid org, Guid season, Guid student, IReadOnlyList<string> ids, CancellationToken ct)
     {
         if (ids.Count > 128) throw new ArgumentException("Bound introduction source IDs.");
-        return IntroductionQuery(org, season, student, "", 128, ids, ct);
+        return IntroductionQuery(org, season, student, "", 128, ids, false, ct);
     }
-    Task<IReadOnlyList<PbeSourceUnit>> IntroductionQuery(Guid org, Guid season, Guid student, string after, int limit, IReadOnlyList<string>? ids, CancellationToken ct)
+    // The caller obtains these IDs using the shared assignment/source eligibility predicates. No text is loaded by that admission query.
+    public Task<IReadOnlyList<PbeSourceUnit>> ScriptureSources(IReadOnlyList<Guid> eligibleIds, bool requireAll, CancellationToken ct)
+    {
+        if (eligibleIds.Count > 128) throw new ArgumentException("Bound Scripture source IDs.");
+        var values = new Dictionary<string, object?> { ["@ids"] = JsonSerializer.Serialize(eligibleIds), ["@selected"] = requireAll ? 1 : 0, ["@complete"] = 0, ["@supplemental"] = (int)SourceType.Supplemental, ["@commentary"] = (int)PbeSourceKind.Commentary, ["@scripture"] = (int)PbeSourceKind.Scripture };
+        return SourceRows("""
+            SELECT lower(s.Id) AS Id, s.ContentPackId AS Pack, CASE WHEN p.SourceType=@supplemental THEN @commentary ELSE @scripture END AS Kind,
+              s.BookKey AS Book, s.Chapter, s.Verse, s.Ordinal, s.CitationLabel AS Citation, s.CanonicalText AS Text
+            FROM SourceUnits s JOIN ContentPacks p ON p.Id=s.ContentPackId WHERE lower(s.Id) IN (SELECT value FROM json_each(@ids))
+            """, """
+            SELECT LOWER(CONVERT(nvarchar(36),s.Id)) AS Id, s.ContentPackId AS Pack, CASE WHEN p.SourceType=@supplemental THEN @commentary ELSE @scripture END AS Kind,
+              s.BookKey AS Book, s.Chapter, s.Verse, s.Ordinal, s.CitationLabel AS Citation, s.CanonicalText AS Text
+            FROM SourceUnits s JOIN ContentPacks p ON p.Id=s.ContentPackId WHERE s.Id IN (SELECT TRY_CONVERT(uniqueidentifier,value) FROM OPENJSON(@ids))
+            """, values, ct);
+    }
+    Task<IReadOnlyList<PbeSourceUnit>> IntroductionQuery(Guid org, Guid season, Guid student, string after, int limit, IReadOnlyList<string>? ids, bool publication, CancellationToken ct)
     {
         var values = Scope(org, season, student); values["@after"] = after; values["@limit"] = limit; values["@include"] = (int)ScopeEntryKind.Include;
-        values["@selected"] = ids is null ? 0 : 1; values["@ids"] = JsonSerializer.Serialize(ids ?? []);
-        return Query($"""
-            SELECT json_extract(u.value,'$.id'), i.Id, json_extract(i.DataJson,'$.bookKey'), CAST(u.key AS INTEGER)+1,
-                   json_extract(u.value,'$.citation'), json_extract(u.value,'$.canonicalText')
+        values["@selected"] = ids is null ? 0 : 1; values["@ids"] = JsonSerializer.Serialize(ids ?? []); values["@complete"] = publication ? 1 : 0; values["@commentary"] = (int)PbeSourceKind.Commentary;
+        return SourceRows($"""
+            SELECT json_extract(u.value,'$.id') AS Id, i.Id AS Pack, @commentary AS Kind, json_extract(i.DataJson,'$.bookKey') AS Book,
+                   NULL AS Chapter, NULL AS Verse, CAST(u.key AS INTEGER)+1 AS Ordinal, json_extract(u.value,'$.citation') AS Citation, json_extract(u.value,'$.canonicalText') AS Text
             FROM PbeTrainingRecords i, json_each(i.DataJson,'$.units') u
             WHERE i.OrganizationId=@org AND i.SeasonId=@season AND i.Kind='pbe-introduction' AND i.OwnerId IS NULL
               AND {SQLiteAssigned} AND json_extract(i.DataJson,'$.reviewed')=1
@@ -63,7 +90,8 @@ public sealed class PbeChapterJsonReader(ErudozaDbContext db) : IPbeChapterJsonR
               AND (@selected=0 OR json_extract(u.value,'$.id') IN (SELECT value FROM json_each(@ids)))
               AND json_extract(u.value,'$.id')>@after ORDER BY json_extract(u.value,'$.id') LIMIT @limit
             """, $"""
-            SELECT TOP(@limit) v.Id, i.Id, JSON_VALUE(i.DataJson,'$.bookKey'), CAST(u.[key] AS int)+1, v.Citation, v.CanonicalText
+            SELECT TOP(@limit) v.Id, i.Id AS Pack, @commentary AS Kind, JSON_VALUE(i.DataJson,'$.bookKey') AS Book,
+                   NULL AS Chapter, NULL AS Verse, CAST(u.[key] AS int)+1 AS Ordinal, v.Citation, v.CanonicalText AS Text
             FROM PbeTrainingRecords i CROSS APPLY OPENJSON(i.DataJson,'$.units') u
             CROSS APPLY OPENJSON(u.value) WITH (Id nvarchar(36) '$.id', Citation nvarchar(max) '$.citation', CanonicalText nvarchar(max) '$.canonicalText') v
             WHERE i.OrganizationId=@org AND i.SeasonId=@season AND i.Kind='pbe-introduction' AND i.OwnerId IS NULL
@@ -73,7 +101,22 @@ public sealed class PbeChapterJsonReader(ErudozaDbContext db) : IPbeChapterJsonR
               AND EXISTS (SELECT 1 FROM ScopeEntries e WHERE e.OrganizationId=@org AND e.SeasonId=@season AND e.Kind=@include AND upper(e.BookKey)=JSON_VALUE(i.DataJson,'$.bookKey'))
               AND (@selected=0 OR v.Id IN (SELECT value FROM OPENJSON(@ids)))
               AND v.Id>@after ORDER BY v.Id
-            """, values, r => new PbeSourceUnit(GuidAt(r, 0), GuidAt(r, 1), PbeSourceKind.Commentary, r.GetString(2), null, null, Convert.ToInt32(r.GetValue(3)), r.GetString(4), r.GetString(5)), ct);
+            """, values, ct);
+    }
+    Task<IReadOnlyList<PbeSourceUnit>> SourceRows(string sqliteCandidates, string serverCandidates, IReadOnlyDictionary<string, object?> values, CancellationToken ct)
+    {
+        // 128 bytes per row conservatively covers both GUIDs and scalar metadata. All variable UTF-8 fields are measured in the provider.
+        const string allowed = "(@complete=1 OR (@selected=1 AND total<=64000) OR (@selected=0 AND bytes<=64000))";
+        var select = $"SELECT Id,Pack,Kind,CASE WHEN {allowed} THEN Book END,Chapter,Verse,Ordinal,CASE WHEN {allowed} THEN Citation END,CASE WHEN {allowed} THEN Text END FROM bounded WHERE {allowed} OR rn=1 ORDER BY Id";
+        return Query<PbeSourceUnit>($"""
+            WITH candidates AS ({sqliteCandidates}), sizes AS (SELECT *,length(CAST(Book AS BLOB))+length(CAST(Citation AS BLOB))+length(CAST(Text AS BLOB))+128 AS size FROM candidates),
+            bounded AS (SELECT *,SUM(size) OVER(ORDER BY Id) AS bytes,SUM(size) OVER() AS total,row_number() OVER(ORDER BY Id) AS rn FROM sizes)
+            {select}
+            """, $"""
+            WITH candidates AS ({serverCandidates}), sizes AS (SELECT *,CONVERT(bigint,DATALENGTH(CONVERT(varchar(max),Book COLLATE Latin1_General_100_BIN2_UTF8)))+DATALENGTH(CONVERT(varchar(max),Citation COLLATE Latin1_General_100_BIN2_UTF8))+DATALENGTH(CONVERT(varchar(max),Text COLLATE Latin1_General_100_BIN2_UTF8))+128 AS size FROM candidates),
+            bounded AS (SELECT *,SUM(size) OVER(ORDER BY Id) AS bytes,SUM(size) OVER() AS total,row_number() OVER(ORDER BY Id) AS rn FROM sizes)
+            {select}
+            """, values, r => r.IsDBNull(8) ? throw new Erudoza.Application.Study.PbeChapterLimitException("InputTooLarge") : new(GuidAt(r, 0), GuidAt(r, 1), (PbeSourceKind)Convert.ToInt32(r.GetValue(2)), r.GetString(3), r.IsDBNull(4) ? null : Convert.ToInt32(r.GetValue(4)), r.IsDBNull(5) ? null : Convert.ToInt32(r.GetValue(5)), Convert.ToInt32(r.GetValue(6)), r.GetString(7), r.GetString(8)), ct);
     }
     public Task<IReadOnlyList<PbeTrainingRecord>> AssignedIntroductionPage(Guid org, Guid season, Guid student, string after, int limit, CancellationToken ct)
     {

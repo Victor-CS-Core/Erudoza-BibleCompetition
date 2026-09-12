@@ -5,6 +5,8 @@ public sealed record PbeFrozenMetadata(string AttemptId, Guid QuestionId, int? Q
 public sealed record PbeReplayTargetState(Guid TargetId, bool NeedsReplay, bool HasProjection, bool HasEvidence);
 public interface IPbeChapterJsonReader
 {
+    Task<IReadOnlyList<PbeSourceUnit>> IntroductionForPublication(Guid org, Guid season, Guid student, CancellationToken ct);
+    Task<IReadOnlyList<PbeSourceUnit>> ScriptureSources(IReadOnlyList<Guid> eligibleIds, bool requireAll, CancellationToken ct);
     Task<IReadOnlyList<PbeSourceUnit>> IntroductionPage(Guid org, Guid season, Guid student, string after, int limit, CancellationToken ct);
     Task<IReadOnlyList<PbeSourceUnit>> SelectedIntroductionSources(Guid org, Guid season, Guid student, IReadOnlyList<string> ids, CancellationToken ct);
     Task<IReadOnlyList<PbeTrainingRecord>> AssignedIntroductionPage(Guid org, Guid season, Guid student, string after, int limit, CancellationToken ct);

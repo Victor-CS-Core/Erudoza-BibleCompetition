@@ -300,6 +300,158 @@ public sealed class PbeChapterProgressTests
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task Multibyte_source_capture_and_selected_validation_bound_text_before_transfer(bool scripture, bool selectedValidation)
+    {
+        using var f = await PbeStudyTests.Fixture.Create();
+        var ids = Enumerable.Range(1, scripture ? 7 : 3).Select(n => Guid.Parse($"70000000-0000-0000-0000-{n:D12}")).ToArray();
+        var text = new string('界', scripture ? 3900 : 9000); var packId = f.Intro;
+        if (scripture)
+        {
+            var pack = new ContentPack { Id = Guid.NewGuid(), OrganizationId = f.Org, PackKey = "multibyte", LicensingStatus = "approved" };
+            packId = pack.Id; var document = new SourceDocument { Id = Guid.NewGuid(), ContentPackId = pack.Id, Name = "Multibyte" };
+            f.Db.ContentPacks.Add(pack); f.Db.SourceDocuments.Add(document);
+            f.Db.SourceUnits.AddRange(ids.Select((id, n) => new SourceUnit { Id = id, OrganizationId = f.Org, ContentPackId = pack.Id, SourceDocumentId = document.Id, BookKey = "GEN", Chapter = 1, Verse = n + 1, Ordinal = n + 1, CitationLabel = $"Genesis 1:{n + 1}", CanonicalText = text }));
+            f.Db.ScopeEntries.Add(new() { Id = Guid.NewGuid(), OrganizationId = f.Org, SeasonId = f.Season, ContentPackId = pack.Id, Kind = ScopeEntryKind.Include, BookKey = "GEN", StartChapter = 1, EndChapter = 1, StartVerse = 1, EndVerse = ids.Length });
+            f.Db.Assignments.Add(new() { Id = Guid.NewGuid(), OrganizationId = f.Org, SeasonId = f.Season, StudentUserId = f.StudentId, Type = AssignmentType.RequiredCoverage, Scopes = [new() { Id = Guid.NewGuid(), ContentPackId = pack.Id, BookKey = "GEN", StartChapter = 1, EndChapter = 1, StartVerse = 1, EndVerse = ids.Length }] });
+        }
+        else
+        {
+            var introRow = await f.Db.PbeTrainingRecords.SingleAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-introduction");
+            var intro = JsonSerializer.Deserialize<PbeIntroduction>(introRow.DataJson, PbeQuestionBank.Json)!;
+            introRow.DataJson = JsonSerializer.Serialize(intro with { Units = ids.Select((id, n) => new PbeIntroductionUnit(id, $"Intro §{n + 1}", text)).ToArray() }, PbeQuestionBank.Json);
+            // This later ID must not make the merged cursor skip the third intro unit hidden behind its first byte prefix.
+            var mixedPack = new ContentPack { Id = Guid.NewGuid(), OrganizationId = f.Org, PackKey = "mixed-prefix", LicensingStatus = "approved" };
+            var mixedDocument = new SourceDocument { Id = Guid.NewGuid(), ContentPackId = mixedPack.Id, Name = "Mixed prefix" };
+            f.Db.ContentPacks.Add(mixedPack); f.Db.SourceDocuments.Add(mixedDocument);
+            f.Db.SourceUnits.Add(new() { Id = Guid.Parse("90000000-0000-0000-0000-000000000001"), OrganizationId = f.Org, ContentPackId = mixedPack.Id, SourceDocumentId = mixedDocument.Id, BookKey = "GEN", Chapter = 1, Verse = 1, Ordinal = 1, CitationLabel = "Genesis 1:1", CanonicalText = "Alpha" });
+            f.Db.ScopeEntries.Add(new() { Id = Guid.NewGuid(), OrganizationId = f.Org, SeasonId = f.Season, ContentPackId = mixedPack.Id, Kind = ScopeEntryKind.Include, BookKey = "GEN", StartChapter = 1, EndChapter = 1, StartVerse = 1, EndVerse = 1 });
+            f.Db.Assignments.Add(new() { Id = Guid.NewGuid(), OrganizationId = f.Org, SeasonId = f.Season, StudentUserId = f.StudentId, Type = AssignmentType.RequiredCoverage, Scopes = [new() { Id = Guid.NewGuid(), ContentPackId = mixedPack.Id, BookKey = "GEN", StartChapter = 1, EndChapter = 1, StartVerse = 1, EndVerse = 1 }] });
+        }
+        var sourceMap = ids.Select((id, n) => new PbeSourceUnit(id, packId, scripture ? Erudoza.Domain.Practice.PbeSourceKind.Scripture : Erudoza.Domain.Practice.PbeSourceKind.Commentary, "GEN", scripture ? 1 : null, scripture ? n + 1 : null, n + 1, scripture ? $"Genesis 1:{n + 1}" : $"Intro §{n + 1}", text)).ToDictionary(u => u.Id);
+        var targets = new List<Erudoza.Domain.Practice.PbeTarget>();
+        foreach (var targetRow in await f.Db.PbeTrainingRecords.Where(r => r.SeasonId == f.Season && r.Kind == "pbe-target").ToListAsync())
+        {
+            var target = JsonSerializer.Deserialize<Erudoza.Domain.Practice.PbeTarget>(targetRow.DataJson, PbeQuestionBank.Json)!;
+            target.SourceUnitIds = ids.ToList(); targetRow.OwnerId = ids[0]; targetRow.DataJson = JsonSerializer.Serialize(target, PbeQuestionBank.Json); targets.Add(target);
+        }
+        // A legal source selection can be larger than one D1 validation page; the explicit lookup must fail before returning text.
+        foreach (var headRow in await f.Db.PbeTrainingRecords.Where(r => r.SeasonId == f.Season && r.Kind == "pbe-question-head").ToListAsync())
+        {
+            var head = JsonSerializer.Deserialize<PbeBankQuestionData>(headRow.DataJson, PbeQuestionBank.Json)!;
+            head.Question.SourceUnitId = ids[0]; head.Question.SourceUnitIds = ids.ToList(); head.Question.ContentPackId = packId;
+            head.Question.SourceKind = scripture ? Erudoza.Domain.Practice.PbeSourceKind.Scripture : Erudoza.Domain.Practice.PbeSourceKind.Commentary;
+            head.Question.Reference = string.Join("; ", ids.Select(id => sourceMap[id].CitationLabel)); head.Question.Evidence = "界";
+            Erudoza.Domain.Practice.PbeRubric.Validate(head.Question, targets);
+            headRow.OwnerId = ids[0]; headRow.DataJson = JsonSerializer.Serialize(head with { SourceFingerprint = PbeQuestionBank.SourceProof(head.Question, sourceMap) }, PbeQuestionBank.Json);
+        }
+        await f.Db.SaveChangesAsync(); f.Db.ChangeTracker.Clear();
+        using var meter = new PbeChapterResourceMeter(); f.Factory.CommandInterceptor = meter; var measurements = new List<object>();
+        string? workId = null; string? phase = null; var sourceSteps = 0; var reached = false;
+        for (var n = 0; n < 40; n++)
+        {
+            meter.Reset(); meter.Active = true; var watch = System.Diagnostics.Stopwatch.StartNew();
+            var response = await f.Student.PostAsJsonAsync("/api/v1/progress/me/chapters/continue", new { seasonId = f.Season, workId });
+            meter.Active = false; watch.Stop(); response.EnsureSuccessStatusCode();
+            var step = await response.Content.ReadFromJsonAsync<JsonElement>(); workId = step.GetProperty("work").GetProperty("id").GetString();
+            measurements.Add(new { phase, meter.Statements, meter.Rows, meter.ValueBytes, meter.MaxQueryValueBytes, meter.MaxBoundBytes, elapsedMs = watch.ElapsedMilliseconds });
+            if ((!selectedValidation && phase == "sources") || (selectedValidation && phase == "questions"))
+            {
+                Assert.InRange(meter.MaxQueryValueBytes, 0, 65536); Assert.InRange(meter.MaxBoundBytes, 0, 65536); Assert.InRange(meter.Statements, 1, 50);
+            }
+            var work = JsonSerializer.Deserialize<PbeChapterProgressService.Work>((await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-work")).DataJson, PbeQuestionBank.Json)!;
+            if (phase == "sources") sourceSteps++;
+            if (!selectedValidation && phase == "sources" && work.CapturePhase == "targets") { reached = true; break; }
+            if (selectedValidation && phase == "questions") { Assert.Equal("InputTooLarge", work.Reason); reached = true; break; }
+            phase = work.CapturePhase;
+        }
+        Assert.True(reached);
+        var pages = await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-manifest").Select(r => r.DataJson).ToListAsync();
+        var sources = pages.SelectMany(p => JsonSerializer.Deserialize<string[]>(p)!).Select(p => JsonSerializer.Deserialize<JsonElement>(p)).Where(p => p[0].GetString() == "source").ToArray();
+        Assert.All(ids, id => Assert.Single(sources, p => p[1].GetGuid() == id));
+        Assert.All(sources.Where(p => ids.Contains(p[1].GetGuid())), p => Assert.Equal(Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))), p[9].GetString()));
+        Assert.True(sourceSteps >= 2);
+        Directory.CreateDirectory(".local"); await File.WriteAllTextAsync($".local/d1-fix1-source-{scripture}-{selectedValidation}.json", JsonSerializer.Serialize(measurements));
+    }
+
+    [Fact]
+    public async Task Witness_pages_charge_the_generation_total()
+    {
+        using var f = await PbeStudyTests.Fixture.Create(); var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        await Accept(f, 0, now - 172800000); await Accept(f, 1, now);
+        string? workId = null; PbeChapterProgressService.Work? prior = null;
+        for (var n = 0; n < 60; n++)
+        {
+            var response = await f.Student.PostAsJsonAsync("/api/v1/progress/me/chapters/continue", new { seasonId = f.Season, workId }); response.EnsureSuccessStatusCode();
+            var row = await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-work");
+            var work = JsonSerializer.Deserialize<PbeChapterProgressService.Work>(row.DataJson, PbeQuestionBank.Json)!; workId = work.Id;
+            if (work.ProofPages > 0)
+            {
+                var proof = await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-stamp-proof");
+                Assert.Equal(prior!.StagedBytes + System.Text.Encoding.UTF8.GetByteCount(proof.DataJson), work.StagedBytes);
+                return;
+            }
+            prior = work;
+        }
+        Assert.Fail("No witness page staged.");
+    }
+
+    [Fact]
+    public async Task Witness_budget_rejects_a_second_parent_before_insertion_and_preserves_sealed_pages_on_retry()
+    {
+        using var f = await PbeStudyTests.Fixture.Create(); var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var sourceRows = await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.SeasonId == f.Season && (r.Kind == "pbe-introduction" || r.Kind == "pbe-introduction-assignment" || r.Kind == "pbe-target" || r.Kind == "pbe-question-head")).ToListAsync();
+        var replacements = sourceRows.Select(r => r.Id).Append(f.Unit.ToString()).Distinct().ToDictionary(id => id, _ => Guid.NewGuid().ToString());
+        foreach (var original in sourceRows)
+        {
+            var data = original.DataJson; foreach (var pair in replacements) data = data.Replace(pair.Key, pair.Value, StringComparison.Ordinal);
+            var copy = new PbeTrainingRecord { OrganizationId = original.OrganizationId, SeasonId = original.SeasonId, OwnerId = original.OwnerId == f.Unit ? Guid.Parse(replacements[f.Unit.ToString()]) : original.OwnerId, Kind = original.Kind, Id = replacements[original.Id], DataJson = data };
+            if (copy.Kind == "pbe-question-head")
+            {
+                var head = JsonSerializer.Deserialize<PbeBankQuestionData>(copy.DataJson, PbeQuestionBank.Json)!;
+                var originalIntro = JsonSerializer.Deserialize<PbeIntroduction>(sourceRows.Single(r => r.Kind == "pbe-introduction").DataJson, PbeQuestionBank.Json)!;
+                var sources = originalIntro.Units.Select((u, n) => new PbeSourceUnit(Guid.Parse(replacements[u.Id.ToString()]), Guid.Parse(replacements[originalIntro.Id.ToString()]), Erudoza.Domain.Practice.PbeSourceKind.Commentary, originalIntro.BookKey, null, null, n + 1, u.Citation, u.CanonicalText)).ToDictionary(u => u.Id);
+                copy.DataJson = JsonSerializer.Serialize(head with { SourceFingerprint = PbeQuestionBank.SourceProof(head.Question, sources) }, PbeQuestionBank.Json);
+            }
+            f.Db.PbeTrainingRecords.Add(copy);
+        }
+        await f.Db.SaveChangesAsync(); f.Db.ChangeTracker.Clear();
+        for (var q = 0; q < 4; q++) await Accept(f, q, now - 172800000 + q);
+        for (var q = 0; q < 4; q++) await Accept(f, q, now + q);
+        string? workId = null; PbeChapterProgressService.Work? ready = null;
+        for (var n = 0; n < 80; n++)
+        {
+            var response = await f.Student.PostAsJsonAsync("/api/v1/progress/me/chapters/continue", new { seasonId = f.Season, workId }); response.EnsureSuccessStatusCode();
+            var work = JsonSerializer.Deserialize<PbeChapterProgressService.Work>((await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-work")).DataJson, PbeQuestionBank.Json)!; workId = work.Id;
+            if (work.RowOffset == 1 && work.Aggregate is not null && work.ProofPages == 0) { ready = work; break; }
+        }
+        Assert.NotNull(ready);
+        var beforeProofs = await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-stamp-proof").ToDictionaryAsync(r => r.Id, r => r.DataJson);
+        var sealedStamp = Assert.Single(await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-stamp").Select(r => r.DataJson).ToListAsync());
+        Assert.Equal(beforeProofs.Values.Sum(System.Text.Encoding.UTF8.GetByteCount), ready.ProofBytes);
+        var inputPages = await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-manifest").Select(r => r.DataJson).ToListAsync();
+        Assert.Equal(inputPages.Sum(System.Text.Encoding.UTF8.GetByteCount) + ready.ProofBytes, ready.StagedBytes);
+        var pointer = await f.Db.PbeTrainingRecords.SingleAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-work");
+        pointer.DataJson = JsonSerializer.Serialize(ready with { StagedBytes = 16 * 1024 * 1024 - 1 }, PbeQuestionBank.Json); await f.Db.SaveChangesAsync(); f.Db.ChangeTracker.Clear();
+        using var meter = new PbeChapterResourceMeter(); f.Factory.CommandInterceptor = meter; meter.Active = true; var watch = System.Diagnostics.Stopwatch.StartNew();
+        var rejected = await f.Student.PostAsJsonAsync("/api/v1/progress/me/chapters/continue", new { seasonId = f.Season, workId });
+        meter.Active = false; watch.Stop(); rejected.EnsureSuccessStatusCode();
+        Assert.InRange(meter.Statements, 1, 50); Assert.InRange(meter.MaxQueryValueBytes, 0, 65536); Assert.InRange(meter.MaxBoundBytes, 0, 65536);
+        Directory.CreateDirectory(".local"); await File.WriteAllTextAsync(".local/d1-fix1-proof-budget.json", JsonSerializer.Serialize(new { meter.Statements, meter.Rows, meter.ValueBytes, meter.MaxQueryValueBytes, meter.MaxBoundBytes, elapsedMs = watch.ElapsedMilliseconds }));
+        var result = await rejected.Content.ReadFromJsonAsync<JsonElement>(); Assert.Equal("InputTooLarge", result.GetProperty("work").GetProperty("reason").GetString());
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.PostAsJsonAsync("/api/v1/progress/me/chapters/continue", new { seasonId = f.Season, workId })).StatusCode);
+        var blocked = JsonSerializer.Deserialize<PbeChapterProgressService.Work>((await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-work")).DataJson, PbeQuestionBank.Json)!;
+        Assert.Equal(ready.ProofOffset, blocked.ProofOffset); Assert.Equal(ready.ProofPages, blocked.ProofPages); Assert.Equal(ready.Aggregate, blocked.Aggregate); Assert.Equal(16 * 1024 * 1024 - 1, blocked.StagedBytes);
+        Assert.Equal(beforeProofs.OrderBy(p => p.Key), (await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-stamp-proof").ToDictionaryAsync(r => r.Id, r => r.DataJson)).OrderBy(p => p.Key));
+        Assert.Equal(sealedStamp, await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-stamp").Select(r => r.DataJson).SingleAsync());
+        await Finish(f);
+        Assert.All(beforeProofs, p => Assert.Equal(p.Value, f.Db.PbeTrainingRecords.AsNoTracking().Single(r => r.SeasonId == f.Season && r.Kind == "pbe-chapter-stamp-proof" && r.Id == p.Key).DataJson));
+    }
+
+    [Theory]
     [InlineData(1, "1")]
     [InlineData(2, "2")]
     [InlineData(6, "3,3")]

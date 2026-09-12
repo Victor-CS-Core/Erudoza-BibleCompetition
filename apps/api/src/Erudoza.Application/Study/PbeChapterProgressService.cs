@@ -23,7 +23,7 @@ public sealed class PbeChapterProgressService(IErudozaDbContext db, IClock clock
     static readonly JsonSerializerOptions Json = new(PbeQuestionBank.Json) { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     public sealed record Work(int SchemaVersion, string Id, string State, string? Stage, string? Reason, string? ScopeVersion,
         DateTimeOffset AsOfUtc, DateTimeOffset DueRefreshAtUtc, int InputOffset, int InputPages, int StagedBytes,
-        int RowOffset, string? SnapshotId, string? AbandonedId = null, int ProofOffset = 0, int ProofPages = 0, string? ProofFingerprint = null, string CapturePhase = "scope", string After = "", int FamilyRows = 0, int SourceCount = 0, int ScriptureCount = 0, string GroupAfter = "", Aggregate? Aggregate = null);
+        int RowOffset, string? SnapshotId, string? AbandonedId = null, int ProofOffset = 0, int ProofPages = 0, string? ProofFingerprint = null, string CapturePhase = "scope", string After = "", int FamilyRows = 0, int SourceCount = 0, int ScriptureCount = 0, string GroupAfter = "", Aggregate? Aggregate = null, int ProofBytes = 0);
     public sealed record Aggregate(PbeChapterGroupMetadata Group, string TargetAfter, PbeChapterCounts Counts, bool Updating, bool Repair);
     public sealed record StoredProjection(PbeProgressRow Row, string EvidenceFingerprint);
     public sealed record Stamp(PbeStampSummary Summary, string ProofGenerationId, string ProofFamily, int TargetCount, int QualifyingAttemptCount, int ProofPageCount, string ProofHash);
@@ -319,14 +319,16 @@ public sealed class PbeChapterProgressService(IErudozaDbContext db, IClock clock
         }
         if (work.CapturePhase == "sources")
         {
-            var scripture = await resolver.ChapterScripturePage(org, season, student, work.After, PageRows + 1, ct);
-            var introductions = await jsonReader.IntroductionPage(org, season, student, work.After, PageRows + 1, ct);
-            var all = scripture.Concat(introductions).OrderBy(s => s.Id.ToString(), StringComparer.Ordinal).Take(PageRows + 1).ToArray();
+            var scripture = await resolver.ChapterScripturePage(org, season, student, work.After, PageRows, ct);
+            var introductions = await jsonReader.IntroductionPage(org, season, student, work.After, PageRows, ct);
+            // Either family can stop at its byte prefix. Never advance past its last returned ID while it may have unseen rows.
+            var frontier = new[] { scripture.LastOrDefault()?.Id.ToString(), introductions.LastOrDefault()?.Id.ToString() }.Where(id => id is not null).OrderBy(id => id, StringComparer.Ordinal).FirstOrDefault();
+            var all = scripture.Concat(introductions).Where(s => string.CompareOrdinal(s.Id.ToString(), frontier) <= 0).OrderBy(s => s.Id.ToString(), StringComparer.Ordinal).Take(PageRows).ToArray();
             var page = FitPage(all.Take(PageRows), s => new[] { SourceEntry(s) });
             var sourceCount = work.SourceCount + page.Count; var scriptureCount = work.ScriptureCount + page.Count(s => s.SourceKind == PbeSourceKind.Scripture);
             if (sourceCount > 10000 || scriptureCount > 5000) throw new PbeChapterLimitException("ScopeTooLarge");
             work = SaveInputPage(org, student, season, work, page.Select(SourceEntry).ToArray()) with { SourceCount = sourceCount, ScriptureCount = scriptureCount, After = page.LastOrDefault()?.Id.ToString() ?? work.After };
-            if (page.Count == all.Length) work = work with { CapturePhase = "targets", After = "", FamilyRows = 0 };
+            if (all.Length == 0) work = work with { CapturePhase = "targets", After = "", FamilyRows = 0 };
             if (sourceCount == 0 && all.Length == 0) work = work with { State = "Blocked", Stage = null, Reason = "NoAssignment" };
             return work;
         }
@@ -360,7 +362,7 @@ public sealed class PbeChapterProgressService(IErudozaDbContext db, IClock clock
     {
         var prefix = work.Id + ":inputs:";
         var pages = await Rows(org, student, season, "pbe-chapter-manifest").AsNoTracking().Where(r => r.Id.StartsWith(prefix)).OrderBy(r => r.Id).Take(work.InputPages + 1).ToListAsync(ct);
-        if (pages.Count != work.InputPages || pages.Where((page, i) => page.Id != $"{work.Id}:inputs:{i:D6}").Any() || pages.Sum(p => Encoding.UTF8.GetByteCount(p.DataJson)) != work.StagedBytes) throw new PbeChapterConflictException("PBE_CHAPTER_WORK_STALE");
+        if (pages.Count != work.InputPages || pages.Where((page, i) => page.Id != $"{work.Id}:inputs:{i:D6}").Any() || pages.Sum(p => Encoding.UTF8.GetByteCount(p.DataJson)) != work.StagedBytes - work.ProofBytes) throw new PbeChapterConflictException("PBE_CHAPTER_WORK_STALE");
         var entries = pages.SelectMany(Read<string[]>).ToArray();
         if (entries.Length != work.InputOffset) throw new PbeChapterConflictException("PBE_CHAPTER_WORK_STALE");
         var parsed = entries.Select(text => (Text: text, Value: JsonSerializer.Deserialize<JsonElement>(text))).ToArray();
@@ -479,7 +481,7 @@ public sealed class PbeChapterProgressService(IErudozaDbContext db, IClock clock
         var sourceMap = new Dictionary<Guid, PbeSourceUnit>(); var targetMap = new Dictionary<Guid, PbeTarget>();
         if (!targetPhase)
         {
-            var scripture = await resolver.ChapterScriptureQuery(org, season, student).Where(s => sourceIds.Contains(s.Id)).Select(s => new PbeSourceUnit(s.Id, s.ContentPackId, s.ContentPack!.SourceType == SourceType.Supplemental ? PbeSourceKind.Commentary : PbeSourceKind.Scripture, s.BookKey, s.Chapter, s.Verse, s.Ordinal, s.CitationLabel, s.CanonicalText)).ToListAsync(ct);
+            var scripture = await resolver.SelectedChapterScriptureSources(org, season, student, sourceIds.ToArray(), ct);
             var intros = await jsonReader.SelectedIntroductionSources(org, season, student, sourceIds.Select(id => id.ToString()).ToArray(), ct);
             sourceMap = scripture.Concat(intros).Where(s => allowedIds.Contains(s.Id)).ToDictionary(s => s.Id);
             var ids = targetIds.Select(id => id.ToString()).ToArray();
@@ -585,8 +587,12 @@ public sealed class PbeChapterProgressService(IErudozaDbContext db, IClock clock
         if (entries.Count > 0)
         {
             var family = $"proof-{work.RowOffset:D6}"; var id = $"{work.Id}:{family}:{work.ProofOffset:D6}";
-            Write(org, student, season, "pbe-chapter-stamp-proof", id, new WitnessPage(work.Id, family, entries, Hash(Serialize(entries))));
-            work = work with { ProofOffset = work.ProofOffset + entries.Count, ProofPages = work.ProofPages + 1 };
+            var page = new WitnessPage(work.Id, family, entries, Hash(Serialize(entries)));
+            var bytes = Encoding.UTF8.GetByteCount(Serialize(page));
+            if (bytes > PageBytes || work.StagedBytes + bytes > StagingBytes) throw new PbeChapterLimitException("InputTooLarge");
+            Write(org, student, season, "pbe-chapter-stamp-proof", id, page);
+            // Retain the charge after sealing; insertion, accounting and cursor advancement commit together.
+            work = work with { ProofOffset = work.ProofOffset + entries.Count, ProofPages = work.ProofPages + 1, StagedBytes = work.StagedBytes + bytes, ProofBytes = work.ProofBytes + bytes };
         }
         return work with { Aggregate = aggregate };
     }

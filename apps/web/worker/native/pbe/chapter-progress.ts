@@ -20,7 +20,7 @@ import type {ChapterPage,ChapterWork,ProgressRow,StampSummary,ContinueChaptersRe
 const GROUP_RULE='pbe-passage-groups-v1';
 type Stage='Sources'|'Guards'|'Targets'|'Heads'|'Groups'|'Replaying'|'Retentions'|'Projecting'|'Proofs'|'Complete'|'Cleanup';
 interface Aggregate {group:GroupMetadata;targetAfter:string;counts:ProgressRow['counts'];updating:boolean;repair:boolean}
-interface Work {baseGuards:InputGuard[];groupAfter:string;aggregate:Aggregate|null;id:string;workId:string;schemaVersion:1;seasonId:string;sourceHash:string;stage:Stage;offset:number;after:string;pageCount:number;bytes:number;scopeVersion:string|null;asOfUtc:string;dueRefreshAtUtc:string;reason:ChapterWork['reason'];snapshotId:string|null;abandoned:string|null;rowIndex:number;proofOffset:number}
+interface Work {baseGuards:InputGuard[];groupAfter:string;aggregate:Aggregate|null;id:string;workId:string;schemaVersion:1;seasonId:string;sourceHash:string;stage:Stage;offset:number;after:string;pageCount:number;bytes:number;proofBytes?:number;scopeVersion:string|null;asOfUtc:string;dueRefreshAtUtc:string;reason:ChapterWork['reason'];snapshotId:string|null;abandoned:string|null;rowIndex:number;proofOffset:number}
 interface SourceInput extends Omit<PbeSource,'canonicalText'> {textHash:string;parentKey:string;groupKey:string|null;guards:InputGuard[]}
 interface TargetInput {guard:InputGuard;target:Pick<PbeTarget,'id'|'skill'|'sourceUnitIds'>|null}
 interface HeadInput {guard:InputGuard;question:(Pick<PbeQuestion,'id'|'version'|'sourceUnitIds'|'kind'|'ordered'>&{parts:{targetId:string;points:number}[]})|null}
@@ -53,7 +53,7 @@ async function savePage(ctx:RequestContext,work:Work,family:string,values:unknow
  const prepared=await manifestPage(ctx,work.seasonId,work.workId,family,work.pageCount,chunks);work.pageCount++;work.bytes+=prepared.page.bytes;if(work.bytes>CHAPTER_STAGE_BYTES)throw new HttpError(413,'PBE_CHAPTER_INPUT_TOO_LARGE');return {...prepared,processed:chunks.length};
 }
 function newWork(ctx:RequestContext,seasonId:string,base:ChapterBase,previous:Work|null):Work{
- const now=trainingNow();return {baseGuards:base.guards,groupAfter:'',aggregate:null,id:ownerId(ctx,seasonId),workId:crypto.randomUUID(),schemaVersion:1,seasonId,sourceHash:base.signature,stage:'Sources',offset:0,after:'',pageCount:0,bytes:0,scopeVersion:null,asOfUtc:now,dueRefreshAtUtc:new Date(Date.parse(now)+300000).toISOString(),reason:null,snapshotId:null,abandoned:previous?.workId??null,rowIndex:0,proofOffset:0};
+ const now=trainingNow();return {baseGuards:base.guards,groupAfter:'',aggregate:null,id:ownerId(ctx,seasonId),workId:crypto.randomUUID(),schemaVersion:1,seasonId,sourceHash:base.signature,stage:'Sources',offset:0,after:'',pageCount:0,bytes:0,proofBytes:0,scopeVersion:null,asOfUtc:now,dueRefreshAtUtc:new Date(Date.parse(now)+300000).toISOString(),reason:null,snapshotId:null,abandoned:previous?.workId??null,rowIndex:0,proofOffset:0};
 }
 async function rawBankPage(ctx:RequestContext,work:Work,kind:string){
  if(work.offset===0){const count=await ctx.env.DB.prepare("SELECT count(*) AS n FROM (SELECT 1 FROM Records r INDEXED BY Records_training_scope WHERE r.org_id=? AND r.season_id=? AND r.kind=? AND r.owner_id IN (SELECT json_extract(e.value,'$.id') FROM Records m INDEXED BY Records_training_scope JOIN json_each(m.data,'$.entries') e WHERE m.org_id=r.org_id AND m.season_id=r.season_id AND m.owner_id=? AND m.kind='pbe-chapter-manifest' AND json_extract(m.data,'$.generationId')=? AND json_extract(m.data,'$.family')='sources') LIMIT 10001)").bind(ctx.orgId,work.seasonId,kind,ctx.actor.userId,work.workId).first<{n:number}>();if((count?.n??0)>10000)throw new HttpError(413,'PBE_CHAPTER_SCOPE_TOO_LARGE');}
@@ -102,7 +102,7 @@ async function aggregateStep(ctx:RequestContext,work:Work,prior:Stored<Work>){
   if(!group){work.stage='Complete';work.snapshotId=work.workId;await save(ctx,work,prior,[chapterInputGuard(ctx,work.seasonId,work.workId,work.pageCount,'evidence')]);return;}
   work.aggregate={group,targetAfter:'',counts:{assignedPassages:group.assignedPassages,questionCoveredPassages:await groupCoveredPassages(ctx,work,group.key),totalTargets:0,practicedTargets:0,recalledTargets:0,retainedTargets:0,dueTargets:0,missingVariantTargets:0},updating:false,repair:false};await save(ctx,work,prior);return;
  }
- const aggregate=work.aggregate;let targets=await groupTargetPage(ctx,work,aggregate.group.key,aggregate.targetAfter);
+ const aggregate=structuredClone(work.aggregate);let targets=await groupTargetPage(ctx,work,aggregate.group.key,aggregate.targetAfter);
  if(!targets.length){await publishAggregate(ctx,work,prior);return;}
  const retentions=await savedRetentions<RetentionInput>(ctx,work,targets.map(t=>t.id));if(!retentions.length)throw staleWork();targets=targets.slice(0,retentions.length);if(targets.some(t=>!retentions.some(r=>r.targetId===t.id)))throw staleWork();const states=new Map(retentions.map(r=>[r.targetId,r.projection])),variants=await targetVariantCounts(ctx,work,targets);
  const witnesses:{targetId:string;witness:NonNullable<RetentionState['witness']>}[]=[];
@@ -113,8 +113,8 @@ async function aggregateStep(ctx:RequestContext,work:Work,prior:Stored<Work>){
   aggregate.updating ||= !state||state.dataGap||projection?.provisional===true;aggregate.repair ||= projection?.review.unresolved===true;aggregate.targetAfter=target.id;if(witness)witnesses.push(witness);
  }
  const statements:import('@cloudflare/workers-types').D1PreparedStatement[]=[];
- if(witnesses.length){const family=`proof-${String(work.rowIndex).padStart(6,'0')}`,id=`${work.workId}:${family}:${String(work.proofOffset).padStart(6,'0')}`,value={id,generationId:work.workId,family,entries:witnesses,hash:await chapterHash(witnesses)};statements.push(ctx.store.insertion('pbe-chapter-stamp-proof',id,ctx.orgId,value,{seasonId:work.seasonId,ownerId:ctx.actor.userId}));work.proofOffset+=witnesses.length;}
- await save(ctx,work,prior,statements);
+ if(witnesses.length){const family=`proof-${String(work.rowIndex).padStart(6,'0')}`,id=`${work.workId}:${family}:${String(work.proofOffset).padStart(6,'0')}`,value={id,generationId:work.workId,family,entries:witnesses,hash:await chapterHash(witnesses)},pageBytes=utf8Bytes(value);if(pageBytes>CHAPTER_PAGE_BYTES||work.bytes+pageBytes>CHAPTER_STAGE_BYTES)throw new HttpError(413,'PBE_CHAPTER_INPUT_TOO_LARGE');work.bytes+=pageBytes;work.proofBytes=(work.proofBytes??0)+pageBytes;statements.push(ctx.store.insertion('pbe-chapter-stamp-proof',id,ctx.orgId,value,{seasonId:work.seasonId,ownerId:ctx.actor.userId}));work.proofOffset+=witnesses.length;}
+ work.aggregate=aggregate;await save(ctx,work,prior,statements);
 }
 async function step(ctx:RequestContext,work:Work,prior:Stored<Work>){
  if(work.abandoned){
@@ -124,7 +124,7 @@ async function step(ctx:RequestContext,work:Work,prior:Stored<Work>){
  }
  if(work.stage==='Sources'){
   const captured=await chapterSourcePage(ctx,work.seasonId,work.after),sources:SourceInput[]=[];
-  for(const {source,guards} of captured.items){const {canonicalText,...rest}=source;sources.push({...rest,textHash:await chapterTextHash(canonicalText),guards,parentKey:source.chapter===null?`intro:${source.contentPackId}`:`chapter:${source.contentPackId}:${source.bookKey}:${source.chapter}`,groupKey:null});}
+  for(const {source,guards} of captured.items){const {canonicalText,...rest}=source;sources.push({...rest,textHash:await chapterTextHash(canonicalText),guards,parentKey:source.sourceKind!=='Scripture'||source.chapter===null?`intro:${source.contentPackId}`:`chapter:${source.contentPackId}:${source.bookKey}:${source.chapter}`,groupKey:null});}
   const statements=await saveCapturedPages(ctx,work,'sources',sources);work.offset+=sources.length;work.after=captured.after??'';
   if(captured.after===null){if(!work.offset)work.reason='NoAssignment';work.stage='Guards';work.offset=0;work.after='';}await save(ctx,work,prior,statements);return;
  }

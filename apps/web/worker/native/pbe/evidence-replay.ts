@@ -11,7 +11,7 @@ export interface EvidenceRef {questionVersion?:number;responseLockedAtMs?:number
 interface EvidenceIndex {id:string;ready:boolean;after:string;coveredLegacyEvents:number}
 interface Dirty {id:string;targetId:string;generation:number;completedGeneration:number}
 interface AttemptReview {id:string;questionId:string;status:'Pending'|'Resolved';pointsByTarget:Record<string,number>}
-interface ReplayJob {id:string;generation:number;after:string;projection:ReviewProjection;pendingCount:number}
+interface ReplayJob {missingReferenceRepairAttempted?:boolean;id:string;generation:number;after:string;projection:ReviewProjection;pendingCount:number}
 const ownerKey=(owner:string,season:string)=>`${owner.toLowerCase()}:${season.toLowerCase()}`;
 const targetKey=(d:PbeDispute,target:string)=>`${ownerKey(d.participantIds[0],d.seasonId)}:${target.toLowerCase()}`;
 export function evidenceRefs(owner:string,season:string,event:RecallEvent):EvidenceRef[]{return event.evidence.map(e=>({id:`${ownerKey(owner,season)}:${e.targetId}:${String(event.acceptedSequence).padStart(16,'0')}:${e.attemptId}`,eventId:event.id,attemptRecordId:e.attemptId,acceptedSequence:event.acceptedSequence,questionKind:event.questionKind,questionVersion:event.questionVersion,responseLockedAtMs:event.responseLockedAtMs,evidence:e}));}
@@ -68,14 +68,21 @@ export async function replayTargetEvidence(ctx:RequestContext,owner:string,seaso
   await atomic(ctx,'pbe-evidence.initialize',w.statements,w.guards);
   return {status:'Provisional',stage:'Replaying',indexReady:true};
  }
- const id=next.value.id,oldJob=await ctx.store.get<ReplayJob>('pbe-evidence-replay',id,ctx.orgId),job=oldJob?.value.generation===next.value.generation&&oldJob.value.projection.retention?.ruleVersion===RETENTION_RULE_VERSION?oldJob.value:{id,generation:next.value.generation,after:id+':',projection:initialProjection(id,next.value.targetId),pendingCount:0};
+ const id=next.value.id,oldJob=await ctx.store.get<ReplayJob>('pbe-evidence-replay',id,ctx.orgId),job=oldJob?.value.generation===next.value.generation&&oldJob.value.projection.retention?.ruleVersion===RETENTION_RULE_VERSION?oldJob.value:{id,generation:next.value.generation,after:id+':',projection:initialProjection(id,next.value.targetId),pendingCount:0,missingReferenceRepairAttempted:false};
  const sequenceId=ownerKey(owner,seasonId),sequence=await ctx.store.get('pbe-recall-sequence',sequenceId,ctx.orgId);
  const refs=await ctx.env.DB.prepare("SELECT data FROM Records INDEXED BY Records_training_scope WHERE org_id=? AND season_id=? AND owner_id=? AND kind='pbe-evidence-ref' AND id>? AND id<? ORDER BY id LIMIT 33").bind(ctx.orgId,seasonId,owner,job.after,id+';').all<{data:string}>();
  const priorProjection=await ctx.store.get<ReviewProjection>('pbe-target-review',id,ctx.orgId);
  if(!refs.results.length&&job.projection.acceptedSequence===0&&(priorProjection?.value.acceptedSequence??0)>0){
-  const index=await ctx.store.require<EvidenceIndex>('pbe-evidence-index',sequenceId,ctx.orgId);
-  await atomic(ctx,'pbe-evidence.reindex',[ctx.store.update('pbe-evidence-index',sequenceId,ctx.orgId,{id:sequenceId,ready:false,after:'',coveredLegacyEvents:0},index.revision)],[{kind:'pbe-evidence-index',id:sequenceId,revision:index.revision}]);
-  return {status:'Provisional',stage:'Indexing',indexReady:false};
+  if(!job.missingReferenceRepairAttempted){
+   const index=await ctx.store.require<EvidenceIndex>('pbe-evidence-index',sequenceId,ctx.orgId),repair:PbeWriteBatch={statements:[],guards:[{kind:'pbe-evidence-dirty',id,revision:next.revision},...(sequence?[{kind:'pbe-recall-sequence',id:sequenceId,revision:sequence.revision}]:[])]};
+   job.missingReferenceRepairAttempted=true;
+   write(ctx,repair,'pbe-evidence-index',sequenceId,{id:sequenceId,ready:false,after:'',coveredLegacyEvents:0},index,owner,seasonId);
+   write(ctx,repair,'pbe-evidence-replay',id,job,oldJob,owner,seasonId);
+   await atomic(ctx,'pbe-evidence.reindex',repair.statements,repair.guards);
+   return {status:'Provisional',stage:'Indexing',indexReady:false};
+  }
+  // An accepted target is never reclassified as untouched when one indexed repair cannot recover its history.
+  job.projection={...priorProjection!.value,retention:{...initialRetentionState(),dataGap:true}};
  }
  const page=refs.results.slice(0,32).map(r=>JSON.parse(r.data) as EvidenceRef);
  const normalized=await normalizedEvidencePage(ctx,owner,seasonId,page);

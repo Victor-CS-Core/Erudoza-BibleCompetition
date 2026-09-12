@@ -17,9 +17,9 @@ public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, I
     {
         if (chapterJson is null) throw new NotSupportedException("Chapter metadata provider is required.");
         // Only the final guarded publication/current GET calls this full relevant-source reader.
-        var scripture = await ChapterScripturePage(org, season, student, "", 10001, ct);
+        var scripture = await ChapterScripturePublication(org, season, student, ct);
         if (scripture.Count(s => s.SourceKind == Erudoza.Domain.Practice.PbeSourceKind.Scripture) > 5000) throw new PbeChapterLimitException("ScopeTooLarge");
-        var introductions = await chapterJson.IntroductionPage(org, season, student, "", 10001, ct);
+        var introductions = await chapterJson.IntroductionForPublication(org, season, student, ct);
         if (scripture.Count + introductions.Count > 10000) throw new PbeChapterLimitException("ScopeTooLarge");
         return new(scripture.Concat(introductions).ToArray(), "");
     }
@@ -129,8 +129,20 @@ public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, I
     }
     internal async Task<IReadOnlyList<PbeSourceUnit>> ChapterScripturePage(Guid org, Guid season, Guid student, string after, int limit, CancellationToken ct)
     {
-        var query = ChapterScriptureQuery(org, season, student).Where(s => string.Compare(s.Id.ToString().ToLower(), after) > 0);
-        return await query.OrderBy(s => s.Id.ToString().ToLower()).Take(limit).Select(s => new PbeSourceUnit(s.Id, s.ContentPackId,
+        if (limit > 128 || limit < 1) throw new ArgumentException("Bound Scripture source page.");
+        var ids = await ChapterScriptureQuery(org, season, student).Where(s => string.Compare(s.Id.ToString().ToLower(), after) > 0).OrderBy(s => s.Id.ToString().ToLower()).Take(limit).Select(s => s.Id).ToListAsync(ct);
+        return await chapterJson!.ScriptureSources(ids, false, ct);
+    }
+    internal async Task<IReadOnlyList<PbeSourceUnit>> SelectedChapterScriptureSources(Guid org, Guid season, Guid student, IReadOnlyList<Guid> selected, CancellationToken ct)
+    {
+        if (selected.Count > 128) throw new ArgumentException("Bound selected Scripture IDs.");
+        var ids = await ChapterScriptureQuery(org, season, student).Where(s => selected.Contains(s.Id)).Select(s => s.Id).ToListAsync(ct);
+        return await chapterJson!.ScriptureSources(ids, true, ct);
+    }
+    // The full text set is permitted only for actual guarded publication/current GET.
+    async Task<IReadOnlyList<PbeSourceUnit>> ChapterScripturePublication(Guid org, Guid season, Guid student, CancellationToken ct)
+    {
+        return await ChapterScriptureQuery(org, season, student).OrderBy(s => s.Id.ToString().ToLower()).Take(10001).Select(s => new PbeSourceUnit(s.Id, s.ContentPackId,
             s.ContentPack!.SourceType == SourceType.Supplemental ? Erudoza.Domain.Practice.PbeSourceKind.Commentary : Erudoza.Domain.Practice.PbeSourceKind.Scripture, s.BookKey, s.Chapter, s.Verse, s.Ordinal, s.CitationLabel, s.CanonicalText)).ToListAsync(ct);
     }
 }

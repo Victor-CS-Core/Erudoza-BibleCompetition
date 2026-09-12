@@ -7,7 +7,8 @@ import type { Env, RequestContext } from '../types';
 import type { PbeQuestion, PbeTarget } from './types';
 import { sourceProof } from './bank';
 import {targetVariantCounts} from './chapter-projection-pages';
-import {prepareRecallEvidence} from './progress';
+import {prepareRecallEvidence,type ReviewProjection} from './progress';
+import {chapterHash,CHAPTER_STAGE_BYTES,utf8Bytes} from './chapter-manifest';
 import {atomic} from '../application/model';
 import {prepareEvidenceDispute} from './evidence-replay';
 import type {PbeDispute} from './disputes';
@@ -197,4 +198,48 @@ it('scans manifest metadata once when counting a bounded target variant page',as
  const ctx={env:{DB:db},orgId:TEST_ORG,actor:{userId:student}} as unknown as RequestContext;
  const counts=await targetVariantCounts(ctx,{seasonId:season,workId:generation},Array.from({length:128},(_,i)=>({id:tid(i),skill:'FactualRecall'})));expect(counts.size).toBe(128);expect([...counts.values()].every(n=>n===0)).toBe(true);
  process.stdout.write('D1 variant query evidence '+JSON.stringify({rowsRead,elapsedMs})+'\n');expect(rowsRead).toBeLessThan(2000);
+},30000);
+
+async function twoChapterBank(store:Store,commentary=false){
+ const second=tid(8000),unit=(await store.require<{id:string;contentPackId:string;bookKey:string;chapter:number;verse:number;ordinal:number;citation:string;canonicalText:string;isActive:boolean}>('source',source,TEST_ORG)).value,other={...unit,id:second,chapter:2,ordinal:2,citation:'GEN 2:1'};
+ await store.insert('source',second,TEST_ORG,other,{ownerId:pack});const range={bookKey:'GEN',startChapter:1,startVerse:1,endChapter:2,endVerse:1};
+ for(const [kind,id] of [['scope',season],['assignment','assignment']]){const row=await store.require<Record<string,unknown>>(kind,id,TEST_ORG);await store.update(kind,id,TEST_ORG,kind==='scope'?{...row.value,includes:[range]}:{...row.value,...range},row.revision).run();}
+ if(commentary){const row=await store.require<Record<string,unknown>>('pack',pack,TEST_ORG);await store.update('pack',pack,TEST_ORG,{...row.value,sourceType:'Commentary'},row.revision).run();}
+ for(const id of [tid(1),tid(2)]){const row=await store.require<PbeTarget>('pbe-target',id,TEST_ORG);await store.update('pbe-target',id,TEST_ORG,{...row.value,sourceUnitIds:[source,second]},row.revision).run();}
+ for(const id of [tid(100),tid(101)]){const row=await store.require<{question:PbeQuestion;sourceFingerprint:string}>('pbe-question-head',id,TEST_ORG),question={...row.value.question,sourceKind:commentary?'Commentary' as const:'Scripture' as const,sourceUnitIds:[source,second],reference:`${unit.citation}; ${other.citation}`};await store.update('pbe-question-head',id,TEST_ORG,{...row.value,question,sourceFingerprint:await sourceProof(question,new Map([[source,unit],[second,other]]))},row.revision).run();}
+ return second;
+}
+it('fix1 treats two-chapter supplemental content as one stamped Introduction through HTTP',async()=>{
+ const {send,store}=await setup();const second=await twoChapterBank(store,true);await seedPair(store);
+ const page=await finish(send);expect(page.items).toHaveLength(1);expect(page.items[0]).toMatchObject({key:`intro:${pack}`,kind:'Introduction',chapter:null,counts:{assignedPassages:2,totalTargets:2,retainedTargets:2},stamp:{kind:'Introduction',chapterKey:`intro:${pack}`}});
+ const rows=await store.list<{row:{kind:string}}>('pbe-chapter-projection',TEST_ORG,{seasonId:season,ownerId:student});expect(rows.map(r=>r.row.kind)).toEqual(['Introduction']);
+ expect((await store.require<{chapter:number}>('source',source,TEST_ORG)).value.chapter).toBe(1);expect((await store.require<{chapter:number}>('source',second,TEST_ORG)).value.chapter).toBe(2);
+},30000);
+type FixWork={id:string;workId:string;bytes:number;proofBytes?:number;stage:string;abandoned:string|null;rowIndex:number;proofOffset:number;aggregate:{group:{kind:string;chapter:number|null;key:string};targetAfter:string}|null};
+async function untilParent(send:Awaited<ReturnType<typeof setup>>['send'],store:Store,chapter:number){
+ for(let n=0;n<65;n++){const saved=await store.get<FixWork>('pbe-chapter-work',`${student}:${season}`,TEST_ORG);if(saved?.value.stage==='Projecting'&&saved.value.aggregate?.group.kind==='Chapter'&&saved.value.aggregate.group.chapter===chapter&&saved.value.aggregate.targetAfter==='')return saved;const response=await send('/progress/me/chapters/continue',{seasonId:season});expect(response.status,await response.clone().text()).toBe(200);}
+ throw new Error('Expected parent aggregation boundary.');
+}
+it('fix1 accounts witness families against one generation budget and preserves sealed pages on rejection and retry',async()=>{
+ const {send,store}=await setup();await twoChapterBank(store);await seedPair(store);const saved=await untilParent(send,store,1),work=saved.value;
+ const family=`proof-${String(work.rowIndex).padStart(6,'0')}`,id=`${work.workId}:${family}:000000`,entries=[];
+ for(const targetId of [tid(1),tid(2)])entries.push({targetId,witness:(await store.require<ReviewProjection>('pbe-target-review',`${student}:${season}:${targetId}`,TEST_ORG)).value.retention!.witness!});
+ const expected={id,generationId:work.workId,family,entries,hash:await chapterHash(entries)},pageBytes=utf8Bytes(expected),nearCap=CHAPTER_STAGE_BYTES-pageBytes;
+ const legacyBudget={...work,bytes:nearCap};delete legacyBudget.proofBytes;await store.update('pbe-chapter-work',work.id,TEST_ORG,legacyBudget,saved.revision).run();
+ const replies=await Promise.all([send('/progress/me/chapters/continue',{seasonId:season,workId:work.workId}),send('/progress/me/chapters/continue',{seasonId:season,workId:work.workId})]);expect(replies.map(r=>r.status)).toEqual([200,200]);
+ const proof=(await store.require('pbe-chapter-stamp-proof',id,TEST_ORG)).value;expect(proof).toEqual(expected);expect((await store.require<FixWork>('pbe-chapter-work',work.id,TEST_ORG)).value).toMatchObject({bytes:CHAPTER_STAGE_BYTES,proofBytes:pageBytes});
+ const next=await untilParent(send,store,2);const before=await store.list('pbe-chapter-stamp-proof',TEST_ORG,{seasonId:season,ownerId:student}),stamps=await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student});expect(stamps).toHaveLength(1);
+ const blocked=await send('/progress/me/chapters/continue',{seasonId:season,workId:work.workId});expect(blocked.status).toBe(200);expect(await blocked.json()).toMatchObject({work:{state:'Blocked',reason:'InputTooLarge'},next:'None'});
+ const rejected=(await store.require<FixWork>('pbe-chapter-work',work.id,TEST_ORG)).value;expect(rejected.bytes).toBe(CHAPTER_STAGE_BYTES);expect(rejected.proofBytes).toBe(pageBytes);expect(rejected.aggregate).toEqual(next.value.aggregate);expect(rejected.proofOffset).toBe(next.value.proofOffset);expect(await store.list('pbe-chapter-stamp-proof',TEST_ORG,{seasonId:season,ownerId:student})).toEqual(before);
+ expect((await send('/progress/me/chapters/continue',{seasonId:season,workId:work.workId})).status).toBe(409);expect(await store.list('pbe-chapter-stamp-proof',TEST_ORG,{seasonId:season,ownerId:student})).toEqual(before);
+ for(let n=0;n<10;n++){await send('/progress/me/chapters/continue',{seasonId:season});if((await store.require<FixWork>('pbe-chapter-work',work.id,TEST_ORG)).value.abandoned===null)break;}
+ expect((await store.require('pbe-chapter-stamp-proof',id,TEST_ORG)).value).toEqual(proof);expect(await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student})).toEqual(stamps);
+},30000);
+it('fix1 makes one missing-history repair per generation then finishes DataGap without erasing acceptance',async()=>{
+ const {send,store}=await setup();await seedPair(store);const accepted=[];
+ for(const targetId of [tid(1),tid(2)]){const row=await store.require<ReviewProjection>('pbe-target-review',`${student}:${season}:${targetId}`,TEST_ORG),value={...row.value};delete value.retention;accepted.push(value);await store.update('pbe-target-review',value.id,TEST_ORG,value,row.revision).run();}
+ await app.db.prepare("DELETE FROM Records WHERE org_id=? AND season_id=? AND kind IN ('pbe-recall-event','pbe-evidence-ref')").bind(TEST_ORG,season).run();const index=await store.require('pbe-evidence-index',`${student}:${season}`,TEST_ORG);await store.update('pbe-evidence-index',`${student}:${season}`,TEST_ORG,{id:`${student}:${season}`,ready:true,after:'',coveredLegacyEvents:2},index.revision).run();
+ const page=await finish(send,55);expect(page.items[0]).toMatchObject({currentReadiness:'Updating',counts:{retainedTargets:0},stamp:null,actions:[]});
+ for(const before of accepted){const after=(await store.require<ReviewProjection>('pbe-target-review',before.id,TEST_ORG)).value;expect(after).toMatchObject({acceptedSequence:before.acceptedSequence,failedSequence:before.failedSequence,lastAnsweredQuestionId:before.lastAnsweredQuestionId,lastAnsweredQuestionKind:before.lastAnsweredQuestionKind,review:before.review,retention:{dataGap:true}});}
+ const jobs=await store.list<{missingReferenceRepairAttempted:boolean;generation:number}>('pbe-evidence-replay',TEST_ORG,{seasonId:season,ownerId:student});expect(jobs).toHaveLength(2);expect(jobs.every(j=>j.missingReferenceRepairAttempted&&j.generation===1)).toBe(true);expect((await store.require('pbe-evidence-index',`${student}:${season}`,TEST_ORG)).revision).toBe(index.revision+5);expect(await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student})).toEqual([]);
 },30000);

@@ -6,7 +6,7 @@ interface OwnedGeneration {seasonId:string;workId:string}
 const args=(ctx:RequestContext,w:OwnedGeneration)=>[ctx.orgId,w.seasonId,ctx.actor.userId,w.workId];
 /** Window calculations inspect only the capped, immutable source metadata; callers materialize one page. */
 export function chapterGroupCtes(){return `sourceRows AS (
- SELECT json_extract(e.value,'$.id') AS id,json_extract(e.value,'$.parentKey') AS parentKey,json_extract(e.value,'$.contentPackId') AS packId,json_extract(e.value,'$.bookKey') AS bookKey,json_extract(e.value,'$.chapter') AS chapter,json_extract(e.value,'$.verse') AS verse,json_extract(e.value,'$.ordinal') AS ordinal
+ SELECT json_extract(e.value,'$.id') AS id,json_extract(e.value,'$.parentKey') AS parentKey,json_extract(e.value,'$.contentPackId') AS packId,json_extract(e.value,'$.bookKey') AS bookKey,CASE WHEN json_extract(e.value,'$.sourceKind')='Scripture' THEN json_extract(e.value,'$.chapter') END AS chapter,json_extract(e.value,'$.verse') AS verse,json_extract(e.value,'$.ordinal') AS ordinal
  FROM Records m INDEXED BY Records_training_scope JOIN json_each(m.data,'$.entries') e WHERE m.org_id=? AND m.season_id=? AND m.owner_id=? AND m.kind='pbe-chapter-manifest' AND json_extract(m.data,'$.generationId')=? AND json_extract(m.data,'$.family')='sources'),
  numbered AS (SELECT *,verse-row_number() OVER(PARTITION BY parentKey ORDER BY verse,id) AS run FROM sourceRows WHERE chapter IS NOT NULL),
  runs AS (SELECT *,count(*) OVER(PARTITION BY parentKey,run) AS n,row_number() OVER(PARTITION BY parentKey,run ORDER BY verse,id) AS pos FROM numbered),
