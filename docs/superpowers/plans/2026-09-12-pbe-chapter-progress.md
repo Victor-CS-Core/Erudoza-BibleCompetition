@@ -103,7 +103,7 @@ it('gives a small assignment an honest next action', () => {
 
 ## Task D3: Integrated quality, pilot and controlled rollout
 
-Read the [local restore implementation contract](../../operations/pbe-restore-contract.md) for approved private-adapter scope, numeric caps and honest unsupported boundaries. Final accepted D1/D2 storage mappings remain prerequisites.
+Read the [local restore implementation contract](../../operations/pbe-restore-contract.md) for approved private-adapter scope, numeric caps and honest unsupported boundaries. The subsequent user scope freeze limits initial conversion to implemented A–D1 mappings. D2-containing backups fail closed and remain future work; this is not a claim of complete D2 restore support. Reuse completed phase evidence and run essential combined release checks without starting a new stress or pilot matrix.
 
 **Files — create:** `apps/web/e2e/pbe-training.spec.ts`; `docs/operations/pbe-training.md`; `docs/audits/2026-09-12-pbe-implementation.md` for executed evidence, not copied planning claims.
 

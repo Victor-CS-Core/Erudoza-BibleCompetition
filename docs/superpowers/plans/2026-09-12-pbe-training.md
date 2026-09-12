@@ -10,6 +10,10 @@
 
 **Spec:** [Replayability assessment](../../audits/2026-09-11-training-replayability.md) and [PBE alignment assessment, including accepted independent grading](../../audits/2026-09-11-pbe-training-alignment.md).
 
+## Release scope freeze — user direction
+
+The user requested closure for hands-on testing and explicitly stopped further scope expansion. Finish the implemented A–D2 features, the known D2 review corrections, existing local restore tooling and essential combined release checks; then commit/push, consolidate all branch progress into main, deploy and remove preserved non-main refs. Do not add new gamification, converter architecture, stress matrices or pilot work. D2-containing backup conversion remains explicitly unsupported and fails before target writes; it is future work requiring a new request. Physical-device speech/IME, SQL Server execution, hosted capacity and the coordinated learner study remain disclosed external limits. Features remain disabled for unreviewed season banks.
+
 ## Global constraints
 
 - The user authorized implementation as an active goal and subsequently authorized committing, pushing, integrating the latest work from all branches into `main`, deploying the validated combined app, and removing other branches after preservation. Complete training and release checks before consolidation/deployment/cleanup. Planning baseline: `71cc6ac`; its application files matched deployed source `838a066`.

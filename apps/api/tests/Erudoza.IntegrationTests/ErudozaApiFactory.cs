@@ -18,7 +18,23 @@ public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
     public Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor? CommandInterceptor { get; set; }
     public bool DisablePracticeTicker { get; set; }
     public TimeProvider? TestTimeProvider { get; set; }
-    private readonly string _dbPath = Path.Combine(Path.GetTempPath(), $"erudoza-{Guid.NewGuid():N}.db");
+    private readonly string _dbPath;
+    private readonly bool _existingDatabase;
+    private IHost? _fixtureHost;
+
+    public ErudozaApiFactory() => _dbPath = Path.Combine(Path.GetTempPath(), $"erudoza-{Guid.NewGuid():N}.db");
+
+    // Only disposable, stopped integration-test backups may be supplied here.
+    internal ErudozaApiFactory(string existingDatabasePath)
+    {
+        _dbPath = Path.GetFullPath(existingDatabasePath);
+        if (!File.Exists(_dbPath)) throw new FileNotFoundException("The stopped fixture database must exist.", _dbPath);
+        _existingDatabase = true;
+    }
+
+    internal string FixtureDatabasePath => _dbPath;
+
+    internal Task StopFixtureHostAsync() => _fixtureHost?.StopAsync() ?? Task.CompletedTask;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -63,6 +79,8 @@ public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
     protected override IHost CreateHost(IHostBuilder builder)
     {
         var host = base.CreateHost(builder);
+        _fixtureHost = host;
+        if (_existingDatabase) return host;
         using var scope = host.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>();
         db.Database.EnsureDeleted();
@@ -84,7 +102,7 @@ public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
         base.Dispose(disposing);
         try
         {
-            File.Delete(_dbPath);
+            if (!_existingDatabase) File.Delete(_dbPath);
         }
         catch (IOException)
         {

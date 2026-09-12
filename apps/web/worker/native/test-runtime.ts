@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { pbkdf2Sync } from "node:crypto";
+import { createHash, pbkdf2Sync } from "node:crypto";
 import { build } from "esbuild";
 import { Miniflare, Response as TestServiceResponse } from "miniflare";
 import type { Request as TestRequest, Response as TestResponse } from "miniflare";
@@ -13,7 +13,7 @@ import type { Env } from './types';
 import { readNativeMigrations } from '../../scripts/native-migrations.mjs';
 export const TEST_ORG="11111111-1111-4111-8111-111111111111";
 export const TEST_USER="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
-export async function createNativeTestApp(options:{measureD1?:boolean;onD1Meter?:(meter:{bindingCalls:number;statements:number;methods:Record<string,number>})=>void;beforeD1Statement?:(sql:string)=>Promise<void>;delayAuthentication?:boolean;replaceSoloAuthority?:boolean;replaceRoomAuthority?:boolean;roomTestClock?:boolean;roomStorageDiagnostics?:boolean;beforePasswordHash?:()=>Promise<void>;bindings?:Record<string,string>;outboundService?:(request:TestRequest)=>Promise<TestResponse>}={}) {
+export async function createNativeTestApp(options:{d1Persist?:string;durableObjectsPersist?:string;measureD1?:boolean;onD1Meter?:(meter:{bindingCalls:number;statements:number;methods:Record<string,number>})=>void;beforeD1Statement?:(sql:string)=>Promise<void>;delayAuthentication?:boolean;replaceSoloAuthority?:boolean;replaceRoomAuthority?:boolean;roomTestClock?:boolean;roomStorageDiagnostics?:boolean;beforePasswordHash?:()=>Promise<void>;bindings?:Record<string,string>;outboundService?:(request:TestRequest)=>Promise<TestResponse>}={}) {
   // Test-only compilation hook: exercise ingress ordering while authentication waits.
   // No delay header or equivalent bypass is included in the deployed bundle.
   const plugins=options.delayAuthentication||options.beforePasswordHash?[{name:"test-auth-delay",setup(builder:import("esbuild").PluginBuild){builder.onLoad({filter:/native[/\\]auth\.ts$/},async args=>{
@@ -63,7 +63,7 @@ export async function createNativeTestApp(options:{measureD1?:boolean;onD1Meter?
     if(options.outboundService)return options.outboundService(request);
     throw new Error("Unexpected network request in native concurrency test");
   }:options.outboundService;
-  const runtimeOptions:ConstructorParameters<typeof Miniflare>[0]={modules:true,script:bundle.outputFiles[0].text,compatibilityDate:"2026-05-22",compatibilityFlags:["nodejs_compat"],d1Databases:{DB:"test-native"},durableObjects:{ROOMS:{className:"PracticeRoom",useSQLite:true},REPORTS:{className:"PracticeReports",useSQLite:true},PASSWORD_CRYPTO:{className:"PasswordCrypto",useSQLite:true},PBE_SOLO:{className:"PbeSoloRound",useSQLite:true}},bindings:{PUBLIC_ORIGIN:"https://erudoza.test",...options.bindings},outboundService};
+  const runtimeOptions:ConstructorParameters<typeof Miniflare>[0]={modules:true,script:bundle.outputFiles[0].text,compatibilityDate:"2026-05-22",compatibilityFlags:["nodejs_compat"],d1Databases:{DB:"test-native"},d1Persist:options.d1Persist,durableObjectsPersist:options.durableObjectsPersist,durableObjects:{ROOMS:{className:"PracticeRoom",useSQLite:true},REPORTS:{className:"PracticeReports",useSQLite:true},PASSWORD_CRYPTO:{className:"PasswordCrypto",useSQLite:true},PBE_SOLO:{className:"PbeSoloRound",useSQLite:true}},bindings:{PUBLIC_ORIGIN:"https://erudoza.test",...options.bindings},outboundService};
   const runtime=new Miniflare(runtimeOptions);
   let db=await runtime.getD1Database("DB");
   const restart=async()=>{await runtime.setOptions({...runtimeOptions,bindings:{...runtimeOptions.bindings,FIXTURE_RESTART:crypto.randomUUID()}});db=await runtime.getD1Database("DB");};
@@ -83,5 +83,5 @@ export async function createNativeTestApp(options:{measureD1?:boolean;onD1Meter?
       return Response.json(await importPack({request,env,actor,path:'/fixture',orgId:org,store:new Store(env.DB)},await body(request,2*1024*1024)));
     }catch(error){return Response.json({message:error instanceof Error?error.message:String(error)},{status:error instanceof HttpError?error.status:503});}
   };
-  return {runtime,get db(){return db;},fetch,login,importFixture,restart};
+  return {runtime,sourceBuildHash:createHash("sha256").update(bundle.outputFiles[0].text).digest("hex"),get db(){return db;},fetch,login,importFixture,restart};
 }

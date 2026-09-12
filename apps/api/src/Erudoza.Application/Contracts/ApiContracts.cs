@@ -186,9 +186,11 @@ public sealed record ChallengeTokenDto(string Display, bool Hidden, int Index);
 public sealed record SubmitAttemptRequest(
     string ClientSubmissionId,
     Guid ChallengeCardId,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     string? SubmittedAnswer,
     int ResponseTimeMs,
     bool HintsUsed,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     IReadOnlyList<MissingWordAnswer>? MissingWordAnswers = null);
 
 public sealed record AttemptResultDto(

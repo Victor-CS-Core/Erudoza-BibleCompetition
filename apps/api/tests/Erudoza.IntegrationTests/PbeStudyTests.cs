@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Erudoza.Application.Study;
 using Erudoza.Api.Practice;
+using Erudoza.Application.Study;
 using Erudoza.Domain;
 using Erudoza.Domain.Practice;
 using Erudoza.Infrastructure.Persistence;
@@ -415,7 +415,7 @@ i++)
             Scope.Dispose();
             Factory.Dispose();
         }
-        public static async Task<Fixture> Create(TimeProvider? timeProvider = null)
+        public static async Task<Fixture> Create(TimeProvider? timeProvider = null, bool useBuiltInRule = false)
         {
             var f = new Fixture { Factory = new ErudozaApiFactory { DisablePracticeTicker = true, TestTimeProvider = timeProvider } };
             f.Coach = await TestHttp.LoginAsync(f.Factory, "admin@erudoza.local", "DevAdmin!234");
@@ -425,9 +425,11 @@ i++)
             f.Scope = f.Factory.Services.CreateScope();
             f.Db = f.Scope.ServiceProvider.GetRequiredService<ErudozaDbContext>();
             var scripture = await f.Db.SourceUnits.FirstAsync(s => s.OrganizationId == f.Org);
-            var rule = new RuleProfile { Id = Guid.NewGuid(), Key = "pbe-session", Version = 1 };
+            var rule = useBuiltInRule
+                ? await f.Db.RuleProfiles.SingleAsync(r => r.Key == "PBE_STYLE_V1" && r.Version == 1 && r.IsBuiltIn)
+                : new RuleProfile { Id = Guid.NewGuid(), Key = "pbe-session", Version = 1 };
             f.Season = Guid.NewGuid();
-            f.Db.RuleProfiles.Add(rule);
+            if (!useBuiltInRule) f.Db.RuleProfiles.Add(rule);
             f.Db.Seasons.Add(new() { Id = f.Season, OrganizationId = f.Org, Name = "PBE session", RuleProfileId = rule.Id, Status = SeasonStatus.Active, PbeEnabled = true });
             f.Db.ScopeEntries.Add(new() { Id = Guid.NewGuid(), OrganizationId = f.Org, SeasonId = f.Season, ContentPackId = scripture.ContentPackId, Kind = ScopeEntryKind.Include, BookKey = scripture.BookKey, StartChapter = scripture.Chapter, EndChapter = scripture.Chapter, StartVerse = scripture.Verse, EndVerse = scripture.Verse });
             f.Db.CompetitionMembers.Add(new() { Id = Guid.NewGuid(), OrganizationId = f.Org, SeasonId = f.Season, UserId = f.StudentId });
