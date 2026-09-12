@@ -1,5 +1,5 @@
 export type WeeklyTarget = 3 | 4 | 5;
-export type TrainingStepKind = "Review" | "Practice";
+export type TrainingStepKind = "Review" | "Practice" | "Simulation";
 export type MissionStatus = "Suggested" | "Active" | "Complete" | "Invalidated" | "Unavailable";
 export type BadgeKey = "exact-recall" | "reference-ready" | "chapter-strong" | "full-coverage" | "steady-study" | "review-complete";
 export type SkillScores = {

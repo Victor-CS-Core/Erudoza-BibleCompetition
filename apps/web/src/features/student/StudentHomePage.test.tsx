@@ -39,11 +39,11 @@ it("labels effort-based sidebar progress as a milestone", async () => {
   expect(screen.getByRole("link", { name: "Explore mastery Honors" })).toHaveAttribute("href", "/student/honors?seasonId=s");
 });
 
-it("disables the PBE rehearsal entry until timed presentation is implemented", async () => {
+it("offers shortened timed PBE practice", async () => {
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ format: "Pbe" }));
   home();
-  expect(await screen.findByTestId("start-simulation")).toBeDisabled();
-  expect(screen.queryByRole("link", { name: "Start rehearsal" })).not.toBeInTheDocument();
+  expect(await screen.findByTestId("start-simulation")).toHaveAttribute("href", expect.stringContaining("mode=Simulation"));
+  expect(screen.getByTestId("start-simulation")).toHaveTextContent("Start shortened timed practice");
   expect(screen.getByRole("link", { name: "Practice another drill" })).toHaveAttribute("href", expect.stringContaining("format=Pbe"));
 });
 

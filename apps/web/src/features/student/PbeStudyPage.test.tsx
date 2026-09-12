@@ -17,6 +17,7 @@ beforeEach(() => {
     vi.spyOn(api, 'nextCard');
     vi.spyOn(api, 'nextPbeCard').mockResolvedValue(saved.card!);
     vi.spyOn(api, 'submitPbeAttempt').mockResolvedValue(result);
+    vi.spyOn(api, 'pbeTimed');
     vi.spyOn(api, 'pbeSource').mockResolvedValue({ assisted: true, sources: [{ citation: 'GEN 1:1', canonicalText: 'Alpha and Beta' }] });
 });
 afterEach(() => { vi.restoreAllMocks(); sessionStorage.clear(); });
@@ -54,12 +55,11 @@ it('restores and retries the exact pending text without permitting a changed ans
     await screen.findByText('1 / 2 points');
     expect(vi.mocked(api.submitPbeAttempt).mock.calls[0]).toEqual(vi.mocked(api.submitPbeAttempt).mock.calls[1]);
 });
-it('does not start untimed simulation and presents an explicit practice route', async () => {
+it('starts PBE Simulation as shortened timed practice', async () => {
     vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);
+    vi.mocked(api.startSession).mockResolvedValue({ ...saved.session, mode: 'Simulation' });
     mount('/student/study?seasonId=season&format=Pbe&mode=Simulation');
-    await screen.findByText('Timed rehearsal is not enabled.');
-    expect(api.startSession).not.toHaveBeenCalled();
-    expect(screen.getByRole('link', { name: 'Start PBE practice' })).toHaveAttribute('href', expect.stringContaining('mode=Practice'));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'Simulation', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
 });
 it('defaults an eligible new season to PBE and does not run Memory start or next', async () => {
     vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);

@@ -146,14 +146,22 @@ it('freezes complete rubrics across publication, allows saved continuation after
     expect((await send(`/study/sessions/${s.id}/complete`, {})).status).toBe(409);
     expect(await store.list('pbe-recall-event', TEST_ORG, { ownerId: student })).toHaveLength(1);
 });
-it('distinguishes nothing due from unavailable content and rejects untimed Simulation', async () => {
+it('distinguishes nothing due from unavailable content and routes Simulation through authoritative presentation', async () => {
     const { send } = await setup();
     const review = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'Review' });
     expect(review.status).toBe(409);
     expect(await review.json()).toMatchObject({ code: 'PBE_NOTHING_DUE' });
     const simulation = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'Simulation' });
-    expect(simulation.status).toBe(400);
-    expect(await simulation.text()).toContain('Timed rehearsal is not enabled');
+    expect(simulation.status).toBe(200);
+    const timed = await simulation.json() as {id:string;targetCardCount:number};
+    expect(timed.targetCardCount).toBe(2);
+    const card = await (await send(`/study/sessions/${timed.id}/next`)).json() as {id:string};
+    const answer = {clientSubmissionId:crypto.randomUUID(),challengeCardId:card.id,answers:['Alpha','Beta'],hintsUsed:false};
+    expect((await send(`/study/sessions/${timed.id}/attempts`,answer)).status).toBe(409);
+    const present = await (await send(`/study/sessions/${timed.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as {revision:number};
+    const armed = await (await send(`/study/sessions/${timed.id}/timed`,{action:'ack',questionId:card.id,revision:present.revision,delivery:'TextFallback'})).json() as {status:string};
+    expect(armed.status).toBe('Armed');
+    expect((await send(`/study/sessions/${timed.id}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:answer.answers,clientSubmissionId:answer.clientSubmissionId})).status).toBe(409);
     const missing = await send('/study/sessions', { seasonId: season, format: 'Pbe', chapter: { contentPackId: pack, chapter: 2 } });
     expect(missing.status).toBe(409);
     expect(await missing.json()).toMatchObject({ code: 'PBE_COVERAGE_UNAVAILABLE' });
@@ -470,4 +478,32 @@ it('keeps a frozen daily mission discoverable when publication moves outside the
     await store.remove('membership', `${season}:${student}`, TEST_ORG);
     expect(await (await send(todayPath)).json()).toMatchObject({ mission: { status: 'Unavailable' }, nextAction: null });
     expect((await send(path + '/complete', {})).status).toBe(409);
+});
+it('accepts solo Simulation only through the authority and defers all feedback until completion', async () => {
+    const { send, store } = await setup(1);
+    const session = await (await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'Simulation' })).json() as {id:string;targetCardCount:number};
+    expect(session.targetCardCount).toBe(1);
+    const card = await (await send(`/study/sessions/${session.id}/next`)).json() as {id:string;question:{reference:string;prompt:string;points:number}};
+    const answer = {clientSubmissionId:crypto.randomUUID(),challengeCardId:card.id,answers:['Alpha','Beta'],hintsUsed:false};
+    expect((await send(`/study/sessions/${session.id}/attempts`,answer)).status).toBe(409);
+    const present = await (await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as {revision:number};
+    const ack = await (await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:present.revision,delivery:'TextFallback'})).json() as {responseStartsAtMs:number};
+    expect(ack.responseStartsAtMs).toBeTypeOf('number');
+    expect((await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:answer.answers,clientSubmissionId:answer.clientSubmissionId})).status).toBe(409);
+    await new Promise(resolve=>setTimeout(resolve,3100));
+    const accepted = await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:answer.answers,clientSubmissionId:answer.clientSubmissionId});
+    expect(accepted.status).toBe(200);
+    const receipt=await accepted.json();
+    expect(receipt).toMatchObject({feedbackDeferred:true,alreadyProcessed:false});
+    expect(JSON.stringify(receipt)).not.toMatch(/earnedPoints|expectedParts|Alpha|Beta/);
+    expect(await (await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:answer.answers,clientSubmissionId:answer.clientSubmissionId})).json()).toMatchObject({alreadyProcessed:true});
+    expect((await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:['changed','answer'],clientSubmissionId:answer.clientSubmissionId})).status).toBe(409);
+    expect((await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:answer.answers,clientSubmissionId:crypto.randomUUID()})).status).toBe(409);
+    expect(await (await send(`/study/sessions/${session.id}`)).json()).toMatchObject({attempt:{feedbackDeferred:true,alreadyProcessed:true}});
+    const attempts=await store.list<{responseLockedAtMs?:number;atMs:number}>('pbe-attempt',TEST_ORG,{ownerId:student});
+    expect(attempts[0].responseLockedAtMs).toBeTypeOf('number');
+    expect((await send(`/study/sessions/${session.id}/complete`,{})).status).toBe(200);
+    const completed=await (await send(`/study/sessions/${session.id}`)).json();
+    expect(completed.summary).toMatchObject({earnedPoints:2,results:[{earnedPoints:2,expectedParts:['Alpha','Beta']}]});
+    expect(await store.list('training-day',TEST_ORG,{ownerId:student})).toEqual([]);
 });

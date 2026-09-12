@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Erudoza.Application.Study;
 using Erudoza.Domain;
 using Erudoza.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,24 @@ namespace Erudoza.IntegrationTests;
 
 public sealed class PbeStudyTests
 {
+    [Fact]
+    public async Task Armed_simulation_without_live_authority_resumes_as_restartable_interruption()
+    {
+        using var f = await Fixture.Create();
+        var started = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Practice" })).Content.ReadFromJsonAsync<JsonElement>();
+        var id = started.GetProperty("id").GetGuid();
+        var card = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}/next");
+        var row = await f.Db.PbeTrainingRecords.SingleAsync(r => r.Kind == "pbe-session" && r.Id == id.ToString());
+        var snapshot = JsonSerializer.Deserialize<PbeSessionSnapshot>(row.DataJson, PbeQuestionBank.Json)!;
+        snapshot.Mode = "Simulation"; snapshot.TimingStatus = "Armed"; snapshot.TimingQuestionId = card.GetProperty("id").GetGuid();
+        row.DataJson = JsonSerializer.Serialize(snapshot, PbeQuestionBank.Json); await f.Db.SaveChangesAsync();
+
+        var resumed = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}");
+        Assert.Equal("Interrupted", resumed.GetProperty("session").GetProperty("status").GetString());
+        Assert.True(resumed.GetProperty("interruption").GetProperty("restartAllowed").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, resumed.GetProperty("card").ValueKind);
+    }
+
     [Fact]
     public async Task Introduction_only_daily_Pbe_grades_partial_answers_and_preserves_original_retry_and_effort()
     {
@@ -119,7 +138,7 @@ public sealed class PbeStudyTests
         using var f = await Fixture.Create();
         foreach (var format in new object?[] { "pbe", "Unknown", 2, null }) Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format, mode = "Practice" })).StatusCode);
         foreach (var mode in new object?[] { "practice", "Unknown", 2, null }) Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode })).StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Simulation" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Simulation" })).StatusCode);
         var input = new { seasonId = f.Season, format = "Pbe", mode = "Practice", training = new { clientStartId = new string('x', 200) } };
         Assert.Equal(HttpStatusCode.Conflict, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", training = new { clientStartId = "stale", missionId = Guid.NewGuid().ToString(), missionRevision = 1, step = "Practice" } })).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", training = new { clientStartId = "bad", missionRevision = 1 } })).StatusCode);

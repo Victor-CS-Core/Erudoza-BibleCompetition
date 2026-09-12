@@ -116,6 +116,7 @@ export const api = {
     request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, format, ...(memoryChallenge ? {memoryChallenge} : {}), ...(training ? { training } : {}) }) }),
   nextPbeCard: (sessionId:string) => request<import('./pbeTypes').PbeSessionCard>(`/api/v1/study/sessions/${sessionId}/next`),
   submitPbeAttempt: (sessionId:string, body:import('./pbeTypes').PbeSubmission) => request<import('./pbeTypes').PbeAttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`,{method:'POST',body:JSON.stringify(body)}),
+  pbeTimed: (sessionId:string, body:unknown) => request<import('./pbeTypes').PbePresentationState|import('./pbeTypes').PbeTimedReceipt>(`/api/v1/study/sessions/${sessionId}/timed`,{method:'POST',body:JSON.stringify(body)}),
   pbeSource: (sessionId:string, challengeCardId:string) => request<{assisted:true;sources:{citation:string;canonicalText:string}[]}>(`/api/v1/study/sessions/${sessionId}/source`,{method:'POST',body:JSON.stringify({challengeCardId})}),
   resumeSession: (sessionId: string) => request<import("./types").ResumedSession>(`/api/v1/study/sessions/${sessionId}`),
   nextCard: (sessionId: string) => request<ChallengeCard>(`/api/v1/study/sessions/${sessionId}/next`),

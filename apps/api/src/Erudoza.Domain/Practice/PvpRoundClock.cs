@@ -21,9 +21,12 @@ public sealed class PvpRoundClock(TimeProvider timeProvider)
     private readonly HashSet<Guid> acknowledgements = [];
 
     public RoundSchedule Schedule(Guid scribeA, Guid scribeB, TimeSpan delay, int durationSeconds)
+        => Schedule([scribeA, scribeB], delay, durationSeconds);
+
+    public RoundSchedule Schedule(IReadOnlyCollection<Guid> requiredScribes, TimeSpan delay, int durationSeconds)
     {
-        if (scribeA == Guid.Empty || scribeB == Guid.Empty || scribeA == scribeB)
-            throw new ArgumentException("Two distinct scribes are required.");
+        if (requiredScribes.Count is < 1 or > 2 || requiredScribes.Any(id => id == Guid.Empty) || requiredScribes.Distinct().Count() != requiredScribes.Count)
+            throw new ArgumentException("One or two distinct scribes are required.");
         ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(delay, TimeSpan.Zero);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(durationSeconds);
         lock (gate)
@@ -32,7 +35,7 @@ public sealed class PvpRoundClock(TimeProvider timeProvider)
             startDelay = delay;
             schedule = new(Guid.NewGuid(), timeProvider.GetUtcNow() + delay, durationSeconds);
             scribes.Clear();
-            scribes.UnionWith([scribeA, scribeB]);
+            scribes.UnionWith(requiredScribes);
             acknowledgements.Clear();
             return schedule;
         }
@@ -63,8 +66,8 @@ public sealed class PvpRoundClock(TimeProvider timeProvider)
         {
             if (ingress.ClockId != clockId || schedule is null || ingress.ScheduleId != schedule.Id)
                 throw new InvalidOperationException("Ingress belongs to another clock or schedule.");
-            if (acknowledgements.Count != 2)
-                throw new InvalidOperationException("Both scribes must acknowledge before the scheduled start.");
+            if (acknowledgements.Count != scribes.Count)
+                throw new InvalidOperationException("Every required scribe must acknowledge before the scheduled start.");
             var elapsed = timeProvider.GetElapsedTime(scheduledTimestamp, ingress.Timestamp) - startDelay;
             if (elapsed < TimeSpan.Zero) throw new InvalidOperationException("Response window has not opened.");
             return elapsed;

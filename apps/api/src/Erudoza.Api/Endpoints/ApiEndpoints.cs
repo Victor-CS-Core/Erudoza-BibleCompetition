@@ -497,6 +497,12 @@ public static class ApiEndpoints
             return Results.Ok(result);
         });
 
+        study.MapPost("/sessions/{sessionId:guid}/timed", async (Guid sessionId,
+            System.Text.Json.JsonElement request, PbeSessionService pbe,
+            HttpContext http,
+            CancellationToken cancellationToken) => Results.Ok(await pbe.TimedActionAsync(sessionId, request,
+                http.Items[Erudoza.Api.Practice.PracticeIngressMiddleware.PbeStampKey] as Erudoza.Application.Study.PbeSoloIngress, cancellationToken)));
+
         study.MapPost("/sessions/{sessionId:guid}/complete", async (
             Guid sessionId,
             ICurrentUser current,

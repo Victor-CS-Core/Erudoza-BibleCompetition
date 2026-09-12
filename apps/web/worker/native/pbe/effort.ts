@@ -15,7 +15,7 @@ export interface PbeMission {
     scopeVersion: string;
     localDate: string;
     timeZone: string;
-    mode: 'Practice' | 'Review';
+    mode: 'Practice' | 'Review' | 'Simulation';
     target: number;
     completed: number;
 }

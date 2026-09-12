@@ -42,7 +42,7 @@ export async function createNativeTestApp(options:{measureD1?:boolean;beforeD1St
     if(options.outboundService)return options.outboundService(request);
     throw new Error("Unexpected network request in native concurrency test");
   }:options.outboundService;
-  const runtime=new Miniflare({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:"2026-05-22",d1Databases:{DB:"test-native"},durableObjects:{ROOMS:{className:"PracticeRoom",useSQLite:true},REPORTS:{className:"PracticeReports",useSQLite:true},PASSWORD_CRYPTO:{className:"PasswordCrypto",useSQLite:true}},bindings:{PUBLIC_ORIGIN:"https://erudoza.test",...options.bindings},outboundService});
+  const runtime=new Miniflare({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:"2026-05-22",d1Databases:{DB:"test-native"},durableObjects:{ROOMS:{className:"PracticeRoom",useSQLite:true},REPORTS:{className:"PracticeReports",useSQLite:true},PASSWORD_CRYPTO:{className:"PasswordCrypto",useSQLite:true},PBE_SOLO:{className:"PbeSoloRound",useSQLite:true}},bindings:{PUBLIC_ORIGIN:"https://erudoza.test",...options.bindings},outboundService});
   const db=await runtime.getD1Database("DB");
   for(const migration of await readNativeMigrations()) await db.batch(migration.statements.map((sql:string)=>db.prepare(sql)));
   const salt=Buffer.alloc(16,3),hash=`pbkdf2:${salt.toString("base64")}:${pbkdf2Sync("Testing!123",salt,100000,32,"sha256").toString("base64")}`;

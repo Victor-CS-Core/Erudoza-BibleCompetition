@@ -139,3 +139,38 @@ export async function pbeDailyJourney(page: Page, info: TestInfo) {
     }
     expect(errors).toEqual([]);
 }
+
+export async function pbeSimulationJourney(page: Page, info: TestInfo) {
+    const errors: string[] = []; page.on('pageerror', error => errors.push(error.message));
+    await page.addInitScript(() => Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: { getVoices: () => [], addEventListener() {}, removeEventListener() {}, cancel() {}, speak() {} } }));
+    await login(page); const me = await json<Me>(page.request, '/api/v1/me'), org = `/api/v1/organizations/${me.organizationId}`;
+    const pack = (await json<ContentPack[]>(page.request, `${org}/content-packs`)).find(p => p.packKey === 'dev-daniel')!;
+    const source = (await json<StoredSource[]>(page.request, `${org}/content-packs/${pack.id}/source-units`)).sort((a, b) => a.ordinal - b.ordinal)[0];
+    const username = info.project.name.startsWith('native') ? 'student.fixture' : 'daniel.student';
+    const student = (await json<Student[]>(page.request, `${org}/students`)).find(s => s.userName === username)!;
+    const season = await json<{id:string}>(page.request, `${org}/seasons`, {name:`Timed PBE ${randomUUID()}`,yearLabel:'2026',ruleProfileKey:'PBE_STYLE_V1'});
+    const range={bookKey:source.bookKey,startChapter:source.chapter,startVerse:source.verse,endChapter:source.chapter,endVerse:source.verse};
+    await json(page.request,`${org}/seasons/${season.id}/scope`,{contentPackId:pack.id,includes:[range],excludes:[]});
+    await json(page.request,`${org}/seasons/${season.id}/assignments`,{studentUserId:student.userId,contentPackId:pack.id,type:'PrimarySpecialist',difficulty:'Standard',range});
+    await json(page.request,`${org}/seasons/${season.id}/activate`,{});
+    const words=source.canonicalText.trim().split(/\s+/).slice(0,2), tids=[randomUUID(),randomUUID()], base=`${org}/practice/pbe/seasons/${season.id}`;
+    const targets=tids.map((id,i)=>({id,sourceUnitIds:[source.id],skill:'FactualRecall',label:`Timed fixture ${i+1}`}));
+    const questions=[0,1].map(variant=>({schemaVersion:2,id:randomUUID(),version:1,contentPackId:pack.id,sourceUnitId:source.id,sourceUnitIds:[source.id],sourceKind:'Scripture',kind:'List',prompt:`Give the first two words. Variant ${variant+1}.`,reference:source.citation,evidence:source.canonicalText,ordered:false,parts:tids.map((targetId,i)=>({targetId,acceptedAnswers:[words[i]],points:1}))}));
+    await json(page.request,base+'/questions/import',{targets,questions}); for(const q of questions)await json(page.request,`${base}/questions/${q.id}/1/publish`,{}); await json(page.request,base+'/enabled',{enabled:true});
+    await logout(page); await login(page,username); await page.emulateMedia({reducedMotion:'reduce'}); await page.goto(`/student?seasonId=${season.id}`);
+    const startResponse=page.waitForResponse(r=>/\/study\/sessions$/.test(r.url())&&r.request().method()==='POST'),firstNext=page.waitForResponse(r=>/\/study\/sessions\/[^/]+\/next$/.test(r.url())); await page.getByTestId('start-simulation').click();expect((await startResponse).status()).toBe(200);
+    let card=await (await firstNext).json() as PbeSessionCard; const sid=card.sessionId;
+    for(let index=0;index<card.total;index++){
+        await expect(page.getByRole('button',{name:'I’m ready to hear the question'})).toBeVisible();
+        if(index===0)for(const width of [1440,390,320]){await page.setViewportSize({width,height:900});await assertNoOverflow(page);await page.screenshot({path:info.outputPath(`pbe-simulation-${width}.png`),fullPage:true});}
+        await page.getByRole('button',{name:'I’m ready to hear the question'}).click(); await expect(page.getByRole('button',{name:'Finished first reading'})).toBeVisible(); await page.getByRole('button',{name:'Finished first reading'}).click(); await page.getByRole('button',{name:'Finished second reading'}).click();
+        await expect(page.getByTestId('challenge-card')).toBeVisible(); await page.getByLabel('Answer 1',{exact:true}).fill(words[0]); await page.getByLabel('Answer 2',{exact:true}).fill(words[1]);
+        await expect(page.getByTestId('submit-answer')).toBeEnabled({timeout:7000}); const accepted=page.waitForResponse(r=>r.url().endsWith(`/study/sessions/${sid}/timed`)&&r.request().postDataJSON()?.action==='submit');
+        const next=index+1<card.total?page.waitForResponse(r=>r.url().endsWith(`/study/sessions/${sid}/next`)):null; await page.getByTestId('submit-answer').click(); const response=await accepted,input=response.request().postDataJSON(),receipt=await response.json(); expect(receipt).toMatchObject({feedbackDeferred:true}); expect(JSON.stringify(receipt)).not.toMatch(/earnedPoints|expectedParts/);
+        expect(await json(page.request,`/api/v1/study/sessions/${sid}/timed`,input)).toMatchObject({alreadyProcessed:true}); const changed=await page.request.post(`/api/v1/study/sessions/${sid}/timed`,{data:{...input,answers:['changed','answer']}});expect(changed.status()).toBe(409);
+        if(next)card=await (await next).json() as PbeSessionCard;
+    }
+    await expect(page.getByRole('heading',{name:'Session recap',exact:true})).toBeVisible(); const resumed=await json<{summary:{results:unknown[]}}>(page.request,`/api/v1/study/sessions/${sid}`);expect(resumed.summary.results).toHaveLength(card.total);
+    await page.reload(); await expect(page.getByRole('heading',{name:'Session recap',exact:true})).toBeVisible(); await page.goto(`/student?seasonId=${season.id}`); const replay=page.waitForResponse(r=>/\/study\/sessions$/.test(r.url())&&r.request().method()==='POST');await page.getByTestId('start-simulation').click();expect((await replay).status()).toBe(200);
+    expect(errors).toEqual([]);
+}
