@@ -37,17 +37,17 @@ export function LoginPage() {
         <Link className="training-login-brand" to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
         <div className="training-login-message">
 
-          <h2>Know the passage.<br /><em>Own the moment.</em></h2>
-          <p>Build your knowledge, strengthen your recall, and prepare for your next competition.</p>
+          <h2>Know the passage.<br /><em>Prepare for PBE.</em></h2>
+          <p>Study your assigned Scripture and practice recalling it for Pathfinder Bible Experience.</p>
         </div>
-        <p className="training-login-motto">Discover · Interpret · Serve</p>
+        <p className="training-login-motto">Pathfinder Bible Experience training</p>
       </section>
       <section className="training-login-main pathfinder-canvas" aria-labelledby="login-heading">
         <PathfinderBackdrop />
         <Link to="/" className="training-login-back" data-testid="login-join-academy">← Back to home</Link>
         <div className="training-login-form-wrap">
 
-          <div id="login-heading"><PageHeader title="Sign in" description="Your next step starts here. Continue to your training space." /></div>
+          <div id="login-heading"><PageHeader title="Sign in" description="Sign in to continue your Scripture study and team practice." /></div>
           <form onSubmit={(event) => void onSubmit(event)} aria-busy={pending}>
             <label htmlFor="login-identifier">Email or username</label>
             <Input id="login-identifier" data-testid="login-identifier" value={identifier} onChange={(event) => setIdentifier(event.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="Enter your email or username" aria-invalid={!!error} aria-describedby={error ? "login-error" : undefined} disabled={pending} required />
@@ -60,9 +60,9 @@ export function LoginPage() {
             {error && <Notice id="login-error" className="training-login-error" tone="danger">{error}</Notice>}
             <Button data-testid="login-submit" className="training-login-submit" type="submit" disabled={pending}>{pending ? "Signing in…" : "Sign in"}<AppIcon name="arrow" /></Button>
           </form>
-          <p className="training-login-help">Coaches: <Link to="/signup">Create a club</Link> or <Link to="/forgot-password">reset your password</Link>.<br />Students: Ask your coach or academy administrator.</p>
+          <p className="training-login-help">Coaches: <Link to="/signup">Create a club</Link> or <Link to="/forgot-password">reset your password</Link>.<br />Students: ask your coach for help signing in.</p>
         </div>
-        <p className="training-login-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</p>
+        <p className="training-login-footer">PATHFINDER BIBLE EXPERIENCE TRAINING</p>
       </section>
     </main>
   );

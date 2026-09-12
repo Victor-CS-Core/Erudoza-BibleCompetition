@@ -131,7 +131,7 @@ test('daily training persists full and partial recaps, unique day credit, Honors
   await page.getByRole('button', { name: 'Locked', exact: true }).click();
   await assertNoOverflow(page);
   await page.goto(`/student/progress?seasonId=${season.id}`);
-  await expect(page.getByRole('heading', { name: 'Your passage journey', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your passage progress', exact: true })).toBeVisible();
   const journey = await json<PassageJourneyPage>(page.request, `/api/v1/progress/me/journey?seasonId=${season.id}`);
   expect(journey.chapters.reduce((sum, chapter) => sum + chapter.seenCount, 0)).toBeGreaterThan(0);
   await page.goto(`/student?seasonId=${season.id}`);

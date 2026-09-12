@@ -42,7 +42,7 @@ export function StudentHomePage() {
     return link(`/student/study?${search}`);
   };
   return <div className="training-dashboard student-home">
-    <PageHeader title="Training HQ" description="A little practice. Lasting knowledge." action={data && <div className="training-season" data-testid="current-season"><small>Current season</small><strong>{data.seasonName || "Not assigned"}</strong><Badge tone={data.seasonStatus === "Active" ? "success" : "neutral"}>{data.seasonStatus === "None" ? "Awaiting assignment" : data.seasonStatus}</Badge></div>} />
+    <PageHeader title="Training HQ" description="Review your assigned Scripture and prepare for team practice." action={data && <div className="training-season" data-testid="current-season"><small>Current season</small><strong>{data.seasonName || "Not assigned"}</strong><Badge tone={data.seasonStatus === "Active" ? "success" : "neutral"}>{data.seasonStatus === "None" ? "Awaiting assignment" : data.seasonStatus}</Badge></div>} />
     <LandscapeBanner className="training-hq-banner" priority />
     {data?.format === "Pbe" && <div className="flex flex-wrap gap-3"><Badge>PBE questions</Badge><LinkButton variant="secondary" to={link("/student/study?mode=Practice&format=Memory")}>Choose Memory</LinkButton><p>Shortened timed practice is available.</p></div>}
     {(seasons.data?.length ?? 0) > 1 && <label className="training-season-select">Assigned season<Select value={seasonId ?? ""} onChange={event => { setGoalOpen(false); setParams({ seasonId: event.target.value }); }}>{seasons.data?.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}
@@ -52,8 +52,8 @@ export function StudentHomePage() {
         <div className="training-mission-column">
           <Panel className="training-mission">
             <div className="training-mission-main">
-              <h2>{data.mission.status === "Complete" ? "That’s a good day’s practice." : available ? "Strengthen your recall." : "Your next step starts here."}</h2>
-              <p className="training-mission-description">{data.mission.explanation || (data.mission.status === "Complete" ? "Your reviews and daily drill are finished. Every saved answer is part of your progress." : "Review what needs another look, then help the wording and references stick.")}</p>
+              <h2>{data.mission.status === "Complete" ? "Today’s practice is complete." : available ? "Practice your assigned Scripture." : "Your training assignment"}</h2>
+              <p className="training-mission-description">{data.mission.explanation || (data.mission.status === "Complete" ? "You’ve finished today’s reviews and practice. Your answers are saved." : "Review missed answers, then practice recalling your assigned Scripture.")}</p>
               {available && nextStep && <p className="training-mission-scope"><AppIcon name="book" /><span>{nextStep.target} {nextStep.kind === "Review" ? "due passages" : "cards"} · Your assigned passages</span></p>}
               {!available && <Notice data-testid="academy-track-unavailable">{data.mission.status === "Invalidated" ? "Your assignment changed. Start updated training to build a plan for your current assignment." : data.seasonStatus !== "Active" && data.seasonId ? "Training opens when this season is Active." : (me?.kind === "Adult" ? "Choose your study passages in My assignments." : "Your coach will add your study assignment here.")}</Notice>}
               {!available && me?.kind === "Adult" && <LinkButton to={link("/student/assignments")}>My assignments</LinkButton>}
@@ -71,22 +71,22 @@ export function StudentHomePage() {
               </li>;
             })}</ol>}
           </Panel>
-          <p className="training-mission-note">Your coach’s assigned passages. A manageable step each day.</p>
+          <p className="training-mission-note">Practice follows the passages assigned for this season.</p>
         </div>
         <aside className="training-hq-aside">
           <Panel className="training-week-panel">
-            <div className="training-panel-title"><h2>Find your rhythm</h2><Button variant="ghost" size="compact" aria-label="Edit weekly goal" onClick={() => setGoalOpen(true)}>Edit goal</Button></div>
+            <div className="training-panel-title"><h2>Weekly practice goal</h2><Button variant="ghost" size="compact" aria-label="Edit weekly goal" onClick={() => setGoalOpen(true)}>Edit goal</Button></div>
             <p className="training-week-count" aria-label={`${data.week.completedDays} of ${data.week.target} practice days`}><strong>{data.week.completedDays} <span>of</span> {data.week.target}</strong><span>practice days this week</span></p>
             <WeeklyProgressStrip week={data.week} />
-            <p>{todayCredited ? "Today already counts. Keep a pace that works for you." : "A little practice today is a step toward your goal."}</p>
-            <div className="training-week-footer"><strong>A fresh start every week.</strong><p>Your learning stays with you after a missed day.</p>{data.preferences.pending && <p>Next week: {data.preferences.pending.weeklyTarget} days.</p>}</div>
+            <p>{todayCredited ? "Today counts toward your weekly practice goal." : "Complete today’s practice to count toward your weekly goal."}</p>
+            <div className="training-week-footer"><strong>Your weekly count resets.</strong><p>Missing a day does not erase your saved progress.</p>{data.preferences.pending && <p>Next week: {data.preferences.pending.weeklyTarget} days.</p>}</div>
           </Panel>
-          <Panel className="training-next-honor"><h2>{nextHonor ? "Your next milestone" : "Practice milestones"}</h2>{nextHonor ? <div className="training-next-honor-content"><HonorArtwork {...honorAsset(nextHonor.key)} size={72} muted /><div><h3>{nextHonor.title}</h3><p>{nextHonor.scopeLabel}</p><ProgressMeter label={nextHonor.title} value={nextHonor.completed} max={nextHonor.target} /></div></div> : <p>Your recorded milestones track practice progress. Honors have separate mastery requirements.</p>}<Link to={link("/student/honors")}>Explore mastery Honors<AppIcon name="arrow" /></Link></Panel>
+          <Panel className="training-next-honor"><h2>{nextHonor ? "Your next milestone" : "Practice milestones"}</h2>{nextHonor ? <div className="training-next-honor-content"><HonorArtwork {...honorAsset(nextHonor.key)} size={72} muted /><div><h3>{nextHonor.title}</h3><p>{nextHonor.scopeLabel}</p><ProgressMeter label={nextHonor.title} value={nextHonor.completed} max={nextHonor.target} /></div></div> : <p>Your recorded milestones track practice progress. Honors have separate mastery requirements.</p>}<Link to={link("/student/honors")}>View Honors and requirements<AppIcon name="arrow" /></Link></Panel>
         </aside>
       </div>
       {seasonId && <PassageJourney key={`${seasonId}:${data.format ?? 'Memory'}`} seasonId={seasonId} format={data.format ?? 'Memory'} preview />}
       {seasonId && data.format === 'Pbe' && <SeasonCoveragePanel key={`cooperation:${seasonId}`} seasonId={seasonId} audience="student" />}
-      <Panel className="training-more"><div><h2>Keep exploring</h2><p>Choose the practice that fits today.</p></div><div className="training-controls">{available && <><LinkButton variant="secondary" to={study("Practice", null)}>Practice another drill</LinkButton>{data.mission.steps.some(step => step.kind === "Review" && step.target > 0 && step.status !== "NotNeeded") && <LinkButton variant="secondary" data-testid="start-reviews" to={study("Review", null)}>Start due reviews</LinkButton>}<>{data.format === "Pbe" ? <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start shortened timed practice</LinkButton> : <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start rehearsal</LinkButton>}</></>}<LinkButton variant="secondary" to={link("/student/practice")}>Team Practice</LinkButton></div></Panel>
+      <Panel className="training-more"><div><h2>More practice options</h2><p>Review passages on your own or join Team Practice.</p></div><div className="training-controls">{available && <><LinkButton variant="secondary" to={study("Practice", null)}>Practice another drill</LinkButton>{data.mission.steps.some(step => step.kind === "Review" && step.target > 0 && step.status !== "NotNeeded") && <LinkButton variant="secondary" data-testid="start-reviews" to={study("Review", null)}>Start due reviews</LinkButton>}<>{data.format === "Pbe" ? <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start shortened timed practice</LinkButton> : <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start rehearsal</LinkButton>}</></>}<LinkButton variant="secondary" to={link("/student/practice")}>Team Practice</LinkButton></div></Panel>
       {goalOpen && <WeeklyGoalDialog preferences={data.preferences} onClose={() => setGoalOpen(false)} />}
     </>}
   </div>;

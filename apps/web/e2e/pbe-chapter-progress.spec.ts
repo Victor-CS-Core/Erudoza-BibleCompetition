@@ -105,13 +105,13 @@ test('real chapter actions and cooperation stay scoped, private and recoverable 
   expect(studentSummaryText).not.toContain(fixture.unassignedUsername);
 
   await page.goto(`/student/progress?seasonId=${fixture.seasonId}`);
-  await expect(page.getByRole('heading', { name: 'Your PBE chapter journey' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
   await expect(page.getByText('Assigned passages retained', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Current work incomplete', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('No eligible targets yet', { exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Season cooperation' })).toBeVisible();
   await expect(page.getByText(/student records are still unknown/)).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Your Memory passage journey' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your Memory passage progress' })).toBeVisible();
   await expect(page.getByText(fixture.peer.displayName)).toHaveCount(0);
   await capture(page, info, 'student-partial-provisional');
 
@@ -211,7 +211,7 @@ test('real chapter actions and cooperation stay scoped, private and recoverable 
   await expect(page.getByRole('heading', { name: 'Session recap', exact: true })).toBeVisible();
   await expect(page.getByText(/does not by itself earn a chapter stamp/)).toBeVisible();
   await page.getByRole('link', { name: 'See current PBE chapter progress' }).click();
-  await expect(page.getByRole('heading', { name: 'Your PBE chapter journey' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
   const updatedChapterCard = page.locator('article.pbe-chapter-card').filter({ hasText: chapter!.label }).first();
   await expect(updatedChapterCard).toBeVisible({ timeout: 15_000 });
   await expect(updatedChapterCard.locator('dt', { hasText: 'Due or repair' }).locator('..').locator('dd')).toHaveText(/[1-9]/, { timeout: 20_000 });

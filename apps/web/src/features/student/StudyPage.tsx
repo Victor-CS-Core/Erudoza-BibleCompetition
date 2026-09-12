@@ -208,7 +208,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       action={<Badge data-testid="academy-session-kicker">{academySessionKicker(mode)}</Badge>}>
       {sessionSnapshot?.difficulty && <p>Session difficulty: {sessionSnapshot.difficulty}</p>}
       <p>Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.</p>
-      {sessionSnapshot?.memoryChallenge && <p>{sessionSnapshot.memoryChallenge === 'Warmup' ? 'Varied-gap warmup · supported wording evidence up to 70, within your difficulty ceiling.' : 'Advanced mastery challenge · original demanding recall requirements.'}</p>}
+      {sessionSnapshot?.memoryChallenge && <p>{sessionSnapshot.memoryChallenge === 'Warmup' ? 'Varied-gap warmup · supported wording evidence up to 70, within your difficulty ceiling.' : 'Advanced mastery challenge · recall from memory with fewer clues.'}</p>}
       {progress.isSuccess && !trackReady && <p data-testid="academy-track-unavailable">{academyUnavailableCopy(track, progress.data)}</p>}
     </PageHeader></div>
   );
@@ -256,7 +256,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
         </div>
         {current && <progress className="training-session-progress" value={current.sequence} max={current.total || 1} aria-label="Study session progress" />}
         {current?.activityType !== "MissingWords" && <p className="er-scripture mt-6 text-2xl leading-relaxed" data-testid="challenge-prompt">
-          {current?.prompt ?? "Drawing today's challenge card…"}
+          {current?.prompt ?? "Loading your next practice question…"}
         </p>}
         {current ? (
           current.activityType === 'MissingWords' ? <MissingWordsInput

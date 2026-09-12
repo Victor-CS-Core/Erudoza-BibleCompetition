@@ -124,9 +124,9 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
   return <main className={`training-login coach-onboarding${isSignup ? " coach-signup" : ""}`}>
     <section className={`training-login-hero${isSignup ? " training-login-hero-landscape" : ""}`} aria-label="Erudoza">
       <Link className="training-login-brand" to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
-      <div className="training-login-message"><h2>Give your team<br /><em>a place to grow.</em></h2><p>Choose passages, guide your students, and prepare for competition together.</p></div>
+      <div className="training-login-message"><h2>Prepare your team<br /><em>for PBE.</em></h2><p>Assign Scripture passages and organize practice for Pathfinder Bible Experience.</p></div>
       {!isSignup && <img className="training-login-art training-login-coach-art" src="/assets/training/coach-guide-960.webp" width={960} height={640} loading="lazy" alt="" />}
-      <p className="training-login-motto">Discover · Interpret · Serve</p>
+      <p className="training-login-motto">Pathfinder Bible Experience training</p>
     </section>
     <section className="training-login-main pathfinder-canvas" aria-label={titles[mode]}>
       <PathfinderBackdrop />
@@ -138,7 +138,7 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
           {error && <Notice tone="danger">{error}</Notice>}
           <div className="coach-form-actions"><LinkButton variant="secondary" to={auth.me.kind === "Student" ? "/student" : "/admin"}>Return to your workspace</LinkButton><Button onClick={() => void signOut()} disabled={pending}>{pending ? "Signing out…" : "Sign out to continue"}</Button></div>
         </> : complete ? <><Notice tone="success">Your password has been reset. Sign in with your new password.</Notice><LinkButton to="/login">Sign in</LinkButton></> : !options ? <LoadingState label="Checking coach account services…" /> : !options.available ? <>
-          <Notice>Coach account services are currently unavailable. Please try again later or contact your academy administrator.</Notice><Button variant="secondary" onClick={retry}>Check availability again</Button>
+          <Notice>Coach account services are currently unavailable. Please try again later or contact your club administrator.</Notice><Button variant="secondary" onClick={retry}>Check availability again</Button>
         </> : invitationUnavailable ? <Notice tone="danger">{invitationError || "Open the complete invitation link from your email. If it has expired or been revoked, ask your coach for a new invitation."}</Notice> : !ready ? <LoadingState label="Checking your invitation…" /> : <>
           {invitation && <Notice>Join <strong>{invitation.organizationName}</strong>. This invitation was sent to {invitation.emailHint} and expires {new Date(invitation.expiresAt).toLocaleDateString()}.</Notice>}
           {receipt ? <>
@@ -165,7 +165,7 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
         </>}
         <p className="training-login-help">Students: use the account your coach provided. Ask your coach for help signing in.</p>
       </div>
-      {isSignup && <p className="training-login-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</p>}
+      {isSignup && <p className="training-login-footer">PATHFINDER BIBLE EXPERIENCE TRAINING</p>}
     </section>
   </main>;
 }

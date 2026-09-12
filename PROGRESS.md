@@ -1093,3 +1093,9 @@ Ten of fourteen tasks are now independently reviewed. B4 integration follows thi
 - Changed the home hero’s “Coach your team” destination from `/login` to the existing `/signup` coach registration route, as requested. Updated the existing component and phone E2E link expectations; no layout or authentication changes.
 - Local verification: all six landing component tests passed; Git whitespace check passed. Phone E2E expectation updated but browser suite not run for this destination-only change.
 - Checkpoint: scoped source, existing checks and this log are being committed and pushed on `codex/home-coach-registration`. Main integration and deployment remain next and are not claimed by this fix.
+
+## Site-wide PBE copy pass — September 12
+
+- User authorized a fast Humanizer pass across the site. Reviewed copy from 92 frontend source files and training messages; rewrote slogans, placeholder-style text and technical wording around SDA Pathfinder Bible Experience study. The landing's “Sample artwork” now explains the illustrative patches; app Honors remain distinct from official Pathfinder Honors. Scripture, stored user content, routes, scoring and requirements are preserved.
+- Local verification: 535 frontend tests passed; four Team Practice tests passed after the final wording adjustment; native production build/types, full ESLint, C# Application build and whitespace passed. Fifteen built-page Chromium checks across landing/sign-in/coach/HQ/Honors at 1440/390/320 had no overflow, broken art or page errors. Signed-in views used local fixtures; full backend suites and live learner flows were not rerun. [Audit and examples](docs/audits/2026-09-12-pbe-copy-audit.md).
+- Work is on `codex/pbe-copy-audit`, based on `97e5871`, preserving the preceding coach registration link fix. Next: scoped commit and normal push. Main and production have not changed.

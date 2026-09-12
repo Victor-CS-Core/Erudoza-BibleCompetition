@@ -19,13 +19,13 @@ describe("LandingPage", () => {
 
     const main = screen.getByRole("main");
     expect(within(main).getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Rooted in Scripture. Ready for the journey.",
+      "Rooted in Scripture. Ready for PBE.",
     );
     expect(within(main).getByText(/Learn your assigned passages/))
       .toBeInTheDocument();
-    expect(within(main).getByText("Use the account provided by your coach."))
+    expect(within(main).getByText("Students: use the account provided by your coach."))
       .toBeInTheDocument();
-    expect(within(main).getByRole("heading", { level: 2, name: "Guide your team’s next step." }))
+    expect(within(main).getByRole("heading", { level: 2, name: "Prepare your PBE team." }))
       .toBeInTheDocument();
     expect(within(main).getByText(/Assign passages and see where each student needs practice/))
       .toBeInTheDocument();
@@ -40,7 +40,7 @@ describe("LandingPage", () => {
     expect(within(steps[0]).getByRole("heading", { level: 3, name: "Learn your passages" }))
       .toBeInTheDocument();
     expect(steps[0]).toHaveTextContent("Read the Scripture your coach assigns, then work through it a few verses at a time.");
-    expect(within(steps[1]).getByRole("heading", { level: 3, name: "Review with purpose" }))
+    expect(within(steps[1]).getByRole("heading", { level: 3, name: "Review missed verses" }))
       .toBeInTheDocument();
     expect(steps[1]).toHaveTextContent("Return to the verses you missed and review them when they’re due.");
     expect(within(steps[2]).getByRole("heading", { level: 3, name: "Rehearse with your team" }))
@@ -87,8 +87,8 @@ describe("LandingPage", () => {
 
   it("labels decorative Honors as examples without presenting earned progress", () => {
     renderLanding();
-    const preview = screen.getByRole("figure", { name: /A glimpse of Erudoza Honors/ });
-    expect(preview).toHaveTextContent("Sample artwork");
+    const preview = screen.getByRole("figure", { name: /Erudoza training patches/ });
+    expect(preview).toHaveTextContent("Illustrations of study patches, not official Pathfinder Honors.");
     expect(preview).not.toHaveTextContent(/unlocked|earned|\d+%/i);
     expect(within(preview).queryByRole("button")).not.toBeInTheDocument();
     expect(within(preview).queryByRole("link")).not.toBeInTheDocument();

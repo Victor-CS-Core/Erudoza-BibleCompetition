@@ -38,7 +38,7 @@ it("counts an unneeded review as resolved without inventing completed practice",
 it("labels effort-based sidebar progress as a milestone", async () => {
   home(); expect(await screen.findByRole("heading", { name: "Your next milestone" })).toBeInTheDocument();
   expect(screen.queryByRole("heading", { name: "Your next Honor" })).not.toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Explore mastery Honors" })).toHaveAttribute("href", "/student/honors?seasonId=s");
+  expect(screen.getByRole("link", { name: "View Honors and requirements" })).toHaveAttribute("href", "/student/honors?seasonId=s");
 });
 
 it("offers coaches personal assignments from an empty Training HQ", async () => {
@@ -61,7 +61,7 @@ it("offers shortened timed PBE practice", async () => {
   expect(await screen.findByTestId("start-simulation")).toHaveAttribute("href", expect.stringContaining("mode=Simulation"));
   expect(screen.getByTestId("start-simulation")).toHaveTextContent("Start shortened timed practice");
   expect(screen.getByRole("link", { name: "Practice another drill" })).toHaveAttribute("href", expect.stringContaining("format=Pbe"));
-  expect(await screen.findByRole('heading', { name: 'Your PBE chapter journey' })).toBeVisible();
+  expect(await screen.findByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
   expect(screen.getByRole('heading', { name: 'Season cooperation' })).toBeVisible();
 });
 

@@ -54,7 +54,7 @@ export function PracticeHub() {
   }
 
   return <div className="practice-page practice-hub">
-    <PageHeader title="Team Practice" description="Study together. Answer with care. Grow in Scripture." action={<PracticePatch kind="team-practice" size={72} className="practice-hub-heading-art" />} />
+    <PageHeader title="Team Practice" description="Practice answering questions about your assigned Scripture as a team." action={<PracticePatch kind="team-practice" size={72} className="practice-hub-heading-art" />} />
     {coach&&<Panel><h2>PBE answer reviews</h2><p>Review saved Solo and Team answers without holding up independent practice.</p><LinkButton variant="secondary" to="/admin/practice/reviews">Open PBE answer reviews</LinkButton></Panel>}
     {error && <Notice tone="danger">{error}</Notice>}
     {bootstrap.isPending && <Panel aria-busy="true"><LoadingState label="Loading Team Practice…" /></Panel>}
@@ -62,7 +62,7 @@ export function PracticeHub() {
     {data && <>
       {!data.enabled ? <Panel>
         <h2>Team Practice is not enabled</h2>
-        <p>A coach can enable this pilot for your organization.</p>
+        <p>Ask your coach to enable Team Practice for your club.</p>
         {coach && <Button disabled={!!pending} onClick={() => void run("enable", () => practiceApi.enabled(org, true))}>{pending === "enable" ? "Enabling…" : "Enable Team Practice"}</Button>}
       </Panel> : <>
         <div className="practice-hub-grid">
@@ -71,8 +71,8 @@ export function PracticeHub() {
               <span>{currentRoom ? `${seasonName(currentRoom.seasonId)} · ${roomSizeLabel(currentRoom)} · ${currentRoom.questionCount} questions` : invitation ? "Your next practice" : "Practice together."}</span>
               {currentRoom ? <Badge tone={currentRoom.status === "Playing" ? "success" : "info"}>{currentRoom.status}</Badge> : invitation && <Badge tone="info">Invitation</Badge>}
             </div>
-            <h2>{currentRoom ? currentRoom.status === "Playing" ? "Your match is in progress." : "Your room is taking shape." : invitation ? "You’re invited to practice." : "Bring your team together."}</h2>
-            <p>{currentRoom ? coach ? "Guide the next team practice." : "Gather your team. Put your preparation into practice." : invitation ? `${invitation.inviterName} invited you ${invitation.team ? `to Team ${invitation.team}` : "to a room"}.` : "Create a room or accept an invitation to put your preparation into practice."}</p>
+            <h2>{currentRoom ? currentRoom.status === "Playing" ? "Your match is in progress." : "Your room is waiting for players." : invitation ? "You’re invited to practice." : "Bring your team together."}</h2>
+            <p>{currentRoom ? coach ? "Guide the next team practice." : "Invite your team to practice the season’s assigned material." : invitation ? `${invitation.inviterName} invited you ${invitation.team ? `to Team ${invitation.team}` : "to a room"}.` : "Create a room or accept an invitation to practice with your team."}</p>
             <div className="practice-hub-duel" data-team-count={currentRoom?.teamCount??(format==='Pbe'?teamCount:2)}>
               <div className="practice-hub-team"><PracticePatch kind="team-a" size={132} /><strong>Team 1</strong></div>
               {(currentRoom?.teamCount??(format==='Pbe'?teamCount:2))!==1&&<><span className="practice-hub-versus">VS</span>
@@ -140,11 +140,11 @@ export function PracticeHub() {
               <LinkButton size="compact" variant="secondary" to={roomLink(room.id, room.seasonId)}>{room.status === "Completed" ? "View results" : "Open room"}</LinkButton>
             </li>)}</ul>
             {!data.invitations.length && <section id="invitations" className="practice-hub-no-invitations" aria-labelledby="practice-invitations-title"><h3 id="practice-invitations-title">Invitations</h3><p>No pending invitations.</p></section>}
-            <div className="practice-hub-honors-note"><PracticePatch kind="team-practice" size={68} /><div><h3>Teamwork worth keeping.</h3><p>Arcade mastery Honors require proven personal accuracy. PBE rehearsal records team participation and finalized team scores.</p></div></div>
+            <div className="practice-hub-honors-note"><PracticePatch kind="team-practice" size={68} /><div><h3>Team Practice achievements</h3><p>Arcade mastery Honors require proven personal accuracy. PBE rehearsal records team participation and finalized team scores.</p></div></div>
           </Panel>
           <aside className="practice-hub-rules" aria-labelledby="practice-rules-title">
-            <h2 id="practice-rules-title">Know the match.</h2>
-            <ul><li><strong>PBE rehearsal.</strong> Earn rubric points after two readings and a shared response window. Arcade adds up to 25% as a speed bonus.</li><li><strong>One scribe, one final answer.</strong> Discuss together, then your scribe locks the team’s response.</li><li><strong>Prepare as a team.</strong> Every active team must be full and ready before the owner can start.</li></ul>
+            <h2 id="practice-rules-title">Practice rules</h2>
+            <ul><li><strong>PBE rehearsal.</strong> Earn rubric points after two readings and a shared response window. Arcade adds up to 25% as a speed bonus.</li><li><strong>One scribe, one final answer.</strong> Discuss together, then your scribe locks the team’s response.</li><li><strong>Check team readiness.</strong> Every active team must be full and ready before the owner can start.</li></ul>
             <p>Choose one or two teams of two to six students for PBE rehearsal. Practice scores are not official PBE standings.</p>
           </aside>
         </div>
@@ -171,6 +171,6 @@ export function PracticeHub() {
       </Panel>
     </>}
     {data && coach && <div id="question-bank"><QuestionEditor org={org} data={data} /></div>}
-    <p className="practice-hub-footnote">Erudoza head-to-head training · Accuracy first, teamwork throughout.</p>
+    <p className="practice-hub-footnote">Team Practice uses your season’s assigned material.</p>
   </div>;
 }

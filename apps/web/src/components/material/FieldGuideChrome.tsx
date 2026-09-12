@@ -54,7 +54,7 @@ export function FieldGuideChrome({ testId }: Props) {
           />
         </svg>
       </span>
-      <p className="er-chrome-motto">Discover Interpret Serve</p>
+      <p className="er-chrome-motto">Pathfinder Bible Experience</p>
     </div>
   );
 }

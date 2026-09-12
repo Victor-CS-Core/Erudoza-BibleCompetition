@@ -41,7 +41,7 @@ export function PbePresentation({ text, onReady, createPort = localSpeechPort }:
   return <Panel aria-label="Question presentation">
     {state === 'Ready' && <><p>The reference, point value, and question will be read twice.</p><Button onClick={() => void begin()}>I’m ready to hear the question</Button></>}
     {state === 'Speaking' && <><p role="status">Reading the question twice…</p><Button variant="secondary" onClick={() => { controller.current?.abort(); setState('Fallback1'); }}>Use text fallback</Button></>}
-    {(state === 'Fallback1' || state === 'Fallback2') && <><Notice>Audio is unavailable. Use the disclosed text fallback; this does not reproduce an audible event reading.</Notice><p>{text}</p><p role="status">Text reading {state === 'Fallback1' ? '1' : '2'} of 2</p><Button onClick={confirm}>Finished {state === 'Fallback1' ? 'first' : 'second'} reading</Button></>}
+    {(state === 'Fallback1' || state === 'Fallback2') && <><Notice>Audio is unavailable. Read the question on screen instead. This differs from hearing it read aloud at PBE.</Notice><p>{text}</p><p role="status">Text reading {state === 'Fallback1' ? '1' : '2'} of 2</p><Button onClick={confirm}>Finished {state === 'Fallback1' ? 'first' : 'second'} reading</Button></>}
     {state === 'Complete' && <p role="status">Presentation complete. Waiting for the response window.</p>}
   </Panel>;
 }

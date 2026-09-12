@@ -18,7 +18,7 @@ import { ChapterPicker } from "./ChapterPicker";
 const steps = [{ key: "details", title: "Details", note: "Name your season" }, { key: "passages", title: "Passages", note: "Choose what to study" }, { key: "students", title: "Students", note: "Assign a personal plan" }, { key: "review", title: "Review & start", note: "Check you're ready" }] as const;
 type Step = typeof steps[number]["key"];
 const emptyRange: PassageRange = { bookKey: "", startChapter: 0, startVerse: 0, endChapter: 0, endVerse: 0 };
-const levels: { name: TrainingDifficulty; detail: string }[] = [{ name: "Foundation", detail: "More support, smaller steps" }, { name: "Standard", detail: "Balanced recall practice" }, { name: "Advanced", detail: "Fewer clues, deeper recall" }];
+const levels: { name: TrainingDifficulty; detail: string }[] = [{ name: "Foundation", detail: "More support, smaller steps" }, { name: "Standard", detail: "Balanced recall practice" }, { name: "Advanced", detail: "Fewer clues, more recall from memory" }];
 const rangeLabel = (range: PassageRange) => `${range.bookKey} ${range.startChapter}:${range.startVerse}–${range.endChapter}:${range.endVerse}`;
 
 export function SeasonWizardPage() {
@@ -159,7 +159,7 @@ function SeasonSetup({ seasonId, studentId, assignmentOnly = false }: { seasonId
 
   return <div className="season-setup">
     {!assignmentOnly && <><LinkButton variant="ghost" size="compact" className="season-back" to="/admin/seasons">← All seasons</LinkButton>
-    <PageHeader title={seasonId ? season.data?.name ?? "Season setup" : "Create a season"} description="Choose the passages. Give each student a plan. Start together." action={season.data && <Badge tone={active ? "success" : "neutral"} data-testid="season-status">{statusLabel}</Badge>} />
+    <PageHeader title={seasonId ? season.data?.name ?? "Season setup" : "Create a season"} description="Choose the season passages and assign them to your students." action={season.data && <Badge tone={active ? "success" : "neutral"} data-testid="season-status">{statusLabel}</Badge>} />
     <nav className="season-steps ds-section-tabs" aria-label="Season setup steps">{steps.map((item, index) => <Button variant="ghost" key={item.key} type="button" aria-current={step === item.key ? "step" : undefined} disabled={busy || (!seasonId && index > 0) || (!!scopeDraft && item.key !== "passages")} onClick={() => go(item.key)}><span className="sr-only">Step {index + 1}: </span><span><strong>{item.title}</strong><small className="sr-only">{item.note}</small></span></Button>)}</nav></>}
     {library.isError && <Notice tone="danger">{library.error.message} Existing saved passages remain available. <Button variant="secondary" onClick={() => void library.refetch()}>Retry library</Button></Notice>}
     {legacySources.some(query => query.isError) && <Notice tone="danger">Stored passages could not load. <Button variant="secondary" onClick={() => legacySources.forEach(query => void query.refetch())}>Retry passages</Button></Notice>}

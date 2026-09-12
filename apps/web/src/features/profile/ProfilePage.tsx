@@ -17,7 +17,7 @@ export function ProfilePage() {
   };
   const current = profile.data?.honors.find(honor => honor.key === profile.data?.avatarHonorKey);
   return <div className="training-page profile-page">
-    <PageHeader title="Your profile" description="Wear what you have mastered. Your profile represents you in your academy, teams, and conversations." />
+    <PageHeader title="Your profile" description="Choose an earned training patch or your initials for your club profile and team discussions." />
     {profile.isPending ? <LoadingState label="Loading your profile…" /> : profile.isError ? <Panel><Notice tone="danger">Unable to load your profile.</Notice><Button variant="secondary" onClick={() => void profile.refetch()}>Try again</Button></Panel> : <>
       <Panel className="profile-summary">
         <ProfileAvatar userId={profile.data.userId} displayName={profile.data.displayName} size={80} />
@@ -38,7 +38,7 @@ export function ProfilePage() {
           </Panel>;
         })}</div>
       </section>)}
-      <p className="profile-note">Honor unlocks come from verified mastery. Practice milestones remain in your history and do not unlock profile images.</p>
+      <p className="profile-note">Meet an Honor’s recall or Team Practice requirements to use its patch. Practice milestones stay in your history and do not provide profile images.</p>
     </>}
   </div>;
 }
