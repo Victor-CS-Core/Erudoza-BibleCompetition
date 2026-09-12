@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { assertNoOverflow, login, logout } from "./helpers";
-import type { ScriptureLibrary, Me, SourceUnit, Student } from "../src/api/types";
+import type { ChallengeCard, ScriptureLibrary, Me, SourceUnit, Student } from "../src/api/types";
 
 test("built-in NKJV stays readable by chapter and verse beside an unchanged activity", async ({ page }, info) => {
   test.setTimeout(120000);
@@ -24,11 +24,19 @@ test("built-in NKJV stays readable by chapter and verse beside an unchanged acti
   await login(page, "student.fixture");
   let draws = 0, starts = 0, reads = 0;
   page.on("request", request => { if (/\/study\/sessions\/[^/]+\/next$/.test(request.url())) draws++; if (request.url().endsWith("/study/sessions") && request.method() === "POST") starts++; if (request.url().endsWith("/scripture")) reads++; });
+  const drawn = page.waitForResponse(response => /\/study\/sessions\/[^/]+\/next$/.test(response.url()));
   await page.goto(`/student/study?seasonId=${season.id}`);
-  const answer = page.getByTestId("missing-words-answer");
-  await expect(answer).toBeVisible({ timeout: 30000 });
-  await answer.fill("My answer in progress");
-  const currentPrompt = await page.getByTestId("challenge-prompt").textContent();
+  const card = await (await drawn).json() as ChallengeCard;
+  expect(card.activityType).toBe('MissingWords');
+  const hidden = card.tokens.filter(token => token.hidden);
+  expect(hidden.length).toBeGreaterThan(0);
+  expect(hidden.every(token => token.display === '____')).toBe(true);
+  const passage = page.getByRole('group', { name: 'Passage with missing words' });
+  await expect(passage).toBeVisible();
+  const answers = hidden.map((token, ordinal) => ({ index: token.index, text: `My answer in progress ${ordinal + 1}` }));
+  const blank = (ordinal: number) => passage.getByRole('textbox', { name: `Blank ${ordinal + 1} of ${hidden.length}`, exact: true });
+  for (const [ordinal, answer] of answers.entries()) await blank(ordinal).fill(answer.text);
+  const currentPassage = await passage.textContent();
   const sessionUrl = page.url();
   expect(reads).toBe(0);
   const readResponse = page.waitForResponse(response => response.url().endsWith(`/study/seasons/${season.id}/scripture`));
@@ -51,8 +59,8 @@ test("built-in NKJV stays readable by chapter and verse beside an unchanged acti
   await page.getByRole("combobox", { name: "Verse", exact: true }).selectOption("176");
   await expect(list).toContainText("Psalms 119:176");
   await page.getByRole("button", { name: "Hide passage" }).click();
-  await expect(answer).toHaveValue("My answer in progress");
-  await expect(page.getByTestId("challenge-prompt")).toHaveText(currentPrompt!);
+  for (const [ordinal, answer] of answers.entries()) await expect(blank(ordinal)).toHaveValue(answer.text);
+  await expect(passage).toHaveText(currentPassage!);
   expect(page.url()).toBe(sessionUrl);
   expect(starts).toBe(1);
   expect(draws).toBe(1);
@@ -67,6 +75,8 @@ test("built-in NKJV stays readable by chapter and verse beside an unchanged acti
   }
   const submission = page.waitForRequest(request => request.url().endsWith("/attempts") && request.method() === "POST");
   await page.getByRole("button", { name: "Check answer", exact: true }).click();
-  expect((await submission).postDataJSON()).toMatchObject({ submittedAnswer: "My answer in progress", hintsUsed: true });
+  const submitted = (await submission).postDataJSON();
+  expect(submitted).toMatchObject({ challengeCardId: card.id, missingWordAnswers: answers, hintsUsed: true });
+  expect(submitted).not.toHaveProperty('submittedAnswer');
   await expect(page.getByTestId("challenge-feedback")).toBeVisible();
 });

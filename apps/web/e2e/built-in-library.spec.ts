@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { assertNoOverflow, login, logout } from "./helpers";
-import type { Me, ScriptureLibrary, SeasonScope, Student } from "../src/api/types";
+import type { ChallengeCard, Me, ScriptureLibrary, SeasonScope, Student } from "../src/api/types";
 
 test("built-in NKJV library is read-only, searchable and keyboard readable at all viewport sizes", async ({ page }, info) => {
   await login(page);
@@ -111,10 +111,19 @@ test("coach saves bounded multi-book passages and student reads both assignments
   await expect(page.getByTestId("season-status")).toHaveText("Active");
   await logout(page);
   await login(page, student.userName);
+  const drawn = page.waitForResponse(response => /\/study\/sessions\/[^/]+\/next$/.test(response.url()));
   await page.goto(`/student/study?seasonId=${seasonId}`);
-  await expect(page.getByTestId("missing-words-answer")).toBeVisible({ timeout: 30000 });
-  await page.getByTestId("missing-words-answer").fill("Answer in progress");
-  const prompt = await page.getByTestId("challenge-prompt").textContent();
+  const card = await (await drawn).json() as ChallengeCard;
+  expect(card.activityType).toBe('MissingWords');
+  const hidden = card.tokens.filter(token => token.hidden);
+  expect(hidden.length).toBeGreaterThan(0);
+  expect(hidden.every(token => token.display === '____')).toBe(true);
+  const passage = page.getByRole('group', { name: 'Passage with missing words' });
+  await expect(passage).toBeVisible();
+  const draft = hidden.map((token, ordinal) => ({ index: token.index, text: `Answer in progress ${ordinal + 1}` }));
+  const blank = (ordinal: number) => passage.getByRole('textbox', { name: `Blank ${ordinal + 1} of ${hidden.length}`, exact: true });
+  for (const [ordinal, answer] of draft.entries()) await blank(ordinal).fill(answer.text);
+  const passageText = await passage.textContent();
   const sessionUrl = page.url();
   const reader = page.getByRole("button", { name: "Read passage", exact: true });
   await reader.focus();
@@ -134,7 +143,7 @@ test("coach saves bounded multi-book passages and student reads both assignments
     await page.screenshot({ path: info.outputPath(`student-nkjv-${width}.png`), fullPage: true });
   }
   await page.getByRole("button", { name: "Hide passage", exact: true }).click();
-  await expect(page.getByTestId("challenge-prompt")).toHaveText(prompt!);
-  await expect(page.getByTestId("missing-words-answer")).toHaveValue("Answer in progress");
+  await expect(passage).toHaveText(passageText!);
+  for (const [ordinal, answer] of draft.entries()) await expect(blank(ordinal)).toHaveValue(answer.text);
   expect(page.url()).toBe(sessionUrl);
 });

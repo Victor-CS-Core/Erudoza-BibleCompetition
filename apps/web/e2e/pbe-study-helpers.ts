@@ -2,7 +2,7 @@ import { expect, type Page, type TestInfo } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { assertNoOverflow, login, logout } from './helpers';
 import { json, type StoredSource } from './study-source-helpers';
-import type { ContentPack, Me, Student } from '../src/api/types';
+import type { ChallengeCard, ContentPack, Me, Student } from '../src/api/types';
 import type { PbeSessionCard, PbeAttemptResult } from '../src/api/pbeTypes';
 import type { SessionRecap, TrainingToday } from '../src/api/trainingTypes';
 export async function pbeDailyJourney(page: Page, info: TestInfo) {
@@ -59,8 +59,17 @@ export async function pbeDailyJourney(page: Page, info: TestInfo) {
     const memory = await json<{
         id: string;
     }>(page.request, '/api/v1/study/sessions', { seasonId: scenarios[0].seasonId, format: 'Memory', mode: 'Practice' });
+    const memoryDrawn = page.waitForResponse(response => response.url().endsWith(`/study/sessions/${memory.id}/next`));
     await page.goto(`/student/study?sessionId=${memory.id}&format=Pbe&seasonId=${scenarios[0].seasonId}`);
-    await expect(page.getByTestId('missing-words-answer')).toBeVisible();
+    const memoryCard = await (await memoryDrawn).json() as ChallengeCard;
+    expect(memoryCard.sessionId).toBe(memory.id);
+    expect(memoryCard.activityType).toBe('MissingWords');
+    const hidden = memoryCard.tokens.filter(token => token.hidden);
+    expect(hidden.length).toBeGreaterThan(0);
+    expect(hidden.every(token => token.display === '____')).toBe(true);
+    const memoryPassage = page.getByRole('group', { name: 'Passage with missing words' });
+    await expect(memoryPassage).toBeVisible();
+    for (const [ordinal] of hidden.entries()) await expect(memoryPassage.getByRole('textbox', { name: `Blank ${ordinal + 1} of ${hidden.length}`, exact: true })).toHaveValue('');
     await expect(page.getByRole('heading', { name: 'PBE practice', exact: true })).toHaveCount(0);
     for (const scenario of scenarios) {
         const seen = new Set<string>();
