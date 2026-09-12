@@ -102,7 +102,7 @@ All assessment findings map to tasks above. A verified question bank for the act
 
 ## Execution status
 
-The user authorized this plan as an active implementation goal on September 11. Work is isolated in `.worktrees/pbe-training` on `codex/pbe-training`; the baseline, A1 rubrics and A2 bank/storage have passed independent review. A2b introduction sources are next, followed by A3 coach tools. The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. Fresh baseline: web/native 579 passed/1 optional skip; .NET 267 passed/1 optional load skip. See [PROGRESS.md](../../../PROGRESS.md) for verified checkpoints. No deployment or main merge is authorized by this implementation step.
+The user authorized this plan as an active implementation goal on September 11. Work is isolated in `.worktrees/pbe-training` on `codex/pbe-training`; the baseline, A1 rubrics, A2 bank/storage and A2b introduction sources have passed independent review. A3 coach authoring and coverage tools are next. The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. Fresh baseline: web/native 579 passed/1 optional skip; .NET 267 passed/1 optional load skip. See [PROGRESS.md](../../../PROGRESS.md) for verified checkpoints. No deployment or main merge is authorized by this implementation step.
 
 ### A2 storage refinement
 
