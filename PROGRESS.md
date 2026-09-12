@@ -1,5 +1,14 @@
 # Erudoza progress log
 
+## Coach season creation refinement — September 12
+
+- User approved a bounded refinement of the existing four-step coach setup. Work is isolated in `.worktrees/coach-season-flow` on `codex/coach-season-flow`, from `97e5871`; concurrent copy-audit edits in the main checkout are untouched.
+- Added numbered/completed steps, a narrower details form with fixed competition format text, direct empty passage editing, consistent passage Back/Continue actions, and compact book controls. Student assignments offer Save and next student, skip inactive students, advance only after confirmed success, clear choices through the keyed editor and focus the next student's heading. Review reports assignment coverage and missing start requirements. Existing draft persistence, saved scopes, activation confirmation, standalone editing and closed-season rules remain intact.
+- Local gate: 106 tests across 11 coach/student assignment suites pass (33 season tests; five new behavior cases). New behavior was first observed failing. Web/native TypeScript, native production build, scoped ESLint and Git whitespace pass. The existing bundle-size advisory remains. Independent source review found no blocking issue; advancing changes the student heading but does not retain the previous student's success notice.
+- Final built-app browser fixture completed create → passages → chapter assignment → next student → review → activation cancellation/confirmation at 1440, 390 and 320 pixels. All four steps had no horizontal overflow, and no browser runtime errors occurred. Twelve screenshots are ignored under `apps/web/test-results/season-flow`; desktop and phone layouts were visually inspected. These are synthetic local API responses, not actual backend or authenticated production acceptance. Shared primitives/tokens were not changed.
+- A loopback-only synthetic demo runs at http://127.0.0.1:5237/admin/seasons/new via temporary user service `erudoza-season-flow-preview`. Data is held only in that demo process; the library is deliberately abbreviated. Preview scripts, generated captures and dependency links are excluded from Git. Next: scoped commit/push and user review. No main merge or deployment is part of this checkpoint.
+
+
 ## Signup aligned with sign-in — September 12
 
 - User requested matching signup and sign-in design. Work continues in the retained isolated workspace on codex/signup-signin-alignment from main faf35d5. Signup reuses sign-in's full-height landscape, Camp essentials corner, 390px form, 32px heading gap, arrow actions and footer. Existing signup copy, validation, verification, resend and session behavior remain intact; recovery/invitation retain their existing presentation.

@@ -1,12 +1,12 @@
 /* Composition only. Shared ui primitives own type, color, controls and surfaces. */
-.season-setup{min-width:0;width:100%;grid-template-columns:minmax(0,1fr);max-width:1120px;margin:0 auto;display:grid;gap:var(--er-space-6)}
+.season-setup{min-width:0;width:100%;grid-template-columns:minmax(0,1fr);max-width:1040px;margin:0 auto;display:grid;gap:var(--er-space-6)}
 .season-back{justify-self:start}
 .season-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--er-space-2)}
 .season-steps .ds-button{justify-content:flex-start;text-align:left;gap:var(--er-space-3);padding:var(--er-space-3)}
 .season-step-number{flex:none;display:grid;place-items:center;min-width:28px}
 .season-steps strong,.season-steps small{display:block}
 .season-steps small{margin-top:var(--er-space-1)}
-.season-details{max-width:760px;width:100%;justify-self:center}
+.season-details{max-width:640px;width:100%;justify-self:center}
 .season-section-heading{margin-bottom:var(--er-space-6)}
 .season-setup form>label,.season-edit-fields>label,.season-form-pair>label{display:block;margin-bottom:var(--er-space-5)}
 .season-setup label>.ds-input{margin-top:var(--er-space-2)}
@@ -51,7 +51,7 @@
 .season-preview summary{cursor:pointer;min-height:44px;display:list-item;align-content:center}
 .season-preview dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--er-space-3);margin:var(--er-space-3) 0}
 .season-preview dd{margin:var(--er-space-1) 0 0}
-.season-step-footer{display:flex;justify-content:space-between;gap:var(--er-space-4)}
+.season-step-footer{margin-top:var(--er-space-6);display:flex;justify-content:space-between;gap:var(--er-space-4)}
 .season-review-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--er-space-7);margin-top:var(--er-space-6)}
 .season-review-roster{list-style:none;margin:0;padding:0}
 .season-review-roster li{padding:var(--er-space-3) 0}
@@ -63,9 +63,6 @@
 @media(max-width:760px){.season-steps .ds-button{flex-direction:column;text-align:center;padding:var(--er-space-2);gap:var(--er-space-2)}.season-steps small{display:none}.season-student-layout{grid-template-columns:1fr}.season-student-list{grid-template-columns:repeat(2,minmax(0,1fr))}.season-roster-heading{display:flex;justify-content:space-between;gap:var(--er-space-3)}.season-review-grid{grid-template-columns:1fr;gap:var(--er-space-6)}.season-start-panel{flex-direction:column;align-items:stretch}.season-editor-heading{flex-wrap:wrap}}
 @media(max-width:430px){.season-student-list{grid-template-columns:1fr}.season-form-pair{grid-template-columns:1fr;gap:0}.season-range-numbers{grid-template-columns:repeat(2,minmax(0,1fr))}.season-difficulty-options{grid-template-columns:1fr}.season-actions .ds-button{width:100%}.season-step-footer{gap:var(--er-space-3);flex-wrap:wrap}.season-preview dl{grid-template-columns:1fr}.season-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.season-steps .ds-button{flex-direction:row;text-align:left}}
 
-/* Season sections remain visible without opening command search. */
-.season-steps.ds-section-tabs{display:flex;gap:var(--er-space-4)}
-.season-steps.ds-section-tabs .ds-button{position:relative;flex-direction:row;flex-shrink:0;padding:var(--er-space-3) var(--er-space-4);text-align:left}
 .season-setup>.ds-page-header{margin-bottom:0}
 
 .season-saved-assignments .season-actions{margin-top:0}
@@ -92,6 +89,28 @@
   .season-assignment-save>.ds-button{width:100%}
   .season-chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .season-setup .season-book-field{max-width:none}
-  .season-steps.ds-section-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-2)}
-  .season-steps.ds-section-tabs .ds-button{padding:var(--er-space-3);white-space:normal}
+}
+
+/* Guided setup: a compact form, visible progress and consistent action placement. */
+.season-steps .ds-button{white-space:normal;min-width:0;align-items:center}
+.season-steps .ds-button>span:last-child{min-width:0}
+.season-step-number{min-width:32px;min-height:32px;padding:0;flex:none}
+.season-fixed-format{display:grid;align-content:start;gap:var(--er-space-3);margin-bottom:var(--er-space-5)}
+.season-scope-form{max-width:800px}
+.season-next-student{margin-top:var(--er-space-2)}
+.season-assignment-save{flex-wrap:wrap}
+.season-assignment-save>.ds-button{flex:1}
+.season-student-editor h2:focus{outline:none}
+.season-review-grid{margin-bottom:var(--er-space-6)}
+@media(max-width:760px){
+  .season-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .season-steps .ds-button{flex-direction:row;text-align:left;padding:var(--er-space-3)}
+  .season-step-footer>.ds-button{flex:1}
+  .season-assignment-save>.ds-button{flex-basis:100%}
+}
+
+.season-scope-form .season-form-pair{grid-template-columns:minmax(0,1fr) auto;align-items:end}
+.season-scope-form .season-form-pair>.ds-button{margin-bottom:var(--er-space-5)}
+@media(max-width:430px){
+  .season-scope-form .season-form-pair{grid-template-columns:1fr}
 }

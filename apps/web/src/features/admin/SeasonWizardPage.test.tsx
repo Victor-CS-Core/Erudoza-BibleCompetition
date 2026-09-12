@@ -233,7 +233,7 @@ describe("Guided season setup", () => {
 it("includes all stored chapters by default when adding library books", async () => {
   vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: null, includes: [], excludes: [] });
   renderWizard("/admin/seasons/season-1?step=passages");
-  fireEvent.click(await screen.findByRole("button", { name: "Choose passages" }));
+  await screen.findByRole("combobox", { name: "Add a library book" });
   fireEvent.change(screen.getByRole("combobox", { name: "Add a library book" }), { target: { value: "eph" } });
   fireEvent.click(screen.getByRole("button", { name: "Add book" }));
   fireEvent.click(screen.getByText("Advanced passage options"));
@@ -344,4 +344,55 @@ it("clears a previous precise-save error when saving chapters", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Assign chapters" }));
   await screen.findByText(/Assigned DAN chapters 2/);
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
+
+describe("Efficient season setup", () => {
+  it("opens empty passage selection directly and saves into the next step", async () => {
+    vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: null, includes: [], excludes: [] });
+    renderWizard("/admin/seasons/season-1?step=passages");
+    fireEvent.change(await screen.findByRole("combobox", { name: "Add a library book" }), { target: { value: "jude" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add book" }));
+    fireEvent.click(screen.getByTestId("save-scope"));
+    expect(await screen.findByRole("heading", { name: "Season roster" })).toBeInTheDocument();
+  });
+  it("saves chapters before advancing and clears choices for the next student", async () => {
+    renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
+    fireEvent.click(await screen.findByRole("button", { name: "Chapter 2" }));
+    fireEvent.click(screen.getByLabelText("Advanced"));
+    fireEvent.click(screen.getByRole("button", { name: "Save and next student" }));
+    expect(await screen.findByRole("heading", { name: "Sarah Student" })).toBeInTheDocument();
+    expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-1", difficulty: "Advanced" }));
+    expect(screen.getByRole("button", { name: "Chapter 2" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByLabelText("Standard")).toBeChecked();
+    expect(screen.getByRole("heading", { name: "Sarah Student" })).toHaveFocus();
+  });
+  it("keeps the current student and selection when chapter saving fails", async () => {
+    vi.mocked(api.assign).mockRejectedValue(new Error("Connection lost"));
+    renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
+    fireEvent.click(await screen.findByRole("button", { name: "Chapter 2" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save and next student" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Connection lost");
+    expect(screen.getByRole("heading", { name: "Daniel Student" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Chapter 2" })).toHaveAttribute("aria-pressed", "true");
+  });
+  it("saves a precise passage before advancing past inactive students", async () => {
+    vi.mocked(api.students).mockResolvedValue([
+      { userId: "student-1", userName: "daniel", displayName: "Daniel Student", email: null },
+      { userId: "inactive", userName: "inactive", displayName: "Inactive Student", email: null, isActive: false },
+      { userId: "student-2", userName: "sarah", displayName: "Sarah Student", email: null },
+    ]);
+    renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
+    fireEvent.click(await screen.findByRole("button", { name: "Specific verses" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save and next student" }));
+    expect(await screen.findByRole("heading", { name: "Sarah Student" })).toBeInTheDocument();
+    expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-1", range }));
+  });
+  it("explains missing start requirements and links back to fix them", async () => {
+    renderWizard("/admin/seasons/season-1?step=review");
+    await screen.findByTestId("season-review");
+    expect(screen.getByText("Assign a passage to at least one student before starting.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Manage student plans →" }));
+    expect(await screen.findByRole("heading", { name: "Season roster" })).toBeInTheDocument();
+  });
 });
