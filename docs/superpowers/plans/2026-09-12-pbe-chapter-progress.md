@@ -68,6 +68,8 @@ it('requires a different question after a delay, not repeated immediate success'
 
 ## Task D2: Chapter expeditions, comeback actions and season cooperation
 
+Read the [cooperative progress contract](../../product/2026-09-12-pbe-cooperation-contract.md) for exact source-level union/proportion semantics, unknown evidence, routes, private D1 handoff and aggregate limits. Implement only after D1 acceptance.
+
 **Files — create:** `apps/web/src/features/student/PbeChapterProgress.tsx`, `PbeChapterProgress.test.tsx`, `SeasonCoverage.tsx`, `SeasonCoverage.test.tsx`.
 
 **Files — modify:** student `StudentHomePage.tsx`, `PassageJourney.tsx`, `ProgressPage.tsx`, `SessionRecapPage.tsx`, `HonorsPage.tsx` and tests; native `training/query.ts` and `pbe/progress.ts`; C# `TrainingQueryService.cs`; public PBE/training contracts. Existing shared controls/CSS only need changes if a reusable missing primitive is found.
