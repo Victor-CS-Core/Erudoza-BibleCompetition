@@ -40,6 +40,9 @@ export function advanceReview(state: TargetReview, e: RecallEvidence): TargetRev
   if (!e.recall) return state;
   const full = e.earnedPoints === e.availablePoints && e.availablePoints > 0;
   if (full && !e.unaided) return { ...state, lastAttemptId: e.attemptId };
+  if (full && !state.unresolved && state.intervalIndex >= 0 && e.atMs < state.dueAtMs)
+    return { ...state, lastAttemptId: e.attemptId,
+      lastQuestionId: e.questionId, lastSuccessfulAtMs: e.atMs };
   const index = full ? Math.min(3, state.intervalIndex + 1) : -1;
   return { ...state, intervalIndex: index, unresolved: !full,
     dueAtMs: e.atMs + (full ? [1, 3, 7, 14][index] * 86400000 : 0),
@@ -66,7 +69,7 @@ export interface PbeWriteBatch {
 //   scopeVersion: string, evidence: RecallEvidence[]): Promise<PbeWriteBatch>
 ```
 
-The pure scheduling kernel above assumes validated, chronologically accepted events. `RequestContext` is the existing native type in `worker/native/types.ts`. The persistence adapter prepares statements/guards without committing: append them to the same atomic batch as the accepted attempt. Enforce positive point bounds, at-most-once attempt IDs, monotonic acceptance and optimistic revision checks; use one transaction in the C# adapter. Group per-part grades by target before producing evidence; all parts for a target must be correct for that target to advance. Do not accept client-supplied points or timestamps.
+The pure scheduling kernel above assumes validated, chronologically accepted events. Early successful recall records practice but preserves the existing future due date and interval; only a due review advances 1→3→7→14 days. Failure resets immediately, and the first unaided recovery schedules one day. This prevents rapid replay from substituting for delayed retrieval. `RequestContext` is the existing native type in `worker/native/types.ts`. The persistence adapter prepares statements/guards without committing: append them to the same atomic batch as the accepted attempt. Enforce positive point bounds, at-most-once attempt IDs, monotonic acceptance and optimistic revision checks; use one transaction in the C# adapter. Group per-part grades by target before producing evidence; all parts for a target must be correct for that target to advance. Do not accept client-supplied points or timestamps.
 
 - [ ] Write the regression for the audited failure:
 
@@ -88,7 +91,7 @@ it('recognition cannot postpone an unresolved factual recall', () => {
 - [ ] Implement the scheduler and selection. For ordinary eight-card practice, allocate the index's slots; sort the coverage slots by served count then oldest service, with `stableSeed(questionId, sessionId, slot)` as a deterministic tie-breaker. Prefer a different question ID for a target recently answered. Reserve at least three least-practiced slots so continually due targets cannot starve coverage. Fill unoccupied categories from eligible least-served candidates. Do not duplicate a question within a set; short scopes produce an explicitly shorter set. Review uses due targets only. Simulation uses balanced least-served targets and no adaptive repairs during the test. Apply rehearsal question-mix quotas only to Simulation; focused Practice/Review must still be able to teach assigned commentary.
 - [ ] Preserve a failed target for a repair after two intervening targets. If the scope cannot provide two, offer repair on the next session without blocking completion. Track served history separately from accepted evidence. A viewed prompt does not create a successful attempt. Store history projections by organization/season/student/question or target; no full session-history scan per card.
 - [ ] Add deterministic multi-session tests for 1/2/8/16/21/24/100 assigned passages, multiple targets per passage, uneven ranges, all-due banks, and only one variant. Under a fixed finite bank with no forced repair, repeated coverage slots must eventually serve every question before any question gets arbitrarily many extra services. A saved session must return identical IDs after refresh; a different session can differ while maintaining coverage. Port fixtures to C# and compare exact selected IDs and review dates.
-- [ ] Run native tests and `dotnet test apps/api/tests/Erudoza.UnitTests/Erudoza.UnitTests.csproj --filter 'FullyQualifiedName~PbeReview|FullyQualifiedName~PbeSelection'`. Commit `feat: schedule recall targets and vary PBE replay` after idempotency and parity checks pass.
+- [ ] Verify rapid successful replays preserve the future due date/interval; a success exactly at the deadline advances one interval, failure resets immediately, and recognition/aided success cannot repair failed recall. Run native tests and `dotnet test apps/api/tests/Erudoza.UnitTests/Erudoza.UnitTests.csproj --filter 'FullyQualifiedName~PbeReview|FullyQualifiedName~PbeSelection'`. Commit `feat: schedule recall targets and vary PBE replay` after idempotency and parity checks pass.
 
 ## Task B2: Deliver and score PBE questions through daily study
 

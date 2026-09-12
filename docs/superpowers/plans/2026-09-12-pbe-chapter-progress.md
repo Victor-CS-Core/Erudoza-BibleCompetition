@@ -99,7 +99,7 @@ it('gives a small assignment an honest next action', () => {
 
 **Files — create:** `apps/web/e2e/pbe-training.spec.ts`; `docs/operations/pbe-training.md`; `docs/audits/2026-09-12-pbe-implementation.md` for executed evidence, not copied planning claims.
 
-**Files — modify:** `apps/web/playwright.native.config.ts` to include the new spec; default Playwright config only if an explicit test match requires it; native/canonical regression files from prior phases; `docs/operations/{cloudflare-native,pvp}.md`; `PROGRESS.md`.
+**Files — modify:** `apps/web/playwright.native.config.ts` to include the new spec; default Playwright config only if an explicit test match requires it; native/canonical regression files from prior phases; `scripts/cloudflare-export.mjs` and populated export/resume tests for new PBE records; `docs/operations/{cloudflare-native,pvp}.md`; `PROGRESS.md`.
 
 **Interfaces:** No new product API. Use A–D's published requests/DTOs and existing isolated browser/server harnesses. Add fixtures only under test directories or ignored local output, never real student records.
 

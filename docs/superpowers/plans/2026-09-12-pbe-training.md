@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- This deliverable is a plan, not authorization to deploy or a claim that the app is already aligned. Planning baseline: `71cc6ac`; application files match deployed source `838a066`.
+- The user has authorized implementation as an active goal; deployment and main merge remain separate. Planning baseline: `71cc6ac`; its application files matched deployed source `838a066`.
 - “Students should be able to start, finish and replay ordinary matches without an adult online.” Automatic grading is the default; coach-led rehearsal is explicitly selected. Disputes do not block play.
 - “Preserve the coach's selected season and assignment.” Support multiple books and separately approved commentary introductions. Never fill an insufficient bank with unassigned or invented material.
 - NAD baseline: references supplied; short answers, lists, exact quotations/blanks; no multiple choice in rehearsal. Exact words/order for quotations; configured variants and later adjudication for factual answers. No runtime generative-AI grading or blanket fuzzy matching.
@@ -21,7 +21,7 @@
 - Team rehearsal supports 2–6 students per team and one or two teams. Individual practice may use one student but is labeled solo practice. No claim of official placing from app percent-correct or head-to-head results.
 - “Preserve deterministic generation and immutable cards after selection.” New session selection may vary; refresh, retries and resume must not reroll questions or rubrics.
 - Preserve historical scores, difficulty evidence ceilings, earned permanent Honors, profile unlocks and existing routes. New chapter stamps are separate dated evidence, not a replacement for permanent Honors.
-- Native production and C# reference behavior must pass common fixtures. No parity claim from source inspection alone. The current host has no working .NET SDK; use the version in root `global.json` during execution or record canonical verification as blocked.
+- Native production and C# reference behavior must pass common fixtures. No parity claim from source inspection alone. The planning-time SDK blocker is resolved with task-local SDK 10.0.303 matching root `global.json`; run and record canonical checks for each implemented gate.
 - Read [DESIGN.md](../../../DESIGN.md) and [PROGRESS.md](../../../PROGRESS.md) before implementation. Reuse shared controls/tokens; 44px touch targets, 1440/390/320px checks, keyboard and reduced motion. No new artwork or design system is required.
 - Use additive persistence changes. Keep existing feature behavior until the new season setting is enabled. Production bindings, private data and generated fixtures stay outside this documentation checkpoint.
 
@@ -57,18 +57,18 @@ Do not move the existing five generators or rewrite the monolithic room engine w
 
 ## Persistence and compatibility decisions
 
-Native storage reuses the `Records` infrastructure with new kinds `pbe-target`, `pbe-progress`, `pbe-session-summary`, `pbe-chapter-stamp` and `pbe-dispute`. Use deterministic identities scoped by organization/season/student and immutable question IDs/versions in attempts. Create `apps/web/migrations/0005_pbe_training.sql` in Phase A, after checking no other branch has claimed that number. It adds only the indexes actually used by scoped queries; no historical data rewrite.
+Native storage reuses the `Records` infrastructure with new kinds `pbe-question`, `pbe-question-head`, `pbe-target`, `pbe-introduction`, `pbe-introduction-assignment`, `pbe-progress`, `pbe-session-summary`, `pbe-chapter-stamp` and `pbe-dispute`. Use deterministic identities scoped by organization/season/student and immutable question IDs/versions in attempts. Create `apps/web/migrations/0005_pbe_training.sql` in Phase A, after checking no other branch has claimed that number. It adds only the indexes actually used by scoped queries; no historical data rewrite.
 
-C# adds `PbeTrainingRecord` (organization, kind, string ID, season, optional owner, JSON, revision) and an indexed EF mapping for these projections. Existing `PracticeQuestionRecord.DefinitionJson` and room snapshots retain their purpose. Add a generated migration named `PbeTrainingRecords`; let EF produce its timestamped filenames and model snapshot rather than hand-authoring designer files.
+C# adds `PbeTrainingRecord` (organization, kind, string ID, season, optional owner, JSON, revision) and an indexed EF mapping for these projections. Existing `PracticeQuestionRecord.DefinitionJson` and room snapshots retain their legacy purpose; v2 PBE questions and targets live in `PbeTrainingRecord` so legacy bank consumers cannot silently ingest them. Add a generated migration named `PbeTrainingRecords`; let EF produce its timestamped filenames and model snapshot rather than hand-authoring designer files.
 
-Create `Season.PbeTrainingEnabled` / native season `pbeTrainingEnabled`, default false when absent. New session `format` is `Memory | Pbe`; new room `format` is `Arcade | Pbe`. New clients default to Pbe for enabled seasons with eligible published content; unavailable banks show an actionable empty state and an explicit Memory option. Never silently substitute Memory for a requested Pbe session. Missing format on persisted records means legacy behavior. Every new record snapshots its rule, scoring and selection versions.
+Use A2's implemented `Season.PbeEnabled` / native season `pbeEnabled`, default false when absent. New session `format` is `Memory | Pbe`; new room `format` is `Arcade | Pbe`. New clients default to Pbe for enabled seasons with eligible published content; unavailable banks show an actionable empty state and an explicit Memory option. Never silently substitute Memory for a requested Pbe session. Missing format on persisted records means legacy behavior. Every new record snapshots its rule, scoring and selection versions.
 
 ## Proposed product defaults
 
 These values are implementation choices for the pilot, not official PBE requirements or proven optimal learning intervals:
 
 - Daily eight-question practice prefers three due targets, three least-practiced targets, one eligible repair and one alternate-form transfer question. Unavailable categories fall back to least-practiced eligible targets. Review mode uses due targets only.
-- Review intervals after fully correct, unaided retrieval: 1, 3, 7 and 14 days. A failed/partial answer resets the target's interval and remains due; a hinted success cannot clear it. Repair waits for two intervening answer targets when the assignment permits.
+- Review intervals after fully correct, unaided retrieval: 1, 3, 7 and 14 days. Early successful replays preserve the future due date/interval; a due retrieval advances it. A failed/partial answer resets the target's interval and remains due; a hinted success cannot clear it. Repair waits for two intervening answer targets when the assignment permits.
 - Chapter stamp: all coach-declared targets in the assigned range have two fully correct unaided attempts at least 48 hours apart using different question IDs. A stamp stores coverage and date; current readiness can become due again. Missing targets or only one question variant prevent a retained claim rather than enlarging the assignment.
 - Use current honor artwork and ordinary text/progress indicators. No new currency, public ranking, paid service or push-notification system.
 
@@ -76,7 +76,7 @@ These values are implementation choices for the pilot, not official PBE requirem
 
 | Assessment requirement | Implementation task |
 |---|---|
-| Real factual/list/exact questions and source coverage | A1–A3, B2 |
+| Real factual/list/exact questions and source coverage | A1–A3 (including A2b introductions), B2 |
 | Automatic partial credit, conservative spelling and answer secrecy | A1, B2, C3 |
 | No repeated first-bank slice or fixed verse/activity mapping | B1, C2 |
 | Recognition cannot erase failed recall | B1 |
@@ -90,7 +90,7 @@ These values are implementation choices for the pilot, not official PBE requirem
 
 ## Execution and release discipline
 
-- [x] Before coding, read this index, the target child plan, both assessments and current progress; create an isolated implementation worktree with the repository branch prefix. The current task branch contains planning documents only.
+- [x] Before coding, read this index, the target child plan, both assessments and current progress; create an isolated implementation worktree with the repository branch prefix. The initial implementation branch was created from the planning checkpoint.
 - [ ] For every task: add the behavioral regression first, observe failure for the expected reason, implement the smallest change, run its focused tests, review the diff, explicitly stage and commit. Update progress and push at the child plan's verified gate. Do not stage unrelated files or generated private artifacts.
 - [ ] Run the full release checks in D3 only after the integrated behavior exists. Tests listed in these plans are future execution steps; the earlier audit's passing tests do not satisfy them.
 - [ ] Prepare rollout with new features disabled, a reviewed additive migration, backup/rollback procedure, and a selected coach's source-reviewed question bank. A question bank is prepared ahead of play; live coach presence is never an availability dependency.
@@ -98,8 +98,18 @@ These values are implementation choices for the pilot, not official PBE requirem
 
 ## Plan review result
 
-All assessment findings map to tasks above. The unresolved execution prerequisites are a verified question bank for the actual selected season and a working canonical .NET test environment. They do not block implementing against isolated synthetic fixtures. Browser speech availability and proper-name pronunciation are explicit Phase C tests with a labeled text fallback; no automatic-audio success is assumed.
+All assessment findings map to tasks above. A verified question bank for the actual selected season remains a pilot prerequisite; the canonical .NET test environment is now available. Isolated synthetic fixtures support implementation. Browser speech availability and proper-name pronunciation are explicit Phase C tests with a labeled text fallback; no automatic-audio success is assumed.
 
 ## Execution status
 
-The user authorized this plan as an active implementation goal on September 11. Work is isolated in `.worktrees/pbe-training` on `codex/pbe-training`; the baseline is verified and A1 implementation has passed independent review. A2 bank/storage is next. The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. Fresh baseline: web/native 579 passed/1 optional skip; .NET 267 passed/1 optional load skip. See [PROGRESS.md](../../../PROGRESS.md) for verified checkpoints. No deployment or main merge is authorized by this implementation step.
+The user authorized this plan as an active implementation goal on September 11. Work is isolated in `.worktrees/pbe-training` on `codex/pbe-training`; the baseline, A1 rubrics and A2 bank/storage have passed independent review. A2b introduction sources are next, followed by A3 coach tools. The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. Fresh baseline: web/native 579 passed/1 optional skip; .NET 267 passed/1 optional load skip. See [PROGRESS.md](../../../PROGRESS.md) for verified checkpoints. No deployment or main merge is authorized by this implementation step.
+
+### A2 storage refinement
+
+The implementation uses dedicated native `pbe-question`/`pbe-target` kinds and canonical `PbeTrainingRecord` rows for the new bank. This preserves the existing question table and legacy selectors without interpreting v2 data as arcade questions. A2 exposes explicit season-scoped PBE endpoints under `/practice/pbe/seasons/{seasonId}`; coach preparation works before the season is enabled and does not depend on the organization's Team Practice flag. Student bank responses contain coverage counts only. D3 must preserve these rows, versions, revisions and the enable flag in the existing cross-backend exporter.
+
+### Introduction source refinement
+
+Task A2b was added after source inspection showed that the current range-only assignment model cannot represent commentary introductions without fabricated coordinates. It uses explicit season-owned introduction packs and student assignments in A2's record storage, with source review before question publication. This adds one implementation task (13 total) within the approved PBE source-coverage requirement. A3 adds its coach controls, B2 consumes the shared resolver, and D2 displays separate introduction groups.
+
+A2 also keeps a `pbe-question-head` projection for the newest published version of each question. Its source anchor enables indexed assignment reads without falling back to an older version when a new version moves outside the student's scope. Publication updates the head and source index atomically; old versions remain immutable for authoring/history. D3 exports this projection alongside raw versions.
