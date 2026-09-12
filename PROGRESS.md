@@ -379,3 +379,4 @@ At each gate, refresh Current state/Next actions and add the result to Gates and
 
 - User requested merge to main. Integrated latest main781a76d, preserving support minimization and its release evidence. Only PROGRESS.md conflicted; both histories were retained. The resulting diff from main contains only the six reviewed artwork/test/documentation files.
 - Fresh integrated gate:30login/artwork tests passed, native production build and web/native TypeScript passed; whitespace clean. Prior responsive screenshots and lint remain applicable to the unchanged artwork source. Next: fast-forward main and normal push, with fresh remote ancestry guard. No deployment requested or performed in this turn.
+- Main integration completed: main fast-forwarded to914c6b8 and normal push advanced origin/main from781a76d to914c6b8. Remote readback confirmed the source checkpoint. Login artwork is merged and pushed; production deployment remains separate.
