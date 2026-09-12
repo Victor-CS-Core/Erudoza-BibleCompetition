@@ -107,3 +107,5 @@
 @media (max-width: 1000px) { .practice-mastery-honors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .practice-mastery-honors { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--er-space-4); } }
 @media (max-width: 359px) { .practice-hub .practice-hub-form-grid { grid-template-columns: minmax(0, 1fr); } .practice-mastery-honors { grid-template-columns: minmax(0, 1fr); } }
+
+.practice-hub .practice-hub-duel[data-team-count="1"] { grid-template-columns: minmax(0, 1fr); }

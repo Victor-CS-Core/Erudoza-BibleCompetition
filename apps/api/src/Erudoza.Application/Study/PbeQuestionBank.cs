@@ -28,6 +28,13 @@ public sealed class PbeQuestionBank(IErudozaDbContext db, ICurrentUser user, ICo
     }
     internal async Task<PbeBank> LoadResolvedAsync(PbeBankScope scope, PbeSourceScope initial, bool guardedWrite, CancellationToken ct)
     {
+        var result = await LoadAuthorizedSourcesAsync(db, scope, initial, ct);
+        if (!guardedWrite && (await ResolveAsync(scope.OrganizationId, scope.SeasonId, scope.StudentId, ct)).Fingerprint != initial.Fingerprint) throw new PbeBankConflictException("The PBE scope changed. Refresh and retry.");
+        return result;
+    }
+    /// <summary>Internal server consumers must supply a freshly authorized source boundary; no HTTP scope switch.</summary>
+    public static async Task<PbeBank> LoadAuthorizedSourcesAsync(IErudozaDbContext db, PbeBankScope scope, PbeSourceScope initial, CancellationToken ct)
+    {
         var allowed = initial.Sources.Where(s => scope.SourceUnitIds.Contains(s.Id)).ToDictionary(s => s.Id);
         var allowedIds = allowed.Keys.ToArray();
         var targets = new List<PbeTarget>(); var records = new List<PbeBankQuestionData>();
@@ -64,7 +71,7 @@ public sealed class PbeQuestionBank(IErudozaDbContext db, ICurrentUser user, ICo
         }
         latest = latest.OrderBy(q => q.Id).ToList();
         var covered = latest.SelectMany(q => q.SourceUnitIds).ToHashSet();
-        if (!guardedWrite && (await ResolveAsync(scope.OrganizationId, scope.SeasonId, scope.StudentId, ct)).Fingerprint != initial.Fingerprint) throw new PbeBankConflictException("The PBE scope changed. Refresh and retry.");
+
         return new(latest, targets.Where(t => t.SourceUnitIds.All(allowed.ContainsKey)).ToList(), allowed.Keys.Where(id => !covered.Contains(id)).Order().ToList());
     }
 }

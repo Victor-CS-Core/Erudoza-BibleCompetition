@@ -39,8 +39,17 @@ public sealed class PracticeRuntime(TimeProvider time)
         }
         return new Admission(() => { lock (admissionGate) { if (pending[room] <= 1) pending.Remove(room); else pending[room]--; } });
     }
+    private readonly Dictionary<Guid, Task> ingressTails = [];
+    public async Task<IDisposable> EnterIngress(Guid room, CancellationToken ct)
+    {
+        Task previous; var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        lock (admissionGate) { previous = ingressTails.GetValueOrDefault(room, Task.CompletedTask); ingressTails[room] = completion.Task; }
+        void Release() { completion.TrySetResult(); lock (admissionGate) { if (ingressTails.GetValueOrDefault(room) == completion.Task) ingressTails.Remove(room); } }
+        try { await previous.WaitAsync(ct); return new Admission(Release); }
+        catch { _ = previous.ContinueWith(_ => Release(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default); throw; }
+    }
     public bool HasPending(Guid room) { lock (admissionGate) return pending.GetValueOrDefault(room) > 0; }
-    private sealed class Admission(Action dispose) : IDisposable { public void Dispose() => dispose(); }
+    private sealed class Admission(Action dispose) : IDisposable { private int disposed; public void Dispose() { if (Interlocked.Exchange(ref disposed, 1) == 0) dispose(); } }
     public async Task<IDisposable> Enter(Guid roomId, CancellationToken ct)
     {
         var gate = gates[(int)((uint)roomId.GetHashCode() % (uint)gates.Length)];

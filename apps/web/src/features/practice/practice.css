@@ -250,3 +250,8 @@
 .pbe-bank-editor, .pbe-bank-editor fieldset, .pbe-bank-editor label { min-width: 0; }
 .pbe-bank-editor .ds-button { max-width: 100%; }
 .pbe-bank-editor p, .pbe-bank-editor summary, .pbe-bank-editor blockquote { overflow-wrap: anywhere; }
+
+.practice-room .practice-teams[data-team-count="1"] { grid-template-columns: minmax(0, 1fr); }
+.practice-room .practice-scoreboard[data-team-count="1"] { grid-template-columns: minmax(0, 1fr) minmax(100px, 1fr); }
+
+.practice-room .practice-scoreboard[data-format="Pbe"] .practice-subscore { display: block; }

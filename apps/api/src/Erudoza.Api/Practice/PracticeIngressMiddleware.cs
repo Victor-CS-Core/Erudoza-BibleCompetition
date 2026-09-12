@@ -33,17 +33,21 @@ public sealed class PracticeIngressMiddleware(RequestDelegate next)
         }
         catch (IOException) { context.Response.StatusCode = 413; return; }
         var captured = runtime.Stamp();
+        // Allocate ordering ownership immediately after the bounded body is complete,
+        // before parsing or authentication can yield and reorder already-arrived commands.
+        using var admission = runtime.Admit(room);
+        using var ordered = await runtime.EnterIngress(room, context.RequestAborted);
         context.Request.Body.Position = 0;
-        System.Text.Json.JsonDocument payload;
-        try { payload = await System.Text.Json.JsonDocument.ParseAsync(context.Request.Body, cancellationToken: context.RequestAborted); }
+        try
+        {
+            using var payload = await System.Text.Json.JsonDocument.ParseAsync(context.Request.Body, cancellationToken: context.RequestAborted);
+            var action = payload.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object
+                ? payload.RootElement.EnumerateObject().LastOrDefault(p => p.Name.Equals("action", StringComparison.OrdinalIgnoreCase)).Value : default;
+            if (action.ValueKind != System.Text.Json.JsonValueKind.String || action.GetString() is not ("submit" or "ack" or "draft" or "present")) admission.Dispose();
+
+        }
         catch (System.Text.Json.JsonException) { context.Response.StatusCode = 400; return; }
-        using var parsedPayload = payload;
         context.Request.Body.Position = 0;
-        var action = payload.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object
-            ? payload.RootElement.EnumerateObject().LastOrDefault(p => p.Name.Equals("action", StringComparison.OrdinalIgnoreCase)).Value : default;
-        var isSubmission = action.ValueKind == System.Text.Json.JsonValueKind.String && action.GetString() is "submit" or "ack";
-        // Admission prevents a timer transition from overtaking an already received command.
-        using var admission = isSubmission ? runtime.Admit(room) : null;
         context.Items[StampKey] = captured;
         await next(context);
     }

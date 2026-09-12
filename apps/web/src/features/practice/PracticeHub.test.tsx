@@ -39,6 +39,17 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Team Practice hub", () => {
+  it("creates an enabled independent six-student rehearsal without inventing an opponent", async () => {
+    vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:"daniel",name:"Daniel",pbeEnabled:true}]});
+    mount();await screen.findByRole("button",{name:"Create room"});
+    fireEvent.change(screen.getByLabelText("Practice mode"),{target:{value:"Pbe"}});
+    expect(screen.queryByText("Team 2")).not.toBeInTheDocument();
+    expect(within(screen.getByLabelText("Team size")).getAllByRole("option").map(option=>option.getAttribute("value"))).toEqual(["2","3","4","5","6"]);
+    fireEvent.change(screen.getByLabelText("Match length"),{target:{value:"90"}});
+    fireEvent.click(screen.getByRole("button",{name:"Create room"}));
+    await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith("org",{seasonId:"daniel",format:"Pbe",teamCount:1,teamSize:6,questionCount:90,coached:false,bookKey:undefined}));
+  });
+
   it("prioritizes a playing room using only returned room evidence", async () => {
     vi.mocked(practiceApi.bootstrap).mockResolvedValue({ ...data, rooms: [
       { id: "lobby", seasonId: "daniel", status: "Lobby", teamSize: 5, questionCount: 30, coached: true, ownerId: "other", memberCount: 3 },

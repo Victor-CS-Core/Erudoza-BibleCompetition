@@ -7,6 +7,8 @@ namespace Erudoza.Api.Practice;
 
 public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime runtime, IConfiguration configuration)
 {
+    private static bool IsPbe(PracticeRoom room) => room.Format == "Pbe";
+    private static int[] ActiveTeams(PracticeRoom room) => room.TeamCount == 1 ? [1] : [1, 2];
     private static bool IsLegacyQuestion(string definition)
     {
         using var document = System.Text.Json.JsonDocument.Parse(definition);
@@ -43,7 +45,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         await Check(actor, org, ct, false);
         var enabled = await Enabled(org, ct);
         var seasons = await db.Seasons.Where(s => s.OrganizationId == org && s.Status == SeasonStatus.Active)
-            .Select(s => new { s.Id, s.Name }).ToListAsync(ct);
+            .Select(s => new { s.Id, s.Name, s.PbeEnabled }).ToListAsync(ct);
         var players = enabled ? await db.Users.Where(u => u.IsActive && u.Kind == UserKind.Student
             && db.OrganizationMembers.Any(m => m.OrganizationId == org && m.UserId == u.Id))
             .Select(u => new { u.Id, u.DisplayName }).ToListAsync(ct) : [];
@@ -57,7 +59,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
             enabled,
             seasons,
             players,
-            rooms = visible.Select(r => new { r.Id, r.SeasonId, r.TeamSize, r.QuestionCount, r.Coached, r.Status, memberCount = r.Members.Count, r.OwnerId }),
+            rooms = visible.Select(r => new { r.Id, r.SeasonId, format = r.Format ?? "Arcade", teamCount = ActiveTeams(r).Length, r.TeamSize, r.QuestionCount, r.Coached, r.Status, memberCount = r.Members.Count, r.OwnerId }),
             invitations = states.SelectMany(r => r.Invitations).Where(i => i.UserId == actor.Id && !i.Accepted && i.ExpiresAt > runtime.Now),
             achievements = CalculateAwards(states).Where(a => a.UserId == actor.Id).DistinctBy(a => (a.Key, a.SeasonId)),
             trends = Trends(states, actor.Id),
@@ -67,11 +69,16 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
     public async Task<object> Create(Guid org, PracticeActor actor, CreatePracticeRoom request, CancellationToken ct)
     {
         await Check(actor, org, ct);
-        if (request.TeamSize is < 1 or > 5 || request.QuestionCount is not (10 or 30 or 90)) throw new DomainException("Choose 1–5 players and 10, 30, or 90 questions.");
+        if (request.Format is not (null or "Arcade" or "Pbe") || request.TeamCount is not (null or 1 or 2) || request.Format != "Pbe" && request.TeamCount == 1) throw new DomainException("Choose a valid format and active team count.");
+        if (request.TeamSize < (request.Format == "Pbe" ? 2 : 1) || request.TeamSize > (request.Format == "Pbe" ? 6 : 5) || request.QuestionCount is not (10 or 30 or 90)) throw new DomainException(request.Format == "Pbe" ? "Choose 2–6 students and 10, 30, or 90 questions." : "Choose 1–5 players and 10, 30, or 90 questions.");
         if (request.Coached && !actor.Admin) throw new DomainException("A non-playing coach must create a coached room.");
         if (!await db.Seasons.AnyAsync(s => s.Id == request.SeasonId && s.OrganizationId == org && s.Status == SeasonStatus.Active, ct)) throw new DomainException("Choose an active season.");
         var room = new PracticeRoom
         {
+            Format = request.Format ?? "Arcade",
+            TeamCount = request.TeamCount ?? 2,
+            SelectionVersion = request.Format == "Pbe" ? "pbe-team-question-max-v1" : null,
+            SelectionSeed = Guid.NewGuid(),
             SeasonId = request.SeasonId,
             TeamSize = request.TeamSize,
             QuestionCount = request.QuestionCount,
@@ -80,6 +87,12 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
             Coached = request.Coached,
             BookKey = request.BookKey
         };
+        if (IsPbe(room))
+        {
+            room.RuleVersion = "pbe-rehearsal-v1"; room.ScoringVersion = "pbe-accuracy-v1";
+            if (!await db.Seasons.AnyAsync(s => s.Id == room.SeasonId && s.PbeEnabled, ct)) throw new PracticeForbiddenException();
+            if (!actor.Admin && !await db.CompetitionMembers.AnyAsync(m => m.OrganizationId == org && m.SeasonId == room.SeasonId && m.UserId == actor.Id, ct)) throw new PracticeForbiddenException();
+        }
         var record = new PracticeRoomRecord { Id = room.Id, OrganizationId = org, SeasonId = room.SeasonId };
         db.Add(record);
         if (!actor.Admin) Join(room, actor, 1);
@@ -88,7 +101,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
     }
     private static void Join(PracticeRoom room, PracticeActor actor, int team)
     {
-        if (room.Status != "Lobby" || team is not (1 or 2)) throw new DomainException("Choose a team in an open lobby.");
+        if (room.Status != "Lobby" || !ActiveTeams(room).Contains(team)) throw new DomainException("Choose a team in an open lobby.");
         if (actor.Admin) throw new DomainException("Coaches moderate rather than play.");
         if (room.Members.Any(m => m.UserId == actor.Id)) throw new DomainException("You are already in this room.");
         if (room.Members.Count(m => m.Team == team) >= room.TeamSize) throw new DomainException("That team is full.");
@@ -99,7 +112,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
     private static void ResetReady(PracticeRoom room) { foreach (var m in room.Members) m.Ready = false; }
     private static void RepairRoles(PracticeRoom room)
     {
-        foreach (var team in new[] { 1, 2 })
+        foreach (var team in ActiveTeams(room))
         {
             var members = room.Members.Where(m => m.Team == team).ToList();
             if (members.Count == 0) continue;
@@ -120,7 +133,9 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         record.Status = room.Status;
         record.UpdatedAt = runtime.Now;
         record.StateJson = PracticeJson.Write(room);
+        await QueueRoomExposure(record.OrganizationId, room, ct);
         await db.SaveChangesAsync(ct);
+        await ProjectRoomExposure(record.OrganizationId, room.Id, ct);
     }
     private async Task<PracticeRoomRecord> Load(Guid org, Guid id, CancellationToken ct) =>
         await Rooms.SingleOrDefaultAsync(r => r.Id == id && r.OrganizationId == org, ct) ?? throw new DomainException("Room not found.");
@@ -132,10 +147,12 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         var record = await Load(org, id, ct);
         var room = PracticeJson.Read<PracticeRoom>(record.StateJson);
         if (!Member(room, actor) && !(actor.Admin && room.Submissions.Any(s => s.Appealed))) throw new PracticeForbiddenException();
-        var changed = Advance(room);
+        var authorized = IsPbe(room) && room.Status is "Lobby" or "Playing" ? await AuthorizePbeRoom(org, room, ct) : null;
+        var changed = Advance(room, authorized is null ? null : EligiblePbeReserves(room, authorized));
         using var awards = room.Status == "Completed" ? await runtime.EnterAwards(org, ct) : null;
         if (room.Status == "Completed") { await ReconcileAwards(org, room, ct, issueMastery: changed); changed = true; }
         if (changed) await Save(record, room, ct);
+        else if (IsPbe(room)) await ProjectRoomExposure(org, room.Id, ct);
         return View(room, actor);
     }
     public async Task<object> Accept(Guid org, Guid invitationId, int? team, PracticeActor actor, CancellationToken ct)
@@ -150,6 +167,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         var invitation = room.Invitations.Single(i => i.Id == invitationId && i.UserId == actor.Id);
         if (invitation.Accepted || invitation.ExpiresAt <= runtime.Now) throw new DomainException("Invitation is expired or already accepted.");
         Join(room, actor, invitation.Team ?? team ?? 1);
+        if (IsPbe(room)) await AuthorizePbeRoom(org, room, ct, true);
         invitation.Accepted = true;
         await Save(record, room, ct);
         return View(room, actor);

@@ -1,7 +1,7 @@
 import type { Env } from './types';
 
 /** Test bundle only: meter the complete request, including auth and every batch statement. */
-export function measureD1Fetch(fetch:(request:Request,env:Env)=>Promise<Response>,beforeStatement?:(sql:string)=>Promise<void>){
+export function measureD1Fetch(fetch:(request:Request,env:Env)=>Promise<Response>,beforeStatement?:(sql:string)=>Promise<void>,report?:(meter:{bindingCalls:number;statements:number;methods:Record<string,number>})=>Promise<void>){
  return async(request:Request,env:Env):Promise<Response>=>{
   let bindingCalls=0,statements=0;const methods:Record<string,number>={};const originals=new WeakMap<object,object>();const queries=new WeakMap<object,string>();
   const count=(method:string,size=1)=>{bindingCalls++;statements+=size;methods[method]=(methods[method]??0)+1;};
@@ -20,7 +20,15 @@ export function measureD1Fetch(fetch:(request:Request,env:Env)=>Promise<Response
    const member=Reflect.get(target,key);return typeof member==='function'?member.bind(target):member;
   }});
   const response=await fetch(request,{...env,DB:database(env.DB)});
+  await report?.({bindingCalls,statements,methods});
   const headers=new Headers(response.headers);headers.set('x-test-d1-meter',JSON.stringify({bindingCalls,statements,methods}));
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
  };
 }
+
+// Test bundle only. Async-local binding ensures overlapping DO requests are metered
+// independently, including helper methods using this.env.DB and outbox projection.
+// @ts-expect-error Node-only test bundle; production worker types exclude Node APIs.
+import { AsyncLocalStorage } from 'node:async_hooks';
+export const objectDatabase = new AsyncLocalStorage<Env['DB']>();
+export function meteredObjectEnv(env:Env):Env{return new Proxy(env,{get(target,key){return key==='DB'?(objectDatabase.getStore()??target.DB):Reflect.get(target,key);}});}

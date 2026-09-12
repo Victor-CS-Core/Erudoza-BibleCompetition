@@ -5,7 +5,7 @@ public sealed partial class PracticeService
     private static IEnumerable<object> Trends(IEnumerable<PracticeRoom> rooms, Guid user)
     {
         foreach (var group in rooms.Where(r => r.Status == "Completed" && r.Submissions.All(s => s.Resolved)
-            && r.Members.Any(m => m.UserId == user)).GroupBy(r => new { r.SeasonId, r.TeamSize, r.BookKey, r.RuleVersion }))
+            && r.Members.Any(m => m.UserId == user)).GroupBy(r => new { r.SeasonId, r.TeamSize, r.BookKey, r.RuleVersion, r.ScoringVersion, Format = r.Format ?? "Arcade", TeamCount = ActiveTeams(r).Length }))
         {
             var submissions = group.SelectMany(r => r.Submissions.Where(s => s.Team == r.Members.Single(m => m.UserId == user).Team)).ToList();
             int Total(PracticeRoom r, int team) => r.Submissions.Where(s => s.Team == team).Sum(s => s.AccuracyHundredths + s.SpeedHundredths);
@@ -15,9 +15,12 @@ public sealed partial class PracticeService
                 group.Key.TeamSize,
                 group.Key.BookKey,
                 group.Key.RuleVersion,
+                group.Key.ScoringVersion,
+                group.Key.Format,
+                group.Key.TeamCount,
                 matches = group.Count(),
-                wins = group.Count(r => Total(r, r.Members.Single(m => m.UserId == user).Team) > Total(r, 3 - r.Members.Single(m => m.UserId == user).Team)),
-                draws = group.Count(r => Total(r, 1) == Total(r, 2)),
+                wins = group.Count(r => !IsPbe(r) && ActiveTeams(r).Length == 2 && Total(r, r.Members.Single(m => m.UserId == user).Team) > Total(r, 3 - r.Members.Single(m => m.UserId == user).Team)),
+                draws = group.Count(r => !IsPbe(r) && ActiveTeams(r).Length == 2 && Total(r, 1) == Total(r, 2)),
                 accuracyHundredths = submissions.Sum(s => s.AccuracyHundredths),
                 speedHundredths = submissions.Sum(s => s.SpeedHundredths),
                 availableHundredths = group.Sum(r => r.Questions.Sum(q => Points(q) * 100)),

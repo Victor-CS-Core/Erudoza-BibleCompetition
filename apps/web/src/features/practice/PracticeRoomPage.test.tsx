@@ -142,3 +142,29 @@ describe("Team Practice room presentation", () => {
     expect(within(roster).getByText("other")).toBeInTheDocument();
   });
 });
+
+it('starts a full six-student PBE team without an opponent',async()=>{
+ mount(room({format:'Pbe',ownerId:'offline-coach',teamCount:1,teamSize:6,members:Array.from({length:6},(_,i)=>({...member(i?'pbe-'+i:'player',1,true),captain:i===0,scribe:i===0})),scores:[{team:1,accuracyHundredths:0,speedHundredths:0,totalHundredths:0,availableHundredths:0}]}));
+ expect(await screen.findByRole('button',{name:'Start match'})).toBeEnabled();
+ expect(screen.queryByRole('heading',{name:'Team 2'})).not.toBeInTheDocument();
+});
+it('retains mixed-team interrupted evidence with earned/available points and independent restart',async()=>{
+ mount(room({format:'Pbe',teamCount:2,teamSize:6,status:'Interrupted',phase:'Interrupted',results:[{...result(1),speedHundredths:0,availableHundredths:200}],scores:[{team:1,accuracyHundredths:100,speedHundredths:0,totalHundredths:100,availableHundredths:200},{team:2,accuracyHundredths:0,speedHundredths:0,totalHundredths:0,availableHundredths:0}]}));
+ expect(await screen.findByRole('heading',{name:'Rehearsal interrupted'})).toBeInTheDocument();
+ expect(screen.getByRole('link',{name:'Start a new rehearsal'})).toHaveAttribute('href','/student/practice#create-room');
+ expect(screen.getByText(/one or more teams did not have a trusted response/i)).toBeInTheDocument();
+ expect(screen.queryByText(/wins on points|Speed bonus/)).not.toBeInTheDocument();
+ expect(screen.getByText('Submitted:').parentElement).toHaveTextContent('Daniel');
+});
+it('requires two text readings from the current PBE scribe and does not send a late acknowledgement',async()=>{
+ const snapshot=room({format:'Pbe',teamCount:1,teamSize:6,status:'Playing',phase:'Presentation',question:{id:'q',prompt:'Who answered?',reference:'Daniel 1:8',kind:'ShortAnswer',partCount:1,points:2,durationSeconds:30}});
+ const client=mount(snapshot);fireEvent.click(await screen.findByRole('button',{name:'I’m ready to hear the question'}));
+ fireEvent.click(await screen.findByRole('button',{name:'Finished first reading'}));expect(practiceApi.command).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByRole('button',{name:'Finished second reading'}));await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'present',delivery:'TextFallback',questionId:'q'})));
+ client.setQueryData(['practice-room','org','room'],{...snapshot,phase:'Scheduled',scheduleId:'already-armed'});await waitFor(()=>expect(screen.getByText(/Response starts in three seconds/)).toBeInTheDocument());expect(vi.mocked(practiceApi.command).mock.calls.some(c=>c[2].action==='ack')).toBe(false);
+});
+
+it('lets an independent student captain resume an unarmed replacement without the adult owner',async()=>{
+ mount(room({format:'Pbe',ownerId:'offline-coach',teamCount:1,status:'Playing',phase:'Paused',question:null,members:[{...member('player',1),captain:true,scribe:true}]}));
+ fireEvent.click(await screen.findByRole('button',{name:'Resume match'}));await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'next'})));
+});

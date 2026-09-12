@@ -91,7 +91,17 @@ export async function resolvePbeSessionSources(ctx: RequestContext, sessionId: s
         throw new HttpError(404, 'Study session was not found.');
     return resolve(ctx, { organizationId: ctx.orgId, seasonId: saved.value.seasonId, studentId: ctx.actor.userId }, true);
 }
-async function resolve(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitIds'>, continuation: boolean): Promise<PbeSourceScope> {
+/** Server-only room boundary: callers supply the authoritative DO snapshot, never request scope flags. */
+export async function resolvePbeRoomSources(ctx:RequestContext,room:import('../practice/state').Room,continuation:boolean):Promise<PbeSourceScope>{
+ if(room.format!=='Pbe'||room.orgId!==ctx.orgId||(![room.ownerId,room.coachId,...room.members.map(m=>m.userId)].includes(ctx.actor.userId)&&!(ctx.actor.kind==='Adult'&&['Owner','Admin'].includes(ctx.actor.role)&&room.submissions.some(s=>s.appealed))))throw new HttpError(403,'Room access denied.');
+ const ids=room.members.map(m=>m.userId);
+ const roster=await ctx.env.DB.prepare("SELECT u.id,m.id AS membershipId,m.revision FROM Users u JOIN Records m ON m.kind='membership' AND m.org_id=u.org_id AND m.season_id=? AND m.owner_id=u.id WHERE u.org_id=? AND u.active=1 AND u.kind='Student' AND u.role='Student' AND u.id IN (SELECT value FROM json_each(?))").bind(room.seasonId,ctx.orgId,JSON.stringify(ids)).all<{id:string;membershipId:string;revision:number}>();
+ if(roster.results.length!==ids.length||new Set(ids).size!==ids.length)throw new HttpError(403,'Every room participant must retain active season membership.');
+ const resolved=await resolve(ctx,{organizationId:ctx.orgId,seasonId:room.seasonId},continuation,room);
+ resolved.guards.push(...roster.results.flatMap(r=>[{kind:'membership',id:r.membershipId,revision:r.revision},{kind:'@active-user',id:r.id,revision:0}]));
+ return resolved;
+}
+async function resolve(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitIds'>, continuation: boolean, room?: import('../practice/state').Room): Promise<PbeSourceScope> {
     const organizationId = guid(scope.organizationId), seasonId = guid(scope.seasonId), studentId = scope.studentId === undefined ? undefined : guid(scope.studentId);
     if (organizationId !== ctx.orgId || ctx.actor.organizationId !== ctx.orgId)
         throw new HttpError(403, 'Organization access denied.');
@@ -102,13 +112,14 @@ async function resolve(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitId
     }>();
     if (!actor?.active)
         throw new HttpError(403, 'Active membership required.');
-    if (actor.kind === 'Student' && (actor.role !== 'Student' || studentId !== ctx.actor.userId))
+    if (actor.kind === 'Student' && (actor.role !== 'Student' || studentId !== ctx.actor.userId && !room))
         throw new HttpError(403, 'Only your own assigned bank is available.');
     if (actor.kind !== 'Student' && (actor.kind !== 'Adult' || !['Owner', 'Admin'].includes(actor.role)))
         throw new HttpError(403, 'Access denied.');
     const season = await ctx.store.require<Season>('season', seasonId, organizationId);
     if (season.value.organizationId !== organizationId || season.value.status !== 'Active')
         throw new HttpError(400, 'Choose an active season.');
+    if(room&&!continuation&&!season.value.pbeEnabled)throw new HttpError(403,'PBE training is not enabled for this season.');
     if (studentId) {
         if (!continuation && !season.value.pbeEnabled)
             throw new HttpError(403, 'PBE training is not enabled for this season.');

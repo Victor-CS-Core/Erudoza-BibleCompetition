@@ -109,7 +109,7 @@ public sealed class PracticeHub(PracticeService service, PracticeRuntime runtime
     }
     public async Task<object> Command(Guid org, Guid room, PracticeCommand command)
     {
-        if (command.Action == "submit") throw new HubException("Final answers must use the timestamped HTTP submission endpoint.");
+        if (command.Action is "submit" or "draft" or "present" or "ack") throw new HubException("Timed commands must use the timestamped HTTP submission endpoint.");
         var ingress = runtime.Stamp();
         try
         {

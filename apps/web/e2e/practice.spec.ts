@@ -190,3 +190,38 @@ test("5v5 completes ten scored questions with ten authenticated players, refresh
     expect(locked.status()).toBe(403);
   } finally { for (const player of players) await player.context.close().catch(() => {}); }
 });
+
+test('PBE six-student independent room reads twice, retries a locked final and rotates the served question',async({page:admin,browser},info)=>{
+ test.setTimeout(150000);
+ const fixture=await setup(admin),players=[] as Awaited<ReturnType<typeof newPlayer>>[];
+ const packs=await json(admin.request,`${fixture.org}/content-packs`),pack=packs.find((p:{packKey:string})=>p.packKey==='dev-daniel');
+ const units=await json(admin.request,`${fixture.org}/content-packs/${pack.id}/source-units`),source=units[0],answer=source.canonicalText.trim().split(/\s+/)[0];
+ const range={bookKey:source.bookKey,startChapter:source.chapter,startVerse:source.verse,endChapter:source.chapter,endVerse:source.verse};
+ try{
+  for(let n=0;n<6;n++){
+   const player=await newPlayer(browser,admin,fixture.org,`Rehearsal ${n+1}`);players.push(player);
+   await json(admin.request,`${fixture.org}/seasons/${fixture.seasonId}/assignments`,{studentUserId:player.id,contentPackId:pack.id,type:'PrimarySpecialist',difficulty:'Advanced',range});
+  }
+  const target=randomUUID(),pbe=`${fixture.path}/pbe/seasons/${fixture.seasonId}`;
+  const questions=Array.from({length:12},(_,i)=>({schemaVersion:2,id:randomUUID(),version:1,contentPackId:pack.id,sourceUnitId:source.id,sourceUnitIds:[source.id],sourceKind:'Scripture',reference:source.citation,evidence:source.canonicalText,kind:'ShortAnswer',ordered:false,prompt:`What is the opening word of the approved passage? Rehearsal variant ${i+1}.`,parts:[{targetId:target,acceptedAnswers:[answer],points:1}]}));
+  await json(admin.request,pbe+'/questions/import',{targets:[{id:target,sourceUnitIds:[source.id],skill:'FactualRecall',label:'Opening word'}],questions});for(const q of questions)await json(admin.request,`${pbe}/questions/${q.id}/1/publish`,{});await json(admin.request,pbe+'/enabled',{enabled:true});
+  await admin.goto('/admin/practice');await admin.getByRole('combobox',{name:'Season',exact:true}).selectOption(fixture.seasonId);await admin.getByRole('combobox',{name:'Practice mode',exact:true}).selectOption('Pbe');await capturePractice(admin,info,'coach','pbe-create');
+  await expect(admin.getByText('Team 2',{exact:true})).toHaveCount(0);await admin.getByRole('button',{name:'Create room',exact:true}).click();await expect(admin).toHaveURL(/\/admin\/practice\/[a-f0-9-]+$/);const coachRoom=await json(admin.request,`${fixture.path}/rooms/${new URL(admin.url()).pathname.split('/').pop()}`);expect(coachRoom.coached).toBe(false);expect(coachRoom.members).toHaveLength(0);
+
+  const owner=players[0].page;await owner.addInitScript(()=>Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{getVoices:()=>[],addEventListener(){},removeEventListener(){},cancel(){},speak(){}}}));await owner.emulateMedia({reducedMotion:'reduce'});
+  await owner.goto('/student/practice');await owner.getByRole('combobox',{name:'Season',exact:true}).selectOption(fixture.seasonId);await owner.getByRole('combobox',{name:'Practice mode',exact:true}).selectOption('Pbe');expect(await owner.getByRole('combobox',{name:'Team size',exact:true}).inputValue()).toBe('6');expect(await owner.getByRole('combobox',{name:'Active teams',exact:true}).inputValue()).toBe('1');
+  const id=coachRoom.id;let room=coachRoom;
+  async function fillRoom(current:typeof room,creator=owner){
+   for(let n=current.members.some((m:{userId:string})=>m.userId===players[0].id)?1:0;n<players.length;n++){current=await command(creator,fixture.path,current,'invite',{targetUserId:players[n].id,team:1});const inbox=await json(players[n].page.request,fixture.path+'/bootstrap');const invite=inbox.invitations.find((i:{roomId:string})=>i.roomId===current.id);current=await json(players[n].page.request,`${fixture.path}/invitations/${invite.id}/accept`,{team:1});}
+   for(const player of players)current=await command(player.page,fixture.path,current,'ready');return current;
+  }
+  room=await fillRoom(room,admin);await owner.goto(`/student/practice/${id}`);await expect(owner.getByRole('button',{name:'Start match',exact:true})).toBeEnabled();await expect(owner.getByRole('heading',{name:'Team 2',exact:true})).toHaveCount(0);await capturePractice(owner,info,'student','pbe-six-lobby');
+  await owner.getByRole('button',{name:'Start match',exact:true}).click();await expect(owner.getByRole('button',{name:'I’m ready to hear the question'})).toBeVisible();room=await json(owner.request,`${fixture.path}/rooms/${id}`);const first=room.question.id;
+  await capturePractice(owner,info,'student','pbe-reading');await owner.getByRole('button',{name:'I’m ready to hear the question'}).click();await owner.getByRole('button',{name:'Finished first reading'}).click();await owner.getByRole('button',{name:'Finished second reading'}).click();
+  await expect(owner.getByRole('button',{name:'Lock final answer'})).toBeEnabled({timeout:10000});await owner.getByRole('textbox',{name:'Answer 1',exact:true}).fill(answer);await owner.getByRole('button',{name:'Save team draft'}).click();await expect(owner.getByRole('button',{name:'Lock final answer'})).toBeEnabled();
+  let lost=false;let originalId='';let retryId='';await owner.route(`**/practice/rooms/${id}/commands`,async route=>{const payload=route.request().postDataJSON();if(payload.action==='submit'){if(!lost){lost=true;originalId=payload.commandId;expect((await route.fetch()).ok()).toBeTruthy();await route.abort();return;}retryId=payload.commandId;}await route.continue();});
+  await owner.getByRole('button',{name:'Lock final answer'}).click();await owner.getByRole('button',{name:'Retry original action'}).click();await expect(owner.getByRole('button',{name:'Retry original action'})).toHaveCount(0);expect(retryId).toBe(originalId);
+  room=await json(owner.request,`${fixture.path}/rooms/${id}`);expect(room.results[0]).toMatchObject({answers:[answer],accuracyHundredths:100,speedHundredths:0,availableHundredths:100});expect(room.scores).toHaveLength(1);await expect(owner.getByText('1.00 / 1.00 rubric points').first()).toBeVisible();await capturePractice(owner,info,'student','pbe-rubric-review');
+  let replay=await json(owner.request,fixture.path+'/rooms',{seasonId:fixture.seasonId,format:'Pbe',teamCount:1,teamSize:6,questionCount:10,coached:false});replay=await fillRoom(replay);replay=await command(owner,fixture.path,replay,'start');expect(replay.question.id).not.toBe(first);await owner.goto(`/student/practice/${replay.id}`);await expect(owner.getByRole('button',{name:'I’m ready to hear the question'})).toBeVisible();
+ }finally{for(const player of players)await player.context.close().catch(()=>{});}
+});

@@ -15,19 +15,21 @@ public sealed partial class PracticeService
         var row = await Load(org, id, ct);
         var room = PracticeJson.Read<PracticeRoom>(row.StateJson);
         if (!Member(room, actor) && !(actor.Admin && command.Action == "judge")) throw new PracticeForbiddenException();
+        if (IsPbe(room) && room.Status is "Lobby" or "Playing") { var authorized = await AuthorizePbeRoom(org, room, ct); if (room.Status == "Playing" && room.ProcessId != runtime.ProcessId) { Advance(room, EligiblePbeReserves(room, authorized)); await Save(row, room, ct); } }
         if (command.CommandId == Guid.Empty) throw new DomainException("A command ID is required.");
         if (room.AppliedCommands.TryGetValue(command.CommandId, out var previousActor))
         {
             if (previousActor != actor.Id) throw new PracticeForbiddenException();
             return View(room, actor);
         }
-        if (command.Action != "submit" && Advance(room)) await Save(row, room, ct);
+        if (command.Action is not ("submit" or "draft" or "present" or "ack") && Advance(room)) await Save(row, room, ct);
         // Scheduling and live chat are concurrent streams. Membership-changing commands require revisions.
         if (command.Action is "move" or "swap" or "remove" or "owner" or "start" or "captain" or "scribe" && command.Revision != room.Revision)
             throw new DomainException("The room changed. Refresh and try again.");
         var member = room.Members.SingleOrDefault(m => m.UserId == actor.Id);
         var target = room.Members.SingleOrDefault(m => m.UserId == command.TargetUserId);
         bool owner = room.OwnerId == actor.Id;
+        bool independentCaptain = IsPbe(room) && !room.Coached && member?.Captain == true;
         void RequireOwner() { if (!owner) throw new PracticeForbiddenException(); }
         void RequireLobby() { if (room.Status != "Lobby") throw new DomainException("Teams are locked after the match starts."); }
         void RequirePlayer() { if (member is null) throw new PracticeForbiddenException(); }
@@ -42,10 +44,10 @@ public sealed partial class PracticeService
                 break;
             case "move":
                 RequireLobby(); RequireOwner();
-                if (target is null || command.Team is not (1 or 2)) throw new DomainException("Choose a player and team.");
+                if (target is null || !ActiveTeams(room).Contains(command.Team ?? 0)) throw new DomainException("Choose a player and team.");
                 if (target.Team == command.Team) break;
                 if (room.Members.Count(m => m.Team == command.Team) >= room.TeamSize) throw new DomainException("That team is full.");
-                target.Team = command.Team.Value; target.Captain = false; target.Scribe = false;
+                target.Team = command.Team!.Value; target.Captain = false; target.Scribe = false;
                 RepairRoles(room); ResetReady(room);
                 break;
             case "remove":
@@ -83,7 +85,7 @@ public sealed partial class PracticeService
             case "invite":
                 RequireLobby();
                 if (command.TargetUserId is null || room.Members.Any(m => m.UserId == command.TargetUserId)) throw new DomainException("Select a player who is not already in the room.");
-                if (command.Team.HasValue && command.Team is not (1 or 2)) throw new DomainException("Choose a valid team.");
+                if (command.Team.HasValue && !ActiveTeams(room).Contains(command.Team ?? 0)) throw new DomainException("Choose a valid team.");
                 if (command.Team.HasValue && !owner && member?.Team != command.Team) throw new PracticeForbiddenException();
                 if (!await db.Users.AnyAsync(u => u.Id == command.TargetUserId && u.IsActive && u.Kind == UserKind.Student
                     && db.OrganizationMembers.Any(m => m.UserId == u.Id && m.OrganizationId == org), ct)) throw new DomainException("Player not found in this organization.");
@@ -98,15 +100,22 @@ public sealed partial class PracticeService
                 });
                 break;
             case "start":
-                RequireLobby(); RequireOwner();
-                if (room.Members.Count != room.TeamSize * 2 || room.Members.Any(m => !m.Ready)) throw new DomainException("Both teams must be full and ready.");
-                await SelectQuestions(org, room, ct);
+                RequireLobby(); if (!owner && !independentCaptain) throw new PracticeForbiddenException();
+                if (room.Members.Count != room.TeamSize * ActiveTeams(room).Length || room.Members.Any(m => !m.Ready)) throw new DomainException("All active teams must be full and ready.");
+                if (IsPbe(room)) await SelectPbeRoomQuestions(org, room, ct); else await SelectQuestions(org, room, ct);
                 room.Status = "Playing"; room.ProcessId = runtime.ProcessId;
                 Presentation(room);
+                break;
+            case "present":
+                RequirePlayer();
+                if (!IsPbe(room) || room.Phase != "Presentation" || !member!.Scribe || command.QuestionId != Current(room).Id || command.Revision != room.Revision || command.Delivery is not ("Audio" or "TextFallback")) throw new DomainException("Only the current scribe can confirm two readings for this presentation.");
+                room.PresentationDelivery[actor.Id] = command.Delivery;
+                if (room.Members.Where(m => m.Scribe).All(m => room.PresentationDelivery.ContainsKey(m.UserId))) { Schedule(room); room.Acknowledged = room.Members.Where(m => m.Scribe).Select(m => m.UserId).ToList(); }
                 break;
             case "ack":
                 RequirePlayer();
                 if (room.Phase != "Scheduled" || command.ScheduleId != room.ScheduleId || !member!.Scribe) throw new DomainException("This start schedule is no longer awaiting your acknowledgement.");
+                if (IsPbe(room)) break;
                 if (ingress >= room.ResponseTimestamp) { Schedule(room); break; }
                 if (!room.Acknowledged.Contains(actor.Id)) room.Acknowledged.Add(actor.Id);
                 break;
@@ -115,7 +124,7 @@ public sealed partial class PracticeService
                 if (command.QuestionId != Current(room).Id) throw new DomainException("This draft is for a different question.");
                 if (room.Submissions.Any(s => s.QuestionId == Current(room).Id && s.Team == member!.Team)) throw new DomainException("This answer is already locked.");
                 ValidateAnswers(room, command.Answers);
-                room.Drafts[member!.Team] = command.Answers!;
+                room.Drafts[member!.Team] = command.Answers!; room.DraftReceivedAt[member.Team] = ingress;
                 Contribute(room, actor.Id, true);
                 break;
             case "submit":
@@ -124,9 +133,9 @@ public sealed partial class PracticeService
                 if (room.ProcessId != runtime.ProcessId) { Advance(room); throw new DomainException("The interrupted question was voided. Refresh the room."); }
                 if (command.QuestionId != Current(room).Id) throw new DomainException("This submission is for a different question.");
                 var original = room.Submissions.FirstOrDefault(s => s.QuestionId == command.QuestionId && s.Team == member!.Team);
-                if (original is not null && !original.DeadlineDraft) break;
+                if (original is not null && (IsPbe(room) || !original.DeadlineDraft)) break;
                 if (!member!.Scribe || room.Phase is not ("Scheduled" or "Response" or "Review")) throw new PracticeForbiddenException();
-                if (room.Acknowledged.Count != 2 || ingress < room.ResponseTimestamp) throw new DomainException("The shared response window has not started.");
+                if (room.Acknowledged.Count != ActiveTeams(room).Length || ingress < room.ResponseTimestamp) throw new DomainException("The shared response window has not started.");
                 ValidateAnswers(room, command.Answers);
                 var elapsed = runtime.Elapsed(room.ResponseTimestamp, ingress);
                 if (elapsed > TimeSpan.FromSeconds(Duration(Current(room))))
@@ -141,22 +150,22 @@ public sealed partial class PracticeService
                 }
                 AddSubmission(room, member.Team, actor.Id, command.Answers!, elapsed, false);
                 Contribute(room, actor.Id, true);
-                Advance(room);
+                if (IsPbe(room) && room.Submissions.Count(s => s.QuestionId == Current(room).Id) == ActiveTeams(room).Length) { Phase(room, "Review", 10); if (room.Coached) room.PhaseEndsAt = null; } else Advance(room);
                 break;
             case "chat":
                 RequirePlayer();
-                if (room.Status is "Completed" or "Abandoned") throw new DomainException("Discussion is closed.");
+                if (room.Status is "Completed" or "Abandoned" or "Interrupted") throw new DomainException("Discussion is closed.");
                 if (string.IsNullOrWhiteSpace(command.Text) || command.Text.Length > 500) throw new DomainException("Messages must contain 1–500 characters.");
                 if (room.Messages.Count(m => m.UserId == actor.Id && m.CreatedAt > runtime.Now.AddSeconds(-10)) >= 5) throw new DomainException("Please wait before sending another message.");
                 room.Messages.Add(new PracticeMessage(Guid.NewGuid(), actor.Id, actor.Name, member!.Team, command.Text.Trim(), runtime.Now));
                 if (room.Status == "Playing" && room.Phase == "Response") Contribute(room, actor.Id, false);
                 break;
             case "next":
-                if (!(room.Coached && room.CoachId == actor.Id && actor.Admin) && !(owner && room.Phase == "Paused")) throw new PracticeForbiddenException();
+                if (!(room.Coached && room.CoachId == actor.Id && actor.Admin) && !((owner || independentCaptain) && room.Phase == "Paused")) throw new PracticeForbiddenException();
                 if (room.Status != "Playing") throw new DomainException("The match is not playing.");
                 if (room.Phase == "Review" && runtime.HasPending(room.Id)) throw new DomainException("An answer is still being processed. Please wait.");
-                if (room.Phase == "Presentation") Schedule(room);
-                else if (room.Phase is "Review" or "Break" or "Paused") Next(room);
+                if (room.Phase == "Presentation") { if (IsPbe(room)) throw new DomainException("Each current scribe must confirm the two readings."); Schedule(room); }
+                else if (room.Phase is "Review" or "Break" or "Paused") { if (room.Phase == "Break" && runtime.Elapsed(room.PhaseTimestamp, runtime.Stamp()) < TimeSpan.FromMinutes(5)) throw new DomainException("The five-minute break is still in progress."); Next(room); }
                 else throw new DomainException("Wait for this question to finish.");
                 break;
             case "appeal":
@@ -170,7 +179,7 @@ public sealed partial class PracticeService
                 break;
             case "judge":
                 if (!actor.Admin || room.Members.Any(m => m.UserId == actor.Id)) throw new PracticeForbiddenException();
-                if (command.Team is not (1 or 2) || command.Points is null || string.IsNullOrWhiteSpace(command.Text)) throw new DomainException("Provide team, points, and a reason.");
+                if (!ActiveTeams(room).Contains(command.Team ?? 0) || command.Points is null || string.IsNullOrWhiteSpace(command.Text)) throw new DomainException("Provide team, points, and a reason.");
                 var judged = room.Submissions.SingleOrDefault(s => s.Team == command.Team && s.QuestionId == command.QuestionId) ?? throw new DomainException("Answer not found.");
                 if (!judged.Appealed && (!room.Coached || room.Phase != "Review")) throw new DomainException("Only revealed coached answers or appeals can be judged.");
                 var question = room.Questions.Single(q => q.Id == judged.QuestionId);
@@ -178,7 +187,7 @@ public sealed partial class PracticeService
                 room.Adjustments.Add(new PracticeAdjustment(judged.QuestionId, judged.Team, actor.Id, judged.AccuracyHundredths / 100,
                     command.Points.Value, command.Text, runtime.Now));
                 var corrected = PvpScoring.Score(command.Points.Value, Duration(question), TimeSpan.FromTicks(judged.ElapsedTicks), judged.DeadlineDraft);
-                judged.AccuracyHundredths = corrected.AccuracyHundredths; judged.SpeedHundredths = corrected.SpeedHundredths; judged.Resolved = true;
+                judged.AccuracyHundredths = corrected.AccuracyHundredths; judged.SpeedHundredths = IsPbe(room) ? 0 : corrected.SpeedHundredths; judged.Resolved = true;
                 break;
             case "abandon":
                 RequireOwner();
@@ -220,6 +229,7 @@ public sealed partial class PracticeService
     }
     private void RequireResponse(PracticeRoom room, PracticeMember member, long ingress)
     {
+        if (IsPbe(room) && room.Phase == "Scheduled" && room.Acknowledged.Count == ActiveTeams(room).Length && ingress >= room.ResponseTimestamp) { room.Phase = "Response"; room.PhaseTimestamp = room.ResponseTimestamp; room.PhaseEndsAt = room.ResponseStartsAt!.Value.AddSeconds(Duration(Current(room))); }
         if (!member.Scribe || room.Phase != "Response" || ingress < room.ResponseTimestamp
             || runtime.Elapsed(room.ResponseTimestamp, ingress) > TimeSpan.FromSeconds(Duration(Current(room))))
             throw new DomainException("Only the scribe can edit during the response window.");

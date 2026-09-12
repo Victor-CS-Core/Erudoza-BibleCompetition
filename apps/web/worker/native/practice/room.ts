@@ -3,7 +3,8 @@ import type {Env,RequestContext} from "../types";
 import {body,HttpError,json} from "../types";
 import {authenticate,checkOrigin} from "../auth";
 import {Store} from "../store";
-import {eligibleQuestions} from "./questions";
+import {eligibleQuestions} from './questions';
+import {authorizePbeRoom,selectPbeRoomBank,roomExposureStatements} from './pbe-material';
 import {advance,applyCommand,canCoach,join,makeRoom,participant,recover,view} from "./state";
 import type {Room,Command} from "./state";
 /** Room ingress owns the clock. Edge Worker timestamps are never accepted. */
@@ -21,12 +22,12 @@ export class PracticeRoom extends DurableObject<Env> {
  }
  private async project(){
   const row=this.ctx.storage.sql.exec<{data:string}>("SELECT data FROM outbox WHERE id=1").toArray()[0];if(!row)return;
-  const r=JSON.parse(row.data) as Room,summary={id:r.id,seasonId:r.seasonId,ownerId:r.ownerId,coachId:r.coachId,teamSize:r.teamSize,questionCount:r.questionCount,coached:r.coached,status:r.status,memberCount:r.members.length,memberIds:r.members.map(m=>m.userId),hasAppeals:r.submissions.some(s=>s.appealed),invitations:r.invitations};
+  const r=JSON.parse(row.data) as Room,summary={id:r.id,seasonId:r.seasonId,ownerId:r.ownerId,coachId:r.coachId,format:r.format??'Arcade',teamCount:r.teamCount??2,teamSize:r.teamSize,questionCount:r.questionCount,coached:r.coached,status:r.status,memberCount:r.members.length,memberIds:r.members.map(m=>m.userId),hasAppeals:r.submissions.some(s=>s.appealed),invitations:r.invitations};
   const projection={...r,messages:[],drafts:{},applied:{}};
   const upsert=(kind:string,data:unknown)=>this.env.DB.prepare("INSERT INTO Records(kind,id,org_id,season_id,data,revision) VALUES(?,?,?,?,?,?) ON CONFLICT(kind,id,org_id) DO UPDATE SET data=excluded.data,revision=excluded.revision WHERE excluded.revision>Records.revision").bind(kind,r.id,r.orgId,r.seasonId,JSON.stringify(data),r.revision);
-  const writes=[upsert("room",summary)];
+  const writes=[upsert('room',summary),...(r.format==='Pbe'?roomExposureStatements(this.env.DB,r):[])];
   await this.env.DB.batch(writes);
-  if(r.status==="Completed"){
+  if(r.status==="Completed"||r.status==='Interrupted'){
    if(!this.env.REPORTS)throw new Error("Report projection is not configured.");
    const response=await this.env.REPORTS.getByName(`${r.orgId}:${r.seasonId}`).fetch(new Request("https://internal/project",{method:"POST",body:JSON.stringify(projection)}) as never);
    if(!response.ok)throw new Error("Report projection failed.");
@@ -41,26 +42,28 @@ export class PracticeRoom extends DurableObject<Env> {
    const isCommand=match[3]==="/commands"&&request.method==="POST";
    const input=request.method==="POST"?await body<Record<string,unknown>>(request,isCommand?32768:8192):null;
    // Captured after complete body ingress and before auth, application queue, or grading.
-   const ingress=Date.now();const sensitive=isCommand&&["submit","ack"].includes(String(input?.action));
+   const ingress=Date.now();const sensitive=isCommand&&["submit","ack","draft","present"].includes(String(input?.action));
    if(sensitive&&this.pending>=16)throw new HttpError(429,"Too many pending submissions.");if(sensitive)this.pending++;
    try{
     const response=await this.serialize(async()=>{
     checkOrigin(request,this.env);const actor=await authenticate(request,this.env,match[1]);
     const context:RequestContext={request,env:this.env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(this.env.DB)};
      const now=Date.now();let r=this.load();
-     if(!r){if(request.method!=="POST"||match[3]!=="")throw new HttpError(404,"Room not found.");const creation=input as unknown as Parameters<typeof makeRoom>[2];const season=await context.store.require<{status:string}>("season",creation.seasonId,context.orgId);if(season.value.status!=="Active")throw new HttpError(400,"Choose an active season.");r=makeRoom(match[2],actor,creation,this.epoch,now);this.save(r);await this.arm(r);this.ctx.waitUntil(this.projectSafely());return json(view(r,actor,now));}
+     if(!r){if(request.method!=="POST"||match[3]!=="")throw new HttpError(404,"Room not found.");const creation=input as unknown as Parameters<typeof makeRoom>[2];const season=await context.store.require<{status:string}>("season",creation.seasonId,context.orgId);if(season.value.status!=="Active")throw new HttpError(400,"Choose an active season.");r=makeRoom(match[2],actor,creation,this.epoch,now);if(r.format==='Pbe')await authorizePbeRoom(context,r,true);this.save(r);await this.arm(r);this.ctx.waitUntil(this.projectSafely());return json(view(r,actor,now));}
      if(r.orgId!==actor.organizationId||r.id!==match[2])throw new HttpError(403,"Room access denied.");
+     if(r.format==='Pbe'&&match[3]!=='/accept'&&!participant(r,actor)&&!canCoach(r,actor))throw new HttpError(403,'Room access denied.');
+     const authorized=r.format==='Pbe'&&['Lobby','Playing'].includes(r.status)&&match[3]!=='/accept'?await authorizePbeRoom(context,r):null;
      const previousRevision=r.revision;
-     if(r.epoch!==this.epoch){recover(r,this.epoch,now,"runtime-replacement");r.revision++;this.save(r);}
-     if(now<r.lastObserved){recover(r,this.epoch,now,"backwards-clock");r.revision++;this.save(r);await this.arm(r);this.broadcast();this.ctx.waitUntil(this.projectSafely());throw new HttpError(409,"Clock anomaly detected. Refresh the replaced question.");}
+     if(r.epoch!==this.epoch){recover(r,this.epoch,now,"runtime-replacement",authorized?.eligibleReserveIds);r.revision++;this.save(r);}
+     if(now<r.lastObserved){recover(r,this.epoch,now,"backwards-clock",authorized?.eligibleReserveIds);r.revision++;this.save(r);await this.arm(r);this.broadcast();this.ctx.waitUntil(this.projectSafely());throw new HttpError(409,"Clock anomaly detected. Refresh the replaced question.");}
      if(match[3]==="/socket"&&request.headers.get("upgrade")?.toLowerCase()==="websocket"){
       if(!participant(r,actor)&&!canCoach(r,actor))throw new HttpError(403,"Room access denied.");const pair=new WebSocketPair();this.ctx.acceptWebSocket(pair[1]);pair[1].serializeAttachment({userId:actor.userId,credentialVersion:actor.credentialVersion});return new Response(null,{status:101,webSocket:pair[0]});
      }
      if(match[3]==="/accept"&&request.method==="POST"){
-      const invitation=r.invitations.find(i=>i.id===input?.invitationId&&i.userId===actor.userId);if(!invitation||invitation.accepted||Date.parse(invitation.expiresAt)<=now)throw new HttpError(400,"Invitation expired or already accepted.");join(r,actor,invitation.team??Number(input?.team??1));invitation.accepted=true;r.revision++;
+      const invitation=r.invitations.find(i=>i.id===input?.invitationId&&i.userId===actor.userId);if(!invitation||invitation.accepted||Date.parse(invitation.expiresAt)<=now)throw new HttpError(400,"Invitation expired or already accepted.");join(r,actor,invitation.team??Number(input?.team??1));if(r.format==='Pbe')await authorizePbeRoom(context,r,true);invitation.accepted=true;r.revision++;
      }else if(isCommand){
       const c=input as unknown as Command;if(!participant(r,actor)&&!(canCoach(r,actor)&&c.action==="judge"))throw new HttpError(403,"Room access denied.");
-      const questions=c.action==="start"?await eligibleQuestions(context,r.seasonId,r.questionCount,r.bookKey):undefined;
+      const questions=c.action==="start"?(r.format==='Pbe'?await selectPbeRoomBank(context,r):await eligibleQuestions(context,r.seasonId,r.questionCount,r.bookKey)):undefined;
       const invitee=c.action==="invite"?await this.env.DB.prepare("SELECT id,display_name AS displayName FROM Users WHERE id=? AND org_id=? AND active=1 AND kind='Student'").bind(c.targetUserId??"",r.orgId).first<{id:string;displayName:string}>():undefined;
       applyCommand(r,actor,c,ingress,now,{questions,invitee:invitee??undefined,pending:this.pending>(sensitive?1:0)});
      }else if(match[3]===""&&request.method==="GET"){
@@ -68,13 +71,22 @@ export class PracticeRoom extends DurableObject<Env> {
      }else throw new HttpError(404,"Room route not found.");
      if(r.revision!==previousRevision){this.save(r);await this.arm(r);this.broadcast();}
      // SQL projection is an outbox; failure cannot undo or retime a committed final answer.
-     if(r.revision!==previousRevision)this.ctx.waitUntil(this.projectSafely());
+     if(r.revision!==previousRevision){if(r.format==='Pbe')await this.projectSafely();else this.ctx.waitUntil(this.projectSafely());}
      return json(participant(r,actor)||canCoach(r,actor)?view(r,actor,now):{left:true});
     });return response;
-   }finally{if(sensitive){this.pending--;if(this.pending===0)this.ctx.waitUntil(this.serialize(async()=>{const r=this.load();if(r&&advance(r,Date.now(),false)){r.revision++;this.save(r);await this.arm(r);this.broadcast();await this.projectSafely();}}));}}
+   }finally{if(sensitive){this.pending--;if(this.pending===0&&this.load()?.format==='Pbe')await this.ctx.storage.setAlarm(Date.now()+50);else if(this.pending===0)this.ctx.waitUntil(this.serialize(async()=>{const r=this.load();if(r&&await this.authorizeBackground(r)&&advance(r,Date.now(),false)){r.revision++;this.save(r);await this.arm(r);this.broadcast();await this.projectSafely();}}));}}
   }catch(error){if(error instanceof HttpError)return json({title:error.message,detail:error.message},error.status);console.error("Practice command failed",error instanceof Error?error.name:"UnknownError");return json({title:"Practice temporarily unavailable"},503);}
  }
- async alarm(){await this.serialize(async()=>{const r=this.load();if(!r)return;const now=Date.now();if(r.epoch!==this.epoch){recover(r,this.epoch,now,"runtime-replacement");r.revision++;}if(advance(r,now,this.pending>0))r.revision++;this.save(r);await this.arm(r);this.broadcast();await this.projectSafely();});}
+ private async authorizeBackground(r:Room):Promise<{reserveIds?:Set<string>}|null>{
+  if(r.format!=='Pbe'||!['Lobby','Playing'].includes(r.status))return {};
+  try{
+   const user=await this.env.DB.prepare("SELECT id,display_name,user_name,kind,role,credential_version FROM Users WHERE id=? AND org_id=? AND active=1").bind(r.ownerId,r.orgId).first<{id:string;display_name:string;user_name:string;kind:'Student'|'Adult';role:'Student'|'Admin'|'Owner';credential_version:string}>();
+   const store=new Store(this.env.DB),setting=await store.get<{enabled:boolean}>('practice-setting',r.orgId,r.orgId);
+   if(!user||!setting?.value.enabled)return null;
+   const scope=await authorizePbeRoom({env:this.env,store,orgId:r.orgId,path:'',request:new Request('https://internal/room-clock'),actor:{userId:user.id,organizationId:r.orgId,organizationName:'',displayName:user.display_name,userName:user.user_name,email:null,kind:user.kind,role:user.role,credentialVersion:user.credential_version}},r);return {reserveIds:scope.eligibleReserveIds};
+  }catch{return null;}
+ }
+ async alarm(){await this.serialize(async()=>{const r=this.load();if(!r)return;const authorization=await this.authorizeBackground(r);if(!authorization){await this.ctx.storage.setAlarm(Date.now()+5000);await this.projectSafely();return;}const now=Date.now();if(r.epoch!==this.epoch){recover(r,this.epoch,now,"runtime-replacement",authorization.reserveIds);r.revision++;}if(advance(r,now,this.pending>0,authorization.reserveIds))r.revision++;this.save(r);await this.arm(r);this.broadcast();await this.projectSafely();});}
  async webSocketMessage(socket:WebSocket,message:string|ArrayBuffer){
   const ingress=Date.now();
   if(typeof message!=="string"||message.length>1024){socket.close(1008,"Invalid message");return;}
