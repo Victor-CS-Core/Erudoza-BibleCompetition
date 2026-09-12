@@ -6,7 +6,11 @@ const script = document.querySelector('script[data-name="BMC-Widget"]');
 window.addEventListener("DOMContentLoaded", () => {
   const launcher = document.createElement("div");
   launcher.id = "bmc-wbtn";
-  launcher.textContent = "☕";
+  const cup = document.createElement("img");
+  cup.src = "https://cdn.buymeacoffee.com/widget/assets/coffee%20cup.svg";
+  cup.alt = "Buy Me a Coffee";
+  Object.assign(cup.style, { width: "36px", height: "36px" });
+  launcher.append(cup);
   Object.assign(launcher.style, { display: "flex", alignItems: "center", justifyContent: "center", width: "64px", height: "64px", borderRadius: "32px", position: "fixed", background: script.dataset.color, cursor: "pointer", fontSize: "28px" });
   const overlay = document.createElement("div");
   Object.assign(overlay.style, { position: "fixed", inset: "0", width: "0", height: "0" });

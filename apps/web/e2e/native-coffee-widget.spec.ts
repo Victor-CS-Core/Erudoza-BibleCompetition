@@ -19,6 +19,7 @@ async function installFixtures(page: Page, blocked = false, delay?: Promise<void
   const calls = { scripts: 0, frames: 0, unexpectedApi: [] as string[] };
   const override = process.env.COFFEE_WIDGET_SCRIPT_FILE;
   if (override && !path.isAbsolute(override)) throw new Error("COFFEE_WIDGET_SCRIPT_FILE must be an absolute path to a locally inspected vendor script.");
+  const cup = await readFile(new URL("./fixtures/bmc-coffee-cup.svg", import.meta.url), "utf8");
   const provider = await readFile(override ?? new URL("./fixtures/coffee-widget-contract.js", import.meta.url), "utf8");
   await page.route(scriptUrl, async route => {
     calls.scripts++;
@@ -31,7 +32,7 @@ async function installFixtures(page: Page, blocked = false, delay?: Promise<void
   });
   // Keep official-script runs offline too; only its local script and test frame execute.
   await page.route("https://cdn.buymeacoffee.com/**", route => route.request().url().includes("coffee%20cup.svg")
-    ? route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><text x="0" y="29" font-size="29">☕</text></svg>' })
+    ? route.fulfill({ contentType: "image/svg+xml", body: cup })
     : route.abort("blockedbyclient"));
   await page.route("**/api/v1/**", route => {
     const request = route.request();
@@ -375,6 +376,10 @@ for (const width of [1440, 390, 320]) {
     expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
     const providerBox = await launcher(page).boundingBox();
     expect(box.x + box.width).toBeLessThanOrEqual(providerBox!.x);
+    const glyph = await minimizeSupport(page).locator("span").boundingBox();
+    expect(providerBox!.x - (glyph!.x + glyph!.width)).toBeLessThanOrEqual(8);
+    expect(Math.abs(glyph!.y + glyph!.height / 2 - (providerBox!.y + providerBox!.height / 2))).toBeLessThanOrEqual(1);
+    await expect(launcher(page).locator("img")).toHaveAttribute("src", "https://cdn.buymeacoffee.com/widget/assets/coffee%20cup.svg");
     await page.screenshot({ path: info.outputPath(`support-expanded-${width}.png`) });
     await minimizeSupport(page).click();
     await expect(launcher(page)).toBeHidden(); await expect(fallbackLink(page)).toHaveCount(0);

@@ -53,8 +53,8 @@ html[data-erudoza-coffee-ready="true"] :is(.public-footer, .training-footer) { p
 
 /* A normal link remains usable when a privacy/content blocker prevents the embed. */
 .coffee-floating { position: fixed; right: var(--coffee-right); bottom: var(--coffee-bottom); z-index: 40; display: flex; align-items: center; gap: var(--er-space-2); }
-.coffee-minimize { width: 44px; height: 44px; min-width: 44px; padding: 0; }
-html[data-erudoza-coffee-ready="true"] .coffee-floating { right: calc(var(--coffee-right) + 72px); }
+.coffee-minimize.ds-button { width: 44px; height: 44px; min-width: 44px; padding: 0 4px 0 0; justify-content: flex-end; }
+html[data-erudoza-coffee-ready="true"] .coffee-floating { right: calc(var(--coffee-right) + 64px); bottom: calc(var(--coffee-bottom) + 10px); }
 html[data-erudoza-coffee-open="true"] .coffee-floating,
 html:has(dialog[open]) .coffee-floating { display: none; }
 .coffee-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--er-space-2); margin-bottom: var(--er-space-4); }
