@@ -2,6 +2,8 @@
 
 ## Coach season creation refinement — September 12
 
+- Git checkpoint: implementation `087230d73600c72cefc68b09017a8a344d60b422` was committed and pushed normally to `origin/codex/coach-season-flow`; exact remote readback matched. Worktree was clean after the checkpoint. The private repository destination and ADMIN access were freshly verified. The synthetic demo was reset for user review; main and production remain unchanged by this task.
+
 - User approved a bounded refinement of the existing four-step coach setup. Work is isolated in `.worktrees/coach-season-flow` on `codex/coach-season-flow`, from `97e5871`; concurrent copy-audit edits in the main checkout are untouched.
 - Added numbered/completed steps, a narrower details form with fixed competition format text, direct empty passage editing, consistent passage Back/Continue actions, and compact book controls. Student assignments offer Save and next student, skip inactive students, advance only after confirmed success, clear choices through the keyed editor and focus the next student's heading. Review reports assignment coverage and missing start requirements. Existing draft persistence, saved scopes, activation confirmation, standalone editing and closed-season rules remain intact.
 - Local gate: 106 tests across 11 coach/student assignment suites pass (33 season tests; five new behavior cases). New behavior was first observed failing. Web/native TypeScript, native production build, scoped ESLint and Git whitespace pass. The existing bundle-size advisory remains. Independent source review found no blocking issue; advancing changes the student heading but does not retain the previous student's success notice.
