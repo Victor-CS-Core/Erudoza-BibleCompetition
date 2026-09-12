@@ -1,8 +1,36 @@
 import { expect, test } from "@playwright/test";
 import { assertNoOverflow, login, logout, openCommandCenter } from "./helpers";
 
+async function assertHeaderLayout(page: import("@playwright/test").Page) {
+  const header = page.locator(".command-masthead");
+  const search = header.getByRole("button", { name: /^Search sections,/ });
+  const brand = header.getByRole("link", { name: "Erudoza home", exact: true });
+  const account = header.getByRole("button", { name: "Account", exact: true });
+  await expect(search).toBeVisible();
+  await expect(brand).toBeVisible();
+  const [searchBox, brandBox, accountBox] = await Promise.all([search.boundingBox(), brand.boundingBox(), account.boundingBox()]);
+  const width = page.viewportSize()!.width;
+  if (width <= 760) {
+    expect(Math.abs(brandBox!.x + brandBox!.width / 2 - width / 2)).toBeLessThan(1);
+    expect(searchBox!.x + searchBox!.width).toBeLessThanOrEqual(brandBox!.x);
+    expect(brandBox!.x + brandBox!.width).toBeLessThanOrEqual(accountBox!.x);
+    for (const box of [searchBox!, brandBox!, accountBox!]) {
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+    }
+  } else {
+    // Search fills the entire flexible column, leaving only the shared row gaps.
+    expect(searchBox!.x - brandBox!.x - brandBox!.width).toBeGreaterThanOrEqual(16);
+    expect(searchBox!.x - brandBox!.x - brandBox!.width).toBeLessThanOrEqual(32);
+    expect(accountBox!.x - searchBox!.x - searchBox!.width).toBeGreaterThanOrEqual(16);
+    expect(accountBox!.x - searchBox!.x - searchBox!.width).toBeLessThanOrEqual(32);
+  }
+  await assertNoOverflow(page);
+}
+
 test("coach command search navigates, retains pins, and exposes nested actions", async ({ page, isMobile }, info) => {
   await login(page);
+  await assertHeaderLayout(page);
   const opener = page.getByRole("button", { name: "Search sections, students, or actions", exact: true });
   await expect(opener).toBeVisible();
   if (isMobile) await opener.click();
@@ -53,6 +81,7 @@ test("student navigation remains one click away and excludes coach commands afte
   await login(page);
   await logout(page);
   await login(page, process.env.ERUDOZA_E2E_STUDENT ?? "daniel.student");
+  await assertHeaderLayout(page);
   await openCommandCenter(page);
   const dialog = page.getByRole("dialog", { name: "Command center" });
   await expect(dialog).toBeVisible();

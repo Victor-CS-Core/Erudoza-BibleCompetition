@@ -125,9 +125,8 @@ function CommandFrame({ coach }: { coach: boolean }) {
     <CoffeeWidget enabled={coach && me?.kind === "Adult"} accountKey={`${me?.organizationId}:${me?.userId}`} />
     <a className="training-skip" href="#training-main">Skip to content</a>
     <header className="command-masthead"><div className="command-masthead-inner">
-      <Link to={home} className="command-brand" aria-label="Erudoza home"><ErudozaWordmark compact inverted /><span>{coach ? "Coach" : "Student"}</span></Link>
-      <Button variant={coach ? "secondary" : "inverse"} className="command-trigger" aria-label={searchLabel} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="search" /><span className="command-trigger-copy">{coach ? `${searchLabel}…` : "Find a section or season"}</span><span className="command-trigger-short">Search</span><kbd>Ctrl K</kbd></Button>
-      <span className="command-academy">{me?.organizationName}</span>
+      <Button variant="inverse" className="command-trigger ds-button-mobile-icon" aria-label={searchLabel} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="search" /><span className="command-trigger-copy">{coach ? `${searchLabel}…` : "Find a section or season"}</span><kbd>Ctrl K</kbd></Button>
+      <Link to={home} className="command-brand" aria-label="Erudoza home"><ErudozaWordmark compact inverted /></Link>
       <NavigationMenu key={`account:${route}`} name="Account" label={<><ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? ""} /><span className="command-account-name">{me?.displayName}</span></>}>
         <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach mode" : "Student mode"}</small></div>
         <Link to={coach ? "/admin/profile" : `/student/profile${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`}><AppIcon name="users" />Your profile</Link>
@@ -142,9 +141,8 @@ function CommandFrame({ coach }: { coach: boolean }) {
           <Link to={item.to} data-testid={item.testId} aria-current={active?.id === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.label}</span></Link>
           <Button variant="ghost" size="compact" className="command-pin" aria-label={`${pinned.includes(item.id) ? "Unpin" : "Pin"} ${item.label}`} onClick={() => togglePin(item.id)}><AppIcon name="pin" /></Button>
         </div>)}
-        {!visibleShortcuts.length && <span className="command-no-pins">Pin your favorite sections from All sections.</span>}
+        {!visibleShortcuts.length && <span className="command-no-pins">Pin your favorite sections from Search.</span>}
       </nav>
-      <Button variant={coach ? "secondary" : "ghost"} className="command-all" aria-label="All sections" title="All sections" aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>All sections</span><AppIcon name="chevron" /></Button>
     </div></div>
     {(coach || focused || contextItems.length > 0) && <div className={`command-context ${coach && location.pathname === "/admin" ? "command-context-home" : ""}`}><div className="command-context-inner">
       <nav aria-label="Breadcrumb" className="command-breadcrumb" data-season={seasonItems.length > 0}><Link to={home}>{coach ? "Coach" : "Training"}</Link><span aria-hidden="true">/</span>{seasonItems.length > 0 && <><Link to="/admin/seasons">Seasons</Link><span aria-hidden="true">/</span></>}

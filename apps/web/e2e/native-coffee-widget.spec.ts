@@ -142,7 +142,7 @@ test("coach navigation keeps a single widget, command dialogs suspend it, and st
   await expect(command).toBeHidden();
   await expect(popup(page)).toBeVisible();
   await close(page).click();
-  await page.getByRole("button", { name: "All sections", exact: true }).click();
+  await page.getByRole("button", { name: "Search sections, students, or actions", exact: true }).click();
   await expect(command).toBeVisible();
   await expect(page.locator("#bmc-wbtn")).toBeHidden();
   await expect(popup(page)).toBeHidden();

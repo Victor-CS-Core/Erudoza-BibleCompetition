@@ -4,18 +4,16 @@
 .command-app .training-main { width:100%; max-width:1440px; padding:32px 36px; margin:auto; }
 .command-app.training-focused .training-main { max-width:980px; }
 .command-masthead { background:var(--er-ink-navy); color:var(--er-on-navy); }
-.command-masthead-inner { max-width:1600px; margin:auto; padding:16px 36px; min-height:84px; display:flex; align-items:center; gap:24px; }
-.command-brand { display:flex; align-items:center; gap:20px; flex-shrink:0; }
-.command-brand .er-wordmark-name { font-size:30px; }
+.command-masthead-inner { max-width:1600px; margin:auto; padding:12px 36px; min-height:72px; display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"brand search account"; align-items:center; gap:24px; }
+.command-brand { grid-area:brand; display:flex; align-items:center; min-height:44px; min-width:0; }
+.command-brand .er-wordmark-name { font-size:26px; }
 .command-brand .er-wordmark-mark { width:36px; height:36px; }
-.command-brand>span { border-left:1px solid var(--er-on-navy-muted); padding-left:20px; font-size:var(--er-text-sm); color:var(--er-on-navy-muted); }
-.command-trigger.ds-button { justify-content:flex-start; flex:1; min-width:120px; max-width:680px; border-radius:24px; padding:10px 16px; font-weight:400; }
-.command-trigger.ds-button-secondary { background:var(--er-card); color:var(--er-muted-ink); }
+.command-trigger.ds-button { grid-area:search; justify-content:flex-start; min-width:0; width:100%; padding:10px 16px; font-weight:400; }
 .command-trigger>span { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .command-trigger svg { flex-shrink:0; }
 .command-trigger kbd { margin-left:auto; flex-shrink:0; }
-.command-academy { font-size:var(--er-text-xs); margin-left:auto; max-width:160px; overflow-wrap:anywhere; }
 .command-menu-wrap { position:relative; min-width:0; }
+.command-masthead .command-menu-wrap { grid-area:account; }
 .command-masthead .command-menu-wrap>.ds-button { color:var(--er-on-navy); }
 .command-masthead .command-menu-wrap>.ds-button:hover,.command-masthead .command-menu-wrap>.ds-button[aria-expanded=true] { background:color-mix(in srgb,var(--er-on-navy) 12%,transparent); }
 .command-masthead .training-avatar { width:36px; height:36px; flex-shrink:0; }
@@ -35,7 +33,6 @@
 .command-pin.ds-button { padding:6px; min-width:30px; min-height:32px; color:var(--er-muted-ink); flex-shrink:0; }
 .command-pin[aria-pressed=true],.command-shortcut.is-current .command-pin { color:var(--er-action-blue); }
 .command-pin[aria-pressed=true] svg { fill:var(--er-selected); }
-.command-all.ds-button { flex-shrink:0; font-size:var(--er-text-sm); }
 .command-no-pins { padding:8px; color:var(--er-muted-ink); font-size:var(--er-text-sm); }
 .command-context { border-bottom:1px solid var(--er-border); background:var(--er-paper); }
 .command-context-inner { max-width:1440px; padding:8px 36px; margin:auto; display:flex; flex-wrap:wrap; align-items:center; gap:8px 24px; min-height:52px; }
@@ -77,15 +74,10 @@
 .command-expand[aria-expanded=true] svg { transform:rotate(180deg); }
 .command-nested { margin:4px 0 8px 24px; border-left:1px solid var(--er-border); padding-left:8px; }
 .command-dialog-foot { display:flex; justify-content:space-between; gap:16px; border-top:1px solid var(--er-border); padding:12px 20px; color:var(--er-muted-ink); font-size:var(--er-text-xs); }
-@media (max-width:1200px) { .command-academy,.command-account-name { display:none; } .command-masthead-inner { gap:20px; } }
+@media (max-width:1200px) { .command-account-name { display:none; } }
 @media (max-width:760px) {
-  .command-masthead-inner { padding:12px 16px; gap:12px; flex-wrap:wrap; }
-  .command-brand { flex:1; }.command-brand .er-wordmark-name { font-size:26px; }.command-brand>span { font-size:var(--er-text-xs); }
-  .command-trigger.ds-button { order:3; flex-basis:100%; max-width:none; }
-  .command-masthead .command-menu-wrap { margin-left:auto; }
   .command-shortcut-inner { padding:8px 12px; gap:8px; }
   .command-shortcuts { gap:8px; }
-  .command-all.ds-button { min-height:44px; padding:8px; gap:4px; }.command-all>svg:last-child { display:none; }.command-all>span { max-width:60px; white-space:normal; }
   .command-context-inner { padding:8px 20px; gap:4px; }
   .command-context-links { margin-left:0; width:100%; gap:4px 16px; }
   .command-breadcrumb { gap:6px; }.command-breadcrumb .command-menu-wrap>.ds-button { max-width:200px; }
@@ -98,29 +90,23 @@
 }
 @media (pointer:coarse) { .command-pin.ds-button { min-width:44px; min-height:44px; }.command-context-links>a { min-height:44px; } }
 
-@media (max-width:480px) { .command-brand>span { display:none; } }
-
-/* Keep navigation close without consuming a phone's first screen. */
-.command-trigger-short { display:none; }
+/* Center the phone wordmark between equal search and account touch targets. */
 @media(max-width:760px) {
-  .command-masthead-inner { flex-wrap:nowrap; min-height:68px; padding:10px 12px; gap:10px; }
-  .command-brand { flex:1; min-width:0; }
-  .command-brand>span { display:none; }
+  .command-masthead-inner { grid-template-columns:44px minmax(0,1fr) 44px; grid-template-areas:"search brand account"; min-height:64px; padding:10px 12px; gap:4px; }
+  .command-brand { justify-self:center; }
   .command-brand .er-wordmark { gap:8px; }
   .command-brand .er-wordmark-name { font-size:23px; }
   .command-brand .er-wordmark-mark { width:28px; height:32px; }
-  .command-trigger.ds-button { order:0; flex:0 0 auto; padding:10px 12px; min-width:44px; gap:8px; }
+  .command-trigger.ds-button { justify-content:center; padding:10px; width:44px; height:44px; }
   .command-trigger-copy,.command-trigger kbd { display:none; }
-  .command-trigger-short { display:inline; }
-  .command-masthead .command-menu-wrap { margin-left:0; }
-  .command-masthead .command-menu-wrap>.ds-button { padding-inline:4px; gap:4px; }
+  .command-masthead .command-menu-wrap>.ds-button { width:44px; min-height:44px; height:44px; padding:0; }
+  .command-masthead .command-menu-wrap>.ds-button>svg:last-child { display:none; }
   .command-context-inner { min-height:44px; padding:0 16px; }
   .command-context-links { column-gap:16px; row-gap:0; }
   .command-context-links>a { min-height:44px; }
   .command-shortcut-inner { padding-block:6px; }
   .command-app .training-main { padding:24px 16px; }
 }
-@media(max-width:360px) { .command-trigger-short { display:none; } }
 
 @media(max-width:760px) {
   .command-breadcrumb[data-season=true] { flex-wrap:nowrap; width:100%; }
@@ -136,25 +122,17 @@
 .training-learner .command-shortcut-inner,
 .training-learner .command-context-inner,
 .command-app.training-learner .training-main { max-width:1200px; padding-inline:28px; }
-.training-learner .command-masthead-inner { min-height:70px; padding-block:12px; gap:28px; }
-.training-learner .command-brand .er-wordmark-name { font-size:26px; }
-.training-learner .command-brand>span,.training-learner .command-academy { display:none; }
-.training-learner .command-trigger.ds-button { max-width:340px; margin-left:auto; border-radius:var(--er-radius-control); }
-.training-learner .command-trigger kbd { background:transparent; color:inherit; padding:0; }
+.command-trigger kbd { background:transparent; color:inherit; padding:0; }
 .training-learner .command-shortcut-inner { padding-block:8px; gap:8px; }
 .training-learner .command-shortcuts { gap:8px; }
 .training-learner .command-shortcut:not(.is-current) { border-color:transparent; }
 .training-learner .command-shortcut>a { padding-block:8px; }
-.training-learner .command-all>svg:last-child { display:none; }
 .command-app.training-learner .training-main { padding-block:28px 36px; }
 .training-learner .training-footer { font-size:var(--er-text-xs); text-transform:none; letter-spacing:normal; }
 @media(max-width:760px) {
-  .training-learner .command-masthead-inner { padding:12px 16px; gap:12px; }
+  .training-learner .command-masthead-inner { padding-inline:12px; }
   .training-learner .command-shortcut-inner { padding-inline:12px; }
-  .training-learner .command-brand .er-wordmark-name { font-size:24px; }
-  .training-learner .command-trigger.ds-button { padding:10px; width:44px; }
-  .training-learner .command-trigger-short { display:none; }
-  .training-learner .command-all,.training-learner .command-shortcut .command-pin { display:none; }
+  .training-learner .command-shortcut .command-pin { display:none; }
   .training-learner .command-shortcuts { gap:4px; }
   .training-learner .command-shortcut>a { padding:8px; gap:6px; font-size:var(--er-text-xs); }
   .command-app.training-learner .training-main { padding:22px 16px 32px; }
@@ -168,11 +146,6 @@
 .command-bottom-nav { display:none; }
 .command-app:has(.practice-page) .command-context { display:none; }
 .command-app:has(.practice-page) :is(.command-masthead-inner,.command-shortcut-inner,.training-main) { max-width:1200px; padding-inline:28px; }
-.command-app:has(.practice-page) .command-masthead-inner { min-height:70px; padding-block:12px; gap:28px; }
-.command-app:has(.practice-page) .command-brand>span,
-.command-app:has(.practice-page) .command-academy { display:none; }
-.command-app:has(.practice-page) .command-brand .er-wordmark-name { font-size:26px; }
-.command-app:has(.practice-page) .command-trigger.ds-button { max-width:310px; margin-left:auto; border-radius:var(--er-radius-control); }
 .command-app:has(.practice-page) .command-shortcut-inner { padding-block:8px; gap:8px; }
 .command-app:has(.practice-page) .command-shortcuts { gap:8px; }
 .command-app:has(.practice-page) .command-shortcut:not(.is-current) { border-color:transparent; }
@@ -187,17 +160,11 @@
   .command-bottom-nav>a:focus-visible { outline:2px solid var(--er-teal); outline-offset:2px; }
   .command-app:has(.practice-room[data-status="Playing"]) { padding-bottom:env(safe-area-inset-bottom,0px); }
   .command-app:has(.practice-room[data-status="Playing"]) .command-bottom-nav { display:none; }
-  .command-app:has(.practice-page) .command-masthead-inner { padding:10px 16px; gap:12px; }
+  .command-app:has(.practice-page) .command-masthead-inner { padding-inline:12px; }
   .command-app:has(.practice-page) .training-main { padding:22px 16px 30px; }
-  .command-app:has(.practice-page) .command-brand .er-wordmark-name { font-size:25px; }
-  .command-app:has(.practice-page) .command-trigger.ds-button { width:44px; padding:10px; }
-  .training-coach .command-trigger.ds-button { width:44px; padding:10px; justify-content:center; border-radius:var(--er-radius-control); }
-  .training-coach .command-trigger-short { display:none; }
   .training-coach .command-context-home { display:none; }
 }
 @media(max-width:350px) {
   .command-app:has(.practice-page) :is(.command-masthead-inner,.training-main) { padding-inline:12px; }
-  .command-app:has(.practice-page) .command-masthead-inner { gap:8px; }
-  .command-app:has(.practice-page) .command-brand .er-wordmark-name { font-size:23px; }
 }
 @media(forced-colors:active) { .command-bottom-nav [aria-current=page] { outline:2px solid Highlight; } }
