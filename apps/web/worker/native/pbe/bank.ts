@@ -28,7 +28,16 @@ export async function sourceProof(question:PbeQuestion,sources:Map<string,Pick<P
 }
 export async function loadPbeBank(ctx:RequestContext,scope:BankScope):Promise<PbeBank>{
  if(!Array.isArray(scope.sourceUnitIds))throw new HttpError(400,'Provide source IDs.');
- const restriction=new Set(scope.sourceUnitIds.map(guid)),initial=await resolvePbeSources(ctx,scope);
+ return loadFromResolvedSources(ctx,scope,await resolvePbeSources(ctx,scope));
+}
+/** Metadata uses the same freshly authorized snapshot and final recheck as private selection. */
+export async function loadPbeBankMetadata(ctx:RequestContext,scope:Omit<BankScope,'sourceUnitIds'>){
+ const initial=await resolvePbeSources(ctx,scope);
+ const bank=await loadFromResolvedSources(ctx,{...scope,sourceUnitIds:initial.sources.map(s=>s.id)},initial);
+ return {questionCount:bank.questions.length,targetCount:bank.targets.length,sourceUnitCount:initial.sources.length,missingSourceUnitIds:bank.missingSourceUnitIds};
+}
+async function loadFromResolvedSources(ctx:RequestContext,scope:BankScope,initial:Awaited<ReturnType<typeof resolvePbeSources>>):Promise<PbeBank>{
+ const restriction=new Set(scope.sourceUnitIds.map(guid));
  const allowed=initial.sources.filter(s=>restriction.has(s.id));
  const records:PbeQuestionRecord[]=[],targets:PbeTarget[]=[];
  // Keyset pagination stays on the tenant/season index and never touches student history.

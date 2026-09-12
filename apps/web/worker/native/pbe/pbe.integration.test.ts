@@ -14,8 +14,8 @@ const target={id:'00000000-0000-0000-0000-000000000004',sourceUnitIds:[a,b],skil
 const question={...fixtures.cases[0].question,id:'00000000-0000-0000-0000-000000000001',contentPackId:pack,sourceUnitId:a,sourceUnitIds:[a,b],kind:'ShortAnswer',reference:'GEN 1:1; GEN 1:2',evidence:'Alpha and Beta',parts:[{targetId:target.id,acceptedAnswers:['Alpha and Beta'],points:1}]};
 let app:Awaited<ReturnType<typeof createNativeTestApp>>;
 afterEach(async()=>{await app?.runtime.dispose();});
-async function setup(){
- app=await createNativeTestApp();const store=new Store(app.db as unknown as Env['DB']);
+async function setup(measureD1=false){
+ app=await createNativeTestApp({measureD1});const store=new Store(app.db as unknown as Env['DB']);
  const cookie=(await app.login()).headers.get('set-cookie')!.split(';')[0];
  const base=`/api/v1/organizations/${TEST_ORG}/practice/pbe/seasons/${season}`;
  const send=(path:string,value?:unknown)=>app.fetch(base+path,{method:value===undefined?'GET':'POST',headers:{Cookie:cookie,Origin:'https://erudoza.test','Content-Type':'application/json'},body:value===undefined?undefined:JSON.stringify(value)});
@@ -51,7 +51,7 @@ it('rejects untrusted JSON and casing duplicates and requires current licensed a
  const s=await store.require<Record<string,unknown>>('season',season,TEST_ORG);await store.put('season',season,TEST_ORG,{...s.value,status:'Archived'},s.revision);await expect(loadPbeBank(ctx,scope)).rejects.toThrow();
 });
 it('paginates 5,101 questions and targets with reads independent of unrelated student history',async()=>{
- const {ctx,scope}=await setup();
+ const {ctx,scope,send}=await setup(true);
  const proof=await sourceProof({...question,sourceUnitIds:[a],reference:'GEN 1:1'} as never,new Map([[a,{id:a,canonicalText:'Alpha and Beta',citation:'GEN 1:1'} as never]]));
  const rows=Array.from({length:5101},(_,i)=>{const id=`00000000-0000-0000-0001-${String(i+1).padStart(12,'0')}`,tid=`00000000-0000-0000-0002-${String(i+1).padStart(12,'0')}`;return {id:`${id}:1`,seasonId:season,published:true,sourceFingerprint:proof,question:{...question,id,reference:'GEN 1:1',sourceUnitIds:[a],parts:[{targetId:tid,acceptedAnswers:['Alpha'],points:1}]},target:{...target,id:tid,sourceUnitIds:[a]}};});
  for(let i=0;i<rows.length;i+=200){const page=rows.slice(i,i+200);await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) SELECT 'pbe-question-head',json_extract(value,'$.question.id'),?,?,json_extract(value,'$.question.sourceUnitId'),json_remove(value,'$.target') FROM json_each(?)").bind(TEST_ORG,season,JSON.stringify(page)).run();await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) SELECT 'pbe-target',json_extract(value,'$.target.id'),?,?,json_extract(value,'$.target.sourceUnitIds[0]'),json_extract(value,'$.target') FROM json_each(?)").bind(TEST_ORG,season,JSON.stringify(page)).run();}
@@ -65,6 +65,11 @@ it('paginates 5,101 questions and targets with reads independent of unrelated st
  await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) SELECT kind,'excluded-'||id,org_id,season_id,?,data FROM Records WHERE kind IN ('pbe-question-head','pbe-target') AND owner_id=?").bind(b,a).run();
  const after=await measure();expect(after.reads).toBeLessThanOrEqual(before.reads+4);expect(after.reads).toBeLessThan(22000);expect(after.pages).toBeLessThan(50);
  process.stdout.write('PBE read budget '+JSON.stringify({before,after})+'\n');
+ const coachResponse=await send('/bank');expect(coachResponse.status).toBe(200);expect((await coachResponse.json() as {questionCount:number}).questionCount).toBe(5101);
+ const login=await app.fetch('/api/v1/auth/login',{method:'POST',headers:{Origin:'https://erudoza.test','Content-Type':'application/json'},body:JSON.stringify({identifier:'pbe-student',password:'Testing!123'})});const cookie=login.headers.get('set-cookie')!.split(';')[0];
+ const studentResponse=await app.fetch(`/api/v1/organizations/${TEST_ORG}/practice/pbe/seasons/${season}/bank`,{headers:{Cookie:cookie}});expect(studentResponse.status).toBe(200);const metadata=await studentResponse.json() as Record<string,unknown>;expect(metadata).toEqual({questionCount:5101,targetCount:5101,sourceUnitCount:1,missingSourceUnitIds:[]});
+ const budgets=[coachResponse,studentResponse].map(response=>JSON.parse(response.headers.get('x-test-d1-meter')!) as {bindingCalls:number;statements:number});process.stdout.write('PBE 5101 public HTTP budget '+JSON.stringify({coach:budgets[0],student:budgets[1]})+'\n');for(const budget of budgets)expect(budget.statements).toBeLessThanOrEqual(50);
+
 });
 it('rejects scope changes between pages and rechecks active students and season opt-in',async()=>{
  const {ctx,scope,store}=await setup();const original=store.require.bind(store);let calls=0;

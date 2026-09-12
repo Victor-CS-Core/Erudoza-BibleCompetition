@@ -11,8 +11,8 @@ const input={bookKey:'GEN',sourceEdition:'Test edition',title:'Genesis introduct
 type Intro=typeof input & {id:string;organizationId:string;seasonId:string;reviewed:boolean;revision:number;assignedStudentIds:string[];units:{id:string;citation:string;canonicalText:string}[]};
 let app:Awaited<ReturnType<typeof createNativeTestApp>>;
 afterEach(async()=>{await app?.runtime.dispose();});
-async function setup(){
- app=await createNativeTestApp();const store=new Store(app.db as unknown as Env['DB']);const cookie=(await app.login()).headers.get('set-cookie')!.split(';')[0];
+async function setup(measureD1=false,beforeD1Statement?:(sql:string)=>Promise<void>){
+ app=await createNativeTestApp({measureD1,beforeD1Statement});const store=new Store(app.db as unknown as Env['DB']);const cookie=(await app.login()).headers.get('set-cookie')!.split(';')[0];
  const path=`/api/v1/organizations/${TEST_ORG}/practice/pbe/seasons/${season}`;
  const send=(suffix:string,value?:unknown,auth=cookie)=>app.fetch(path+suffix,{method:value===undefined?'GET':'POST',headers:{Cookie:auth,Origin:'https://erudoza.test','Content-Type':'application/json'},body:value===undefined?undefined:JSON.stringify(value)});
  await store.insert('season',season,TEST_ORG,{id:season,organizationId:TEST_ORG,status:'Active',pbeEnabled:true});
@@ -111,4 +111,62 @@ it('detects introduction assignment changes during a private bank load',async()=
  const wrap=(statement:ReturnType<Env['DB']['prepare']>):ReturnType<Env['DB']['prepare']>=>new Proxy(statement,{get(object,key){if(key==='bind')return (...args:unknown[])=>wrap(object.bind(...args));if(key==='all')return async()=>{if(++reads===2)expect((await send(`/introductions/${intro.id}/assignments`,{revision:3,studentIds:[]})).status).toBe(200);return object.all();};const value=Reflect.get(object,key);return typeof value==='function'?value.bind(object):value;}});
  const interleaved=new Proxy(database,{get(object,key){if(key==='prepare')return (sql:string)=>sql.includes("owner_id IS NULL AND kind='pbe-introduction'")?wrap(object.prepare(sql)):object.prepare(sql);const value=Reflect.get(object,key);return typeof value==='function'?value.bind(object):value;}});
  await expect(loadPbeBank({...ctx,env:{...ctx.env,DB:interleaved},store:new Store(interleaved)},{organizationId:TEST_ORG,seasonId:season,studentId:student,sourceUnitIds:[intro.units[0].id]})).rejects.toThrow(/changed/);
+});
+
+interface Meter {bindingCalls:number;statements:number;methods:Record<string,number>}
+function measured(response:{headers:Headers}){const meter=JSON.parse(response.headers.get('x-test-d1-meter')!) as Meter;expect(meter.bindingCalls).toBeGreaterThan(0);return meter;}
+async function addStudents(count:number){
+ const ids=Array.from({length:count},(_,i)=>`dddddddd-0000-0000-0001-${String(i+1).padStart(12,'0')}`);
+ await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) SELECT j.value,u.org_id,'budget-'||j.value,'Budget Student','Student','Student',u.password_hash,u.credential_version FROM json_each(?) j CROSS JOIN Users u WHERE u.id=?").bind(JSON.stringify(ids),TEST_USER).run();
+ await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) SELECT 'membership',?||':'||value,?,?,value,json_object('id',?||':'||value,'seasonId',?,'userId',value,'studentUserId',value) FROM json_each(?)").bind(season,TEST_ORG,season,season,season,JSON.stringify(ids)).run();return ids;
+}
+it.each([26,500])('keeps %i-student HTTP replacement and exact lost-response retry within the request query budget',async(count)=>{
+ const {send,create,store}=await setup(true),intro=await create(),ids=await addStudents(count);
+ // Start with a different real selection so replacement must both delete and insert.
+ expect((await send(`/introductions/${intro.id}/assignments`,{revision:1,studentIds:[student]})).status).toBe(200);
+ const input={revision:2,studentIds:ids},response=await send(`/introductions/${intro.id}/assignments`,input);expect(response.status).toBe(200);
+ const result=await response.json() as Intro;expect(result.revision).toBe(3);expect(result.assignedStudentIds).toEqual(ids);
+ const retry=await send(`/introductions/${intro.id}/assignments`,input);expect(retry.status).toBe(200);expect((await retry.json() as Intro).revision).toBe(3);
+ const rows=await store.list<{studentUserId:string}>('pbe-introduction-assignment',TEST_ORG,{seasonId:season});expect(rows.map(r=>r.studentUserId).sort()).toEqual(ids);
+ const mutation=measured(response),repeated=measured(retry);process.stdout.write(`Introduction HTTP ${count} assignment budget `+JSON.stringify({mutation,repeated})+'\n');
+ expect(mutation.statements).toBeLessThanOrEqual(50);expect(repeated.statements).toBeLessThanOrEqual(50);
+});
+it('bulk-loads assignments for 51 introductions within the complete HTTP query budget',async()=>{
+ const {send,create}=await setup(true),intro=await create();
+ const rows=Array.from({length:50},()=>({...intro,id:crypto.randomUUID(),units:[{...intro.units[0],id:crypto.randomUUID()}],revision:undefined,assignedStudentIds:undefined}));
+ await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,data) SELECT 'pbe-introduction',json_extract(value,'$.id'),?,?,value FROM json_each(?)").bind(TEST_ORG,season,JSON.stringify(rows)).run();
+ const all=[intro,...rows];await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) SELECT 'pbe-introduction-assignment',?||':'||json_extract(value,'$.id')||':'||?,?,?,?,json_object('id',?||':'||json_extract(value,'$.id')||':'||?,'seasonId',?,'contentPackId',json_extract(value,'$.id'),'studentUserId',?) FROM json_each(?)").bind(season,student,TEST_ORG,season,student,season,student,season,student,JSON.stringify(all)).run();
+ const response=await send('/introductions');expect(response.status).toBe(200);const list=await response.json() as Intro[];expect(list).toHaveLength(51);expect(list.every(p=>p.assignedStudentIds.length===1&&p.assignedStudentIds[0]===student)).toBe(true);
+ const budget=measured(response);process.stdout.write('Introduction HTTP 51-pack list budget '+JSON.stringify(budget)+'\n');expect(budget.statements).toBeLessThanOrEqual(50);
+});
+it('measures coach and student bank metadata over the complete HTTP path',async()=>{
+ const {send,create,studentCookie}=await setup(true);const intro=await create();await send(`/introductions/${intro.id}/review`,{revision:1,reviewed:true});await send(`/introductions/${intro.id}/assignments`,{revision:2,studentIds:[student]});
+ const q=declaration(intro);expect((await send('/questions/import',q)).status).toBe(204);expect((await send(`/questions/${q.questions[0].id}/1/publish`,{})).status).toBe(204);
+ const coach=await send('/bank'),solo=await send('/bank',undefined,studentCookie);expect(coach.status).toBe(200);expect(solo.status).toBe(200);expect((await solo.json() as {questionCount:number}).questionCount).toBe(1);
+ process.stdout.write('PBE bank public HTTP budget '+JSON.stringify({coach:measured(coach),student:measured(solo)})+'\n');
+ expect(measured(coach).statements).toBeLessThanOrEqual(50);expect(measured(solo).statements).toBeLessThanOrEqual(50);
+});
+
+it('rejects mid-request source revocation in public metadata and preserves empty private restrictions',async()=>{
+ let edit:(()=>Promise<void>)|undefined;
+ const {ctx,store,create,send,studentCookie}=await setup(true,async sql=>{if(edit&&sql.includes('owner_id IN (SELECT value FROM json_each(?)) AND kind=?')){const action=edit;edit=undefined;await action();}});
+ const intro=await create();await send(`/introductions/${intro.id}/review`,{revision:1,reviewed:true});await send(`/introductions/${intro.id}/assignments`,{revision:2,studentIds:[student]});const q=declaration(intro);await send('/questions/import',q);await send(`/questions/${q.questions[0].id}/1/publish`,{});
+ expect((await loadPbeBank(ctx,{organizationId:TEST_ORG,seasonId:season,studentId:student,sourceUnitIds:[]})).questions).toEqual([]);
+ const initial=await send('/bank',undefined,studentCookie);expect(initial.status).toBe(200);expect(await initial.json()).toEqual({questionCount:1,targetCount:1,sourceUnitCount:1,missingSourceUnitIds:[]});
+ edit=async()=>{const row=await store.require<Record<string,unknown>>('pbe-introduction',intro.id,TEST_ORG);await store.put('pbe-introduction',intro.id,TEST_ORG,{...row.value,reviewed:false},row.revision);};
+ const stale=await send('/bank',undefined,studentCookie);expect(stale.status).toBe(409);expect(edit).toBeUndefined();expect(await stale.text()).not.toMatch(/canonicalText|acceptedAnswers|Alpha|evidence/);
+ const fresh=await send('/bank',undefined,studentCookie);expect(fresh.status).toBe(200);expect(await fresh.json()).toEqual({questionCount:0,targetCount:0,sourceUnitCount:0,missingSourceUnitIds:[]});
+ expect(measured(initial).statements).toBeLessThanOrEqual(50);expect(measured(stale).statements).toBeLessThanOrEqual(50);expect(measured(fresh).statements).toBeLessThanOrEqual(50);
+});
+
+it('rolls back a 500-student HTTP replacement when the final student loses active status or membership before the transaction',async()=>{
+ let edit:(()=>Promise<void>)|undefined;
+ const {send,create,store}=await setup(true,async sql=>{if(edit&&sql.startsWith("INSERT INTO Records(kind,id,org_id,data) VALUES('audit'")){const action=edit;edit=undefined;await action();}});
+ const intro=await create(),ids=await addStudents(500),last=ids.at(-1)!;expect((await send(`/introductions/${intro.id}/assignments`,{revision:1,studentIds:[student]})).status).toBe(200);
+ for(const removal of ['active','membership']){
+  edit=async()=>{if(removal==='active')await app.db.prepare('UPDATE Users SET active=0 WHERE id=?').bind(last).run();else await store.remove('membership',`${season}:${last}`,TEST_ORG);};
+  const response=await send(`/introductions/${intro.id}/assignments`,{revision:2,studentIds:ids});expect(response.status).toBe(409);expect(edit).toBeUndefined();expect(measured(response).statements).toBeLessThanOrEqual(50);
+  const rows=await store.list<{studentUserId:string}>('pbe-introduction-assignment',TEST_ORG,{seasonId:season});expect(rows.map(r=>r.studentUserId)).toEqual([student]);expect((await store.require('pbe-introduction',intro.id,TEST_ORG)).revision).toBe(2);
+  await app.db.prepare('UPDATE Users SET active=1 WHERE id=?').bind(last).run();
+ }
 });

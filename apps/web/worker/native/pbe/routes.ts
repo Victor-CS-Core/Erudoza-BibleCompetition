@@ -3,7 +3,7 @@ import type { RequestContext } from '../types';
 import { admin,body,HttpError,json,noContent } from '../types';
 import { atomic } from '../application/model';
 import type { Season } from '../application/model';
-import { guid,loadPbeBank,resolvePbeSources,sourceProof } from './bank';
+import { guid,loadPbeBankMetadata,resolvePbeSources,sourceProof } from './bank';
 import type { PbeQuestionRecord } from './bank';
 import type { PbeQuestion,PbeTarget } from './types';
 import { validatePbeQuestion } from './grading';
@@ -14,10 +14,8 @@ export async function pbeRoutes(ctx:RequestContext):Promise<Response|null>{
  const seasonId=guid(match[1]),path=match[2],base={organizationId:ctx.orgId,seasonId};
  const introduction=await introductionRoutes(ctx,seasonId,path);if(introduction)return introduction;
  if(path==='/bank'&&ctx.request.method==='GET'){
-  const scope={...base,...(ctx.actor.kind==='Student'?{studentId:ctx.actor.userId}:{})},resolved=await resolvePbeSources(ctx,scope);
-  const bank=await loadPbeBank(ctx,{...scope,sourceUnitIds:resolved.sources.map(s=>s.id)});
-  if((await resolvePbeSources(ctx,scope)).fingerprint!==resolved.fingerprint)throw new HttpError(409,'The PBE scope changed. Refresh and retry.');
-  return json({questionCount:bank.questions.length,targetCount:bank.targets.length,sourceUnitCount:resolved.sources.length,missingSourceUnitIds:bank.missingSourceUnitIds});
+  const scope={...base,...(ctx.actor.kind==='Student'?{studentId:ctx.actor.userId}:{})};
+  return json(await loadPbeBankMetadata(ctx,scope));
  }
  admin(ctx.actor);const resolved=await resolvePbeSources(ctx,base);
  if(path==='/enabled'&&ctx.request.method==='POST'){
