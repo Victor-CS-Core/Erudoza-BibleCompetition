@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
@@ -21,6 +21,7 @@ export function StudentHomePage() {
   const today = useQuery({ queryKey: ["training-today", selected, ...identity], queryFn: () => trainingApi.today(selected) });
   const data = today.data;
   const seasonId = selected ?? data?.seasonId;
+  useEffect(() => { if (me?.kind === "Adult" && !selected && data?.seasonId) setParams(previous => { const next = new URLSearchParams(previous); next.set("seasonId", data.seasonId!); return next; }, { replace: true }); }, [me?.kind, selected, data?.seasonId, setParams]);
   const link = (path: string) => trainingLink(path, seasonId);
   const available = data?.seasonStatus === "Active" && data.mission.status !== "Unavailable" && data.mission.status !== "Invalidated";
   const action = data?.nextAction;
@@ -51,7 +52,8 @@ export function StudentHomePage() {
               <h2>{data.mission.status === "Complete" ? "That’s a good day’s practice." : available ? "Strengthen your recall." : "Your next step starts here."}</h2>
               <p className="training-mission-description">{data.mission.explanation || (data.mission.status === "Complete" ? "Your reviews and daily drill are finished. Every saved answer is part of your progress." : "Review what needs another look, then help the wording and references stick.")}</p>
               {available && nextStep && <p className="training-mission-scope"><AppIcon name="book" /><span>{nextStep.target} {nextStep.kind === "Review" ? "due passages" : "cards"} · Your assigned passages</span></p>}
-              {!available && <Notice data-testid="academy-track-unavailable">{data.mission.status === "Invalidated" ? "Your assignment changed. Start updated training to build a plan for your current assignment." : data.seasonStatus !== "Active" && data.seasonId ? "Training opens when this season is Active." : "Your coach will add your study assignment here."}</Notice>}
+              {!available && <Notice data-testid="academy-track-unavailable">{data.mission.status === "Invalidated" ? "Your assignment changed. Start updated training to build a plan for your current assignment." : data.seasonStatus !== "Active" && data.seasonId ? "Training opens when this season is Active." : (me?.kind === "Adult" ? "Choose your study passages in My assignments." : "Your coach will add your study assignment here.")}</Notice>}
+              {!available && me?.kind === "Adult" && <LinkButton to={link("/student/assignments")}>My assignments</LinkButton>}
               {data.seasonStatus === "Active" && data.mission.status === "Invalidated" && action && <LinkButton to={study(action.mode, null, true)}>Start updated training<AppIcon name="arrow" /></LinkButton>}
               {completedSessionId && <LinkButton to={link(`/student/sessions/${encodeURIComponent(completedSessionId)}/recap`)}>See today’s recap<AppIcon name="arrow" /></LinkButton>}
               {available && !completedSessionId && action && <LinkButton data-testid="start-todays-deck" to={study(action.mode, action.sessionId, true)}>{action.label}<AppIcon name="arrow" /></LinkButton>}

@@ -98,6 +98,20 @@ export function difficulty(v: unknown): string { if (typeof v !== 'string' || ![
 export async function students(ctx: RequestContext): Promise<Student[]> { const result = await ctx.env.DB.prepare('SELECT id AS userId,user_name AS userName,display_name AS displayName,email,active AS isActive FROM Users WHERE org_id=? AND kind=\'Student\' AND role=\'Student\' ORDER BY display_name').bind(ctx.orgId).all<Student>(); return result.results.map(s => ({ ...s, isActive: !!s.isActive })); }
 export async function student(ctx: RequestContext, userId: string): Promise<Student> { const s = await ctx.env.DB.prepare('SELECT id AS userId,user_name AS userName,display_name AS displayName,email,active AS isActive FROM Users WHERE org_id=? AND id=? AND kind=\'Student\' AND role=\'Student\'').bind(ctx.orgId, userId).first<Student>(); if (!s)
     throw new HttpError(404, 'Student was not found in this organization.'); return { ...s, isActive: !!s.isActive }; }
+/** Learner eligibility is independent of the strict student roster. */
+export const learnerSql = "((kind='Student' AND role='Student') OR (kind='Adult' AND role IN ('Owner','Admin')))";
+export async function learner(ctx: RequestContext, userId: string): Promise<Student> {
+    const user = await ctx.env.DB.prepare(`SELECT id AS userId,user_name AS userName,display_name AS displayName,email,active AS isActive FROM Users WHERE org_id=? AND id=? AND ${learnerSql}`).bind(ctx.orgId,userId).first<Student>();
+    if (!user) throw new HttpError(403, 'Learner access is required.');
+    return {...user,isActive:!!user.isActive};
+}
+export async function requireLearner(ctx: RequestContext): Promise<void> {
+    if (ctx.orgId !== ctx.actor.organizationId || !(await learner(ctx,ctx.actor.userId)).isActive) throw new HttpError(403,'Active learner access is required.');
+}
+export async function studentAssignments(ctx: RequestContext, seasonId: string): Promise<Assignment[]> {
+    const rows=await ctx.env.DB.prepare("SELECT a.data FROM Records a JOIN Users u ON u.id=a.owner_id AND u.org_id=a.org_id WHERE a.kind='assignment' AND a.org_id=? AND a.season_id=? AND u.kind='Student' AND u.role='Student'").bind(ctx.orgId,seasonId).all<{data:string}>();
+    return rows.results.map(r=>JSON.parse(r.data) as Assignment);
+}
 export const approvedPack = (p: Pack) => p.isActive && ['development-sample', 'public-domain', 'approved', 'creative-commons'].includes(p.licensingStatus.toLowerCase());
 export function rangeSql(rangeAlias: string, sourceAlias='u'): string {
     return `upper(json_extract(${rangeAlias}.value,'$.bookKey'))=upper(json_extract(${sourceAlias}.data,'$.bookKey')) AND (json_extract(${sourceAlias}.data,'$.chapter')>json_extract(${rangeAlias}.value,'$.startChapter') OR (json_extract(${sourceAlias}.data,'$.chapter')=json_extract(${rangeAlias}.value,'$.startChapter') AND json_extract(${sourceAlias}.data,'$.verse')>=json_extract(${rangeAlias}.value,'$.startVerse'))) AND (json_extract(${sourceAlias}.data,'$.chapter')<json_extract(${rangeAlias}.value,'$.endChapter') OR (json_extract(${sourceAlias}.data,'$.chapter')=json_extract(${rangeAlias}.value,'$.endChapter') AND json_extract(${sourceAlias}.data,'$.verse')<=json_extract(${rangeAlias}.value,'$.endVerse')))`;
@@ -132,7 +146,7 @@ export async function validatePackRanges(ctx: RequestContext, entries: PackScope
 }
 export async function effectiveSources(ctx: RequestContext, seasonId: string, studentId?: string): Promise<Source[]> { await ctx.store.require<Season>('season', seasonId, ctx.orgId); const scope = await ctx.store.get<Scope>('scope', seasonId, ctx.orgId); if (!scope)
     return []; const all = await scopeSources(ctx, scope.value); if (studentId === undefined)
-    return all; await student(ctx, studentId); const assignments = await ctx.store.list<Assignment>('assignment', ctx.orgId, { seasonId, ownerId: studentId }); return all.filter(s => assignments.some(a => a.contentPackId === s.contentPackId && contains(a, s))); }
+    return all; await learner(ctx, studentId); const assignments = await ctx.store.list<Assignment>('assignment', ctx.orgId, { seasonId, ownerId: studentId }); return all.filter(s => assignments.some(a => a.contentPackId === s.contentPackId && contains(a, s))); }
 /** Guard checks execute inside the same D1 transaction as every mutation. Invalid JSON
  * deliberately violates Records' CHECK constraint to roll back a stale multi-record write. */
 export async function atomic(ctx: RequestContext, action: string, statements: D1PreparedStatement[], guards: {
@@ -140,8 +154,8 @@ export async function atomic(ctx: RequestContext, action: string, statements: D1
     id: string;
     revision: number;
 }[] = []): Promise<void> {
-    const auditId = id(), query = `NOT EXISTS(SELECT 1 FROM json_each(?) g WHERE CASE WHEN json_extract(g.value,'$.kind')='@active-user'
-      THEN NOT EXISTS(SELECT 1 FROM Users u WHERE u.id=json_extract(g.value,'$.id') AND u.org_id=? AND u.active=1 AND u.kind='Student' AND u.role='Student')
+    const auditId = id(), query = `NOT EXISTS(SELECT 1 FROM json_each(?) g WHERE CASE WHEN json_extract(g.value,'$.kind') IN ('@active-user','@active-learner')
+      THEN NOT EXISTS(SELECT 1 FROM Users u WHERE u.id=json_extract(g.value,'$.id') AND u.org_id=? AND u.active=1 AND ((u.kind='Student' AND u.role='Student') OR (json_extract(g.value,'$.kind')='@active-learner' AND u.kind='Adult' AND u.role IN ('Owner','Admin'))))
       ELSE NOT EXISTS(SELECT 1 FROM Records r WHERE r.kind=json_extract(g.value,'$.kind') AND r.id=json_extract(g.value,'$.id') AND (r.org_id=? OR ${builtInContentSql('r')}) AND r.revision=json_extract(g.value,'$.revision')) END)`;
     const args = [JSON.stringify(guards), ctx.orgId, ctx.orgId];
     const audit = JSON.stringify({ id: auditId, actorId: ctx.actor.userId, action, createdAtUtc: new Date().toISOString() });
@@ -158,7 +172,7 @@ export async function atomic(ctx: RequestContext, action: string, statements: D1
 export const deletion = (ctx: RequestContext, kind: string, recordId: string) => ctx.env.DB.prepare('DELETE FROM Records WHERE kind=? AND id=? AND org_id=?').bind(kind, recordId, ctx.orgId);
 export async function seasonSummaries(ctx: RequestContext): Promise<unknown[]> {
     const result = await ctx.env.DB.prepare(`SELECT s.data,
- (SELECT count(*) FROM Records a WHERE a.kind='assignment' AND a.org_id=s.org_id AND a.season_id=s.id) AS assignmentCount,
+ (SELECT count(*) FROM Records a WHERE a.kind='assignment' AND a.org_id=s.org_id AND a.season_id=s.id AND EXISTS(SELECT 1 FROM Users student WHERE student.id=a.owner_id AND student.org_id=a.org_id AND student.kind='Student' AND student.role='Student')) AS assignmentCount,
  (SELECT count(DISTINCT u.id) FROM Records sc CROSS JOIN json_each(${scopeEntriesSql('sc')}) selected CROSS JOIN Records p ON p.kind='pack' AND (p.org_id=sc.org_id OR ${builtInContentSql('p')}) AND p.id=json_extract(selected.value,'$.contentPackId') CROSS JOIN Records u INDEXED BY Records_owner ON u.kind='source' AND u.org_id=p.org_id AND u.owner_id=p.id
  WHERE sc.kind='scope' AND sc.id=s.id AND sc.org_id=s.org_id AND json_extract(p.data,'$.isActive')=1 AND lower(json_extract(p.data,'$.licensingStatus')) IN ('development-sample','public-domain','approved','creative-commons') AND json_extract(u.data,'$.isActive')=1 AND coalesce(json_extract(u.data,'$.isRetired'),0)=0
  AND EXISTS(SELECT 1 FROM json_each(selected.value,'$.includes') inc WHERE ${rangeSql('inc')}) AND NOT EXISTS(SELECT 1 FROM json_each(selected.value,'$.excludes') exc WHERE ${rangeSql('exc')})) AS scopeUnitCount

@@ -10,9 +10,11 @@ export async function assertNoOverflow(page: Page) {
   const size = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
   expect(size.scroll).toBeLessThanOrEqual(size.width + 1);
 }
-export async function openLearnerMenu(page: Page) {
-  const menu = page.getByRole("button", { name: "Menu", exact: true });
-  if (await menu.isVisible()) await menu.click();
+export async function openCommandCenter(page: Page) {
+  await page.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }).click();
+  const dialog = page.getByRole("dialog", { name: "Command center", exact: true });
+  await expect(dialog).toBeVisible();
+  return dialog;
 }
 export async function logout(page: Page) {
   await page.getByRole("button", { name: "Account", exact: true }).click();

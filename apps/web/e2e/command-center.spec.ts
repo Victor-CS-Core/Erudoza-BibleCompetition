@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { assertNoOverflow, login, logout } from "./helpers";
+import { assertNoOverflow, login, logout, openCommandCenter } from "./helpers";
 
 test("coach command search navigates, retains pins, and exposes nested actions", async ({ page, isMobile }, info) => {
   await login(page);
@@ -18,15 +18,20 @@ test("coach command search navigates, retains pins, and exposes nested actions",
   await expect(page).toHaveURL(/\/admin\/content$/);
   await expect(dialog).not.toBeVisible();
 
-  await page.getByRole("button", { name: "All sections", exact: true }).click();
+  await openCommandCenter(page);
   await dialog.getByRole("button", { name: "Unpin Scripture library", exact: true }).click();
   await page.keyboard.press("Escape");
-  await expect(page.getByTestId("nav-content")).toHaveCount(0);
+  await expect(page.getByTestId("nav-content")).toHaveAttribute("aria-current", "page");
   await page.reload();
   await expect(page.getByTestId("coach-app-shell")).toBeVisible();
-  await expect(page.getByTestId("nav-content")).toHaveCount(0);
+  await expect(page.getByTestId("nav-content")).toHaveAttribute("aria-current", "page");
 
-  await page.getByRole("button", { name: "All sections", exact: true }).click();
+  await openCommandCenter(page);
+  await expect(dialog.getByRole("button", { name: "Pin Scripture library", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await dialog.getByRole("link", { name: "Seasons", exact: true }).click();
+  await expect(page).toHaveURL(/\/admin\/seasons$/);
+  await expect(page.getByTestId("nav-content")).toHaveCount(0);
+  await openCommandCenter(page);
   await dialog.getByRole("button", { name: "Pin Scripture library", exact: true }).click();
   await dialog.getByRole("button", { name: "Show Seasons options", exact: true }).click();
   await dialog.getByRole("link", { name: "Create season", exact: true }).click();
@@ -47,8 +52,8 @@ test("coach command search navigates, retains pins, and exposes nested actions",
 test("student navigation remains one click away and excludes coach commands after account switch", async ({ page }, info) => {
   await login(page);
   await logout(page);
-  await login(page, "daniel.student");
-  await page.getByRole("button", { name: "All sections", exact: true }).click();
+  await login(page, process.env.ERUDOZA_E2E_STUDENT ?? "daniel.student");
+  await openCommandCenter(page);
   const dialog = page.getByRole("dialog", { name: "Command center" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("link", { name: "Students", exact: true })).toHaveCount(0);
@@ -57,8 +62,14 @@ test("student navigation remains one click away and excludes coach commands afte
   await dialog.getByRole("link", { name: "Progress", exact: true }).click();
   await expect(page).toHaveURL(/\/student\/progress$/);
   await expect(page.getByTestId("learner-tab-progress")).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("Progress");
-  await page.getByTestId("learner-tab-home").click();
+  await expect(page.getByRole("heading", { name: "Your progress", exact: true })).toBeVisible();
+  const dock = page.getByRole("navigation", { name: "Mobile navigation", exact: true });
+  if (await dock.isVisible()) {
+    await expect(dock.getByRole("button", { name: "More", exact: true })).toHaveAttribute("aria-current", "page");
+    await dock.getByRole("link", { name: "HQ", exact: true }).click();
+  } else {
+    await page.getByTestId("learner-tab-home").click();
+  }
   await expect(page.getByRole("heading", { name: "Training HQ", exact: true })).toBeVisible();
   await assertNoOverflow(page);
   await page.screenshot({ path: info.outputPath("student-command-home.png"), fullPage: true });

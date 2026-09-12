@@ -4,7 +4,7 @@ import {createNativeTestApp,TEST_ORG,TEST_USER} from "../test-runtime";
 import {Store} from "../store";
 import type {D1Database} from "@cloudflare/workers-types";
 import type {PracticeRoom as RoomDto} from "../../../src/api/practice";
-it("runs real durable room invitations, private WebSockets and scored submissions",async()=>{
+it.each(["Student","Admin"])("runs real durable room invitations, private WebSockets and scored submissions with a %s player",async(role)=>{
  const app=await createNativeTestApp({delayAuthentication:true});try{
   const store=new Store(app.db as unknown as D1Database),season=crypto.randomUUID(),pack=crypto.randomUUID();
   await store.insert("season",season,TEST_ORG,{id:season,status:"Active",name:"Practice"});await store.insert("pack",pack,TEST_ORG,{id:pack,isActive:true,licensingStatus:"approved"});await store.insert("scope",season,TEST_ORG,{contentPackId:pack,includes:[{bookKey:"JHN",startChapter:1,startVerse:1,endChapter:1,endVerse:11}],excludes:[]});await store.insert("practice-setting",TEST_ORG,TEST_ORG,{enabled:true});
@@ -12,6 +12,9 @@ it("runs real durable room invitations, private WebSockets and scored submission
   const coach=(await app.login()).headers.get("set-cookie")!.split(";")[0];
   const call=(path:string,who:string,method="GET",data?:unknown,extraHeaders:Record<string,string>={})=>app.fetch(`/api/v1/organizations/${TEST_ORG}/practice${path}`,{method,headers:{Cookie:who,Origin:"https://erudoza.test","Content-Type":"application/json",...extraHeaders},...(data?{body:JSON.stringify(data)}:{})});
   const students=[];for(const name of ["player-a","player-b"]){const response=await app.fetch(`/api/v1/organizations/${TEST_ORG}/students`,{method:"POST",headers:{Cookie:coach,Origin:"https://erudoza.test"},body:JSON.stringify({userName:name,displayName:name,password:"Testing!123"})});expect(response.status).toBe(201);const student=await response.json() as {userId:string};const login=await app.fetch("/api/v1/auth/login",{method:"POST",headers:{Origin:"https://erudoza.test"},body:JSON.stringify({identifier:name,password:"Testing!123"})});students.push({...student,cookie:login.headers.get("set-cookie")!.split(";")[0]});}
+  if(role==='Admin') await app.db.prepare("UPDATE Users SET kind='Adult',role='Admin' WHERE id=?").bind(students[1].userId).run();
+  const available=await(await call('/bootstrap',coach)).json() as {players:{id:string}[]};
+  expect(available.players.map(p=>p.id)).toContain(students[1].userId);
   let room=await (await call("/rooms",coach,"POST",{seasonId:season,teamSize:1,questionCount:10,coached:true})).json() as RoomDto;
   expect(room.id).toBeTruthy();
   const command=async(who:string,action:string,extra:Record<string,unknown>={})=>{const response=await call(`/rooms/${room.id}/commands`,who,"POST",{commandId:crypto.randomUUID(),revision:room.revision,action,...extra});expect(response.status,await response.clone().text()).toBe(200);room=await response.json() as RoomDto;return room;};
@@ -27,6 +30,10 @@ it("runs real durable room invitations, private WebSockets and scored submission
   const later=call(`/rooms/${room.id}/commands`,students[0].cookie,"POST",{...payload,commandId:crypto.randomUUID(),answers:["Wrong"]});
   const [accepted,retried]=await Promise.all([first,later]);expect(accepted.status).toBe(200);expect(retried.status).toBe(200);room=await accepted.json() as RoomDto;
   await command(students[1].cookie,"submit",{questionId,answers:["Word"]});expect(room.phase).toBe("Review");expect(room.results).toHaveLength(2);expect(room.results.find(s=>s.team===1)?.answers).toEqual(["Word"]);expect(room.results.find(s=>s.team===1)!.elapsedMs).toBeLessThan(1500);expect(room.results.every(s=>s.accuracyHundredths===100&&s.speedHundredths>0)).toBe(true);
+  if(role==='Admin') {
+   const denied=await call(`/rooms/${room.id}/commands`,students[1].cookie,'POST',{commandId:crypto.randomUUID(),revision:room.revision,action:'judge',questionId,team:2,points:1,text:'Self judge'});
+   expect(denied.status).toBe(403);
+  }
   await command(coach,"judge",{questionId,team:1,points:1,text:"Correct"});await command(coach,"judge",{questionId,team:2,points:1,text:"Correct"});await command(coach,"abandon");socket.close(1000);
  }finally{await app.runtime.dispose();}
 },30000);

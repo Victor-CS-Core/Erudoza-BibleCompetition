@@ -317,6 +317,45 @@ public static class ApiEndpoints
             return Results.NoContent();
         }).RequireAuthorization("CanManageSeason");
 
+        org.MapGet("/seasons/{seasonId:guid}/my-assignments", async (
+            Guid orgId, Guid seasonId, ICurrentUser current, IErudozaDbContext db, CancellationToken ct) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden) return forbidden;
+            if (current.Kind != UserKind.Adult) return Results.Forbid();
+            if (!await db.Seasons.AnyAsync(s => s.Id == seasonId && s.OrganizationId == orgId, ct))
+                throw new DomainException("Season was not found.");
+            var assignments = await db.Assignments.AsNoTracking().Include(a => a.Scopes)
+                .Where(a => a.OrganizationId == orgId && a.SeasonId == seasonId && a.StudentUserId == current.UserId).ToListAsync(ct);
+            var difficulty = await db.CompetitionMembers.Where(m => m.OrganizationId == orgId && m.SeasonId == seasonId && m.UserId == current.UserId)
+                .Select(m => (TrainingDifficulty?)m.Difficulty).SingleOrDefaultAsync(ct) ?? TrainingDifficulty.Standard;
+            return Results.Ok(assignments.Select(a => DtoMapper.ToAssignmentDto(a, difficulty: difficulty)));
+        }).RequireAuthorization("CanManageSeason");
+
+        org.MapPost("/seasons/{seasonId:guid}/my-assignments", async (
+            Guid orgId, Guid seasonId, CreatePersonalAssignmentRequest request, ICurrentUser current,
+            SeasonWorkflowService seasons, IErudozaDbContext db, CancellationToken ct) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden) return forbidden;
+            if (current.Kind != UserKind.Adult) return Results.Forbid();
+            var assignment = await seasons.AssignPersonalAsync(orgId, seasonId, current.UserId, request, ct);
+            assignment = await db.Assignments.Include(a => a.Scopes).SingleAsync(a => a.Id == assignment.Id, ct);
+            var difficulty = await db.CompetitionMembers.Where(m => m.OrganizationId == orgId && m.SeasonId == seasonId && m.UserId == current.UserId)
+                .Select(m => m.Difficulty).SingleAsync(ct);
+            return Results.Ok(DtoMapper.ToAssignmentDto(assignment, difficulty: difficulty));
+        }).RequireAuthorization("CanManageSeason");
+
+        org.MapDelete("/seasons/{seasonId:guid}/my-assignments/{assignmentId:guid}", async (
+            Guid orgId, Guid seasonId, Guid assignmentId, ICurrentUser current,
+            SeasonWorkflowService seasons, IErudozaDbContext db, CancellationToken ct) =>
+        {
+            if (ForbidAdmin(orgId, current) is { } forbidden) return forbidden;
+            if (current.Kind != UserKind.Adult) return Results.Forbid();
+            if (!await db.Assignments.AnyAsync(a => a.Id == assignmentId && a.OrganizationId == orgId && a.SeasonId == seasonId && a.StudentUserId == current.UserId, ct))
+                return Results.NotFound();
+            await seasons.RemoveAssignmentAsync(orgId, seasonId, assignmentId, ct, current.UserId);
+            return Results.NoContent();
+        }).RequireAuthorization("CanManageSeason");
+
         org.MapGet("/seasons/{seasonId:guid}/assignments", async (
             Guid orgId,
             Guid seasonId,
@@ -331,7 +370,8 @@ public static class ApiEndpoints
 
             var query = db.Assignments.AsNoTracking()
                 .Include(item => item.Scopes)
-                .Where(item => item.OrganizationId == orgId && item.SeasonId == seasonId);
+                .Where(item => item.OrganizationId == orgId && item.SeasonId == seasonId
+                    && db.OrganizationMembers.Any(m => m.OrganizationId == orgId && m.UserId == item.StudentUserId && m.Role == OrganizationRole.Student));
             if (current.IsStudent)
             {
                 query = query.Where(item => item.StudentUserId == current.UserId);
@@ -511,6 +551,7 @@ public static class ApiEndpoints
             Guid seasonId,
             Guid studentId,
             ICurrentUser current,
+            IErudozaDbContext db,
             ProgressQueryService progress,
             CancellationToken cancellationToken) =>
         {
@@ -519,6 +560,9 @@ public static class ApiEndpoints
                 return forbidden;
             }
 
+            if (!await db.Users.AnyAsync(u => u.Id == studentId && u.Kind == UserKind.Student
+                && db.OrganizationMembers.Any(m => m.OrganizationId == orgId && m.UserId == u.Id && m.Role == OrganizationRole.Student), cancellationToken))
+                return Results.NotFound();
             return Results.Ok(await progress.GetAsync(orgId, studentId, seasonId, cancellationToken));
         }).RequireAuthorization("CanManageSeason");
     }
@@ -534,7 +578,8 @@ public static class ApiEndpoints
     {
         var profile = await db.RuleProfiles.AsNoTracking().SingleAsync(item => item.Id == season.RuleProfileId, cancellationToken);
         var scopeCount = (await resolver.ResolveAsync(season.OrganizationId, season.Id, cancellationToken)).Count;
-        var assignmentCount = await db.Assignments.CountAsync(item => item.SeasonId == season.Id && item.OrganizationId == season.OrganizationId, cancellationToken);
+        var assignmentCount = await db.Assignments.CountAsync(item => item.SeasonId == season.Id && item.OrganizationId == season.OrganizationId
+            && db.OrganizationMembers.Any(m => m.OrganizationId == season.OrganizationId && m.UserId == item.StudentUserId && m.Role == OrganizationRole.Student), cancellationToken);
         return DtoMapper.ToSeasonDto(season, profile, scopeCount, assignmentCount);
     }
 

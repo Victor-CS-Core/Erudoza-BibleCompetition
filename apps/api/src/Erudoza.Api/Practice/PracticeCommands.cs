@@ -82,11 +82,12 @@ public sealed partial class PracticeService
                 break;
             case "invite":
                 RequireLobby();
-                if (command.TargetUserId is null || room.Members.Any(m => m.UserId == command.TargetUserId)) throw new DomainException("Select a player who is not already in the room.");
+                if (command.TargetUserId is null || command.TargetUserId == room.CoachId || room.Members.Any(m => m.UserId == command.TargetUserId)) throw new DomainException("Select a player who is not already in the room.");
                 if (command.Team.HasValue && command.Team is not (1 or 2)) throw new DomainException("Choose a valid team.");
                 if (command.Team.HasValue && !owner && member?.Team != command.Team) throw new PracticeForbiddenException();
-                if (!await db.Users.AnyAsync(u => u.Id == command.TargetUserId && u.IsActive && u.Kind == UserKind.Student
-                    && db.OrganizationMembers.Any(m => m.UserId == u.Id && m.OrganizationId == org), ct)) throw new DomainException("Player not found in this organization.");
+                if (!await db.Users.AnyAsync(u => u.Id == command.TargetUserId && u.IsActive
+                    && db.OrganizationMembers.Any(m => m.UserId == u.Id && m.OrganizationId == org
+                        && (u.Kind == UserKind.Student && m.Role == OrganizationRole.Student || u.Kind == UserKind.Adult && (m.Role == OrganizationRole.Admin || m.Role == OrganizationRole.Owner))), ct)) throw new DomainException("Player not found in this organization.");
                 if (room.Invitations.Count(i => i.UserId == command.TargetUserId && !i.Accepted && i.ExpiresAt > runtime.Now) > 0) throw new DomainException("That player already has a pending invitation.");
                 room.Invitations.Add(new PracticeInvitation
                 {

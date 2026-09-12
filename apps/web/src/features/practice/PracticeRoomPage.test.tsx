@@ -14,11 +14,11 @@ const result = (team: number, resolved = true): PracticeRoom["results"][number] 
 function room(overrides: Partial<PracticeRoom> = {}): PracticeRoom {
   return { id: "room", seasonId: "season", teamSize: 1, questionCount: 10, coached: false, ownerId: "player", revision: 4, status: "Lobby", phase: "Lobby", questionIndex: 0, serverNow: new Date().toISOString(), members: [member("player", 1)], draft: [], submitted: false, messages: [], scores: [{ team: 1, accuracyHundredths: 0, speedHundredths: 0, totalHundredths: 0 }, { team: 2, accuracyHundredths: 0, speedHundredths: 0, totalHundredths: 0 }], results: [], achievements: [], isCoach: false, ...overrides };
 }
-function mount(snapshot: PracticeRoom) {
+function mount(snapshot: PracticeRoom, path = snapshot.isCoach ? "/admin/practice/room" : "/student/practice/room") {
   vi.mocked(practiceApi.room).mockResolvedValue(snapshot);
   vi.mocked(practiceApi.command).mockResolvedValue(snapshot);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(<QueryClientProvider client={client}><MemoryRouter initialEntries={["/student/practice/room"]}><Routes><Route path="/student/practice/:roomId" element={<PracticePage />} /></Routes></MemoryRouter></QueryClientProvider>);
+  render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}><Routes><Route path="/student/practice/:roomId" element={<PracticePage />} /><Route path="/admin/practice/:roomId" element={<PracticePage />} /></Routes></MemoryRouter></QueryClientProvider>);
   return client;
 }
 beforeEach(() => {
@@ -87,7 +87,7 @@ describe("Team Practice room presentation", () => {
     expect(vi.mocked(practiceApi.command).mock.calls[0][2]).not.toHaveProperty("responseTimeMs");
   });
   it("keeps an active match open until the return confirmation and restores focus on cancel", async () => {
-    mount(room({ status: "Playing", phase: "Paused" }));
+    mount(room({ status: "Playing", phase: "Paused" }), "/admin/practice/room");
     const back = await screen.findByRole("button", { name: /All rooms/ });
     back.focus(); fireEvent.click(back);
     expect(screen.getByRole("dialog", { name: "Return to your rooms?" })).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe("Team Practice room presentation", () => {
     expect(practiceApi.command).not.toHaveBeenCalled();
   });
   it("shows owner resume during recovery and cannot skip the rehearsal break", async () => {
-    const client = mount(room({ status: "Playing", phase: "Paused" }));
+    const client = mount(room({ status: "Playing", phase: "Paused" }), "/admin/practice/room");
     expect(await screen.findByRole("button", { name: "Resume match" })).toBeEnabled();
     expect(screen.queryByRole("timer")).not.toBeInTheDocument();
     client.setQueryData(["practice-room", "org", "room"], room({ status: "Playing", phase: "Break", coached: true, isCoach: true, phaseEndsAt: new Date(Date.now() + 300000).toISOString() }));
@@ -141,4 +141,17 @@ describe("Team Practice room presentation", () => {
     expect(within(roster).getByText("player · You")).toBeInTheDocument();
     expect(within(roster).getByText("other")).toBeInTheDocument();
   });
+});
+
+it("keeps coach-only rooms out of Student mode controls", async () => {
+ auth.me = { ...auth.me, userId: "coach", kind: "Adult" };
+ mount(room({ coached: true, ownerId: "coach", isCoach: true }), "/student/practice/room");
+ expect(await screen.findByRole("link", { name: "Open room in Coach mode" })).toHaveAttribute("href", "/admin/practice/room?seasonId=season");
+ expect(screen.queryByRole("button", { name: "Start match" })).not.toBeInTheDocument();
+});
+it("excludes the assigned non-playing coach from player invitations", async () => {
+  vi.mocked(practiceApi.bootstrap).mockResolvedValue({ enabled: true, seasons: [], players: [{ id: "guide", displayName: "Assigned coach" }, { id: "other", displayName: "Other player" }], rooms: [], invitations: [], achievements: [], questions: [] });
+  mount(room({ coached: true, coachId: "guide" }));
+  await screen.findByRole("option", { name: "Other player" });
+  expect(screen.queryByRole("option", { name: "Assigned coach" })).not.toBeInTheDocument();
 });

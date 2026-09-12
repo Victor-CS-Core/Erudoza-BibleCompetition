@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { login, logout } from "./helpers";
+import { login, logout, openCommandCenter } from "./helpers";
 
 test("coach can reset a student password and the student can sign in", async ({ page }) => {
   const userName = `reset.student.${Date.now()}`;
   await login(page, "admin@erudoza.local", process.env.ERUDOZA_E2E_PASSWORD!);
   await expect(page.getByTestId("coach-app-shell")).toBeVisible();
-  await page.getByTestId("coach-tab-students").click();
+  const navigation = await openCommandCenter(page);
+  await navigation.getByRole("link", { name: "Students", exact: true }).click();
   await page.getByTestId("student-username").fill(userName);
   await page.getByTestId("student-display-name").fill("Reset Student");
   await page.getByTestId("student-password").fill("OldPass!234");

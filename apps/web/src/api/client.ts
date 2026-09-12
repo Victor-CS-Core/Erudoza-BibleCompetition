@@ -110,6 +110,9 @@ export const api = {
       range: { bookKey: string; startChapter: number; startVerse: number; endChapter: number; endVerse: number };
     },
   ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body) }),
+  myAssignments: (orgId: string, seasonId: string) => request<import("./types").Assignment[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`),
+  assignMyself: (orgId: string, seasonId: string, body: { difficulty?: TrainingDifficulty; type: string; contentPackId: string; range: import("./types").PassageRange }) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { method: "POST", body: JSON.stringify(body) }),
+  removeMyAssignment: (orgId: string, seasonId: string, assignmentId: string) => request<void>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments/${assignmentId}`, { method: "DELETE" }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
   startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext) =>

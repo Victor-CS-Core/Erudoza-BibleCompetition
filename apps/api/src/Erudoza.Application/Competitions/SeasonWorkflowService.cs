@@ -105,16 +105,25 @@ public sealed class SeasonWorkflowService(
         Guid seasonId,
         CreateAssignmentRequest request,
         CancellationToken cancellationToken)
+        => await AssignCoreAsync(organizationId, seasonId, request, false, cancellationToken);
+
+    public Task<Assignment> AssignPersonalAsync(Guid organizationId, Guid seasonId, Guid userId,
+        CreatePersonalAssignmentRequest request, CancellationToken cancellationToken) =>
+        AssignCoreAsync(organizationId, seasonId,
+            new CreateAssignmentRequest(userId, request.Type, request.ContentPackId, request.Range, request.Difficulty), true, cancellationToken);
+
+    private async Task<Assignment> AssignCoreAsync(Guid organizationId, Guid seasonId,
+        CreateAssignmentRequest request, bool personal, CancellationToken cancellationToken)
     {
         var season = await RequireSeason(organizationId, seasonId, cancellationToken);
         EnsureEditable(season);
         var student = await db.OrganizationMembers.SingleOrDefaultAsync(
             item => item.OrganizationId == organizationId
                 && item.UserId == request.StudentUserId
-                && item.Role == OrganizationRole.Student,
+                && (personal ? (item.Role == OrganizationRole.Owner || item.Role == OrganizationRole.Admin) : item.Role == OrganizationRole.Student),
             cancellationToken) ?? throw new DomainException("Student was not found in this organization.");
 
-        if (!await db.Users.AnyAsync(item => item.Id == student.UserId && item.IsActive, cancellationToken)) throw new DomainException("Reactivate the student before assigning passages.");
+        if (!await db.Users.AnyAsync(item => item.Id == student.UserId && item.IsActive && (!personal || item.Kind == UserKind.Adult), cancellationToken)) throw new DomainException("Reactivate the student before assigning passages.");
         if (request.Difficulty is { } difficulty && !Enum.IsDefined(difficulty))
             throw new DomainException("Choose Foundation, Standard, or Advanced difficulty.");
         if (!Enum.IsDefined(request.Type)) throw new DomainException("Assignment type is invalid.");
@@ -170,7 +179,7 @@ public sealed class SeasonWorkflowService(
             EndVerse = request.Range.EndVerse
         });
 
-        if (season.Status is SeasonStatus.ContentReady or SeasonStatus.Draft)
+        if (!personal && (season.Status is SeasonStatus.ContentReady or SeasonStatus.Draft))
         {
             season.Status = SeasonStatus.AssignmentsReady;
         }
@@ -185,6 +194,9 @@ public sealed class SeasonWorkflowService(
     {
         EnsureEditable(await RequireSeason(organizationId, seasonId, cancellationToken));
         if (!Enum.IsDefined(difficulty)) throw new DomainException("Choose Foundation, Standard, or Advanced difficulty.");
+        if (!await db.Users.AnyAsync(u => u.Id == studentId && u.Kind == UserKind.Student
+            && db.OrganizationMembers.Any(m => m.OrganizationId == organizationId && m.UserId == u.Id && m.Role == OrganizationRole.Student), cancellationToken))
+            throw new DomainException("Student was not found in this organization.");
         if (!await db.Assignments.AnyAsync(item => item.OrganizationId == organizationId
             && item.SeasonId == seasonId && item.StudentUserId == studentId, cancellationToken))
             throw new DomainException("Assign this student to the season before setting difficulty.");
@@ -256,18 +268,20 @@ public sealed class SeasonWorkflowService(
         return new ActivationResultDto(true, []);
     }
 
-    public async Task RemoveAssignmentAsync(Guid organizationId, Guid seasonId, Guid assignmentId, CancellationToken cancellationToken)
+    public async Task RemoveAssignmentAsync(Guid organizationId, Guid seasonId, Guid assignmentId, CancellationToken cancellationToken, Guid? personalUserId = null)
     {
         var season = await RequireSeason(organizationId, seasonId, cancellationToken);
         EnsureEditable(season);
         var assignment = await db.Assignments.Include(item => item.Scopes).SingleOrDefaultAsync(item =>
-            item.OrganizationId == organizationId && item.SeasonId == seasonId && item.Id == assignmentId, cancellationToken)
+            item.OrganizationId == organizationId && item.SeasonId == seasonId && item.Id == assignmentId
+                && (personalUserId != null ? item.StudentUserId == personalUserId : db.OrganizationMembers.Any(m => m.OrganizationId == organizationId && m.UserId == item.StudentUserId && m.Role == OrganizationRole.Student)), cancellationToken)
             ?? throw new DomainException("Assignment was not found in this season.");
         db.AssignmentScopes.RemoveRange(assignment.Scopes);
         db.Assignments.Remove(assignment);
         // Attempts, mastery, review schedules and membership are independent historical records.
-        if (season.Status == SeasonStatus.AssignmentsReady && !await db.Assignments.AnyAsync(item =>
-            item.SeasonId == seasonId && item.OrganizationId == organizationId && item.Id != assignmentId, cancellationToken))
+        if (personalUserId is null && season.Status == SeasonStatus.AssignmentsReady && !await db.Assignments.AnyAsync(item =>
+            item.SeasonId == seasonId && item.OrganizationId == organizationId && item.Id != assignmentId
+            && db.OrganizationMembers.Any(m => m.OrganizationId == organizationId && m.UserId == item.StudentUserId && m.Role == OrganizationRole.Student), cancellationToken))
             season.Status = SeasonStatus.ContentReady;
         await db.SaveChangesAsync(cancellationToken);
         await audit.RecordAsync("season.assignment.remove", nameof(Assignment), assignmentId,
@@ -279,7 +293,8 @@ public sealed class SeasonWorkflowService(
     {
         EnsureEditable(await RequireSeason(organizationId, seasonId, cancellationToken));
         var assignment = await db.Assignments.Include(item => item.Scopes).SingleOrDefaultAsync(item =>
-            item.OrganizationId == organizationId && item.SeasonId == seasonId && item.Id == assignmentId, cancellationToken)
+            item.OrganizationId == organizationId && item.SeasonId == seasonId && item.Id == assignmentId
+                && db.OrganizationMembers.Any(m => m.OrganizationId == organizationId && m.UserId == item.StudentUserId && m.Role == OrganizationRole.Student), cancellationToken)
             ?? throw new DomainException("Assignment was not found in this season.");
         if (assignment.Scopes.Count != 1) throw new DomainException("Only single-passage assignments can be corrected. Remove and add the intended passages.");
         if (string.IsNullOrWhiteSpace(range.BookKey) || range.StartChapter < 1 || range.StartVerse < 1

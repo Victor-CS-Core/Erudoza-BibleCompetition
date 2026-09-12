@@ -5,10 +5,10 @@ import { hashUserPassword } from './auth';
 import { administrationBudget, assertStorageCapacity, storageCapacityGuard } from './admin-limits';
 import { content } from './application/content';
 import { library } from './application/library';
-import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeDto, scopePacks, scopeSources, seasonSummaries, student, students, validatePackRanges } from './application/model';
+import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeDto, scopePacks, scopeSources, seasonSummaries, student, students, learner, requireLearner, studentAssignments, validatePackRanges } from './application/model';
 import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
 export { effectiveSources } from './application/model';
-async function mapSeason(ctx: RequestContext, s: Season) { return { ...s, scopeUnitCount: (await effectiveSources(ctx, s.id)).length, assignmentCount: (await ctx.store.list<Assignment>('assignment', ctx.orgId, { seasonId: s.id })).length }; }
+async function mapSeason(ctx: RequestContext, s: Season) { return { ...s, scopeUnitCount: (await effectiveSources(ctx, s.id)).length, assignmentCount: (await studentAssignments(ctx,s.id)).length }; }
 export async function handleApplication(ctx: RequestContext): Promise<Response | null> {
     const { request, path, store, orgId } = ctx, method = request.method;
     if (orgId !== ctx.actor.organizationId)
@@ -25,7 +25,7 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         const list = await store.list<Assignment>('assignment', orgId, { seasonId: s.value.id, ...(ctx.actor.kind === 'Student' ? { ownerId: ctx.actor.userId } : {}) });
         const usersById = new Map((await students(ctx)).map(u => [u.userId, u]));
         const memberships = new Map((await store.list<Membership>('membership', orgId, { seasonId: s.value.id })).map(m => [m.studentUserId ?? m.userId, m]));
-        return json(list.map(a => ({ ...a, studentDisplayName: usersById.get(a.studentUserId)?.displayName ?? null, studentUserName: usersById.get(a.studentUserId)?.userName ?? null, difficulty: memberships.get(a.studentUserId)?.difficulty ?? 'Standard' })));
+        return json(list.filter(a => usersById.has(a.studentUserId)).map(a => ({ ...a, studentDisplayName: usersById.get(a.studentUserId)?.displayName ?? null, studentUserName: usersById.get(a.studentUserId)?.userName ?? null, difficulty: memberships.get(a.studentUserId)?.difficulty ?? 'Standard' })));
     }
     if (!/^\/(students|seasons|content-packs|scripture-catalog|library)(\/|$)/.test(path))
         return null;
@@ -153,7 +153,21 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         await atomic(ctx, `season.${suffix.slice(1)}`, [updateSeason()], [guard]);
         return noContent();
     }
-    if (suffix === '/assignments' && method === 'POST') {
+    const personal = suffix === '/my-assignments';
+    if (personal) await requireLearner(ctx);
+    if (personal && method === 'GET') {
+        const membership = await store.get<Membership>('membership',memberId(seasonId,ctx.actor.userId),orgId);
+        return json((await store.list<Assignment>('assignment',orgId,{seasonId,ownerId:ctx.actor.userId})).map(a=>({...a,studentDisplayName:ctx.actor.displayName,difficulty:membership?.value.difficulty??'Standard'})));
+    }
+    const personalDelete=suffix.match(/^\/my-assignments\/([^/]+)$/);
+    if (personalDelete && method === 'DELETE') {
+        await requireLearner(ctx); editable(s);
+        const a=await store.require<Assignment>('assignment',personalDelete[1],orgId);
+        if(a.value.seasonId!==seasonId || a.value.studentUserId!==ctx.actor.userId) throw new HttpError(404,'Assignment was not found.');
+        await atomic(ctx,'season.personal-assignment.remove',[deletion(ctx,'assignment',a.value.id)],[guard,{kind:'assignment',id:a.value.id,revision:a.revision},{kind:'@active-learner',id:ctx.actor.userId,revision:0}]);
+        return noContent();
+    }
+    if ((suffix === '/assignments' || personal) && method === 'POST') {
         editable(s);
         const input = await body<{
             studentUserId: string;
@@ -161,7 +175,9 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
             range: unknown;
             type: string;
             difficulty?: string;
-        }>(request, 8192), user = await student(ctx, input.studentUserId);
+        }>(request, 8192);
+        if(personal && input.studentUserId !== undefined) return fail('Personal assignments derive the learner from your account.');
+        const user = personal ? await learner(ctx,ctx.actor.userId) : await student(ctx,input.studentUserId);
         if (!user.isActive)
             return fail('Reactivate the student before assigning passages.');
         if (!['PrimarySpecialist', 'RequiredCoverage', 'OptionalReview'].includes(input.type))
@@ -173,9 +189,9 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         const mid = memberId(seasonId, user.userId), old = await store.get<Membership>('membership', mid, orgId), d = input.difficulty === undefined ? old?.value.difficulty ?? 'Standard' : difficulty(input.difficulty);
         const membership: Membership = { id: mid, seasonId, userId: user.userId, studentUserId: user.userId, difficulty: d };
         const a: Assignment = { id: id(), seasonId, studentUserId: user.userId, contentPackId: p.value.id, type: input.type, ...r, createdAtUtc: new Date().toISOString() };
-        if (['Draft', 'ContentReady'].includes(s.status))
+        if (!personal && ['Draft', 'ContentReady'].includes(s.status))
             s.status = 'AssignmentsReady';
-        await atomic(ctx, 'season.assign', [store.insertion('assignment', a.id, orgId, a, { seasonId, ownerId: user.userId }), old ? store.update('membership', mid, orgId, membership, old.revision) : store.insertion('membership', mid, orgId, membership, { seasonId, ownerId: user.userId }), updateSeason()], [guard, { kind: 'pack', id: p.value.id, revision: p.revision }, { kind: '@active-user', id: user.userId, revision: 0 }]);
+        await atomic(ctx, 'season.assign', [store.insertion('assignment', a.id, orgId, a, { seasonId, ownerId: user.userId }), old ? store.update('membership', mid, orgId, membership, old.revision) : store.insertion('membership', mid, orgId, membership, { seasonId, ownerId: user.userId }), ...(personal ? [] : [updateSeason()])], [guard, { kind: 'pack', id: p.value.id, revision: p.revision }, { kind: personal ? '@active-learner' : '@active-user', id: user.userId, revision: 0 }]);
         return json({ ...a, difficulty: d });
     }
     const diff = suffix.match(/^\/students\/([^/]+)\/difficulty$/);
@@ -195,10 +211,11 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     if (assignmentMatch && (method === 'DELETE' && !assignmentMatch[2] || method === 'PUT' && assignmentMatch[2])) {
         editable(s);
         const a = await store.require<Assignment>('assignment', assignmentMatch[1], orgId);
+        await student(ctx,a.value.studentUserId);
         if (a.value.seasonId !== seasonId)
             throw new HttpError(404, 'Assignment was not found in this season.');
         if (method === 'DELETE') {
-            if (s.status === 'AssignmentsReady' && (await store.list<Assignment>('assignment', orgId, { seasonId })).length === 1)
+            if (s.status === 'AssignmentsReady' && (await studentAssignments(ctx,seasonId)).length === 1)
                 s.status = 'ContentReady';
             await atomic(ctx, 'season.assignment.remove', [deletion(ctx, 'assignment', a.value.id), updateSeason()], [guard, { kind: 'assignment', id: a.value.id, revision: a.revision }]);
         }

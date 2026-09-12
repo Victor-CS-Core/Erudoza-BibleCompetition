@@ -77,7 +77,9 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("CanManageSeason", policy => policy.RequireRole("Owner", "Admin"))
     .AddPolicy("CanManageStudents", policy => policy.RequireRole("Owner", "Admin"))
     .AddPolicy("CanManageContent", policy => policy.RequireRole("Owner", "Admin"))
-    .AddPolicy("CanStudy", policy => policy.RequireRole("Student"))
+    .AddPolicy("CanStudy", policy => policy.RequireAssertion(context =>
+        (context.User.FindFirst("kind")?.Value == "Student" && context.User.IsInRole("Student")) || (context.User.FindFirst("kind")?.Value == "Adult"
+            && (context.User.IsInRole("Owner") || context.User.IsInRole("Admin")))))
     .AddPolicy("CanViewOwnProgress", policy => policy.RequireAuthenticatedUser())
     .SetFallbackPolicy(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 

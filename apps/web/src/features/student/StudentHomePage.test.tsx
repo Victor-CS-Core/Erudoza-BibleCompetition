@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import { trainingApi } from "../../api/training";
@@ -8,9 +8,11 @@ import { StudentHomePage } from "./StudentHomePage";
 import { todayFixture, journeyFixture } from "./trainingFixtures";
 vi.mock("../../api/client", () => ({ api: { progress: vi.fn(), assignedSeasons: vi.fn() } }));
 vi.mock("../../api/training", () => ({ trainingApi: { today: vi.fn(), journey: vi.fn() } }));
-vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
-function home() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>); }
-beforeEach(() => { vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture()); vi.mocked(trainingApi.today).mockResolvedValue(todayFixture()); vi.mocked(api.assignedSeasons).mockResolvedValue([{ id: "s", name: "Daniel" }, { id: "other", name: "Joshua" }]); });
+const account = vi.hoisted(() => ({ organizationId: "org", userId: "student", kind: "Student" }));
+vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: account }) }));
+function Location() { return <output aria-label="Current search">{useLocation().search}</output>; }
+function home() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /><Location /></MemoryRouter></QueryClientProvider>); }
+beforeEach(() => { account.kind = "Student"; vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture()); vi.mocked(trainingApi.today).mockResolvedValue(todayFixture()); vi.mocked(api.assignedSeasons).mockResolvedValue([{ id: "s", name: "Daniel" }, { id: "other", name: "Joshua" }]); });
 it("uses bounded today and carries frozen mission and selected season into review", async () => { home(); expect(await screen.findByRole("link", { name: "Continue review" })).toHaveAttribute("href", "/student/study?mode=Review&sessionId=r&step=Review&missionId=m&missionRevision=3&seasonId=s"); expect(api.progress).not.toHaveBeenCalled(); expect(screen.getByText("2 of 4 passages completed")).toBeInTheDocument(); expect(screen.getByRole("link", { name: "Team Practice" })).toHaveAttribute("href", "/student/practice?seasonId=s"); });
 it("invalidated missions explain scope changes and do not start study", async () => { const data = todayFixture(); vi.mocked(trainingApi.today).mockResolvedValue({ ...data, mission: { ...data.mission, status: "Invalidated" } }); home(); expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent("assignment changed"); expect(screen.queryByTestId("start-todays-deck")).not.toBeInTheDocument(); });
 it("unassigned students receive honest recovery", async () => { vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ seasonId: null, seasonStatus: "None", mission: { id: null, revision: null, status: "Unavailable", scopeVersion: null, explanation: null, steps: [] }, nextAction: null })); home(); expect(await screen.findByText("Your coach will add your study assignment here.")).toBeInTheDocument(); });
@@ -37,4 +39,16 @@ it("labels effort-based sidebar progress as a milestone", async () => {
   home(); expect(await screen.findByRole("heading", { name: "Your next milestone" })).toBeInTheDocument();
   expect(screen.queryByRole("heading", { name: "Your next Honor" })).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Explore mastery Honors" })).toHaveAttribute("href", "/student/honors?seasonId=s");
+});
+
+it("offers coaches personal assignments from an empty Training HQ", async () => {
+ account.kind = "Adult";
+ vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ seasonId: null, seasonStatus: "None", mission: { id: null, revision: null, status: "Unavailable", scopeVersion: null, explanation: null, steps: [] }, nextAction: null }));
+ home(); expect(await screen.findByRole("link", { name: "My assignments" })).toHaveAttribute("href", "/student/assignments");
+});
+
+it("records the resolved coach training season in navigation context", async () => {
+ account.kind = "Adult"; home();
+ await screen.findByRole("link", { name: "Continue review" });
+ expect(screen.getByLabelText("Current search")).toHaveTextContent("seasonId=s");
 });

@@ -63,7 +63,7 @@ public sealed class ScriptureReaderTests(ErudozaApiFactory factory) : IClassFixt
         filtered.Verses[0].Citation.Should().Be("Daniel 1:1");
         filtered.Verses[0].CanonicalText.Should().NotBeNullOrWhiteSpace();
         (await factory.CreateClient().GetAsync(url)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
-        (await admin.GetAsync(url)).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await admin.GetAsync(url)).StatusCode.Should().Be(HttpStatusCode.NotFound);
         (await student.GetAsync($"/api/v1/study/seasons/{Guid.NewGuid()}/scripture")).StatusCode.Should().Be(HttpStatusCode.NotFound);
 
         using (var scope = factory.Services.CreateScope())

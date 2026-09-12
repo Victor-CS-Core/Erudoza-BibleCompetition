@@ -118,7 +118,9 @@ test('daily training persists full and partial recaps, unique day credit, Honors
   await page.getByRole('link', { name: 'View Honors', exact: true }).click();
   const honors = await json<BadgeProgress[]>(page.request, `/api/v1/progress/me/honors?seasonId=${season.id}`);
   expect(honors.length).toBeGreaterThan(0);
-  const detail = page.getByRole('button', { name: `View ${honors[0].title} details`, exact: true }).first();
+  const mastery = await json<{ honors: { title: string }[] }>(page.request, '/api/v1/profile/me');
+  expect(mastery.honors.length).toBeGreaterThan(0);
+  const detail = page.getByRole('button', { name: `View ${mastery.honors[0].title} requirements`, exact: true });
   await detail.click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -126,14 +128,14 @@ test('daily training persists full and partial recaps, unique day credit, Honors
   await expect(detail).toBeFocused();
   await page.getByRole('button', { name: 'Earned', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Earned', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'In progress', exact: true }).click();
+  await page.getByRole('button', { name: 'Locked', exact: true }).click();
   await assertNoOverflow(page);
   await page.goto(`/student/progress?seasonId=${season.id}`);
   await expect(page.getByRole('heading', { name: 'Your passage journey', exact: true })).toBeVisible();
   const journey = await json<PassageJourneyPage>(page.request, `/api/v1/progress/me/journey?seasonId=${season.id}`);
   expect(journey.chapters.reduce((sum, chapter) => sum + chapter.seenCount, 0)).toBeGreaterThan(0);
   await page.goto(`/student?seasonId=${season.id}`);
-  await page.getByRole('button', { name: 'Change weekly goal', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit weekly goal', exact: true }).click();
   await page.getByLabel('Practice days per week').selectOption(after.preferences.weeklyTarget === 5 ? '3' : '5');
   const saved = page.waitForResponse(r => r.url().endsWith('/progress/me/preferences') && r.request().method() === 'PUT');
   await page.getByRole('button', { name: 'Save goal', exact: true }).click();

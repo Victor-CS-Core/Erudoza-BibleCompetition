@@ -19,9 +19,9 @@ const data: PracticeBootstrap = {
 };
 const destinationRoom = { id: "created-room" } as PracticeRoom;
 function Destination() { return <output aria-label="Current destination">{useLocation().pathname}</output>; }
-function mount() {
+function mount(path = account.kind === "Adult" ? "/admin/practice" : "/student/practice") {
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return { cache, ...render(<QueryClientProvider client={cache}><MemoryRouter initialEntries={["/student/practice"]}><PracticeHub /><Destination /></MemoryRouter></QueryClientProvider>) };
+  return { cache, ...render(<QueryClientProvider client={cache}><MemoryRouter initialEntries={[path]}><PracticeHub /><Destination /></MemoryRouter></QueryClientProvider>) };
 }
 beforeEach(() => {
   vi.clearAllMocks();
@@ -46,7 +46,7 @@ describe("Team Practice hub", () => {
     ] });
     mount();
     const current = await screen.findByRole("region", { name: "Current room" });
-    expect(within(current).getByRole("link", { name: "Return to match" })).toHaveAttribute("href", "/student/practice/live");
+    expect(within(current).getByRole("link", { name: "Return to match" })).toHaveAttribute("href", "/student/practice/live?seasonId=luke");
     expect(within(current).getByText(/Luke 2026/)).toBeInTheDocument();
     expect(within(current).getByText(/4 players/)).toBeInTheDocument();
     expect(within(current).queryByText(/players ready|of .* ready/)).not.toBeInTheDocument();
@@ -173,4 +173,18 @@ it("shows only mastery-qualified Team Honor profile choices", async () => {
   expect(screen.queryByRole("link", { name: "Use First Fellowship as profile image" })).not.toBeInTheDocument();
   expect(screen.queryByText("Exact Recall")).not.toBeInTheDocument();
   expect(screen.getByText("90% personal accuracy across 10 distinct manual answers.")).toBeInTheDocument();
+});
+
+it("renders player controls for an Adult in Student mode", async () => {
+ account.kind = "Adult";
+ mount("/student/practice");
+ expect(await screen.findByRole("link", { name: "Set up a room" })).toHaveAttribute("href", "/student/practice#create-room");
+ expect(screen.queryByText("Question bank")).not.toBeInTheDocument();
+});
+it("starts room setup with the season carried from Student mode", async () => {
+ account.kind = "Adult";
+ mount("/student/practice?seasonId=luke");
+ expect(await screen.findByLabelText("Season")).toHaveValue("luke");
+ fireEvent.click(screen.getByRole("button", { name: "Create room" }));
+ await waitFor(() => expect(practiceApi.create).toHaveBeenCalledWith("org", expect.objectContaining({ seasonId: "luke", coached: false })));
 });

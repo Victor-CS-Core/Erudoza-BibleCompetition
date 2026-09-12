@@ -21,7 +21,8 @@ public sealed class SeasonCoverageService(
 
         var assignments = await db.Assignments.AsNoTracking()
             .Include(item => item.Scopes)
-            .Where(item => item.OrganizationId == organizationId && item.SeasonId == seasonId)
+            .Where(item => item.OrganizationId == organizationId && item.SeasonId == seasonId
+                && db.OrganizationMembers.Any(m => m.OrganizationId == organizationId && m.UserId == item.StudentUserId && m.Role == OrganizationRole.Student))
             .ToListAsync(cancellationToken);
 
         var studentIds = assignments.Select(item => item.StudentUserId).Distinct().ToList();

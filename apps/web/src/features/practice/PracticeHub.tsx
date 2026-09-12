@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { practiceApi } from "../../api/practice";
 import { nativeCloudflare } from "../../api/practiceTransport";
 import { useAuth } from "../../auth/AuthContext";
@@ -16,7 +16,8 @@ import "./practice-hub.css";
 export function PracticeHub() {
   const { me } = useAuth();
   const org = me!.organizationId;
-  const coach = me!.kind !== "Student";
+  const location = useLocation();
+  const coach = location.pathname.startsWith("/admin");
   const base = coach ? "/admin/practice" : "/student/practice";
   const navigate = useNavigate();
   const cache = useQueryClient();
@@ -25,13 +26,14 @@ export function PracticeHub() {
   const bootstrap = useQuery({ queryKey: ["practice", org], queryFn: () => practiceApi.bootstrap(org), refetchInterval: nativeCloudflare ? 60000 : 15000 });
   const [error, setError] = useState("");
   const [pending, setPending] = useState<"create" | "join" | "enable" | null>(null);
-  const [seasonId, setSeason] = useState("");
+  const [seasonId, setSeason] = useState(() => new URLSearchParams(location.search).get("seasonId") ?? "");
   const [teamSize, setSize] = useState(1);
   const [questionCount, setCount] = useState(10);
   const [coached, setCoached] = useState(false);
   const [bookKey, setBook] = useState("");
   const data = bootstrap.data;
   const selectedSeasonId = data?.seasons.some(season => season.id === seasonId) ? seasonId : data?.seasons[0]?.id || "";
+  const roomLink = (id: string, roomSeason?: string) => `${base}/${id}${!coach && (roomSeason || selectedSeasonId) ? `?seasonId=${encodeURIComponent(roomSeason || selectedSeasonId)}` : ""}`;
   const currentRoom = data?.rooms.find(room => room.status === "Playing") || data?.rooms.find(room => room.status === "Lobby");
   const invitation = data?.invitations[0];
   const seasonName = (id: string) => data?.seasons.find(season => season.id === id)?.name || "Past season";
@@ -74,7 +76,7 @@ export function PracticeHub() {
               <div className="practice-hub-team"><PracticePatch kind="team-b" size={132} /><strong>Team 2</strong></div>
             </div>
             <div className="practice-hub-room-footer">
-              <LinkButton to={currentRoom ? `${base}/${currentRoom.id}` : invitation ? `${base}#invitations` : `${base}#create-room`}>
+              <LinkButton to={currentRoom ? roomLink(currentRoom.id, currentRoom.seasonId) : invitation ? `${base}#invitations` : `${base}#create-room`}>
                 {currentRoom ? currentRoom.status === "Playing" ? "Return to match" : "Open lobby" : invitation ? "View invitation" : "Set up a room"}
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6" /></svg>
               </LinkButton>
@@ -91,7 +93,7 @@ export function PracticeHub() {
               if (pending || !selectedSeasonId) return;
               void run("create", async () => {
                 const room = await practiceApi.create(org, { seasonId: selectedSeasonId, teamSize, questionCount, coached: coach && coached, bookKey: bookKey.trim() || undefined });
-                navigate(`${base}/${room.id}`);
+                navigate(roomLink(room.id, room.seasonId));
               });
             }}>
               <div className="practice-hub-form-grid">
@@ -119,7 +121,7 @@ export function PracticeHub() {
             <div><strong>{invite.inviterName} invited you {invite.team ? `to Team ${invite.team}` : "to a room"}.</strong><p>Expires {new Date(invite.expiresAt).toLocaleString()}</p></div>
             <div className="practice-actions">{(invite.team ? [invite.team] : [1, 2]).map(team => <Button key={team} disabled={!!pending} variant="secondary" onClick={() => void run("join", async () => {
               const room = await practiceApi.accept(org, invite.id, team);
-              navigate(`${base}/${room.id}`);
+              navigate(roomLink(room.id, room.seasonId));
             })}>Join Team {team}</Button>)}</div>
           </li>)}</ul>
         </Panel>}
@@ -130,7 +132,7 @@ export function PracticeHub() {
             {!data.rooms.length && <p className="practice-hub-secondary">No rooms yet. Create a room or accept an invitation.</p>}
             <ul className="practice-hub-rooms">{data.rooms.map(room => <li key={room.id}>
               <div><div className="practice-hub-list-title"><strong>{seasonName(room.seasonId)}</strong><Badge tone={room.status === "Playing" ? "success" : room.status === "Lobby" ? "info" : "neutral"}>{room.status}</Badge></div><p>{room.teamSize}v{room.teamSize} · {room.questionCount} questions · {room.coached ? "Coach-led" : "Independent"} · {room.memberCount} players</p></div>
-              <LinkButton size="compact" variant="secondary" to={`${base}/${room.id}`}>{room.status === "Completed" ? "View results" : "Open room"}</LinkButton>
+              <LinkButton size="compact" variant="secondary" to={roomLink(room.id, room.seasonId)}>{room.status === "Completed" ? "View results" : "Open room"}</LinkButton>
             </li>)}</ul>
             {!data.invitations.length && <section id="invitations" className="practice-hub-no-invitations" aria-labelledby="practice-invitations-title"><h3 id="practice-invitations-title">Invitations</h3><p>No pending invitations.</p></section>}
             <div className="practice-hub-honors-note"><PracticePatch kind="team-practice" size={68} /><div><h3>Teamwork worth keeping.</h3><p>Mastery Honors require proven accuracy and your own submitted answers in finalized matches.</p></div></div>

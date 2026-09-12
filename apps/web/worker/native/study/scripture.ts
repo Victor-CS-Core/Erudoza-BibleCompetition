@@ -1,4 +1,4 @@
-import { effectiveSources, memberId } from "../application/model";
+import { effectiveSources, memberId, requireLearner } from "../application/model";
 import type { Season } from "../application/model";
 import type { RequestContext } from "../types";
 import { HttpError, json } from "../types";
@@ -7,7 +7,7 @@ import { HttpError, json } from "../types";
 export async function handleScripture(ctx: RequestContext): Promise<Response | null> {
   const match = ctx.path.match(/^\/api\/v1\/study\/seasons\/([a-f0-9-]{36})\/scripture$/i);
   if (!match || ctx.request.method !== "GET") return null;
-  if (ctx.actor.kind !== "Student" || ctx.actor.role !== "Student") throw new HttpError(403, "Student access is required.");
+  await requireLearner(ctx);
   const seasonId = match[1].toLowerCase();
   const season = await ctx.store.get<Season>("season", seasonId, ctx.orgId);
   const member = await ctx.store.get("membership", memberId(seasonId, ctx.actor.userId), ctx.orgId);
