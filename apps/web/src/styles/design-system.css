@@ -38,6 +38,10 @@
 .ds-button-danger { color: var(--er-stamp-red); background: var(--er-danger-surface); }
 .ds-button-inverse { color:var(--er-on-navy-muted); background:color-mix(in srgb,var(--er-on-navy) 6%,var(--er-ink-navy)); border-color:color-mix(in srgb,var(--er-on-navy-muted) 35%,transparent); }
 .ds-button-inverse:hover:not(:disabled) { background:color-mix(in srgb,var(--er-on-navy) 12%,var(--er-ink-navy)); }
+@media(max-width:760px) {
+  .ds-button-inverse.ds-button-mobile-icon { color:var(--er-on-navy); background:transparent; border-color:transparent; }
+  .ds-button-inverse.ds-button-mobile-icon:hover:not(:disabled) { background:color-mix(in srgb,var(--er-on-navy) 12%,var(--er-ink-navy)); }
+}
 .ds-button-primary:hover:not(:disabled) { background: color-mix(in srgb,var(--er-action-blue) 85%,var(--er-ink-navy)); }
 .ds-button-secondary:hover:not(:disabled), .ds-button-ghost:hover:not(:disabled) { background: var(--er-selected); }
 .ds-button-danger:hover:not(:disabled) { background: color-mix(in srgb,var(--er-danger-surface) 85%,var(--er-stamp-red)); }

@@ -1,5 +1,12 @@
 # Erudoza progress log
 
+## Expedition landing — authorized main integration, September 12
+
+- User approved the finished preview and explicitly requested merge to main. Fresh fetch found main a34da04 with the separately approved centered header. Merged it into the landing branch without conflicts, preserving both design directions and progress histories. The training task was notified to coordinate main advancement.
+- Combined-tree verification passed 628 web/native tests with one existing optional skip in 13.04 seconds, both production builds, web/native TypeScript, full ESLint and whitespace. Final local Chrome landing checks at 1440/390/320 retained the headline/art and showed no horizontal overflow or broken images. Earlier complete landing and header browser evidence remains applicable to their preserved behavior.
+- The local fixture backend had also stopped between turns. Restarted it as the loopback-only transient user service erudoza-landing-fixture.service, with private ignored fixture configuration. Its readiness returned HTTP 204 and the browser reached the real sign-in form again. The landing preview remains open and its worktree/ignored evidence are retained.
+- Next: checkpoint/push the verified integration, then fast-forward and normally push main after a fresh ancestry guard. No deployment was requested or performed; remote CI success is not claimed.
+
 ## Pathfinder Expedition landing — implementation gate, September 12
 
 - The user selected A, requested natural copy through a humanizer skill, then chose B's numbered training/sample-Honors middle section. Implemented that combination with A's hero and coach panel, exact existing brand emblem, live text, shared primitives and existing account routes. [DESIGN.md](DESIGN.md) records the latest landing authority; the original mockups remain unchanged.
@@ -26,6 +33,8 @@
 Read this file before starting repository work. `AGENTS.md` defines the required update and commit/push workflow. Times below are UTC. This log is the shared handoff; detailed audits remain the evidence for individual checks.
 
 ## Current state — 2026-09-12
+
+- Centered header C is merged and pushed to main through `b77555e`. Fresh merged-tree verification passed 627 tests with one existing optional skip; the identical application source retains its earlier builds, lint, review and responsive browser evidence. Header C and the separately merged sign-in artwork remain pending deployment. See the [header audit](docs/audits/2026-09-12-centered-header.md).
 
 - Support minus placement is LIVE from pushed source `f22952a`: minus beside the original cup, separate 44px target. Worker `a2c4ab16-a96d-4a31-809c-e4c683c9fb57` serves 100%; 30 edge checks and six live browser flows passed by 16:34:12 UTC. Main retains the separately merged sign-in artwork, which is still pending deployment.
 
@@ -56,6 +65,18 @@ Read this file before starting repository work. `AGENTS.md` defines the required
 - The gray-text/green-background fix is implemented, locally verified, deployed, and pushed as **`fd89248`** (`fix: preserve button text contrast across states`). The push advanced `12709c3..fd89248` on the approved private task branch. Shared button variants now change foreground/background immediately; disabled buttons use opaque muted text on a neutral surface. The 24-view browser pass covered coach/student, landing/login, keyboard and reduced motion at 1440/390/320 pixels. Selection samples stay at least 5.089:1; disabled text measures 4.685:1. See the contrast audit for measurement limits.
 
 ## Active work and blockers
+
+- Centered header C is merged and pushed to main through `b77555e` under the user's explicit merge request. Implementation `165d40f` fills desktop search space, centers the phone wordmark between search and account, and removes redundant All sections. All 627 web/native tests passed again on merged main with one existing optional skip; earlier builds/types, lint, 90 production-preview views, 24 menu flows and three support/command integration cases apply to identical application source. Independent review found no actionable issue. See [the audit](docs/audits/2026-09-12-centered-header.md) for fixtures and validation limits. Remote main readback confirmed the source checkpoint. No deployment was requested or performed.
+
+## Centered header C — pushed checkpoint, September 12
+
+- Implementation `165d40f1c16e5498d2f8f1236037974e81f2eba2` was committed after review and pushed normally to `origin/codex/header-centered`. Fresh repository readback confirmed the existing private `Victor-CS-Core/Erudoza-BibleCompetition` destination with ADMIN permission; `git ls-remote` confirmed the exact source commit. Nine task files were explicitly staged; generated screenshots, browser fixtures/reports and build output remain ignored.
+- Validation and limits are recorded in the centered-header audit. This documentation-only follow-up records the completed push without rerunning unchanged application checks. Main and production were not changed by this task. Next: review or separately requested integration/deployment.
+
+## Centered header C — authorized main integration, September 12
+
+- User requested merge. Fresh fetch confirmed clean main `1cf2c99` was the ancestor of task tip `b77555e`; main fast-forwarded without conflicts. The merged tree was byte-identical to the reviewed task tip and passed 627 tests with one existing optional skip in 20.86 seconds. Whitespace passed; earlier builds/types, lint and responsive browser results remain applicable to unchanged application code.
+- Normal push advanced `origin/main` from `1cf2c99` to `b77555e170e1e3401fd24e5e3fb5600e3e51f7e4`; exact remote readback confirmed completion. The task worktree and ignored visual evidence remain available. This integration record permits the normal main CI run; a completed remote CI result is not claimed. Deployment remains separate.
 
 The approved [coach onboarding](docs/superpowers/plans/2026-09-11-coach-onboarding.md) is implemented, locally verified and live with additive migration `0003`. Resend Free sender/key and real Turnstile/signup-code delivery are now verified; public signup, recovery email and coach invitation capability are enabled. The user completed their own signup as an active Owner in a separate club. Cloudflare's free WAF rule, strict host checks and durable account/administrative limits remain active; effective log sampling was independently confirmed at 10%. No third-party invitation or real recovery completion was performed; those flows retain preceding local test evidence. The 20-room/200-player regional load gate remains open. The combined September12 chapter-assignment/coach-student-mode/coffee-PWA release is live from main source1080f8a; see the final release gate below. The original local API on port 5080 remains untouched.
 

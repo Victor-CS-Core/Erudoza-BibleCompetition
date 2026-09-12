@@ -29,3 +29,7 @@ Browser work used a local native fixture and development server. The support pro
 ## Delivery boundary
 
 The preview is http://localhost:5208/ while the task-owned development service is running. Local verification does not establish a main merge, remote CI result or live deployment. The task branch checkpoint is recorded in PROGRESS.md.
+
+## Authorized main integration
+
+After approving the preview, the user requested merge to main. Current main a34da04, including the centered header, merged into the landing task without conflicts. The combined tree passed 628 tests with one optional skip, both builds, web/native types, ESLint and whitespace; a fresh local browser check at 1440/390/320 preserved the landing composition with no overflow or broken images. Preview and fixture now run as loopback-only transient user services so tool-session termination does not stop them. The main push checkpoint is recorded in PROGRESS.md; this request does not include deployment.

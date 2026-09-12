@@ -18,7 +18,7 @@ beforeEach(() => {
 });
 it("keeps the selected season when switching student activities", () => {
  shell("/student/study?seasonId=season-two");
- fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Review" })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=season-two");
  expect(screen.getByTestId("study-back")).toHaveAttribute("href", "/student?seasonId=season-two");
 });
@@ -29,9 +29,9 @@ it.each([["/student", "Training HQ"], ["/student/study", "Study"], ["/student/st
 });
 it("offers student navigation during focused study without hiding it in a mobile menu", () => {
  shell("/student/study"); expect(screen.getByTestId("study-back")).toHaveAttribute("href", "/student");
- expect(screen.getByRole("button", { name: "All sections" })).toBeInTheDocument();
+ expect(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ })).toBeInTheDocument();
  expect(within(screen.getByRole("navigation", { name: "Learner" })).getByRole("link", { name: "Study" })).toHaveAttribute("href", "/student/study");
- fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/student/progress");
 });
 it("starts with the approved three student shortcuts and preserves saved pin choices", () => {
@@ -69,7 +69,7 @@ it.each([
 it("preserves the stable mobile dock when Coach pins change", () => {
  shell("/admin", "admin");
  const nav = screen.getByRole("navigation", { name: "Coach" });
- fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Unpin Overview" }));
  const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
  expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["Overview", "Seasons", "Students"]);
@@ -159,19 +159,19 @@ it("searches real students and opens their assignments; keyboard navigation move
  fireEvent.keyDown(input, { key: "ArrowDown" }); expect(student).toHaveFocus();
 });
 it("keeps expanded groups between visits and persists pins without exposing coach actions to students", async () => {
- const view = shell("/admin", "admin"); fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ const view = shell("/admin", "admin"); fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  fireEvent.click(screen.getByRole("button", { name: "Show Seasons options" })); expect(screen.getByRole("link", { name: "Create season" })).toHaveAttribute("href", "/admin/seasons/new");
  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Unpin Scripture library" }));
  fireEvent.click(screen.getByRole("button", { name: "Close command center" }));
  expect(within(screen.getByRole("navigation", { name: "Coach" })).queryByRole("link", { name: "Scripture library" })).not.toBeInTheDocument();
- fireEvent.click(screen.getByRole("button", { name: "All sections" })); expect(screen.getByRole("link", { name: "Create season" })).toBeInTheDocument();
- view.unmount(); shell(); fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ })); expect(screen.getByRole("link", { name: "Create season" })).toBeInTheDocument();
+ view.unmount(); shell(); fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  expect(screen.queryByRole("link", { name: "Create season" })).not.toBeInTheDocument(); expect(screen.queryByRole("button", { name: "Students" })).not.toBeInTheDocument();
  expect(api.students).toHaveBeenCalledTimes(1);
 });
 it("retains section navigation when live search results fail", async () => {
  vi.mocked(api.seasons).mockRejectedValue(new Error("offline")); shell("/admin", "admin");
- fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  expect(await screen.findByRole("alert")).toHaveTextContent("Sections are still available");
  expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Seasons" })).toHaveAttribute("href", "/admin/seasons");
 });
@@ -181,13 +181,13 @@ it("lets a coach switch workspaces with the same season and learner assignment n
  shell("/student/study?seasonId=season-two");
  fireEvent.click(screen.getByRole("button", { name: "Account" }));
  expect(screen.getByRole("link", { name: "Switch to Coach mode" })).toHaveAttribute("href", "/admin?seasonId=season-two");
- fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  expect(within(screen.getByRole("dialog")).getByRole("link", { name: "My assignments" })).toHaveAttribute("href", "/student/assignments?seasonId=season-two");
 });
 it("does not offer student accounts a Coach mode switch or personal assignment management", () => {
  shell(); fireEvent.click(screen.getByRole("button", { name: "Account" }));
  expect(screen.queryByTestId("switch-workspace")).not.toBeInTheDocument();
- fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  expect(screen.queryByRole("link", { name: "My assignments" })).not.toBeInTheDocument();
 });
 
