@@ -7,12 +7,13 @@ import { authenticate } from './auth';
 import { importPack } from './application/content';
 import { Store } from './store';
 import { admin, body, HttpError } from './types';
+import {roomTestHooks} from './test-room-hooks';
 import type { Env } from './types';
 // @ts-expect-error Standalone Node migration module.
 import { readNativeMigrations } from '../../scripts/native-migrations.mjs';
 export const TEST_ORG="11111111-1111-4111-8111-111111111111";
 export const TEST_USER="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
-export async function createNativeTestApp(options:{measureD1?:boolean;onD1Meter?:(meter:{bindingCalls:number;statements:number;methods:Record<string,number>})=>void;beforeD1Statement?:(sql:string)=>Promise<void>;delayAuthentication?:boolean;replaceSoloAuthority?:boolean;replaceRoomAuthority?:boolean;beforePasswordHash?:()=>Promise<void>;bindings?:Record<string,string>;outboundService?:(request:TestRequest)=>Promise<TestResponse>}={}) {
+export async function createNativeTestApp(options:{measureD1?:boolean;onD1Meter?:(meter:{bindingCalls:number;statements:number;methods:Record<string,number>})=>void;beforeD1Statement?:(sql:string)=>Promise<void>;delayAuthentication?:boolean;replaceSoloAuthority?:boolean;replaceRoomAuthority?:boolean;roomTestClock?:boolean;roomStorageDiagnostics?:boolean;beforePasswordHash?:()=>Promise<void>;bindings?:Record<string,string>;outboundService?:(request:TestRequest)=>Promise<TestResponse>}={}) {
   // Test-only compilation hook: exercise ingress ordering while authentication waits.
   // No delay header or equivalent bypass is included in the deployed bundle.
   const plugins=options.delayAuthentication||options.beforePasswordHash?[{name:"test-auth-delay",setup(builder:import("esbuild").PluginBuild){builder.onLoad({filter:/native[/\\]auth\.ts$/},async args=>{
@@ -37,17 +38,14 @@ export async function createNativeTestApp(options:{measureD1?:boolean;onD1Meter?
     const hook=','+before+','+report;
     return {loader:"ts",contents:source.replace(signature,'const unmeteredApp = {')+'\nimport {measureD1Fetch} from "./test-d1-meter";\nexport default {...unmeteredApp,fetch:measureD1Fetch(unmeteredApp.fetch'+hook+')};'};
   });}});
-  if(options.measureD1||options.onD1Meter||options.replaceRoomAuthority)plugins.push({name:"test-do-d1-meter",setup(builder:import("esbuild").PluginBuild){builder.onLoad({filter:/native[/\\]practice[/\\](room|reports)\.ts$/},async args=>{
+  if(options.measureD1||options.onD1Meter||options.replaceRoomAuthority||options.roomTestClock||options.roomStorageDiagnostics)plugins.push({name:"test-do-d1-meter",setup(builder:import("esbuild").PluginBuild){builder.onLoad({filter:/native[/\\]practice[/\\](room|reports)\.ts$/},async args=>{
     let source=await readFile(args.path,"utf8");
     source='import {measureD1Fetch,meteredObjectEnv,objectDatabase} from "../test-d1-meter";\n'+source;
     const report=options.onD1Meter?'async meter => { await fetch("https://native-test.invalid/d1-meter", {method:"POST",body:JSON.stringify(meter)}); }':'undefined';
     const before=options.beforeD1Statement?'async sql => { await fetch("https://native-test.invalid/d1-statement", {method:"POST",body:sql}); }':'undefined';
     if(source.includes('constructor(ctx:DurableObjectState,env:Env)'))source=source.replace('super(ctx,env);','super(ctx,meteredObjectEnv(env));');
     else source=source.replace('private tail:', 'constructor(ctx:DurableObjectState,env:Env){super(ctx,meteredObjectEnv(env));} private tail:');
-    if(options.replaceRoomAuthority&&args.path.endsWith('room.ts')){
-      const ingress='const now=Date.now();let r=this.load();';if(!source.includes(ingress))throw new Error('Room replacement hook no longer matches.');
-      source=source.replace(ingress,ingress+"if(request.headers.has('x-test-room-snapshot'))return json(r);if(request.headers.has('x-test-authority-replaced')&&r){r.epoch='fixture-replaced';this.save(r);await this.ctx.storage.setAlarm(Date.now());return json({status:'replacement-scheduled',snapshotUtf8Bytes:new TextEncoder().encode(JSON.stringify(r)).length,questions:r.questions.length,reserves:r.reserves.length,roster:r.members.length});}");
-    }
+    if(args.path.endsWith('room.ts'))source=roomTestHooks(source,{clock:options.roomTestClock,replace:options.replaceRoomAuthority,diagnostics:options.roomStorageDiagnostics});
     source=source.replace('async fetch(request:Request):Promise<Response>{',`async fetch(request:Request):Promise<Response>{return measureD1Fetch((req,env)=>objectDatabase.run(env.DB,()=>this.unmeteredFetch(req)),${before},${report})(request,this.env);} async unmeteredFetch(request:Request):Promise<Response>{`);
     return {loader:"ts",contents:source};
   });}});
@@ -65,8 +63,10 @@ export async function createNativeTestApp(options:{measureD1?:boolean;onD1Meter?
     if(options.outboundService)return options.outboundService(request);
     throw new Error("Unexpected network request in native concurrency test");
   }:options.outboundService;
-  const runtime=new Miniflare({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:"2026-05-22",compatibilityFlags:["nodejs_compat"],d1Databases:{DB:"test-native"},durableObjects:{ROOMS:{className:"PracticeRoom",useSQLite:true},REPORTS:{className:"PracticeReports",useSQLite:true},PASSWORD_CRYPTO:{className:"PasswordCrypto",useSQLite:true},PBE_SOLO:{className:"PbeSoloRound",useSQLite:true}},bindings:{PUBLIC_ORIGIN:"https://erudoza.test",...options.bindings},outboundService});
-  const db=await runtime.getD1Database("DB");
+  const runtimeOptions:ConstructorParameters<typeof Miniflare>[0]={modules:true,script:bundle.outputFiles[0].text,compatibilityDate:"2026-05-22",compatibilityFlags:["nodejs_compat"],d1Databases:{DB:"test-native"},durableObjects:{ROOMS:{className:"PracticeRoom",useSQLite:true},REPORTS:{className:"PracticeReports",useSQLite:true},PASSWORD_CRYPTO:{className:"PasswordCrypto",useSQLite:true},PBE_SOLO:{className:"PbeSoloRound",useSQLite:true}},bindings:{PUBLIC_ORIGIN:"https://erudoza.test",...options.bindings},outboundService};
+  const runtime=new Miniflare(runtimeOptions);
+  let db=await runtime.getD1Database("DB");
+  const restart=async()=>{await runtime.setOptions({...runtimeOptions,bindings:{...runtimeOptions.bindings,FIXTURE_RESTART:crypto.randomUUID()}});db=await runtime.getD1Database("DB");};
   for(const migration of await readNativeMigrations()) await db.batch(migration.statements.map((sql:string)=>db.prepare(sql)));
   const salt=Buffer.alloc(16,3),hash=`pbkdf2:${salt.toString("base64")}:${pbkdf2Sync("Testing!123",salt,100000,32,"sha256").toString("base64")}`;
   await db.prepare("INSERT INTO Organizations(id,name,slug) VALUES(?,?,?)").bind(TEST_ORG,"Practice Club","practice-club").run();
@@ -83,5 +83,5 @@ export async function createNativeTestApp(options:{measureD1?:boolean;onD1Meter?
       return Response.json(await importPack({request,env,actor,path:'/fixture',orgId:org,store:new Store(env.DB)},await body(request,2*1024*1024)));
     }catch(error){return Response.json({message:error instanceof Error?error.message:String(error)},{status:error instanceof HttpError?error.status:503});}
   };
-  return {runtime,db,fetch,login,importFixture};
+  return {runtime,get db(){return db;},fetch,login,importFixture,restart};
 }

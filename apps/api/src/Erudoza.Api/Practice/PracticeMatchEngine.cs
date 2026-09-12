@@ -117,6 +117,7 @@ public sealed partial class PracticeService
         var score = PvpScoring.Score(earned, Duration(question), elapsed, deadlineDraft);
         room.Submissions.Add(new PracticeSubmission
         {
+            AttemptId = IsPbe(room) ? Guid.NewGuid() : Guid.Empty,
             ResponseLockedAtUtc = IsPbe(room) ? room.ResponseStartsAt?.Add(elapsed) : null,
             QuestionId = question.Id,
             Team = team,
@@ -131,9 +132,8 @@ public sealed partial class PracticeService
     private object View(PracticeRoom room, PracticeActor actor, bool materialUnavailable = false)
     {
         var member = room.Members.FirstOrDefault(m => m.UserId == actor.Id);
-        bool coach = actor.Admin && (room.OwnerId == actor.Id || room.CoachId == actor.Id || room.Submissions.Any(s => s.Appealed));
-        var revealed = room.Questions.Take(room.Status is "Completed" or "Interrupted" ? room.Questions.Count : room.QuestionIndex + (room.Phase == "Review" ? 1 : 0)).Select(q => q.Id).ToHashSet();
-        var visibleSubmissions = room.Submissions.Where(s => revealed.Contains(s.QuestionId)).ToList();
+        bool coach = member is null && actor.Admin && (room.OwnerId == actor.Id || room.CoachId == actor.Id || room.Submissions.Any(s => s.Appealed));
+        var visibleSubmissions = room.Submissions.Where(s => ReviewedQuestion(room, s.QuestionId) || IsPbe(room) && (room.Status is "Interrupted" or "Abandoned") && (coach || s.Team == member?.Team)).ToList();
         var current = room.Status is "Playing" or "Completed" or "Interrupted" && room.Questions.Count > 0 ? Current(room) : null;
         return new
         {
@@ -180,6 +180,9 @@ public sealed partial class PracticeService
                 var q = room.Questions.Single(q => q.Id == s.QuestionId);
                 return new
                 {
+                    attemptId = IsPbe(room) ? TeamAttemptId(room, s) : null,
+                    s.Dispute,
+                    s.OriginalAccuracyHundredths,
                     s.QuestionId,
                     q.Prompt,
                     q.Reference,
@@ -198,7 +201,8 @@ public sealed partial class PracticeService
                 };
             }),
             achievements = room.Awards.Where(a => a.UserId == actor.Id),
-            provisional = room.Submissions.Any(s => !s.Resolved),
+            pendingCount = visibleSubmissions.Count(s => s.Dispute?.Status == "Pending"),
+            provisional = (IsPbe(room) ? visibleSubmissions : room.Submissions).Any(s => !s.Resolved),
             contributions = room.Contributions.Where(c => coach || c.UserId == actor.Id),
             timingDiagnostics = room.TimingDiagnostics.Where(d => coach || d.Key == actor.Id).ToDictionary(d => d.Key, d => d.Value)
         };
@@ -229,10 +233,14 @@ public sealed partial class PracticeService
     {
         var all = (await Rooms.Where(r => r.OrganizationId == org && r.SeasonId == room.SeasonId && r.Status == "Completed").AsNoTracking().ToListAsync(ct))
             .Where(r => r.Id != room.Id).Select(r => PracticeJson.Read<PracticeRoom>(r.StateJson)).Append(room).ToList();
-        room.Awards = CalculateAwards(all).ToList();
+        room.Awards = CalculateAwards(await OverlayRooms(org, all, ct)).ToList();
         if (issueMastery) await RecordMasteryHonors(org, room, all, ct);
-        var stored = await db.Set<PracticeAwardRecord>().Where(a => a.OrganizationId == org && a.SeasonId == room.SeasonId).ToListAsync(ct);
-        var desired = room.Awards.ToDictionary(a => (a.UserId, a.Key));
+        await StoreAwards(org, room.SeasonId, room.Awards, ct);
+    }
+    private async Task StoreAwards(Guid org, Guid seasonId, IReadOnlyList<PracticeAward> awards, CancellationToken ct)
+    {
+        var stored = await db.Set<PracticeAwardRecord>().Where(a => a.OrganizationId == org && a.SeasonId == seasonId).ToListAsync(ct);
+        var desired = awards.ToDictionary(a => (a.UserId, a.Key));
         foreach (var existing in stored)
         {
             if (!desired.Remove((existing.UserId, existing.Key))) db.Remove(existing);
@@ -260,7 +268,28 @@ public sealed partial class PracticeService
             await Save(row, room, ct);
         }
     }
+    public async Task ReconcileReviewedAwards(Guid org, Guid season, CancellationToken ct)
+    {
+        var rooms = (await Rooms.AsNoTracking().Where(r => r.OrganizationId == org && r.SeasonId == season && r.Status == "Completed").ToListAsync(ct)).Select(r => PracticeJson.Read<PracticeRoom>(r.StateJson)).ToList();
+        await StoreAwards(org, season, CalculateAwards(await OverlayRooms(org, rooms, ct)).ToList(), ct);
+        await db.SaveChangesAsync(ct);
+    }
     private static IEnumerable<PracticeAward> CalculateAwards(IEnumerable<PracticeRoom> states)
+    {
+        var all = states.ToList(); foreach (var award in LegacyAwards(all.Where(r => !IsPbe(r)))) yield return award;
+        foreach (var season in all.Where(r => IsPbe(r) && r.Status == "Completed").GroupBy(r => r.SeasonId))
+            foreach (var user in season.SelectMany(r => r.Members).Select(m => m.UserId).Distinct())
+            {
+                var played = season.Where(r => r.Members.Any(m => m.UserId == user)).OrderByDescending(r => r.CompletedAt).ThenByDescending(r => r.Id).ToList();
+                yield return new("pbe-team-v1:first-fellowship", "First Fellowship", season.Key, user);
+                if (played.Count >= 10 && played.Select(r => r.CompletedAt!.Value.UtcDateTime.Date).Distinct().Count() >= 3) yield return new("pbe-team-v1:team-steady", "Team Steady", season.Key, user);
+                if (played.SelectMany(r => r.Submissions).Where(s => s.ScribeId == user && !s.DeadlineDraft).Select(s => s.QuestionId).Distinct().Count() >= 10) yield return new("pbe-team-v1:shared-scribe", "Shared Scribe", season.Key, user);
+                var final = played.SelectMany(r => r.Submissions.Where(s => s.Team == r.Members.Single(m => m.UserId == user).Team).Select(s => new { Submission = s, Question = r.Questions.Single(q => q.Id == s.QuestionId) })).GroupBy(x => x.Question.Id).Select(g => g.First()).Where(x => x.Submission.Resolved).ToList();
+                if (final.Count >= 30 && final.Sum(x => x.Submission.AccuracyHundredths) * 10L >= final.Sum(x => Points(x.Question) * 100L) * 9) yield return new("pbe-team-v1:team-precision", "Team Precision", season.Key, user);
+                if (played.Any(r => r.QuestionCount == 90)) yield return new("pbe-team-v1:rehearsal-complete", "Rehearsal Complete", season.Key, user);
+            }
+    }
+    private static IEnumerable<PracticeAward> LegacyAwards(IEnumerable<PracticeRoom> states)
     {
         var complete = states.Where(r => r.Status == "Completed" && r.Submissions.All(s => s.Resolved)).ToList();
         foreach (var season in complete.GroupBy(r => r.SeasonId))

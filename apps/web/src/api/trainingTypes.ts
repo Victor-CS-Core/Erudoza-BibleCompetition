@@ -98,7 +98,11 @@ export type SessionRecap = {
         }[];
     }[];
     interrupted?: boolean;
-    results?: { attemptId:string;earnedPoints:number;availablePoints:number;acceptedAtUtc:string }[] | null;
+    results?: { attemptId:string;questionId?:string;earnedPoints:number;originalEarnedPoints?:number;availablePoints:number;acceptedAtUtc:string;dispute?:{id:string;status:"Pending"|"Resolved";revision:number;questionId:string;questionVersion:number;pointsByPart:number[]|null}|null }[] | null;
+    provisional?: boolean;
+    pendingCount?: number;
+    finalizedEarnedPoints?: number;
+    finalizedAvailablePoints?: number;
 };
 export type StartTrainingContext = {
     clientStartId: string;

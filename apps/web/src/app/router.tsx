@@ -23,6 +23,7 @@ import { StudyPage } from "../features/student/StudyPage";
 import { AppShell } from "../layouts/AppShell";
 import { RouteProblemPage } from "./RouteProblemPage";
 import { DesignSystemPage } from "../components/design-system/DesignSystemPage";
+const DisputeQueue = lazy(() => import("../features/practice/DisputeQueue").then(module=>({default:module.DisputeQueue})));
 const PracticePage = lazy(() => import("../features/practice/PracticePage").then(module => ({ default: module.PracticePage })));
 function PracticeRoute() {
   return <Suspense fallback={<LoadingState label="Loading Team Practice…" />}><PracticePage /></Suspense>;
@@ -73,6 +74,7 @@ export const router = createBrowserRouter([
       { path: "content", element: <ContentPage /> },
       { path: "design-system", element: <DesignSystemPage /> },
       { path: "profile", element: <ProfilePage /> },
+      { path: "practice/reviews", element: <Suspense fallback={<LoadingState label="Loading answer reviews…"/>}><DisputeQueue/></Suspense> },
       { path: "practice", element: <PracticeRoute /> },
       { path: "practice/:roomId", element: <PracticeRoute /> },
     ],

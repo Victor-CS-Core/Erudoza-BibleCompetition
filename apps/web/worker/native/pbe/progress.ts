@@ -1,6 +1,7 @@
 import type { D1PreparedStatement } from '@cloudflare/workers-types';
 import type { RequestContext } from '../types';
 import { HttpError } from '../types';
+import {bulkRefs,evidenceRefs} from './evidence-replay';
 import type { Stored } from '../store';
 import { advanceReview, initialReview, type RecallEvidence, type TargetReview } from './review';
 export interface PbeWriteBatch {
@@ -14,6 +15,9 @@ export interface PbeWriteBatch {
     replayed?: boolean;
 }
 export interface ReviewProjection {
+    provisional?:boolean;
+    pendingCount?:number;
+    evidenceGeneration?:number;
     id: string;
     targetId: string;
     review: TargetReview;
@@ -46,7 +50,7 @@ interface Sequence {
         acceptedSequence: number;
     }[];
 }
-interface RecallEvent {
+export interface RecallEvent {
     id: string;
     scopeVersion: string;
     acceptedSequence: number;
@@ -111,10 +115,12 @@ export async function prepareRecallEvidence(ctx: RequestContext, seasonId: strin
     recent.sort((a, b) => b.acceptedSequence - a.acceptedSequence || (a.targetId < b.targetId ? -1 : 1));
     write(ctx, w, 'pbe-recall-sequence', sid, { id: sid, acceptedSequence: sequence, lastAtMs: first.atMs, recentTargets: recent.slice(0, 3) }, oldSequence, seasonId);
     write(ctx, w, 'pbe-recall-event', id, { id, scopeVersion, acceptedSequence: sequence, questionKind, evidence }, null, seasonId);
+    w.statements.push(bulkRefs(ctx,ctx.actor.userId,seasonId,evidenceRefs(ctx.actor.userId,seasonId,{id,scopeVersion,acceptedSequence:sequence,questionKind,evidence})));
+    if(!previous)w.statements.push(ctx.env.DB.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data,revision) VALUES('pbe-evidence-index',?,?,?,?,?,1) ON CONFLICT(kind,id,org_id) DO NOTHING").bind(sid,ctx.orgId,seasonId,ctx.actor.userId,JSON.stringify({id:sid,ready:true,after:'',coveredLegacyEvents:0})));
     for (const e of evidence) {
         const pid = key(ctx, seasonId, e.targetId), prior = old.find(r => r.value.id === pid) ?? null, review = advanceReview(prior?.value.review ?? initialReview(e.targetId), e);
         const failed = e.recall && e.earnedPoints < e.availablePoints ? sequence : review.unresolved ? prior?.value.failedSequence ?? null : null;
-        write(ctx, w, 'pbe-target-review', pid, { id: pid, targetId: e.targetId, review, acceptedSequence: sequence, failedSequence: failed, lastAnsweredQuestionId: e.questionId, lastAnsweredQuestionKind: questionKind }, prior, seasonId);
+        write(ctx, w, 'pbe-target-review', pid, { id: pid, targetId: e.targetId, review, provisional:prior?.value.provisional??false,pendingCount:prior?.value.pendingCount??0,evidenceGeneration:prior?.value.evidenceGeneration, acceptedSequence: sequence, failedSequence: failed, lastAnsweredQuestionId: e.questionId, lastAnsweredQuestionKind: questionKind }, prior, seasonId);
     }
     return w;
 }

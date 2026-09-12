@@ -13,6 +13,21 @@ public static class PracticeEndpoints
     public static PracticeActor Actor(ICurrentUser user) => new(user.UserId, user.OrganizationId, user.DisplayName, user.IsAdmin);
     public static void MapPractice(this WebApplication app)
     {
+        var disputes = app.MapGroup("/api/v1/pbe/disputes").RequireAuthorization();
+        disputes.AddEndpointFilter(async (context, next) =>
+        {
+            try { return await next(context); }
+            catch (PracticeForbiddenException) { return Results.Forbid(); }
+            catch (KeyNotFoundException e) { return Results.NotFound(new { message = e.Message }); }
+            catch (PbeBankConflictException e) { return Results.Conflict(new { message = e.Message }); }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException) { return Results.Conflict(new { message = "The review changed. Refresh and retry." }); }
+        });
+        disputes.MapPost("", async (PbeDisputeFlag input, PbeDisputeService service, CancellationToken ct) => { var result = await service.Flag(input, ct); return Results.Json(PbeDisputeService.Dto(result.Value), statusCode: result.Created ? 201 : 200); });
+        disputes.MapGet("", (string? after, PbeDisputeService service, CancellationToken ct) => service.Queue(after, ct));
+        disputes.MapGet("/{id}", async (string id, PbeDisputeService service, CancellationToken ct) => PbeDisputeService.Dto(await service.Read(id, ct)));
+        disputes.MapPost("/{id}/replay", (string id, PbeDisputeService service, CancellationToken ct) => service.Replay(id, ct));
+        disputes.MapGet("/{id}/evidence", (string id, Guid targetId, string? after, PbeDisputeService service, CancellationToken ct) => service.Evidence(id, targetId, after, ct));
+        disputes.MapPost("/{id}/resolve", async (string id, PbeDisputeResolve input, PbeDisputeService service, CancellationToken ct) => PbeDisputeService.Dto(await service.Resolve(id, input, ct)));
         var group = app.MapGroup("/api/v1/organizations/{orgId:guid}/practice").RequireAuthorization();
         group.AddEndpointFilter(async (context, next) =>
         {

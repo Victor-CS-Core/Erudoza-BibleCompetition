@@ -4,9 +4,10 @@ export type PracticeCommand = { commandId: string; revision: number; action: str
 export type PracticeQuestion = { id?: string; contentPackId: string; sourceUnitId: string; prompt: string; kind: string; parts: { acceptedAnswers: string[]; points: number }[]; ordered: boolean; evidence: string; reference: string; version: number };
 export type PracticeAward = { key: string; title: string; seasonId: string };
 export type RoomSummary = { format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; id: string; seasonId: string; teamSize: number; questionCount: number; coached: boolean; status: string; memberCount: number; ownerId: string };
-export type PracticeTrend = { format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; seasonId: string; teamSize: number; bookKey: string | null; ruleVersion: string; matches: number; wins: number; draws: number; accuracyHundredths: number; speedHundredths: number; availableHundredths: number; unansweredQuestions: number; averageResponseMs: number; distinctQuestions: number; distinctPassages: number; participatedQuestions: number };
-export type PracticeBootstrap = { trends?: PracticeTrend[]; enabled: boolean; seasons: { id: string; name: string; pbeEnabled?: boolean }[]; players: { id: string; displayName: string }[]; rooms: RoomSummary[]; invitations: { id: string; roomId: string; team?: number; inviterName: string; expiresAt: string }[]; achievements: PracticeAward[]; questions: { id: string; seasonId: string; published: boolean; question: PracticeQuestion }[] };
+export type PracticeTrend = { pendingCount?: number; provisional?: boolean; scoringVersion?: string; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; seasonId: string; teamSize: number; bookKey: string | null; ruleVersion: string; matches: number; wins: number; draws: number; accuracyHundredths: number; speedHundredths: number; availableHundredths: number; unansweredQuestions: number; averageResponseMs: number; distinctQuestions: number; distinctPassages: number; participatedQuestions: number };
+export type PracticeBootstrap = { trends?: PracticeTrend[]; enabled: boolean; seasons: { id: string; name: string; pbeEnabled?: boolean }[]; players: { id: string; displayName: string }[]; rooms: RoomSummary[]; invitations: { id: string; roomId: string; team?: number; teamCount?:1|2; inviterName: string; expiresAt: string }[]; achievements: PracticeAward[]; questions: { id: string; seasonId: string; published: boolean; question: PracticeQuestion }[] };
 export type PracticeRoom = {
+  provisional?:boolean;pendingCount?:number;
   materialUnavailable?: boolean; coachId?:string; coachReading?:{questionId:string;coachId:string;completedAtMs:number}|null; coachReadyScribeIds?:string[];
   format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; interruptionReason?:'ArmedResponsesUntrusted'|'UnarmedReserveUnavailable'; presentationDelivery?: Record<string,'Audio'|'TextFallback'|'Coach'>; responseStartsAt?: string;
   id: string; seasonId: string; teamSize: number; questionCount: number; coached: boolean; ownerId: string; revision: number; status: string; phase: string; questionIndex: number; serverNow: string; phaseEndsAt?: string; scheduleId?: string;
@@ -14,7 +15,7 @@ export type PracticeRoom = {
   question?: { id: string; prompt: string; reference: string; kind: string; partCount: number; points: number; durationSeconds: number } | null;
   draft: string[]; submitted: boolean; messages: { id: string; userId: string; displayName: string; text: string; createdAt: string }[];
   scores: { team: number; accuracyHundredths: number; speedHundredths: number; totalHundredths: number; availableHundredths?: number }[];
-  results: { questionId: string; prompt: string; reference: string; evidence: string; acceptedAnswers: string[][]; team: number; answers: string[]; accuracyHundredths: number; speedHundredths: number; availableHundredths?: number; elapsedMs: number; appealed: boolean; resolved: boolean }[];
+  results: { responseLockedAtMs?:number;responseLockedAtUtc?:string;attemptId?:string;dispute?:PbeResultReview;originalAccuracyHundredths?:number;questionId: string; prompt: string; reference: string; evidence: string; acceptedAnswers: string[][]; team: number; answers: string[]; accuracyHundredths: number; speedHundredths: number; availableHundredths?: number; elapsedMs: number; appealed: boolean; resolved: boolean }[];
   achievements: PracticeAward[]; isCoach: boolean;
   timingAnomalies?: { at: number; reason: string }[];
 };
@@ -55,4 +56,15 @@ export const pbeApi = {
  createIntroduction:(org:string,season:string,input:{bookKey:string;sourceEdition:string;title:string;citation:string;licensingStatus:string;units:{citation:string;canonicalText:string}[]})=>post<PbeIntroduction>(`${pbeBase(org,season)}/introductions`,input),
  reviewIntroduction:(org:string,season:string,id:string,revision:number,reviewed:boolean)=>post<PbeIntroduction>(`${pbeBase(org,season)}/introductions/${id}/review`,{revision,reviewed}),
  assignIntroduction:(org:string,season:string,id:string,revision:number,studentIds:string[])=>post<PbeIntroduction>(`${pbeBase(org,season)}/introductions/${id}/assignments`,{revision,studentIds}),
+};
+
+export type PbeResultReview={id:string;status:'Pending'|'Resolved';revision:number;questionId?:string;questionVersion?:number;pointsByPart?:number[]|null};
+export type PbeDispute={id:string;organizationId:string;seasonId:string;activity:'Solo'|'Team';sessionId:string;attemptId:string;questionId:string;questionVersion:number;team:number|null;status:'Pending'|'Resolved';reason:string;revision:number;partPoints:number[];sourceEvidence:string;question:PbeAuthorQuestion;answers:string[];originalPointsByPart:number[];acceptedAtUtc:string;resolution:{pointsByPart:number[];reason:string;resolvedBy:string;resolvedAtUtc:string}|null};
+const disputeBase='/api/v1/pbe/disputes';
+export const pbeDisputeApi={
+ flag:(input:{activity:'Solo'|'Team';sessionId:string;attemptId:string;reason:string})=>post<PbeDispute>(disputeBase,input),
+ queue:(after='')=>request<Page<PbeDispute>>(`${disputeBase}?after=${encodeURIComponent(after)}`),
+ read:(id:string)=>request<PbeDispute>(`${disputeBase}/${encodeURIComponent(id)}`),
+ resolve:(id:string,input:{expectedRevision:number;pointsByPart:number[];reason:string})=>post<PbeDispute>(`${disputeBase}/${encodeURIComponent(id)}/resolve`,input),
+ replay:(id:string)=>post<{status:'Ready'|'Provisional';stage?:string}>(`${disputeBase}/${encodeURIComponent(id)}/replay`,{}),
 };

@@ -80,6 +80,9 @@ public sealed class PracticeInvitation
 }
 public sealed class PracticeSubmission
 {
+    [System.Text.Json.Serialization.JsonIgnore] public Erudoza.Application.Study.PbeResultReview? Dispute { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore] public int? OriginalAccuracyHundredths { get; set; }
+    public Guid AttemptId { get; set; }
     public DateTimeOffset? ResponseLockedAtUtc { get; set; }
     public Guid QuestionId { get; set; }
     public int Team { get; set; }

@@ -21,6 +21,8 @@ export function measureD1Fetch(fetch:(request:Request,env:Env)=>Promise<Response
   }});
   const response=await fetch(request,{...env,DB:database(env.DB)});
   await report?.({bindingCalls,statements,methods});
+  // Preserve the upgrade socket; reconstructing a101 response drops its WebSocket.
+  if(response.status===101)return response;
   const headers=new Headers(response.headers);headers.set('x-test-d1-meter',JSON.stringify({bindingCalls,statements,methods}));
   return new Response(response.body,{status:response.status,statusText:response.statusText,headers});
  };

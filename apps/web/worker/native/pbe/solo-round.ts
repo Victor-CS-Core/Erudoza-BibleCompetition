@@ -3,7 +3,7 @@ import { authenticate, checkOrigin } from '../auth';
 import { Store } from '../store';
 import { body, HttpError, json, requiredString, type Actor, type Env, type RequestContext } from '../types';
 import { acknowledgePresentation, type PresentationState } from './presentation';
-import { pbeSummary, submitTimedPbeSession, type PbeSession } from './sessions';
+import { reviewedPbeSummary, submitTimedPbeSession, type PbeSession } from './sessions';
 
 interface SubmissionInput { clientSubmissionId:string;challengeCardId:string;answers:string[];hintsUsed:false }
 interface FrozenSubmission { input:SubmissionInput;retryAnswers:string[];elapsedMs:number;lockedAtMs:number }
@@ -86,7 +86,7 @@ export class PbeSoloRound extends DurableObject<Env>{
         if(request.method==='POST'&&state&&(state.status==='Settling'||state.status==='Settled')&&!startsNextCard)throw new HttpError(409,'The frozen response cannot be replaced.');
         if(state?.status==='Interrupted'){
           await this.recordInterruption(state);
-          if(request.method==='GET')return json({status:'Interrupted',restartAllowed:true,session:{id:session.id,format:session.format,seasonId:session.seasonId,mode:session.mode,status:'Interrupted',targetCardCount:session.cards.length},summary:pbeSummary(session,true),interruption:{status:'Interrupted',restartAllowed:true}});
+          if(request.method==='GET')return json({status:'Interrupted',restartAllowed:true,session:{id:session.id,format:session.format,seasonId:session.seasonId,mode:session.mode,status:'Interrupted',targetCardCount:session.cards.length},summary:await reviewedPbeSummary({store:new Store(this.env.DB),orgId:actor.organizationId},session,true),interruption:{status:'Interrupted',restartAllowed:true}});
           throw new HttpError(409,'This rehearsal was interrupted. Start another shortened timed practice.');
         }
         if(request.method==='GET'&&expected){

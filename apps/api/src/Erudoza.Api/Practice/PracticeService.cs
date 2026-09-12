@@ -50,7 +50,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
             && db.OrganizationMembers.Any(m => m.OrganizationId == org && m.UserId == u.Id))
             .Select(u => new { u.Id, u.DisplayName }).ToListAsync(ct) : [];
         var records = enabled ? await Rooms.Where(r => r.OrganizationId == org).ToListAsync(ct) : [];
-        var states = records.Select(r => PracticeJson.Read<PracticeRoom>(r.StateJson)).ToList();
+        var states = await OverlayRooms(org, records.Select(r => PracticeJson.Read<PracticeRoom>(r.StateJson)).ToList(), ct);
         var visible = states.Where(r => r.OwnerId == actor.Id || r.Members.Any(m => m.UserId == actor.Id) || actor.Admin && r.Submissions.Any(s => s.Appealed)
             || r.Invitations.Any(i => i.UserId == actor.Id && !i.Accepted && i.ExpiresAt > runtime.Now));
         var questions = actor.Admin && enabled ? await Questions.Where(q => q.OrganizationId == org).ToListAsync(ct) : [];
@@ -60,7 +60,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
             seasons,
             players,
             rooms = visible.Select(r => new { r.Id, r.SeasonId, format = r.Format ?? "Arcade", teamCount = ActiveTeams(r).Length, r.TeamSize, r.QuestionCount, r.Coached, r.Status, memberCount = r.Members.Count, r.OwnerId }),
-            invitations = states.SelectMany(r => r.Invitations).Where(i => i.UserId == actor.Id && !i.Accepted && i.ExpiresAt > runtime.Now),
+            invitations = states.SelectMany(r => r.Invitations.Where(i => i.UserId == actor.Id && !i.Accepted && i.ExpiresAt > runtime.Now).Select(i => new { i.Id, i.RoomId, i.UserId, i.Team, i.InviterName, i.ExpiresAt, i.Accepted, teamCount = ActiveTeams(r).Length })),
             achievements = CalculateAwards(states).Where(a => a.UserId == actor.Id).DistinctBy(a => (a.Key, a.SeasonId)),
             trends = Trends(states, actor.Id),
             questions = questions.Where(q => IsLegacyQuestion(q.DefinitionJson)).Select(q => new { q.Id, q.SeasonId, q.Published, question = PracticeJson.Read<PracticeQuestion>(q.DefinitionJson) })
@@ -97,7 +97,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         db.Add(record);
         if (!actor.Admin) Join(room, actor, 1);
         await Save(record, room, ct);
-        return View(room, actor);
+        return await PublicView(org, room, actor, ct);
     }
     private static void Join(PracticeRoom room, PracticeActor actor, int team)
     {
@@ -150,14 +150,14 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         Erudoza.Application.Abstractions.PbeSourceScope? authorized = null;
         if (IsPbe(room) && room.Status is "Lobby" or "Playing")
         {
-            try { authorized = await AuthorizePbeRoom(org, room, ct); } catch (PracticeForbiddenException) { return View(room, actor, true); } catch (DomainException) { return View(room, actor, true); }
+            try { authorized = await AuthorizePbeRoom(org, room, ct); } catch (PracticeForbiddenException) { return await PublicView(org, room, actor, ct, true); } catch (DomainException) { return await PublicView(org, room, actor, ct, true); }
         }
         var changed = Advance(room, authorized is null ? null : EligiblePbeReserves(room, authorized));
         using var awards = room.Status == "Completed" ? await runtime.EnterAwards(org, ct) : null;
         if (room.Status == "Completed") { await ReconcileAwards(org, room, ct, issueMastery: changed); changed = true; }
         if (changed) await Save(record, room, ct);
         else if (IsPbe(room)) await ProjectRoomExposure(org, room.Id, ct);
-        return View(room, actor);
+        return await PublicView(org, room, actor, ct);
     }
     public async Task<object> Accept(Guid org, Guid invitationId, int? team, PracticeActor actor, CancellationToken ct)
     {
@@ -174,7 +174,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         if (IsPbe(room)) await AuthorizePbeRoom(org, room, ct, true);
         invitation.Accepted = true;
         await Save(record, room, ct);
-        return View(room, actor);
+        return await PublicView(org, room, actor, ct);
     }
     public async Task Import(Guid org, PracticeActor actor, ImportPracticeQuestions request, CancellationToken ct)
     {

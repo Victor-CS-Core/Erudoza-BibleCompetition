@@ -2,12 +2,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { practiceApi, type PracticeRoom } from "../../api/practice";
+import { practiceApi, pbeDisputeApi, type PracticeRoom } from "../../api/practice";
 import { PracticePage } from "./PracticePage";
 
 const auth = vi.hoisted(() => ({ me: { userId: "player", organizationId: "org", kind: "Student" } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => auth }));
-vi.mock("../../api/practice", () => ({ practiceApi: { room: vi.fn(), bootstrap: vi.fn(), command: vi.fn() } }));
+vi.mock("../../api/practice", () => ({ pbeDisputeApi:{flag:vi.fn()},practiceApi: { room: vi.fn(), bootstrap: vi.fn(), command: vi.fn() } }));
 vi.mock("../../api/practiceTransport", () => ({ nativeCloudflare: true, createPracticeConnection: () => ({ state: "Disconnected", on: vi.fn(), onreconnecting: vi.fn(), onreconnected: vi.fn(), onclose: vi.fn(), start: () => new Promise(() => {}), stop: vi.fn() }) }));
 const member = (userId: string, team: number, ready = false) => ({ userId, team, ready, displayName: userId, captain: true, scribe: true });
 const result = (team: number, resolved = true): PracticeRoom["results"][number] => ({ questionId: "q", team, resolved, appealed: false, prompt: "Who answered?", reference: "Daniel 1:8", evidence: "Source evidence", acceptedAnswers: [["Daniel"]], answers: ["Daniel"], accuracyHundredths: 100, speedHundredths: 10, elapsedMs: 8000 });
@@ -207,4 +207,11 @@ it('lets the saved owner terminate unavailable active material through confirmat
  fireEvent.click(screen.getByRole('button',{name:'Abandon room'}));
  fireEvent.click(within(screen.getByRole('dialog',{name:'Abandon this room?'})).getByRole('button',{name:'Abandon room'}));
  await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'abandon'})));
+});
+
+it("flags a saved interrupted PBE answer without sending a legacy appeal or stopping independent replay",async()=>{
+ const accepted={...result(1),attemptId:'accepted-attempt'};mount(room({format:'Pbe',teamCount:1,status:'Interrupted',phase:'Interrupted',results:[accepted]}));
+ vi.mocked(pbeDisputeApi.flag).mockResolvedValue({id:'dispute',status:'Pending',revision:1} as Awaited<ReturnType<typeof pbeDisputeApi.flag>>);
+ fireEvent.click(await screen.findByRole('button',{name:'Flag answer'}));fireEvent.change(screen.getByLabelText('Reason for review'),{target:{value:'Please check the saved rubric'}});fireEvent.click(screen.getByRole('button',{name:'Request coach review'}));
+ expect(await screen.findByText('Review pending')).toBeInTheDocument();expect(pbeDisputeApi.flag).toHaveBeenCalledWith({activity:'Team',sessionId:'room',attemptId:'accepted-attempt',reason:'Please check the saved rubric'});expect(practiceApi.command).not.toHaveBeenCalled();expect(screen.getByRole('link',{name:'Back to Team Practice'})).toBeInTheDocument();
 });

@@ -77,11 +77,31 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
     static PbeQuestionView QuestionView(PbeQuestion q) => new(q.Id, q.Version, q.Prompt, q.Reference, q.Kind.ToString(), q.Parts.Select(p => p.Points).ToList(), q.Parts.Sum(p => p.Points), PbeRules.ResponseSeconds(q.Parts.Sum(p => p.Points)));
     static object CardDto(PbeSessionSnapshot s, PbeSessionCard c) => new { c.Id, sessionId = s.Id, format = "Pbe", sequence = s.Cards.IndexOf(c) + 1, total = s.Cards.Count, question = QuestionView(c.Question), assisted = c.AssistedAtMs.HasValue };
     public static IReadOnlyList<TrainingStepDto> Steps(PbeSessionSnapshot s) => [new(s.Mode, s.Cards.Count, s.Attempts.Count, s.Cards.Count == s.Attempts.Count ? "Complete" : "Active", s.Id)];
-    internal static object Summary(PbeSessionSnapshot s)
+    internal static SessionRecapDto Recap(PbeSessionSnapshot s, PbeResultOverlay? overlay = null)
     {
-        var correct = s.Attempts.Count(a => a.Result.EarnedPoints == a.Result.AvailablePoints);
-        object? results = s.Mode != "Simulation" ? null : s.Status == "Completed" ? s.Attempts.Select(a => a.Result).ToList() : s.Status == "Interrupted" ? s.Attempts.Select(a => new SessionResultSummaryDto(a.Result.AttemptId, a.Result.EarnedPoints, a.Result.AvailablePoints, a.Result.AcceptedAtUtc)).ToList() : null;
-        return new { sessionId = s.Id, s.Format, s.Mode, attempted = s.Attempts.Count, correct, targetCardCount = s.Cards.Count, s.Status, earnedPoints = s.Attempts.Sum(a => a.Result.EarnedPoints), availablePoints = s.Attempts.Sum(a => a.Result.AvailablePoints), results, recap = new SessionRecapDto("pbe-daily-v2", s.Id, s.SeasonId, s.Mode, s.CompletedAtUtc, s.Attempts.Count, correct, s.Cards.Count, s.Attempts.Count == s.Cards.Count, s.NewlyCreditedDay, s.MissionLocalDate, s.CreditedLocalDate, Steps(s), [], [], s.Status == "Interrupted", s.Status == "Interrupted" ? s.Attempts.Select(a => new SessionResultSummaryDto(a.Result.AttemptId, a.Result.EarnedPoints, a.Result.AvailablePoints, a.Result.AcceptedAtUtc)).ToList() : null) };
+        var results = s.Attempts.Select(a =>
+        {
+            var card = s.Cards.Single(c => c.Id == a.CardId);
+            var review = overlay?.Entries.GetValueOrDefault(a.Result.AttemptId.ToString());
+            if (review?.QuestionId != card.Question.Id || review.QuestionVersion != card.Question.Version) review = null;
+            var earned = review is { Status: "Resolved", PointsByPart: not null } ? review.PointsByPart.Sum() : a.Result.EarnedPoints;
+            return new SessionResultSummaryDto(a.Result.AttemptId, earned, a.Result.AvailablePoints, a.Result.AcceptedAtUtc, card.Question.Id, a.Result.EarnedPoints, review);
+        }).ToList();
+        var pending = results.Count(r => r.Dispute?.Status == "Pending");
+        var finalized = results.Where(r => r.Dispute?.Status != "Pending").ToList();
+        return new("pbe-daily-v2", s.Id, s.SeasonId, s.Mode, s.CompletedAtUtc, s.Attempts.Count, results.Count(r => r.EarnedPoints == r.AvailablePoints), s.Cards.Count, s.Attempts.Count == s.Cards.Count, s.NewlyCreditedDay, s.MissionLocalDate, s.CreditedLocalDate, Steps(s), [], [], s.Status == "Interrupted", results, pending > 0, pending, finalized.Sum(r => r.EarnedPoints), finalized.Sum(r => r.AvailablePoints));
+    }
+    internal static object Summary(PbeSessionSnapshot s, PbeResultOverlay? overlay = null)
+    {
+        var recap = Recap(s, overlay);
+        object results = s.Mode == "Simulation" && s.Status == "Completed" ? s.Attempts.Select((a, i) => new { a.Result.AttemptId, recap.Results![i].EarnedPoints, a.Result.AvailablePoints, a.Result.ExpectedParts, a.Result.SourceEvidence, a.Result.Citation, a.Result.Unaided, a.Result.AcceptedAtUtc, a.Result.AcceptedSequence, a.Result.AlreadyProcessed, recap.Results[i].QuestionId, recap.Results[i].OriginalEarnedPoints, recap.Results[i].Dispute }).ToList() : recap.Results!;
+        return new { sessionId = s.Id, s.Format, s.Mode, attempted = s.Attempts.Count, recap.Correct, targetCardCount = s.Cards.Count, s.Status, earnedPoints = recap.Results!.Sum(r => r.EarnedPoints), availablePoints = recap.Results!.Sum(r => r.AvailablePoints), recap.Provisional, recap.PendingCount, recap.FinalizedEarnedPoints, recap.FinalizedAvailablePoints, results, recap };
+    }
+    async Task<object> ReviewedSummary(PbeSessionSnapshot s, CancellationToken ct)
+    {
+        var key = $"Solo:{s.Id}";
+        var row = await db.PbeTrainingRecords.AsNoTracking().SingleOrDefaultAsync(r => r.OrganizationId == user.OrganizationId && r.Kind == "pbe-result-overlay" && r.Id == key, ct);
+        return Summary(s, row is null ? null : JsonSerializer.Deserialize<PbeResultOverlay>(row.DataJson, PbeQuestionBank.Json));
     }
     async Task<PbeSourceScope> Eligible(PbeSessionSnapshot s, CancellationToken ct)
     {
@@ -181,10 +201,10 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
         if (session.Mode != "Simulation") throw new KeyNotFoundException("Timed rehearsal was not found.");
         var action = input is { } body && body.TryGetProperty("action", out var a) && a.ValueKind == JsonValueKind.String ? a.GetString() : null;
         object Receipt(PbeSessionAttempt attempt) => new { attempt.Result.AttemptId, attempt.Result.AcceptedAtUtc, attempt.Result.AcceptedSequence, AlreadyProcessed = true, feedbackDeferred = true, attempt.ResponseLockedAtUtc, questionId = attempt.CardId };
-        object Interrupted() => new { status = "Interrupted", restartAllowed = true, session = SessionDto(session), summary = Summary(session), interruption = new { status = "Interrupted", restartAllowed = true } };
+        async Task<object> Interrupted() => new { status = "Interrupted", restartAllowed = true, session = SessionDto(session), summary = await ReviewedSummary(session, ct), interruption = new { status = "Interrupted", restartAllowed = true } };
         if (session.Status == "Interrupted" || session.Timing?.Status == "Interrupted")
         {
-            if (action is null) return Interrupted();
+            if (action is null) return await Interrupted();
             throw new PbeProgressConflictException("This rehearsal was interrupted. Start another shortened timed practice.");
         }
         if (action is null && expectedQuestionId is { } expected && session.Attempts.LastOrDefault(attempt => attempt.CardId == expected) is { } delivered) return Receipt(delivered);
@@ -230,7 +250,7 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
                 return await Project(recovered);
             }
             session.Status = "Interrupted"; session.Timing.Status = "Interrupted"; await SaveTiming();
-            if (action is null) return Interrupted();
+            if (action is null) return await Interrupted();
             throw new PbeProgressConflictException("This rehearsal was interrupted. Start another shortened timed practice.");
         }
         if (action is null)
@@ -281,10 +301,10 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
         if (s.Mode == "Simulation" && s.Timing is null && s.TimingStatus == "Armed") { s.Status = "Interrupted"; s.TimingStatus = "Interrupted"; Write(db, user.OrganizationId, s, "pbe-session", s.Id.ToString(), s, row); }
         if (s.Status == "Interrupted" || s.Timing?.Status == "Interrupted")
         {
-            if (action is null) return new { session = SessionDto(s), card = (object?)null, attempt = (object?)null, summary = Summary(s), interruption = new { status = "Interrupted", restartAllowed = true } };
+            if (action is null) return new { session = SessionDto(s), card = (object?)null, attempt = (object?)null, summary = await ReviewedSummary(s, token), interruption = new { status = "Interrupted", restartAllowed = true } };
             throw new PbeProgressConflictException("This rehearsal was interrupted. Start another shortened timed practice.");
         }
-        if (action is null && s.Status == "Completed") return new { session = SessionDto(s), card = (object?)null, attempt = (object?)null, summary = Summary(s) };
+        if (action is null && s.Status == "Completed") return new { session = SessionDto(s), card = (object?)null, attempt = (object?)null, summary = await ReviewedSummary(s, token) };
         var scope = await Eligible(s, token);
         void Save() => Write(db, user.OrganizationId, s, "pbe-session", s.Id.ToString(), s, row);
         if (action == "attempts")
@@ -336,7 +356,7 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
                 s.CompletedAtUtc = DateTimeOffset.FromUnixTimeMilliseconds(clock.UtcNow.ToUnixTimeMilliseconds());
                 Save();
             }
-            return Summary(s);
+            return await ReviewedSummary(s, token);
         }
         if (action == "source")
         {

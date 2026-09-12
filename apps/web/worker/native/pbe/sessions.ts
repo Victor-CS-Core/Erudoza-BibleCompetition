@@ -1,3 +1,4 @@
+import type {PbeResultOverlay} from './result-overlays';
 import type { RequestContext } from '../types';
 import { HttpError, json, requiredString } from '../types';
 import { atomic, id } from '../application/model';
@@ -87,8 +88,14 @@ const conflict = (message = 'The assignment changed. Start a new PBE session.') 
 export const pbeSessionDto = (s: PbeSession) => ({ id: s.id, format: s.format, seasonId: s.seasonId, mode: s.mode, status: s.status, targetCardCount: s.cards.length, ruleVersion: s.ruleVersion, scoringVersion: s.scoringVersion, selectionVersion: s.selectionVersion, ...(s.mode === 'Simulation' ? { rehearsalScope: 'ShortenedTimedPractice', eligibleCount: s.cards.length } : {}) });
 const dto = (s: PbeSession, c: PbeCard) => ({ id: c.id, sessionId: s.id, format: 'Pbe', sequence: s.cards.indexOf(c) + 1, total: s.cards.length, question: questionView(c.question), assisted: c.assistedAtMs !== null });
 const receipt = (result:PbeResult, alreadyProcessed:boolean) => ({ attemptId:result.attemptId,acceptedAtUtc:result.acceptedAtUtc,acceptedSequence:result.acceptedSequence,alreadyProcessed,feedbackDeferred:true });
-const resultSummaries=(s:PbeSession)=>s.attempts.map(a=>({attemptId:a.result.attemptId,earnedPoints:a.result.earnedPoints,availablePoints:a.result.availablePoints,acceptedAtUtc:a.result.acceptedAtUtc}));
-export const pbeSummary = (s: PbeSession, interrupted=false) => ({ sessionId: s.id, format: s.format, mode: s.mode, attempted: s.attempts.length, correct: s.attempts.filter(a => a.result.earnedPoints === a.result.availablePoints).length, targetCardCount: s.cards.length, status: interrupted?'Interrupted':s.status, earnedPoints: s.attempts.reduce((n, a) => n + a.result.earnedPoints, 0), availablePoints: s.attempts.reduce((n, a) => n + a.result.availablePoints, 0), ...(s.mode === 'Simulation' && s.status === 'Completed' ? { results: s.attempts.map(a => a.result) } : interrupted?{results:resultSummaries(s)}:{}), recap: { version: 'pbe-daily-v2', sessionId: s.id, seasonId: s.seasonId, mode: s.mode, completedAtUtc: s.completedAtUtc ?? null, attempted: s.attempts.length, correct: s.attempts.filter(a => a.result.earnedPoints === a.result.availablePoints).length, targetCardCount: s.cards.length, fullTargetReached: s.attempts.length === s.cards.length, newlyCreditedDay: s.newlyCreditedDay, missionLocalDate: s.missionLocalDate, creditedLocalDate: s.creditedLocalDate, missionSteps: pbeMissionSteps(s), earnedBadges: [], passageChanges: [], ...(interrupted?{interrupted:true,results:resultSummaries(s)}:{}) } });
+export const pbeSummary=(s:PbeSession,interrupted=false,overlay?:PbeResultOverlay)=>{
+ const results=s.attempts.map(a=>{const card=s.cards.find(c=>c.id===a.cardId)!,candidate=overlay?.entries[a.result.attemptId],dispute=candidate?.questionId===card.question.id&&candidate.questionVersion===card.question.version?candidate:null;return {attemptId:a.result.attemptId,questionId:card.question.id,earnedPoints:dispute?.pointsByPart?.reduce((n,p)=>n+p,0)??a.result.earnedPoints,originalEarnedPoints:a.result.earnedPoints,availablePoints:a.result.availablePoints,acceptedAtUtc:a.result.acceptedAtUtc,dispute};});
+ const correct=results.filter(r=>r.earnedPoints===r.availablePoints).length,pendingCount=results.filter(r=>r.dispute?.status==='Pending').length,finalized=results.filter(r=>r.dispute?.status!=='Pending');
+ const metrics={earnedPoints:results.reduce((n,r)=>n+r.earnedPoints,0),availablePoints:results.reduce((n,r)=>n+r.availablePoints,0),pendingCount,provisional:pendingCount>0,finalizedEarnedPoints:finalized.reduce((n,r)=>n+r.earnedPoints,0),finalizedAvailablePoints:finalized.reduce((n,r)=>n+r.availablePoints,0)};
+ return {sessionId:s.id,format:s.format,mode:s.mode,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,status:interrupted?'Interrupted':s.status,...metrics,results:s.mode==='Simulation'&&s.status==='Completed'?s.attempts.map((a,i)=>({...a.result,...results[i]})):results,recap:{version:'pbe-daily-v2',sessionId:s.id,seasonId:s.seasonId,mode:s.mode,completedAtUtc:s.completedAtUtc??null,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,fullTargetReached:s.attempts.length===s.cards.length,newlyCreditedDay:s.newlyCreditedDay,missionLocalDate:s.missionLocalDate,creditedLocalDate:s.creditedLocalDate,missionSteps:pbeMissionSteps(s),earnedBadges:[],passageChanges:[],interrupted,results,...metrics}};
+};
+export async function reviewedPbeSummary(ctx:Pick<RequestContext,'store'|'orgId'>,s:PbeSession,interrupted=false){const overlay=await ctx.store.get<PbeResultOverlay>('pbe-result-overlay',`Solo:${s.id}`,ctx.orgId);return pbeSummary(s,interrupted,overlay?.value);}
+
 async function eligible(ctx: RequestContext, s: PbeSession) { const scope = await resolvePbeSessionSources(ctx, s.id); if (!scope.guards.some(g => g.kind === 'membership') || scope.eligibility !== s.scopeVersion || !scope.sources.length)
     throw conflict(); return scope; }
 export async function startPbeSession(ctx: RequestContext, input: Start) {
@@ -172,7 +179,7 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
         throw new HttpError(404, 'Study session was not found.');
     const interruption = s.mode === 'Simulation' ? await ctx.store.get<{status:string;restartAllowed:boolean}>('pbe-solo-interruption',s.id,ctx.orgId) : null;
     if (interruption) {
-        if (!action) return json({session:{...pbeSessionDto(s),status:'Interrupted'},card:null,attempt:null,summary:pbeSummary(s,true),interruption:interruption.value});
+        if (!action) return json({session:{...pbeSessionDto(s),status:'Interrupted'},card:null,attempt:null,summary:await reviewedPbeSummary(ctx,s,true),interruption:interruption.value});
         throw conflict('This rehearsal was interrupted. Start another shortened timed practice.');
     }
     const persist = async (scope: Awaited<ReturnType<typeof eligible>>, w: {
@@ -180,7 +187,7 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
         guards: Parameters<typeof atomic>[3];
     } = { statements: [], guards: [] }) => atomic(ctx, 'pbe.session.' + (action ?? 'resume'), [pbeAssignmentSetGuard(ctx, scope), ...w.statements, ctx.store.update('pbe-session', s.id, ctx.orgId, s, stored.revision)], [...scope.guards, ...w.guards!, { kind: 'pbe-session', id: s.id, revision: stored.revision }]);
     if (!action && s.status === 'Completed')
-        return json({ session: pbeSessionDto(s), card: null, attempt: null, summary: pbeSummary(s) });
+        return json({ session: pbeSessionDto(s), card: null, attempt: null, summary: await reviewedPbeSummary(ctx,s) });
     const scope = await eligible(ctx, s);
     if (action === 'attempts') {
         const submission = input as Submission;
@@ -222,7 +229,7 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
             s.completedAtUtc = trainingNow();
             await persist(scope);
         }
-        return json(pbeSummary(s));
+        return json(await reviewedPbeSummary(ctx,s));
     }
     if (action === 'source') {
         const card = s.cards[s.attempts.length];

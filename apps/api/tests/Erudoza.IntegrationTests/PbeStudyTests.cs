@@ -401,7 +401,7 @@ i++)
         Assert.Equal(JsonValueKind.Null, revoked.GetProperty("nextAction").ValueKind);
         Assert.Equal(HttpStatusCode.Conflict, (await f.Student.PostAsJsonAsync(path + "/complete", new { })).StatusCode);
     }
-    private sealed class Fixture : IDisposable
+    internal sealed class Fixture : IDisposable
     {
         public ErudozaApiFactory Factory = null!;
         public HttpClient Coach = null!, Student = null!;

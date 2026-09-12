@@ -7,7 +7,7 @@ namespace Erudoza.Application.Study;
 
 public sealed class PbeProgressConflictException(string message = "PBE event conflict. Refresh and retry.") : Exception(message);
 public sealed record PbePreparedProgress(bool Replayed, long? AcceptedSequence = null);
-public sealed record PbeReviewProjection(string Id, Guid TargetId, PbeTargetReview Review, long AcceptedSequence, long? FailedSequence, Guid LastAnsweredQuestionId, string? LastAnsweredQuestionKind);
+public sealed record PbeReviewProjection(string Id, Guid TargetId, PbeTargetReview Review, long AcceptedSequence, long? FailedSequence, Guid LastAnsweredQuestionId, string? LastAnsweredQuestionKind, bool Provisional = false, int PendingCount = 0, long? EvidenceGeneration = null);
 public sealed record PbeServiceProjection(string Id, Guid SubjectId, int ServedCount, long LastServedAtMs, Guid LastQuestionId, string LastQuestionKind);
 public sealed record PbeServiceEvent(Guid ServiceId, Guid QuestionId, IReadOnlyList<Guid> TargetIds, string QuestionKind, long AtMs);
 public sealed record PbeRecentTarget(Guid TargetId, long AcceptedSequence);
@@ -23,7 +23,7 @@ public sealed class PbeProgressService(IErudozaDbContext db)
         catch (DbUpdateException e) when (e is DbUpdateConcurrencyException || e.InnerException?.Message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase) == true || e.InnerException?.Message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) == true) { await transaction.RollbackAsync(ct); throw new PbeProgressConflictException(); }
     }
     private sealed record Sequence(string Id, long AcceptedSequence, long LastAtMs, IReadOnlyList<PbeRecentTarget> RecentTargets);
-    private sealed record RecallEvent(string Id, string ScopeVersion, long AcceptedSequence, string? QuestionKind, IReadOnlyList<PbeRecallEvidence> Evidence);
+    public sealed record RecallEvent(string Id, string ScopeVersion, long AcceptedSequence, string? QuestionKind, IReadOnlyList<PbeRecallEvidence> Evidence);
     private sealed record ServiceRecord(string Id, PbeServiceEvent Event);
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     static string Key(Guid student, Guid season, Guid? id = null) => $"{student}:{season}" + (id.HasValue ? $":{id}" : "");
@@ -83,6 +83,8 @@ public sealed class PbeProgressService(IErudozaDbContext db)
             .ToList();
         Write(org, season, student, "pbe-recall-sequence", sid, new Sequence(sid, sequence, first.AtMs, recent), oldSequence);
         Write(org, season, student, "pbe-recall-event", id, new RecallEvent(id, scopeVersion, sequence, questionKind, evidence), null);
+        foreach (var reference in PbeEvidenceReplayService.References(student, season, new RecallEvent(id, scopeVersion, sequence, questionKind, evidence))) Write(org, season, student, "pbe-evidence-ref", reference.Id, reference, null);
+        if (previous is null) Write(org, season, student, "pbe-evidence-index", sid, new PbeEvidenceIndex(sid, true, "", 0), null);
         foreach (var e in evidence)
         {
             var pid = Key(student, season, e.TargetId);
@@ -92,7 +94,7 @@ public sealed class PbeProgressService(IErudozaDbContext db)
             long? failed = e.Recall && e.EarnedPoints < e.AvailablePoints
                 ? sequence
                 : review.Unresolved ? p?.FailedSequence : null;
-            Write(org, season, student, "pbe-target-review", pid, new PbeReviewProjection(pid, e.TargetId, review, sequence, failed, e.QuestionId, questionKind), prior);
+            Write(org, season, student, "pbe-target-review", pid, new PbeReviewProjection(pid, e.TargetId, review, sequence, failed, e.QuestionId, questionKind, p?.Provisional ?? false, p?.PendingCount ?? 0, p?.EvidenceGeneration), prior);
         }
         return new(false, sequence);
     }
