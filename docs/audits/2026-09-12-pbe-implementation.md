@@ -1,6 +1,6 @@
 # PBE implementation evidence
 
-Status: implementation in progress. The source through B4 inline missing-word answers is independently reviewed and pushed at `0fa0ea20117413cbf29cfa4d45cb042680c30b4c` on `codex/pbe-training`. Chapter progress and final integration checks remain open. This document records local evidence; it is not a deployment or pilot result.
+Status: implementation in progress. The source through B4 inline missing-word answers is independently reviewed and pushed at `0fa0ea20117413cbf29cfa4d45cb042680c30b4c` on `codex/pbe-training`. D1 chapter progress is independently accepted and pushed at `ee977e4cb9ea54a5603702ca98c45f8e3ae09fbc`; cooperative progress and final integration checks remain open. This document records local evidence; it is not a deployment or pilot result.
 
 The [implementation plan](../superpowers/plans/2026-09-12-pbe-training.md) follows the [replayability assessment](2026-09-11-training-replayability.md) and [PBE alignment assessment](2026-09-11-pbe-training-alignment.md). [PROGRESS.md](../../PROGRESS.md) records individual test and review chronology, fixes and source checkpoints.
 
