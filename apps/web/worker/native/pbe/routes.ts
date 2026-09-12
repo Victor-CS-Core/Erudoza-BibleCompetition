@@ -34,7 +34,16 @@ export async function pbeRoutes(ctx:RequestContext):Promise<Response|null>{
   for(const q of questions)if(q.sourceUnitIds.some(id=>{const s=sources.get(id);return !s||s.contentPackId!==q.contentPackId||packs.get(s.contentPackId)?.sourceType!==(q.sourceKind==='Scripture'?'Scripture':'Supplemental');}))throw new HttpError(400,'Each source must be approved season content of the declared kind.');
   const statements=[];
   for(const t of targets){const prior=await ctx.store.get<PbeTarget>('pbe-target',t.id,ctx.orgId);if(prior){const owner=await ctx.env.DB.prepare("SELECT season_id FROM Records WHERE kind='pbe-target' AND org_id=? AND id=?").bind(ctx.orgId,t.id).first<{season_id:string}>();if(owner?.season_id!==seasonId)throw new HttpError(409,'Declare a new target ID for this season.');if(JSON.stringify(prior.value)!==JSON.stringify(t))throw new HttpError(409,'Target meaning is immutable; declare a new target ID.');}else statements.push(ctx.store.insertion('pbe-target',t.id,ctx.orgId,t,{seasonId,ownerId:t.sourceUnitIds[0]}));}
-  for(const q of questions){const otherSeason=await ctx.env.DB.prepare("SELECT 1 FROM Records WHERE kind='pbe-question' AND org_id=? AND id>=? AND id<? AND season_id<>? LIMIT 1").bind(ctx.orgId,q.id+':',q.id+';',seasonId).first();if(otherSeason)throw new HttpError(409,'Declare a new question ID for this season.');const id=`${q.id}:${q.version}`;if(await ctx.store.get('pbe-question',id,ctx.orgId))throw new HttpError(409,'This question version already exists.');const row:PbeQuestionRecord={id,seasonId,published:false,sourceFingerprint:await sourceProof(q,sources),question:q};statements.push(ctx.store.insertion('pbe-question',id,ctx.orgId,row,{seasonId}));}
+  for(const q of questions){
+   const otherSeason=await ctx.env.DB.prepare("SELECT 1 FROM Records WHERE kind='pbe-question' AND org_id=? AND id>=? AND id<? AND season_id<>? LIMIT 1").bind(ctx.orgId,q.id+':',q.id+';',seasonId).first();
+   if(otherSeason)throw new HttpError(409,'Declare a new question ID for this season.');
+   const id=`${q.id}:${q.version}`;
+   if(await ctx.store.get('pbe-question',id,ctx.orgId))throw new HttpError(409,'This question version already exists.');
+   const row:PbeQuestionRecord={id,seasonId,published:false,sourceFingerprint:await sourceProof(q,sources),question:q};
+   // Check identity ownership in the same transaction as all target/question inserts.
+   // A failed Records JSON constraint makes atomic() roll back the entire batch.
+   statements.push(ctx.env.DB.prepare("INSERT INTO Records(kind,id,org_id,season_id,data,revision) VALUES('pbe-question',?,?,?,CASE WHEN EXISTS(SELECT 1 FROM Records WHERE kind='pbe-question' AND org_id=? AND id>=? AND id<? AND season_id<>?) THEN 'invalid-json' ELSE ? END,1)").bind(id,ctx.orgId,seasonId,ctx.orgId,q.id+':',q.id+';',seasonId,JSON.stringify(row)));
+  }
   if((await resolvePbeSources(ctx,base)).fingerprint!==resolved.fingerprint)throw new HttpError(409,'The PBE scope changed. Refresh and retry.');
   try{await atomic(ctx,'pbe-import',statements,resolved.guards);}catch(error){if(String(error).includes('UNIQUE'))throw new HttpError(409,'This question or target already exists.');throw error;}return noContent();
  }

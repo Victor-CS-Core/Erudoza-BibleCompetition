@@ -64,3 +64,15 @@ it("returns a timed public view without answer or evidence fields", () => {
   expect(responseSeconds(8)).toBe(60);
   expect(() => responseSeconds(9)).toThrow(/1–8/);
 });
+
+it("limits v2 versions to the canonical Int32 range in validation and grading", () => {
+  const fixture = fixtures.cases[0];
+  const max = { ...fixture.question, version: 2147483647 } as PbeQuestion;
+  expect(() => validatePbeQuestion(max, fixtures.targets as PbeTarget[])).not.toThrow();
+  expect(() => gradePbe(max, fixture.answers)).not.toThrow();
+  for (const version of [2147483648, Number.MAX_SAFE_INTEGER + 1]) {
+    const invalid = { ...max, version };
+    expect(() => validatePbeQuestion(invalid, fixtures.targets as PbeTarget[])).toThrow();
+    expect(() => gradePbe(invalid, fixture.answers)).toThrow();
+  }
+});

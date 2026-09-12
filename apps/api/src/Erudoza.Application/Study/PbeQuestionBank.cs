@@ -41,7 +41,31 @@ public sealed class PbeQuestionBank(IErudozaDbContext db, ICurrentUser user, ICo
         sources = sources.Where(s => new[] { "development-sample", "public-domain", "approved", "creative-commons" }.Contains(s.ContentPack!.LicensingStatus.ToLowerInvariant())).ToList();
         var scopes = await db.ScopeEntries.AsNoTracking().Where(s => s.OrganizationId == organizationId && s.SeasonId == seasonId).OrderBy(s => s.Id).Select(s => new { s.Id, s.ContentPackId, s.Kind, s.BookKey, s.StartChapter, s.StartVerse, s.EndChapter, s.EndVerse }).ToListAsync(ct);
         var assigned = await db.AssignmentScopes.AsNoTracking().Where(s => s.Assignment!.OrganizationId == organizationId && s.Assignment.SeasonId == seasonId && s.Assignment.StudentUserId == studentId).OrderBy(s => s.Id).Select(s => new { s.Id, s.AssignmentId, s.ContentPackId, s.BookKey, s.StartChapter, s.StartVerse, s.EndChapter, s.EndVerse }).ToListAsync(ct);
-        var fingerprint = JsonSerializer.Serialize(new { season.Status, season.PbeEnabled, actor.IsActive, actor.Kind, membership.Role, scopes, assigned, sources = sources.Select(s => new { s.Id, s.ContentPackId, s.CanonicalText, s.SourceType, s.BookKey, s.Chapter, s.Verse, s.IsActive, s.IsRetired, s.ContentPack!.LicensingStatus }) }, Json);
+        var fingerprint = JsonSerializer.Serialize(new
+        {
+            season.Status,
+            season.PbeEnabled,
+            actor.IsActive,
+            actor.Kind,
+            membership.Role,
+            scopes,
+            assigned,
+            sources = sources.Select(s => new
+            {
+                s.Id,
+                s.OrganizationId,
+                s.ContentPackId,
+                s.CanonicalText,
+                s.CitationLabel,
+                s.SourceType,
+                s.BookKey,
+                s.Chapter,
+                s.Verse,
+                s.IsActive,
+                s.IsRetired,
+                pack = new { s.ContentPack!.Id, s.ContentPack.OrganizationId, s.ContentPack.IsBuiltIn, s.ContentPack.SourceType, s.ContentPack.IsActive, s.ContentPack.LicensingStatus }
+            })
+        }, Json);
         return new(sources, fingerprint);
     }
     public async Task<PbeBank> LoadAsync(PbeBankScope scope, CancellationToken ct = default)

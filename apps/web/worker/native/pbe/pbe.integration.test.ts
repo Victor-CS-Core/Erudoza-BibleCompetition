@@ -4,6 +4,8 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
 import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
+import { HttpError } from '../types';
+import { pbeRoutes } from './routes';
 import { loadPbeBank, sourceProof } from './bank';
 import fixtures from './rubric-fixtures.json';
 const season='cccccccc-0000-0000-0000-000000000001', student='dddddddd-0000-0000-0000-000000000001';
@@ -121,4 +123,29 @@ it('keeps legacy import isolated and additive native migration idempotent withou
  const migration=await readFile(new URL('../../../migrations/0005_pbe_training.sql',import.meta.url),'utf8');
  await ctx.env.DB.prepare(migration).run();await ctx.env.DB.prepare(migration).run();
  const after=await ctx.env.DB.prepare("SELECT kind,id,data,revision FROM Records WHERE id IN ('historical-session','permanent') ORDER BY id").all();expect(after.results).toEqual(before.results);
+});
+
+it('atomically rejects concurrent cross-season question identity reuse without partial imports',async()=>{
+ const {ctx,store}=await setup();const otherSeason='cccccccc-0000-0000-0000-000000000002';
+ const originalSeason=await store.require<Record<string,unknown>>('season',season,TEST_ORG),originalScope=await store.require('scope',season,TEST_ORG);
+ await store.insert('season',otherSeason,TEST_ORG,{...originalSeason.value,id:otherSeason});await store.insert('scope',otherSeason,TEST_ORG,originalScope.value);
+ let arrived=0,releaseBoth=()=>{},releaseFirst=()=>{};
+ const bothReady=new Promise<void>(resolve=>{releaseBoth=resolve;}),firstCommitted=new Promise<void>(resolve=>{releaseFirst=resolve;});
+ const database=ctx.env.DB;
+ // Hold both real D1 transactions after every preflight read, then commit them in order.
+ const interleaved=new Proxy(database,{get(object,key){if(key==='batch')return async(statements:Parameters<Env['DB']['batch']>[0])=>{const order=++arrived;if(order===2)releaseBoth();await bothReady;if(order===1){try{return await object.batch(statements);}finally{releaseFirst();}}await firstCommitted;return object.batch(statements);};const value=Reflect.get(object,key);return typeof value==='function'?value.bind(object):value;}});
+ const secondTarget={...target,id:'00000000-0000-0000-0000-000000000005'};
+ const invoke=async(seasonId:string,version:number,t:typeof target)=>{const path=`/practice/pbe/seasons/${seasonId}/questions/import`;const request=new Request(`https://erudoza.test${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({questions:[{...question,version,parts:[{...question.parts[0],targetId:t.id}]}],targets:[t]})});try{return (await pbeRoutes({...ctx,path,request,env:{...ctx.env,DB:interleaved},store:new Store(interleaved)}))!.status;}catch(error){if(error instanceof HttpError)return error.status;throw error;}};
+ const results=await Promise.all([invoke(season,1,target),invoke(otherSeason,2,secondTarget)]);
+ expect(arrived).toBe(2);expect(results.filter(status=>status===204)).toHaveLength(1);expect(results.filter(status=>status===409)).toHaveLength(1);
+ const winningSeason=results[0]===204?season:otherSeason,losingSeason=results[0]===204?otherSeason:season;
+ const rows=await database.prepare("SELECT kind,season_id FROM Records WHERE kind IN ('pbe-question','pbe-target') ORDER BY kind").all<{kind:string;season_id:string}>();
+ expect(rows.results).toEqual([{kind:'pbe-question',season_id:winningSeason},{kind:'pbe-target',season_id:winningSeason}]);
+ expect((await store.list('pbe-question',TEST_ORG,{seasonId:losingSeason}))).toEqual([]);expect((await store.list('pbe-target',TEST_ORG,{seasonId:losingSeason}))).toEqual([]);
+});
+it('imports Int32 maximum versions but rejects max-plus-one through HTTP',async()=>{
+ const {send,store}=await setup();
+ expect((await send('/questions/import',{questions:[{...question,version:2147483647}],targets:[target]})).status).toBe(204);
+ expect((await send('/questions/import',{questions:[{...question,version:2147483648}],targets:[target]})).status).toBe(400);
+ const records=await store.list<{question:{version:number}}>('pbe-question',TEST_ORG,{seasonId:season});expect(records.map(r=>r.question.version)).toEqual([2147483647]);
 });

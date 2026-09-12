@@ -13,6 +13,42 @@ namespace Erudoza.IntegrationTests;
 
 public sealed class PbeQuestionBankTests
 {
+    [Theory]
+    [InlineData("citation")]
+    [InlineData("pack-type")]
+    public async Task Source_validation_field_changes_during_load_conflict(string field)
+    {
+        using var factory = new ErudozaApiFactory { DisablePracticeTicker = true };
+        using var coach = await TestHttp.LoginAsync(factory, "admin@erudoza.local", "DevAdmin!234");
+        var me = await coach.GetFromJsonAsync<JsonElement>("/api/v1/me");
+        var org = me.GetProperty("organizationId").GetGuid();
+        using var services = factory.Services.CreateScope();
+        var db = services.ServiceProvider.GetRequiredService<ErudozaDbContext>();
+        var source = await db.SourceUnits.Include(s => s.ContentPack).FirstAsync(s => s.OrganizationId == org);
+        var rule = new RuleProfile { Id = Guid.NewGuid(), Key = "pbe-field-edit", Version = 1 };
+        var season = new CompetitionSeason { Id = Guid.NewGuid(), OrganizationId = org, RuleProfileId = rule.Id, Status = SeasonStatus.Active };
+        db.RuleProfiles.Add(rule); db.Seasons.Add(season);
+        db.ScopeEntries.Add(new() { Id = Guid.NewGuid(), OrganizationId = org, SeasonId = season.Id, ContentPackId = source.ContentPackId, Kind = ScopeEntryKind.Include, BookKey = source.BookKey, StartChapter = source.Chapter, EndChapter = source.Chapter, StartVerse = source.Verse, EndVerse = source.Verse });
+        var target = new PbeTarget { Id = Guid.NewGuid(), SourceUnitIds = [source.Id], Skill = RecallSkill.FactualRecall, Label = "Source-backed label" };
+        var question = new PbeQuestion { SchemaVersion = 2, Id = Guid.NewGuid(), Version = 1, ContentPackId = source.ContentPackId, SourceUnitId = source.Id, SourceUnitIds = [source.Id], SourceKind = PbeSourceKind.Scripture, Reference = source.CitationLabel, Evidence = source.CanonicalText, Kind = PbeQuestionKind.ShortAnswer, Prompt = "Name the label.", Parts = [new() { TargetId = target.Id, AcceptedAnswers = ["label"], Points = 1 }] };
+        var proof = PbeQuestionBank.SourceProof(question, new Dictionary<Guid, SourceUnit> { [source.Id] = source });
+        db.PbeTrainingRecords.Add(new() { OrganizationId = org, SeasonId = season.Id, Kind = "pbe-target", Id = target.Id.ToString(), OwnerId = source.Id, DataJson = JsonSerializer.Serialize(target, PbeQuestionBank.Json) });
+        db.PbeTrainingRecords.Add(new() { OrganizationId = org, SeasonId = season.Id, Kind = "pbe-question-head", Id = question.Id.ToString(), OwnerId = source.Id, DataJson = JsonSerializer.Serialize(new PbeBankQuestionData($"{question.Id}:1", season.Id, true, question, proof), PbeQuestionBank.Json) });
+        await db.SaveChangesAsync();
+        var user = new BankUser(me.GetProperty("userId").GetGuid(), org);
+        var resolver = services.ServiceProvider.GetRequiredService<ICompetitionScopeResolver>();
+        var assignments = services.ServiceProvider.GetRequiredService<IStudentStudyScopeService>();
+        var scope = new PbeBankScope(org, season.Id, null, [source.Id]);
+        Assert.Single((await new PbeQuestionBank(db, user, resolver, assignments).LoadAsync(scope)).Questions);
+        var editing = new EditingResolver(resolver, async () =>
+        {
+            if (field == "citation") source.CitationLabel += " revised";
+            else source.ContentPack!.SourceType = SourceType.Supplemental;
+            await db.SaveChangesAsync();
+        });
+        await Assert.ThrowsAsync<PbeBankConflictException>(() => new PbeQuestionBank(db, user, editing, assignments).LoadAsync(scope));
+    }
+
     [Fact]
     public void Source_fingerprint_and_NFC_excerpt_match_native_literal()
     {
@@ -56,6 +92,11 @@ public sealed class PbeQuestionBankTests
         malformed["questions"]![0]!["version"] = "1";
         Assert.Equal(HttpStatusCode.BadRequest, (await coach.PostAsJsonAsync(path + "/questions/import", malformed)).StatusCode);
         Assert.Equal(HttpStatusCode.NoContent, (await coach.PostAsJsonAsync(path + "/questions/import", input)).StatusCode);
+        var versionBoundary = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(input))!;
+        versionBoundary["questions"]![0]!["version"] = int.MaxValue;
+        Assert.Equal(HttpStatusCode.NoContent, (await coach.PostAsJsonAsync(path + "/questions/import", versionBoundary)).StatusCode);
+        versionBoundary["questions"]![0]!["version"] = (long)int.MaxValue + 1;
+        Assert.Equal(HttpStatusCode.BadRequest, (await coach.PostAsJsonAsync(path + "/questions/import", versionBoundary)).StatusCode);
         Assert.Equal(0, (await coach.GetFromJsonAsync<JsonElement>(path + "/bank")).GetProperty("questionCount").GetInt32());
         Assert.Equal(HttpStatusCode.NoContent, (await coach.PostAsJsonAsync(path + $"/questions/{qid}/1/publish", new { })).StatusCode);
         Assert.Equal(1, (await coach.GetFromJsonAsync<JsonElement>(path + "/bank")).GetProperty("questionCount").GetInt32());
