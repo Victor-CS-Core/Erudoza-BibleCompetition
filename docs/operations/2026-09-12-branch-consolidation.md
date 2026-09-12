@@ -33,6 +33,10 @@ The landing deck label branch `0db6367450f9dea891ee13478ae3fc0b009e079d` has a p
 
 ## Remaining execution gates
 
+The independent two-branch source audit is complete. Preserve `.azure/*` and `infra/bicep/*.local.json` as additive ignore rules. Azure's production cookie, automatic seeding/schema, privileged database identity, broad firewall and obsolete deployment choices conflict with later behavior; preserve its exact commit through a documented `ours` strategy history merge with no tree rollback. Merge the unique NKJV document normally and add a clear historical notice immediately after its title, linking current README/PROGRESS and library/Cloudflare guidance. Preserve its original body as dated evidence. These decisions are approved preparation; the merges and ignore-rule edits have not run.
+
+For the eleven exact-tree matches and the patch-equivalent landing fix, retain current source and preserve the original tips as merge ancestors. Record exact parents and unchanged tree evidence for any history-only merge. None of these decisions permits discarding a newly advanced branch tip without inspecting it.
+
 1. Finish reviewed D1/D2/D3 training work, including actual local restore and release checks. Record any real pilot, provider or capacity limits without inventing passes.
 2. Refresh every local/remote tip and worktree status; preserve any newly uncommitted work. Build a combined candidate with the latest main and every unique branch history, documenting conflict/supersession decisions. Apply current protection/CI policy through normal non-force operations.
 3. Verify the combined code, additive migration/backup and active-room compatibility, then push main and read back its exact SHA. Deployment must use the verified combined build and existing production target/bindings.
