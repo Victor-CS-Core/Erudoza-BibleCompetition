@@ -35,7 +35,7 @@ export function CoffeeWidget({ enabled = true, accountKey = "public" }: { enable
   if (!enabled || !profile || minimized) return null;
   return <>
     <div className="coffee-floating">
-    <Button variant="secondary" className="coffee-minimize" aria-label="Minimize support widget" title="Minimize support widget" onClick={() => {
+    <Button variant="ghost" className="coffee-minimize" aria-label="Minimize support widget" title="Minimize support widget" onClick={() => {
       flushSync(() => setCoffeeMinimized(true));
       focusSupport(".coffee-footer-support");
     }}><span aria-hidden="true">−</span></Button>
