@@ -179,6 +179,12 @@ public sealed class StudySessionService(
                 && item.StudentUserId == studentId,
             cancellationToken) ?? throw new DomainException("Study session was not found.");
 
+        if ((request.SubmittedAnswer is null) == (request.MissingWordAnswers is null))
+            throw new DomainException("Provide exactly one answer representation.");
+        if (request.MissingWordAnswers is { } slots && (slots.Any(a => a is null || a.Text is null)
+            || slots.Sum(a => (long)a.Text.Length) > 100000 || slots.Select(a => a.Index).Distinct().Count() != slots.Count))
+            throw new DomainException("Invalid missing-word answers.");
+
         var existing = await db.Attempts.SingleOrDefaultAsync(
             item => item.SessionId == sessionId && item.ClientSubmissionId == request.ClientSubmissionId,
             cancellationToken);
@@ -186,10 +192,12 @@ public sealed class StudySessionService(
         if (existing is not null)
         {
             if (existing.ChallengeCardId != request.ChallengeCardId
-                || existing.SubmittedAnswer != request.SubmittedAnswer
+                || !SameAnswer(existing, request)
                 || existing.ResponseTimeMs != request.ResponseTimeMs
                 || existing.HintsUsed != request.HintsUsed)
             {
+                if (existing.AnswerPayloadJson is not null || request.MissingWordAnswers is not null)
+                    throw new TrainingConflictException("This submission ID was already used with a different answer payload.");
                 throw new DomainException("This submission ID was already used with a different answer payload.");
             }
             return await ToResultAsync(existing, alreadyProcessed: true, exposeDebugAnswer, cancellationToken);
@@ -199,6 +207,18 @@ public sealed class StudySessionService(
             item => item.SessionId == sessionId && item.ChallengeCardId == request.ChallengeCardId && !item.IsLegacyDuplicate, cancellationToken);
         if (answered is not null)
         {
+            if (request.MissingWordAnswers is { } replaySlots)
+            {
+                if (answered.ActivityType != "MissingWords") throw new DomainException("Indexed answers require a MissingWords card.");
+                var savedPayload = MissingWordAnswerPayload.Read(answered.AnswerPayloadJson);
+                var indices = savedPayload?.Answers.Select(a => a.Index).ToHashSet();
+                if (indices is null)
+                {
+                    var savedCard = await db.ChallengeCards.SingleAsync(c => c.Id == answered.ChallengeCardId, cancellationToken);
+                    indices = ActivitySerialization.ReadPayload(savedCard.PayloadJson).Tokens.Where(t => t.Hidden).Select(t => t.Index).ToHashSet();
+                }
+                if (!indices.SetEquals(replaySlots.Select(a => a.Index))) throw new DomainException("Invalid missing-word answers.");
+            }
             return await ToResultAsync(answered, alreadyProcessed: true, exposeDebugAnswer, cancellationToken);
         }
         if (session.Status is StudySessionStatus.Completed or StudySessionStatus.Abandoned)
@@ -236,7 +256,23 @@ public sealed class StudySessionService(
         }
 
         var answerKey = ActivitySerialization.ReadAnswerKey(card.AnswerKeyJson);
-        var evaluation = ExactTextEvaluator.Evaluate(request.SubmittedAnswer, answerKey.CanonicalAnswer);
+        MissingWordAnswerPayload? answerPayload = null;
+        var submittedAnswer = request.SubmittedAnswer;
+        if (request.MissingWordAnswers is { } answers)
+        {
+            if (card.ActivityType != "MissingWords") throw new DomainException("Indexed answers require a MissingWords card.");
+            var slotEvaluation = MissingWordAnswers.Evaluate(cardPayload.Tokens, answers);
+            var byIndex = answers.ToDictionary(a => a.Index);
+            var ordered = cardPayload.Tokens.Where(t => t.Hidden).Select(t => byIndex[t.Index]).ToArray();
+            answerPayload = new(MissingWordAnswerPayload.CurrentFormat, ordered, slotEvaluation.Results);
+            submittedAnswer = string.Join(" ", ordered.Select(a => a.Text));
+        }
+        var evaluation = ExactTextEvaluator.Evaluate(submittedAnswer!, answerKey.CanonicalAnswer);
+        if (answerPayload is not null)
+        {
+            var correct = answerPayload.Results.All(r => r.IsCorrect);
+            evaluation = evaluation with { IsCorrect = correct, EvaluationCode = correct ? "ExactMatch" : "Incorrect", EvaluatorVersion = "missing-words-slots-v1" };
+        }
 
         var preference = await db.TrainingPreferences.AsNoTracking().SingleOrDefaultAsync(x => x.OrganizationId == organizationId && x.StudentUserId == studentId, cancellationToken);
         var acceptedAt = preference is not null && preference.LastEventAtUtc > clock.UtcNow ? preference.LastEventAtUtc : clock.UtcNow;
@@ -250,7 +286,8 @@ public sealed class StudySessionService(
             SeasonId = session.SeasonId,
             KnowledgeUnitId = card.KnowledgeUnitId,
             ClientSubmissionId = request.ClientSubmissionId,
-            SubmittedAnswer = request.SubmittedAnswer,
+            SubmittedAnswer = submittedAnswer!,
+            AnswerPayloadJson = answerPayload?.Serialize(),
             NormalizedAnswer = evaluation.NormalizedSubmitted,
             IsCorrect = evaluation.IsCorrect,
             EvaluationResult = evaluation.EvaluationCode,
@@ -332,16 +369,27 @@ public sealed class StudySessionService(
             session.Status.ToString(), TrainingProgressService.Read<SessionRecapDto>(session.RecapJson));
     }
 
+    private static bool SameAnswer(Attempt attempt, SubmitAttemptRequest request)
+    {
+        var saved = MissingWordAnswerPayload.Read(attempt.AnswerPayloadJson);
+        if (saved is null) return request.MissingWordAnswers is null && attempt.SubmittedAnswer == request.SubmittedAnswer;
+        if (saved.Format != MissingWordAnswerPayload.CurrentFormat || request.SubmittedAnswer is not null
+            || request.MissingWordAnswers is not { } answers || answers.Count != saved.Answers.Count) return false;
+        var indexed = answers.ToDictionary(a => a.Index);
+        return saved.Answers.All(original => indexed.TryGetValue(original.Index, out var answer) && answer.Text == original.Text);
+    }
+
     private async Task<AttemptResultDto> ToResultAsync(
         Attempt attempt,
         bool alreadyProcessed,
         bool exposeDebugAnswer,
         CancellationToken cancellationToken)
     {
+        var structured = MissingWordAnswerPayload.Read(attempt.AnswerPayloadJson);
         if (!string.IsNullOrWhiteSpace(attempt.ResultJson))
         {
             var saved = JsonSerializer.Deserialize<AttemptResultDto>(attempt.ResultJson);
-            if (saved is not null) return saved with { AlreadyProcessed = alreadyProcessed };
+            if (saved is not null) return saved with { AlreadyProcessed = alreadyProcessed, MissingWordResults = structured?.Results ?? saved.MissingWordResults, MissingWordAnswers = structured?.Answers ?? saved.MissingWordAnswers };
         }
         var card = await db.ChallengeCards.SingleAsync(item => item.Id == attempt.ChallengeCardId, cancellationToken);
         var source = await db.SourceUnits.SingleAsync(item => item.Id == (card.AnswerSourceUnitId ?? card.SourceUnitId), cancellationToken);
@@ -367,7 +415,7 @@ public sealed class StudySessionService(
             masteryState?.Level.ToString() ?? MasteryLevel.Learning.ToString(),
             masteryState?.ExactWordingScore ?? 0,
             review?.DueAtUtc,
-            alreadyProcessed);
+            alreadyProcessed, structured?.Results, structured?.Answers);
         // Legacy attempts have no original response snapshot. Freeze the first rebuilt
         // response on replay; the coordinator persists it without applying mastery.
         attempt.ResultJson = JsonSerializer.Serialize(result with { AlreadyProcessed = false });

@@ -1,3 +1,5 @@
+import { evaluateMissingWordAnswers, type MissingWordAnswer, type MissingWordResult } from './missing-word-answers';
+import type { MissingWordAnswerPayload } from '../../../src/api/types';
 import { resolvePbeSources } from '../pbe/sources';
 import { startPbeSession, pbeSessionAction } from '../pbe/sessions';
 import { trainingNow } from '../training/clock';
@@ -13,11 +15,35 @@ import { applyMastery, chooseActivity, eligibleActivities, evaluateAnswer, gener
 import type { GeneratedActivity, MasteryScores, RuleProfile, StudyMode } from './engine';
 
 export interface Card extends GeneratedActivity { id: string; sequence: number; createdAtUtc: string; source: Source; answerSource: Source }
-export interface Result { attemptId: string; isCorrect: boolean; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean }
-export interface Attempt { id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean; previousAttemptId?: string; before?: SkillScores; after?: SkillScores }
+export interface Result { missingWordAnswers?: MissingWordAnswer[]; missingWordResults?: MissingWordResult[]; attemptId: string; isCorrect: boolean; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean }
+export interface Attempt { answerPayload?: MissingWordAnswerPayload; id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean; previousAttemptId?: string; before?: SkillScores; after?: SkillScores }
 export interface Session { memoryChallenge?: 'Warmup' | 'Advanced'; memoryChallengeRequest?: 'Warmup' | 'Advanced'; generatorVersion?: string; evidenceProfile?: import('./engine').MemoryEvidenceProfile; id: string; studentUserId: string; seasonId: string; status: string; mode: StudyMode; difficulty: string; targetCardCount: number; ruleProfile: RuleProfile & { showReference: boolean }; cards: Card[]; attempts: Attempt[]; createdAtUtc: string; completedAtUtc?: string; training?: SessionTraining; recap?: SessionRecap }
 export interface Mastery extends MasteryScores { id: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; algorithmVersion: string; reviewDueAt: string; lastSeenAt: string; lastAttemptId?: string }
-interface Submission { clientSubmissionId: string; challengeCardId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean }
+type Submission = import('../../../src/api/types').SubmitAttemptBody;
+function validateSubmission(input: Submission) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) fail('An answer object is required.');
+  const legacy = Object.hasOwn(input, 'submittedAnswer'), slots = Object.hasOwn(input, 'missingWordAnswers');
+  if (legacy === slots) fail('Provide exactly one answer representation.');
+  if (legacy && typeof input.submittedAnswer !== 'string') fail('An answer is required.');
+  if (slots) {
+    requiredString(input.clientSubmissionId, 'Submission ID', 200);
+    if (!Array.isArray(input.missingWordAnswers) || input.missingWordAnswers.some(a => !a || !Number.isSafeInteger(a.index) || typeof a.text !== 'string' || Object.keys(a).some(key=>key!=='index'&&key!=='text')) || new Set(input.missingWordAnswers.map(a=>a.index)).size !== input.missingWordAnswers.length || input.missingWordAnswers.reduce((size,a)=>size+a.text.length,0)>100000) fail('Invalid missing-word answers.');
+  }
+  if (!Number.isSafeInteger(input.responseTimeMs) || input.responseTimeMs < 0 || input.responseTimeMs > 2147483647 || typeof input.hintsUsed !== 'boolean') fail('A non-negative response time and hints indicator are required.');
+}
+function sameAnswer(existing: Attempt, input: Submission) {
+  if (!existing.answerPayload) return input.missingWordAnswers === undefined && existing.submittedAnswer === input.submittedAnswer;
+  const payload = existing.answerPayload, answers = input.missingWordAnswers;
+  return payload.format === 'missing-words-slots/v1' && !!answers && answers.length === payload.answers.length && payload.answers.every(saved=>answers.some(answer=>answer.index===saved.index && answer.text===saved.text));
+}
+function structuredAnswer(card: Card, answers: MissingWordAnswer[]) {
+  if (card.activityType !== 'MissingWords') return fail('Indexed answers are only valid for MissingWords.');
+  try {
+    const evaluation = evaluateMissingWordAnswers(card.payload.tokens, answers);
+    const ordered = card.payload.tokens.filter(token=>token.hidden).map(token=>({index:token.index,text:answers.find(answer=>answer.index===token.index)!.text}));
+    return {format:'missing-words-slots/v1' as const,answers:ordered,results:evaluation.results};
+  } catch { return fail('Invalid missing-word answers.'); }
+}
 interface Guard { kind: string; id: string; revision: number }
 const zero: MasteryScores = { recognition: 0, exactWording: 0, reference: 0, sequence: 0, factualRecall: 0, level: 'Unseen' };
 const defaultRules = { studyAllowMultipleChoice: true, simulationAllowMultipleChoice: false, simulationAllowTrueFalse: true, trueFalseMaxRatio: 0.1, showReference: true };
@@ -165,6 +191,7 @@ async function next(ctx: RequestContext, sessionId: string) {
   });
 }
 async function submit(ctx: RequestContext, sessionId: string, input: Submission) {
+  validateSubmission(input);
   return retry(async () => {
     const stored = await loadSession(ctx, sessionId), session = stored.value;
     // Migrated duplicate attempts intentionally stay outside accepted session history.
@@ -172,20 +199,25 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
     const persisted = typeof input.clientSubmissionId === 'string' ? await ctx.env.DB.prepare("SELECT data FROM Records WHERE kind='attempt' AND org_id=? AND season_id=? AND owner_id=? AND json_extract(data,'$.sessionId')=? AND json_extract(data,'$.clientSubmissionId')=? LIMIT 1").bind(ctx.orgId, session.seasonId, session.studentUserId, sessionId, input.clientSubmissionId).first<{ data: string }>() : null;
     const existing = persisted ? JSON.parse(persisted.data) as Attempt : session.attempts.find(a => a.clientSubmissionId === input.clientSubmissionId);
     if (existing) {
-      if (existing.cardId !== input.challengeCardId || existing.submittedAnswer !== input.submittedAnswer || existing.responseTimeMs !== input.responseTimeMs || existing.hintsUsed !== input.hintsUsed) fail('This submission ID was already used with a different answer payload.');
+      if (existing.cardId !== input.challengeCardId || !sameAnswer(existing,input) || existing.responseTimeMs !== input.responseTimeMs || existing.hintsUsed !== input.hintsUsed) {
+        if (existing.answerPayload || input.missingWordAnswers) throw new HttpError(409,'This submission ID was already used with a different answer payload.');
+        fail('This submission ID was already used with a different answer payload.');
+      }
       return json(replay(existing));
     }
+    if (typeof input.submittedAnswer === 'string' && input.submittedAnswer.length > 100000) fail('An answer up to 100000 characters is required.');
+    const card = session.cards.find(c => c.id === input.challengeCardId);
+    if (!card) return fail('Challenge card does not belong to this session.');
+    const answerPayload = input.missingWordAnswers ? structuredAnswer(card,input.missingWordAnswers) : undefined;
+    const submittedAnswer = answerPayload ? answerPayload.answers.map(answer=>answer.text).join(' ') : input.submittedAnswer!;
     const answered = session.attempts.find(a => a.cardId === input.challengeCardId);
     if (answered) return json(replay(answered));
     if (['Completed', 'Abandoned'].includes(session.status)) fail('The study session is already complete.');
     requiredString(input.clientSubmissionId, 'Submission ID', 200);
-    if (!Number.isSafeInteger(input.responseTimeMs) || input.responseTimeMs < 0 || input.responseTimeMs > 2147483647 || typeof input.submittedAnswer !== 'string' || input.submittedAnswer.length > 100000 || typeof input.hintsUsed !== 'boolean') fail('An answer, non-negative response time and hints indicator are required.');
     if (session.mode === 'Simulation' && input.hintsUsed) fail('Hints are not permitted in simulation.');
-    const card = session.cards.find(c => c.id === input.challengeCardId);
-    if (!card) return fail('Challenge card does not belong to this session.');
     validateCardSnapshot(session, card);
     const scope = await sessionScope(ctx, session, true); cardInScope(card, scope.sources);
-    const evaluation = evaluateAnswer(input.submittedAnswer, card.answerKey.canonicalAnswer), now = trainingNow();
+    const evaluation = answerPayload ? {isCorrect:answerPayload.results.every(result=>result.isCorrect),evaluationCode:answerPayload.results.every(result=>result.isCorrect)?'ExactMatch':'Incorrect'} : evaluateAnswer(submittedAnswer, card.answerKey.canonicalAnswer), now = trainingNow();
     const priorId = await ctx.env.DB.prepare("SELECT id FROM Records WHERE kind='mastery' AND org_id=? AND season_id=? AND owner_id=? AND json_extract(data,'$.knowledgeUnitId')=? LIMIT 1").bind(ctx.orgId, session.seasonId, session.studentUserId, card.knowledgeUnitId).first<{ id: string }>();
     const masteryId = priorId?.id ?? `${session.seasonId}:${session.studentUserId}:${card.knowledgeUnitId}`;
     const previous = await ctx.store.get<Mastery>('mastery', masteryId, ctx.orgId);
@@ -206,8 +238,8 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
     const scores = applyMastery(priorScores, evaluation.isCorrect, input.hintsUsed, card.activityType, card.answerMode, card.payload.difficulty, card.payload.evidenceProfile);
     const mastery: Mastery = { ...scores, id: masteryId, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, algorithmVersion: MASTERY_VERSION, reviewDueAt: nextReview(now, evaluation.isCorrect), lastSeenAt: now };
     const attemptId = id(); mastery.lastAttemptId = attemptId;
-    const result: Result = { attemptId, isCorrect: evaluation.isCorrect, evaluationResult: evaluation.evaluationCode, canonicalAnswer: card.answerKey.canonicalAnswer, citation: card.answerSource.citation, sourceText: card.answerSource.canonicalText, masteryLevel: mastery.level, exactWordingScore: mastery.exactWording, reviewDueAtUtc: mastery.reviewDueAt, alreadyProcessed: false };
-    const attempt: Attempt = { id: attemptId, sessionId, cardId: card.id, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, clientSubmissionId: input.clientSubmissionId, submittedAnswer: input.submittedAnswer, responseTimeMs: input.responseTimeMs, hintsUsed: input.hintsUsed, isCorrect: evaluation.isCorrect, evaluationResult: evaluation.evaluationCode, activityType: card.activityType, at: now, result, previousAttemptId: previous?.value.lastAttemptId, before: { ...priorScores }, after: { ...scores } };
+    const result: Result = { ...(answerPayload?{missingWordAnswers:answerPayload.answers,missingWordResults:answerPayload.results}:{}), attemptId, isCorrect: evaluation.isCorrect, evaluationResult: evaluation.evaluationCode, canonicalAnswer: card.answerKey.canonicalAnswer, citation: card.answerSource.citation, sourceText: card.answerSource.canonicalText, masteryLevel: mastery.level, exactWordingScore: mastery.exactWording, reviewDueAtUtc: mastery.reviewDueAt, alreadyProcessed: false };
+    const attempt: Attempt = { ...(answerPayload?{answerPayload}:{}), id: attemptId, sessionId, cardId: card.id, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, clientSubmissionId: input.clientSubmissionId, submittedAnswer, responseTimeMs: input.responseTimeMs, hintsUsed: input.hintsUsed, isCorrect: evaluation.isCorrect, evaluationResult: evaluation.evaluationCode, activityType: card.activityType, at: now, result, previousAttemptId: previous?.value.lastAttemptId, before: { ...priorScores }, after: { ...scores } };
     session.attempts.push(attempt); session.status = 'Active';
     const recordScope = { seasonId: session.seasonId, ownerId: session.studentUserId };
     const trainingWrites = await applyAcceptedAttempt(ctx,session,attempt,scope.sources,mastery,previous?.value.reviewDueAt);

@@ -14,6 +14,7 @@ import {
   canStartAcademyTrack,
 } from "./academyTracks";
 import "./student.css";
+import { MissingWordsInput } from './MissingWordsInput';
 import { VerseBuilderInput } from "./VerseBuilderInput";
 import { ScriptureReader } from "./ScriptureReader";
 import { PbeStudyPage } from './PbeStudyPage';
@@ -71,6 +72,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const resume = useMutation({ mutationFn: (id: string) => api.resumeSession(id) });
   const [startRetry, setStartRetry] = useState(0);
   const [answer, setAnswer] = useState("");
+  const [slotValues, setSlotValues] = useState<Record<number, string>>({});
   const [chunks, setChunks] = useState<number[]>([]);
   const startedAt = useRef(Date.now());
   const pendingAttempt = useRef<Parameters<typeof api.submitAttempt>[1] | null>(null);
@@ -112,10 +114,11 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       return;
     }
     startedAt.current = Date.now();
-    pendingAttempt.current = readPendingAttempt(sessionId!, card.data.id);
+    pendingAttempt.current = readPendingAttempt(sessionId!, card.data);
     submit.reset();
     setChunks([]);
     setAnswer(pendingAttempt.current?.submittedAnswer ?? "");
+    setSlotValues(Object.fromEntries(pendingAttempt.current?.missingWordAnswers?.map(slot => [slot.index, slot.text]) ?? []));
     // Reset from the newly drawn card identity only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.data?.id]);
@@ -125,7 +128,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       pendingAttempt.current ??= {
         clientSubmissionId: crypto.randomUUID(),
         challengeCardId: card.data!.id,
-        submittedAnswer: answer,
+        ...(card.data!.activityType === 'MissingWords' ? { missingWordAnswers: card.data!.tokens.filter(token => token.hidden).map(token => ({index:token.index,text:slotValues[token.index] ?? ''})) } : { submittedAnswer: answer }),
         responseTimeMs: Date.now() - startedAt.current,
         hintsUsed: sessionStorage.getItem(`erudoza:attempt:read:${sessionId}:${card.data!.id}`) === "true",
       };
@@ -153,6 +156,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     setSessionSnapshot(null);
     setRestoredAttempt(null);
     setAnswer("");
+    setSlotValues({});
     setChunks([]);
     submit.reset();
     complete.reset();
@@ -251,11 +255,15 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           </div>
         </div>
         {current && <progress className="training-session-progress" value={current.sequence} max={current.total || 1} aria-label="Study session progress" />}
-        <p className="er-scripture mt-6 text-2xl leading-relaxed" data-testid="challenge-prompt">
+        {current?.activityType !== "MissingWords" && <p className="er-scripture mt-6 text-2xl leading-relaxed" data-testid="challenge-prompt">
           {current?.prompt ?? "Drawing today's challenge card…"}
-        </p>
+        </p>}
         {current ? (
-          <ChallengeInput
+          current.activityType === 'MissingWords' ? <MissingWordsInput
+            key={current.id} tokens={current.tokens} values={result?.missingWordAnswers ? Object.fromEntries(result.missingWordAnswers.map(slot => [slot.index,slot.text])) : slotValues} onChange={setSlotValues}
+            disabled={accepted || submit.isPending || submit.isError || !!pendingAttempt.current}
+            results={result?.missingWordResults}
+          /> : <ChallengeInput
             card={current}
             answer={answer}
             chunks={chunks}
@@ -265,7 +273,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             allowChoices={mode !== "Simulation"}
           />
         ) : null}
-        {pendingAttempt.current && !accepted && <Notice className="mt-4" data-testid="pending-answer"><p className="font-medium">Saved answer awaiting confirmation</p><p className="mt-2 whitespace-pre-wrap">{pendingAttempt.current.submittedAnswer}</p><p className="mt-2 text-sm">Retry sends this exact saved answer.</p></Notice>}
+        {pendingAttempt.current && !accepted && <Notice className="mt-4" data-testid="pending-answer"><p className="font-medium">Saved answer awaiting confirmation</p><p className="mt-2 whitespace-pre-wrap">{pendingAttempt.current.submittedAnswer ?? pendingAttempt.current.missingWordAnswers?.map((slot, index) => `Blank ${index + 1}: ${slot.text || '(empty)'}`).join('\n')}</p><p className="mt-2 text-sm">Retry sends this exact saved answer.</p></Notice>}
         {current?.debugAnswer ? (
           <p className="sr-only" data-testid="debug-answer">
             {current.debugAnswer}
@@ -293,7 +301,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             variant={accepted ? "secondary" : "primary"}
             size={accepted ? "compact" : "default"}
             onClick={() => submit.mutate()}
-            disabled={!current || submit.isPending || accepted || !answer.trim()}
+            disabled={!current || submit.isPending || accepted || (current.activityType !== 'MissingWords' && !answer.trim())}
           >
             {submit.isPending ? "Checking…" : accepted ? "Answer checked" : pendingAttempt.current ? "Retry saved answer" : "Check answer"}
           </Button>
@@ -397,9 +405,7 @@ function ChallengeInput({
         ? "Type the next verse"
         : card.activityType === "ReferenceMatch"
           ? "Type the reference"
-          : card.activityType === "MissingWords"
-            ? "Type the missing phrase"
-            : "Type your answer"}
+          : "Type your answer"}
       {card.activityType === "ReferenceMatch" ? <Input
         data-testid="missing-words-answer"
         className="mt-2 w-full"
@@ -422,11 +428,18 @@ function ChallengeInput({
   );
 }
 
-function readPendingAttempt(sessionId: string, cardId: string): Parameters<typeof api.submitAttempt>[1] | null {
+function readPendingAttempt(sessionId: string, card: ChallengeCard): Parameters<typeof api.submitAttempt>[1] | null {
   try {
     const stored = sessionStorage.getItem("erudoza:attempt:" + sessionId);
     if (!stored) return null;
     const value = JSON.parse(stored) as Parameters<typeof api.submitAttempt>[1];
-    return value.challengeCardId === cardId && typeof value.clientSubmissionId === "string" && typeof value.submittedAnswer === "string" ? value : null;
+    if (!value || value.challengeCardId !== card.id || typeof value.clientSubmissionId !== 'string' ||
+      !Number.isSafeInteger(value.responseTimeMs) || value.responseTimeMs < 0 || typeof value.hintsUsed !== 'boolean') return null;
+    if (Object.hasOwn(value, 'submittedAnswer')) return typeof value.submittedAnswer === 'string' && !Object.hasOwn(value, 'missingWordAnswers') ? value : null;
+    if (card.activityType !== 'MissingWords' || !Array.isArray(value.missingWordAnswers)) return null;
+    const hidden = card.tokens.filter(token => token.hidden);
+    const slots = value.missingWordAnswers;
+    return slots.length === hidden.length && new Set(slots.map(slot => slot?.index)).size === hidden.length &&
+      slots.every(slot => slot && Number.isInteger(slot.index) && typeof slot.text === 'string' && hidden.some(token => token.index === slot.index)) ? value : null;
   } catch { return null; }
 }

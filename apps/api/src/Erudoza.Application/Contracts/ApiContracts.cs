@@ -1,4 +1,5 @@
 using Erudoza.Domain;
+using Erudoza.Domain.Study;
 
 namespace Erudoza.Application.Contracts;
 
@@ -182,9 +183,10 @@ public sealed record ChallengeTokenDto(string Display, bool Hidden, int Index);
 public sealed record SubmitAttemptRequest(
     string ClientSubmissionId,
     Guid ChallengeCardId,
-    string SubmittedAnswer,
+    string? SubmittedAnswer,
     int ResponseTimeMs,
-    bool HintsUsed);
+    bool HintsUsed,
+    IReadOnlyList<MissingWordAnswer>? MissingWordAnswers = null);
 
 public sealed record AttemptResultDto(
     Guid AttemptId,
@@ -196,7 +198,9 @@ public sealed record AttemptResultDto(
     string MasteryLevel,
     int ExactWordingScore,
     DateTimeOffset? ReviewDueAtUtc,
-    bool AlreadyProcessed);
+    bool AlreadyProcessed,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<MissingWordResult>? MissingWordResults = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<MissingWordAnswer>? MissingWordAnswers = null);
 
 public sealed record ProgressDto(
     Guid SeasonId,

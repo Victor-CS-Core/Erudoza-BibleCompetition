@@ -479,14 +479,30 @@ public static class ApiEndpoints
 
         study.MapPost("/sessions/{sessionId:guid}/attempts", async (
             Guid sessionId,
-            System.Text.Json.JsonElement request,
+            HttpRequest http,
             ICurrentUser current,
             StudySessionService sessions, PbeSessionService pbe,
             IConfiguration configuration,
             CancellationToken cancellationToken) =>
         {
-            if (await pbe.ExistsAsync(sessionId, cancellationToken)) return Results.Ok(await pbe.ActionAsync(sessionId, "attempts", request, cancellationToken));
-            var legacy = System.Text.Json.JsonSerializer.Deserialize<SubmitAttemptRequest>(request.GetRawText(), new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)) ?? throw new DomainException("Provide an answer.");
+            if (!http.HasJsonContentType()) return Results.StatusCode(StatusCodes.Status415UnsupportedMediaType);
+            // Count the complete receipt, including outer whitespace and chunked bodies.
+            // The historical canonical string path had no Memory body cap; retain its admission.
+            await using var received = new MemoryStream();
+            await http.Body.CopyToAsync(received, cancellationToken);
+            System.Text.Json.JsonDocument document;
+            try { document = System.Text.Json.JsonDocument.Parse(received.GetBuffer().AsMemory(0, checked((int)received.Length))); }
+            catch (System.Text.Json.JsonException) { throw new DomainException("Provide valid JSON."); }
+            using var parsed = document;
+            var request = parsed.RootElement;
+            var hasSlots = request.ValueKind == System.Text.Json.JsonValueKind.Object && request.TryGetProperty("missingWordAnswers", out _);
+            if (hasSlots && received.Length > 1048576) return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
+            if (await pbe.ExistsAsync(sessionId, cancellationToken))
+            {
+                if (hasSlots) throw new DomainException("Indexed answers require a MissingWords card.");
+                return Results.Ok(await pbe.ActionAsync(sessionId, "attempts", request, cancellationToken));
+            }
+            var legacy = ReadMemorySubmission(request);
             var result = await sessions.SubmitAsync(
                 current.OrganizationId,
                 current.UserId,
@@ -572,6 +588,37 @@ public static class ApiEndpoints
         var scopeCount = (await resolver.ResolveAsync(season.OrganizationId, season.Id, cancellationToken)).Count;
         var assignmentCount = await db.Assignments.CountAsync(item => item.SeasonId == season.Id && item.OrganizationId == season.OrganizationId, cancellationToken);
         return DtoMapper.ToSeasonDto(season, profile, scopeCount, assignmentCount);
+    }
+
+    private static SubmitAttemptRequest ReadMemorySubmission(System.Text.Json.JsonElement request)
+    {
+        static DomainException Invalid() => new("Provide exactly one valid answer representation.");
+        if (request.ValueKind != System.Text.Json.JsonValueKind.Object) throw Invalid();
+        var properties = request.EnumerateObject().ToArray();
+        if (properties.Select(p => p.Name).Distinct(StringComparer.OrdinalIgnoreCase).Count() != properties.Length) throw Invalid();
+        var hasText = request.TryGetProperty("submittedAnswer", out var text);
+        var hasSlots = request.TryGetProperty("missingWordAnswers", out var slots);
+        if (hasText == hasSlots || hasText && text.ValueKind != System.Text.Json.JsonValueKind.String) throw Invalid();
+        if (hasSlots)
+        {
+            if (slots.ValueKind != System.Text.Json.JsonValueKind.Array
+                || !request.TryGetProperty("clientSubmissionId", out var submissionId) || submissionId.ValueKind != System.Text.Json.JsonValueKind.String
+                || string.IsNullOrWhiteSpace(submissionId.GetString()) || submissionId.GetString()!.Length > 200) throw Invalid();
+            foreach (var slot in slots.EnumerateArray())
+            {
+                if (slot.ValueKind != System.Text.Json.JsonValueKind.Object || slot.EnumerateObject().Count() != 2
+                    || !slot.TryGetProperty("index", out var index) || index.ValueKind != System.Text.Json.JsonValueKind.Number || !index.TryGetInt32(out _)
+                    || !slot.TryGetProperty("text", out var value) || value.ValueKind != System.Text.Json.JsonValueKind.String) throw Invalid();
+            }
+            if (!request.TryGetProperty("responseTimeMs", out var time) || time.ValueKind != System.Text.Json.JsonValueKind.Number || !time.TryGetInt32(out var milliseconds) || milliseconds < 0
+                || !request.TryGetProperty("hintsUsed", out var hints) || hints.ValueKind is not (System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False)) throw Invalid();
+        }
+        try
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<SubmitAttemptRequest>(request.GetRawText(), new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)
+            { NumberHandling = hasSlots ? System.Text.Json.Serialization.JsonNumberHandling.Strict : System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString }) ?? throw Invalid();
+        }
+        catch (System.Text.Json.JsonException) { throw Invalid(); }
     }
 
     private static MeDto ToMe(ApplicationUser user, OrganizationMember membership) =>

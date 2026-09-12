@@ -103,7 +103,20 @@ export type ChallengeCard = {
   choices?: string[] | null;
 };
 
+export interface MissingWordAnswer { index: number; text: string }
+export interface MissingWordResult { index: number; isCorrect: boolean; expected: string }
+export interface MissingWordAnswerPayload {
+  format: 'missing-words-slots/v1';
+  answers: MissingWordAnswer[];
+  results: MissingWordResult[];
+}
+export type SubmitAttemptBody = {
+  clientSubmissionId: string; challengeCardId: string; responseTimeMs: number; hintsUsed: boolean;
+} & ({ submittedAnswer: string; missingWordAnswers?: never } | { submittedAnswer?: never; missingWordAnswers: MissingWordAnswer[] });
+
 export type AttemptResult = {
+  missingWordAnswers?: MissingWordAnswer[];
+  missingWordResults?: MissingWordResult[];
   attemptId: string;
   isCorrect: boolean;
   evaluationResult: string;

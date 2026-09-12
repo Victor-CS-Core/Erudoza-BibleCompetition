@@ -46,6 +46,12 @@ export function convertSnapshot(snapshot) {
   const {tables} = snapshot;
   for (const name of core) if (!tables[name]) fail(`required table ${name} is absent`);
   for(const [table,columns]of Object.entries(requiredColumns))for(const row of tables[table]??[])for(const column of columns.split(' '))if(!Object.hasOwn(row,column))fail(`required column ${table}.${column} is absent`);
+  // Legacy source databases predate this nullable column. Once the schema declares it,
+  // every row must include it; silently defaulting a missing value loses retry authority.
+  const hasSlotSchema=(snapshot.definitions??[]).some(def=>def.name==='Attempts'&&/\bAnswerPayloadJson\b/.test(def.sql)) ||
+    (tables.__EFMigrationsHistory??[]).some(row=>row.MigrationId?.endsWith('_MissingWordsSlotAnswers')) ||
+    tables.Attempts.some(row=>Object.hasOwn(row,'AnswerPayloadJson'));
+  if(hasSlotSchema)for(const row of tables.Attempts)if(!Object.hasOwn(row,'AnswerPayloadJson'))fail('required column Attempts.AnswerPayloadJson is absent');
   for (const [name,rows] of Object.entries(tables)) if (!core.includes(name) && !archive.includes(name) && !trainingTables.includes(name) && rows.length) fail(`unsupported nonempty table ${name}`);
   const rows = name => tables[name] ?? [];
   const index = name => new Map(rows(name).map(r=>[guid(r.Id),r]));
@@ -157,7 +163,18 @@ export function convertSnapshot(snapshot) {
     const m=convertedMastery.get(`${guid(r.SeasonId)}:${guid(r.StudentUserId)}:${guid(r.KnowledgeUnitId)}`);
     const result=r.ResultJson?parsed(r.ResultJson,'attempt result'):{attemptId:guid(r.Id),isCorrect:!!r.IsCorrect,evaluationResult:r.EvaluationResult,canonicalAnswer:card.answerKey.canonicalAnswer,citation:card.answerSource.citation,sourceText:card.answerSource.canonicalText,masteryLevel:m?.level??'Learning',exactWordingScore:m?.exactWording??0,reviewDueAtUtc:m?.reviewDueAt??null,alreadyProcessed:false};
     if(guid(result.attemptId)!==guid(r.Id)||typeof result.canonicalAnswer!=='string'||result.isCorrect!==!!r.IsCorrect)fail('invalid original attempt feedback');
-    convertedAttempts.push(add('attempt',guid(r.Id),r.OrganizationId,{id:guid(r.Id),sessionId:guid(r.SessionId),cardId:card.id,studentUserId:guid(r.StudentUserId),seasonId:guid(r.SeasonId),sourceUnitId:card.answerSource.id,knowledgeUnitId:guid(r.KnowledgeUnitId),clientSubmissionId:r.ClientSubmissionId,submittedAnswer:r.SubmittedAnswer,normalizedAnswer:r.NormalizedAnswer,responseTimeMs:r.ResponseTimeMs,hintsUsed:!!r.HintsUsed,isCorrect:!!r.IsCorrect,evaluationResult:r.EvaluationResult,evaluatorVersion:r.EvaluatorVersion,activityType:r.ActivityType,at:iso(r.CreatedAtUtc),result,isLegacyDuplicate:!!r.IsLegacyDuplicate,feedbackReconstructed:!r.ResultJson,...(r.BeforeSkillsJson?{before:parsed(r.BeforeSkillsJson,'before skills')}:{}),...(r.AfterSkillsJson?{after:parsed(r.AfterSkillsJson,'after skills')}:{}),...(r.PreviousAttemptId?{previousAttemptId:guid(r.PreviousAttemptId)}:{})},r.SeasonId,r.StudentUserId));
+    const answerPayload=r.AnswerPayloadJson == null ? undefined : parsed(r.AnswerPayloadJson,'structured slot answer');
+    if(answerPayload){
+      const {format,answers,results}=answerPayload;
+      if(card.activityType!=='MissingWords'||!r.ResultJson||format!=='missing-words-slots/v1'||!Array.isArray(answers)||!Array.isArray(results)||
+        !answers.length||answers.length!==results.length||new Set(answers.map(a=>a?.index)).size!==answers.length||
+        answers.some(a=>!a||!Number.isSafeInteger(a.index)||typeof a.text!=='string')||
+        results.some((result,i)=>!result||result.index!==answers[i].index||typeof result.isCorrect!=='boolean'||typeof result.expected!=='string')||
+        results.every(result=>result.isCorrect)!==!!r.IsCorrect||
+        !Array.isArray(result.missingWordAnswers)||result.missingWordAnswers.length!==answers.length||result.missingWordAnswers.some((a,i)=>a?.index!==answers[i].index||a?.text!==answers[i].text)||
+        !Array.isArray(result.missingWordResults)||result.missingWordResults.length!==results.length||result.missingWordResults.some((r,i)=>r?.index!==results[i].index||r?.isCorrect!==results[i].isCorrect||r?.expected!==results[i].expected))fail('invalid original structured slot answer or frozen feedback');
+    } else if(result.missingWordResults != null || result.missingWordAnswers != null)fail('structured slot feedback requires its original answer payload');
+    convertedAttempts.push(add('attempt',guid(r.Id),r.OrganizationId,{...(answerPayload?{answerPayload}:{}),id:guid(r.Id),sessionId:guid(r.SessionId),cardId:card.id,studentUserId:guid(r.StudentUserId),seasonId:guid(r.SeasonId),sourceUnitId:card.answerSource.id,knowledgeUnitId:guid(r.KnowledgeUnitId),clientSubmissionId:r.ClientSubmissionId,submittedAnswer:r.SubmittedAnswer,normalizedAnswer:r.NormalizedAnswer,responseTimeMs:r.ResponseTimeMs,hintsUsed:!!r.HintsUsed,isCorrect:!!r.IsCorrect,evaluationResult:r.EvaluationResult,evaluatorVersion:r.EvaluatorVersion,activityType:r.ActivityType,at:iso(r.CreatedAtUtc),result,isLegacyDuplicate:!!r.IsLegacyDuplicate,feedbackReconstructed:!r.ResultJson,...(r.BeforeSkillsJson?{before:parsed(r.BeforeSkillsJson,'before skills')}:{}),...(r.AfterSkillsJson?{after:parsed(r.AfterSkillsJson,'after skills')}:{}),...(r.PreviousAttemptId?{previousAttemptId:guid(r.PreviousAttemptId)}:{})},r.SeasonId,r.StudentUserId));
   }
   const sessionTraining=r=>{const t=parsed(r.TrainingJson,'session training');if(t.startPayload){const p=parsed(t.startPayload,'start payload');const input=p.training; t.startPayload=JSON.stringify({seasonId:guid(p.seasonId),mode:typeof p.mode==='number'?enumValue('mode',p.mode):p.mode,training:Object.fromEntries(['clientStartId','timeZone','missionId','missionRevision','step'].filter(k=>input[k]!=null).map(k=>[k,input[k]]))});}return t;};
   for(const r of rows('StudySessions')) {

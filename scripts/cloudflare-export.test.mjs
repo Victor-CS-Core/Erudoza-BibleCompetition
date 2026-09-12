@@ -8,7 +8,7 @@ import { build } from 'esbuild';
 import { Miniflare } from 'miniflare';
 import { readSource, convertSnapshot, exportDatabase } from './cloudflare-export.mjs';
 
-const source=resolve('apps/api/src/Erudoza.Api/erudoza.dev.db');
+const source=resolve(process.env.ERUDOZA_EXPORT_TEST_SOURCE ?? 'apps/api/src/Erudoza.Api/erudoza.dev.db');
 const fixture=()=>structuredClone(readSource(source));
 test('actual EF snapshot roundtrips every row and credential hash without changing the source database',async()=>{
   const before=createHash('sha256').update(await readFile(source)).digest('hex');
@@ -224,4 +224,61 @@ test('all-migration Miniflare readback preserves imported mastery selection and 
     const reset=await call('/profile/me/avatar','PUT',{honorKey:null});assert.equal(reset.status,200);assert.equal((await reset.json()).avatarHonorKey,null);
     assert.deepEqual((await snapshot()).filter(r=>r.kind!=='user-profile'),before.filter(r=>r.kind!=='user-profile'),'avatar changes preserve mastery/proof evidence');
   }finally{await runtime.dispose();}
+});
+
+function populatedSlotFixture() {
+  const snap=fixture(),attempt=snap.tables.Attempts[0],card=snap.tables.ChallengeCards.find(c=>c.Id===attempt.ChallengeCardId);
+  for(const row of snap.tables.Attempts)row.AnswerPayloadJson ??= null;
+  card.ActivityType='MissingWords';attempt.ActivityType='MissingWords';
+  const payload={format:'missing-words-slots/v1',answers:[{index:2,text:'in the'},{index:3,text:''}],results:[{index:2,isCorrect:false,expected:'in'},{index:3,isCorrect:false,expected:'the'}]};
+  const original=JSON.parse(attempt.ResultJson),result={...original,isCorrect:false,missingWordAnswers:payload.answers,missingWordResults:payload.results};delete result.IsCorrect;
+  attempt.IsCorrect=0;attempt.SubmittedAnswer='in the ';attempt.AnswerPayloadJson=JSON.stringify(payload);attempt.ResultJson=JSON.stringify(result);
+  return {snap,attempt,payload};
+}
+test('preserves structured missing-word answer payload and frozen feedback while leaving legacy rows absent',()=>{
+  const f=populatedSlotFixture(),{native}=convertSnapshot(f.snap),attempt=native.records.find(r=>r.kind==='attempt'&&r.id===f.attempt.Id.toLowerCase()).data;
+  assert.deepEqual(attempt.answerPayload,f.payload);assert.deepEqual(attempt.result.missingWordResults,f.payload.results);
+  assert.deepEqual(native.records.find(r=>r.kind==='session'&&r.id===f.attempt.SessionId.toLowerCase()).data.attempts.find(a=>a.id===attempt.id).answerPayload,f.payload);
+  const legacy=fixture();for(const a of legacy.tables.Attempts){delete a.AnswerPayloadJson;if(a.ResultJson){const result=JSON.parse(a.ResultJson);delete result.missingWordResults;delete result.MissingWordResults;delete result.missingWordAnswers;delete result.MissingWordAnswers;a.ResultJson=JSON.stringify(result);}}
+  legacy.tables.__EFMigrationsHistory=(legacy.tables.__EFMigrationsHistory??[]).filter(row=>!row.MigrationId.endsWith('_MissingWordsSlotAnswers'));
+  legacy.definitions=legacy.definitions.map(def=>def.name==='Attempts'?{...def,sql:def.sql.replaceAll('AnswerPayloadJson','OldAbsentColumn')}:def);
+  assert.ok(convertSnapshot(legacy).native.records.filter(r=>r.kind==='attempt').every(r=>!Object.hasOwn(r.data,'answerPayload')));
+  for(const a of legacy.tables.Attempts)a.AnswerPayloadJson=null;
+  assert.ok(convertSnapshot(legacy).native.records.filter(r=>r.kind==='attempt').every(r=>!Object.hasOwn(r.data,'answerPayload')));
+});
+test('rejects missing new-schema columns and incomplete or conflicting frozen slot feedback',()=>{
+  const missing=populatedSlotFixture();(missing.snap.tables.__EFMigrationsHistory??=[]).push({MigrationId:'20260912000000_MissingWordsSlotAnswers',ProductVersion:'10.0.3'});delete missing.attempt.AnswerPayloadJson;
+  assert.throws(()=>convertSnapshot(missing.snap),/AnswerPayloadJson/);
+  for(const change of [f=>{const result=JSON.parse(f.attempt.ResultJson);result.missingWordAnswers[0].text='changed';f.attempt.ResultJson=JSON.stringify(result);},f=>{f.attempt.ResultJson=null;},f=>{const result=JSON.parse(f.attempt.ResultJson);result.missingWordResults[0].isCorrect=true;f.attempt.ResultJson=JSON.stringify(result);},f=>{f.payload.format='future';f.attempt.AnswerPayloadJson=JSON.stringify(f.payload);},f=>{f.payload.answers[1].index=2;f.attempt.AnswerPayloadJson=JSON.stringify(f.payload);}]){
+    const f=populatedSlotFixture();change(f);assert.throws(()=>convertSnapshot(f.snap),/slot|structured/);
+  }
+});
+
+test('restores actual HTTP-accepted canonical structured answers and exact retries in the native runtime',async()=>{
+  const snap=fixture(),original=snap.tables.Attempts.find(a=>a.AnswerPayloadJson != null);
+  assert.ok(original,'Run the canonical B4_EXPORT_FIXTURE_PATH fixture and set ERUDOZA_EXPORT_TEST_SOURCE');
+  const payload=JSON.parse(original.AnswerPayloadJson),{native}=convertSnapshot(snap);
+  const converted=native.records.find(r=>r.kind==='attempt'&&r.id===original.Id.toLowerCase()).data;
+  assert.deepEqual(converted.answerPayload,payload);
+  const bundle=await build({entryPoints:['apps/web/worker/native/index.ts'],bundle:true,write:false,format:'esm',platform:'neutral',target:'es2022',external:['cloudflare:workers']});
+  const runtime=new Miniflare({modules:true,script:bundle.outputFiles[0].text,compatibilityDate:'2026-05-22',d1Databases:{DB:'b4-export'},durableObjects:{ROOMS:{className:'PracticeRoom',useSQLite:true},REPORTS:{className:'PracticeReports',useSQLite:true},PASSWORD_CRYPTO:{className:'PasswordCrypto',useSQLite:true},PBE_SOLO:{className:'PbeSoloRound',useSQLite:true}},bindings:{PUBLIC_ORIGIN:'https://migration.test'}});
+  try {
+    const db=await runtime.getD1Database('DB');await applyAllNativeMigrations(db);
+    for(const [table,rows]of [['Organizations',native.organizations],['Users',native.users],['Records',native.records]])for(const record of rows){const row={...record};if(table==='Records')row.data=JSON.stringify(row.data);await db.prepare(`INSERT INTO ${table}(${Object.keys(row).join(',')}) VALUES(${Object.keys(row).map(()=>'?').join(',')})`).bind(...Object.values(row)).run();}
+    const user=native.users.find(u=>u.id===converted.studentUserId),token='synthetic-b4-restore-session';
+    await db.prepare('INSERT INTO Sessions(token_hash,user_id,credential_version,expires_at) VALUES(?,?,?,?)').bind(createHash('sha256').update(token).digest('base64'),user.id,user.credential_version,Date.now()+300000).run();
+    const path=`https://migration.test/api/v1/study/sessions/${converted.sessionId}`,headers={Cookie:`__Host-erudoza.session=${token}`,Origin:'https://migration.test','Content-Type':'application/json'};
+    const before=(await db.prepare("SELECT kind,id,data,revision FROM Records ORDER BY kind,id").all()).results;
+    const resume=await runtime.dispatchFetch(path,{headers});assert.equal(resume.status,200);assert.deepEqual((await resume.json()).attempt,{...converted.result,alreadyProcessed:true});
+    const body={clientSubmissionId:converted.clientSubmissionId,challengeCardId:converted.cardId,missingWordAnswers:[...payload.answers].reverse(),responseTimeMs:converted.responseTimeMs,hintsUsed:converted.hintsUsed};
+    const retry=await runtime.dispatchFetch(`${path}/attempts`,{method:'POST',headers,body:JSON.stringify(body)});assert.equal(retry.status,200);assert.deepEqual(await retry.json(),{...converted.result,alreadyProcessed:true});
+    const changed={...body,missingWordAnswers:body.missingWordAnswers.map((a,i)=>i===0?{...a,text:a.text+' '}:a)};
+    assert.equal((await runtime.dispatchFetch(`${path}/attempts`,{method:'POST',headers,body:JSON.stringify(changed)})).status,409);
+    const legacy=native.records.find(r=>r.kind==='attempt'&&!r.data.answerPayload).data;
+    const legacyResponse=await runtime.dispatchFetch(`https://migration.test/api/v1/study/sessions/${legacy.sessionId}/attempts`,{method:'POST',headers,body:JSON.stringify({clientSubmissionId:legacy.clientSubmissionId,challengeCardId:legacy.cardId,submittedAnswer:legacy.submittedAnswer,responseTimeMs:legacy.responseTimeMs,hintsUsed:legacy.hintsUsed})});
+    assert.equal(legacyResponse.status,200);assert.deepEqual(await legacyResponse.json(),{...legacy.result,alreadyProcessed:true});assert.equal(legacy.result.missingWordAnswers,undefined);assert.equal(legacy.result.missingWordResults,undefined);
+    assert.deepEqual((await db.prepare("SELECT kind,id,data,revision FROM Records ORDER BY kind,id").all()).results,before);
+    assert.deepEqual(converted.result.missingWordAnswers,payload.answers);
+    assert.deepEqual(converted.result.missingWordResults,payload.results);
+  } finally {await runtime.dispose();}
 });

@@ -123,7 +123,7 @@ export const api = {
   nextCard: (sessionId: string) => request<ChallengeCard>(`/api/v1/study/sessions/${sessionId}/next`),
   submitAttempt: (
     sessionId: string,
-    body: { clientSubmissionId: string; challengeCardId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean },
+    body: import('./types').SubmitAttemptBody,
   ) => request<AttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`, { method: "POST", body: JSON.stringify(body) }),
   completeSession: (sessionId: string) =>
     request<SessionSummary>(`/api/v1/study/sessions/${sessionId}/complete`, { method: "POST" }),
