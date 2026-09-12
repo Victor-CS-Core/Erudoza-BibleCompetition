@@ -27,7 +27,7 @@ Apply index constraints. “Chapter stamps should reflect fresh unaided PBE-form
 ```ts
 export interface TargetProof {
   targetId: string; questionId: string; questionVersion: number;
-  attemptId: string; atMs: number; fullCredit: boolean; unaided: boolean;
+  attemptId: string; atMs: number; acceptedSequence: number; fullCredit: boolean; unaided: boolean;
   final: boolean; recall: boolean; activity: 'Solo' | 'Team';
 }
 export interface ChapterProgress {
@@ -42,7 +42,7 @@ export interface ChapterProgress {
 // projectChapter(scope, targets, reviews, proofs, questions): ChapterProgress
 ```
 
-`scope` is `{ chapterKey: string; scopeVersion: string; assignedSourceUnitIds: string[] }`; `targets` are Phase A `PbeTarget[]`, `reviews` are Phase B `TargetReview[]`, `proofs` are `TargetProof[]`, and `questions` are eligible published Phase A `PbeQuestion[]`. Count distinct recall-capable question IDs per target from `questions` to derive missing variants; recognition-only TrueFalse questions do not satisfy this prerequisite. Keep first earned stamp evidence immutable; current counters recompute from final evidence and the current scope.
+`scope` is `{ chapterKey: string; scopeVersion: string; assignedSourceUnitIds: string[] }`; `targets` are Phase A `PbeTarget[]`, `reviews` are Phase B `TargetReview[]`, `proofs` are `TargetProof[]`, and `questions` are eligible published Phase A `PbeQuestion[]`. Count distinct recall-capable question IDs per target from `questions` to derive missing variants; recognition-only TrueFalse questions do not satisfy this prerequisite. Carry the original server accepted sequence from B1 into each proof and replay by acceptance order, including equal UTC millisecond timestamps; correction resolution time is not a new retrieval. Keep first earned stamp evidence immutable; current counters recompute from final evidence and the current scope.
 
 - [ ] Write this delayed/fresh-question test:
 
@@ -52,15 +52,15 @@ import { retainedTargets } from './chapters';
 import type { TargetProof } from './chapters';
 it('requires a different question after a delay, not repeated immediate success', () => {
   const first: TargetProof = { targetId:'t', questionId:'q1', questionVersion:1,
-    attemptId:'a1', atMs:0, fullCredit:true, unaided:true, final:true, recall:true, activity:'Solo' };
-  expect(retainedTargets([first,{...first,attemptId:'a2',atMs:172800000}], ['t'])).toEqual([]);
-  expect(retainedTargets([first,{...first,questionId:'q2',attemptId:'a3',atMs:172800000}], ['t']))
+    attemptId:'a1', atMs:0, acceptedSequence:1, fullCredit:true, unaided:true, final:true, recall:true, activity:'Solo' };
+  expect(retainedTargets([first,{...first,attemptId:'a2',atMs:172800000,acceptedSequence:2}], ['t'])).toEqual([]);
+  expect(retainedTargets([first,{...first,questionId:'q2',attemptId:'a3',atMs:172800000,acceptedSequence:2}], ['t']))
     .toEqual(['t']);
 });
 ```
 
 - [ ] Run the new chapter tests before implementation. Add zero-target, one-verse, excluded-range, partial-chapter, multiple-book and scope-change cases; team evidence, hints and pending disputes must not satisfy individual retention.
-- [ ] Derive practiced from an accepted attempt, recalled from full unaided final recall credit, and retained from two qualifying recall successes at least 48 hours apart with different question IDs. A later wrong recall answer resets current retained status until recovery; a later correct sequence must follow that failure. Group only currently eligible targets. A chapter stamp requires nonzero targets, complete assigned-passage question coverage and retention of all declared targets. Display that readiness concerns the published practice bank, not an exhaustive guarantee of all possible exam questions.
+- [ ] Derive practiced from an accepted attempt, recalled from full unaided final recall credit, and retained from two qualifying recall successes at least 48 hours apart with different question IDs. Test tied-time success/failure events in both accepted orders, and late corrections that preserve that original order. A later wrong recall answer resets current retained status until recovery; a later correct sequence must follow that failure. Group only currently eligible targets. A chapter stamp requires nonzero targets, complete assigned-passage question coverage and retention of all declared targets. Display that readiness concerns the published practice bank, not an exhaustive guarantee of all possible exam questions.
 - [ ] Store `pbe-chapter-stamp` with organization/season/student/chapter/scope version, rule version, qualifying attempt IDs and earned time. New assignment scope gets a new projection; old stamps remain historical and cannot prove new scope coverage. Keep pending corrections out of new score-based awards, and replay affected target proof chronology when C3 resolves a dispute. Corrected current readiness may differ from an old dated keepsake; label both honestly.
 - [ ] Verify transaction races, repeat completions, two simultaneous qualifying sessions, corrected grades and migration from existing Honors. Run native chapter/projection tests and canonical chapter unit/integration tests. Commit `feat: derive chapter readiness from delayed PBE recall`.
 
