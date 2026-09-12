@@ -38,3 +38,8 @@
 
 .assignment-overview{grid-template-columns:minmax(0,1fr);min-width:0;max-width:100%}
 .assignment-coverage-scroll{min-width:0;max-width:100%;overflow-x:auto}
+
+/* Long season names wrap; dense coverage scrolls within its labeled region. */
+.assignment-overview>.ds-panel>h2{overflow-wrap:anywhere}
+.assignment-coverage-scroll .training-table{min-width:900px}
+.assignment-coverage-scroll td:first-child{min-width:240px;max-width:320px}

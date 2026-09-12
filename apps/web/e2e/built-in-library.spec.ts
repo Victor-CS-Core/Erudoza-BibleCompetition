@@ -51,6 +51,7 @@ test("coach saves bounded multi-book passages and student reads both assignments
   await page.getByRole("button", { name: "Choose passages", exact: true }).click();
   await page.getByRole("combobox", { name: "Add a library book" }).selectOption(ephesians.contentPackId);
   await page.getByRole("button", { name: "Add book", exact: true }).click();
+  await page.getByText("Advanced passage options", { exact: true }).click();
   await expect(page.getByTestId("scope-start-chapter").locator("option")).toHaveCount(6);
   await expect(page.getByTestId("scope-start-chapter").locator('option[value="7"]')).toHaveCount(0);
   await page.getByTestId("scope-start-chapter").selectOption("4");
@@ -65,6 +66,7 @@ test("coach saves bounded multi-book passages and student reads both assignments
   await page.getByTestId("scope-end").selectOption("2");
   await page.getByRole("combobox", { name: "Add a library book" }).selectOption(jude.contentPackId);
   await page.getByRole("button", { name: "Add book", exact: true }).click();
+  await page.getByText("Advanced passage options", { exact: true }).nth(1).click();
   await expect(page.getByTestId("1-includes-0-start-chapter").locator("option")).toHaveCount(1);
   await expect(page.getByTestId("1-includes-0-start").locator("option")).toHaveCount(25);
   await page.getByTestId("1-includes-0-end").selectOption("2");
@@ -82,17 +84,20 @@ test("coach saves bounded multi-book passages and student reads both assignments
   expect(saved.packs).toHaveLength(2);
   const book = page.getByRole("combobox", { name: "Assignment book", exact: true });
   await expect(book.locator("option")).toHaveCount(2);
+  await page.getByRole("button", { name: "Specific verses", exact: true }).click();
   await page.getByRole("combobox", { name: "Passage to assign" }).selectOption("custom");
   await expect(page.getByTestId("assignment-start-chapter").locator("option")).toHaveCount(1);
   await expect(page.getByTestId("assignment-start").locator("option")).toHaveCount(2);
   await page.getByTestId("assignment-start").selectOption("2");
   await book.selectOption(jude.contentPackId);
   await expect(page.getByTestId("assignment-start")).toHaveCount(0);
+  await page.getByRole("button", { name: "Specific verses", exact: true }).click();
   await page.getByRole("combobox", { name: "Passage to assign" }).selectOption("custom");
   await expect(page.getByTestId("assignment-start-chapter")).toHaveValue("1");
   await expect(page.getByTestId("assignment-start")).toHaveValue("1");
   for (const pack of [jude, ephesians]) {
     await book.selectOption(pack.contentPackId);
+    await page.getByRole("button", { name: "Specific verses", exact: true }).click();
     const assignmentRequest = page.waitForRequest(request => request.method() === "POST" && request.url().endsWith("/assignments"));
     await page.getByTestId("assign-student").click();
     expect((await assignmentRequest).postDataJSON()).toMatchObject({ contentPackId: pack.contentPackId, range: { bookKey: pack.bookKey, startVerse: 1, endVerse: 2 } });

@@ -72,3 +72,26 @@
 .season-saved-assignments li{align-items:center;padding-block:var(--er-space-2)}
 .season-lifecycle-actions{display:flex;justify-content:flex-end;gap:var(--er-space-2);flex-wrap:wrap}
 .season-details-list dd{overflow-wrap:anywhere;min-width:0;text-align:right}
+
+/* Chapter assignment composition; controls and surfaces use shared primitives. */
+.season-chapter-picker{border:0;padding:0;margin:var(--er-space-5) 0;min-width:0}
+.season-chapter-picker legend{margin-bottom:var(--er-space-2)}
+.season-chapter-actions,.season-assignment-mode{display:flex;flex-wrap:wrap;gap:var(--er-space-2);margin-block:var(--er-space-4)}
+.season-chapter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:var(--er-space-4) var(--er-space-3)}
+.season-chapter-option{display:grid;gap:var(--er-space-1);min-width:0;text-align:center;align-content:start}
+.season-chapter-option .ds-button{width:100%;min-height:44px;white-space:normal}
+.season-chapter-summary{margin-block:var(--er-space-5);overflow-wrap:anywhere}
+.season-advanced-passages>summary{min-height:44px;align-content:center;cursor:pointer}
+.season-advanced-passages{margin-bottom:var(--er-space-4)}
+.season-assignment-save.ds-panel{padding:var(--er-space-3);display:flex;gap:var(--er-space-3);margin-top:var(--er-space-4)}
+.season-saved-assignments{margin-top:var(--er-space-6)}
+.season-editor-heading h2,.season-editor-heading h3,.season-scope-summary strong{overflow-wrap:anywhere;min-width:0}
+.season-editor-heading>div,.season-setup form,.season-setup label{min-width:0}
+@media(max-width:760px){
+  .season-assignment-save{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:10}
+  .season-assignment-save>.ds-button{width:100%}
+  .season-chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .season-setup .season-book-field{max-width:none}
+  .season-steps.ds-section-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-2)}
+  .season-steps.ds-section-tabs .ds-button{padding:var(--er-space-3);white-space:normal}
+}

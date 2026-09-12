@@ -76,6 +76,7 @@ test("populated coach and student route audit", async ({ page }, info) => {
   await json(page.request, `${org}/seasons/${draft.id}/scope`, { contentPackId: pack.id, includes: [range], excludes: [] });
   await capture("coach-season-draft-passages", `/admin/seasons/${draft.id}?step=passages`, "Editable stored pack scope with bounded chapter/verse options", async p => {
     await p.getByRole("button", { name: "Edit season passages", exact: true }).click();
+    await p.getByText("Advanced passage options", { exact: true }).click();
     await expect(p.getByTestId("scope-start").locator("option")).toHaveCount(new Set(units.filter((unit: { bookKey: string; chapter: number }) => unit.bookKey === "DAN" && unit.chapter === 1).map((unit: { verse: number }) => unit.verse)).size);
   });
   await capture("coach-students", "/admin/students", "Student directory", p => expect(p.getByRole("table")).toContainText("Daniel Student"));

@@ -28,7 +28,7 @@ beforeEach(() => {
   vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "pack-1", includes: [range], excludes: [] });
   vi.mocked(api.assignments).mockResolvedValue([]);
   vi.mocked(api.defineScope).mockResolvedValue(undefined);
-  vi.mocked(api.assign).mockResolvedValue(assignment);
+  vi.mocked(api.assign).mockImplementation(async (_org, _season, input) => ({ ...assignment, id: `a-${input.range.startChapter}-${input.range.startVerse}`, ...input.range, contentPackId: input.contentPackId, studentUserId: input.studentUserId, type: input.type, difficulty: input.difficulty ?? "Standard" }));
   vi.mocked(api.setDifficulty).mockResolvedValue({ difficulty: "Advanced" });
   vi.mocked(api.createSeason).mockResolvedValue(season);
   vi.mocked(api.activate).mockResolvedValue({ activated: true, blockingProblems: [] });
@@ -78,6 +78,7 @@ describe("Guided season setup", () => {
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
     fireEvent.click(screen.getByRole("link", { name: "Manage assignments for Student 11" }));
     expect(screen.getByRole("heading", { name: "Student 11" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Specific verses" }));
     fireEvent.click(screen.getByRole("button", { name: "Add passage assignment" }));
     await waitFor(() => expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-11" })));
     await screen.findByText("Assignment saved.");
@@ -100,6 +101,7 @@ describe("Guided season setup", () => {
     expect(screen.queryByRole("button", { name: "Back to students" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Review season →" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByLabelText("Foundation"));
+    fireEvent.click(screen.getByRole("button", { name: "Specific verses" }));
     fireEvent.click(screen.getByRole("button", { name: "Add passage assignment" }));
     await waitFor(() => expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-2", difficulty: "Foundation" })));
   });
@@ -148,6 +150,7 @@ describe("Guided season setup", () => {
   it("keeps assignment edits separate from the saved season passages", async () => {
     renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
     await screen.findByRole("heading", { name: "Daniel Student" });
+    fireEvent.click(screen.getByRole("button", { name: "Specific verses" }));
     fireEvent.change(screen.getByLabelText("Passage to assign"), { target: { value: "custom" } });
     fireEvent.change(screen.getByTestId("assignment-end"), { target: { value: "4" } });
     fireEvent.click(screen.getByLabelText("Advanced"));
@@ -198,7 +201,7 @@ describe("Guided season setup", () => {
     renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
     await screen.findByRole("heading", { name: "Daniel Student" });
     expect(screen.getByTestId("season-status")).toHaveTextContent("Archived");
-    expect(screen.getByRole("button", { name: "Add passage assignment" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Assign chapters" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Save difficulty for future sessions" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: /4.*Review/ }));
     expect(screen.queryByRole("button", { name: "Start season" })).not.toBeInTheDocument();
@@ -207,7 +210,7 @@ describe("Guided season setup", () => {
     vi.mocked(api.assignments).mockResolvedValue([assignment]);
     renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
     await screen.findByRole("heading", { name: "Daniel Student" });
-    expect(screen.getByRole("button", { name: "Add passage assignment" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Assign chapters" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Save difficulty for future sessions" })).toBeEnabled();
   });
   it("freezes passage editing while a save is in flight", async () => {
@@ -227,19 +230,20 @@ describe("Guided season setup", () => {
 });
 
 
-it("saves multiple library books in packs with empty legacy fields", async () => {
+it("includes all stored chapters by default when adding library books", async () => {
   vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: null, includes: [], excludes: [] });
   renderWizard("/admin/seasons/season-1?step=passages");
   fireEvent.click(await screen.findByRole("button", { name: "Choose passages" }));
   fireEvent.change(screen.getByRole("combobox", { name: "Add a library book" }), { target: { value: "eph" } });
   fireEvent.click(screen.getByRole("button", { name: "Add book" }));
+  fireEvent.click(screen.getByText("Advanced passage options"));
   expect(screen.getByTestId("scope-start-chapter").querySelector('option[value="7"]')).toBeNull();
   fireEvent.change(screen.getByRole("combobox", { name: "Add a library book" }), { target: { value: "jude" } });
   fireEvent.click(screen.getByRole("button", { name: "Add book" }));
   fireEvent.click(screen.getByTestId("save-scope"));
   await waitFor(() => expect(api.defineScope).toHaveBeenCalledWith("org-1", "season-1", { contentPackId: null, includes: [], excludes: [], packs: [
-    { contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 1 }], excludes: [] },
-    { contentPackId: "jude", includes: [{ bookKey: "JUD", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 1 }], excludes: [] },
+    { contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 3 }], excludes: [] },
+    { contentPackId: "jude", includes: [{ bookKey: "JUD", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3 }], excludes: [] },
   ] }));
 });
 it("assigns selected books and prevents ranges crossing excluded verses", async () => {
@@ -250,10 +254,94 @@ it("assigns selected books and prevents ranges crossing excluded verses", async 
   renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
   const book = await screen.findByRole("combobox", { name: "Assignment book" });
   expect(Array.from(book.querySelectorAll("option")).map(o => o.value)).toEqual(["eph", "jude"]);
+  fireEvent.click(screen.getByRole("button", { name: "Specific verses" }));
   fireEvent.change(screen.getByLabelText("Passage to assign"), { target: { value: "custom" } });
   expect(screen.getByTestId("assignment-start").querySelector('option[value="2"]')).toBeNull();
   expect(screen.getByTestId("assignment-end").querySelector('option[value="3"]')).toBeNull();
   fireEvent.change(book, { target: { value: "jude" } });
+  fireEvent.click(screen.getByRole("button", { name: "Specific verses" }));
   fireEvent.click(screen.getByRole("button", { name: "Add passage assignment" }));
   await waitFor(() => expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ contentPackId: "jude", range: { bookKey: "JUD", startChapter: 1, startVerse: 2, endChapter: 1, endVerse: 3 } })));
+});
+
+
+it("assigns nonconsecutive chapters together without including the intervening chapter", async () => {
+  vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 3 }], excludes: [] });
+  renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
+  fireEvent.click(await screen.findByRole("button", { name: "Chapter 1" }));
+  fireEvent.click(screen.getByRole("button", { name: "Chapter 3" }));
+  expect(screen.getByRole("button", { name: "Chapter 2" })).toHaveAttribute("aria-pressed", "false");
+  fireEvent.click(screen.getByRole("button", { name: "Assign chapters" }));
+  await waitFor(() => expect(api.assign).toHaveBeenCalledTimes(2));
+  expect(vi.mocked(api.assign).mock.calls.map(call => call[2].range)).toEqual([
+    { bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3 },
+    { bookKey: "EPH", startChapter: 3, startVerse: 1, endChapter: 3, endVerse: 3 },
+  ]);
+});
+
+it("clears chapter choices when the book changes", async () => {
+  vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: null, includes: [], excludes: [], packs: [
+    { contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 2, endVerse: 3 }], excludes: [] },
+    { contentPackId: "jude", includes: [{ bookKey: "JUD", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3 }], excludes: [] },
+  ] });
+  renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
+  fireEvent.click(await screen.findByRole("button", { name: "Chapter 1" }));
+  fireEvent.change(screen.getByLabelText("Assignment book"), { target: { value: "jude" } });
+  expect(screen.getByRole("button", { name: "Chapter 1" })).toHaveAttribute("aria-pressed", "false");
+  expect(screen.getByRole("button", { name: "Assign chapters" })).toBeDisabled();
+});
+
+it("retains unsaved chapters after a partial failure and retries only the remainder", async () => {
+  vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 3, endVerse: 3 }], excludes: [] });
+  const saved: typeof assignment[] = [];
+  vi.mocked(api.assignments).mockImplementation(async () => [...saved]);
+  let fail = true;
+  vi.mocked(api.assign).mockImplementation(async (_org, _season, input) => {
+    if (input.range.startChapter === 3 && fail) throw new Error("Connection interrupted.");
+    const result = { ...assignment, id: `saved-${input.range.startChapter}`, studentUserId: input.studentUserId, ...input.range };
+    saved.push(result);
+    return result;
+  });
+  renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
+  fireEvent.click(await screen.findByRole("button", { name: "Chapter 1" }));
+  fireEvent.click(screen.getByRole("button", { name: "Chapter 3" }));
+  fireEvent.click(screen.getByRole("button", { name: "Assign chapters" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Connection interrupted");
+  expect(screen.getByRole("button", { name: "Chapter 1" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Chapter 3" })).toHaveAttribute("aria-pressed", "true");
+  fail = false;
+  fireEvent.click(screen.getByRole("button", { name: "Assign chapters" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Chapter 3" })).toBeDisabled());
+  expect(vi.mocked(api.assign).mock.calls.map(call => call[2].range.startChapter)).toEqual([1, 3, 3]);
+  expect(saved.map(item => item.startChapter)).toEqual([1, 3]);
+});
+
+it("uses the standalone student prop even without a matching URL student parameter", async () => {
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><SeasonAssignmentEditor seasonId="season-1" studentId="student-2" /></MemoryRouter></QueryClientProvider>);
+  await screen.findByRole("heading", { name: "Sarah Student" });
+  fireEvent.click(screen.getByRole("button", { name: "Chapter 2" }));
+  fireEvent.click(screen.getByRole("button", { name: "Assign chapters" }));
+  await waitFor(() => expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-2" })));
+});
+
+it("clears chapter choices when navigating from one student to another", async () => {
+  renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
+  fireEvent.click(await screen.findByRole("button", { name: "Chapter 2" }));
+  fireEvent.click(screen.getByRole("button", { name: "Back to students" }));
+  fireEvent.click(await screen.findByRole("link", { name: "Manage assignments for Sarah Student" }));
+  expect(await screen.findByRole("button", { name: "Chapter 2" })).toHaveAttribute("aria-pressed", "false");
+  expect(screen.getByRole("button", { name: "Assign chapters" })).toBeDisabled();
+});
+
+it("clears a previous precise-save error when saving chapters", async () => {
+  vi.mocked(api.assign).mockRejectedValueOnce(new Error("Previous range failed."));
+  renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
+  fireEvent.click(await screen.findByRole("button", { name: "Specific verses" }));
+  fireEvent.click(screen.getByRole("button", { name: "Add passage assignment" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Previous range failed");
+  fireEvent.click(screen.getByRole("button", { name: "Chapters" }));
+  fireEvent.click(screen.getByRole("button", { name: "Chapter 2" }));
+  fireEvent.click(screen.getByRole("button", { name: "Assign chapters" }));
+  await screen.findByText(/Assigned DAN chapters 2/);
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
 });

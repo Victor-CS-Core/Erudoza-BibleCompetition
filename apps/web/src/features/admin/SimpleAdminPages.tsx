@@ -115,7 +115,7 @@ export function AssignmentsPage() {
   useEffect(() => { if (!requestedId && season) setParams(previous => { const next = new URLSearchParams(previous); next.set("seasonId", season.id); return next; }, { replace: true }); }, [requestedId, season, setParams]);
   const coverage = useQuery({ queryKey: ["coverage", me?.organizationId, season?.id], queryFn: () => api.coverage(me!.organizationId, season!.id), enabled: !!me && !!season && !studentId });
   return <div className="training-page assignment-overview">
-    <PageHeader title={selectedStudent ? `${selectedStudent.displayName}’s assignments` : "Assignments"} description="Choose a student and season to manage passages and training difficulty." action={<LinkButton size="compact" variant="secondary" to="/admin/students">Back to students</LinkButton>} />
+    <PageHeader title={selectedStudent ? `${selectedStudent.displayName}’s assignments` : "Assignments"} description="Choose a student, season and book, then select the chapters they will study." action={<LinkButton size="compact" variant="secondary" to="/admin/students">Back to students</LinkButton>} />
     {students.isPending && <p role="status">Loading students…</p>}
     {students.isError && <QueryError retry={() => void students.refetch()}>Unable to load students.</QueryError>}
     <div className="assignment-context">
@@ -123,7 +123,7 @@ export function AssignmentsPage() {
     {seasons.isPending && <p role="status">Loading seasons…</p>}
     {seasons.isError && <QueryError retry={() => void seasons.refetch()}>Unable to load seasons.</QueryError>}
     {!!seasons.data?.length && <label>Season <Select disabled={saving} value={season?.id ?? ""} onChange={event => setParams(previous => { const next = new URLSearchParams(previous); next.set("seasonId", event.target.value); return next; })}>
-      {!season && <option value="" disabled>Choose a season</option>}{seasons.data.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</Select></label>}
+      {!season && <option value="" disabled>Choose a season</option>}{seasons.data.map(item => <option value={item.id} key={item.id}>{item.name}{item.status === "Completed" || item.status === "Archived" ? " · Read-only" : ""}</option>)}</Select></label>}
     </div>
     {studentId && students.isSuccess && !selectedStudent && <Notice tone="danger">This student is unavailable. Choose another student.</Notice>}
     {students.data?.length === 0 && <Panel><p>No students yet.</p><LinkButton to="/admin/students">Add a student</LinkButton></Panel>}

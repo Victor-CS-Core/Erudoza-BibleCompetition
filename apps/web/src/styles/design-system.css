@@ -56,7 +56,7 @@
 .ds-input:is([type=radio],[type=checkbox]) { width: 18px; min-height: 18px; padding: 0; }
 .ds-panel { padding: var(--er-space-6); border: 1px solid var(--er-border); border-radius: var(--er-radius-card); background: var(--er-card); min-width: 0; }
 .ds-page-header { display: flex; justify-content: space-between; align-items: center; gap: var(--er-space-6); margin-bottom: var(--er-space-6); }
-.ds-page-header p { margin: var(--er-space-2) 0 0; color: var(--er-muted-ink); max-width: 70ch; }
+.ds-page-header p { margin: var(--er-space-2) 0 0; color: var(--er-muted-ink); max-width: 70ch; overflow-wrap: anywhere; }
 .ds-page-action { display: flex; align-items: center; gap: var(--er-space-3); flex-shrink: 0; }
 .ds-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 7px; font: 600 var(--er-text-xs)/1.5 var(--er-font-ui); white-space: nowrap; }
 .ds-badge-neutral { background: var(--er-surface-soft); color: var(--er-graphite); }
