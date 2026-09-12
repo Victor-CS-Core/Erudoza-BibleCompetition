@@ -4,6 +4,8 @@ Read this file before starting repository work. `AGENTS.md` defines the required
 
 ## Current state — 2026-09-12
 
+- Support minus placement is LIVE from pushed source `f22952a`: minus beside the original cup, separate 44px target. Worker `a2c4ab16-a96d-4a31-809c-e4c683c9fb57` serves 100%; 30 edge checks and six live browser flows passed by 16:34:12 UTC. Main retains the separately merged sign-in artwork, which is still pending deployment.
+
 - Remembered support minimization and its quieter unboxed hide control are LIVE at https://erudoza.com from source `9e05215`. Worker `1c29e34e-34c9-4761-b9ae-923971affdca` receives 100% of traffic. Thirty edge checks and six live browser flows passed by 16:25:03 UTC. Main also contains the separately merged sign-in artwork, which is not deployed. See the [audit](docs/audits/2026-09-12-support-minimization.md).
 
 ### Earlier release state (historical)
@@ -395,3 +397,10 @@ At each gate, refresh Current state/Next actions and add the result to Gates and
 - The ghost control retains its separate 44px target, with the glyph within 5px of the provider circle and vertically centered. Production continues using the original provider SVG. Offline fixtures now use an unchanged copy of that SVG instead of the misleading emoji preview, with provenance recorded beside it.
 - Regression first reproduced the excessive gap; final provider-script and contract browser subsets each passed 28/28 across Chromium, Firefox, WebKit and iPhone emulation at desktop/390/320 widths. The WebKit320 capture was inspected. Support source tests passed39/39; full lint, web/native types, both production builds and deployment dry run passed. Shared button specificity was corrected after the initial new geometry assertion failed. Independent review found no concrete concern. Existing bundle-size advisory remains; no payment or physical-device test is claimed.
 - Next: checkpoint/push, deploy this pre-login source under the existing support-release authorization, verify live, then integrate current main while preserving its merge-only login work.
+
+## Support minus placement — release and integration, September 12
+
+- Source `f22952a` was committed and pushed to `origin/codex/coffee-close-icon` before deployment. Both native mobile chapter flows passed (provider enabled and blocked), preserving save clearance and chapter selections at390/320. Independent review found no concrete concern.
+- At16:33:43UTC, deployment `1e4eaaea-de77-4ee8-bcde-42b60f369020` activated Worker `a2c4ab16-a96d-4a31-809c-e4c683c9fb57` at100%. Readback confirms all version resources match the prior Worker `1c29e34e-34c9-4761-b9ae-923971affdca`. Immediate room projection was empty (asynchronous; one read/zero writes). Existing private backup retained; no schema, migration, credential, account or payment action.
+- Live edge checks passed30/30 at16:34:09UTC. Six live browser flows passed by16:34:12UTC across Chromium/Firefox/WebKit, normal/blocked provider, including close/centered glyph geometry, original image URL, transparent control,44px target, focus and remembered minimize/restore. Live WebKit screenshot inspected. Ignored evidence: `.local/deployment/close-support-20260912/` and `.local/coffee-minimize/close-*`. Physical-device acceptance and payment completion remain untested.
+- After deploying exact pre-login source, integrated origin/main `dbb599a`, preserving its merge-only sign-in artwork. Only the appended PROGRESS.md histories conflicted; both were retained. Combined source passed627 tests/one optional skip in31.70seconds. This integration was not deployed; production still excludes the sign-in artwork. Final normal main/task push and affected-task notifications follow. No remote CI pass is claimed.
