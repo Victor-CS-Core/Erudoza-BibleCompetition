@@ -176,4 +176,4 @@ it('shows gaps without claiming chapter readiness', () => {
 ## Phase A gate
 
 - [x] Run the Phase A suites, native/frontend type checks and existing study/practice compatibility tests. Confirm zero changed historical grades against saved fixtures and no new production content.
-- [ ] Update progress with tests actually executed, migration checks and SDK limitations; explicitly stage, commit and push the implementation branch. The next phase consumes the exact contracts above, not private frontend copies of answer keys.
+- [x] Update progress with tests actually executed, migration checks and SDK limitations; explicitly stage, commit and push the implementation branch. The next phase consumes the exact contracts above, not private frontend copies of answer keys.
