@@ -76,6 +76,24 @@ describe("StudyPage Field Guide Academy honesty", () => {
     });
   });
 
+  it("offers enabled Memory purposes without promoting coach difficulty", async()=>{
+    vi.mocked(api.progress).mockResolvedValue(progress({seasonStatus:"Active",pbeEnabled:true,assignments:[{difficulty:"Standard"} as Progress['assignments'][number]]}));
+    renderStudy("/student/study?format=Memory");
+    const warmup=await screen.findByRole("button",{name:"Start Memory warmup"});
+    expect(api.startSession).not.toHaveBeenCalled();
+    expect(screen.queryByRole("button",{name:"Start Advanced mastery challenge"})).not.toBeInTheDocument();
+    fireEvent.click(warmup);
+    await waitFor(()=>expect(api.startSession).toHaveBeenCalledWith("season-1","Practice",expect.any(Object),"Memory","Warmup"));
+  });
+  it("keeps an explicit Advanced mastery challenge available with optional unscored recitation",async()=>{
+    vi.mocked(api.progress).mockResolvedValue(progress({seasonStatus:"Active",pbeEnabled:true,assignments:[{difficulty:"Advanced"} as Progress['assignments'][number]]}));
+    renderStudy("/student/study?format=Memory");
+    fireEvent.click(await screen.findByRole("button",{name:"Start Advanced mastery challenge"}));
+    await waitFor(()=>expect(api.startSession).toHaveBeenCalledWith("season-1","Practice",expect.any(Object),"Memory","Advanced"));
+    expect(await screen.findByText("Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Optional full-verse recitation"));
+    expect(screen.getByLabelText("Your private recitation practice")).toBeInTheDocument();
+  });
   it("does not start review when the progress API reports none due", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
     renderStudy("/student/study?mode=Review");
@@ -350,6 +368,26 @@ describe("Study submission recovery", () => {
     vi.mocked(api.startSession).mockResolvedValue({ id: "session-1", seasonId: "season-1", status: "Active", mode: "Practice", targetCardCount: 2 });
     vi.mocked(api.nextCard).mockResolvedValue({ id: "card-1", sessionId: "session-1", activityType: "MissingWords", citation: "Daniel 1:1", prompt: "____", tokens: [], sequence: 1, total: 2 });
     vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt-1", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "answer", citation: "Daniel 1:1", sourceText: "answer", masteryLevel: "Learning", exactWordingScore: 18, reviewDueAtUtc: null, alreadyProcessed: false });
+  });
+  it("starts Builder empty, submits duplicate IDs once each, and preserves pending text on refresh", async () => {
+    const card = { id:"builder",sessionId:"session-1",activityType:"VerseBuilder",citation:"Daniel 1:1",prompt:"Build the verse",tokens:[{index:4,display:"one",hidden:false},{index:9,display:"two",hidden:false},{index:12,display:"one",hidden:false}],sequence:1,total:2 };
+    vi.mocked(api.nextCard).mockResolvedValue(card);
+    renderStudy("/student/study?format=Memory");
+    fireEvent.click((await screen.findAllByRole("button",{name:"Add one"}))[1]);
+    expect(screen.getByLabelText("Your verse")).toHaveTextContent(/^one$/);
+    fireEvent.click(screen.getByRole("button",{name:"Add two"}));
+    fireEvent.click(screen.getAllByRole("button",{name:"Add one"})[0]);
+    fireEvent.click(screen.getByRole("button",{name:"Check answer"}));
+    await waitFor(()=>expect(api.submitAttempt).toHaveBeenCalledWith("session-1",expect.objectContaining({submittedAnswer:"one two one"})));
+  });
+  it("restores a pending Builder answer without guessing duplicate token identities", async () => {
+    const payload={clientSubmissionId:"builder-retry",challengeCardId:"builder",submittedAnswer:"one two one",responseTimeMs:42,hintsUsed:false};
+    sessionStorage.setItem("erudoza:attempt:session-1",JSON.stringify(payload));
+    vi.mocked(api.resumeSession).mockResolvedValue({session:{id:"session-1",seasonId:"season-1",mode:"Practice",status:"Active",targetCardCount:2},card:{id:"builder",sessionId:"session-1",activityType:"VerseBuilder",citation:"Daniel 1:1",prompt:"Build",tokens:[{index:4,display:"one",hidden:false},{index:9,display:"two",hidden:false},{index:12,display:"one",hidden:false}],sequence:1,total:2},attempt:null,summary:null});
+    renderStudy("/student/study?sessionId=session-1");
+    expect(await screen.findByTestId("pending-answer")).toHaveTextContent("one two one");
+    fireEvent.click(screen.getByRole("button",{name:"Retry saved answer"}));
+    await waitFor(()=>expect(api.submitAttempt).toHaveBeenCalledWith("session-1",payload));
   });
   it("resumes the final accepted card after refresh without starting another session", async () => {
     vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: "session-1", seasonId: "season-1", mode: "Practice", status: "Active", targetCardCount: 2, difficulty: "Advanced" }, card: { id: "final", sessionId: "session-1", activityType: "MissingWords", citation: "Daniel 1:1", prompt: "____", tokens: [], sequence: 2, total: 2 }, attempt: { attemptId: "accepted", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "answer", citation: "Daniel 1:1", sourceText: "answer", masteryLevel: "Learning", exactWordingScore: 18, reviewDueAtUtc: null, alreadyProcessed: true }, summary: null });

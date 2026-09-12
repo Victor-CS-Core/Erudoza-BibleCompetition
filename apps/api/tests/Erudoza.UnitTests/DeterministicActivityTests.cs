@@ -7,6 +7,17 @@ namespace Erudoza.UnitTests;
 public sealed class DeterministicActivityTests
 {
     [Fact]
+    public void Versioned_long_verse_matches_the_common_native_seed_fixture()
+    {
+        var unit = Sample(string.Join(' ', Enumerable.Range(0, 47).Select(i => $"word{i}")));
+        unit.Id = Guid.Parse("00112233-4455-6677-8899-aabbccddeeff");
+        var seed = MissingWordsGenerator.StableSeed(unit.Id, Guid.Parse("ffeeddcc-bbaa-9988-7766-554433221100"), 1);
+        seed.Should().Be(-1964792940);
+        VerseBuilderGenerator.Create(unit, seed, 5, "memory-v3", "memory-cued-v3").Payload.Tokens.Select(t => int.Parse(t.Text.Split(' ')[0][4..])).Should().Equal(24, 4, 28, 16, 40, 20, 32, 44, 36, 8, 12, 0);
+        MissingWordsGenerator.Create(unit, 5, seed, "memory-v3", "memory-cued-v3").Payload.Tokens.Where(t => t.Hidden).Select(t => t.Index).Should().Equal(1, 4, 5, 6, 7, 8, 9, 10, 11, 13, 16, 17, 19, 20, 21, 22, 23, 27, 28, 29, 30, 32, 33, 34, 37, 38, 39, 40, 41, 42, 44, 45, 46);
+    }
+
+    [Fact]
     public void Verse_builder_uses_phrase_chunks_and_is_repeatable()
     {
         var unit = Sample("Development sample: Daniel purposed in his heart that he would not defile himself.");

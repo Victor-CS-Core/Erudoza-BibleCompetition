@@ -1,7 +1,7 @@
 import type { Source } from '../application/model';
 import type { Mastery, Session, Attempt } from '../study/routes';
 import type { HonorKey } from './catalog';
-export interface PassageEvidence { attemptId: string; sessionId: string; sourceUnitId: string; cardId: string; acceptedAtUtc: string; activityType: string; answerMode: string; difficulty: number; exactWording: number; reference: number; recognition: number }
+export interface PassageEvidence { attemptId: string; sessionId: string; sourceUnitId: string; cardId: string; acceptedAtUtc: string; activityType: string; answerMode: string; difficulty: number; evidenceProfile?: import('../study/engine').MemoryEvidenceProfile; exactWording: number; reference: number; recognition: number }
 export interface PassageProof {
   id: string; knowledgeUnitId: string; seasonId: string; userId: string;
   firstMasteryEvidence?: PassageEvidence; retainedEvidence?: PassageEvidence; reviewEvidence?: PassageEvidence;
@@ -14,10 +14,10 @@ export function updatePassageProof(proof: PassageProof, session: Session, attemp
   if (attempt.isLegacyDuplicate) return { ...proof };
   const next = { ...proof }, card = session.cards.find(c => c.id === attempt.cardId);
   const mastered = masteryStandard(mastery);
-  const evidence: PassageEvidence | undefined = card ? { attemptId: attempt.id, sessionId: session.id, sourceUnitId: mastery.sourceUnitId, cardId: card.id, acceptedAtUtc: attempt.at, activityType: card.activityType, answerMode: card.answerMode, difficulty: card.payload.difficulty, exactWording: mastery.exactWording, reference: mastery.reference, recognition: mastery.recognition } : undefined;
+  const evidence: PassageEvidence | undefined = card ? { attemptId: attempt.id, sessionId: session.id, sourceUnitId: mastery.sourceUnitId, cardId: card.id, acceptedAtUtc: attempt.at, activityType: card.activityType, answerMode: card.answerMode, difficulty: card.payload.difficulty, evidenceProfile:card.payload.evidenceProfile,exactWording: mastery.exactWording, reference: mastery.reference, recognition: mastery.recognition } : undefined;
   // Evidence is bounded to the first certification and one retained mastery proof per passage.
   if (mastered && !next.firstMasteredAtUtc) { next.firstMasteredAtUtc = attempt.at; next.firstMasteryEvidence = evidence; }
-  const unaidedTyped = attempt.isCorrect && !attempt.hintsUsed && !attempt.isLegacyDuplicate && card?.answerMode === 'ExactText' && card.payload.difficulty >= 5 && ['MissingWords', 'WhatComesNext'].includes(card.activityType);
+  const unaidedTyped = attempt.isCorrect && !attempt.hintsUsed && !attempt.isLegacyDuplicate && card?.answerMode === 'ExactText' && card.payload.difficulty >= 5 && (card.payload.evidenceProfile===undefined||card.payload.evidenceProfile==='memory-honor-v2') && ['MissingWords', 'WhatComesNext'].includes(card.activityType);
   if (mastered && unaidedTyped && next.firstMasteredAtUtc && Date.parse(attempt.at) - Date.parse(next.firstMasteredAtUtc) >= 48 * 3600000 && !next.retainedAtUtc) {
     next.retainedAtUtc = attempt.at; next.retestAttemptId = attempt.id; next.retainedEvidence = evidence;
   }

@@ -7,7 +7,7 @@ public static class ScaffoldMasteryRules
     public const string AlgorithmVersion = "v2-skill-evidence";
 
     public static MasteryScores Apply(MasteryScores current, bool isCorrect, bool hintsUsed,
-        string activityType, AnswerMode answerMode = AnswerMode.ExactText, int difficulty = 3)
+        string activityType, AnswerMode answerMode = AnswerMode.ExactText, int difficulty = 3, string? evidenceProfile = null)
     {
         var recognition = Bound(current.Recognition + (isCorrect ? hintsUsed ? 4 : 10 : -2));
         var exact = current.ExactWording;
@@ -21,7 +21,7 @@ public static class ScaffoldMasteryRules
             switch (activityType)
             {
                 case "MissingWords" when answerMode == AnswerMode.ExactText:
-                    var ceiling = difficulty >= 5 ? 100 : difficulty >= 3 ? 70 : 40;
+                    var ceiling = Math.Min(evidenceProfile == "memory-cued-v3" ? 70 : 100, difficulty >= 5 ? 100 : difficulty >= 3 ? 70 : 40);
                     exact = isCorrect
                         ? Math.Max(exact, Math.Min(ceiling, Bound(exact + delta)))
                         : Bound(exact + delta);

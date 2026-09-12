@@ -26,7 +26,7 @@ it("clears previous private data before accepting an onboarding session", async 
 });
 it("clears private cache and pending answers on logout and account replacement", async () => {
  const client = setup(); await screen.findByText("a");
- client.setQueryData(["progress"], { seasonName: "Private A" }); sessionStorage.setItem("erudoza:attempt:session-a", "private answer");
+ client.setQueryData(["progress"], { seasonName: "Private A" }); sessionStorage.setItem("erudoza:attempt:session-a", "private answer"); sessionStorage.setItem("erudoza:pbe-attempt:session-a", "private PBE answer");
  fireEvent.click(screen.getByText("Logout")); await screen.findByText("anonymous");
  expect(client.getQueryCache().getAll()).toHaveLength(0); expect(sessionStorage.length).toBe(0);
  client.setQueryData(["assigned-seasons"], ["Private A"]);
@@ -44,9 +44,10 @@ it("retains identity during an outage and clears it only on an unauthorized resp
  const client = setup(); await screen.findByText("a");
  vi.mocked(api.me).mockRejectedValueOnce(new ApiError("Unavailable", 503));
  fireEvent.click(screen.getByText("Refresh")); await screen.findByText(/couldn’t reach/); expect(screen.getByText("a")).toBeInTheDocument();
- client.setQueryData(["progress"], "private"); vi.mocked(api.me).mockRejectedValueOnce(new ApiError("Unauthorized", 401));
+ client.setQueryData(["progress"], "private"); sessionStorage.setItem("erudoza:pbe-attempt:session", "private answer"); vi.mocked(api.me).mockRejectedValueOnce(new ApiError("Unauthorized", 401));
  fireEvent.click(screen.getByText("Refresh")); await screen.findByText("anonymous");
  await waitFor(() => expect(client.getQueryCache().getAll()).toHaveLength(0));
+ expect(sessionStorage.length).toBe(0);
 });
 it("ignores a late authentication refresh from the previous account", async () => {
  let resolve!: (value: Me) => void;
@@ -61,10 +62,12 @@ it.each([
  const client = setup(); await screen.findByText("a");
  client.setQueryData(["practice", "org"], { privateCoachQuestions: ["Coach answer"] });
  sessionStorage.setItem("erudoza:attempt:coach", "private answer");
+ sessionStorage.setItem("erudoza:pbe-attempt:coach", "private PBE answer");
  vi.mocked(api.me).mockResolvedValue({ ...user("a"), ...difference });
  fireEvent.click(screen.getByText("Refresh"));
  await waitFor(() => expect(client.getQueryCache().getAll()).toHaveLength(0));
  expect(sessionStorage.getItem("erudoza:attempt:coach")).toBeNull();
+ expect(sessionStorage.getItem("erudoza:pbe-attempt:coach")).toBeNull();
 });
 it("does not let a stale unauthorized refresh clear a newer accepted account", async () => {
  const client = setup(); await screen.findByText("a");
@@ -74,7 +77,29 @@ it("does not let a stale unauthorized refresh clear a newer accepted account", a
  fireEvent.click(screen.getByText("Refresh")); await waitFor(() => expect(cancel).toHaveBeenCalled());
  fireEvent.click(screen.getByText("Accept new session")); await screen.findByText("c");
  client.setQueryData(["new-account"], "New private data");
+ sessionStorage.setItem("erudoza:pbe-attempt:new-account", "New PBE answer");
  await act(async () => release());
  expect(screen.getByText("c")).toBeInTheDocument();
  expect(client.getQueryData(["new-account"])).toBe("New private data");
+ expect(sessionStorage.getItem("erudoza:pbe-attempt:new-account")).toBe("New PBE answer");
+ expect(sessionStorage.getItem("erudoza:attempt-owner")).toBe(JSON.stringify(["org", "c", null, null]));
+});
+it('retains pending Memory answers only after fresh authentication matches their recorded owner',async()=>{
+ const owner=JSON.stringify([user('a').organizationId,user('a').userId,user('a').kind,user('a').role]);
+ sessionStorage.setItem('erudoza:attempt-owner',owner);
+ sessionStorage.setItem('erudoza:attempt:pending','saved original answer');
+ sessionStorage.setItem('erudoza:pbe-attempt:pending','saved PBE answer');
+ sessionStorage.setItem('erudoza:attempt:read:session:card','true');
+ setup();await screen.findByText('a');
+ expect(sessionStorage.getItem('erudoza:attempt:pending')).toBe('saved original answer');
+ expect(sessionStorage.getItem('erudoza:pbe-attempt:pending')).toBe('saved PBE answer');
+ expect(sessionStorage.getItem('erudoza:attempt:read:session:card')).toBe('true');
+});
+it.each([null,'unparseable',JSON.stringify(['org','other',null,null]),JSON.stringify(['other-org','a',null,null]),JSON.stringify(['org','a','Student',null]),JSON.stringify(['org','a',null,'Coach'])])('clears pending Memory answers on initial authentication for an unknown owner %s',async owner=>{
+ if(owner!==null)sessionStorage.setItem('erudoza:attempt-owner',owner);
+ sessionStorage.setItem('erudoza:attempt:pending','private other answer');
+ sessionStorage.setItem('erudoza:pbe-attempt:pending','private PBE answer');
+ setup();await screen.findByText('a');
+ expect(sessionStorage.getItem('erudoza:attempt:pending')).toBeNull();
+ expect(sessionStorage.getItem('erudoza:pbe-attempt:pending')).toBeNull();
 });

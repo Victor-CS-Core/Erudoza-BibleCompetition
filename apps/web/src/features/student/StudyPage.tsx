@@ -14,6 +14,7 @@ import {
   canStartAcademyTrack,
 } from "./academyTracks";
 import "./student.css";
+import { VerseBuilderInput } from "./VerseBuilderInput";
 import { ScriptureReader } from "./ScriptureReader";
 import { PbeStudyPage } from './PbeStudyPage';
 import { trainingApi } from '../../api/training';
@@ -59,6 +60,9 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const missionReview = step === "Review" && mode === "Review" && !!missionId;
   const startIntent = useRef<{ key: string; context: StartTrainingContext } | null>(null);
   const progress = useQuery({ queryKey: ["progress", selectedSeasonId, me?.organizationId, me?.userId], queryFn: () => api.progress(selectedSeasonId) });
+  const [purposeChoice,setPurposeChoice]=useState<{seasonId:string;purpose:"Warmup"|"Advanced"}|null>(null);
+  const memoryChallenge=purposeChoice?.seasonId===progress.data?.seasonId?purposeChoice?.purpose:undefined;
+  const choosePurpose=!!progress.data?.pbeEnabled&&!requestedSessionId&&!memoryChallenge;
   const trackReady = progress.isSuccess && (canStartAcademyTrack(track, progress.data) || (missionReview && progress.data.seasonStatus === "Active"));
   const [sessionId, setSessionId] = useState<string | null>(null);
   const loadedSession = useRef<string | null>(null);
@@ -67,13 +71,13 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const resume = useMutation({ mutationFn: (id: string) => api.resumeSession(id) });
   const [startRetry, setStartRetry] = useState(0);
   const [answer, setAnswer] = useState("");
-  const [chunks, setChunks] = useState<string[]>([]);
+  const [chunks, setChunks] = useState<number[]>([]);
   const startedAt = useRef(Date.now());
   const pendingAttempt = useRef<Parameters<typeof api.submitAttempt>[1] | null>(null);
 
   const start = useMutation({
     mutationFn: (sessionMode: "Practice" | "Review" | "Simulation") => {
-      const key = JSON.stringify([me?.organizationId, me?.userId, progress.data!.seasonId, sessionMode, missionId, missionRevision, step]);
+      const key = JSON.stringify([me?.organizationId, me?.userId, progress.data!.seasonId, sessionMode, missionId, missionRevision, step, memoryChallenge]);
       if (startIntent.current?.key !== key) {
         startIntent.current = { key, context: {
           clientStartId: params.get("startId") || crypto.randomUUID(),
@@ -88,7 +92,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
         nextParams.set("startId", context.clientStartId);
         setParams(nextParams, { replace: true });
       }
-      return api.startSession(progress.data!.seasonId, sessionMode, context);
+      return memoryChallenge ? api.startSession(progress.data!.seasonId, sessionMode, context, "Memory", memoryChallenge) : api.startSession(progress.data!.seasonId, sessionMode, context);
     },
   });
 
@@ -110,14 +114,8 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     startedAt.current = Date.now();
     pendingAttempt.current = readPendingAttempt(sessionId!, card.data.id);
     submit.reset();
-    if (card.data.activityType === "VerseBuilder") {
-      const nextChunks = card.data.tokens.map((token) => token.display);
-      setChunks(nextChunks);
-      setAnswer(nextChunks.join(" "));
-    } else {
-      setChunks([]);
-      setAnswer(pendingAttempt.current?.submittedAnswer ?? "");
-    }
+    setChunks([]);
+    setAnswer(pendingAttempt.current?.submittedAnswer ?? "");
     // Reset from the newly drawn card identity only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.data?.id]);
@@ -176,7 +174,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
         setSessionId(saved.session.id);
         setParams({ sessionId: saved.session.id, seasonId: saved.session.seasonId, mode: saved.session.mode }, { replace: true });
       }).catch(() => {});
-    } else if (progress.data?.seasonId && trackReady) {
+    } else if (progress.data?.seasonId && trackReady && !choosePurpose) {
       void start.mutateAsync(mode).then((session) => {
         if (cancelled) return;
         queryClient.setQueryData(["study-resume-format",session.id,me?.organizationId,me?.userId],{session,card:null,attempt:null,summary:null});
@@ -189,21 +187,15 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     return () => { cancelled = true; };
     // Navigation owns session identity; ignore late replies after switching modes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [requestedSessionId, progress.data?.seasonId, trackReady, mode, missionId, missionRevision, step, startRetry]);
+  }, [requestedSessionId, progress.data?.seasonId, trackReady, mode, missionId, missionRevision, step, startRetry, choosePurpose, memoryChallenge]);
 
   const result = submit.data ?? (restoredAttempt?.cardId === card.data?.id ? restoredAttempt?.result : undefined);
   const accepted = !!result;
   const current = card.data;
 
-  const moveChunk = (index: number, direction: -1 | 1) => {
-    const next = [...chunks];
-    const swap = index + direction;
-    if (swap < 0 || swap >= next.length) {
-      return;
-    }
-    [next[index], next[swap]] = [next[swap], next[index]];
-    setChunks(next);
-    setAnswer(next.join(" "));
+  const chooseChunks = (ids: number[]) => {
+    setChunks(ids);
+    setAnswer(ids.map(id => current?.tokens.find(token => token.index === id)?.display ?? "").join(" "));
   };
 
   const cover = (
@@ -211,6 +203,8 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       description={<span data-testid="current-season">{progress.isPending ? "Loading your season…" : progress.data?.seasonName || "Your study section has not been assigned yet."}</span>}
       action={<Badge data-testid="academy-session-kicker">{academySessionKicker(mode)}</Badge>}>
       {sessionSnapshot?.difficulty && <p>Session difficulty: {sessionSnapshot.difficulty}</p>}
+      <p>Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.</p>
+      {sessionSnapshot?.memoryChallenge && <p>{sessionSnapshot.memoryChallenge === 'Warmup' ? 'Varied-gap warmup · supported wording evidence up to 70, within your difficulty ceiling.' : 'Advanced mastery challenge · original demanding recall requirements.'}</p>}
       {progress.isSuccess && !trackReady && <p data-testid="academy-track-unavailable">{academyUnavailableCopy(track, progress.data)}</p>}
     </PageHeader></div>
   );
@@ -229,6 +223,14 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       </div>
     );
   }
+
+  if (choosePurpose && trackReady) return <div className="er-study-stage space-y-4">{cover}<Panel>
+    <h2>Choose your Memory practice</h2><p>Warmups use varied gaps and phrase building. Advanced mastery challenges require coach-set Advanced difficulty.</p>
+    <div className="student-study-actions">
+      <Button onClick={()=>setPurposeChoice({seasonId:progress.data!.seasonId,purpose:'Warmup'})}>Start Memory warmup</Button>
+      {progress.data?.assignments.some(a=>a.difficulty==='Advanced') && <Button variant="secondary" onClick={()=>setPurposeChoice({seasonId:progress.data!.seasonId,purpose:'Advanced'})}>Start Advanced mastery challenge</Button>}
+    </div>
+  </Panel></div>;
 
   return (
     <div className="er-study-stage space-y-4">
@@ -258,7 +260,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             answer={answer}
             chunks={chunks}
             onAnswer={setAnswer}
-            onMove={moveChunk}
+            onChunks={chooseChunks}
             locked={accepted || submit.isPending || submit.isError || !!pendingAttempt.current}
             allowChoices={mode !== "Simulation"}
           />
@@ -318,6 +320,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
         </div>
         {(submit.isError || complete.isError) && <p role="alert">{submit.isError ? "Your answer could not be saved. Please try again." : "The session could not be finished. Please try again."}</p>}
       </Panel>
+      {current && mode !== "Simulation" && <Panel><details key={current.id}><summary>Optional full-verse recitation</summary><p>Recite aloud or type from memory, then compare with the passage reader. This private practice is not scored and does not earn mastery evidence.</p><label>Your private recitation practice<Textarea rows={4} className="mt-2 w-full" /></label></details></Panel>}
       {current && sessionSnapshot && mode !== "Simulation" && <ScriptureReader
         key={sessionSnapshot.seasonId}
         seasonId={sessionSnapshot.seasonId}
@@ -336,35 +339,20 @@ function ChallengeInput({
   answer,
   chunks,
   onAnswer,
-  onMove,
+  onChunks,
   locked,
   allowChoices,
 }: {
   card: ChallengeCard;
   answer: string;
-  chunks: string[];
+  chunks: number[];
   onAnswer: (value: string) => void;
-  onMove: (index: number, direction: -1 | 1) => void;
+  onChunks: (ids: number[]) => void;
   locked: boolean;
   allowChoices: boolean;
 }) {
   if (card.activityType === "VerseBuilder") {
-    return (
-      <div className="mt-6 space-y-2" aria-label="Verse builder">
-        <p className="text-sm font-medium">Put the phrases in order using Up and Down.</p>
-        {chunks.map((chunk, index) => (
-          <div key={`${chunk}-${index}`} className="student-builder-row">
-            <p className="er-scripture student-builder-phrase">{chunk}</p>
-            <Button type="button" size="compact" variant="secondary" onClick={() => onMove(index, -1)} disabled={locked || index === 0} aria-label={`Move phrase ${index + 1} up`}>
-              Up
-            </Button>
-            <Button type="button" size="compact" variant="secondary" onClick={() => onMove(index, 1)} disabled={locked || index === chunks.length - 1} aria-label={`Move phrase ${index + 1} down`}>
-              Down
-            </Button>
-          </div>
-        ))}
-      </div>
-    );
+    return <VerseBuilderInput tokens={card.tokens} selected={chunks} onChange={onChunks} disabled={locked}/>;
   }
 
   if (card.activityType === "TrueFalse") {

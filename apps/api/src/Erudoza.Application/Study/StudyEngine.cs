@@ -160,6 +160,8 @@ public sealed class StudyEngine(
             ?? throw new DomainException("No activity provider is available for the current rule profile and mode.");
 
         var card = await provider.CreateAsync(request, cancellationToken);
+        if (snapshot.GeneratorVersion is not null)
+            card.PayloadJson = ActivitySerialization.Payload(ActivitySerialization.ReadPayload(card.PayloadJson) with { GeneratorVersion = snapshot.GeneratorVersion, EvidenceProfile = snapshot.EvidenceProfile });
         db.ChallengeCards.Add(card);
         session.Status = StudySessionStatus.Active;
         await db.SaveChangesAsync(cancellationToken);

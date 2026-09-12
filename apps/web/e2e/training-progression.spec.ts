@@ -169,3 +169,8 @@ import { pbeDailyJourney } from './pbe-study-helpers';
 test('PBE daily questions preserve short, eight-verse replay and full-chapter sessions on both runtimes',async({page},info)=>{
  test.setTimeout(240000);await pbeDailyJourney(page,info);
 });
+
+import { memoryStudyJourney } from './memory-study-helpers';
+test('Memory study aids preserve long-verse input, coach prerequisites and pending retry on either backend',async({page},info)=>{
+  await memoryStudyJourney(page,info);
+});

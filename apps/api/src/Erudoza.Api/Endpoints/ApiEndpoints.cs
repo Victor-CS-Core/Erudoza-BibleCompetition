@@ -448,7 +448,8 @@ public static class ApiEndpoints
             if (request.Format == "Pbe") return Results.Ok(await pbe.StartAsync(request, cancellationToken));
             if (request.Format is not (null or "Memory")) throw new DomainException("Choose Memory or Pbe.");
             var session = await sessions.StartAsync(current.OrganizationId, current.UserId, request, cancellationToken);
-            return Results.Ok(new SessionDto(session.Id, session.SeasonId, session.Status.ToString(), session.Mode.ToString(), session.TargetCardCount, session.Difficulty.ToString()));
+            var memory = string.IsNullOrWhiteSpace(session.RuleProfileSnapshotJson) ? null : System.Text.Json.JsonSerializer.Deserialize<RuleProfileSnapshot>(session.RuleProfileSnapshotJson);
+            return Results.Ok(new SessionDto(session.Id, session.SeasonId, session.Status.ToString(), session.Mode.ToString(), session.TargetCardCount, session.Difficulty.ToString(), memory?.MemoryChallenge, memory?.GeneratorVersion, memory?.EvidenceProfile));
         });
 
         study.MapGet("/sessions/{sessionId:guid}/next", async (

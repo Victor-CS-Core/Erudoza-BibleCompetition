@@ -8,7 +8,9 @@ public sealed record MissingWordsPayload(
     string Citation,
     string Prompt,
     IReadOnlyList<MissingWordsToken> Tokens,
-    int Difficulty);
+    int Difficulty,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? GeneratorVersion = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? EvidenceProfile = null);
 
 public sealed record MissingWordsAnswerKey(string CanonicalAnswer, IReadOnlyList<string> HiddenWords);
 
@@ -23,7 +25,7 @@ public static class MissingWordsGenerator
     public const string ActivityType = "MissingWords";
     public const string ProviderType = "MissingWordsActivityProvider";
 
-    public static MissingWordsCard Create(SourceUnit unit, int difficulty, int seed)
+    public static MissingWordsCard Create(SourceUnit unit, int difficulty, int seed, string? generatorVersion = null, string? evidenceProfile = null)
     {
         ArgumentNullException.ThrowIfNull(unit);
         if (string.IsNullOrWhiteSpace(unit.CanonicalText))
@@ -47,6 +49,11 @@ public static class MissingWordsGenerator
             hideable = tokens.Select(token => token.Index).ToList();
         }
 
+        if (generatorVersion == "memory-v3" && evidenceProfile == "memory-cued-v3")
+        {
+            var eligibleCount = hideable.Count;
+            hideCount = eligibleCount <= 1 ? eligibleCount : Math.Min(eligibleCount - 1, Math.Max(1, (int)Math.Ceiling(eligibleCount * 0.7)));
+        }
         var random = new Random(seed);
         var shuffled = hideable.OrderBy(_ => random.Next()).Take(hideCount).ToHashSet();
         var hiddenTokens = tokens
@@ -55,7 +62,7 @@ public static class MissingWordsGenerator
 
         var hiddenWords = hiddenTokens.Where(token => token.Hidden).Select(token => token.Text).ToList();
         var prompt = string.Join(' ', hiddenTokens.Select(token => token.Hidden ? "____" : token.Text));
-        var payload = new MissingWordsPayload(unit.CitationLabel, prompt, hiddenTokens, difficulty);
+        var payload = new MissingWordsPayload(unit.CitationLabel, prompt, hiddenTokens, difficulty, generatorVersion, evidenceProfile);
         var answerKey = new MissingWordsAnswerKey(string.Join(' ', hiddenWords), hiddenWords);
 
         return new MissingWordsCard(

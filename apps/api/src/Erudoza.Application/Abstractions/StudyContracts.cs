@@ -73,7 +73,7 @@ public sealed record AttemptEvidence(
     bool HintsUsed,
     string ActivityType,
     AnswerMode AnswerMode,
-    int Difficulty = 3);
+    int Difficulty = 3, string? EvidenceProfile = null);
 
 public sealed record MasteryUpdateResult(
     MasteryLevel Level,
@@ -96,7 +96,10 @@ public sealed record RuleProfileSnapshot(
     bool SimulationAllowMultipleChoice,
     bool SimulationAllowTrueFalse,
     bool ShowReference,
-    double TrueFalseMaxRatio = 0.10)
+    double TrueFalseMaxRatio = 0.10,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? MemoryChallenge = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? GeneratorVersion = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? EvidenceProfile = null)
 {
     public bool AllowsActivity(StudyMode mode, string activityType, bool isMultipleChoice)
     {

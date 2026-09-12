@@ -86,7 +86,7 @@ public sealed class MasteryHonorService(IErudozaDbContext db)
             var frozen = session.TrainingJson is null ? null : JsonSerializer.Deserialize<SessionTrainingSnapshot>(session.TrainingJson, TrainingProgressService.Json);
             var due = frozen?.ReviewKnowledgeUnitIds.Count > 0 ? frozen.ReviewKnowledgeUnitIds.Contains(attempt.KnowledgeUnitId) : wasDue;
             var firstDue = session.Mode == StudyMode.Review && due && !await db.Attempts.AnyAsync(a => a.SessionId == session.Id && a.KnowledgeUnitId == attempt.KnowledgeUnitId && a.Id != attempt.Id && !a.IsLegacyDuplicate, ct);
-            MasteryHonorRules.ObserveProof(proof, current, new(attempt.Id, attempt.CreatedAtUtc, attempt.IsCorrect, attempt.HintsUsed, attempt.IsLegacyDuplicate, card.AnswerMode, card.ActivityType, ActivitySerialization.ReadPayload(card.PayloadJson).Difficulty, firstDue));
+            MasteryHonorRules.ObserveProof(proof, current, new(attempt.Id, attempt.CreatedAtUtc, attempt.IsCorrect, attempt.HintsUsed, attempt.IsLegacyDuplicate, card.AnswerMode, card.ActivityType, ActivitySerialization.ReadPayload(card.PayloadJson).Difficulty, firstDue, ActivitySerialization.ReadPayload(card.PayloadJson).EvidenceProfile));
         }
         var byId = states.ToDictionary(x => x.KnowledgeUnitId);
         var evidence = eligible.Select(k => Passage(k, byId.GetValueOrDefault(k.Id), proofs.SingleOrDefault(p => p.KnowledgeUnitId == k.Id))).ToArray();

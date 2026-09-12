@@ -89,6 +89,8 @@ export type Assignment = {
 };
 
 export type ChallengeCard = {
+  generatorVersion?: string | null;
+  evidenceProfile?: "memory-cued-v3" | "memory-honor-v2" | null;
   id: string;
   sessionId: string;
   activityType: string;
@@ -152,6 +154,9 @@ export type Progress = {
 };
 
 export type Session = {
+  memoryChallenge?: "Warmup" | "Advanced" | null;
+  generatorVersion?: string | null;
+  evidenceProfile?: "memory-cued-v3" | "memory-honor-v2" | null;
   format?: "Memory" | "Pbe";
   difficulty?: TrainingDifficulty;
   id: string;

@@ -103,6 +103,14 @@ describe("ProgressPage recorded evidence", () => {
     vi.mocked(trainingApi.journey).mockResolvedValue({ seasonId: "season-1", scopeVersion: "scope-1", after: null, chapters: [] });
     vi.mocked(api.studentProgress).mockResolvedValue(progress({ studentDisplayName: "Daniel Student", reviewDueCount: 2 }));
   });
+  it.each(["/student/progress", "/admin/seasons/season-1/students/student-1/progress"])("shows coach difficulty prerequisites at %s",async path=>{
+    const data=progress({assignments:[{difficulty:"Standard"} as Progress['assignments'][number]]});
+    vi.mocked(api.progress).mockResolvedValue(data);vi.mocked(api.studentProgress).mockResolvedValue(data);
+    renderProgress(path);
+    expect(await screen.findByText("Coach-set difficulty: Standard")).toBeInTheDocument();
+    expect(screen.getByText(/Foundation wording evidence stops at 40/)).toHaveTextContent("Standard at 70");
+    expect(screen.getByText(/Advanced mastery challenges require/)).toHaveTextContent("Your difficulty does not change automatically");
+  });
   it("shows real learner records without trusting an old route-state recap", async () => {
     renderProgress("/student/progress", summary());
     expect(screen.getByRole("heading", { name: "Your progress" })).toBeInTheDocument();

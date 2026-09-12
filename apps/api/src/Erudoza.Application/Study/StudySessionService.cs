@@ -35,6 +35,7 @@ public sealed class StudySessionService(
                 return existing;
             }
         }
+        if (request.MemoryChallenge is not (null or "Warmup" or "Advanced")) throw new DomainException("Choose Warmup or Advanced.");
         if (!Enum.IsDefined(request.Mode)) throw new DomainException("Choose Practice, Review, or Simulation.");
         var season = await db.Seasons.Include(item => item.RuleProfile).SingleOrDefaultAsync(
             item => item.Id == request.SeasonId && item.OrganizationId == organizationId,
@@ -73,6 +74,14 @@ public sealed class StudySessionService(
         var member = await db.CompetitionMembers.AsNoTracking().SingleOrDefaultAsync(
             item => item.OrganizationId == organizationId && item.SeasonId == season.Id
                 && item.UserId == studentId, cancellationToken);
+        if (request.MemoryChallenge is not null && !season.PbeEnabled) throw new DomainException("Memory study aids are not enabled for this season.");
+        if (request.MemoryChallenge == "Advanced" && member?.Difficulty != TrainingDifficulty.Advanced) throw new DomainException("Your coach must set Advanced difficulty before this challenge.");
+        var snapshot = RuleProfileReader.Read(season.RuleProfile!);
+        if (season.PbeEnabled)
+        {
+            var purpose = request.MemoryChallenge ?? "Warmup";
+            snapshot = snapshot with { MemoryChallenge = purpose, GeneratorVersion = "memory-v3", EvidenceProfile = purpose == "Advanced" ? "memory-honor-v2" : "memory-cued-v3" };
+        }
         var session = new StudySession
         {
             Id = Guid.NewGuid(),
@@ -83,7 +92,7 @@ public sealed class StudySessionService(
             Status = StudySessionStatus.Created,
             TargetCardCount = targetCardCount,
             Difficulty = member?.Difficulty ?? TrainingDifficulty.Standard,
-            RuleProfileSnapshotJson = JsonSerializer.Serialize(RuleProfileReader.Read(season.RuleProfile!)),
+            RuleProfileSnapshotJson = JsonSerializer.Serialize(snapshot),
             CreatedAtUtc = clock.UtcNow
         };
         await training.PrepareStartAsync(session, request, cancellationToken);
@@ -139,8 +148,9 @@ public sealed class StudySessionService(
             summary = new SessionSummaryDto(session.Id, session.Mode.ToString(), attempts.Count,
                 attempts.Count(item => item.IsCorrect), session.TargetCardCount, session.Status.ToString(), await training.RecapAsync(session, cancellationToken));
         }
+        var memory = RuleProfileReader.ReadSession(session, session.Season!.RuleProfile!);
         return new ResumeSessionDto(new SessionDto(session.Id, session.SeasonId, session.Status.ToString(),
-            session.Mode.ToString(), session.TargetCardCount, session.Difficulty.ToString()), cardDto, result, summary);
+            session.Mode.ToString(), session.TargetCardCount, session.Difficulty.ToString(), memory.MemoryChallenge, memory.GeneratorVersion, memory.EvidenceProfile), cardDto, result, summary);
     }
 
     public async Task<AttemptResultDto> SubmitAsync(
@@ -265,7 +275,7 @@ public sealed class StudySessionService(
                 request.HintsUsed,
                 card.ActivityType,
                 card.AnswerMode,
-                ActivitySerialization.ReadPayload(card.PayloadJson).Difficulty),
+                ActivitySerialization.ReadPayload(card.PayloadJson).Difficulty, ActivitySerialization.ReadPayload(card.PayloadJson).EvidenceProfile),
             cancellationToken);
 
         if (skillUpdate.Before is not null && skillUpdate.After is not null)

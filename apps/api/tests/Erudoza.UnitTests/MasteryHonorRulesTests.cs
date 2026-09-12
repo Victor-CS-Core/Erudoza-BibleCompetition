@@ -7,6 +7,18 @@ public sealed class MasteryHonorRulesTests
     private static readonly DateTimeOffset Now = DateTimeOffset.Parse("2026-09-11T12:00:00Z");
     private static HonorPassage Passage(int n) => new(Guid.Parse($"10000000-0000-4000-8000-{n:000000000000}"), "DAN", 1, 90, 90, 80, "v2-skill-evidence", null);
     private static string[] Solo(params HonorPassage[] passages) => MasteryHonorRules.Solo(passages).Select(x => x.Key).ToArray();
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("memory-honor-v2", true)]
+    [InlineData("memory-cued-v3", false)]
+    public void Saved_profile_controls_advanced_typed_proof(string? profile, bool expected)
+    {
+        var proof = new MasteryPassageProof { FirstMasteredAtUtc = Now.AddHours(-48) };
+        var attempt = new HonorAttempt(Guid.NewGuid(), Now, true, false, false, AnswerMode.ExactText, "MissingWords", 5, true, profile);
+        MasteryHonorRules.ObserveProof(proof, Passage(1), attempt);
+        Assert.Equal(expected, proof.RetainedAttemptId.HasValue);
+        Assert.Equal(expected, proof.ReviewedAttemptId.HasValue);
+    }
     [Fact]
     public void Solo_thresholds_require_breadth_current_evidence_and_mastery()
     {

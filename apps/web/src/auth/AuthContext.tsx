@@ -12,6 +12,8 @@ type AuthState = {
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
 };
+const attemptOwnerKey = "erudoza:attempt-owner";
+const attemptOwner = (person: Me) => JSON.stringify([person.organizationId, person.userId, person.kind, person.role]);
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -21,13 +23,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const clearPrivateData = useCallback(async (currentRevision: number) => {
+  const clearPrivateData = useCallback(async (currentRevision: number, preserveAttempts = false) => {
     if (currentRevision !== revision.current) return false;
     await queryClient.cancelQueries();
     if (currentRevision !== revision.current) return false;
     queryClient.clear();
-    for (const key of Object.keys(sessionStorage)) {
-      if (key.startsWith("erudoza:attempt:")) sessionStorage.removeItem(key);
+    if (!preserveAttempts) {
+      for (const key of Object.keys(sessionStorage)) {
+        if (key.startsWith("erudoza:attempt:") || key.startsWith("erudoza:pbe-attempt:")) sessionStorage.removeItem(key);
+      }
+      sessionStorage.removeItem(attemptOwnerKey);
     }
     return true;
   }, [queryClient]);
@@ -39,10 +44,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (currentRevision !== revision.current) return;
       const previous = identity.current;
       if (!previous || previous.userId !== next.userId || previous.organizationId !== next.organizationId || previous.kind !== next.kind || previous.role !== next.role) {
-        if (!await clearPrivateData(currentRevision)) return;
+        // A stored fingerprint only controls private draft retention after fresh /me.
+        // It never grants access or replaces server session ownership checks.
+        const sameOwnerOnReload = !previous && sessionStorage.getItem(attemptOwnerKey) === attemptOwner(next);
+        if (!await clearPrivateData(currentRevision, sameOwnerOnReload)) return;
       }
       if (currentRevision !== revision.current) return;
       identity.current = next;
+      sessionStorage.setItem(attemptOwnerKey, attemptOwner(next));
       setMe(next);
     } catch (failure) {
       if (currentRevision !== revision.current) return;
@@ -66,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (currentRevision !== revision.current) return;
     setError(null);
     identity.current = next;
+    sessionStorage.setItem(attemptOwnerKey, attemptOwner(next));
     setMe(next);
     setLoading(false);
   }, [clearPrivateData]);
