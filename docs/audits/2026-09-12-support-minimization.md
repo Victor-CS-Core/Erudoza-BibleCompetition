@@ -21,3 +21,11 @@ Implemented in isolated `.worktrees/coffee-minimize`, branch `codex/coffee-minim
 The active chapter-assignment and training-replayability tasks were notified of shared support/footer/test paths, base commit and no-merge/deploy scope. The chapter task confirmed its release complete and requested preserving mobile save clearance; the added native checks cover it.
 
 Ignored evidence is under `.local/coffee-minimize/` and `apps/web/test-results/coffee-widget/{contract,vendor}/`. No raw browser artifacts, generated credentials, local databases or provider copies belong in Git. No physical-device installation, actual payment completion, new .NET/full-gameplay result, or remote CI pass is claimed. Next: reviewed source checkpoint and private task-branch push, then notify both affected tasks of the exact commit.
+
+## Production release
+
+The user subsequently authorized merge and deployment. Main advanced normally from `cda9e0c` to `f031134`; the unrelated sign-in artwork branch remained untouched. Fresh release verification passed 627 source tests / one optional skip, native build/types and the production dry run. A private D1 export passed integrity verification; no migration was pending or applied. The immediate room-directory projection was empty (asynchronous projection, not direct room inspection).
+
+At 16:17:38 UTC on September 12, source `f031134` deployed as Worker `ebb8dcac-8236-4aab-830f-b3502ef64b39` under deployment `93b53c13-6ede-436d-b8e7-a402e2e02fd1`, serving 100% of traffic. Binding readback matches the prior database, Durable Objects, rate limits, public variables and secret names. Previous compatible Worker: `f7675d55-aa5c-400a-8b9f-96df2a9ecf86`.
+
+Live verification passed 30 edge checks at 16:18:02 UTC and six public browser flows at 16:18:05 UTC. Chromium, Firefox and WebKit each verified normal/blocked-provider minimize, persisted reload and restore at 390px, with visible focus, no overflow or page errors. No account/payment mutation or physical-device installation was performed. Ignored release evidence: `.local/deployment/support-minimize-20260912/`. Source CI remains separately in progress; both affected tasks receive the release readback.
