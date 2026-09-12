@@ -1,6 +1,6 @@
 # PBE training release operations
 
-Status: release closure in progress under the user-requested scope freeze; the final main/deployment manifest will be recorded below. Source through B4 is reviewed and pushed at `0fa0ea20117413cbf29cfa4d45cb042680c30b4c`; D1 is independently accepted and pushed through checkpoint `ee977e4cb9ea54a5603702ca98c45f8e3ae09fbc`. D2 and the user-frozen D3 local restore subset are implemented and integrated. Local release checks are complete; production deployment and branch cleanup are the final actions. No real-user pilot has run. The [implementation evidence](../audits/2026-09-12-pbe-implementation.md) and [progress log](../../PROGRESS.md) distinguish local checks from pushed source and live releases.
+Status: **live and closed under the user-requested scope freeze**. Source `c411b0c867e12c43aaffea096e74e2691889edf9` is deployed at [erudoza.com](https://erudoza.com), Worker `c2b2a690-5129-46a7-a8e9-7f82df5628e2`. All branch progress is preserved in main and the other branch refs are removed. Existing season/book/assignment choices are unchanged; unreviewed PBE banks remain disabled. See [PROGRESS](../../PROGRESS.md) for local and live evidence.
 
 Use this document with the [Cloudflare native operations](cloudflare-native.md) and [Team Practice operations](pvp.md). The latter's speed-bonus and restart descriptions belong to historical Arcade behavior. New PBE rehearsals use the saved PBE profile described below; never reinterpret an existing match through a current default.
 
@@ -14,18 +14,19 @@ Validate the actual published bank through the coach tools. Solo practice stays 
 
 ## Release manifest and local gate
 
-Complete the following manifest from the final reviewed checkpoint before preparing a deployment command:
+Verified release manifest:
 
 | Required field | Current state |
 |---|---|
-| Exact reviewed release commit and pushed remote readback | D1 reviewed and pushed at `ee977e4`; D2/D3 and final release review remain pending |
-| Ordered native migration names and hashes | `0005_pbe_training.sql` exists; C3 adds `0006_practice_room_components.sql`, reviewed at C3; final hashes/inventory pending |
-| Worker artifact hash, compatible configuration and DO migrations | Additive `v3-pbe-solo` exists in source; final build/config verification pending |
-| Canonical EF migration and populated conversion mapping | `20260912021321_PbeTrainingRecords` and `20260912154835_MissingWordsSlotAnswers` locally verified; final C3/D record mapping pending |
-| Populated local restore, native resume and original retry proof | Pending D3 |
-| Full native/canonical tests, types, lint, formatting, builds and browser results | Pending final integrated gate; earlier task results remain in the audit |
-| Six/twelve-student full rehearsal and local load measurements | Native and canonical 90-question tests pass locally; C3 source review passed. Native chat p95 across 10 rooms with 60/120 actors missed the 500ms target (3.57/9.08s); live cohort capacity remains unverified |
-| Selected cohort bank and applicable rules approval | Requires real-world cohort coordination |
+| Released source | `c411b0c867e12c43aaffea096e74e2691889edf9`; pushed main readback matched |
+| Native migrations |0005training index,0006room components,0007local maintenance tables applied; no pending migrations |
+| Worker | `c2b2a690-5129-46a7-a8e9-7f82df5628e2` at100%; existing bindings preserved, additive PBE_SOLO |
+| Backup | Private D1 export restored locally; integrity and existing table counts preserved after migrations |
+| Local recovery | Populated A–D1 canonical/native cases verified; D2-containing and hosted conversion unsupported |
+| Verification | Native build/types/lint/browser passed; full-suite failures closed by focused reruns; canonical build/format and affected checks passed |
+| Live smoke |32public/anonymous checks passed; signed-in production testing handed to user |
+| Cohort enablement | Existing settings retained; actual bank approval and capacity assessment still required before new PBE admission |
+
 
 Run the exact final check sequence in [Task D3](../superpowers/plans/2026-09-12-pbe-chapter-progress.md). A skipped optional load case, pure state-engine test or frontend build does not establish hosted capacity, an HTTP flow or native type safety. Preserve test environment adjustments and their limits in the result record. Keep fixture databases, screenshots, credentials and raw test logs outside Git and public assets.
 

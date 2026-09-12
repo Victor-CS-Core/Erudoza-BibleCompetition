@@ -1,6 +1,6 @@
 # September 12 branch consolidation and release
 
-The user authorized finishing training, committing/pushing and integrating the latest work from every branch into main, deploying the validated combined app, and then removing the other branches. **Local consolidation complete; deployment and ref cleanup are pending final checks.** The remaining training gates are in the [plan](../superpowers/plans/2026-09-12-pbe-training.md).
+The user authorized finishing training, committing/pushing and integrating the latest work from every branch into main, deploying the validated combined app, and then removing the other branches. **Consolidation, deployment and branch-ref cleanup are complete.** The remaining training gates are in the [plan](../superpowers/plans/2026-09-12-pbe-training.md).
 
 ## Verified inventory
 
@@ -50,3 +50,17 @@ A final table must record the integrated SHA, deployed version, verification lim
 Training merge `df23437` reconciled18conflicts while preserving both workflow families. Restore/final compatibility merge `1d477d7` followed. History-only merges `7989ad4` and `3a5c225` preserve the verified older work without changing their immediately preceding trees. NKJV merge `555fd60` preserves the historical document. Signup merge `a9e673a` includes the distinct latest signup/sign-in design work. All42original local/remote refs were freshly checked as ancestors after that merge. Worktree files and private artifacts remain intact.
 
 The release candidate has current native build/type/lint/browser and canonical build/focused recovery evidence in PROGRESS. Production migration/deployment and branch deletion are recorded separately below when verified.
+
+## Verified release result
+
+| Item | Result |
+|---|---|
+| Deployed application source | `c411b0c867e12c43aaffea096e74e2691889edf9` |
+| Live Worker | `c2b2a690-5129-46a7-a8e9-7f82df5628e2` at100% on [erudoza.com](https://erudoza.com) |
+| Database | Additive0005–0007 applied; no pending migrations |
+| Public verification |32checks passed; exact native HTML/JS/CSS readback |
+| Authenticated production testing | User handoff; no production credential/session available to this task |
+| Removed refs |29remote +10local non-main branches, after ancestry proof |
+| Preserved files | All worktree directories, ignored backups/tooling and unrelated preview |
+
+Only main remains locally and remotely. Historical branch identities are retained in Git merge ancestry and the inventory above. The separately verified signup/sign-in branch was normally merged at `a9e673a`, preserving its unique eight-file change. All original42inventoried refs were checked as ancestors before cleanup. The final documentation-only checkpoint changes no deployed application files.

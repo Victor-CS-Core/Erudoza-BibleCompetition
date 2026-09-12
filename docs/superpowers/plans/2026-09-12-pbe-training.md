@@ -109,14 +109,14 @@ All assessment findings map to tasks above. A verified question bank for the act
 
 ## Execution status
 
-A–D2 features are implemented and reviewed through task checkpoint `e8dec16`, now integrated into local main with every branch's progress. The user froze further scope expansion. D3's implemented local restore subset is verified; unsupported D2 conversion, hosted capacity and real learner studies remain explicit follow-ups. Final combined checks, production deployment and preserved-ref cleanup are the remaining release actions. See [PROGRESS.md](../../../PROGRESS.md) for executed evidence and its limits.
+A–D2 features are implemented and reviewed through task checkpoint `e8dec16`, now integrated into local main with every branch's progress. The user froze further scope expansion. D3's implemented local restore subset is verified; unsupported D2 conversion, hosted capacity and real learner studies remain explicit follow-ups. Final combined checks, production deployment and preserved-ref cleanup are complete. The user is taking over live signed-in testing; no further work is scheduled. See [PROGRESS.md](../../../PROGRESS.md) for executed evidence and its limits.
 
 | Phase | Status |
 |---|---|
 | A — Questions and grading | Complete, reviewed and integrated |
 | B — Solo learning/replay and inline missing words | Complete, reviewed and integrated |
 | C — Independent rehearsal and deferred review | Complete, reviewed and integrated |
-| D — Chapter progress and release | Features complete; scoped restore verified; final deployment/cleanup in progress |
+| D — Chapter progress and release | Complete within user-frozen scope; deployed and cleaned up |
 
 ### A2 storage refinement
 
