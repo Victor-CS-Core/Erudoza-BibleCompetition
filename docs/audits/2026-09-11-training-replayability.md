@@ -104,6 +104,8 @@ A concrete session could answer three due PBE-style questions, practice three ne
 
 The first implementation priority should be PBE question delivery and accurate rehearsal scoring, coupled with question coverage and review scheduling. Improve Verse Builder as a supporting study tool. Chapter expeditions and checkpoints then give those improvements a clear student-facing purpose. Additional currencies or more static badge art would add less value at this stage.
 
+**Independent play is the default recommendation.** Automatically grade prepared answer rubrics and let students finish and replay without a coach online. Reveal answers and source evidence after responses are locked; disputed answers can be flagged for later review without stopping play. Coach-led rehearsal remains optional. See the [accepted grading and review recommendation](2026-09-11-pbe-training-alignment.md#accepted-recommendation-independent-play-with-optional-review) for feedback, spelling, provisional-score and correction requirements.
+
 ## Learning rationale and success measures
 
 Repeated retrieval improved delayed recall in Karpicke and Roediger's vocabulary experiment; that supports keeping retrieval after initial success. It does not establish Erudoza's effectiveness for Bible memorization. [Original research](https://learninglab.psych.purdue.edu/downloads/2008/2008_Karpicke_Roediger_Science.pdf).
