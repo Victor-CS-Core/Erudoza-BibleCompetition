@@ -15,7 +15,7 @@ describe("Team Practice entry", () => {
   it("shows evidence-backed empty states and the speed adaptation", async () => {
     mount();
     expect(await screen.findByText("No rooms yet. Create a room or accept an invitation.")).toBeInTheDocument();
-    expect(screen.getByText(/accuracy plus up to 25% speed bonus/)).toBeInTheDocument();
+    expect(screen.getByText(/Arcade adds up to 25% as a speed bonus/)).toBeInTheDocument();
     expect(screen.queryByText("First Fellowship")).not.toBeInTheDocument();
   });
   it("creates selected 5v5 room without client timing fields", async () => {

@@ -1,6 +1,6 @@
 # September 12 branch consolidation and release
 
-The user authorized finishing training, committing/pushing and integrating the latest work from every branch into main, deploying the validated combined app, and then removing the other branches. **Inventory/preparation only: no consolidation, production mutation or branch deletion has occurred in this task.** The remaining training gates are in the [plan](../superpowers/plans/2026-09-12-pbe-training.md).
+The user authorized finishing training, committing/pushing and integrating the latest work from every branch into main, deploying the validated combined app, and then removing the other branches. **Local consolidation complete; deployment and ref cleanup are pending final checks.** The remaining training gates are in the [plan](../superpowers/plans/2026-09-12-pbe-training.md).
 
 ## Verified inventory
 
@@ -44,3 +44,9 @@ For the eleven exact-tree matches and the patch-equivalent landing fix, retain c
 5. Only afterward, refresh branch tips again and prove each is reachable from remote main. Remove non-main remote/local branch refs. Detach clean worktrees as needed while retaining their files, ignored private backups/tooling and unrelated active previews. Do not force-delete dirty worktrees or terminate unrelated processes.
 
 A final table must record the integrated SHA, deployed version, verification limits and deleted refs. This document currently contains no completion claim.
+
+## Executed local consolidation
+
+Training merge `df23437` reconciled18conflicts while preserving both workflow families. Restore/final compatibility merge `1d477d7` followed. History-only merges `7989ad4` and `3a5c225` preserve the verified older work without changing their immediately preceding trees. NKJV merge `555fd60` preserves the historical document. Signup merge `a9e673a` includes the distinct latest signup/sign-in design work. All42original local/remote refs were freshly checked as ancestors after that merge. Worktree files and private artifacts remain intact.
+
+The release candidate has current native build/type/lint/browser and canonical build/focused recovery evidence in PROGRESS. Production migration/deployment and branch deletion are recorded separately below when verified.

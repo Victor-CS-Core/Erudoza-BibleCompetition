@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api, ApiError } from "../../api/client";
@@ -19,11 +19,23 @@ vi.mock("../../api/client", async importOriginal => ({
   },
 }));
 
+const studyClients = new Set<QueryClient>();
+const studyRouters = new Set<ReturnType<typeof createMemoryRouter>>();
+
 beforeEach(() => {
   vi.mocked(api.resumeSession).mockImplementation(async (id) => ({session:{id,seasonId:"season-1",status:"Created",mode:"Practice",targetCardCount:8},card:null,attempt:null,summary:null}));
 });
 
-afterEach(() => sessionStorage.clear());
+afterEach(async () => {
+  cleanup();
+  for (const router of studyRouters) router.dispose();
+  await Promise.all([...studyClients].map(client => client.cancelQueries()));
+  for (const client of studyClients) client.clear();
+  studyRouters.clear();
+  studyClients.clear();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  sessionStorage.clear();
+});
 
 function progress(overrides: Partial<Progress> = {}): Progress {
   return {
@@ -46,6 +58,8 @@ function renderStudy(path: string) {
   const router = createMemoryRouter([{ path: "/student/study", element: <StudyPage /> }, { path: "/student/sessions/:sessionId/recap", element: <p>Saved session summary</p> }], {
     initialEntries: [path],
   });
+  studyClients.add(client);
+  studyRouters.add(router);
   render(
     <QueryClientProvider client={client}>
       <RouterProvider router={router} />
