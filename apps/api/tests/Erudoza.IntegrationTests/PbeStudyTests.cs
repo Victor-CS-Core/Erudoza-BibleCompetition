@@ -1,0 +1,251 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using Erudoza.Domain;
+using Erudoza.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+namespace Erudoza.IntegrationTests;
+
+public sealed class PbeStudyTests
+{
+    [Fact]
+    public async Task Introduction_only_daily_Pbe_grades_partial_answers_and_preserves_original_retry_and_effort()
+    {
+        using var f = await Fixture.Create();
+        var today = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/progress/me/today?seasonId={f.Season}");
+        Assert.Equal("Pbe", today.GetProperty("format").GetString());
+        var start = await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Practice" });
+        Assert.Equal(HttpStatusCode.OK, start.StatusCode);
+        var s = await start.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Pbe", s.GetProperty("format").GetString());
+        Assert.Equal(2, s.GetProperty("targetCardCount").GetInt32());
+        var path = $"/api/v1/study/sessions/{s.GetProperty("id").GetGuid()}";
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.GetAsync(path + "/recap")).StatusCode);
+        var card = await f.Student.GetFromJsonAsync<JsonElement>(path + "/next");
+        Assert.DoesNotContain("Alpha", card.GetRawText());
+        Assert.DoesNotContain("acceptedAnswers", card.GetRawText());
+        var input = new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), answers = new[] { "Alpha", "wrong" }, hintsUsed = false };
+        var result = await (await f.Student.PostAsJsonAsync(path + "/attempts", input)).Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(1, result.GetProperty("earnedPoints").GetInt32());
+        var resumed = await f.Student.GetFromJsonAsync<JsonElement>(path);
+        Assert.Equal(result.GetProperty("attemptId").GetGuid(), resumed.GetProperty("attempt").GetProperty("attemptId").GetGuid());
+        var retry = await (await f.Student.PostAsJsonAsync(path + "/attempts", input)).Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(result.GetProperty("acceptedAtUtc").GetString(), retry.GetProperty("acceptedAtUtc").GetString());
+        Assert.True(retry.GetProperty("alreadyProcessed").GetBoolean());
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.PostAsJsonAsync(path + "/attempts", new { input.clientSubmissionId, input.challengeCardId, answers = new[] { "Beta", "Alpha" }, hintsUsed = false })).StatusCode);
+        card = await f.Student.GetFromJsonAsync<JsonElement>(path + "/next");
+        Assert.Equal(HttpStatusCode.OK, (await f.Student.PostAsJsonAsync(path + "/attempts", new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), input.answers, input.hintsUsed })).StatusCode);
+        var done = await (await f.Student.PostAsJsonAsync(path + "/complete", new { })).Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(done.GetProperty("recap").GetProperty("fullTargetReached").GetBoolean());
+        Assert.True(done.GetProperty("recap").GetProperty("newlyCreditedDay").GetBoolean());
+        Assert.Equal(2, await f.Db.PbeTrainingRecords.CountAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-target-review"));
+        Assert.Single(await f.Db.TrainingDays.Where(d => d.StudentUserId == f.StudentId).ToListAsync());
+        Assert.False(await f.Db.SourceUnits.AnyAsync(u => u.Id == f.Unit));
+        var recap = await f.Student.GetFromJsonAsync<JsonElement>(path + "/recap");
+        Assert.Equal("pbe-daily-v2", recap.GetProperty("version").GetString());
+    }
+
+    [Fact]
+    public async Task Saved_aid_survives_false_flags_and_unrelated_introduction_assignment_changes_and_disabled_admission()
+    {
+        using var f = await Fixture.Create();
+        var session = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe" })).Content.ReadFromJsonAsync<JsonElement>();
+        var path = $"/api/v1/study/sessions/{session.GetProperty("id").GetGuid()}";
+        var card = await f.Student.GetFromJsonAsync<JsonElement>(path + "/next");
+        Assert.Equal(HttpStatusCode.OK, (await f.Student.PostAsJsonAsync(path + "/source", new { challengeCardId = card.GetProperty("id").GetGuid() })).StatusCode);
+        Assert.True((await f.Student.GetFromJsonAsync<JsonElement>(path)).GetProperty("card").GetProperty("assisted").GetBoolean());
+        var otherResponse = await f.Coach.PostAsJsonAsync($"/api/v1/organizations/{f.Org}/students", new { userName = "pbe.other", displayName = "Other learner", password = "OtherFixture!234" });
+        Assert.Equal(HttpStatusCode.Created, otherResponse.StatusCode);
+        var otherId = (await otherResponse.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("userId").GetGuid();
+        f.Db.CompetitionMembers.Add(new() { Id = Guid.NewGuid(), OrganizationId = f.Org, SeasonId = f.Season, UserId = otherId });
+        await f.Db.SaveChangesAsync();
+        Assert.Equal(HttpStatusCode.OK, (await f.Coach.PostAsJsonAsync($"/api/v1/organizations/{f.Org}/practice/pbe/seasons/{f.Season}/introductions/{f.Intro}/assignments", new { revision = 3, studentIds = new[] { f.StudentId, otherId } })).StatusCode);
+        await f.Db.Seasons.Where(s => s.Id == f.Season).ExecuteUpdateAsync(s => s.SetProperty(x => x.PbeEnabled, false));
+        Assert.Equal(HttpStatusCode.Forbidden, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Practice" })).StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await f.Student.GetAsync($"/api/v1/organizations/{f.Org}/practice/pbe/seasons/{f.Season}/bank")).StatusCode);
+        var input = new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), answers = new[] { "Alpha", "Beta" }, hintsUsed = false };
+        var accepted = await (await f.Student.PostAsJsonAsync(path + "/attempts", input)).Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(accepted.GetProperty("unaided").GetBoolean());
+        var replay = await (await f.Student.PostAsJsonAsync(path + "/attempts", input)).Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(accepted.GetProperty("acceptedAtUtc").GetString(), replay.GetProperty("acceptedAtUtc").GetString());
+        card = await f.Student.GetFromJsonAsync<JsonElement>(path + "/next");
+        Assert.Equal(HttpStatusCode.OK, (await f.Student.PostAsJsonAsync(path + "/attempts", new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), input.answers, input.hintsUsed })).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await f.Student.PostAsJsonAsync(path + "/complete", new { })).StatusCode);
+        var frozen = await f.Student.GetStringAsync(path + "/recap");
+        await f.Db.PbeTrainingRecords.Where(r => r.SeasonId == f.Season && r.Kind == "pbe-introduction-assignment").ExecuteDeleteAsync();
+        Assert.Equal(frozen, await f.Student.GetStringAsync(path + "/recap"));
+    }
+    [Theory]
+    [InlineData("assignment")]
+    [InlineData("membership")]
+    [InlineData("season")]
+    [InlineData("book")]
+    [InlineData("review")]
+    [InlineData("license")]
+    public async Task Fresh_revocation_blocks_saved_delivery_and_accepted_retries(string revocation)
+    {
+        using var f = await Fixture.Create();
+        var session = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Practice" })).Content.ReadFromJsonAsync<JsonElement>();
+        var path = $"/api/v1/study/sessions/{session.GetProperty("id").GetGuid()}";
+        var card = await f.Student.GetFromJsonAsync<JsonElement>(path + "/next");
+        var input = new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), answers = new[] { "Alpha", "wrong" }, hintsUsed = false };
+        Assert.Equal(HttpStatusCode.OK, (await f.Student.PostAsJsonAsync(path + "/attempts", input)).StatusCode);
+        Assert.Contains((await f.Student.GetFromJsonAsync<JsonElement>("/api/v1/progress/me/seasons")).EnumerateArray(), s => s.GetProperty("id").GetGuid() == f.Season);
+        if (revocation == "assignment") await f.Db.PbeTrainingRecords.Where(r => r.SeasonId == f.Season && r.Kind == "pbe-introduction-assignment").ExecuteDeleteAsync();
+        else if (revocation == "membership") await f.Db.CompetitionMembers.Where(m => m.SeasonId == f.Season).ExecuteDeleteAsync();
+        else if (revocation == "season") await f.Db.Seasons.Where(s => s.Id == f.Season).ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, SeasonStatus.Archived));
+        else if (revocation == "book") await f.Db.ScopeEntries.Where(s => s.SeasonId == f.Season).ExecuteDeleteAsync();
+        else
+        {
+            var row = await f.Db.PbeTrainingRecords.SingleAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-introduction");
+            var data = System.Text.Json.Nodes.JsonNode.Parse(row.DataJson)!;
+            if (revocation == "review") data["reviewed"] = false;
+            else data["licensingStatus"] = "pending";
+            row.DataJson = data.ToJsonString();
+            row.Revision++;
+            await f.Db.SaveChangesAsync();
+        }
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.GetAsync(path + "/recap")).StatusCode);
+        Assert.False((await f.Student.GetAsync(path + "/next")).IsSuccessStatusCode);
+        Assert.False((await f.Student.PostAsJsonAsync(path + "/attempts", input)).IsSuccessStatusCode);
+        Assert.False((await f.Student.PostAsJsonAsync(path + "/complete", new { })).IsSuccessStatusCode);
+        Assert.Equal(1, await f.Db.PbeTrainingRecords.CountAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-recall-event"));
+        Assert.DoesNotContain((await f.Student.GetFromJsonAsync<JsonElement>("/api/v1/progress/me/seasons")).EnumerateArray(), s => s.GetProperty("id").GetGuid() == f.Season);
+    }
+    [Fact]
+    public async Task Strict_format_mode_boundaries_and_idempotent_start_preserve_missing_format_Memory()
+    {
+        using var f = await Fixture.Create();
+        foreach (var format in new object?[] { "pbe", "Unknown", 2, null }) Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format, mode = "Practice" })).StatusCode);
+        foreach (var mode in new object?[] { "practice", "Unknown", 2, null }) Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Simulation" })).StatusCode);
+        var input = new { seasonId = f.Season, format = "Pbe", mode = "Practice", training = new { clientStartId = new string('x', 200) } };
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", training = new { clientStartId = "stale", missionId = Guid.NewGuid().ToString(), missionRevision = 1, step = "Practice" } })).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", training = new { clientStartId = "bad", missionRevision = 1 } })).StatusCode);
+        var first = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", input)).Content.ReadAsStringAsync();
+        Assert.Equal(first, await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", input)).Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { input.seasonId, input.format, mode = "Review", input.training })).StatusCode);
+        // An introduction-only learner has no Memory range: omitted format keeps that legacy rejection.
+        Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, mode = "Practice" })).StatusCode);
+    }
+
+    [Theory]
+    [InlineData("Memory")]
+    [InlineData("Pbe")]
+    public async Task Memory_and_Pbe_share_one_day_credit_through_actual_HTTP(string first)
+    {
+        using var f = await Fixture.Create();
+        var created = await f.Coach.PostAsJsonAsync($"/api/v1/organizations/{f.Org}/seasons", new { name = "Memory effort fixture", yearLabel = "2026", ruleProfileKey = "PBE_STYLE_V1" });
+        created.EnsureSuccessStatusCode();
+        var memorySeason = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        var root = $"/api/v1/organizations/{f.Org}/seasons/{memorySeason}";
+        var range = new { bookKey = "DAN", startChapter = 1, startVerse = 1, endChapter = 1, endVerse = 4 };
+        (await f.Coach.PostAsJsonAsync(root + "/scope", new { contentPackId = SeedIdentifiers.ContentPackId, includes = new[] { range }, excludes = Array.Empty<object>() })).EnsureSuccessStatusCode();
+        (await f.Coach.PostAsJsonAsync(root + "/assignments", new { studentUserId = f.StudentId, type = "PrimarySpecialist", contentPackId = SeedIdentifiers.ContentPackId, range })).EnsureSuccessStatusCode();
+        (await f.Coach.PostAsync(root + "/activate", null)).EnsureSuccessStatusCode();
+        foreach (var format in new[] { first, first == "Memory" ? "Pbe" : "Memory" })
+        {
+            var started = await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = format == "Pbe" ? f.Season : memorySeason, format, mode = "Practice" });
+            Assert.True(started.IsSuccessStatusCode, await started.Content.ReadAsStringAsync());
+            var s = await started.Content.ReadFromJsonAsync<JsonElement>();
+            var path = $"/api/v1/study/sessions/{s.GetProperty("id").GetGuid()}";
+            for (var i = 0;
+i < s.GetProperty("targetCardCount").GetInt32();
+i++)
+            {
+                var card = await f.Student.GetFromJsonAsync<JsonElement>(path + "/next");
+                var body = new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), answers = new[] { "Alpha", "Beta" }, submittedAnswer = "A saved practice attempt", responseTimeMs = 100, hintsUsed = false };
+                Assert.Equal(HttpStatusCode.OK, (await f.Student.PostAsJsonAsync(path + "/attempts", body)).StatusCode);
+            }
+            Assert.Equal(HttpStatusCode.OK, (await f.Student.PostAsJsonAsync(path + "/complete", new { })).StatusCode);
+        }
+        Assert.Single(await f.Db.TrainingDays.Where(d => d.StudentUserId == f.StudentId).ToListAsync());
+        Assert.Equal(1, (await f.Db.TrainingWeeks.SingleAsync(w => w.StudentUserId == f.StudentId)).CompletedDays);
+    }
+    [Fact]
+    public async Task Competing_submissions_commit_one_attempt_with_its_evidence_and_no_partial_effort()
+    {
+        using var f = await Fixture.Create();
+        var s = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe" })).Content.ReadFromJsonAsync<JsonElement>();
+        var path = $"/api/v1/study/sessions/{s.GetProperty("id").GetGuid()}";
+        var card = await f.Student.GetFromJsonAsync<JsonElement>(path + "/next");
+        var results = await Task.WhenAll(Enumerable.Range(0, 2).Select(_ => f.Student.PostAsJsonAsync(path + "/attempts", new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), answers = new[] { "Alpha", "Beta" }, hintsUsed = false })));
+        Assert.Equal(new[] { HttpStatusCode.OK, HttpStatusCode.Conflict }, results.Select(r => r.StatusCode).Order().ToArray());
+        Assert.Equal(1, await f.Db.PbeTrainingRecords.CountAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-attempt"));
+        Assert.Equal(1, await f.Db.PbeTrainingRecords.CountAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-recall-event"));
+        var mission = await f.Db.PbeTrainingRecords.SingleAsync(r => r.SeasonId == f.Season && r.Kind == "pbe-daily-mission");
+        Assert.Equal(1, JsonDocument.Parse(mission.DataJson).RootElement.GetProperty("completed").GetInt32());
+        Assert.False(await f.Db.TrainingDays.AnyAsync(d => d.StudentUserId == f.StudentId));
+    }
+    [Fact]
+    public async Task Review_selects_due_targets_and_refuses_source_assistance()
+    {
+        using var f = await Fixture.Create();
+        var empty = await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Review" });
+        Assert.Equal(HttpStatusCode.Conflict, empty.StatusCode);
+        Assert.Contains("PBE_NOTHING_DUE", await empty.Content.ReadAsStringAsync());
+        var session = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe" })).Content.ReadFromJsonAsync<JsonElement>();
+        var path = $"/api/v1/study/sessions/{session.GetProperty("id").GetGuid()}";
+        var card = await f.Student.GetFromJsonAsync<JsonElement>(path + "/next");
+        (await f.Student.PostAsJsonAsync(path + "/attempts", new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), answers = new[] { "Alpha", "wrong" }, hintsUsed = false })).EnsureSuccessStatusCode();
+        var review = await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Review" });
+        review.EnsureSuccessStatusCode();
+        var r = await review.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Review", r.GetProperty("mode").GetString());
+        path = $"/api/v1/study/sessions/{r.GetProperty("id").GetGuid()}";
+        card = await f.Student.GetFromJsonAsync<JsonElement>(path + "/next");
+        Assert.Equal(HttpStatusCode.BadRequest, (await f.Student.PostAsJsonAsync(path + "/source", new { challengeCardId = card.GetProperty("id").GetGuid() })).StatusCode);
+        (await f.Student.PostAsJsonAsync(path + "/attempts", new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), answers = new[] { "Alpha", "Beta" }, hintsUsed = false })).EnsureSuccessStatusCode();
+    }
+    private sealed class Fixture : IDisposable
+    {
+        public ErudozaApiFactory Factory = null!;
+        public HttpClient Coach = null!, Student = null!;
+        public IServiceScope Scope = null!;
+        public ErudozaDbContext Db = null!;
+        public Guid Org, Season, StudentId, Intro, Unit;
+        public void Dispose()
+        {
+            Student.Dispose();
+            Coach.Dispose();
+            Scope.Dispose();
+            Factory.Dispose();
+        }
+        public static async Task<Fixture> Create()
+        {
+            var f = new Fixture { Factory = new ErudozaApiFactory { DisablePracticeTicker = true } };
+            f.Coach = await TestHttp.LoginAsync(f.Factory, "admin@erudoza.local", "DevAdmin!234");
+            f.Student = await TestHttp.LoginAsync(f.Factory, "daniel.student", "DevStudent!234");
+            f.Org = (await f.Coach.GetFromJsonAsync<JsonElement>("/api/v1/me")).GetProperty("organizationId").GetGuid();
+            f.StudentId = (await f.Student.GetFromJsonAsync<JsonElement>("/api/v1/me")).GetProperty("userId").GetGuid();
+            f.Scope = f.Factory.Services.CreateScope();
+            f.Db = f.Scope.ServiceProvider.GetRequiredService<ErudozaDbContext>();
+            var scripture = await f.Db.SourceUnits.FirstAsync(s => s.OrganizationId == f.Org);
+            var rule = new RuleProfile { Id = Guid.NewGuid(), Key = "pbe-session", Version = 1 };
+            f.Season = Guid.NewGuid();
+            f.Db.RuleProfiles.Add(rule);
+            f.Db.Seasons.Add(new() { Id = f.Season, OrganizationId = f.Org, Name = "PBE session", RuleProfileId = rule.Id, Status = SeasonStatus.Active, PbeEnabled = true });
+            f.Db.ScopeEntries.Add(new() { Id = Guid.NewGuid(), OrganizationId = f.Org, SeasonId = f.Season, ContentPackId = scripture.ContentPackId, Kind = ScopeEntryKind.Include, BookKey = scripture.BookKey, StartChapter = scripture.Chapter, EndChapter = scripture.Chapter, StartVerse = scripture.Verse, EndVerse = scripture.Verse });
+            f.Db.CompetitionMembers.Add(new() { Id = Guid.NewGuid(), OrganizationId = f.Org, SeasonId = f.Season, UserId = f.StudentId });
+            await f.Db.SaveChangesAsync();
+            var p = $"/api/v1/organizations/{f.Org}/practice/pbe/seasons/{f.Season}";
+            var intro = await (await f.Coach.PostAsJsonAsync(p + "/introductions", new { bookKey = scripture.BookKey, sourceEdition = "Test", title = "Labels", citation = "Intro", licensingStatus = "approved", units = new[] { new { citation = "Intro §1", canonicalText = "Alpha and Beta" } } })).Content.ReadFromJsonAsync<JsonElement>();
+            f.Intro = intro.GetProperty("id").GetGuid();
+            f.Unit = intro.GetProperty("units")[0].GetProperty("id").GetGuid();
+            Assert.Equal(HttpStatusCode.OK, (await f.Coach.PostAsJsonAsync(p + $"/introductions/{f.Intro}/review", new { revision = 1, reviewed = true })).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await f.Coach.PostAsJsonAsync(p + $"/introductions/{f.Intro}/assignments", new { revision = 2, studentIds = new[] { f.StudentId } })).StatusCode);
+            var targetIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
+            for (var i = 0;
+i < 2;
+i++)
+            {
+                var q = Guid.NewGuid();
+                var input = new { targets = targetIds.Select(t => new { id = t, sourceUnitIds = new[] { f.Unit }, skill = "FactualRecall", label = "Labels" }), questions = new[] { new { schemaVersion = 2, id = q, version = 1, contentPackId = f.Intro, sourceUnitId = f.Unit, sourceUnitIds = new[] { f.Unit }, sourceKind = "Commentary", reference = "Intro §1", evidence = "Alpha and Beta", kind = "List", prompt = "Name the labels.", ordered = false, parts = targetIds.Select((t, n) => new { targetId = t, acceptedAnswers = new[] { n == 0 ? "Alpha" : "Beta" }, points = 1 }) } } };
+                Assert.Equal(HttpStatusCode.NoContent, (await f.Coach.PostAsJsonAsync(p + "/questions/import", input)).StatusCode);
+                Assert.Equal(HttpStatusCode.NoContent, (await f.Coach.PostAsJsonAsync(p + $"/questions/{q}/1/publish", new { })).StatusCode);
+            }
+            return f;
+        }
+    }
+}

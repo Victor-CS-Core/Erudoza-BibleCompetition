@@ -1,3 +1,4 @@
+import { pbeSummary, type PbeSession } from '../pbe/sessions';
 import type { RequestContext } from '../types';
 import { body, HttpError, json } from '../types';
 import { atomic } from '../application/model';
@@ -15,6 +16,8 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
         throw new HttpError(403, 'Student access is required.');
     const url = new URL(request.url), seasonId = url.searchParams.get('seasonId');
     if (recap && method === 'GET') {
+        const pbe=await ctx.store.get<PbeSession>('pbe-session',recap[1],ctx.orgId);
+        if(pbe){if(pbe.value.studentUserId!==ctx.actor.userId)throw new HttpError(404,'Study session was not found.');if(pbe.value.status!=='Completed')throw new HttpError(409,'Complete your session to save its recap.');return json(pbeSummary(pbe.value).recap);}
         const s = (await ctx.store.require<Session>('session', recap[1], ctx.orgId)).value;
         if (s.studentUserId !== ctx.actor.userId)
             throw new HttpError(404, 'Study session was not found.');

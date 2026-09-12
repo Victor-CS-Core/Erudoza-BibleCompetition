@@ -19,6 +19,10 @@ vi.mock("../../api/client", async importOriginal => ({
   },
 }));
 
+beforeEach(() => {
+  vi.mocked(api.resumeSession).mockImplementation(async (id) => ({session:{id,seasonId:"season-1",status:"Created",mode:"Practice",targetCardCount:8},card:null,attempt:null,summary:null}));
+});
+
 afterEach(() => sessionStorage.clear());
 
 function progress(overrides: Partial<Progress> = {}): Progress {
@@ -447,6 +451,7 @@ vi.mock("../../api/scripture", () => ({ scriptureApi: { assigned: vi.fn() } }));
 describe("StudyPage assigned Scripture reading", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(api.resumeSession).mockImplementation(async (id) => ({session:{id,seasonId:"season-1",status:"Created",mode:"Practice",targetCardCount:8},card:null,attempt:null,summary:null}));
     sessionStorage.clear();
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
     vi.mocked(api.startSession).mockImplementation(async (_, mode = "Practice") => ({ id: "session-reader", seasonId: "season-1", mode, status: "Active", targetCardCount: 2 }));

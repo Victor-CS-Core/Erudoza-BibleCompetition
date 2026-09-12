@@ -47,6 +47,7 @@ export type TrainingWeek = {
     }[];
 };
 export type TrainingToday = {
+    format?: "Memory" | "Pbe";
     seasonId: string | null;
     seasonName: string;
     seasonStatus: string;
@@ -69,7 +70,7 @@ export type TrainingToday = {
     honors: BadgeProgress[];
 };
 export type SessionRecap = {
-    version: "training-v1" | "legacy-counts";
+    version: "training-v1" | "legacy-counts" | "pbe-daily-v2";
     sessionId: string;
     seasonId: string;
     mode: string;

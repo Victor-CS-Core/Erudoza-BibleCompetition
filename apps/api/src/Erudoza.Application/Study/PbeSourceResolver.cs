@@ -8,7 +8,20 @@ public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, I
 {
     public static bool Licensed(string status) => status is "approved" or "public-domain" or "creative-commons";
     public Task<List<PbeTrainingRecord>> IntroductionRows(Guid org, Guid season, CancellationToken ct) => db.PbeTrainingRecords.AsNoTracking().Where(r => r.OrganizationId == org && r.SeasonId == season && r.OwnerId == null && r.Kind == "pbe-introduction").OrderBy(r => r.Id).ToListAsync(ct);
-    public async Task<PbeSourceScope> ResolveAsync(Guid organizationId, Guid seasonId, Guid? studentId, CancellationToken ct = default)
+    public Task<PbeSourceScope> ResolveAsync(Guid organizationId, Guid seasonId, Guid? studentId, CancellationToken ct = default) => ResolveCoreAsync(organizationId, seasonId, studentId, false, ct);
+    public async Task<PbeSourceScope> ResolveSessionAsync(Guid organizationId, Guid sessionId, CancellationToken ct = default)
+    {
+        var row = await db.PbeTrainingRecords.AsNoTracking().SingleOrDefaultAsync(r => r.OrganizationId == organizationId && r.OwnerId == user.UserId && r.Kind == "pbe-session" && r.Id == sessionId.ToString(), ct) ?? throw new KeyNotFoundException("Study session was not found.");
+        var saved = JsonSerializer.Deserialize<PbeSessionSnapshot>(row.DataJson, PbeQuestionBank.Json)!;
+        if (saved.Format != "Pbe" || saved.StudentUserId != user.UserId) throw new KeyNotFoundException("Study session was not found.");
+        return await ResolveCoreAsync(organizationId, saved.SeasonId, user.UserId, true, ct);
+    }
+    public static string Eligibility(Guid season, Guid student, PbeSourceScope scope)
+    {
+        var material = JsonSerializer.Serialize(new object[] { season.ToString(), student.ToString(), scope.Sources.OrderBy(s => s.Id.ToString(), StringComparer.Ordinal).Select(s => new object?[] { s.Id.ToString(), s.ContentPackId.ToString(), s.SourceKind.ToString(), s.BookKey, s.Chapter, s.Verse, s.Ordinal, s.CitationLabel, s.CanonicalText }).ToArray() }, new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+        return Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(material)));
+    }
+    private async Task<PbeSourceScope> ResolveCoreAsync(Guid organizationId, Guid seasonId, Guid? studentId, bool continuation, CancellationToken ct)
     {
         if (!user.IsAuthenticated || user.OrganizationId != organizationId || organizationId == Guid.Empty || seasonId == Guid.Empty)
             throw new UnauthorizedAccessException("Organization access denied.");
@@ -21,7 +34,7 @@ public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, I
         if (season.Status != SeasonStatus.Active) throw new DomainException("Choose an active season.");
         if (studentId.HasValue)
         {
-            if (!season.PbeEnabled || !await db.Users.AnyAsync(u => u.Id == studentId && u.IsActive && u.Kind == UserKind.Student && db.OrganizationMembers.Any(m => m.UserId == u.Id && m.OrganizationId == organizationId && m.Role == OrganizationRole.Student), ct))
+            if (!continuation && !season.PbeEnabled || !await db.Users.AnyAsync(u => u.Id == studentId && u.IsActive && u.Kind == UserKind.Student && db.OrganizationMembers.Any(m => m.UserId == u.Id && m.OrganizationId == organizationId && m.Role == OrganizationRole.Student), ct))
                 throw new UnauthorizedAccessException("Active student and enabled PBE season required.");
         }
         var ids = studentId.HasValue ? (await assignments.GetAsync(studentId.Value, seasonId, ct)).EligibleSourceUnitIds : await competition.ResolveAsync(organizationId, seasonId, ct);

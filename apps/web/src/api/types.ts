@@ -115,6 +115,7 @@ export type AttemptResult = {
 };
 
 export type Progress = {
+  pbeEnabled?: boolean;
   seasonId: string;
   seasonName: string;
   seasonStatus: string;
@@ -151,6 +152,7 @@ export type Progress = {
 };
 
 export type Session = {
+  format?: "Memory" | "Pbe";
   difficulty?: TrainingDifficulty;
   id: string;
   seasonId: string;

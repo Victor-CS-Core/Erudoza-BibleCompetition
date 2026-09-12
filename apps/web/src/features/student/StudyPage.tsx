@@ -15,8 +15,34 @@ import {
 } from "./academyTracks";
 import "./student.css";
 import { ScriptureReader } from "./ScriptureReader";
+import { PbeStudyPage } from './PbeStudyPage';
+import { trainingApi } from '../../api/training';
+import { LoadingState } from '../../components/ui';
+import type { PbeResumedSession } from '../../api/pbeTypes';
+import type { ResumedSession } from '../../api/types';
 
 export function StudyPage() {
+  const { me } = useAuth();
+  const [params, setParams] = useSearchParams();
+  const sessionId = params.get('sessionId'), seasonId = params.get('seasonId') || undefined;
+  const saved = useQuery({queryKey:['study-resume-format',sessionId,me?.organizationId,me?.userId],queryFn:()=>api.resumeSession(sessionId!),enabled:!!sessionId,retry:false,staleTime:Infinity,gcTime:0});
+  const progress = useQuery({queryKey:['progress',seasonId,me?.organizationId,me?.userId],queryFn:()=>api.progress(seasonId),enabled:!sessionId&&params.get('format')!=='Memory'});
+  const candidate = !sessionId && (params.get('format')==='Pbe'||params.get('format')!=='Memory'&&progress.data?.pbeEnabled);
+  const today = useQuery({queryKey:['training-today',seasonId,me?.organizationId,me?.userId],queryFn:()=>trainingApi.today(seasonId),enabled:!!candidate,retry:false});
+  if(sessionId){
+    if(saved.isPending)return <LoadingState label="Loading your saved session…"/>;
+    if(saved.isError)return <Notice tone="danger">Your saved session is unavailable. <Button onClick={()=>void saved.refetch()}>Retry saved session</Button><Button variant="secondary" onClick={()=>setParams(seasonId?{seasonId}:{})}>Start a new session</Button></Notice>;
+    return saved.data.session.format==='Pbe'?<PbeStudyPage key={sessionId} saved={saved.data as unknown as PbeResumedSession} seasonId={saved.data.session.seasonId} seasonName="Saved PBE session"/>:<MemoryStudyPage initialSaved={saved.data}/>;
+  }
+  if(candidate){
+    if(today.isPending)return <LoadingState label="Loading your PBE assignment…"/>;
+    if(today.isError)return <Notice tone="danger">Your PBE assignment could not load. <Button onClick={()=>void today.refetch()}>Try again</Button><LinkButton to={`/student/study?seasonId=${encodeURIComponent(seasonId??'')}&format=Memory`}>Choose Memory</LinkButton></Notice>;
+    return <PbeStudyPage key={`${today.data.seasonId}:${params.get('mode')??'Practice'}:Pbe`} seasonId={today.data.seasonId??seasonId??''} seasonName={today.data.seasonName} unavailable={today.data.mission.status==='Unavailable'?today.data.mission.explanation??'No eligible published questions are available.':undefined}/>;
+  }
+  if(params.get('format')!=='Memory'&&progress.isPending)return <LoadingState label="Loading your season…"/>;
+  return <MemoryStudyPage/>;
+}
+function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const { me } = useAuth();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -134,7 +160,7 @@ export function StudyPage() {
     complete.reset();
     if (requestedSessionId) {
       startIntent.current = null;
-      void resume.mutateAsync(requestedSessionId).then((saved) => {
+      void (initialSaved ? Promise.resolve(initialSaved) : resume.mutateAsync(requestedSessionId)).then((saved) => {
         if (cancelled) return;
         if (saved.summary) {
           navigate("/student/sessions/" + encodeURIComponent(saved.session.id) + "/recap?seasonId=" + encodeURIComponent(saved.session.seasonId), { replace: true });
@@ -153,6 +179,7 @@ export function StudyPage() {
     } else if (progress.data?.seasonId && trackReady) {
       void start.mutateAsync(mode).then((session) => {
         if (cancelled) return;
+        queryClient.setQueryData(["study-resume-format",session.id,me?.organizationId,me?.userId],{session,card:null,attempt:null,summary:null});
         loadedSession.current = session.id;
         setSessionSnapshot(session);
         setSessionId(session.id);

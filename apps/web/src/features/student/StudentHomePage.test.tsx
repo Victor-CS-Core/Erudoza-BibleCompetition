@@ -38,3 +38,11 @@ it("labels effort-based sidebar progress as a milestone", async () => {
   expect(screen.queryByRole("heading", { name: "Your next Honor" })).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Explore mastery Honors" })).toHaveAttribute("href", "/student/honors?seasonId=s");
 });
+
+it("disables the PBE rehearsal entry until timed presentation is implemented", async () => {
+  vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ format: "Pbe" }));
+  home();
+  expect(await screen.findByTestId("start-simulation")).toBeDisabled();
+  expect(screen.queryByRole("link", { name: "Start rehearsal" })).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Practice another drill" })).toHaveAttribute("href", expect.stringContaining("format=Pbe"));
+});

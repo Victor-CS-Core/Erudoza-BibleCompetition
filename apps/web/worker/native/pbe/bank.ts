@@ -36,7 +36,7 @@ export async function loadPbeBankMetadata(ctx:RequestContext,scope:Omit<BankScop
  const bank=await loadFromResolvedSources(ctx,{...scope,sourceUnitIds:initial.sources.map(s=>s.id)},initial);
  return {questionCount:bank.questions.length,targetCount:bank.targets.length,sourceUnitCount:initial.sources.length,missingSourceUnitIds:bank.missingSourceUnitIds,...(scope.studentId?{}:{uncoveredTargets:bank.targets.filter(t=>!bank.questions.some(q=>q.parts.some(p=>p.targetId===t.id))).length,singleVariantTargets:bank.targets.filter(t=>bank.questions.filter(q=>q.parts.some(p=>p.targetId===t.id)).length===1).length})};
 }
-async function loadFromResolvedSources(ctx:RequestContext,scope:BankScope,initial:Awaited<ReturnType<typeof resolvePbeSources>>):Promise<PbeBank>{
+export async function loadFromResolvedSources(ctx:RequestContext,scope:BankScope,initial:Awaited<ReturnType<typeof resolvePbeSources>>, guardedWrite = false):Promise<PbeBank>{
  const restriction=new Set(scope.sourceUnitIds.map(guid));
  const allowed=initial.sources.filter(s=>restriction.has(s.id));
  const records:PbeQuestionRecord[]=[],targets:PbeTarget[]=[];
@@ -61,6 +61,6 @@ async function loadFromResolvedSources(ctx:RequestContext,scope:BankScope,initia
  const result=filterPbeBank(valid,targets,allowed.map(s=>s.id));
  result.questions=result.questions.filter(q=>q.sourceUnitIds.every(id=>{const s=sourceMap.get(id);return s&&s.contentPackId===q.contentPackId&&s.sourceKind===q.sourceKind;}));
  const covered=new Set(result.questions.flatMap(q=>q.sourceUnitIds));result.missingSourceUnitIds=allowed.map(s=>s.id).filter(id=>!covered.has(id)).sort();
- if((await resolvePbeSources(ctx,scope)).fingerprint!==initial.fingerprint)throw new HttpError(409,'The PBE scope changed. Refresh and retry.');
+ if(!guardedWrite&&(await resolvePbeSources(ctx,scope)).fingerprint!==initial.fingerprint)throw new HttpError(409,'The PBE scope changed. Refresh and retry.');
  return result;
 }

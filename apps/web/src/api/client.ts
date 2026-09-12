@@ -35,8 +35,8 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     let detail = response.statusText;
     try {
-      const problem = (await response.json()) as { detail?: string; title?: string };
-      detail = problem.detail ?? problem.title ?? detail;
+      const problem = (await response.json()) as { detail?: string; title?: string; message?: string };
+      detail = problem.detail ?? problem.title ?? problem.message ?? detail;
     } catch {
       // Problem Details may be absent for 401/403 redirects.
     }
@@ -112,8 +112,11 @@ export const api = {
   ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body) }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
-  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext) =>
-    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, ...(training ? { training } : {}) }) }),
+  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext, format: "Memory" | "Pbe" = "Memory") =>
+    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, format, ...(training ? { training } : {}) }) }),
+  nextPbeCard: (sessionId:string) => request<import('./pbeTypes').PbeSessionCard>(`/api/v1/study/sessions/${sessionId}/next`),
+  submitPbeAttempt: (sessionId:string, body:import('./pbeTypes').PbeSubmission) => request<import('./pbeTypes').PbeAttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`,{method:'POST',body:JSON.stringify(body)}),
+  pbeSource: (sessionId:string, challengeCardId:string) => request<{assisted:true;sources:{citation:string;canonicalText:string}[]}>(`/api/v1/study/sessions/${sessionId}/source`,{method:'POST',body:JSON.stringify({challengeCardId})}),
   resumeSession: (sessionId: string) => request<import("./types").ResumedSession>(`/api/v1/study/sessions/${sessionId}`),
   nextCard: (sessionId: string) => request<ChallengeCard>(`/api/v1/study/sessions/${sessionId}/next`),
   submitAttempt: (

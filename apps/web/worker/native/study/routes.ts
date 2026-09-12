@@ -1,3 +1,5 @@
+import { resolvePbeSources } from '../pbe/sources';
+import { startPbeSession, pbeSessionAction } from '../pbe/sessions';
 import { trainingNow } from '../training/clock';
 import type { StartTrainingContext, SessionRecap, SkillScores } from '../../../src/api/trainingTypes';
 import { applyAcceptedAttempt, prepareStart, makeRecap, scopeVersion, startPayload } from '../training/store';
@@ -198,14 +200,15 @@ async function progress(ctx: RequestContext, studentId: string, requested: strin
   const user = ctx.actor.userId === studentId && ctx.actor.kind === 'Adult' ? { displayName: ctx.actor.displayName } : await student(ctx, studentId);
   const assignments = await listAll<Assignment>(ctx, 'assignment', { ownerId: studentId });
   const seasons = await listAll<Season & { activatedAtUtc?: string }>(ctx, 'season');
-  const season = seasons.filter(s => assignments.some(a => a.seasonId === s.id) && (requested ? s.id === requested : s.status === 'Active')).sort((a, b) => (b.activatedAtUtc ?? b.createdAtUtc ?? '').localeCompare(a.activatedAtUtc ?? a.createdAtUtc ?? ''))[0];
+  const intros=await listAll<Assignment>(ctx,'pbe-introduction-assignment',{ownerId:studentId});
+  const season = seasons.filter(s => (assignments.some(a => a.seasonId === s.id)||s.pbeEnabled&&intros.some(a=>a.seasonId===s.id)) && (requested ? s.id === requested : s.status === 'Active')).sort((a, b) => (b.activatedAtUtc ?? b.createdAtUtc ?? '').localeCompare(a.activatedAtUtc ?? a.createdAtUtc ?? ''))[0];
   const empty = { seasonId: '00000000-0000-0000-0000-000000000000', seasonName: '', seasonStatus: 'None', assignments: [], masteredCount: 0, reviewDueCount: 0, attemptCount: 0, mastery: [], studentUserId: studentId, studentDisplayName: user.displayName, recentAttempts: [] };
   if (!season) return json(empty);
   const sources = await effectiveSources(ctx, season.id, studentId), byKnowledge = new Map(sources.map(s => [knowledgeId(s), s]));
   const states = (await listAll<Mastery>(ctx, 'mastery', { seasonId: season.id, ownerId: studentId })).filter(m => byKnowledge.has(m.knowledgeUnitId));
   const attempts = (await listAll<Attempt>(ctx, 'attempt', { seasonId: season.id, ownerId: studentId })).filter(a => !a.isLegacyDuplicate);
   const member = await ctx.store.get<Membership>('membership', memberId(season.id, studentId), ctx.orgId);
-  return json({ ...empty, seasonId: season.id, seasonName: season.name, seasonStatus: season.status, assignments: assignments.filter(a => a.seasonId === season.id).map(a => ({ ...a, difficulty: member?.value.difficulty ?? 'Standard' })), masteredCount: states.filter(m => m.level === 'Mastered' && m.algorithmVersion === MASTERY_VERSION).length, reviewDueCount: states.filter(m => Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount: attempts.length, mastery: states.map(m => ({ knowledgeUnitId: m.knowledgeUnitId, title: byKnowledge.get(m.knowledgeUnitId)?.citation ?? 'Passage', level: m.level, exactWordingScore: m.exactWording, recognitionScore: m.recognition, referenceScore: m.reference, sequenceScore: m.sequence, factualRecallScore: m.factualRecall, bookKey: byKnowledge.get(m.knowledgeUnitId)?.bookKey, chapter: byKnowledge.get(m.knowledgeUnitId)?.chapter, verse: byKnowledge.get(m.knowledgeUnitId)?.verse, algorithmVersion: m.algorithmVersion, reviewDueAtUtc: m.reviewDueAt })), recentAttempts: attempts.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20).map(a => ({ id: a.id, title: a.result?.citation ?? byKnowledge.get(a.knowledgeUnitId)?.citation ?? 'Passage', activityType: a.activityType, isCorrect: a.isCorrect, submittedAnswer: a.submittedAnswer, evaluationResult: a.evaluationResult, createdAtUtc: a.at })) });
+  return json({ ...empty, pbeEnabled:season.pbeEnabled===true, seasonId: season.id, seasonName: season.name, seasonStatus: season.status, assignments: assignments.filter(a => a.seasonId === season.id).map(a => ({ ...a, difficulty: member?.value.difficulty ?? 'Standard' })), masteredCount: states.filter(m => m.level === 'Mastered' && m.algorithmVersion === MASTERY_VERSION).length, reviewDueCount: states.filter(m => Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount: attempts.length, mastery: states.map(m => ({ knowledgeUnitId: m.knowledgeUnitId, title: byKnowledge.get(m.knowledgeUnitId)?.citation ?? 'Passage', level: m.level, exactWordingScore: m.exactWording, recognitionScore: m.recognition, referenceScore: m.reference, sequenceScore: m.sequence, factualRecallScore: m.factualRecall, bookKey: byKnowledge.get(m.knowledgeUnitId)?.bookKey, chapter: byKnowledge.get(m.knowledgeUnitId)?.chapter, verse: byKnowledge.get(m.knowledgeUnitId)?.verse, algorithmVersion: m.algorithmVersion, reviewDueAtUtc: m.reviewDueAt })), recentAttempts: attempts.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 20).map(a => ({ id: a.id, title: a.result?.citation ?? byKnowledge.get(a.knowledgeUnitId)?.citation ?? 'Passage', activityType: a.activityType, isCorrect: a.isCorrect, submittedAnswer: a.submittedAnswer, evaluationResult: a.evaluationResult, createdAtUtc: a.at })) });
 }
 export async function handleStudy(ctx: RequestContext): Promise<Response | null> {
   const { path, request } = ctx, method = request.method;
@@ -221,12 +224,19 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
   if (path === '/api/v1/progress/me/seasons' && method === 'GET') {
     const assignments = await listAll<Assignment>(ctx, 'assignment', { ownerId: ctx.actor.userId });
     const seasons = await listAll<Season>(ctx, 'season');
-    return json(seasons.filter(s => s.status === 'Active' && assignments.some(a => a.seasonId === s.id)).map(s => ({ id: s.id, name: s.name })));
+    const intros=await listAll<Assignment>(ctx,'pbe-introduction-assignment',{ownerId:ctx.actor.userId});
+    const discovered:{id:string;name:string}[]=[];
+    for(const s of seasons.filter(s=>s.status==='Active')){
+      if(assignments.some(a=>a.seasonId===s.id))discovered.push({id:s.id,name:s.name});
+      else if(s.pbeEnabled&&intros.some(a=>a.seasonId===s.id)){const scope=await resolvePbeSources(ctx,{organizationId:ctx.orgId,seasonId:s.id,studentId:ctx.actor.userId});if(scope.sources.length&&scope.guards.some(g=>g.kind==='membership'))discovered.push({id:s.id,name:s.name});}
+    }
+    return json(discovered);
   }
-  if (path === '/api/v1/study/sessions' && method === 'POST') return start(ctx, await body(request));
-  const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete))?$/);
+  if (path === '/api/v1/study/sessions' && method === 'POST') { const input = await body<{seasonId:string;format?:string;mode?:StudyMode}>(request); if(!input||typeof input!=='object'||Array.isArray(input))throw new HttpError(400,'Provide a study request.'); if(input.mode!==undefined&&!['Practice','Review','Simulation'].includes(input.mode))throw new HttpError(400,'Choose a valid study mode.'); if(input.format === 'Pbe') return startPbeSession(ctx,input); if(input.format!==undefined&&input.format!=='Memory')throw new HttpError(400,'Choose Memory or Pbe.'); return start(ctx,input); }
+  const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete|source))?$/);
   if (!match) return null;
   const sessionId = match[1], action = match[2];
+  if((!action||action==='next')&&method==='GET'||['attempts','complete','source'].includes(action)&&method==='POST'){const response=await pbeSessionAction(ctx,sessionId,action,method==='POST'&&action!=='complete'?await request.clone().json():undefined);if(response)return response;}
   if (action === 'next' && method === 'GET') return next(ctx, sessionId);
   if (action === 'attempts' && method === 'POST') return submit(ctx, sessionId, await body(request));
   if (action === 'complete' && method === 'POST') return retry(async () => {

@@ -129,7 +129,8 @@ public sealed record AssignmentDto(
 
 public sealed record ActivationResultDto(bool Activated, IReadOnlyList<string> BlockingProblems);
 
-public sealed record StartSessionRequest(Guid SeasonId, StudyMode Mode, StartTrainingContext? Training = null);
+public sealed record StartSessionRequest(Guid SeasonId, [property: System.Text.Json.Serialization.JsonConverter(typeof(Erudoza.Domain.Practice.ExactEnumJsonConverter<StudyMode>))] StudyMode Mode = StudyMode.Practice, StartTrainingContext? Training = null, string? Format = null, PbeChapterRequest? Chapter = null, IReadOnlyList<Guid>? TargetIds = null);
+public sealed record PbeChapterRequest(Guid ContentPackId, int Chapter);
 
 public sealed record SessionDto(Guid Id, Guid SeasonId, string Status, string Mode, int TargetCardCount, string Difficulty = "Standard");
 
@@ -208,7 +209,7 @@ public sealed record ProgressDto(
     IReadOnlyList<MasteryRowDto> Mastery,
     Guid StudentUserId = default,
     string StudentDisplayName = "",
-    IReadOnlyList<AttemptRowDto>? RecentAttempts = null);
+    IReadOnlyList<AttemptRowDto>? RecentAttempts = null, bool PbeEnabled = false);
 
 public sealed record AttemptRowDto(
     Guid Id,

@@ -419,18 +419,34 @@ public static class ApiEndpoints
         }).RequireAuthorization("CanManageSeason");
 
         var study = app.MapGroup("/api/v1/study").RequireAuthorization("CanStudy");
+        study.AddEndpointFilter(async (context, next) =>
+        {
+            try { return await next(context); }
+            catch (PbeSessionUnavailableException error) { return Results.Conflict(new { code = error.Code, message = error.Message, format = "Pbe" }); }
+            catch (PbeProgressConflictException error) { return Results.Conflict(new { message = error.Message }); }
+            catch (KeyNotFoundException error) { return Results.NotFound(new { message = error.Message }); }
+            catch (UnauthorizedAccessException) { return Results.Forbid(); }
+            catch (Microsoft.Data.Sqlite.SqliteException error) when (error.SqliteErrorCode is 5 or 6) { return Results.Conflict(new { message = "The PBE record changed. Refresh and retry." }); }
+        });
 
         study.MapGet("/sessions/{sessionId:guid}", async (Guid sessionId, ICurrentUser current,
-            StudySessionService sessions, IConfiguration configuration, CancellationToken cancellationToken) =>
-            Results.Ok(await sessions.ResumeAsync(current.OrganizationId, current.UserId, sessionId,
+            StudySessionService sessions, PbeSessionService pbe, IConfiguration configuration, CancellationToken cancellationToken) =>
+            await pbe.ExistsAsync(sessionId, cancellationToken) ? Results.Ok(await pbe.ActionAsync(sessionId, null, null, cancellationToken)) : Results.Ok(await sessions.ResumeAsync(current.OrganizationId, current.UserId, sessionId,
                 ExposeDebug(configuration, app.Environment), cancellationToken)));
 
         study.MapPost("/sessions", async (
-            StartSessionRequest request,
+            System.Text.Json.JsonElement payload,
             ICurrentUser current,
-            StudySessionService sessions,
+            StudySessionService sessions, PbeSessionService pbe,
             CancellationToken cancellationToken) =>
         {
+            if (payload.ValueKind != System.Text.Json.JsonValueKind.Object) throw new DomainException("Provide a study request.");
+            if (payload.TryGetProperty("format", out var format) && (format.ValueKind != System.Text.Json.JsonValueKind.String || format.GetString() is not ("Memory" or "Pbe"))) throw new DomainException("Choose Memory or Pbe.");
+            StartSessionRequest request;
+            try { request = System.Text.Json.JsonSerializer.Deserialize<StartSessionRequest>(payload.GetRawText(), PbeQuestionBank.Json) ?? throw new System.Text.Json.JsonException(); }
+            catch (System.Text.Json.JsonException) { throw new DomainException("Choose a valid format, mode and session scope."); }
+            if (request.Format == "Pbe") return Results.Ok(await pbe.StartAsync(request, cancellationToken));
+            if (request.Format is not (null or "Memory")) throw new DomainException("Choose Memory or Pbe.");
             var session = await sessions.StartAsync(current.OrganizationId, current.UserId, request, cancellationToken);
             return Results.Ok(new SessionDto(session.Id, session.SeasonId, session.Status.ToString(), session.Mode.ToString(), session.TargetCardCount, session.Difficulty.ToString()));
         });
@@ -438,11 +454,12 @@ public static class ApiEndpoints
         study.MapGet("/sessions/{sessionId:guid}/next", async (
             Guid sessionId,
             ICurrentUser current,
-            StudySessionService sessions,
+            StudySessionService sessions, PbeSessionService pbe,
             IErudozaDbContext db,
             IConfiguration configuration,
             CancellationToken cancellationToken) =>
         {
+            if (await pbe.ExistsAsync(sessionId, cancellationToken)) return Results.Ok(await pbe.ActionAsync(sessionId, "next", null, cancellationToken));
             var session = await db.StudySessions.AsNoTracking().SingleAsync(
                 item => item.Id == sessionId
                     && item.OrganizationId == current.OrganizationId
@@ -461,17 +478,19 @@ public static class ApiEndpoints
 
         study.MapPost("/sessions/{sessionId:guid}/attempts", async (
             Guid sessionId,
-            SubmitAttemptRequest request,
+            System.Text.Json.JsonElement request,
             ICurrentUser current,
-            StudySessionService sessions,
+            StudySessionService sessions, PbeSessionService pbe,
             IConfiguration configuration,
             CancellationToken cancellationToken) =>
         {
+            if (await pbe.ExistsAsync(sessionId, cancellationToken)) return Results.Ok(await pbe.ActionAsync(sessionId, "attempts", request, cancellationToken));
+            var legacy = System.Text.Json.JsonSerializer.Deserialize<SubmitAttemptRequest>(request.GetRawText(), new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web)) ?? throw new DomainException("Provide an answer.");
             var result = await sessions.SubmitAsync(
                 current.OrganizationId,
                 current.UserId,
                 sessionId,
-                request,
+                legacy,
                 ExposeDebug(configuration, app.Environment),
                 cancellationToken);
             return Results.Ok(result);
@@ -480,20 +499,28 @@ public static class ApiEndpoints
         study.MapPost("/sessions/{sessionId:guid}/complete", async (
             Guid sessionId,
             ICurrentUser current,
-            StudySessionService sessions,
+            StudySessionService sessions, PbeSessionService pbe,
             CancellationToken cancellationToken) =>
         {
+            if (await pbe.ExistsAsync(sessionId, cancellationToken)) return Results.Ok(await pbe.ActionAsync(sessionId, "complete", null, cancellationToken));
             var summary = await sessions.CompleteAsync(current.OrganizationId, current.UserId, sessionId, cancellationToken);
             return Results.Ok(summary);
         });
 
-        app.MapGet("/api/v1/progress/me/seasons", async (ICurrentUser current, IErudozaDbContext db, CancellationToken cancellationToken) =>
+        study.MapPost("/sessions/{sessionId:guid}/source", async (Guid sessionId, System.Text.Json.JsonElement request, PbeSessionService pbe, CancellationToken ct) => Results.Ok(await pbe.ActionAsync(sessionId, "source", request, ct)));
+
+        app.MapGet("/api/v1/progress/me/seasons", async (ICurrentUser current, IErudozaDbContext db, PbeSourceResolver pbeSources, CancellationToken cancellationToken) =>
         {
             var assigned = await db.Seasons.AsNoTracking().Where(item => item.OrganizationId == current.OrganizationId
-                && item.Status == SeasonStatus.Active && db.Assignments.Any(assignment => assignment.SeasonId == item.Id
-                    && assignment.OrganizationId == current.OrganizationId && assignment.StudentUserId == current.UserId))
-                .Select(item => new { item.Id, item.Name }).ToListAsync(cancellationToken);
-            return Results.Ok(assigned);
+                && item.Status == SeasonStatus.Active && (db.Assignments.Any(assignment => assignment.SeasonId == item.Id
+                    && assignment.OrganizationId == current.OrganizationId && assignment.StudentUserId == current.UserId) || item.PbeEnabled && db.PbeTrainingRecords.Any(r => r.OrganizationId == current.OrganizationId && r.SeasonId == item.Id && r.OwnerId == current.UserId && r.Kind == "pbe-introduction-assignment")))
+                .Select(item => new { item.Id, item.Name, HasMemory = db.Assignments.Any(a => a.OrganizationId == current.OrganizationId && a.SeasonId == item.Id && a.StudentUserId == current.UserId) }).ToListAsync(cancellationToken);
+            var visible = new List<object>();
+            foreach (var season in assigned)
+            {
+                if (season.HasMemory || (await pbeSources.ResolveAsync(current.OrganizationId, season.Id, current.UserId, cancellationToken)).Sources.Count > 0) visible.Add(new { season.Id, season.Name });
+            }
+            return Results.Ok(visible);
         }).RequireAuthorization("CanStudy");
 
         app.MapGet("/api/v1/progress/me", async (Guid? seasonId, ICurrentUser current, ProgressQueryService progress, CancellationToken cancellationToken) =>
