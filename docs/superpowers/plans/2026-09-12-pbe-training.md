@@ -105,14 +105,14 @@ All assessment findings map to tasks above. A verified question bank for the act
 
 ## Execution status
 
-The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Eleven of fourteen tasks have passed independent review. The user-added B4 inline missing-word work is reviewed and pushed after C3; chapter integration is active. The source checkpoints below distinguish pushed work from the current local gate. This training task has made no production changes. The user's subsequent all-branch instruction authorizes final integration, deployment and cleanup after the remaining checks.
+The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Twelve of fourteen tasks have passed independent review. The user-added B4 inline missing-word work is reviewed and pushed after C3; D1 chapter integration is accepted through `7214cf4`, and D2 integration is next. The source checkpoints below distinguish pushed work from the current local gate. This training task has made no production changes. The user's subsequent all-branch instruction authorizes final integration, deployment and cleanup after the remaining checks.
 
 | Phase | Reviewed tasks | Source checkpoint | Current work |
 |---|---|---|---|
 | A — Questions and grading | A1, A2, A2b, A3 (4/4) | `80dfae5` | Complete locally and pushed |
 | B — Solo learning and replay | B1, B2, B3, B4 (4/4) | `0fa0ea2` | Inline answers and compatibility fixes reviewed and pushed |
 | C — Independent rehearsal | C1, C2, C3 (3/3) | `88b14d7` | Source reviewed and pushed; physical speech and capacity gates remain external/final checks |
-| D — Chapter progress and release | 0/3 | Pending | Isolated pure-calculation prework and release drafts; integration follows reviewed C3 and B4 |
+| D — Chapter progress and release | D1 (1/3) | `7214cf4` reviewed; checkpoint push follows | D2 UI/pure/client prework verified; cooperative backends and real browser checks next |
 
 The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. The pre-implementation baseline passed 579 web/native checks with one optional skip, and 267 .NET checks with one optional load skip. [PROGRESS.md](../../../PROGRESS.md) records each later gate's exact tests, review fixes, pushes and limitations. Synthetic delayed answers establish bookkeeping, not human retention; the actual coach-approved season bank and learner pilot remain external release gates.
 
@@ -171,4 +171,4 @@ The user's supplied Missing Words screen requires direct entry in each displayed
 
 MissingWords now uses shared inline inputs keyed to saved hidden-token indices. Binary grading compares each original slot independently; empty or misplaced words cannot become a correct joined phrase. The immutable versioned payload preserves raw entries and server-generated feedback in native attempts and nullable canonical `Attempt.AnswerPayloadJson`. Accepted reloads restore the submitted values, including wrong/empty slots. Historical string-only answers and pending retries remain unchanged. New structured requests enforce the 1,048,576-byte received-body/100,000-character answer limits and 409 conflicting-retry contract; canonical legacy-only admission/status behavior is preserved.
 
-B4 is reviewed/pushed through `0fa0ea2`; populated Memory export/restore and generated EF migration checks pass locally. D3 still owns full PBE/C3/D archive and operational recovery coverage. Chapter integration follows the [chapter projection contract](../../product/2026-09-12-pbe-chapter-contract.md), with evidence-based parent stamps and small selectable groups; its adapters are not yet implemented.
+B4 is reviewed/pushed through `0fa0ea2`; populated Memory export/restore and generated EF migration checks pass locally. D3 still owns full PBE/C3/D archive and operational recovery coverage. Chapter integration follows the [chapter projection contract](../../product/2026-09-12-pbe-chapter-contract.md), with evidence-based parent stamps and small selectable groups; both adapters are independently reviewed through `7214cf4`. D2 supplies cooperative progress and atomic selected-session starts; D3 supplies full restore and release validation.

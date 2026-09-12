@@ -1,6 +1,6 @@
 # PBE training release operations
 
-Status: preparation in progress, not a ready-to-run release procedure. Source through B4 is reviewed and pushed at `0fa0ea20117413cbf29cfa4d45cb042680c30b4c`; chapter progress and final integration remain open. No PBE deployment, production migration, import or real-user pilot has run for this goal. The [implementation evidence](../audits/2026-09-12-pbe-implementation.md) and [progress log](../../PROGRESS.md) distinguish local checks from pushed source and live releases.
+Status: preparation in progress, not a ready-to-run release procedure. Source through B4 is reviewed and pushed at `0fa0ea20117413cbf29cfa4d45cb042680c30b4c`; D1 is independently accepted through `7214cf4` with its reviewed checkpoint push next. D2/D3 integration remains open. No PBE deployment, production migration, import or real-user pilot has run for this goal. The [implementation evidence](../audits/2026-09-12-pbe-implementation.md) and [progress log](../../PROGRESS.md) distinguish local checks from pushed source and live releases.
 
 Use this document with the [Cloudflare native operations](cloudflare-native.md) and [Team Practice operations](pvp.md). The latter's speed-bonus and restart descriptions belong to historical Arcade behavior. New PBE rehearsals use the saved PBE profile described below; never reinterpret an existing match through a current default.
 
@@ -18,7 +18,7 @@ Complete the following manifest from the final reviewed checkpoint before prepar
 
 | Required field | Current state |
 |---|---|
-| Exact reviewed release commit and pushed remote readback | Source reviewed through B4 `0fa0ea2`; D integration and final review remain pending |
+| Exact reviewed release commit and pushed remote readback | Source reviewed through D1 `7214cf4`; D2/D3 and final review remain pending |
 | Ordered native migration names and hashes | `0005_pbe_training.sql` exists; C3 adds `0006_practice_room_components.sql`, reviewed at C3; final hashes/inventory pending |
 | Worker artifact hash, compatible configuration and DO migrations | Additive `v3-pbe-solo` exists in source; final build/config verification pending |
 | Canonical EF migration and populated conversion mapping | `20260912021321_PbeTrainingRecords` and `20260912154835_MissingWordsSlotAnswers` locally verified; final C3/D record mapping pending |
