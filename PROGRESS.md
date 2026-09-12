@@ -8,6 +8,8 @@
 - Independent review closed its Install app contrast finding after the navy treatment measured at least 4.55:1 across the checked desktop control rectangles. Complete evidence and limits are in [the audit](docs/audits/2026-09-12-pathfinder-landing.md): local fixture/development browser checks, no new actual-provider or physical-device installation gate, and no full gameplay or remote CI claim.
 - The local preview is open at http://localhost:5208/. Next: explicit scoped staging, commit and normal push of codex/landing-pathfinder-mockups. This gate is local verification; main integration and deployment have not been requested or performed.
 
+- Git checkpoint confirmed: 30 scoped files passed staged whitespace, document-link and credential-pattern review. Implementation commit e531d37 was pushed normally to origin/codex/landing-pathfinder-mockups; remote readback matched e531d374166ec6d36f569e32e43d2c44f0fc7e4f. The destination was freshly verified private with ADMIN access. Task-owned dependency symlink was removed; ignored fixtures and build/browser evidence were excluded. This documentation follow-up records the checkpoint. The preview is retained; next action is user review of the combined design. Main and production remain unchanged by this task.
+
 ## Pathfinder landing mockups — review gate, September 12
 
 - User requested a stronger Pathfinder landing-page direction and multiple mockups to choose from. Three refined desktop/phone concept boards are saved in [the review package](docs/product/mockups/2026-09-12-pathfinder-landing/README.md): A — The Expedition (recommended), B — The Field Guide, and C — The Basecamp. Selection remains pending.
