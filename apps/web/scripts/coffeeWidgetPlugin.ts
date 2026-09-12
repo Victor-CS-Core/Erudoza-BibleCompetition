@@ -46,7 +46,9 @@ export function coffeeWidgetPlugin(): Plugin {
               "data-x_margin": "18",
               "data-y_margin": "18",
             },
-            injectTo: "head-prepend",
+            // Execute after the app module, while still preceding DOMContentLoaded.
+            // This keeps a slow optional CDN out of the app's startup queue.
+            injectTo: "body",
           },
         ];
       },

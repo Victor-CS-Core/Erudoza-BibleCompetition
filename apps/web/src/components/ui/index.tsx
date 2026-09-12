@@ -1,5 +1,5 @@
 // bm-design-system: Erudoza primitives. Styling lives in styles/design-system.css.
-import type { Ref, ButtonHTMLAttributes, HTMLAttributes, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode } from "react";
+import type { Ref, AnchorHTMLAttributes, ButtonHTMLAttributes, HTMLAttributes, InputHTMLAttributes, SelectHTMLAttributes, TextareaHTMLAttributes, ReactNode } from "react";
 import { Link, type LinkProps } from "react-router-dom";
 export { ProgressMeter, WeeklyProgressStrip } from "./TrainingProgress";
 export { HonorArtwork } from "./HonorArtwork";
@@ -12,6 +12,9 @@ export function Button({ variant = "primary", size = "default", className, type 
 }
 export function LinkButton({ variant = "primary", size = "default", className, ...props }: LinkProps & ActionStyle) {
   return <Link className={actionClass(variant, size, className)} {...props} />;
+}
+export function ExternalLinkButton({ variant = "secondary", size = "default", className, ...props }: AnchorHTMLAttributes<HTMLAnchorElement> & ActionStyle) {
+  return <a className={actionClass(variant, size, className)} {...props} />;
 }
 export function Input({ className = "", ...props }: InputHTMLAttributes<HTMLInputElement>) { return <input className={`ds-input ${className}`} {...props} />; }
 export function Select({ className = "", ...props }: SelectHTMLAttributes<HTMLSelectElement>) { return <select className={`ds-input ds-select ${className}`} {...props} />; }

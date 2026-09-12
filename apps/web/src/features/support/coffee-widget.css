@@ -48,3 +48,13 @@ html[data-erudoza-coffee-ready="true"] :is(.public-footer, .training-footer) { p
   html:has(.command-app) { --coffee-bottom:calc(84px + env(safe-area-inset-bottom,0px)); }
   html:has(.practice-room[data-status="Playing"]) { --coffee-bottom:max(18px,env(safe-area-inset-bottom,0px)); }
 }
+
+/* A normal link remains usable when a privacy/content blocker prevents the embed. */
+.coffee-fallback { position: fixed; right: var(--coffee-right); bottom: var(--coffee-bottom); z-index: 40; }
+html[data-erudoza-coffee-ready="true"] .coffee-fallback,
+html:has(dialog[open]) .coffee-fallback { display: none; }
+.coffee-popup-link { position: fixed; right: calc(var(--coffee-right) + 60px); bottom: calc(var(--coffee-bottom) + 18px); }
+html:has(.coffee-fallback) :is(.public-footer, .training-footer) { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 479px) {
+  .coffee-popup-link { left: 18px; right: auto; top: max(10px, env(safe-area-inset-top, 0px)); bottom: auto; }
+}

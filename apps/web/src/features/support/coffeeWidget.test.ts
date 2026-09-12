@@ -56,7 +56,7 @@ describe("official coffee widget adapter", () => {
     fireEvent.keyDown(close, { key: "Escape" });
     await waitFor(() => expect(launcher).toHaveAttribute("aria-expanded", "false"));
     expect(frame.style.opacity).toBe("0");
-    expect(launcher).toHaveFocus();
+    await waitFor(() => expect(launcher).toHaveFocus());
     expect(root.inert).toBe(false);
     expect(document.body.style.overflow).toBe("");
   });
@@ -88,6 +88,19 @@ describe("official coffee widget adapter", () => {
     expect(document.documentElement).not.toHaveAttribute("data-erudoza-coffee-ready");
     expect(document.querySelectorAll("[data-coffee-focus-guard]")).toHaveLength(0);
     expect(next).toHaveFocus();
+  });
+
+  it("cancels delayed focus restoration when navigation tears down the widget", async () => {
+    const { launcher, close } = providerWidget();
+    stop = attachCoffeeWidget();
+    fireEvent.click(launcher);
+    await waitFor(() => expect(launcher).toHaveAttribute("aria-expanded", "true"));
+    fireEvent.keyDown(close, { key: "Escape" });
+    stop(); stop = undefined;
+    const destination = document.createElement("button"); document.body.append(destination);
+    destination.focus();
+    await new Promise(resolve => requestAnimationFrame(resolve));
+    expect(destination).toHaveFocus();
   });
 
   it("suspends the widget while an application dialog is open", async () => {

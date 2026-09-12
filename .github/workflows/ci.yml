@@ -24,6 +24,29 @@ jobs:
       - run: npm run test
       - run: npm run build
 
+  browser-support:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium firefox webkit
+        working-directory: apps/web
+      - run: npm --workspace apps/web run build:native
+      - run: npx playwright test --config playwright.coffee.config.ts
+        working-directory: apps/web
+        env:
+          COFFEE_WIDGET_PREVIEW: "1"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-support-failures
+          path: apps/web/test-results/coffee-widget/
+          retention-days: 7
+
   api:
     runs-on: ubuntu-latest
     steps:

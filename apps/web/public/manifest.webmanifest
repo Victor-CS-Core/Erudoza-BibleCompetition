@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "Erudoza",
+  "short_name": "Erudoza",
+  "description": "Scripture study, mastery, and team practice.",
+  "lang": "en",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f6f4ee",
+  "theme_color": "#102e47",
+  "prefer_related_applications": false,
+  "icons": [
+    { "src": "/icons/erudoza-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/erudoza-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

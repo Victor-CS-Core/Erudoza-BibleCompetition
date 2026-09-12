@@ -1,6 +1,6 @@
 # Optional Buy Me a Coffee support
 
-Erudoza can load the official Buy Me a Coffee widget for voluntary support. Donations are disabled by default. A missing or invalid `VITE_BUY_ME_A_COFFEE_URL` injects neither the provider script nor its visibility guard, and the application must omit donation controls.
+Erudoza can load the official Buy Me a Coffee widget for voluntary support. Production builds include the owner-supplied public Erudoza recipient through `apps/web/.env.production`. Development and test modes remain unconfigured unless explicitly enabled. An explicit empty `VITE_BUY_ME_A_COFFEE_URL` in the build process disables support. A missing or invalid `VITE_BUY_ME_A_COFFEE_URL` injects neither the provider script nor its visibility guard, and the application omits donation controls.
 
 The app does not collect card details, create checkout sessions, store donation records, or award access or study progress for payments. The provider owns its payment interface and confirmation. Opening or closing its widget is not evidence of a completed donation.
 
@@ -37,9 +37,9 @@ These commands produce the Sites and native Cloudflare artifacts respectively; u
 
 ## Build and application boundary
 
-The shared `coffeeWidgetPlugin` in both Vite configurations injects one deferred official widget script into the HTML head, before `DOMContentLoaded`, with `data-cfasync="false"`. It derives the creator ID from the validated profile and the widget color from the shared `--er-teal` token in `apps/web/src/styles/tokens.css`. No second color palette is maintained. The greeting message is empty to avoid unsolicited prompts.
+The shared `coffeeWidgetPlugin` in both Vite configurations injects one deferred official widget script at the end of the HTML body, after the app module and before `DOMContentLoaded`, with `data-cfasync="false"`. It derives the creator ID from the validated profile and the widget color from the shared `--er-teal` token in `apps/web/src/styles/tokens.css`. No second color palette is maintained. The greeting message is empty to avoid unsolicited prompts.
 
-The root HTML loads the application module asynchronously. If it executes while the document is still being parsed, `main.tsx` waits for parsing through `readystatechange` before mounting React. App startup therefore does not wait for `DOMContentLoaded` or for a stalled deferred donation CDN script. The provider script remains deferred so its own `DOMContentLoaded` handler can register before that event fires. Streamed-head and stalled-CDN Chromium probes verified this startup behavior; they do not establish payment availability.
+The application uses a normal module script, followed in document order by the deferred provider script. Vite places the built app module in the head and leaves the provider at the end of the body. The browser executes the app after parsing, before the optional provider and without waiting for `DOMContentLoaded`. The provider still registers its own handler before that event fires. Keep this order: placing a deferred provider before the app blocks startup on its CDN, while using an async app module can encounter WebKit’s first-paint scheduling delay on the initially empty root. `main.tsx` retains a parsing guard for alternate entry hosts. Browser regression tests deliberately withhold the provider through rendering and coach sign-in, with tracing enabled.
 
 An earlier head style hides `#bmc-wbtn`, `#bmc-iframe`, and `#bmc-close-btn` until the root HTML element has `data-erudoza-coffee-ready="true"`. This avoids a visible widget flash before the application decides whether the current role and screen may show it. The runtime adapter owns that attribute and must remove it when the widget is unavailable or ineligible. The guard controls visibility, not network access: when configured, the deferred provider script loads for the SPA even before role eligibility is known.
 
@@ -57,13 +57,15 @@ npm --workspace apps/web run test -- src/features/support/coffeeConfig.test.ts s
 
 These exercise URL rejection and canonicalization, Vite mode and environment-directory loading, process-value precedence, absence when disabled, token-derived widget color, script ordering and attributes, visibility guarding, and duplicate prevention. They use isolated fixture directories and do not contact a recipient or submit payments.
 
-Run the dedicated browser suite from the repository root, with workspace dependencies and Playwright Chromium installed:
+Run the dedicated browser suite from the repository root, with workspace dependencies and Playwright Chromium, Firefox and WebKit installed:
 
 ```powershell
+npm --workspace apps/web run build:native
+$env:COFFEE_WIDGET_PREVIEW = "1"
 node node_modules/@playwright/test/cli.js test --config apps/web/playwright.coffee.config.ts
 ```
 
-Leave `COFFEE_WIDGET_SCRIPT_FILE` unset to use the built-in provider DOM-contract fixture. The config starts its own native Vite frontend on port 5195, sets the Erudoza support URL, and intercepts every application API request; no backend or production account is required. Tests cover keyboard opening, closing, focus cycling through the test iframe, Escape, repeated opening, browser history, coach/student/account visibility, command-dialog suspension, duplicate prevention, stalled or blocked scripts, and the three viewport sizes. Screenshots and failure traces go under `apps/web/test-results/coffee-widget/contract`.
+Leave `COFFEE_WIDGET_SCRIPT_FILE` unset to use the built-in provider DOM-contract fixture. With `COFFEE_WIDGET_PREVIEW=1`, the config serves the previously built native production artifact on port 5195. Without it, the config starts native Vite development with the Erudoza support URL. Both modes intercept application API requests; no backend or production account is required. Tests cover keyboard opening, closing, focus cycling through the test iframe, Escape, repeated opening, browser history, coach/student/account visibility, command-dialog suspension, duplicate prevention, stalled or blocked scripts, and the three viewport sizes. Screenshots and failure traces go under `apps/web/test-results/coffee-widget/contract`.
 
 To exercise a locally saved and inspected copy of the official provider script instead, set an absolute script path. For example, after saving the script at `.tmp/coffee-widget-vendor.js`:
 
@@ -92,3 +94,14 @@ The focused frontend run passed 56 tests, both frontend builds passed, and front
 A subsequent manual-click report was reproduced in the Codex in-app browser at the same localhost origin. The launcher opened the overlay and assigned the correct provider URL, but its frame remained on `about:blank`. The official generated widget on an isolated page, without Erudoza's adapter or styles, failed the same way. Both the `www` URL and its canonical destination remained blank when framed; the provider form loaded when opened directly as a top-level page. The available browser diagnostics did not expose a specific navigation error.
 
 The identical built Erudoza landing page was then tested through a normal click in Microsoft Edge, where the embedded form loaded successfully without leaving the landing page. Use an external browser for local live-widget acceptance in this environment. Standalone Chromium or Edge success does not establish compatibility with Codex's embedded browser. No application workaround, automatic redirect, or security-setting change was introduced for this browser-specific failure.
+
+
+### Browser compatibility and production configuration — September 12
+
+Anonymous inspection of `https://erudoza.com/` found no provider script or visibility guard in the deployed HTML, and the launcher was absent in Chromium, Firefox and WebKit. The prior production artifact was unconfigured; this is not evidence of a Safari-only rendering defect. Source now preserves the already-approved public recipient in `.env.production` for both production build targets. Rebuild and deploy the paired artifact to activate it; runtime Worker variables alone do not enable the widget.
+
+An eligible public visitor or Adult coach now has a normal “Buy me a coffee” link when the provider script is unavailable. Once the adapter binds, it replaces that link with the existing popup launcher. The popup also contains an always-available “Open support page” link. These links open the validated recipient in a new tab using native anchor navigation, so content blockers or cross-origin iframe restrictions do not remove the support option. There is no automatic redirect and no iframe-load-success guess. Student mode and account pages keep their existing exclusions; application dialogs suppress the fallback.
+
+The browser suite includes Chromium, Firefox and WebKit at 1440/390/320 pixels, blocked script/frame navigation, keyboard focus, installation help, manifest/icon delivery, simulated browser-prompt outcomes and standalone detection. CI runs the suite against the native production build with isolated API/payment fixtures. Browser fonts are blocked in the harness to avoid unrelated network timing; Firefox intentionally uses one additional Tab to enter an iframe’s form.
+
+Actual account form rendering was separately inspected in all three engines against the locally served production build at port 5197. The form showed Support Victor and the new external link; no payment action was taken. An initial manual harness intercepted provider API routes too broadly and caused 401 diagnostics; origin-scoped reruns removed those errors. The final probe rendered all three forms without page errors, with three aborted Google tracking requests in Chromium and none in Firefox/WebKit. WebKit on Linux is Safari-engine coverage, not physical iPhone/iPad or macOS Safari certification. Full payment completion, wallet authentication and payout readiness remain untested. See the [browser/PWA audit](../audits/2026-09-12-browser-support-and-installation.md) for final gates.

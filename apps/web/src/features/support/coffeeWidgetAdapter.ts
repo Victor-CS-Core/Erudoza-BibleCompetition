@@ -8,7 +8,7 @@ type Controls = {
 // DOM contract of the pinned, official 1.0.0 widget. The provider owns all
 // payment content and open/close handlers; this adapter only adds app lifecycle
 // and accessibility behavior. If that contract changes, keep the widget hidden.
-export function attachCoffeeWidget(): () => void {
+export function attachCoffeeWidget(onLinkSlot?: (slot: HTMLElement | null) => void): () => void {
   const html = document.documentElement;
   let controls: Controls | undefined;
   let opened = false;
@@ -18,6 +18,8 @@ export function attachCoffeeWidget(): () => void {
   let previousInert = false;
   let previousOverflow = "";
   let guards: HTMLElement[] = [];
+  let restoreFrame = 0;
+  let linkSlot: HTMLElement | undefined;
 
   const setOpen = (next: boolean, restoreFocus = true) => {
     if (!controls) return;
@@ -27,6 +29,7 @@ export function attachCoffeeWidget(): () => void {
     overlay.inert = !next;
     overlay.setAttribute("aria-hidden", String(!next));
     if (next === opened) return;
+    cancelAnimationFrame(restoreFrame);
     opened = next;
     if (next) {
       html.setAttribute("data-erudoza-coffee-open", "true");
@@ -40,7 +43,13 @@ export function attachCoffeeWidget(): () => void {
       html.removeAttribute("data-erudoza-coffee-open");
       if (pageRoot) pageRoot.inert = previousInert;
       document.body.style.overflow = previousOverflow;
-      if (restoreFocus && !disposed && !suspended && launcher.isConnected) launcher.focus();
+      if (restoreFocus) {
+        // The provider replaces launcher children while hiding the focused
+        // popup. Restore after the browser finishes that visibility change.
+        restoreFrame = requestAnimationFrame(() => {
+          if (!disposed && !suspended && !opened && launcher.isConnected) launcher.focus();
+        });
+      }
     }
   };
   const closeWidget = (restoreFocus = true) => {
@@ -104,6 +113,11 @@ export function attachCoffeeWidget(): () => void {
     guards[0].onfocus = () => frame.focus();
     guards[1].onfocus = () => close.focus();
     overlay.prepend(guards[0]); overlay.append(guards[1]);
+    linkSlot = document.createElement("div");
+    linkSlot.className = "coffee-popup-link";
+    linkSlot.onclick = event => event.stopPropagation();
+    overlay.insertBefore(linkSlot, frame);
+    onLinkSlot?.(linkSlot);
     frameObserver.observe(frame, { attributes: true, attributeFilter: ["style"] });
     setOpen(false, false);
   };
@@ -111,7 +125,7 @@ export function attachCoffeeWidget(): () => void {
     if (disposed) return;
     if (controls && (!controls.launcher.isConnected || !controls.overlay.isConnected)) {
       closeWidget(false); frameObserver.disconnect();
-      guards.forEach(guard => guard.remove()); controls = undefined;
+      guards.forEach(guard => guard.remove()); linkSlot?.remove(); onLinkSlot?.(null); controls = undefined;
     }
     if (!controls) bind();
     suspended = Boolean(document.querySelector("dialog[open]"));
@@ -126,11 +140,12 @@ export function attachCoffeeWidget(): () => void {
   refresh();
   return () => {
     disposed = true;
+    cancelAnimationFrame(restoreFrame);
     bodyObserver.disconnect(); frameObserver.disconnect();
     document.removeEventListener("keydown", keydown, true);
     document.removeEventListener("focusin", focusin);
     closeWidget(false);
-    guards.forEach(guard => guard.remove());
+    guards.forEach(guard => guard.remove()); linkSlot?.remove(); onLinkSlot?.(null);
     html.removeAttribute("data-erudoza-coffee-ready");
     html.removeAttribute("data-erudoza-coffee-open");
   };

@@ -29,7 +29,7 @@ async function transform(profile?: string, injectedProfile?: string, repeat = fa
     server: { middlewareMode: true, hmr: false, watch: null },
   });
   try {
-    const original = "<!doctype html><html><head><title>Erudoza</title></head><body><div id='root'></div></body></html>";
+    const original = "<!doctype html><html><head><title>Erudoza</title></head><body><div id='root'></div><script type='module' src='/src/main.tsx'></script></body></html>";
     const first = await server.transformIndexHtml("/", original);
     const html = repeat ? await server.transformIndexHtml("/", first) : first;
     return { document: new JSDOM(html).window.document, html };
@@ -39,12 +39,15 @@ async function transform(profile?: string, injectedProfile?: string, repeat = fa
 }
 
 describe("coffeeWidgetPlugin", () => {
-  it("reads the active mode and envDir and places one guarded deferred widget in the head", async () => {
+  it("reads the active mode and envDir and places one guarded deferred widget after the application entry", async () => {
     const { document } = await transform("https://www.buymeacoffee.com/TestCreator/");
     const scripts = document.querySelectorAll('script[data-name="BMC-Widget"]');
     expect(scripts).toHaveLength(1);
     const script = scripts[0];
-    expect(script.parentElement).toBe(document.head);
+    expect(script.parentElement?.tagName).toBe("BODY");
+    const app = document.querySelector('script[type="module"][src^="/src/main.tsx"]');
+    expect(app).not.toBeNull();
+    expect(Boolean(app!.compareDocumentPosition(script) & 4)).toBe(true);
     expect(script.getAttribute("src")).toBe("https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js");
     expect(script.hasAttribute("defer")).toBe(true);
     expect(script.hasAttribute("async")).toBe(false);

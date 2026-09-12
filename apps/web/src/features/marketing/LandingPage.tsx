@@ -4,6 +4,7 @@ import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
 import { PathfinderBackdrop } from "../../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../../components/AppIcon";
 import { LinkButton } from "../../components/ui";
+import { InstallApp } from "../install/InstallApp";
 import { CoffeeWidget } from "../support/CoffeeWidget";
 import "../../styles/training-public.css";
 
@@ -18,6 +19,7 @@ export function LandingPage() {
         <h1>Know the passage.<br /><em>Own the moment.</em></h1>
         <p>Focused Scripture training for your next Bible competition. Study your assigned passages, strengthen your recall, and prepare together.</p>
         <div className="public-actions"><LinkButton to="/login" data-testid="start-studying">Start studying<AppIcon name="arrow" /></LinkButton><LinkButton to="/login" data-testid="build-a-season" variant="secondary">Coach your team</LinkButton></div>
+        <div className="public-actions"><InstallApp /></div>
         <p className="public-access-note">Sign in with the account provided by your coach or academy.</p>
       </section>
       </div>

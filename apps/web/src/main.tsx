@@ -14,8 +14,8 @@ function renderApp() {
   );
 }
 
-// Vite can move the async module into <head>. Wait for parsing, not
-// DOMContentLoaded: optional deferred third-party scripts can delay that event.
+// The app module precedes the deferred provider in document order. Keep the
+// parsing guard for alternate entry hosts; never wait for DOMContentLoaded.
 if (document.readyState === "loading") {
   document.addEventListener("readystatechange", renderApp, { once: true });
 } else {

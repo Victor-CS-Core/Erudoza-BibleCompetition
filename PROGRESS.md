@@ -2,9 +2,10 @@
 
 Read this file before starting repository work. `AGENTS.md` defines the required update and commit/push workflow. Times below are UTC. This log is the shared handoff; detailed audits remain the evidence for individual checks.
 
-## Current state — 2026-09-11
+## Current state — 2026-09-12
 
-- GitHub `main` now includes the deployed Honors release. The user explicitly authorized updating main; the remote was fast-forwarded from `1a370cc` to `cc55a04` and read back successfully. The follow-up checkpoint below records this integration; application code is identical to deployed source `838a066`.
+- GitHub `main` includes the deployed Honors release and the separately authorized Coach Student Mode integration through `2a5407e`. Coach Student Mode is not yet deployed; live source remains `838a066` as recorded below.
+- Browser support and phone installation are locally verified on isolated `codex/coffee-pwa`: production coffee configuration, blocked-widget links, cross-engine focus/startup fixes, and online PWA installation. Source: 600 tests passed/1 optional skip; complete browser suites: 118 passed, plus seven focused startup checks. Commit/push is the next checkpoint. No main merge or deployment; physical-device installation and payment completion remain untested. See the [audit](docs/audits/2026-09-12-browser-support-and-installation.md).
 
 - The daily-training, public/account entry, alternating Pathfinder corner family, Team Practice composition, mobile bottom navigation and mastery profile implementation are locally verified, deployed from `838a066`, and integrated into `main` through `cc55a04`. Erudoza remains text beside the approved patch emblem. Detailed current and historical gates appear below.
 - The approved Honors, Team Practice, mastery profiles, public/account artwork and mobile navigation release is LIVE at https://erudoza.com. Source commit838a066 was pushed on codex/honors-public before deployment. Current Worker `257f14ee-6d2d-4896-9319-de0f4fc283f2` receives100%traffic; additive migration0004is applied. Credential-free live smoke passed22:08:47UTC with exact entry and ten Honor asset hashes. Authenticated live smoke was not run; authenticated local verification is documented below.
@@ -66,6 +67,8 @@ On September 11 the user replied **“Approved”** to the exact private reposit
 Checkpoint verification notes: generated `.local` dry-run bundles were excluded from lint; code line endings and blank EOFs were normalized to the existing editor rules. C# token review found only import sorting and required raw-literal line-ending changes; tests passed after formatting. Frontend source reloads temporarily disrupted the desktop browser match during formatting, but it recovered and passed; the complete mobile match passed after the source freeze. The final native build produced the same JS/CSS artifact hashes as before formatting. No failed browser cases were hidden or retried. The branch push does not trigger the current CI workflow (pushes target main; pull requests also trigger it), so these are executed local checks, not a claimed GitHub CI run.
 
 ## Next actions
+
+The browser/PWA task is ready for explicit staging, commit and private task-branch push. Publishing it would also publish the Coach Student Mode source already on main; production release requires separate authorization after this reviewable checkpoint.
 
 1. Use the now-live coach onboarding and invitation UI, retaining the versioned `AUTH_EMAIL_FROM` and encrypted secrets during future deployments. Check legitimate delivery failures, 429/503 trends and inbox placement during the pilot; follow the onboarding runbook limits. Do not send third-party test invitations or alter credentials without authorization.
 2. Use the production administrator account to prepare seasons, students, and assignments. Enable Team Practice through the coach UI when needed and prepare a coach-reviewed question bank; the fresh academy default remains disabled.
@@ -251,3 +254,26 @@ At each gate, refresh Current state/Next actions and add the result to Gates and
 - Fresh verification on the identical task-worktree source passed 597 web/native tests and 71 unit + 199 integration .NET tests, with two existing optional skips. .NET reused the previously built, unchanged binaries. Tree comparison against merged main and whitespace checks passed. Prior production builds, formatting/lint and six browser scenarios remain applicable because integration changed no application code; browser suites were not rerun for this merge. Existing audit limits remain recorded.
 - Normal non-force push advanced `origin/main` from `6be36f0` to `848893e`; remote readback confirmed `848893e72783891e6825238785575bca50926c6b`. The repository was freshly verified PRIVATE with ADMIN access. This documentation-only follow-up records the completed source integration and is being committed and pushed to main.
 - CI configuration is unchanged and contains no deployment step. New GitHub CI results are separate from the passing local checks and are not claimed here. No production migration or deployment occurred. Next action: any production release requires its own authorization.
+
+
+## Browser support and phone installation — September 12, in progress
+
+- User requested Buy Me a Coffee browser compatibility, especially Safari, and phone home-screen installation. Isolated worktree `.worktrees/coffee-pwa`, branch `codex/coffee-pwa`, starts from `2a5407e`; other worktrees remain untouched.
+- Baseline focused configuration/adapter suite passed 40 tests. Existing browser coverage only targets Chromium; the current integration has no direct-link fallback for blocked scripts/frames. Live anonymous headers contain no Content Security Policy. Actual Safari failure cause is not yet reproduced.
+- Scope: retain the provider popup with a direct support-page escape route, preserve public/Adult coach eligibility, add a manifest/icons and discoverable online-app installation guidance using shared controls. No offline caching or backend/payment processing changes. Next: cross-engine reproduction, regressions, implementation, both builds, responsive verification and explicit commit/push. No merge or deployment.
+
+
+## Browser support and installation — source gate and browser investigation, September 12
+
+- Live HTML readback establishes missing build-time support configuration across Chromium, Firefox and WebKit. Public production recipient, support-link fallbacks, safe focus restoration, manifest/icons and user-triggered installation guidance are implemented in the isolated task branch. No production change.
+- Final source gate: 600 tests passed/1 existing optional skip; web/native types, lint and both builds passed. Both artifacts include the correct provider script and manifest/icons. Chromium reports no manifest/installability errors. Actual account form rendered in three engines with no page errors/failed requests in the final bounded read-only probe; no payment submitted.
+- Browser gates: earlier controlled 51-case run passed; final installation/userChoice/iPhone-emulation subset passed 17. Full expanded gate remains open because the withheld-provider WebKit startup check is intermittent, with tracing increasing sensitivity. Independent investigation is active; no trace-only workaround is accepted. [Audit](docs/audits/2026-09-12-browser-support-and-installation.md) records exact scope and limits.
+- Next: isolate and close the browser startup gate, rerun final complete browser suites, explicitly stage/commit/push the scoped private task branch. Merge/deployment and physical-device installation are separate.
+
+## Browser support and installation — final local gate, September 12
+
+- Closed the WebKit stalled-provider startup gate by ordering the normal application module before the deferred provider script. Both final production HTML artifacts verify this order. No tracing suppression, timeout relaxation, loading placeholder or vendor-script modification was used.
+- Final complete production-preview suites: 59 contract-fixture cases and 59 official-provider-script cases passed across Chromium, Firefox, WebKit and iPhone 13 emulation. Four additional traced WebKit stalled-provider repetitions and all three development-engine startup checks passed. Tests cover public/coach/student eligibility, keyboard lifecycle, blocked script/frame links, 1440/390/320px layouts, manifest/icons, simulated install outcomes and standalone detection.
+- Source gates remain 600 tests passed/1 optional skip, web/native TypeScript, full ESLint and both production builds passing. No application source changed after those gates. Final 320px coach/student installation captures and the generated icon were visually inspected. Chromium reported no local manifest/installability errors.
+- The final actual-provider probe again rendered the intended account in all three engines without page errors. Firefox/WebKit recorded no failed requests; Chromium also recorded three aborted Google tracking requests while the form remained visible. This is bounded form-render evidence, with no payment or real account action. Earlier clean-network probes and harness-interception failures remain documented in the audit.
+- Independent review closed its documentation request and found no actionable code issue. Next: explicit source staging, commit/push and remote readback. No production deployment, main merge, physical-device OS installation, backend/full-gameplay rerun or remote CI pass is claimed.
