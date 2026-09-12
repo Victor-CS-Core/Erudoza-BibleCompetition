@@ -29,6 +29,6 @@ export default defineConfig({
     { name: "coffee-chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "coffee-firefox", use: { ...devices["Desktop Firefox"] } },
     { name: "coffee-webkit", use: { ...devices["Desktop Safari"] } },
-    { name: "coffee-iphone", use: { ...devices["iPhone 13"] }, grep: /popup, coach and student fit 390px|support opens|installation help.*390px|home-screen app mode/ },
+    { name: "coffee-iphone", use: { ...devices["iPhone 13"] }, grep: /popup, coach and student fit 390px|support opens|installation help.*390px|home-screen app mode|support minimization.*390px|support minimization works|support minimization synchronizes/ },
   ],
 });
