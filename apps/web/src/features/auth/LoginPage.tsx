@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
-import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
 import { PathfinderBackdrop } from "../../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../../components/AppIcon";
 import { Button, Input, Notice, PageHeader } from "../../components/ui";
@@ -34,14 +33,13 @@ export function LoginPage() {
 
   return (
     <main className="training-login">
-      <section className="training-login-hero" aria-label="Field Guide Academy">
+      <section className="training-login-hero training-login-hero-landscape" aria-label="Field Guide Academy">
         <Link className="training-login-brand" to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
         <div className="training-login-message">
 
           <h2>Know the passage.<br /><em>Own the moment.</em></h2>
           <p>Build your knowledge, strengthen your recall, and prepare for your next competition.</p>
         </div>
-        <LandscapeBanner className="training-login-art" sizes="(min-width: 760px) 50vw, 100vw" />
         <p className="training-login-motto">Discover · Interpret · Serve</p>
       </section>
       <section className="training-login-main pathfinder-canvas" aria-labelledby="login-heading">

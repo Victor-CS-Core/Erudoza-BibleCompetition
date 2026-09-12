@@ -4,7 +4,7 @@ Read this file before starting repository work. `AGENTS.md` defines the required
 
 ## Current state — 2026-09-12
 
-- Remembered support minimization is LIVE at https://erudoza.com from source `f031134`, merged and pushed to main under the user’s explicit authorization. Worker `ebb8dcac-8236-4aab-830f-b3502ef64b39` receives 100% of traffic. Thirty credential-free edge checks and six live browser flows passed by 16:18:05 UTC. No migration; prior chapter/coach/PWA functionality is retained. Source: 627 tests passed / 1 optional skip; 154 local browser cases and both mobile chapter flows passed. See the [audit](docs/audits/2026-09-12-support-minimization.md).
+- Remembered support minimization and its quieter unboxed hide control are LIVE at https://erudoza.com from source `9e05215`. Worker `1c29e34e-34c9-4761-b9ae-923971affdca` receives 100% of traffic. Thirty edge checks and six live browser flows passed by 16:25:03 UTC. Main also contains the separately merged sign-in artwork, which is not deployed. See the [audit](docs/audits/2026-09-12-support-minimization.md).
 
 ### Earlier release state (historical)
 
@@ -345,6 +345,12 @@ At each gate, refresh Current state/Next actions and add the result to Gates and
 - Cleanup verified: remote codex/chapter-assignments was deleted; local branch deletion succeeded after confirming it is an ancestor of main and detaching its clean worktree at1080f8a. The detached worktree retains ignored test/build evidence. Other task branches/worktrees are preserved. Remote main still matches1080f8a at cleanup readback.
 - GitHub CI for source1080f8a is running at https://github.com/Victor-CS-Core/Erudoza-BibleCompetition/actions/runs/34703655578; the infrastructure job passed at the latest snapshot, with other jobs still running. The earlier main browser failures were corrected and validated locally; a new complete remote CI pass is not claimed. This documentation-only release checkpoint uses [skip ci] to avoid a duplicate run on identical application code while that source run continues. Deployment and requested branch cleanup are complete.
 
+## Sign-in background restoration — September 12
+
+- User corrected the target to the left hero and requested a bottom-right illustration to balance it. Git history identified the original full-height navy fade over /brand/training-landscape.webp; the Honors styling had replaced it with a separate card. Restored the original image/fade on a sign-in-only modifier and removed its panoramic card. Phone header remains compact. Login now uses the existing Camp essentials right-corner composition; other routes and signup hero remain unchanged. DESIGN.md records the superseding direction.
+- Local gate: 30 login/artwork tests passed; native production build (web/native TypeScript), full ESLint and whitespace passed. Chromium screenshots at1440/390/320 were inspected; geometry confirms no horizontal overflow, landscape loaded and right-corner assignment, with password visibility toggle working. Anonymous local API fixtures and blocked external provider were used; no production account action. Initial checks encountered an incomplete dependency install; npm ci with SHARP_IGNORE_GLOBAL_LIBVIPS=1 repaired the local environment without lockfile changes.
+- Next: commit/push the scoped restoration branch. This gate establishes local verification only, not main integration or live deployment.
+- Git checkpoint: restoration commit98a4f42 was successfully pushed to origin/codex/login-background. Local browser preview opened at http://127.0.0.1:5197/login. Main and production have not been changed by this restoration; integration/deployment remains the next release action.
 ## Remembered support minimization — implementation started, September 12
 
 - User approved browser-local minimization to eligible footer support/restore controls, with persistent versioned preference, tab synchronization and in-memory storage fallback. No donor verification, backend/schema change, main merge or deployment.
@@ -368,6 +374,20 @@ At each gate, refresh Current state/Next actions and add the result to Gates and
 - Paired Worker/native-assets deployment completed at 16:17:38 UTC from pushed main source `f031134`. Cloudflare readback confirms deployment `93b53c13-6ede-436d-b8e7-a402e2e02fd1`, Worker `ebb8dcac-8236-4aab-830f-b3502ef64b39`, 100% traffic. Database and Durable Object IDs, rate limits, public variables and secret binding names match the preceding version. Previous compatible Worker: `f7675d55-aa5c-400a-8b9f-96df2a9ecf86`. No secret values were read or changed.
 - Credential-free edge smoke passed 30/30 at 16:18:02 UTC: API/D1 health, anonymous guards, exact HTML/all JS/CSS and ten Honor images, manifest/icons, redirects and disabled workers.dev. Live browser smoke passed 6/6 at 16:18:05 UTC: Chromium/Firefox/WebKit, each with provider enabled and blocked, at 390px; minimize, focus, persistence after reload, restoration, no overflow or page errors. Payment/account mutations and physical-device acceptance remain untested. Reports are ignored under `.local/deployment/support-minimize-20260912/` in the coffee-minimize worktree.
 - Source CI is in progress at https://github.com/Victor-CS-Core/Erudoza-BibleCompetition/actions/runs/34704740125; remote CI success is not claimed. This documentation-only release checkpoint skips a duplicate CI run on identical application source. Next: retain the verified live release and coordinate future integrations; unmerged login/training work remains separate.
+
+## Sign-in artwork — authorized main integration, September 12
+
+- User requested merge to main. Integrated latest main781a76d, preserving support minimization and its release evidence. Only PROGRESS.md conflicted; both histories were retained. The resulting diff from main contains only the six reviewed artwork/test/documentation files.
+- Fresh integrated gate:30login/artwork tests passed, native production build and web/native TypeScript passed; whitespace clean. Prior responsive screenshots and lint remain applicable to the unchanged artwork source. Next: fast-forward main and normal push, with fresh remote ancestry guard. No deployment requested or performed in this turn.
+- Main integration completed: main fast-forwarded to914c6b8 and normal push advanced origin/main from781a76d to914c6b8. Remote readback confirmed the source checkpoint. Login artwork is merged and pushed; production deployment remains separate.
+
+## Quieter support hide control — September 12
+
+- The user found the filled hide button intrusive. Changed only its shared Button variant from secondary to ghost: unboxed minus with no persistent fill or visible border, retaining the 44px target, hover/focus feedback and remembered preference. Independent review found no concern.
+- Local checks: 39 support tests, 28 official-provider responsive/minimization browser cases across Chromium/Firefox/WebKit/iPhone, both production builds/types, ESLint and deployment dry run passed. The 320px capture was inspected. Implementation `9e05215` was committed and pushed before deployment.
+- Coordinated with the concurrent login task: it had already merged artwork to main `26438b5` under merge-only authorization. Deployed the exact pre-login correction source `9e05215`, then merged latest main into the task branch as `d791577` without conflicts, preserving both source changes. The combined source passed 627 web/native tests / 1 optional skip in 32.12 seconds. Login artwork remains pending deployment.
+- Production version readback and immediate empty room projection preceded the correction rollout; existing private backup and unchanged schema/bindings were retained. At 16:24:29 UTC, deployment `38f2e983-7888-485e-9b40-374e37d7142c` activated Worker `1c29e34e-34c9-4761-b9ae-923971affdca` at 100%. Binding comparison matches the prior version; no migration, credential, account or payment action. Previous compatible Worker: `ebb8dcac-8236-4aab-830f-b3502ef64b39`.
+- Live edge checks passed 30/30 at 16:25:00 UTC. Six browser flows passed by 16:25:03 UTC across Chromium/Firefox/WebKit, each normal/blocked provider: transparent background/border, 44px target, minimize/reload/restore, focus and no overflow/page errors. Ignored evidence: `.local/deployment/quiet-support-20260912/` and `.local/coffee-minimize/quiet-browser/`. Main integration/evidence checkpoint follows; future deployment must account for main’s pending sign-in changes.
 
 ## Support minus placement and original artwork — local gate, September 12
 
