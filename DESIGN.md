@@ -50,3 +50,7 @@ The user approved the [interactive Team Practice preview](docs/product/mockups/2
 ## Mastery Honor profiles — September 11
 
 Honors now mean the versioned mastery collection. Historical participation and coverage awards remain Practice milestones with their original evidence; they do not unlock profile images. Use the shared ProfileAvatar for named people in headers, directories, rosters, search and chat. Avatars resolve the current profile by user ID rather than copying an image into messages. Keep initials as the fallback, contain the complete approved patch, and hide decorative imagery from assistive technology when the name is adjacent. Account/Profile offers earned-only choices, visible locked requirements, direct save/reset feedback and the same reduced-motion/touch behavior as other patches.
+
+## Sign-in artwork correction — September 12
+
+The user restored the original faded, full-height landscape on the left side of desktop sign-in. Use the existing training-landscape image fading into navy, with the compact branded header on phones. Sign-in uses the approved Camp essentials illustration at the bottom right of the ivory panel to balance the landscape; this supersedes its earlier panoramic-card and left Trail navigation assignment. Other route artwork and solid form surfaces remain as specified above.
