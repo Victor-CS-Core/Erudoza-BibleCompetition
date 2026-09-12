@@ -1,6 +1,6 @@
 import { HttpError } from "../types";
 export interface Question { id:string; contentPackId:string; sourceUnitId:string; prompt:string; kind:string; parts:{acceptedAnswers:string[];points:number}[]; ordered:boolean; evidence:string; reference:string; version:number }
-export const points=(q:Question)=>q.parts.reduce((n,p)=>n+p.points,0);
+export const points=(q:{parts:{points:number}[]})=>q.parts.reduce((n,p)=>n+p.points,0);
 export const duration=(q:Question)=>20+5*points(q);
 const normalize=(text:string)=>Array.from(text.normalize("NFC")).map(ch=>{const upper=ch.toUpperCase();return upper.length===ch.length?upper:ch;}).join("")
  // .NET whitespace includes NEL and excludes BOM; invariant casing never expands ß into SS.

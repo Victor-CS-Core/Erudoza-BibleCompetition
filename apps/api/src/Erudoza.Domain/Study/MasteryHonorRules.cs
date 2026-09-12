@@ -5,7 +5,7 @@ namespace Erudoza.Domain.Study;
 public sealed record MasteryHonorDefinition(string Key, string Title, string Requirement, string Category);
 public sealed record MasteryQualification(string Key, string EvidenceJson);
 public sealed record HonorPassage(Guid KnowledgeUnitId, string BookKey, int Chapter, int ExactWording, int Reference, int Recognition, string AlgorithmVersion, MasteryPassageProof? Proof);
-public sealed record HonorAttempt(Guid Id, DateTimeOffset AtUtc, bool IsCorrect, bool HintsUsed, bool IsLegacyDuplicate, AnswerMode AnswerMode, string ActivityType, int Difficulty, bool FirstDueReviewAttempt);
+public sealed record HonorAttempt(Guid Id, DateTimeOffset AtUtc, bool IsCorrect, bool HintsUsed, bool IsLegacyDuplicate, AnswerMode AnswerMode, string ActivityType, int Difficulty, bool FirstDueReviewAttempt, string? EvidenceProfile = null);
 public sealed record HonorTeamMember(Guid UserId, int Team);
 public sealed record HonorScoredQuestion(Guid QuestionId, Guid SourceUnitId, int Team, Guid ScribeId, bool Manual, int AccuracyHundredths, int AvailableHundredths);
 public sealed record HonorMatch(Guid Id, Guid SeasonId, long Revision, DateTimeOffset CompletedAtUtc, bool Completed, bool Resolved, bool Coached, int QuestionCount, IReadOnlyList<HonorTeamMember> Members, IReadOnlyList<HonorScoredQuestion> Scores);
@@ -37,7 +37,7 @@ public static class MasteryHonorRules
         {
             proof.FirstMasteredAtUtc = attempt.AtUtc; proof.FirstMasteredAttemptId = attempt.Id; proof.FirstMasteredEvidenceJson = evidence;
         }
-        var typed = attempt.IsCorrect && !attempt.HintsUsed && attempt.AnswerMode == AnswerMode.ExactText && attempt.Difficulty >= 5 && attempt.ActivityType is "MissingWords" or "WhatComesNext";
+        var typed = attempt.IsCorrect && !attempt.HintsUsed && attempt.AnswerMode == AnswerMode.ExactText && attempt.Difficulty >= 5 && (attempt.EvidenceProfile is null or "memory-honor-v2") && attempt.ActivityType is "MissingWords" or "WhatComesNext";
         if (typed && attempt.AtUtc >= proof.FirstMasteredAtUtc.Value.AddHours(48) && proof.RetainedAttemptId is null)
         { proof.RetainedAttemptId = attempt.Id; proof.RetainedAtUtc = attempt.AtUtc; proof.RetainedEvidenceJson = evidence; }
         if (typed && attempt.FirstDueReviewAttempt && proof.ReviewedAttemptId is null)

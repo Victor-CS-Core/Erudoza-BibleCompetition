@@ -5,6 +5,7 @@ namespace Erudoza.Domain.Practice;
 
 public sealed class PracticeQuestion
 {
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] public PbeQuestion? Rubric { get; set; }
     public Guid Id { get; set; }
     public Guid ContentPackId { get; set; }
     public Guid SourceUnitId { get; set; }

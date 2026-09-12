@@ -245,3 +245,13 @@
   .practice-score-team h2, .practice-match-center h2, .practice-team-banner h2 { color: CanvasText; }
 }
 .practice-messages article { display: flex; align-items: flex-start; gap: var(--er-space-3); } .practice-messages article > div { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+
+/* PBE authoring composition uses the shared control and typography system. */
+.pbe-bank-editor, .pbe-bank-editor fieldset, .pbe-bank-editor label { min-width: 0; }
+.pbe-bank-editor .ds-button { max-width: 100%; }
+.pbe-bank-editor p, .pbe-bank-editor summary, .pbe-bank-editor blockquote { overflow-wrap: anywhere; }
+
+.practice-room .practice-teams[data-team-count="1"] { grid-template-columns: minmax(0, 1fr); }
+.practice-room .practice-scoreboard[data-team-count="1"] { grid-template-columns: minmax(0, 1fr) minmax(100px, 1fr); }
+
+.practice-room .practice-scoreboard[data-format="Pbe"] .practice-subscore { display: block; }

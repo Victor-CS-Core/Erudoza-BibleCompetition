@@ -15,7 +15,9 @@ namespace Erudoza.IntegrationTests;
 
 public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
 {
+    public Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor? CommandInterceptor { get; set; }
     public bool DisablePracticeTicker { get; set; }
+    public TimeProvider? TestTimeProvider { get; set; }
     private readonly string _dbPath = Path.Combine(Path.GetTempPath(), $"erudoza-{Guid.NewGuid():N}.db");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -37,8 +39,13 @@ public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             services.AddDataProtection().UseEphemeralDataProtectionProvider();
+            if (TestTimeProvider is not null)
+            {
+                services.RemoveAll<TimeProvider>();
+                services.AddSingleton(TestTimeProvider);
+            }
             if (DisablePracticeTicker)
-                foreach (var descriptor in services.Where(item => item.ImplementationType == typeof(Erudoza.Api.Practice.PracticeTicker)).ToList())
+                foreach (var descriptor in services.Where(item => item.ImplementationType == typeof(Erudoza.Api.Practice.PracticeTicker) || item.ImplementationType == typeof(Erudoza.Api.Practice.PbeSoloExpiryTicker)).ToList())
                     services.Remove(descriptor);
             foreach (var descriptor in services.Where(item =>
                          item.ServiceType == typeof(DbContextOptions<ErudozaDbContext>)
@@ -47,7 +54,7 @@ public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
             }
 
-            services.AddDbContext<ErudozaDbContext>(options => options.UseSqlite($"Data Source={_dbPath}"));
+            services.AddDbContext<ErudozaDbContext>(options => { options.UseSqlite($"Data Source={_dbPath}"); if (CommandInterceptor is not null) options.AddInterceptors(CommandInterceptor); });
             services.RemoveAll<IBibleTextClient>();
             services.AddSingleton<IBibleTextClient, FakeBibleTextClient>();
         });

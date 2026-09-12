@@ -39,6 +39,17 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Team Practice hub", () => {
+  it("creates an enabled independent six-student rehearsal without inventing an opponent", async () => {
+    vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:"daniel",name:"Daniel",pbeEnabled:true}]});
+    mount();await screen.findByRole("button",{name:"Create room"});
+    fireEvent.change(screen.getByLabelText("Practice mode"),{target:{value:"Pbe"}});
+    expect(screen.queryByText("Team 2")).not.toBeInTheDocument();
+    expect(within(screen.getByLabelText("Team size")).getAllByRole("option").map(option=>option.getAttribute("value"))).toEqual(["2","3","4","5","6"]);
+    fireEvent.change(screen.getByLabelText("Match length"),{target:{value:"90"}});
+    fireEvent.click(screen.getByRole("button",{name:"Create room"}));
+    await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith("org",{seasonId:"daniel",format:"Pbe",teamCount:1,teamSize:6,questionCount:90,coached:false,bookKey:undefined}));
+  });
+
   it("prioritizes a playing room using only returned room evidence", async () => {
     vi.mocked(practiceApi.bootstrap).mockResolvedValue({ ...data, rooms: [
       { id: "lobby", seasonId: "daniel", status: "Lobby", teamSize: 5, questionCount: 30, coached: true, ownerId: "other", memberCount: 3 },
@@ -105,6 +116,13 @@ describe("Team Practice hub", () => {
     fireEvent.click(screen.getByRole("button", { name: "Join Team 2" }));
     await waitFor(() => expect(practiceApi.accept).toHaveBeenLastCalledWith("org", "invite", 2));
     expect(await screen.findByText("/student/practice/invited-room")).toBeInTheDocument();
+  });
+
+  it("offers only Team 1 for an unrestricted one-team invitation", async () => {
+    vi.mocked(practiceApi.bootstrap).mockResolvedValue({ ...data, invitations: [{ id: "invite", roomId: "invited-room", teamCount: 1, inviterName: "Ana", expiresAt: "2026-10-01T12:00:00Z" }] });
+    mount();
+    expect(await screen.findByRole("button", { name: "Join Team 1" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Join Team 2" })).not.toBeInTheDocument();
   });
 
   it("prevents room creation without an active season", async () => {
@@ -187,4 +205,13 @@ it("starts room setup with the season carried from Student mode", async () => {
  expect(await screen.findByLabelText("Season")).toHaveValue("luke");
  fireEvent.click(screen.getByRole("button", { name: "Create room" }));
  await waitFor(() => expect(practiceApi.create).toHaveBeenCalledWith("org", expect.objectContaining({ seasonId: "luke", coached: false })));
+});
+it("shows PBE pending counts beside finalized team accuracy and links the coach review queue", async () => {
+ account.kind = "Adult";
+ vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,trends:[{format:"Pbe",teamCount:1,seasonId:"daniel",teamSize:6,bookKey:null,ruleVersion:"pbe-v1",scoringVersion:"pbe-score-v1",matches:1,wins:0,draws:0,accuracyHundredths:5800,availableHundredths:5800,speedHundredths:0,unansweredQuestions:0,averageResponseMs:1000,distinctQuestions:29,distinctPassages:1,participatedQuestions:30,pendingCount:1,provisional:true}]});
+ mount();expect(await screen.findByText(/1 answer awaiting review/)).toBeVisible();expect(screen.getByText("Finalized accuracy")).toBeVisible();expect(screen.getByRole("link",{name:"Open PBE answer reviews"})).toHaveAttribute("href","/admin/practice/reviews");
+});
+
+it("keeps Solo answer reviews reachable when Team Practice is disabled", async () => {
+ account.kind = "Adult";vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,enabled:false});mount();expect(await screen.findByRole("link",{name:"Open PBE answer reviews"})).toHaveAttribute("href","/admin/practice/reviews");
 });

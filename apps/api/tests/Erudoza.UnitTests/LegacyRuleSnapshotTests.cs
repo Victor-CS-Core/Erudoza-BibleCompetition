@@ -7,6 +7,13 @@ namespace Erudoza.UnitTests;
 public sealed class LegacyRuleSnapshotTests
 {
     [Fact]
+    public void Inconsistent_memory_snapshot_cannot_silently_become_legacy_proof()
+    {
+        var session = new StudySession { RuleProfileSnapshotJson = """{"Key":"PBE_STYLE_V1","Version":1,"MemoryChallenge":"Warmup","GeneratorVersion":"memory-v3","EvidenceProfile":"memory-honor-v2"}""" };
+        var read = () => RuleProfileReader.ReadSession(session, new RuleProfile());
+        read.Should().Throw<DomainException>();
+    }
+    [Fact]
     public void Older_snapshot_ignores_removed_preference_and_preserves_actual_restrictions()
     {
         var session = new StudySession { RuleProfileSnapshotJson = """

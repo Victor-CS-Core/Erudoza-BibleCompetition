@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Erudoza.Application.Abstractions;
+using Erudoza.Application.Study;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
@@ -12,13 +13,64 @@ public static class PracticeEndpoints
     public static PracticeActor Actor(ICurrentUser user) => new(user.UserId, user.OrganizationId, user.DisplayName, user.IsAdmin);
     public static void MapPractice(this WebApplication app)
     {
+        var disputes = app.MapGroup("/api/v1/pbe/disputes").RequireAuthorization();
+        disputes.AddEndpointFilter(async (context, next) =>
+        {
+            try { return await next(context); }
+            catch (PracticeForbiddenException) { return Results.Forbid(); }
+            catch (KeyNotFoundException e) { return Results.NotFound(new { message = e.Message }); }
+            catch (PbeBankConflictException e) { return Results.Conflict(new { message = e.Message }); }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException) { return Results.Conflict(new { message = "The review changed. Refresh and retry." }); }
+        });
+        disputes.MapPost("", async (PbeDisputeFlag input, PbeDisputeService service, CancellationToken ct) => { var result = await service.Flag(input, ct); return Results.Json(PbeDisputeService.Dto(result.Value), statusCode: result.Created ? 201 : 200); });
+        disputes.MapGet("", (string? after, PbeDisputeService service, CancellationToken ct) => service.Queue(after, ct));
+        disputes.MapGet("/{id}", async (string id, PbeDisputeService service, CancellationToken ct) => PbeDisputeService.Dto(await service.Read(id, ct)));
+        disputes.MapPost("/{id}/replay", (string id, PbeDisputeService service, CancellationToken ct) => service.Replay(id, ct));
+        disputes.MapGet("/{id}/evidence", (string id, Guid targetId, string? after, PbeDisputeService service, CancellationToken ct) => service.Evidence(id, targetId, after, ct));
+        disputes.MapPost("/{id}/resolve", async (string id, PbeDisputeResolve input, PbeDisputeService service, CancellationToken ct) => PbeDisputeService.Dto(await service.Resolve(id, input, ct)));
         var group = app.MapGroup("/api/v1/organizations/{orgId:guid}/practice").RequireAuthorization();
         group.AddEndpointFilter(async (context, next) =>
         {
             try { return await next(context); }
+            catch (UnauthorizedAccessException) { return Results.Forbid(); }
             catch (PracticeForbiddenException) { PracticeMetrics.RejectedCommands.Add(1); return Results.Forbid(); }
             catch (Erudoza.Domain.DomainException) { PracticeMetrics.RejectedCommands.Add(1); throw; }
         });
+        var pbe = group.MapGroup("/pbe/seasons/{seasonId:guid}");
+        pbe.AddEndpointFilter(async (context, next) =>
+        {
+            try { return await next(context); }
+            catch (KeyNotFoundException error) { return Results.NotFound(new { message = error.Message }); }
+            catch (PbeBankConflictException error) { return Results.Conflict(new { message = error.Message }); }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException) { return Results.Conflict(new { message = "The PBE record changed. Refresh and retry." }); }
+            catch (Microsoft.Data.Sqlite.SqliteException error) when (error.SqliteErrorCode is 5 or 6) { return Results.Conflict(new { message = "The PBE record changed. Refresh and retry." }); }
+        });
+        pbe.MapGet("/introductions", (Guid orgId, Guid seasonId, PbeIntroductionService service, CancellationToken ct) => service.List(orgId, seasonId, ct));
+        pbe.MapPost("/introductions", (Guid orgId, Guid seasonId, System.Text.Json.JsonElement request, PbeIntroductionService service, CancellationToken ct) => service.Create(orgId, seasonId, request, ct));
+        pbe.MapPost("/introductions/{id:guid}/review", (Guid orgId, Guid seasonId, Guid id, System.Text.Json.JsonElement request, PbeIntroductionService service, CancellationToken ct) => service.Update(orgId, seasonId, id, true, request, ct));
+        pbe.MapPost("/introductions/{id:guid}/assignments", (Guid orgId, Guid seasonId, Guid id, System.Text.Json.JsonElement request, PbeIntroductionService service, CancellationToken ct) => service.Update(orgId, seasonId, id, false, request, ct));
+        pbe.MapGet("/introductions/{id:guid}/reader", (Guid orgId, Guid seasonId, Guid id, PbeIntroductionService service, CancellationToken ct) => service.Reader(orgId, seasonId, id, ct));
+        pbe.MapGet("/authoring", (Guid orgId, Guid seasonId, string? membersAfter, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbeAuthoring(orgId, seasonId, membersAfter, Actor(user), bank, ct));
+        pbe.MapGet("/targets", (Guid orgId, Guid seasonId, int? limit, string? after, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbePage(orgId, seasonId, "pbe-target", limit, after, Actor(user), bank, ct));
+        pbe.MapGet("/questions", (Guid orgId, Guid seasonId, int? limit, string? after, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbePage(orgId, seasonId, "pbe-question", limit, after, Actor(user), bank, ct));
+        pbe.MapPost("/targets", async (Guid orgId, Guid seasonId, System.Text.Json.JsonElement request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) =>
+        {
+            List<Erudoza.Domain.Practice.PbeTarget>? targets;
+            try { targets = System.Text.Json.JsonSerializer.Deserialize<List<Erudoza.Domain.Practice.PbeTarget>>(request.GetProperty("targets").GetRawText(), PbeQuestionBank.Json); }
+            catch (Exception e) when (e is System.Text.Json.JsonException or KeyNotFoundException or InvalidOperationException) { throw new Erudoza.Domain.DomainException("Malformed targets."); }
+            await service.PbeTargets(orgId, seasonId, targets!, Actor(user), bank, ct); return Results.NoContent();
+        });
+        pbe.MapGet("/bank", (Guid orgId, Guid seasonId, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbeMetadata(orgId, seasonId, Actor(user), bank, ct));
+        pbe.MapPost("/enabled", async (Guid orgId, Guid seasonId, PbeEnabledRequest request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => { await service.PbeEnable(orgId, seasonId, request.Enabled, Actor(user), bank, ct); return Results.NoContent(); });
+        pbe.MapPost("/questions/import", async (Guid orgId, Guid seasonId, System.Text.Json.JsonElement request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) =>
+        {
+            ImportPbeQuestions? input;
+            try { input = System.Text.Json.JsonSerializer.Deserialize<ImportPbeQuestions>(request.GetRawText(), Erudoza.Application.Study.PbeQuestionBank.Json); }
+            catch (System.Text.Json.JsonException) { return Results.BadRequest(new { message = "Malformed PBE import." }); }
+            if (input is null) return Results.BadRequest(new { message = "Malformed PBE import." });
+            await service.PbeImport(orgId, seasonId, input, Actor(user), bank, ct); return Results.NoContent();
+        });
+        pbe.MapPost("/questions/{id:guid}/{version:int}/publish", async (Guid orgId, Guid seasonId, Guid id, int version, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => { await service.PbePublish(orgId, seasonId, id, version, Actor(user), bank, ct); return Results.NoContent(); });
         group.MapGet("/bootstrap", (Guid orgId, ICurrentUser user, PracticeService service, CancellationToken ct) => service.Bootstrap(orgId, Actor(user), ct));
         group.MapPost("/enabled", async (Guid orgId, EnabledRequest request, ICurrentUser user, PracticeService service, CancellationToken ct) =>
         { await service.SetEnabled(orgId, request.Enabled, Actor(user), ct); return Results.NoContent(); });
@@ -39,8 +91,17 @@ public static class PracticeEndpoints
             await hub.Clients.All.SendAsync("Changed", cancellationToken: ct); // Invalidation only: never contains tenant data.
             return result;
         });
-        group.MapPost("/questions/import", async (Guid orgId, ImportPracticeQuestions request, ICurrentUser user, PracticeService service, CancellationToken ct) =>
-        { await service.Import(orgId, Actor(user), request, ct); return Results.NoContent(); });
+        group.MapPost("/questions/import", async (Guid orgId, System.Text.Json.JsonElement request, ICurrentUser user, PracticeService service, CancellationToken ct) =>
+        {
+            if (request.ValueKind != System.Text.Json.JsonValueKind.Object) return Results.BadRequest();
+            foreach (var property in request.EnumerateObject().Where(p => p.Name.Equals("questions", StringComparison.OrdinalIgnoreCase)))
+                if (property.Value.ValueKind == System.Text.Json.JsonValueKind.Array && property.Value.EnumerateArray().Any(q => q.ValueKind == System.Text.Json.JsonValueKind.Object && q.EnumerateObject().Any(p => p.Name.Equals("schemaVersion", StringComparison.OrdinalIgnoreCase)))) return Results.BadRequest(new { message = "Versioned PBE questions require the PBE import endpoint." });
+            ImportPracticeQuestions? input;
+            try { input = System.Text.Json.JsonSerializer.Deserialize<ImportPracticeQuestions>(request.GetRawText(), PracticeJson.Options); }
+            catch (System.Text.Json.JsonException) { return Results.BadRequest(); }
+            if (input is null) return Results.BadRequest();
+            await service.Import(orgId, Actor(user), input, ct); return Results.NoContent();
+        });
         group.MapPost("/questions/{id:guid}/publish", async (Guid orgId, Guid id, ICurrentUser user, PracticeService service, CancellationToken ct) =>
         { await service.Publish(orgId, id, Actor(user), ct); return Results.NoContent(); });
         app.MapHub<PracticeHub>("/api/v1/pvp/hub", options => options.AllowStatefulReconnects = true).RequireAuthorization();
@@ -63,7 +124,7 @@ public sealed class PracticeHub(PracticeService service, PracticeRuntime runtime
     }
     public async Task<object> Command(Guid org, Guid room, PracticeCommand command)
     {
-        if (command.Action == "submit") throw new HubException("Final answers must use the timestamped HTTP submission endpoint.");
+        if (command.Action is "submit" or "draft" or "present" or "present-ready" or "ack") throw new HubException("Timed commands must use the timestamped HTTP submission endpoint.");
         var ingress = runtime.Stamp();
         try
         {

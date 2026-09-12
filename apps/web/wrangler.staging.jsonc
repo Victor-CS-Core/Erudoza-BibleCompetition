@@ -23,12 +23,14 @@
     "bindings": [
       { "name": "ROOMS", "class_name": "PracticeRoom" },
       { "name": "REPORTS", "class_name": "PracticeReports" },
-      { "name": "PASSWORD_CRYPTO", "class_name": "PasswordCrypto" }
+      { "name": "PASSWORD_CRYPTO", "class_name": "PasswordCrypto" },
+      { "name": "PBE_SOLO", "class_name": "PbeSoloRound" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["PracticeRoom", "PracticeReports"] },
-    { "tag": "v2-password-crypto", "new_sqlite_classes": ["PasswordCrypto"] }
+    { "tag": "v2-password-crypto", "new_sqlite_classes": ["PasswordCrypto"] },
+    { "tag": "v3-pbe-solo", "new_sqlite_classes": ["PbeSoloRound"] }
   ],
   "observability": { "enabled": true, "head_sampling_rate": 0.1 }
 }

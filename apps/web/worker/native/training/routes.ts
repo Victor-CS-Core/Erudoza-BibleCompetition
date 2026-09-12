@@ -1,4 +1,7 @@
 import { requireLearner } from '../application/model';
+import {cooperation,continueCooperation} from '../pbe/cooperation-progress';
+import {chapters,continueChapters} from '../pbe/chapter-progress';
+import { reviewedPbeSummary, type PbeSession } from '../pbe/sessions';
 import type { RequestContext } from '../types';
 import { body, HttpError, json } from '../types';
 import { atomic } from '../application/model';
@@ -10,11 +13,13 @@ import { today, honors, journey } from './query';
 export async function handleTraining(ctx: RequestContext): Promise<Response | null> {
     const { path, request } = ctx, method = request.method;
     const recap = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)\/recap$/);
-    if (!recap && !/^\/api\/v1\/progress\/me\/(today|honors|journey|preferences)$/.test(path))
+    if (!recap && !/^\/api\/v1\/progress\/me\/(today|honors|journey|preferences|chapters(?:\/continue)?|pbe-cooperation(?:\/continue)?)$/.test(path))
         return null;
     await requireLearner(ctx);
     const url = new URL(request.url), seasonId = url.searchParams.get('seasonId');
     if (recap && method === 'GET') {
+        const pbe=await ctx.store.get<PbeSession>('pbe-session',recap[1],ctx.orgId);
+        if(pbe){if(pbe.value.studentUserId!==ctx.actor.userId)throw new HttpError(404,'Study session was not found.');const interruption=await ctx.store.get('pbe-solo-interruption',pbe.value.id,ctx.orgId);if(pbe.value.status!=='Completed'&&!interruption)throw new HttpError(409,'Complete your session to save its recap.');return json((await reviewedPbeSummary(ctx,pbe.value,!!interruption)).recap);}
         const s = (await ctx.store.require<Session>('session', recap[1], ctx.orgId)).value;
         if (s.studentUserId !== ctx.actor.userId)
             throw new HttpError(404, 'Study session was not found.');
@@ -22,7 +27,11 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
             throw new HttpError(409, `Resume /student/study?sessionId=${s.id} before viewing the recap.`);
         return json(s.recap ?? await makeRecap(ctx, s));
     }
+    if(method==='POST'&&path.endsWith('/pbe-cooperation/continue'))return json(await continueCooperation(ctx,await body(request)));
+    if(method==='GET'&&path.endsWith('/pbe-cooperation'))return json(await cooperation(ctx,seasonId??''));
+    if(method==='POST'&&path.endsWith('/chapters/continue'))return json(await continueChapters(ctx,await body(request)));
     if (method === 'GET') {
+        if(path.endsWith('/chapters'))return json(await chapters(ctx,url));
         if (path.endsWith('/today'))
             return json(await today(ctx, seasonId));
         if (path.endsWith('/honors'))

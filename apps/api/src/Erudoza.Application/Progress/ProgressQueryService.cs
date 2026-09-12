@@ -24,6 +24,7 @@ public sealed class ProgressQueryService(IErudozaDbContext db, IClock clock, ISt
         var assignedSeasonIds = await db.Assignments.AsNoTracking()
             .Where(item => item.OrganizationId == organizationId && item.StudentUserId == studentId)
             .Select(item => item.SeasonId).Distinct().ToListAsync(cancellationToken);
+        assignedSeasonIds.AddRange(await db.PbeTrainingRecords.AsNoTracking().Where(r => r.OrganizationId == organizationId && r.OwnerId == studentId && r.Kind == "pbe-introduction-assignment" && db.Seasons.Any(s => s.Id == r.SeasonId && s.PbeEnabled)).Select(r => r.SeasonId).Distinct().ToListAsync(cancellationToken));
         if (seasonId is { } requested)
         {
             season = await db.Seasons.AsNoTracking().SingleOrDefaultAsync(
@@ -102,6 +103,6 @@ public sealed class ProgressQueryService(IErudozaDbContext db, IClock clock, ISt
                 item.AlgorithmVersion, item.ReferenceScore, item.SequenceScore, item.FactualRecallScore, unit?.SourceUnit?.BookKey, unit?.SourceUnit?.Chapter, unit?.SourceUnit?.Verse)).ToList(),
             studentId,
             displayName,
-            recentAttempts);
+            recentAttempts, season.PbeEnabled);
     }
 }

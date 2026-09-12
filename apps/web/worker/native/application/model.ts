@@ -40,6 +40,7 @@ export interface Pack {
     chapters?: LibraryChapter[];
 }
 export interface Season {
+    pbeEnabled?: boolean;
     id: string;
     organizationId: string;
     name: string;
@@ -156,8 +157,9 @@ export async function atomic(ctx: RequestContext, action: string, statements: D1
 }[] = []): Promise<void> {
     const auditId = id(), query = `NOT EXISTS(SELECT 1 FROM json_each(?) g WHERE CASE WHEN json_extract(g.value,'$.kind') IN ('@active-user','@active-learner')
       THEN NOT EXISTS(SELECT 1 FROM Users u WHERE u.id=json_extract(g.value,'$.id') AND u.org_id=? AND u.active=1 AND ((u.kind='Student' AND u.role='Student') OR (json_extract(g.value,'$.kind')='@active-learner' AND u.kind='Adult' AND u.role IN ('Owner','Admin'))))
+      WHEN json_extract(g.value,'$.kind')='@active-admin' THEN NOT EXISTS(SELECT 1 FROM Users u WHERE u.id=json_extract(g.value,'$.id') AND u.org_id=? AND u.active=1 AND u.kind='Adult' AND u.role IN ('Owner','Admin'))
       ELSE NOT EXISTS(SELECT 1 FROM Records r WHERE r.kind=json_extract(g.value,'$.kind') AND r.id=json_extract(g.value,'$.id') AND (r.org_id=? OR ${builtInContentSql('r')}) AND r.revision=json_extract(g.value,'$.revision')) END)`;
-    const args = [JSON.stringify(guards), ctx.orgId, ctx.orgId];
+    const args = [JSON.stringify(guards), ctx.orgId, ctx.orgId, ctx.orgId];
     const audit = JSON.stringify({ id: auditId, actorId: ctx.actor.userId, action, createdAtUtc: new Date().toISOString() });
     const guard = ctx.env.DB.prepare(`INSERT INTO Records(kind,id,org_id,data) VALUES('audit',?,?,CASE WHEN ${query} THEN ? ELSE 'invalid-json' END)`).bind(auditId, ctx.orgId, ...args, audit);
     try {

@@ -75,6 +75,6 @@ public static class DtoMapper
             card.Sequence,
             total,
             answer,
-            payload.Choices is { Count: > 0 } ? payload.Choices : null);
+            payload.Choices is { Count: > 0 } ? payload.Choices : null, payload.GeneratorVersion, payload.EvidenceProfile);
     }
 }

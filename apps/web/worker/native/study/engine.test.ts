@@ -40,3 +40,36 @@ it('keeps BOM tokens solvable and trims .NET next-line whitespace',()=>{
  const nextLine=generateActivity('VerseBuilder',{...request,difficulty:5,sourceUnit:{...unit,canonicalText:'one two \u0085three four'}});
  expect(nextLine.payload.tokens.some(t=>t.text==='three')).toBe(true);
 });
+
+describe('versioned Memory study aids',()=>{
+ it('bounds a 47-word Builder to 12 deterministic chunks while preserving legacy cards',()=>{
+  const r={...request,difficulty:5,sourceUnit:{...unit,canonicalText:Array.from({length:47},(_,i)=>`word${i}`).join(' ')}};
+  const fresh=generateActivity('VerseBuilder',{...r,generatorVersion:'memory-v3',evidenceProfile:'memory-cued-v3'});
+  expect(fresh.payload.tokens).toHaveLength(12);
+  expect(fresh.payload).toMatchObject({generatorVersion:'memory-v3',evidenceProfile:'memory-cued-v3'});
+  expect(fresh).toEqual(generateActivity('VerseBuilder',{...r,generatorVersion:'memory-v3',evidenceProfile:'memory-cued-v3'}));
+  expect(generateActivity('VerseBuilder',r).payload.tokens).toHaveLength(47);
+ });
+ it('varies 70 percent of eligible gaps using saved seed and leaves original Advanced requirements intact',()=>{
+  const r={...request,difficulty:5,generatorVersion:'memory-v3',evidenceProfile:'memory-cued-v3' as const};
+  const first=generateActivity('MissingWords',r),later=generateActivity('MissingWords',{...r,sequence:2});
+  expect(first.answerKey.hiddenWords).toHaveLength(9);
+  expect(first.payload.tokens.filter(t=>t.hidden).map(t=>t.index)).not.toEqual(later.payload.tokens.filter(t=>t.hidden).map(t=>t.index));
+  expect(generateActivity('MissingWords',{...r,evidenceProfile:'memory-honor-v2'}).answerKey.hiddenWords).toHaveLength(11);
+  expect(generateActivity('MissingWords',{...r,sourceUnit:{...unit,canonicalText:'one'}}).answerKey.hiddenWords).toEqual(['one']);
+ });
+ it.each([1,3,5])('caps cued wording without reducing higher scores or promoting difficulty %i',difficulty=>{
+  const state={recognition:80,exactWording:39,reference:90,sequence:0,factualRecall:0,level:'Strong' as const};
+  let result=state as import('./engine').MasteryScores;
+  for(let i=0;i<10;i++) result=applyMastery(result,true,false,'MissingWords','ExactText',difficulty,'memory-cued-v3');
+  expect(result.exactWording).toBe(difficulty===1?40:70);
+  expect(applyMastery({...state,exactWording:95},true,false,'MissingWords','ExactText',difficulty,'memory-cued-v3').exactWording).toBe(95);
+  expect(applyMastery(state,true,false,'VerseBuilder','OrderedSequence',difficulty,'memory-cued-v3').exactWording).toBe(39);
+ });
+});
+it('matches the shared versioned 47-word seed fixture in both runtimes',()=>{
+ const r={...request,difficulty:5,generatorVersion:'memory-v3',evidenceProfile:'memory-cued-v3' as const,sourceUnit:{...unit,canonicalText:Array.from({length:47},(_,i)=>`word${i}`).join(' ')}};
+ expect(stableSeed(unit.id,request.sessionId,1)).toBe(-1964792940);
+ expect(generateActivity('VerseBuilder',r).payload.tokens.map(t=>Number(t.text.split(' ')[0].slice(4)))).toEqual([24,4,28,16,40,20,32,44,36,8,12,0]);
+ expect(generateActivity('MissingWords',r).payload.tokens.filter(t=>t.hidden).map(t=>t.index)).toEqual([1,4,5,6,7,8,9,10,11,13,16,17,19,20,21,22,23,27,28,29,30,32,33,34,37,38,39,40,41,42,44,45,46]);
+});

@@ -35,9 +35,13 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddErudozaInfrastructure(builder.Configuration);
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<Erudoza.Api.Practice.PracticeRuntime>();
+builder.Services.AddSingleton<Erudoza.Application.Study.IPbeSoloTimingAuthority, Erudoza.Application.Study.PbeSoloTimingAuthority>();
 builder.Services.AddScoped<Erudoza.Api.Practice.PracticeService>();
+builder.Services.AddScoped<Erudoza.Api.Practice.PbeDisputeService>();
+builder.Services.AddScoped<Erudoza.Application.Study.PbeSoloExpiryProcessor>();
 builder.Services.AddSignalR(options => options.MaximumReceiveMessageSize = 32 * 1024);
 builder.Services.AddHostedService<Erudoza.Api.Practice.PracticeTicker>();
+builder.Services.AddHostedService<Erudoza.Api.Practice.PbeSoloExpiryTicker>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 builder.Services.AddScoped<ICorrelationIdAccessor, HttpCorrelationIdAccessor>();
@@ -127,6 +131,7 @@ if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Dat
 if (app.Environment.IsDevelopment()) app.MapOpenApi().AllowAnonymous();
 app.MapErudozaApi();
 app.MapTrainingEndpoints();
+app.MapPbeCooperationEndpoints();
 app.MapProfileEndpoints();
 app.MapLifecycleEndpoints();
 app.MapScriptureReaderEndpoints();

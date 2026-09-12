@@ -24,7 +24,7 @@ public sealed class MissingWordsActivityProvider(IClock clock) : IActivityProvid
             request.SourceUnit.Id,
             request.Context.SessionId,
             request.Sequence);
-        var generated = MissingWordsGenerator.Create(request.SourceUnit, request.Difficulty, seed);
+        var generated = MissingWordsGenerator.Create(request.SourceUnit, request.Difficulty, seed, request.RuleProfile.GeneratorVersion, request.RuleProfile.EvidenceProfile);
 
         var card = new ChallengeCard
         {

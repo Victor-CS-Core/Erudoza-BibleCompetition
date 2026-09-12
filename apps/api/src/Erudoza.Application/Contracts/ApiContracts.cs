@@ -1,4 +1,5 @@
 using Erudoza.Domain;
+using Erudoza.Domain.Study;
 
 namespace Erudoza.Application.Contracts;
 
@@ -132,9 +133,10 @@ public sealed record AssignmentDto(
 
 public sealed record ActivationResultDto(bool Activated, IReadOnlyList<string> BlockingProblems);
 
-public sealed record StartSessionRequest(Guid SeasonId, StudyMode Mode, StartTrainingContext? Training = null);
+public sealed record StartSessionRequest(Guid SeasonId, [property: System.Text.Json.Serialization.JsonConverter(typeof(Erudoza.Domain.Practice.ExactEnumJsonConverter<StudyMode>))] StudyMode Mode = StudyMode.Practice, StartTrainingContext? Training = null, string? Format = null, PbeChapterRequest? Chapter = null, IReadOnlyList<Guid>? TargetIds = null, [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? MemoryChallenge = null, [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] PbeProgressScope? ProgressScope = null);
+public sealed record PbeChapterRequest(Guid ContentPackId, int Chapter);
 
-public sealed record SessionDto(Guid Id, Guid SeasonId, string Status, string Mode, int TargetCardCount, string Difficulty = "Standard");
+public sealed record SessionDto(Guid Id, Guid SeasonId, string Status, string Mode, int TargetCardCount, string Difficulty = "Standard", string? MemoryChallenge = null, string? GeneratorVersion = null, string? EvidenceProfile = null);
 
 public sealed record ResumeSessionDto(SessionDto Session, ChallengeCardDto? Card, AttemptResultDto? Attempt, SessionSummaryDto? Summary);
 
@@ -177,16 +179,17 @@ public sealed record ChallengeCardDto(
     int Sequence,
     int Total,
     string? DebugAnswer,
-    IReadOnlyList<string>? Choices = null);
+    IReadOnlyList<string>? Choices = null, string? GeneratorVersion = null, string? EvidenceProfile = null);
 
 public sealed record ChallengeTokenDto(string Display, bool Hidden, int Index);
 
 public sealed record SubmitAttemptRequest(
     string ClientSubmissionId,
     Guid ChallengeCardId,
-    string SubmittedAnswer,
+    string? SubmittedAnswer,
     int ResponseTimeMs,
-    bool HintsUsed);
+    bool HintsUsed,
+    IReadOnlyList<MissingWordAnswer>? MissingWordAnswers = null);
 
 public sealed record AttemptResultDto(
     Guid AttemptId,
@@ -198,7 +201,9 @@ public sealed record AttemptResultDto(
     string MasteryLevel,
     int ExactWordingScore,
     DateTimeOffset? ReviewDueAtUtc,
-    bool AlreadyProcessed);
+    bool AlreadyProcessed,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<MissingWordResult>? MissingWordResults = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] IReadOnlyList<MissingWordAnswer>? MissingWordAnswers = null);
 
 public sealed record ProgressDto(
     Guid SeasonId,
@@ -211,7 +216,7 @@ public sealed record ProgressDto(
     IReadOnlyList<MasteryRowDto> Mastery,
     Guid StudentUserId = default,
     string StudentDisplayName = "",
-    IReadOnlyList<AttemptRowDto>? RecentAttempts = null);
+    IReadOnlyList<AttemptRowDto>? RecentAttempts = null, bool PbeEnabled = false);
 
 public sealed record AttemptRowDto(
     Guid Id,

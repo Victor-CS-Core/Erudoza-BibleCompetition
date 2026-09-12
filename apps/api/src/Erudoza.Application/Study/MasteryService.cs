@@ -57,7 +57,7 @@ public sealed class MasteryService(IErudozaDbContext db, IClock clock) : IMaster
                     continue;
                 priorScores = ScaffoldMasteryRules.Apply(priorScores, evidence.IsCorrect, evidence.HintsUsed,
                     evidence.ActivityType, evidence.ChallengeCard?.AnswerMode ?? AnswerMode.SelectedChoice,
-                    evidence.ChallengeCard is { } historicalCard ? ActivitySerialization.ReadPayload(historicalCard.PayloadJson).Difficulty : 1);
+                    evidence.ChallengeCard is { } historicalCard ? ActivitySerialization.ReadPayload(historicalCard.PayloadJson).Difficulty : 1, evidence.ChallengeCard is { } previousCard ? ActivitySerialization.ReadPayload(previousCard.PayloadJson).EvidenceProfile : null);
             }
         }
         var updated = ScaffoldMasteryRules.Apply(priorScores,
@@ -65,7 +65,7 @@ public sealed class MasteryService(IErudozaDbContext db, IClock clock) : IMaster
             attempt.HintsUsed,
             attempt.ActivityType,
             attempt.AnswerMode,
-            attempt.Difficulty);
+            attempt.Difficulty, attempt.EvidenceProfile);
 
         state.RecognitionScore = updated.Recognition;
         state.ExactWordingScore = updated.ExactWording;

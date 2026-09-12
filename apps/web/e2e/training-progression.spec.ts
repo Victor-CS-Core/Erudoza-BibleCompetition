@@ -120,7 +120,7 @@ test('daily training persists full and partial recaps, unique day credit, Honors
   expect(honors.length).toBeGreaterThan(0);
   const mastery = await json<{ honors: { title: string }[] }>(page.request, '/api/v1/profile/me');
   expect(mastery.honors.length).toBeGreaterThan(0);
-  const detail = page.getByRole('button', { name: `View ${mastery.honors[0].title} requirements`, exact: true });
+  const detail = page.getByRole('button', { name: `View ${mastery.honors[0].title} requirements`, exact: true }).first();
   await detail.click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -165,4 +165,19 @@ test('daily training persists full and partial recaps, unique day credit, Honors
   expect(recovered.mission.scopeVersion).not.toBe(after.mission.scopeVersion);
   expect(await json<SessionRecap>(page.request, recapPath)).toEqual(frozen);
   await info.attach('training-contract-evidence', { body: JSON.stringify({ backend: native ? 'native' : 'dotnet', seasonId: season.id, frozen, week: after.week, preference, honors, journey }, null, 2), contentType: 'application/json' });
+});
+
+import { pbeDailyJourney } from './pbe-study-helpers';
+test('PBE daily questions preserve short, eight-verse replay and full-chapter sessions on both runtimes',async({page},info)=>{
+ test.setTimeout(240000);await pbeDailyJourney(page,info);
+});
+
+import { pbeSimulationJourney } from './pbe-study-helpers';
+test('PBE shortened Simulation presents twice and defers feedback on both runtimes',async({page},info)=>{
+  test.setTimeout(180000);await pbeSimulationJourney(page,info);
+});
+
+import { memoryStudyJourney } from './memory-study-helpers';
+test('Memory study aids preserve long-verse input, coach prerequisites and pending retry on either backend',async({page},info)=>{
+  await memoryStudyJourney(page,info);
 });

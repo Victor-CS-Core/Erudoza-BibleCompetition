@@ -89,6 +89,8 @@ export type Assignment = {
 };
 
 export type ChallengeCard = {
+  generatorVersion?: string | null;
+  evidenceProfile?: "memory-cued-v3" | "memory-honor-v2" | null;
   id: string;
   sessionId: string;
   activityType: string;
@@ -101,7 +103,20 @@ export type ChallengeCard = {
   choices?: string[] | null;
 };
 
+export interface MissingWordAnswer { index: number; text: string }
+export interface MissingWordResult { index: number; isCorrect: boolean; expected: string }
+export interface MissingWordAnswerPayload {
+  format: 'missing-words-slots/v1';
+  answers: MissingWordAnswer[];
+  results: MissingWordResult[];
+}
+export type SubmitAttemptBody = {
+  clientSubmissionId: string; challengeCardId: string; responseTimeMs: number; hintsUsed: boolean;
+} & ({ submittedAnswer: string; missingWordAnswers?: never } | { submittedAnswer?: never; missingWordAnswers: MissingWordAnswer[] });
+
 export type AttemptResult = {
+  missingWordAnswers?: MissingWordAnswer[];
+  missingWordResults?: MissingWordResult[];
   attemptId: string;
   isCorrect: boolean;
   evaluationResult: string;
@@ -115,6 +130,7 @@ export type AttemptResult = {
 };
 
 export type Progress = {
+  pbeEnabled?: boolean;
   seasonId: string;
   seasonName: string;
   seasonStatus: string;
@@ -151,6 +167,10 @@ export type Progress = {
 };
 
 export type Session = {
+  memoryChallenge?: "Warmup" | "Advanced" | null;
+  generatorVersion?: string | null;
+  evidenceProfile?: "memory-cued-v3" | "memory-honor-v2" | null;
+  format?: "Memory" | "Pbe";
   difficulty?: TrainingDifficulty;
   id: string;
   seasonId: string;
@@ -167,6 +187,9 @@ export type SessionSummary = {
   correct: number;
   targetCardCount: number;
   status: string;
+  earnedPoints?: number;
+  availablePoints?: number;
+  results?: { attemptId:string;earnedPoints:number;availablePoints:number;acceptedAtUtc:string }[];
 };
 
 export type CoverageStudent = {

@@ -24,4 +24,11 @@
     <ProjectReference Include="..\..\src\Erudoza.Application\Erudoza.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\..\web\worker\native\pbe\rubric-fixtures.json" Link="pbe\rubric-fixtures.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../../web/worker/native/pbe/replay-fixtures.json" Link="pbe/replay-fixtures.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

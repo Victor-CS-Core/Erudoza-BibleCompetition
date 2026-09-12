@@ -19,7 +19,7 @@ import { apiUrl } from "./url";
 import type { StartTrainingContext } from "./trainingTypes";
 
 export class ApiError extends Error {
-  constructor(message: string, public readonly status: number, public readonly retryAfterSeconds?: number) { super(message); }
+  constructor(message: string, public readonly status: number, public readonly retryAfterSeconds?: number, public readonly code?: string) { super(message); }
 }
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -34,15 +34,17 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     let detail = response.statusText;
+    let code: string | undefined;
     try {
-      const problem = (await response.json()) as { detail?: string; title?: string };
-      detail = problem.detail ?? problem.title ?? detail;
+      const problem = (await response.json()) as { detail?: string; title?: string; message?: string; code?: unknown };
+      detail = problem.detail ?? problem.title ?? problem.message ?? detail;
+      code = typeof problem.code === 'string' ? problem.code : /^PBE_[A-Z0-9_]+$/.test(detail) ? detail : undefined;
     } catch {
       // Problem Details may be absent for 401/403 redirects.
     }
     const retryHeader = response.headers.get("Retry-After");
     const retrySeconds = retryHeader && /^\d+$/.test(retryHeader) ? Number(retryHeader) : undefined;
-    throw new ApiError(detail, response.status, retrySeconds);
+    throw new ApiError(detail, response.status, retrySeconds, code);
   }
 
   if (response.status === 204) {
@@ -115,13 +117,18 @@ export const api = {
   removeMyAssignment: (orgId: string, seasonId: string, assignmentId: string) => request<void>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments/${assignmentId}`, { method: "DELETE" }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
-  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext) =>
-    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, ...(training ? { training } : {}) }) }),
+  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext, format: "Memory" | "Pbe" = "Memory", memoryChallenge?: "Warmup" | "Advanced", selection?: import("./pbeTypes").PbeSessionSelection) =>
+    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, format, ...(memoryChallenge ? {memoryChallenge} : {}), ...(training ? { training } : {}), ...selection }) }),
+  nextPbeCard: (sessionId:string) => request<import('./pbeTypes').PbeSessionCard>(`/api/v1/study/sessions/${sessionId}/next`),
+  submitPbeAttempt: (sessionId:string, body:import('./pbeTypes').PbeSubmission) => request<import('./pbeTypes').PbeAttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`,{method:'POST',body:JSON.stringify(body)}),
+  pbeTimed: (sessionId:string, body:unknown) => request<import('./pbeTypes').PbePresentationState|import('./pbeTypes').PbeTimedReceipt>(`/api/v1/study/sessions/${sessionId}/timed`,{method:'POST',body:JSON.stringify(body)}),
+  pbeTimedStatus: (sessionId:string, questionId?:string) => request<import('./pbeTypes').PbePresentationState|import('./pbeTypes').PbeTimedReceipt|import('./pbeTypes').PbeInterruptionStatus>(`/api/v1/study/sessions/${sessionId}/timed${questionId?`?questionId=${encodeURIComponent(questionId)}`:''}`),
+  pbeSource: (sessionId:string, challengeCardId:string) => request<{assisted:true;sources:{citation:string;canonicalText:string}[]}>(`/api/v1/study/sessions/${sessionId}/source`,{method:'POST',body:JSON.stringify({challengeCardId})}),
   resumeSession: (sessionId: string) => request<import("./types").ResumedSession>(`/api/v1/study/sessions/${sessionId}`),
   nextCard: (sessionId: string) => request<ChallengeCard>(`/api/v1/study/sessions/${sessionId}/next`),
   submitAttempt: (
     sessionId: string,
-    body: { clientSubmissionId: string; challengeCardId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean },
+    body: import('./types').SubmitAttemptBody,
   ) => request<AttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`, { method: "POST", body: JSON.stringify(body) }),
   completeSession: (sessionId: string) =>
     request<SessionSummary>(`/api/v1/study/sessions/${sessionId}/complete`, { method: "POST" }),

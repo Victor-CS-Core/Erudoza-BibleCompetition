@@ -1,0 +1,33 @@
+{
+  "targets": [
+    { "id": "00000000-0000-0000-0000-000000000011", "sourceUnitIds": ["00000000-0000-0000-0000-000000000021"], "skill": "FactualRecall", "label": "First label" },
+    { "id": "00000000-0000-0000-0000-000000000012", "sourceUnitIds": ["00000000-0000-0000-0000-000000000021"], "skill": "FactualRecall", "label": "Second label" },
+    { "id": "00000000-0000-0000-0000-000000000013", "sourceUnitIds": ["00000000-0000-0000-0000-000000000021"], "skill": "ExactWords", "label": "Exact phrase" }
+  ],
+  "cases": [
+    {
+      "name": "unordered answers receive unequal points once",
+      "question": { "schemaVersion": 2, "id": "00000000-0000-0000-0000-000000000031", "version": 1, "contentPackId": "00000000-0000-0000-0000-000000000041", "sourceUnitId": "00000000-0000-0000-0000-000000000021", "sourceUnitIds": ["00000000-0000-0000-0000-000000000021"], "sourceKind": "Scripture", "reference": "Fixture 1:1", "evidence": "Alpha and Beta", "kind": "List", "prompt": "Name the labels.", "ordered": false, "parts": [{ "targetId": "00000000-0000-0000-0000-000000000011", "acceptedAnswers": ["Alpha", "Shared"], "points": 3 }, { "targetId": "00000000-0000-0000-0000-000000000012", "acceptedAnswers": ["Beta", "Shared"], "points": 1 }] },
+      "answers": ["shared", "Alpha"],
+      "expected": { "earnedPoints": 4, "availablePoints": 4, "parts": [{ "index": 0, "targetId": "00000000-0000-0000-0000-000000000011", "answerIndex": 1, "earnedPoints": 3, "availablePoints": 3 }, { "index": 1, "targetId": "00000000-0000-0000-0000-000000000012", "answerIndex": 0, "earnedPoints": 1, "availablePoints": 1 }] }
+    },
+    {
+      "name": "duplicate answer cannot satisfy two targets",
+      "question": { "schemaVersion": 2, "id": "00000000-0000-0000-0000-000000000032", "version": 1, "contentPackId": "00000000-0000-0000-0000-000000000041", "sourceUnitId": "00000000-0000-0000-0000-000000000021", "sourceUnitIds": ["00000000-0000-0000-0000-000000000021"], "sourceKind": "Scripture", "reference": "Fixture 1:1", "evidence": "Alpha", "kind": "List", "prompt": "Name both labels.", "ordered": false, "parts": [{ "targetId": "00000000-0000-0000-0000-000000000011", "acceptedAnswers": ["Alpha"], "points": 2 }, { "targetId": "00000000-0000-0000-0000-000000000012", "acceptedAnswers": ["Alpha"], "points": 1 }] },
+      "answers": ["Alpha", "wrong"],
+      "expected": { "earnedPoints": 2, "availablePoints": 3, "parts": [{ "index": 0, "targetId": "00000000-0000-0000-0000-000000000011", "answerIndex": 0, "earnedPoints": 2, "availablePoints": 2 }, { "index": 1, "targetId": "00000000-0000-0000-0000-000000000012", "answerIndex": null, "earnedPoints": 0, "availablePoints": 1 }] }
+    },
+    {
+      "name": "exact words preserve part order",
+      "question": { "schemaVersion": 2, "id": "00000000-0000-0000-0000-000000000033", "version": 1, "contentPackId": "00000000-0000-0000-0000-000000000041", "sourceUnitId": "00000000-0000-0000-0000-000000000021", "sourceUnitIds": ["00000000-0000-0000-0000-000000000021"], "sourceKind": "Scripture", "reference": "Fixture 1:1", "evidence": "In the beginning / was the Word", "kind": "ExactWords", "prompt": "Recite the phrase.", "ordered": true, "parts": [{ "targetId": "00000000-0000-0000-0000-000000000013", "acceptedAnswers": ["In the beginning"], "points": 2 }, { "targetId": "00000000-0000-0000-0000-000000000013", "acceptedAnswers": ["was the Word"], "points": 2 }] },
+      "answers": ["was the Word", "In the beginning"],
+      "expected": { "earnedPoints": 0, "availablePoints": 4, "parts": [{ "index": 0, "targetId": "00000000-0000-0000-0000-000000000013", "answerIndex": null, "earnedPoints": 0, "availablePoints": 2 }, { "index": 1, "targetId": "00000000-0000-0000-0000-000000000013", "answerIndex": null, "earnedPoints": 0, "availablePoints": 2 }] }
+    },
+    {
+      "name": "unlisted spelling receives no fuzzy credit",
+      "question": { "schemaVersion": 2, "id": "00000000-0000-0000-0000-000000000034", "version": 1, "contentPackId": "00000000-0000-0000-0000-000000000041", "sourceUnitId": "00000000-0000-0000-0000-000000000021", "sourceUnitIds": ["00000000-0000-0000-0000-000000000021"], "sourceKind": "Commentary", "reference": "Fixture introduction", "evidence": "Nebuchadnezzar", "kind": "ShortAnswer", "prompt": "Name the king.", "ordered": false, "parts": [{ "targetId": "00000000-0000-0000-0000-000000000011", "acceptedAnswers": ["Nebuchadnezzar"], "points": 1 }] },
+      "answers": ["Nebuchadnezar"],
+      "expected": { "earnedPoints": 0, "availablePoints": 1, "parts": [{ "index": 0, "targetId": "00000000-0000-0000-0000-000000000011", "answerIndex": null, "earnedPoints": 0, "availablePoints": 1 }] }
+    }
+  ]
+}

@@ -151,3 +151,82 @@ it('enforces review eligibility, simulation hints and revoked active scope',asyn
   expect((await request(`${base}/next`)).status).toBe(400);
   expect((await request('/api/v1/study/sessions','POST',{seasonId:season,mode:'Practice'})).status).toBe(400);
 });
+it('admits versioned Memory only for enabled seasons and preserves saved generator/grading on resume',async()=>{
+ const endpoint='/api/v1/study/sessions';
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.isActive',json('true')),revision=revision+1 WHERE kind='pack' AND id=?").bind(pack).run();
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.difficulty','Foundation'),revision=revision+1 WHERE kind='membership'").run();
+ expect((await request(endpoint,'POST',{seasonId:season,memoryChallenge:'unsupported'})).status).toBe(400);
+ expect((await request(endpoint,'POST',{seasonId:season,memoryChallenge:'Warmup'})).status).toBe(400);
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.pbeEnabled',json('true')),revision=revision+1 WHERE kind='season' AND id=?").bind(season).run();
+ expect((await request(endpoint,'POST',{seasonId:season,memoryChallenge:'Advanced'})).status).toBe(400);
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.difficulty','Advanced'),revision=revision+1 WHERE kind='membership'").run();
+ const started=await (await request(endpoint,'POST',{seasonId:season,format:'Memory',training:{clientStartId:'b3-purpose',timeZone:'UTC'}})).json() as Session;
+ expect(started).toMatchObject({memoryChallenge:'Warmup',generatorVersion:'memory-v3',evidenceProfile:'memory-cued-v3',difficulty:'Advanced'});
+ const base=`${endpoint}/${started.id}`;
+ const card=await (await request(`${base}/next`)).json() as {id:string;evidenceProfile:string};
+ expect(card.evidenceProfile).toBe('memory-cued-v3');
+ const saved=JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(started.id).first<{data:string}>())!.data) as Session;
+ const generated=saved.cards[0];
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.exactWording',69,'$.algorithmVersion','v2-skill-evidence'),revision=revision+1 WHERE kind='mastery' AND json_extract(data,'$.knowledgeUnitId')=?").bind(generated.knowledgeUnitId).run();
+ const accepted=await (await request(`${base}/attempts`,'POST',{clientSubmissionId:'b3-answer',challengeCardId:card.id,submittedAnswer:generated.answerKey.canonicalAnswer,responseTimeMs:20,hintsUsed:false})).json() as {exactWordingScore:number};
+ expect(accepted.exactWordingScore).toBeLessThanOrEqual(70);
+ expect((await request(endpoint,'POST',{seasonId:season,format:'Memory',memoryChallenge:'Advanced',training:{clientStartId:'b3-purpose',timeZone:'UTC'}})).status).toBe(400);
+ const advanced=await (await request(endpoint,'POST',{seasonId:season,format:'Memory',memoryChallenge:'Advanced'})).json() as Session;
+ expect(advanced.evidenceProfile).toBe('memory-honor-v2');
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.pbeEnabled',json('false')),revision=revision+1 WHERE kind='season' AND id=?").bind(season).run();
+ expect(await (await request(base)).json()).toMatchObject({session:{memoryChallenge:'Warmup'},card:{id:card.id}});
+ expect(await (await request(`${base}/next`)).json()).toMatchObject({generatorVersion:'memory-v3',evidenceProfile:'memory-cued-v3'});
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.evidenceProfile','memory-honor-v2'),revision=revision+1 WHERE kind='session' AND id=?").bind(started.id).run();
+ expect((await request(base)).status).toBe(400);
+ const legacy=await (await request(endpoint,'POST',{seasonId:season})).json() as Session;
+ expect(legacy.generatorVersion).toBeUndefined();
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.pbeEnabled',json('true')),revision=revision+1 WHERE kind='season' AND id=?").bind(season).run();
+ expect((await (await request(`${endpoint}/${legacy.id}/next`)).json() as {generatorVersion?:string}).generatorVersion).toBeUndefined();
+ await app.db.prepare("UPDATE Records SET data=json_remove(data,'$.pbeEnabled'),revision=revision+1 WHERE kind='season' AND id=?").bind(season).run();
+});
+it('rejects inconsistent saved Memory card snapshots before attempt, mastery, or Honor writes',async()=>{
+ const endpoint='/api/v1/study/sessions';
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.pbeEnabled',json('true')),revision=revision+1 WHERE kind='season' AND id=?").bind(season).run();
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.difficulty','Advanced'),revision=revision+1 WHERE kind='membership'").run();
+ const count=async(kind:string)=>(await app.db.prepare('SELECT count(*) AS count FROM Records WHERE kind=? AND season_id=?').bind(kind,season).first<{count:number}>())!.count;
+ const invalid=[
+  {purpose:'Warmup',generatorVersion:undefined,evidenceProfile:'memory-cued-v3'},
+  {purpose:'Warmup',generatorVersion:'unknown',evidenceProfile:'memory-cued-v3'},
+  {purpose:'Warmup',generatorVersion:'memory-v3',evidenceProfile:undefined},
+  {purpose:'Warmup',generatorVersion:'memory-v3',evidenceProfile:'unknown'},
+  {purpose:'Warmup',generatorVersion:'memory-v3',evidenceProfile:'memory-honor-v2'},
+  {purpose:'Advanced',generatorVersion:'memory-v3',evidenceProfile:'memory-cued-v3'},
+ ] as const;
+ for(const [index,variant] of invalid.entries()){
+  const started=await (await request(endpoint,'POST',{seasonId:season,format:'Memory',memoryChallenge:variant.purpose})).json() as Session;
+  const shown=await (await request(`${endpoint}/${started.id}/next`)).json() as {id:string};
+  const row=await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(started.id).first<{data:string}>();
+  const saved=JSON.parse(row!.data) as Session,card=saved.cards[0];
+  if(variant.generatorVersion===undefined)delete card.payload.generatorVersion;else card.payload.generatorVersion=variant.generatorVersion;
+  if(variant.evidenceProfile===undefined)delete card.payload.evidenceProfile;else card.payload.evidenceProfile=variant.evidenceProfile as typeof card.payload.evidenceProfile;
+  await app.db.prepare("UPDATE Records SET data=?,revision=revision+1 WHERE kind='session' AND id=?").bind(JSON.stringify(saved),started.id).run();
+  const before=await Promise.all(['attempt','mastery','mastery-proof','mastery-honor'].map(count));
+  expect((await request(`${endpoint}/${started.id}/attempts`,'POST',{clientSubmissionId:`invalid-snapshot-${index}`,challengeCardId:shown.id,submittedAnswer:card.answerKey.canonicalAnswer,responseTimeMs:20,hintsUsed:false})).status).toBe(400);
+  expect(await Promise.all(['attempt','mastery','mastery-proof','mastery-honor'].map(count))).toEqual(before);
+ }
+ for(const purpose of ['Warmup','Advanced'] as const){
+  const started=await (await request(endpoint,'POST',{seasonId:season,format:'Memory',memoryChallenge:purpose})).json() as Session;
+  const shown=await (await request(`${endpoint}/${started.id}/next`)).json() as {id:string};
+  const saved=JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(started.id).first<{data:string}>())!.data) as Session;
+  expect((await request(`${endpoint}/${started.id}/attempts`,'POST',{clientSubmissionId:`valid-${purpose}`,challengeCardId:shown.id,submittedAnswer:saved.cards[0].answerKey.canonicalAnswer,responseTimeMs:20,hintsUsed:false})).status).toBe(200);
+ }
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.pbeEnabled',json('false')),revision=revision+1 WHERE kind='season' AND id=?").bind(season).run();
+ const legacy=await (await request(endpoint,'POST',{seasonId:season,format:'Memory'})).json() as Session;
+ const shown=await (await request(`${endpoint}/${legacy.id}/next`)).json() as {id:string};
+ const saved=JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(legacy.id).first<{data:string}>())!.data) as Session;
+ expect((await request(`${endpoint}/${legacy.id}/attempts`,'POST',{clientSubmissionId:'valid-legacy',challengeCardId:shown.id,submittedAnswer:saved.cards[0].answerKey.canonicalAnswer,responseTimeMs:20,hintsUsed:false})).status).toBe(200);
+ const inconsistent=await (await request(endpoint,'POST',{seasonId:season,format:'Memory'})).json() as Session;
+ const inconsistentShown=await (await request(`${endpoint}/${inconsistent.id}/next`)).json() as {id:string};
+ const inconsistentRow=await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(inconsistent.id).first<{data:string}>();
+ const inconsistentSaved=JSON.parse(inconsistentRow!.data) as Session,inconsistentCard=inconsistentSaved.cards[0];
+ inconsistentCard.payload.generatorVersion='memory-v3';inconsistentCard.payload.evidenceProfile='memory-cued-v3';
+ await app.db.prepare("UPDATE Records SET data=?,revision=revision+1 WHERE kind='session' AND id=?").bind(JSON.stringify(inconsistentSaved),inconsistent.id).run();
+ const before=await Promise.all(['attempt','mastery','mastery-proof','mastery-honor'].map(count));
+ expect((await request(`${endpoint}/${inconsistent.id}/attempts`,'POST',{clientSubmissionId:'invalid-legacy-versioned-card',challengeCardId:inconsistentShown.id,submittedAnswer:inconsistentCard.answerKey.canonicalAnswer,responseTimeMs:20,hintsUsed:false})).status).toBe(400);
+ expect(await Promise.all(['attempt','mastery','mastery-proof','mastery-honor'].map(count))).toEqual(before);
+});

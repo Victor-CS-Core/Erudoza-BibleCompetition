@@ -1,4 +1,5 @@
 import { handleProfile } from './mastery/profile';
+import { disputeRoutes } from './pbe/disputes';
 import { handleTraining } from './training/routes';
 import type { Env } from "./types";
 import { HttpError, json } from "./types";
@@ -13,6 +14,7 @@ import { handleCoachManagement } from "./onboarding/invitations";
 import { enforcePerimeter } from "./perimeter";
 export { PracticeRoom } from "./practice/room";
 export { PracticeReports } from "./practice/reports";
+export { PbeSoloRound } from "./pbe/solo-round";
 export { PasswordCrypto } from "./password-crypto";
 export default {
   async fetch(request:Request,env:Env):Promise<Response> {
@@ -21,6 +23,11 @@ export default {
       if(!url.pathname.startsWith("/api/")) return env.ASSETS ? await env.ASSETS.fetch(request) as unknown as Response : new Response("Not found",{status:404});
       await enforcePerimeter(request,env);
       checkOrigin(request,env);
+      const solo=url.pathname.match(/^\/api\/v1\/study\/sessions\/([a-f0-9-]{36})\/timed$/i);
+      if(solo&&["GET","POST"].includes(request.method)){
+        if(!env.PBE_SOLO)throw new HttpError(503,"Timed rehearsal storage is not configured.");
+        return await env.PBE_SOLO.getByName(solo[1].toLowerCase()).fetch(request as never) as unknown as Response;
+      }
       // Forward body untouched. The authoritative room captures ingress before authentication.
       const live=url.pathname.match(/^\/api\/v1\/organizations\/([a-f0-9-]{36})\/practice\/rooms\/([a-f0-9-]{36})(?:\/(?:commands|socket))?$/i);
       if(live&&["GET","POST"].includes(request.method)){
@@ -33,6 +40,7 @@ export default {
       const onboarding=await handleOnboarding(request,env); if(onboarding) return onboarding;
       const actor=await authenticate(request,env);
       if(url.pathname==="/api/v1/me"&&request.method==="GET") return json(me(actor));
+      if(url.pathname.startsWith('/api/v1/pbe/disputes')){const dispute=await disputeRoutes({request,env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(env.DB)});if(dispute)return dispute;}
       if(url.pathname.startsWith("/api/v1/profile/")){const profile=await handleProfile({request,env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(env.DB)});if(profile)return profile;}
       if(url.pathname.startsWith("/api/v1/study/")||url.pathname.startsWith("/api/v1/progress/")){
         const training=await handleTraining({request,env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(env.DB)});if(training)return training;

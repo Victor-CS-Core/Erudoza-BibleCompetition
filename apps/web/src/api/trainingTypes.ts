@@ -1,5 +1,5 @@
 export type WeeklyTarget = 3 | 4 | 5;
-export type TrainingStepKind = "Review" | "Practice";
+export type TrainingStepKind = "Review" | "Practice" | "Simulation";
 export type MissionStatus = "Suggested" | "Active" | "Complete" | "Invalidated" | "Unavailable";
 export type BadgeKey = "exact-recall" | "reference-ready" | "chapter-strong" | "full-coverage" | "steady-study" | "review-complete";
 export type SkillScores = {
@@ -47,6 +47,7 @@ export type TrainingWeek = {
     }[];
 };
 export type TrainingToday = {
+    format?: "Memory" | "Pbe";
     seasonId: string | null;
     seasonName: string;
     seasonStatus: string;
@@ -69,7 +70,7 @@ export type TrainingToday = {
     honors: BadgeProgress[];
 };
 export type SessionRecap = {
-    version: "training-v1" | "legacy-counts";
+    version: "training-v1" | "legacy-counts" | "pbe-daily-v2";
     sessionId: string;
     seasonId: string;
     mode: string;
@@ -96,6 +97,12 @@ export type SessionRecap = {
             after: SkillScores;
         }[];
     }[];
+    interrupted?: boolean;
+    results?: { attemptId:string;questionId?:string;earnedPoints:number;originalEarnedPoints?:number;availablePoints:number;acceptedAtUtc:string;dispute?:{id:string;status:"Pending"|"Resolved";revision:number;questionId:string;questionVersion:number;pointsByPart:number[]|null}|null }[] | null;
+    provisional?: boolean;
+    pendingCount?: number;
+    finalizedEarnedPoints?: number;
+    finalizedAvailablePoints?: number;
 };
 export type StartTrainingContext = {
     clientStartId: string;
@@ -125,3 +132,7 @@ export type PassageJourneyPage = {
         }[];
     }[];
 };
+
+export type {ChapterCounts,ProgressAction,StampSummary,ProgressRow,ChapterWork,ChapterPage,ContinueChaptersRequest,ContinueChaptersResponse} from './pbeTypes';
+
+export type {CountRange,MaterialSummary,OwnMaterialSummary,OwnSummary,CooperationWork,CooperationSnapshot,ContinueCooperationRequest,ContinueCooperationResponse,CooperationStudentSummary,CooperationStudentPage,PbeProgressScope,PbeSessionSelection} from './pbeTypes';

@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { login, logout } from "./helpers";
+import { answerCard, type StoredSource } from "./study-source-helpers";
+import type { ChallengeCard } from "../src/api/types";
 test("coach activates a season and student submits a correct real activity with debug answers disabled", async ({ page }) => {
   await login(page);
   const me = await (await page.request.get("/api/v1/me")).json();
@@ -9,8 +11,8 @@ test("coach activates a season and student submits a correct real activity with 
   expect(student).toBeTruthy();
   const library = await (await page.request.get(`${org}/library`)).json();
   const daniel = library.books.find((book: { bookKey: string }) => book.bookKey === "DAN");
-  const units = await (await page.request.get(`${org}/content-packs/${daniel.contentPackId}/source-units`)).json();
-  const source: string = units.find((unit: { chapter: number; verse: number }) => unit.chapter === 1 && unit.verse === 1).canonicalText;
+  const units = await (await page.request.get(`${org}/content-packs/${daniel.contentPackId}/source-units`)).json() as StoredSource[];
+  const source: string = units.find((unit: { chapter: number; verse: number }) => unit.chapter === 1 && unit.verse === 1)!.canonicalText;
   await page.goto("/admin/seasons/new");
   await page.getByTestId("season-name").fill(`E2E study ${Date.now()}`);
   await page.getByTestId("save-season").click();
@@ -35,31 +37,13 @@ test("coach activates a season and student submits a correct real activity with 
   await page.goto(`/student?seasonId=${seasonId}`);
   const cardResponse = page.waitForResponse(response => /\/api\/v1\/study\/sessions\/[^/]+\/next$/.test(response.url()));
   await page.getByTestId("start-todays-deck").click();
-  expect((await (await cardResponse).json()).debugAnswer).toBeFalsy();
+  const card = await (await cardResponse).json() as ChallengeCard;
+  expect(card.debugAnswer).toBeFalsy();
+  expect(card.tokens.filter(token => token.hidden).every(token => token.display === "____")).toBe(true);
   await expect(page.getByTestId("card-progress")).toHaveText(/1 \/ \d+/);
   await expect(page.getByTestId("submit-answer")).toBeVisible();
   await expect(page.getByTestId("debug-answer")).toHaveCount(0);
-  const activity = await page.getByTestId("academy-activity-name").innerText();
-  const prompt = await page.getByTestId("challenge-prompt").innerText();
-  if (/Missing Words/i.test(activity)) {
-    const words = source.split(" ");
-    const displayed = prompt.split(/\s+/);
-    expect(displayed).toHaveLength(words.length);
-    await page.getByTestId("missing-words-answer").fill(displayed.flatMap((word, i) => word === "____" ? [words[i]] : []).join(" "));
-  } else if (/Verse Builder/i.test(activity)) {
-    const phrases = page.locator(".student-builder-phrase");
-    const target = (await phrases.allTextContents()).sort((a, b) => source.indexOf(a) - source.indexOf(b));
-    for (let i = 0; i < target.length; i++) {
-      let index = (await phrases.allTextContents()).indexOf(target[i]);
-      while (index > i) { await page.getByRole("button", { name: `Move phrase ${index + 1} up`, exact: true }).click(); index--; }
-    }
-  } else if (/Reference Match/i.test(activity)) {
-    const radio = page.getByRole("radio", { name: "Daniel 1:1", exact: true });
-    if (await radio.count()) await radio.check();
-    else await page.getByTestId("missing-words-answer").fill("Daniel 1:1");
-  } else if (/True.*False/i.test(activity)) {
-    await page.getByTestId(prompt.endsWith(source) ? "true-false-true" : "true-false-false").click();
-  } else throw new Error(`Unexpected activity for a single verse: ${activity}`);
+  await answerCard(page, card, units);
   await page.getByTestId("submit-answer").click();
   await expect(page.getByTestId("challenge-feedback").getByRole("heading", { name: "Well remembered" })).toBeVisible();
   await expect(page.getByTestId("feedback-source")).toHaveText(source);

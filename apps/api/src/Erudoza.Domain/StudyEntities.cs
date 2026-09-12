@@ -56,6 +56,7 @@ public sealed class Attempt
     public string? AfterSkillsJson { get; set; }
     public bool IsLegacyDuplicate { get; set; }
     public string? ResultJson { get; set; }
+    public string? AnswerPayloadJson { get; set; }
     public Guid Id { get; set; }
     public Guid OrganizationId { get; set; }
     public Guid SessionId { get; set; }

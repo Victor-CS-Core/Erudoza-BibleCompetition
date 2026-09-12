@@ -4,13 +4,26 @@ using Erudoza.Domain.Practice;
 namespace Erudoza.Api.Practice;
 
 public sealed record PracticeActor(Guid Id, Guid OrganizationId, string Name, bool Admin, string? CredentialVersion = null);
-public sealed record CreatePracticeRoom(Guid SeasonId, int TeamSize, int QuestionCount, bool Coached, string? BookKey);
+public sealed record CreatePracticeRoom(Guid SeasonId, int TeamSize, int QuestionCount, bool Coached = false, string? BookKey = null, string? Format = null, int? TeamCount = null);
 public sealed record PracticeCommand(Guid CommandId, long Revision, string Action, Guid? TargetUserId = null,
     int? Team = null, string? Text = null, string[]? Answers = null, Guid? ScheduleId = null,
-    Guid? QuestionId = null, int? Points = null, Guid? OtherUserId = null);
+    Guid? QuestionId = null, int? Points = null, Guid? OtherUserId = null, string? Delivery = null);
 public sealed record ImportPracticeQuestions(Guid SeasonId, List<PracticeQuestion> Questions);
 public sealed class PracticeRoom
 {
+    public string? Format { get; set; }
+    public int? TeamCount { get; set; }
+    public string? SelectionVersion { get; set; }
+    public Guid SelectionSeed { get; set; }
+    public PbeCoachReading? CoachReading { get; set; }
+    public List<Guid> CoachReadyScribeIds { get; set; } = [];
+    public Dictionary<Guid, string> PresentationDelivery { get; set; } = [];
+    public Dictionary<int, long> DraftReceivedAt { get; set; } = [];
+    public Dictionary<Guid, string> SourceProofs { get; set; } = [];
+    public string? InterruptionReason { get; set; }
+    public List<PbeRoomReplacement> Replacements { get; set; } = [];
+    public Dictionary<Guid, PbeRoomPresentation> Presentations { get; set; } = [];
+    public List<PbeRoomService> Services { get; set; } = [];
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid SeasonId { get; set; }
     public Guid OwnerId { get; set; }
@@ -67,6 +80,10 @@ public sealed class PracticeInvitation
 }
 public sealed class PracticeSubmission
 {
+    [System.Text.Json.Serialization.JsonIgnore] public Erudoza.Application.Study.PbeResultReview? Dispute { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore] public int? OriginalAccuracyHundredths { get; set; }
+    public Guid AttemptId { get; set; }
+    public DateTimeOffset? ResponseLockedAtUtc { get; set; }
     public Guid QuestionId { get; set; }
     public int Team { get; set; }
     public Guid ScribeId { get; set; }
@@ -89,3 +106,10 @@ public static class PracticeJson
     public static T Read<T>(string value) => JsonSerializer.Deserialize<T>(value, Options)!;
     public static string Write<T>(T value) => JsonSerializer.Serialize(value, Options);
 }
+
+public sealed record PbeRoomService(Guid Id, Guid QuestionId, string QuestionKind, Guid[] TargetIds, Guid[] MemberIds, long AtMs);
+
+public sealed record PbeRoomPresentation(Guid ScheduleId, DateTimeOffset ResponseStartsAtUtc, DateTimeOffset ResponseEndsAtUtc, Dictionary<Guid, string> Delivery, PbeCoachReading? CoachReading = null);
+public sealed record PbeCoachReading(Guid QuestionId, Guid CoachId, long CompletedAtMs);
+
+public sealed record PbeRoomReplacement(PracticeQuestion Original, Guid ReplacementId, DateTimeOffset AtUtc, string Reason);

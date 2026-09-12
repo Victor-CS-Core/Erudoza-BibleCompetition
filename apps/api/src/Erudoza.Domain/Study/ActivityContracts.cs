@@ -7,7 +7,9 @@ public sealed record ActivityPayload(
     string Prompt,
     IReadOnlyList<MissingWordsToken> Tokens,
     int Difficulty,
-    IReadOnlyList<string>? Choices = null);
+    IReadOnlyList<string>? Choices = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? GeneratorVersion = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? EvidenceProfile = null);
 
 public sealed record ActivityAnswerKey(string CanonicalAnswer, IReadOnlyList<string>? HiddenWords = null);
 

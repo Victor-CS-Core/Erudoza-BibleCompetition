@@ -40,6 +40,18 @@ public static class DependencyInjection
         services.AddSingleton<IBlobStorage, DisabledBlobStorage>();
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<DevelopmentSeeder>();
+        services.AddScoped<IPbeQuestionBank, PbeQuestionBank>();
+        services.AddScoped<PbeSourceResolver>();
+        services.AddScoped<PbeIntroductionService>();
+        services.AddScoped<PbeProgressService>();
+        services.AddScoped<PbeSessionService>();
+        services.AddScoped<PbeEvidenceReplayService>();
+        services.AddScoped<PbeChapterProgressService>();
+        services.AddScoped<PbeCooperationService>();
+        services.AddScoped<IPbeCooperationReader, PbeCooperationReader>();
+        services.AddScoped<IPbeChapterJsonReader, PbeChapterJsonReader>();
+        services.AddScoped<IPbeChapterProjectionReader, PbeChapterProjectionReader>();
+        services.AddScoped<PbeEffortService>();
         services.AddScoped<ICompetitionScopeResolver, CompetitionScopeResolver>();
         services.AddScoped<IStudentStudyScopeService, StudentStudyScopeService>();
         services.AddScoped<ContentImportService>();

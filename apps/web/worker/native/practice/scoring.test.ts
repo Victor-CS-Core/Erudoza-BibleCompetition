@@ -22,3 +22,6 @@ it("matches overlapping answer variants once and preserves required order",()=>{
   expect(evaluate({...question,ordered:true},["A","B"])).toBe(2);
   expect(()=>validateQuestion({...question,kind:"MultipleChoice"})).toThrow();
 });
+it("keeps legacy practice scoring independent of the new 8-point rubric cap",()=>{
+ expect(evaluate({...question,parts:[{acceptedAnswers:["A"],points:9}]},["A"])).toBe(9);
+});

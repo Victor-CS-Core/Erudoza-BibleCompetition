@@ -101,6 +101,24 @@
 .training-honor-detail > .ds-honor-art { justify-self: center; }
 .training-passage-journey { display: grid; gap: 20px; }
 .training-passage-list > li { padding: 20px 0; border-bottom: 1px solid var(--er-border); }
+.pbe-chapter-journey > .training-panel-title { align-items: end; }
+.pbe-chapter-card { display: grid; gap: 16px; }
+.pbe-chapter-card h3, .pbe-chapter-card p, .pbe-season-coverage h2, .pbe-season-coverage h3, .pbe-season-coverage p { margin: 0; }
+.pbe-chapter-card > .training-panel-title > div, .pbe-season-coverage > .training-panel-title > div { display: grid; gap: 4px; }
+.pbe-chapter-counts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; }
+.pbe-chapter-counts > div { display: grid; gap: 4px; min-width: 0; }
+.pbe-chapter-counts dt { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.pbe-chapter-counts dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+.pbe-chapter-stamp { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding-top: 16px; border-top: 1px solid var(--er-border); }
+.pbe-chapter-stamp > span, .pbe-chapter-stamp > small { grid-column: 2 / -1; color: var(--er-muted-ink); }
+.pbe-group-section { display: grid; gap: 16px; padding-top: 8px; }
+.pbe-season-coverage { display: grid; gap: 20px; }
+.pbe-coverage-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.pbe-coverage-material, .pbe-own-contribution, .pbe-coach-breakdown { display: grid; gap: 12px; min-width: 0; }
+.pbe-coverage-material + .pbe-coverage-material { border-left: 1px solid var(--er-border); padding-left: 16px; }
+.pbe-own-contribution, .pbe-coach-breakdown { padding-top: 16px; border-top: 1px solid var(--er-border); }
+.pbe-own-contribution > div { display: grid; gap: 8px; }
+.pbe-stamp-list time, .pbe-chapter-stamp time { font-variant-numeric: tabular-nums; }
 .training-skill-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
 .training-recap-main { display: flex; align-items: center; gap: 32px; }
 .training-recap-main > .ds-patch-art { width:192px; height:192px; }
@@ -118,9 +136,14 @@
   .training-mission-main > .ds-button { width: 100%; }
   .training-mission .training-mission-steps { padding: 4px 20px; }
   .training-passage-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pbe-chapter-counts, .pbe-coverage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pbe-coverage-material + .pbe-coverage-material { border-left: 0; border-top: 1px solid var(--er-border); padding: 16px 0 0; }
 }
 @media (max-width: 440px) {
   .training-honors-grid, .training-skill-list { grid-template-columns: minmax(0, 1fr); }
+  .pbe-chapter-counts, .pbe-coverage-grid { grid-template-columns: minmax(0, 1fr); }
+  .pbe-chapter-stamp { grid-template-columns: minmax(0, 1fr); }
+  .pbe-chapter-stamp > span, .pbe-chapter-stamp > small { grid-column: 1; }
   .training-controls > .ds-button { width: 100%; }
   .training-step-state { max-width: 58px; }
 }

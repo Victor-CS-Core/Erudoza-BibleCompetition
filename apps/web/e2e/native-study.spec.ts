@@ -111,3 +111,7 @@ test('native coach assignment leads to an eight-card student session, durable re
   await page.goto(`/admin/seasons/${season.id}/students/${student!.userId}/progress`);
   await expect(page.getByTestId('progress-attempts')).toHaveText('8');
 });
+
+test('native PBE Simulation rejects an unknown season without creating a session',async({page})=>{
+ await login(page);const me=await json<Me>(page.request,'/api/v1/me');const students=await json<Student[]>(page.request,`/api/v1/organizations/${me.organizationId}/students`);expect(students.some(s=>s.userName==='student.fixture')).toBe(true);await logout(page);await login(page,'student.fixture');const response=await page.request.post('/api/v1/study/sessions',{data:{seasonId:randomUUID(),format:'Pbe',mode:'Simulation'}});expect(response.status()).toBe(404);
+});

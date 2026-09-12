@@ -106,3 +106,12 @@ describe('team mastery proof', () => {
     expect(teamQualifiers([rehearsal], 'a')).toEqual([]);
   });
 });
+it('requires the saved honor profile for cued Advanced retests and preserves legacy proof',()=>{
+ const {attempt,session}=trial();
+ for(const profile of [undefined,'memory-honor-v2','memory-cued-v3'] as const){
+  session.cards[0].payload.evidenceProfile=profile;
+  const result=updatePassageProof(proof(),session,attempt,states(1)[0],'2026-09-01T00:00:00Z');
+  expect(result.retestAttemptId).toBe(profile==='memory-cued-v3'?null:attempt.id);
+  expect(result.reviewAttemptId).toBe(profile==='memory-cued-v3'?null:attempt.id);
+ }
+});

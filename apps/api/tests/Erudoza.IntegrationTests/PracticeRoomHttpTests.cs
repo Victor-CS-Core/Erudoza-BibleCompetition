@@ -354,7 +354,7 @@ public sealed class PracticeRoomHttpTests
         public void ShiftUtc(TimeSpan duration) => utc += duration;
     }
 
-    private sealed class Setup : IDisposable
+    internal sealed class Setup : IDisposable
     {
         public ErudozaApiFactory Factory { get; } = new();
         public HttpClient Admin { get; private set; } = null!;
@@ -362,10 +362,11 @@ public sealed class PracticeRoomHttpTests
         public Guid SeasonId { get; } = Guid.NewGuid();
         public string Path => $"/api/v1/organizations/{SeedIdentifiers.OrganizationId}/practice";
 
-        public static async Task<Setup> Create(bool disableTicker = false)
+        public static async Task<Setup> Create(bool disableTicker = false, TimeProvider? time = null)
         {
             var fixture = new Setup();
             fixture.Factory.DisablePracticeTicker = disableTicker;
+            fixture.Factory.TestTimeProvider = time;
             fixture.Admin = await TestHttp.LoginAsync(fixture.Factory, "admin@erudoza.local", "DevAdmin!234");
             fixture.Owner = await TestHttp.LoginAsync(fixture.Factory, "daniel.student", "DevStudent!234");
             using var scope = fixture.Factory.Services.CreateScope();

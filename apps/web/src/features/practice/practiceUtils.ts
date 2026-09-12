@@ -16,3 +16,6 @@ export function parseQuestionImport(text: string): PracticeQuestion[] {
   return value.questions as PracticeQuestion[];
 }
 export const points = (hundredths: number) => (hundredths / 100).toFixed(2);
+
+export const activeRoomTeams = (room:{teamCount?:1|2}) => room.teamCount===1?[1]:[1,2];
+export const roomSizeLabel = (room:{teamCount?:1|2;teamSize:number}) => room.teamCount===1?`${room.teamSize}-student team`:`${room.teamSize}v${room.teamSize}`;

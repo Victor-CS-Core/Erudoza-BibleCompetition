@@ -9,6 +9,36 @@ namespace Erudoza.UnitTests;
 
 public sealed class ActivityDifficultyTests
 {
+    [Fact]
+    public void Versioned_memory_bounds_long_builder_and_varies_supported_gaps()
+    {
+        var unit = Unit(); unit.CanonicalText = string.Join(' ', Enumerable.Range(0, 47).Select(i => $"word{i}"));
+        var fresh = VerseBuilderGenerator.Create(unit, 42, 5, "memory-v3", "memory-cued-v3");
+        fresh.Payload.Tokens.Should().HaveCount(12);
+        fresh.Payload.GeneratorVersion.Should().Be("memory-v3");
+        fresh.Payload.EvidenceProfile.Should().Be("memory-cued-v3");
+        VerseBuilderGenerator.Create(unit, 42, 5).Payload.Tokens.Should().HaveCount(47);
+        var warmup = MissingWordsGenerator.Create(Unit(), 5, 42, "memory-v3", "memory-cued-v3");
+        warmup.AnswerKey.HiddenWords.Should().HaveCount(9);
+        warmup.Payload.Tokens.Where(t => t.Hidden).Select(t => t.Index).Should().NotEqual(
+            MissingWordsGenerator.Create(Unit(), 5, 43, "memory-v3", "memory-cued-v3").Payload.Tokens.Where(t => t.Hidden).Select(t => t.Index));
+        MissingWordsGenerator.Create(Unit(), 5, 42, "memory-v3", "memory-honor-v2").AnswerKey.HiddenWords.Should().HaveCount(11);
+        var shortUnit = Unit(); shortUnit.CanonicalText = "one";
+        MissingWordsGenerator.Create(shortUnit, 5, 42, "memory-v3", "memory-cued-v3").AnswerKey.HiddenWords.Should().Equal("one");
+    }
+
+    [Theory]
+    [InlineData(1, 40)]
+    [InlineData(3, 70)]
+    [InlineData(5, 70)]
+    public void Cued_wording_keeps_coach_ceiling_and_higher_existing_evidence(int difficulty, int ceiling)
+    {
+        var state = new MasteryScores(80, 39, 90, 0, 0, MasteryLevel.Strong);
+        for (var i = 0; i < 10; i++) state = ScaffoldMasteryRules.Apply(state, true, false, "MissingWords", AnswerMode.ExactText, difficulty, "memory-cued-v3");
+        state.ExactWording.Should().Be(ceiling);
+        ScaffoldMasteryRules.Apply(state with { ExactWording = 95 }, true, false, "MissingWords", AnswerMode.ExactText, difficulty, "memory-cued-v3").ExactWording.Should().Be(95);
+    }
+
     [Theory]
     [InlineData(1, 3)]
     [InlineData(3, 6)]

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { trainingApi } from "../../api/training";
@@ -31,6 +31,10 @@ export function HonorsPage() {
   const seasons = useQuery({ queryKey: ["assigned-seasons", me?.organizationId, me?.userId], queryFn: () => api.assignedSeasons() });
   const seasonId = params.get("seasonId") || seasons.data?.[0]?.id;
   const milestones = useQuery({ queryKey: ["training-honors", seasonId, me?.organizationId, me?.userId], queryFn: () => trainingApi.honors(seasonId!), enabled: !!seasonId });
+  const stamps = useInfiniteQuery({ queryKey: ['pbe-chapter-stamps', seasonId, me?.organizationId, me?.userId], initialPageParam: undefined as string | undefined,
+    queryFn: ({ pageParam }) => trainingApi.chapters(seasonId!, { view: 'Stamps', after: pageParam, limit: 32 }), enabled: !!seasonId,
+    getNextPageParam: page => page.nextCursor ?? undefined });
+  const datedStamps = stamps.data?.pages.flatMap(page => page.view === 'Stamps' ? page.items : []) ?? [];
   const visible = profile.data?.honors.filter(honor => (category === "All" || honor.category === category) && (filter === "All" || (filter === "Earned" ? !!honor.earnedAtUtc : !honor.earnedAtUtc))) ?? [];
   const earnedCount = profile.data?.honors.filter(honor => honor.earnedAtUtc).length ?? 0;
   return <div className="training-dashboard training-collection"><PageHeader title="Honors" description="Prove your mastery. Wear the patch you have earned." action={<LinkButton variant="secondary" to={trainingLink("/student", seasonId)}>Back to training</LinkButton>} />
@@ -50,7 +54,11 @@ export function HonorsPage() {
       {honor.earnedAtUtc && <LinkButton variant="secondary" to="/student/profile" aria-label={`Use ${honor.title} as profile image`}>{profile.data?.avatarHonorKey === honor.key ? "Current profile image" : "Use as profile image"}</LinkButton>}
     </Panel>)}{!visible.length && <Panel className="training-collection-empty"><h2>{filter === "Earned" ? "No earned Honors yet" : filter === "Locked" ? "No locked Honors in this category" : "No Honors in this category"}</h2><p>Honors unlock when your saved evidence meets every requirement.</p></Panel>}</div>}
     <p className="training-collection-note"><small>Earned Honors preserve their qualifying evidence and date. Your unlocked profile patches remain available if current skill scores later change.</small></p>
-    <details className="ds-disclosure training-milestone-history" id="practice-milestones"><summary>Practice milestones</summary><p>Earlier practice awards keep their original criteria, progress and evidence. They record practice milestones and do not unlock profile images.</p>
+    <Panel className="pbe-stamp-history"><div className="training-panel-title"><div><h2>PBE chapter stamps</h2><p>Dated keepsakes for retained assigned chapter or introduction scopes. A stamp’s date remains saved even when current readiness later changes.</p></div><Badge>{datedStamps.length} loaded</Badge></div>
+      {!seasonId ? <p>Your coach will add an assigned season here.</p> : stamps.isPending ? <LoadingState label="Loading PBE chapter stamps…" /> : stamps.isError ? <Notice tone="danger">PBE chapter stamps could not load. <Button variant="secondary" onClick={() => void stamps.refetch()}>Retry stamps</Button></Notice> : datedStamps.length ? <ul className="training-list pbe-stamp-list">{datedStamps.map(stamp => <li key={stamp.stampId}><div><h3>{stamp.label}</h3><p>{stamp.scopeLabel}</p><time dateTime={stamp.earnedAtUtc}>{evidenceDate(stamp.earnedAtUtc)}</time>{stamp.matchesCurrentScope === false && <p>Earned for an earlier assigned scope.</p>}{stamp.matchesCurrentScope === null && <p>Its match to your current assignment is not yet verified; this dated stamp remains saved.</p>}</div><Badge tone="success">{stamp.kind === 'Introduction' ? 'Introduction stamp' : 'Chapter stamp'}</Badge></li>)}</ul> : <p>No PBE chapter stamps recorded for this season.</p>}
+      {stamps.hasNextPage && <Button variant="secondary" disabled={stamps.isFetchingNextPage} onClick={() => void stamps.fetchNextPage()}>{stamps.isFetchingNextPage ? 'Loading…' : 'Load more stamps'}</Button>}
+    </Panel>
+    <details className="ds-disclosure training-milestone-history" id="practice-milestones"><summary>Practice milestones</summary><p>Earlier practice awards keep their original criteria, progress and evidence. They record practice milestones and do not unlock profile images. Team Practice answers do not establish individual Solo accuracy or satisfy a milestone that requires personal scribe submissions.</p>
       {!!seasons.data?.length && <label className="training-season-select">Assigned season<Select value={seasonId} onChange={event => { setMilestoneDetail(null); setParams({ seasonId: event.target.value }); }}>{seasons.data.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}
       {seasons.isError && <Notice tone="danger">Assigned seasons could not load. <Button variant="secondary" onClick={() => void seasons.refetch()}>Retry seasons</Button></Notice>}
       {seasons.isPending || (seasonId && milestones.isPending) ? <LoadingState label="Loading practice milestones…" /> : !seasonId ? <p>Your coach will add an assigned season here.</p> : milestones.isError ? <Notice tone="danger">Practice milestones could not load. <Button variant="secondary" onClick={() => void milestones.refetch()}>Retry milestones</Button></Notice> : <div className="training-honors-grid">{milestones.data?.map((milestone, index) => <Panel as="article" key={`${milestone.key}:${milestone.scopeLabel}:${index}`} className="training-honor-card">

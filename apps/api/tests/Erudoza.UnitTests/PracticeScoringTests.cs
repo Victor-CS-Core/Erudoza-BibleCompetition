@@ -74,6 +74,13 @@ public sealed class PracticeScoringTests
         act.Should().Throw<ArgumentException>();
     }
 
+    [Fact]
+    public void Legacy_practice_scoring_remains_independent_of_the_new_eight_point_rubric_cap()
+    {
+        var question = Question(false, new AnswerPart { AcceptedAnswers = ["Peter"], Points = 9 });
+        PbeQuestionEvaluator.Evaluate(question, ["Peter"]).Should().Be(9);
+    }
+
     private static PracticeQuestion Question(bool ordered, params AnswerPart[] parts) => new()
     {
         Id = Guid.NewGuid(),
