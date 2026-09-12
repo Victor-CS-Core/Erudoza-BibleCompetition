@@ -173,7 +173,7 @@ public sealed class StudySessionService(
     private async Task<AttemptResultDto> SubmitCoreAsync(Guid organizationId, Guid studentId, Guid sessionId,
         SubmitAttemptRequest request, bool exposeDebugAnswer, CancellationToken cancellationToken)
     {
-        var session = await db.StudySessions.SingleOrDefaultAsync(
+        var session = await db.StudySessions.Include(item => item.Season).ThenInclude(item => item!.RuleProfile).SingleOrDefaultAsync(
             item => item.Id == sessionId
                 && item.OrganizationId == organizationId
                 && item.StudentUserId == studentId,
@@ -222,6 +222,9 @@ public sealed class StudySessionService(
         {
             throw new DomainException("Challenge card does not belong to this session.");
         }
+
+        var cardPayload = ActivitySerialization.ReadPayload(card.PayloadJson);
+        RuleProfileReader.ValidateCard(session, session.Season!.RuleProfile!, cardPayload);
 
         var season = await db.Seasons.SingleAsync(item => item.Id == session.SeasonId, cancellationToken);
         DomainInvariants.EnsureSeasonIsActiveForStudy(season);
@@ -275,7 +278,7 @@ public sealed class StudySessionService(
                 request.HintsUsed,
                 card.ActivityType,
                 card.AnswerMode,
-                ActivitySerialization.ReadPayload(card.PayloadJson).Difficulty, ActivitySerialization.ReadPayload(card.PayloadJson).EvidenceProfile),
+                cardPayload.Difficulty, cardPayload.EvidenceProfile),
             cancellationToken);
 
         if (skillUpdate.Before is not null && skillUpdate.After is not null)

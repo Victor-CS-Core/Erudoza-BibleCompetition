@@ -72,6 +72,79 @@ public sealed class StudyIntegrityTests(ErudozaApiFactory factory) : IClassFixtu
     }
 
     [Fact]
+    public async Task Saved_memory_card_snapshot_must_match_session_purpose_before_evidence_writes()
+    {
+        var (student, seasonId) = await Setup(endVerse: 1);
+        const string endpoint = "/api/v1/study/sessions";
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IErudozaDbContext>();
+            (await db.Seasons.SingleAsync(s => s.Id == seasonId)).PbeEnabled = true;
+            (await db.CompetitionMembers.SingleAsync(s => s.SeasonId == seasonId && s.UserId == SeedIdentifiers.StudentUserId)).Difficulty = TrainingDifficulty.Advanced;
+            await db.SaveChangesAsync();
+        }
+
+        var invalid = new (string Purpose, string? Generator, string? Profile)[]
+        {
+            ("Warmup", null, "memory-cued-v3"),
+            ("Warmup", "unknown", "memory-cued-v3"),
+            ("Warmup", "memory-v3", null),
+            ("Warmup", "memory-v3", "unknown"),
+            ("Warmup", "memory-v3", "memory-honor-v2"),
+            ("Advanced", "memory-v3", "memory-cued-v3")
+        };
+        for (var index = 0; index < invalid.Length; index++)
+        {
+            var variant = invalid[index];
+            var session = await (await student.PostAsJsonAsync(endpoint, new { seasonId, format = "Memory", memoryChallenge = variant.Purpose })).Content.ReadFromJsonAsync<SessionDto>();
+            var card = await Card(student, session!.Id);
+            int[] before;
+            using (var scope = factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<IErudozaDbContext>();
+                var stored = await db.ChallengeCards.SingleAsync(c => c.Id == card.Id);
+                var payload = ActivitySerialization.ReadPayload(stored.PayloadJson);
+                stored.PayloadJson = ActivitySerialization.Payload(payload with { GeneratorVersion = variant.Generator, EvidenceProfile = variant.Profile });
+                await db.SaveChangesAsync();
+                before = [await db.Attempts.CountAsync(a => a.SeasonId == seasonId), await db.MasteryStates.CountAsync(m => m.SeasonId == seasonId), await db.MasteryPassageProofs.CountAsync(p => p.SeasonId == seasonId), await db.MasteryHonorUnlocks.CountAsync(h => h.SeasonId == seasonId)];
+            }
+            (await student.PostAsJsonAsync($"{endpoint}/{session.Id}/attempts", Payload(card, $"invalid-snapshot-{index}"))).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            using var verification = factory.Services.CreateScope();
+            var verify = verification.ServiceProvider.GetRequiredService<IErudozaDbContext>();
+            new[] { await verify.Attempts.CountAsync(a => a.SeasonId == seasonId), await verify.MasteryStates.CountAsync(m => m.SeasonId == seasonId), await verify.MasteryPassageProofs.CountAsync(p => p.SeasonId == seasonId), await verify.MasteryHonorUnlocks.CountAsync(h => h.SeasonId == seasonId) }.Should().Equal(before);
+        }
+
+        foreach (var purpose in new[] { "Warmup", "Advanced" })
+        {
+            var session = await (await student.PostAsJsonAsync(endpoint, new { seasonId, format = "Memory", memoryChallenge = purpose })).Content.ReadFromJsonAsync<SessionDto>();
+            var card = await Card(student, session!.Id);
+            (await student.PostAsJsonAsync($"{endpoint}/{session.Id}/attempts", Payload(card, $"valid-{purpose}"))).EnsureSuccessStatusCode();
+        }
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IErudozaDbContext>();
+            (await db.Seasons.SingleAsync(s => s.Id == seasonId)).PbeEnabled = false;
+            await db.SaveChangesAsync();
+        }
+        var legacy = await (await student.PostAsJsonAsync(endpoint, new { seasonId, format = "Memory" })).Content.ReadFromJsonAsync<SessionDto>();
+        var legacyCard = await Card(student, legacy!.Id);
+        (await student.PostAsJsonAsync($"{endpoint}/{legacy.Id}/attempts", Payload(legacyCard, "valid-legacy"))).EnsureSuccessStatusCode();
+
+        var inconsistentLegacy = await (await student.PostAsJsonAsync(endpoint, new { seasonId, format = "Memory" })).Content.ReadFromJsonAsync<SessionDto>();
+        var inconsistentCard = await Card(student, inconsistentLegacy!.Id);
+        using (var scope = factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IErudozaDbContext>();
+            var stored = await db.ChallengeCards.SingleAsync(c => c.Id == inconsistentCard.Id);
+            var payload = ActivitySerialization.ReadPayload(stored.PayloadJson);
+            stored.PayloadJson = ActivitySerialization.Payload(payload with { GeneratorVersion = "memory-v3", EvidenceProfile = "memory-cued-v3" });
+            await db.SaveChangesAsync();
+        }
+        (await student.PostAsJsonAsync($"{endpoint}/{inconsistentLegacy.Id}/attempts", Payload(inconsistentCard, "invalid-legacy-versioned-card"))).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
     public async Task Historic_short_answer_card_can_resume_and_score_without_a_generation_service()
     {
         var (student, seasonId) = await Setup();

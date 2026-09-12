@@ -87,6 +87,15 @@ async function loadSession(ctx: RequestContext, sessionId: string) {
   }
   return stored;
 }
+function validateCardSnapshot(session: Session, card: Card) {
+  const versioned = session.memoryChallenge !== undefined || session.generatorVersion !== undefined || session.evidenceProfile !== undefined;
+  const generator = card.payload?.generatorVersion, profile = card.payload?.evidenceProfile;
+  if (!versioned) {
+    if (generator !== undefined || profile !== undefined) fail('The saved Memory card snapshot is invalid.');
+    return;
+  }
+  if (generator !== 'memory-v3' || profile !== session.evidenceProfile) fail('The saved Memory card snapshot is invalid.');
+}
 async function start(ctx: RequestContext, input: { seasonId: string; mode?: StudyMode; training?: StartTrainingContext; memoryChallenge?: 'Warmup' | 'Advanced' }) {
   const seasonId = requiredString(input.seasonId, 'Season'), mode = input.mode ?? 'Practice';
   if (!['Practice', 'Review', 'Simulation'].includes(mode)) fail('Choose Practice, Review, or Simulation.');
@@ -174,6 +183,7 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
     if (session.mode === 'Simulation' && input.hintsUsed) fail('Hints are not permitted in simulation.');
     const card = session.cards.find(c => c.id === input.challengeCardId);
     if (!card) return fail('Challenge card does not belong to this session.');
+    validateCardSnapshot(session, card);
     const scope = await sessionScope(ctx, session, true); cardInScope(card, scope.sources);
     const evaluation = evaluateAnswer(input.submittedAnswer, card.answerKey.canonicalAnswer), now = trainingNow();
     const priorId = await ctx.env.DB.prepare("SELECT id FROM Records WHERE kind='mastery' AND org_id=? AND season_id=? AND owner_id=? AND json_extract(data,'$.knowledgeUnitId')=? LIMIT 1").bind(ctx.orgId, session.seasonId, session.studentUserId, card.knowledgeUnitId).first<{ id: string }>();

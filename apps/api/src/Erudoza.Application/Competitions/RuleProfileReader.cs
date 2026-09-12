@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Erudoza.Application.Abstractions;
 using Erudoza.Domain;
+using Erudoza.Domain.Study;
 
 namespace Erudoza.Application.Competitions;
 
@@ -17,6 +18,20 @@ public static class RuleProfileReader
             || snapshot.MemoryChallenge == "Advanced" && session.Difficulty != TrainingDifficulty.Advanced)
             throw new DomainException("The saved Memory purpose is invalid.");
         return snapshot;
+    }
+
+    public static void ValidateCard(StudySession session, RuleProfile profile, ActivityPayload payload)
+    {
+        var snapshot = ReadSession(session, profile);
+        var versioned = snapshot.MemoryChallenge is not null || snapshot.GeneratorVersion is not null || snapshot.EvidenceProfile is not null;
+        if (!versioned)
+        {
+            if (payload.GeneratorVersion is not null || payload.EvidenceProfile is not null)
+                throw new DomainException("The saved Memory card snapshot is invalid.");
+            return;
+        }
+        if (payload.GeneratorVersion != "memory-v3" || payload.EvidenceProfile != snapshot.EvidenceProfile)
+            throw new DomainException("The saved Memory card snapshot is invalid.");
     }
     public const string PbeStyleV1 = "PBE_STYLE_V1";
 
