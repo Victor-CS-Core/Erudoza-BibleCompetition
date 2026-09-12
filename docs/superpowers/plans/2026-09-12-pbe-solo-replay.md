@@ -157,4 +157,4 @@ it('appends a chosen token directly rather than moving it repeatedly', () => {
 ## Phase B gate
 
 - [x] Run native study/PBE/training suites, frontend student tests and equivalent canonical study/training tests. Repeat the earlier 8/24-verse and simulated 28-day audit scenarios using the new bank/target evidence; report target coverage and delayed accuracy separately from exercise counts.
-- [ ] Review student and coach views at 1440/390/320px. Publish no production fixtures. Update progress, explicitly commit and push the verified implementation checkpoint. Phase C completes timed Simulation; Phase D consumes retained target evidence.
+- [x] Review student and coach views at 1440/390/320px. Publish no production fixtures. Update progress, explicitly commit and push the verified implementation checkpoint. Phase C completes timed Simulation; Phase D consumes retained target evidence.

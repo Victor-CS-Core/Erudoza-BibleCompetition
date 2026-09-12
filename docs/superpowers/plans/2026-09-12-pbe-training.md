@@ -102,7 +102,16 @@ All assessment findings map to tasks above. A verified question bank for the act
 
 ## Execution status
 
-The user authorized this plan as an active implementation goal on September 11. Work is isolated in `.worktrees/pbe-training` on `codex/pbe-training`; the baseline and all Phase A tasks (A1 rubrics, A2 bank/storage, A2b introduction sources and A3 coach authoring/coverage) have passed independent review. B1 replay selection, target-specific scheduling and composable evidence persistence have also passed task review and scoped fix re-review. B2 daily-study integration, frozen source-backed grading, assistance accounting and daily effort have passed task review and scoped fix re-review. B3 Memory usability, saved evidence profiles and the Phase B local verification have passed task review and scoped fix re-review. The Phase B source checkpoint is next; C1 timed presentation begins afterward. The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. Fresh baseline: web/native 579 passed/1 optional skip; .NET 267 passed/1 optional load skip. See [PROGRESS.md](../../../PROGRESS.md) for verified checkpoints. No deployment or main merge is authorized by this implementation step.
+The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Eight of thirteen tasks have passed independent review. The source checkpoints below distinguish pushed work from the current local gate. Production remains unchanged; deployment and main merge require separate authorization.
+
+| Phase | Reviewed tasks | Source checkpoint | Current work |
+|---|---|---|---|
+| A — Questions and grading | A1, A2, A2b, A3 (4/4) | `80dfae5` | Complete locally and pushed |
+| B — Solo learning and replay | B1, B2, B3 (3/3) | `9448ba1` | Complete locally and pushed |
+| C — Independent rehearsal | C1 (1/3) | `4776811` locally reviewed; checkpoint push follows | C1 timed solo and shared presentation complete; C2 rooms next, then C3 disputes |
+| D — Chapter progress and release | 0/3 | Pending | Starts after Phase C |
+
+The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. The pre-implementation baseline passed 579 web/native checks with one optional skip, and 267 .NET checks with one optional load skip. [PROGRESS.md](../../../PROGRESS.md) records each later gate's exact tests, review fixes, pushes and limitations. Synthetic delayed answers establish bookkeeping, not human retention; the actual coach-approved season bank and learner pilot remain external release gates.
 
 ### A2 storage refinement
 
@@ -134,3 +143,10 @@ Saved format controls resume. A compatible frozen mission stays available after 
 ### B3 saved Memory evidence boundary
 
 New enabled-season Memory sessions save their Warmup or coach-permitted Advanced purpose, generator version and evidence profile. Actual acceptance validates the card against the saved session before new evidence writes. Missing historical metadata retains legacy behavior; malformed new metadata cannot silently select a legacy or Advanced evaluator. D3 must preserve the existing canonical session/card JSON snapshots and native purpose, generator, profile and original request discriminator. Pending Memory/PBE responses survive same-owner reload only after fresh authentication matches the sessionStorage owner marker. See PROGRESS.md for review and verification chronology; this does not establish a deployed change.
+
+
+### C1 timed rehearsal and recovery boundary
+
+Shortened solo Simulation freezes the actual eligible set, uses two readings or explicitly confirmed text fallback, and defers scoring feedback until completion. Native per-session PbeSoloRound and canonical IPbeSoloTimingAuthority capture trusted ingress, enforce inclusive accuracy-only deadlines and persist verified drafts/finals for idempotent delivery. Canonical pbe-solo-outbox is an indexed pending marker; complete timing/retry data lives in pbe-session. Original response lock time is separate from transaction acceptance chronology for later retention proof.
+
+Clock loss cannot reopen an armed window. Trusted saved answers settle; unrecoverable sessions retain earlier effort and sanitized partial scores with independent recap/restart. Question-scoped receipts and cancelled-ticket cleanup were independently reviewed after focused fixes. C2 must integrate the shared presentation/timing contracts into real one/two-team rooms. Native v3-pbe-solo source configuration is additive and unapplied; D3 must handle pending authority state during export and rollback. Local test evidence does not establish deployed eviction, hosted ticker cadence, physical speech or SQL Server execution.

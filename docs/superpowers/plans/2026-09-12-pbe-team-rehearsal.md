@@ -20,7 +20,7 @@ Apply index constraints. “A disputed answer enters a later-review queue withou
 
 **Files — create:** `apps/web/src/features/study/pbeSpeech.ts`, `pbeSpeech.test.ts`, `PbePresentation.tsx`, `PbePresentation.test.tsx`; `apps/web/worker/native/pbe/presentation.ts`, `presentation.test.ts`; `apps/api/src/Erudoza.Domain/Practice/PbePresentationRules.cs`; `apps/api/tests/Erudoza.UnitTests/PbePresentationTests.cs`.
 
-**Files — modify:** native `practice/{state,room}.ts`, PBE `sessions.ts`; `src/api/{pbeTypes,practice}.ts`; student `StudyPage.tsx`, practice `PracticePage.tsx`; C# `PbeSessionService.cs`, `PracticeModels.cs`, `PracticeMatchEngine.cs`, `PracticeCommands.cs`, `PvpRoundClock.cs`.
+**Files — modify:** native PBE session/effort and authenticated dispatch contracts, public PBE/study clients, the saved-format `PbeStudyPage.tsx` path and Training HQ; C# `PbeSessionService.cs`, study endpoints, ingress middleware, dependency registration and `PvpRoundClock.cs`. Add the dedicated solo authority, bindings/class migration, isolated runtime/browser fixtures and their tests. Full native `practice/{state,room}.ts`, `PracticePage.tsx` and C# room model/engine/command wiring belongs to C2 under the runtime boundary below.
 
 **Interfaces:**
 
@@ -43,11 +43,17 @@ export interface PresentationState {
 // rehearsalPoints(earned: number, elapsedMs: number, points: number): number
 ```
 
+**Runtime boundary:** C1 adds a dedicated per-session native Durable Object and a canonical singleton monotonic authority behind an Application abstraction, with necessary additive source/config/test files. Capture complete bounded-body ingress before authentication and queuing. Persist trusted frozen finals/drafts and idempotent delivery; existing direct submission routes must not bypass the authority. On unrecoverable clock loss, preserve trusted locked answers and earlier effort, expose interruption with independent restart, and avoid fabricated failure or full completion. Never reopen an armed scoring window or reconstruct canonical timing from UTC. C1 supplies tested one/two-scribe presentation/timing interfaces; C2 connects complete room routes/UI with its versioned material and roster contracts.
+
+Canonical pending delivery uses additive `pbe-solo-outbox` training records and a scoped expiry ticker. Process a bounded, fairly advancing page of pending sessions; live authority decides expiry from its monotonic clock, while replacement recovery settles trusted persisted answers or interrupts without reopening. Offline expiry and failed projection retry must work without a later client request. Keep draft/final/retry identity and lock time durable before acknowledgement, and preserve exact earlier-card retries after settlement. D3 must include the actual outbox/recovery contract in export and rollback handling.
+
+**Solo set size:** keep the existing shortened ten-question Simulation scope, using fewer questions only when explicitly labeled with the actual eligible count. Label it shortened timed practice, not a full event. Freeze the complete set, apply Simulation mix quotas and defer all answer/score feedback until the session ends. C2 supplies full-length team rehearsal. This resolves the unspecified C1 solo count without expanding personal assignments.
+
 The browser presents the reference, point value and prompt twice, excluding answers and evidence. Prefer an available local speech voice; start audio from the participant's ready gesture. Use completion/error events, not an estimated reading duration. On unavailable audio or error, provide two explicit text-reading steps and record `TextFallback`; do not claim that fallback reproduced an audible event reading. A coach-led mode records `Coach`. The browser's completion acknowledgement is a readiness signal, not proof that a student listened.
 
 Source checked during planning: the [Web Speech API specification](https://webaudio.github.io/web-speech-api/) defines speech synthesis, end/error events and local versus remote voices. Browser/device support and pronunciation still need execution-time validation. No microphone, recording, paid speech provider or external grading dependency is introduced.
 
-- [ ] Write a deterministic test driving two separate speech completions:
+- [x] Write a deterministic test driving two separate speech completions:
 
 ```ts
 import { expect, it } from 'vitest';
@@ -67,9 +73,9 @@ it('waits for two complete readings', async () => {
 });
 ```
 
-- [ ] Run speech/presentation tests; observe failure. Add separate cases for unavailable local voice, speech error, `voiceschanged`, user gesture, cancellation, hidden tab and component unmount. Cancellation rejects with `AbortError` and must never acknowledge readiness. Text fallback requires the participant's two reading confirmations; it cannot silently mark audio as completed.
-- [ ] Implement the browser wrapper and state transition. Required readiness is one scribe per active team, or the student in solo. Accept only authenticated authorized scribes and the current question/revision. Once all are ready, schedule response three seconds ahead using the existing acknowledgement mechanism. An expired schedule or reconnect reschedules without opening a second scoring window. Before response starts, show a waiting/connection state and let the room owner retry presentation or choose the disclosed text fallback; no coach is needed.
-- [ ] Add the server-only scoring kernel and boundaries:
+- [x] Run speech/presentation tests; observe failure. Add separate cases for unavailable local voice, speech error, `voiceschanged`, user gesture, cancellation, hidden tab and component unmount. Cancellation rejects with `AbortError` and must never acknowledge readiness. Text fallback requires the participant's two reading confirmations; it cannot silently mark audio as completed.
+- [x] Implement the browser wrapper and state transition. Required readiness is one scribe per active team, or the student in solo. Accept only authenticated authorized scribes and the current question/revision. Once all are ready, schedule response three seconds ahead using the existing acknowledgement mechanism. An expired incomplete pre-start schedule may receive a new revision; reconnect to an armed question restores its existing scoring window. Before response starts, show a waiting/connection state and let the room owner retry presentation or choose the disclosed text fallback; no coach is needed.
+- [x] Add the server-only scoring kernel and boundaries:
 
 ```ts
 import { responseSeconds } from './rules';
@@ -84,7 +90,7 @@ export function rehearsalPoints(earned: number, elapsedMs: number, points: numbe
 ```
 
 Retain native ingress timing and the canonical monotonic clock; validate finite input values. Show the warning when server-derived remaining time crosses ten seconds, once per question. A draft received before the deadline may earn accuracy at expiry under the existing policy; later text cannot replace it. A late final submission with no valid saved draft earns zero. Network failures do not justify trusting client timestamps.
-- [ ] Integrate into new Pbe solo Simulation as well as rooms, then enable the timed entry from B2. Ordinary learning remains untimed. Practice feedback may reveal after a solo response locks; full solo Simulation holds feedback until the end to avoid teaching later test answers. Compare native/C# boundary fixtures and reconnect cases. Commit `feat: add independent PBE presentation and timing`.
+- [x] Integrate into new Pbe solo Simulation, enable its timed entry from B2, and hand off the tested shared one/two-scribe contracts for C2 room wiring. Ordinary learning remains untimed. Practice feedback may reveal after a solo response locks; full solo Simulation holds feedback until the end to avoid teaching later test answers. Compare native/C# boundary fixtures and reconnect cases. Commit `feat: add independent PBE presentation and timing`.
 
 ## Task C2: Versioned rooms, six-student rosters and new question sets
 
