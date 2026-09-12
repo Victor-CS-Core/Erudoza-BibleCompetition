@@ -56,3 +56,7 @@ dist-native/
 # Local inspection output and source extraction archive (runtime uses book packs)
 /.tmp/
 /content/nkjv/nkjv.master.json
+
+# Historical Azure local configuration remains private.
+.azure/*
+infra/bicep/*.local.json
