@@ -5,7 +5,7 @@
   --coffee-bottom: max(18px, env(safe-area-inset-bottom, 0px));
 }
 html:not([data-erudoza-coffee-ready="true"]) :is(#bmc-wbtn, #bmc-iframe, #bmc-close-btn, #erudoza-coffee-overlay) { display: none !important; }
-#bmc-wbtn { right: var(--coffee-right) !important; bottom: var(--coffee-bottom) !important; z-index: 40 !important; }
+#bmc-wbtn { right: var(--coffee-right) !important; bottom: var(--coffee-bottom) !important; z-index: 40 !important; transition-property: transform, opacity, background-color, box-shadow !important; }
 #bmc-wbtn:focus-visible, #bmc-close-btn:focus-visible { outline: 3px solid var(--er-teal); outline-offset: 4px; }
 #erudoza-coffee-overlay[hidden] { display: none !important; }
 #erudoza-coffee-overlay { z-index: 1000 !important; background: color-mix(in srgb, var(--er-ink-navy) 44%, transparent) !important; }
@@ -46,5 +46,17 @@ html[data-erudoza-coffee-ready="true"] :is(.public-footer, .training-footer) { p
 }
 @media (max-width: 760px) {
   html:has(.command-app) { --coffee-bottom:calc(84px + env(safe-area-inset-bottom,0px)); }
+  /* Keep the support launcher and its fallback above the sticky assignment action. */
+  html:has(.season-assignment-save) { --coffee-bottom:calc(148px + env(safe-area-inset-bottom,0px)); }
   html:has(.practice-room[data-status="Playing"]) { --coffee-bottom:max(18px,env(safe-area-inset-bottom,0px)); }
+}
+
+/* A normal link remains usable when a privacy/content blocker prevents the embed. */
+.coffee-fallback { position: fixed; right: var(--coffee-right); bottom: var(--coffee-bottom); z-index: 40; }
+html[data-erudoza-coffee-ready="true"] .coffee-fallback,
+html:has(dialog[open]) .coffee-fallback { display: none; }
+.coffee-popup-link { position: fixed; right: calc(var(--coffee-right) + 60px); bottom: calc(var(--coffee-bottom) + 18px); }
+html:has(.coffee-fallback) :is(.public-footer, .training-footer) { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width: 479px) {
+  .coffee-popup-link { left: 18px; right: auto; top: max(10px, env(safe-area-inset-top, 0px)); bottom: auto; }
 }

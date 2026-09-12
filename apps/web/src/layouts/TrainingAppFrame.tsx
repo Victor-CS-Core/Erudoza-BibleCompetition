@@ -11,6 +11,7 @@ import { Button, Notice } from "../components/ui";
 import { CommandCenter } from "../components/navigation/CommandCenter";
 import { NavigationMenu } from "../components/navigation/NavigationMenu";
 import { currentDestination, navigation, type Destination } from "../components/navigation/destinations";
+import { InstallApp } from "../features/install/InstallApp";
 import { CoffeeWidget } from "../features/support/CoffeeWidget";
 import "../styles/command-center.css";
 
@@ -153,7 +154,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
       {focused && <Link to={home} className="command-study-back" data-testid="study-back">Back to training<AppIcon name="arrow" /></Link>}
       {!seasonItems.length && contextItems.length > 0 && <nav className="command-context-links" aria-label="Section">{contextItems.map(item => <Link key={item.id} to={item.to} aria-current={contextCurrent(item) ? "location" : undefined}>{item.label}</Link>)}</nav>}
     </div></div>}
-    <div className="training-workspace pathfinder-canvas"><PathfinderBackdrop /><main id="training-main" className="training-main" data-testid={coach ? "coach-main" : "learner-main"}><Outlet /></main><footer className="training-footer">{coach ? <>SCRIPTURE <span>·</span> DISCIPLESHIP <span>·</span> REAL-WORLD FAITH</> : <>Study. Master. Compete. <span>·</span> One meaningful step at a time.</>}</footer></div>
+    <div className="training-workspace pathfinder-canvas"><PathfinderBackdrop /><main id="training-main" className="training-main" data-testid={coach ? "coach-main" : "learner-main"}><Outlet /></main><footer className="training-footer"><div className="training-install"><InstallApp /></div>{coach ? <>SCRIPTURE <span>·</span> DISCIPLESHIP <span>·</span> REAL-WORLD FAITH</> : <>Study. Master. Compete. <span>·</span> One meaningful step at a time.</>}</footer></div>
     <nav className="command-bottom-nav" aria-label="Mobile navigation">
       {mobileItems.map(item => <Link key={item.id} to={item.to} aria-current={mobileActive === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.id === "home" ? "HQ" : item.label}</span></Link>)}
       <Button variant="ghost" aria-label="More" aria-current={!mobileIds.includes(mobileActive ?? "") ? "page" : undefined} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>More</span></Button>

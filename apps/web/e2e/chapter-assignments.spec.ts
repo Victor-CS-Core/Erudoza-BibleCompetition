@@ -27,6 +27,7 @@ async function assertTouchTarget(locator: Locator) {
 test("whole-book season supports separate chapter selections, overlapping student plans, and preserved progress", async ({ page }, info) => {
   test.setTimeout(150_000);
   page.setDefaultTimeout(15_000);
+  if (process.env.ERUDOZA_CHAPTER_BLOCK_COFFEE) await page.route("https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js", route => route.abort("blockedbyclient"));
   const pageErrors: string[] = [];
   page.on("pageerror", error => pageErrors.push(error.message));
   const mobile = info.project.name.includes("mobile");
@@ -88,7 +89,15 @@ test("whole-book season supports separate chapter selections, overlapping studen
       const dock = await page.getByRole("navigation", { name: "Mobile navigation", exact: true }).boundingBox();
       const chapter = await chapterButton(page, 1).boundingBox();
       const masthead = await page.locator(".command-masthead").boundingBox();
+      if (process.env.ERUDOZA_CHAPTER_BLOCK_COFFEE) await expect(page.locator(".coffee-fallback")).toBeVisible();
+      const supportControls = await page.locator("#bmc-wbtn, .coffee-fallback").evaluateAll(elements => elements.flatMap(element => {
+        const style = getComputedStyle(element), rect = element.getBoundingClientRect();
+        return style.display === "none" || style.visibility === "hidden" || !rect.width || !rect.height ? [] : [{ name: element.id || element.className, x: rect.x, y: rect.y, width: rect.width, height: rect.height, bottom: style.bottom, transform: style.transform, transition: style.transition, animation: style.animation, activeAnimations: element.getAnimations().map(animation => ({ playState: animation.playState, currentTime: animation.currentTime, transitionProperty: animation instanceof CSSTransition ? animation.transitionProperty : null })) }];
+      }));
       await info.attach(`save-dock-${width}`, { body: JSON.stringify({ save, dock, chapter }), contentType: "application/json" });
+      await info.attach(`save-support-${width}`, { body: JSON.stringify({ save, supportControls }), contentType: "application/json" });
+      await page.screenshot({ path: info.outputPath(`chapter-controls-viewport-${width}.png`) });
+      for (const support of supportControls) expect.soft(save!.x + save!.width <= support.x || support.x + support.width <= save!.x || save!.y + save!.height <= support.y || support.y + support.height <= save!.y, `${support.name} must not cover Assign chapters at ${width}px`).toBe(true);
       expect.soft(save!.y).toBeGreaterThanOrEqual(0);
       expect.soft(save!.x).toBeGreaterThanOrEqual(0);
       expect.soft(save!.x + save!.width).toBeLessThanOrEqual(width);

@@ -18,12 +18,17 @@ export default defineConfig({
   timeout: 30_000,
   use: { baseURL: webUrl, trace: "retain-on-failure", reducedMotion: "reduce" },
   webServer: {
-    command: `"${process.execPath}" "${vite}" --config vite.native.config.ts --host 127.0.0.1 --port 5195 --strictPort`,
+    command: `"${process.execPath}" "${vite}" ${process.env.COFFEE_WIDGET_PREVIEW ? "preview" : ""} --config vite.native.config.ts --host 127.0.0.1 --port 5195 --strictPort`,
     cwd: import.meta.dirname,
     url: webUrl,
     reuseExistingServer: false,
     timeout: 90_000,
     env: { VITE_BUY_ME_A_COFFEE_URL: "https://buymeacoffee.com/erudoza", VITE_API_BASE_URL: "" },
   },
-  projects: [{ name: "coffee-chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "coffee-chromium", use: { ...devices["Desktop Chrome"] } },
+    { name: "coffee-firefox", use: { ...devices["Desktop Firefox"] } },
+    { name: "coffee-webkit", use: { ...devices["Desktop Safari"] } },
+    { name: "coffee-iphone", use: { ...devices["iPhone 13"] }, grep: /popup, coach and student fit 390px|support opens|installation help.*390px|home-screen app mode/ },
+  ],
 });

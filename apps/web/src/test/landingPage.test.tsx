@@ -86,3 +86,8 @@ describe("LandingPage", () => {
     expect(screen.getByRole("contentinfo")).toHaveTextContent("SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH");
   });
 });
+
+it("offers phone installation help without relying on a browser install prompt", () => {
+  renderLanding();
+  expect(screen.getByRole("button", { name: "Install app" })).toBeVisible();
+});

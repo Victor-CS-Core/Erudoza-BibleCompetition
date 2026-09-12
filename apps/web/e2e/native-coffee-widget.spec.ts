@@ -2,6 +2,7 @@ import { expect, test, type Locator, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Me, Progress } from "../src/api/types";
+import { todayFixture } from "../src/features/student/trainingFixtures";
 import { assertNoOverflow } from "./helpers";
 
 const scriptUrl = "https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js";
@@ -13,6 +14,8 @@ const emptyProgress: Progress = { seasonId: "", seasonName: "", seasonStatus: "N
 
 async function installFixtures(page: Page, blocked = false, delay?: Promise<void>) {
   let account: Me | null = null;
+  await page.route("https://fonts.googleapis.com/**", route => route.abort("blockedbyclient"));
+  await page.route("https://fonts.gstatic.com/**", route => route.abort("blockedbyclient"));
   const calls = { scripts: 0, frames: 0, unexpectedApi: [] as string[] };
   const override = process.env.COFFEE_WIDGET_SCRIPT_FILE;
   if (override && !path.isAbsolute(override)) throw new Error("COFFEE_WIDGET_SCRIPT_FILE must be an absolute path to a locally inspected vendor script.");
@@ -39,6 +42,8 @@ async function installFixtures(page: Page, blocked = false, delay?: Promise<void
       return route.fulfill({ json: account });
     }
     if (pathname === "/api/v1/auth/logout" && request.method() === "POST") { account = null; return route.fulfill({ status: 204 }); }
+    if (request.method() === "GET" && pathname === "/api/v1/profile/identities") return route.fulfill({ json: account ? [{ userId: account.userId, avatarHonorKey: null }] : [] });
+    if (request.method() === "GET" && pathname === "/api/v1/progress/me/today") return route.fulfill({ json: todayFixture({ seasonId: null, seasonStatus: "None", mission: { id: null, revision: null, status: "Unavailable", scopeVersion: null, explanation: null, steps: [] }, nextAction: null }) });
     if (request.method() === "GET" && pathname === "/api/v1/progress/me") return route.fulfill({ json: emptyProgress });
     if (request.method() === "GET" && ["/api/v1/progress/me/seasons", "/api/v1/organizations/coffee-test-org/seasons", "/api/v1/organizations/coffee-test-org/students"].includes(pathname)) return route.fulfill({ json: [] });
     calls.unexpectedApi.push(`${request.method()} ${pathname}`);
@@ -78,7 +83,7 @@ async function assertWithinViewport(page: Page, locator: Locator) {
   return box!;
 }
 
-test("public popup opens by keyboard, closes and reopens without leaving the page", async ({ page }) => {
+test("public popup opens by keyboard, closes and reopens without leaving the page", async ({ page, browserName }) => {
   const calls = await installFixtures(page);
   await page.goto("/");
   await expect(launcher(page)).toBeVisible();
@@ -95,7 +100,15 @@ test("public popup opens by keyboard, closes and reopens without leaving the pag
   await expect(page.frameLocator("#bmc-iframe").getByRole("heading", { name: "Test payment form" })).toBeVisible();
   await expect(page.locator("#root")).toHaveJSProperty("inert", true);
   await close(page).press("Tab");
+  const support = page.getByRole("link", { name: "Open support page (opens in a new tab)" });
+  await expect(support).toBeFocused();
+  await support.press("Tab");
   const amount = page.frameLocator("#bmc-iframe").getByLabel("Coffee amount");
+  // Firefox focuses the frame document before its first form field.
+  if (browserName === "firefox") {
+    await expect(page.locator("#bmc-iframe")).toBeFocused();
+    await page.keyboard.press("Tab");
+  }
   await expect(amount).toBeFocused();
   await amount.press("Tab");
   await expect(close(page)).toBeFocused();
@@ -216,9 +229,133 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 
     await signOut(page);
     await signIn(page, "student");
     await expect(page.locator("#bmc-wbtn")).toBeHidden();
-    await expect(page.getByTestId("academy-track-unavailable")).toBeVisible();
+    await expect(page.getByText("Your coach will add your study assignment here.")).toBeVisible();
     await assertNoOverflow(page);
     await page.screenshot({ path: info.outputPath(`student-${viewport.width}.png`), fullPage: true });
     expect(calls).toEqual({ scripts: 1, frames: 1, unexpectedApi: [] });
   });
 }
+
+const supportLink = (page: Page) => page.getByRole("link", { name: "Open support page (opens in a new tab)" });
+const fallbackLink = (page: Page) => page.getByRole("link", { name: "Buy me a coffee (opens in a new tab)" });
+
+for (const blockedScript of [true, false]) {
+  test(`support opens a real link when ${blockedScript ? "the script" : "the payment frame"} is blocked`, async ({ page }) => {
+    await installFixtures(page, blockedScript);
+    await page.route("https://www.buymeacoffee.com/widget/page/**", route => route.abort("blockedbyclient"));
+    await page.context().route("https://buymeacoffee.com/erudoza", route => route.fulfill({ contentType: "text/html", body: "<h1>Test support destination</h1>" }));
+    await page.goto("/");
+    if (!blockedScript) await launcher(page).click();
+    const link = blockedScript ? fallbackLink(page) : supportLink(page);
+    await expect(link).toBeVisible();
+    await assertWithinViewport(page, link);
+    const opened = page.waitForEvent("popup");
+    await link.click();
+    const destination = await opened;
+    await expect(destination).toHaveURL("https://buymeacoffee.com/erudoza");
+    await expect(destination.getByRole("heading", { name: "Test support destination" })).toBeVisible();
+    await expect(page).toHaveURL("http://127.0.0.1:5195/");
+    await destination.close();
+    if (!blockedScript) await close(page).click();
+    await page.getByRole("link", { name: "Sign in", exact: true }).click();
+    await signIn(page, "student");
+    await expect(fallbackLink(page)).toHaveCount(0);
+    await expect(supportLink(page)).toHaveCount(0);
+  });
+}
+
+test("the manifest and home-screen icons are usable from nested entry routes", async ({ page, request }) => {
+  await installFixtures(page);
+  await page.goto("/login");
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute("href", "/manifest.webmanifest");
+  const response = await request.get("/manifest.webmanifest");
+  expect(response.ok()).toBe(true);
+  const manifest = await response.json();
+  expect(manifest).toMatchObject({ id: "/", start_url: "/", scope: "/", display: "standalone" });
+  for (const icon of manifest.icons) {
+    const dimensions = await page.evaluate(async src => {
+      const image = new Image(); image.src = src; await image.decode();
+      return `${image.naturalWidth}x${image.naturalHeight}`;
+    }, icon.src);
+    expect(dimensions).toBe(icon.sizes);
+  }
+  const appleIcon = await page.locator('link[rel="apple-touch-icon"]').getAttribute("href");
+  expect((await request.get(appleIcon!)).ok()).toBe(true);
+});
+
+for (const width of [1440, 390, 320]) {
+  test(`installation help is accessible and fits at ${width}px for public, coach and student`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 844 });
+    await installFixtures(page);
+    await page.goto("/");
+    for (const role of ["public", "coach", "student"] as const) {
+      if (role !== "public") {
+        if (role === "coach") await page.getByRole("link", { name: "Sign in", exact: true }).click();
+        else await signOut(page);
+        await signIn(page, role);
+      }
+      const install = page.getByRole("button", { name: "Install app", exact: true });
+      await install.click();
+      const dialog = page.getByRole("dialog", { name: "Install Erudoza" });
+      await expect(dialog).toBeVisible();
+      await expect(dialog.getByRole("button", { name: "Close dialog" })).toBeFocused();
+      await expect(dialog.getByRole("heading", { name: "iPhone or iPad" })).toBeVisible();
+      await expect(launcher(page)).toBeHidden();
+      await expect(fallbackLink(page)).toBeHidden();
+      await assertWithinViewport(page, dialog);
+      await assertNoOverflow(page);
+      await page.screenshot({ path: info.outputPath(`install-${role}-${width}.png`) });
+      await page.keyboard.press("Escape");
+      await expect(dialog).toBeHidden();
+      await expect(install).toBeFocused();
+    }
+  });
+}
+
+for (const result of ["accepted", "dismissed", "error"]) {
+  test(`browser installation handles ${result} and never reuses a consumed prompt`, async ({ page }) => {
+    await installFixtures(page);
+    await page.goto("/");
+    await page.evaluate(outcome => {
+      const event = new Event("beforeinstallprompt", { cancelable: true });
+      Object.assign(event, { prompt: async () => {
+        document.documentElement.dataset.installCalls = String(Number(document.documentElement.dataset.installCalls ?? 0) + 1);
+        if (outcome === "error") throw new Error("Browser denied prompt");
+        return { outcome };
+      } });
+      window.dispatchEvent(event);
+    }, result);
+    // A saved browser event must survive navigation and account transitions.
+    await page.getByRole("link", { name: "Sign in", exact: true }).click();
+    await signIn(page, "coach");
+    const install = page.getByRole("button", { name: "Install app", exact: true });
+    await install.click();
+    await expect(page.locator("html")).toHaveAttribute("data-install-calls", "1");
+    if (result === "accepted") await expect(install).toBeHidden();
+    else {
+      if (result === "dismissed") await install.click();
+      await expect(page.getByRole("dialog", { name: "Install Erudoza" })).toBeVisible();
+      await expect(page.locator("html")).toHaveAttribute("data-install-calls", "1");
+    }
+  });
+}
+
+test("home-screen app mode suppresses redundant installation controls", async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, "standalone", { value: true }));
+  await installFixtures(page);
+  await page.goto("/");
+  await expect(page.getByTestId("landing-phone-column")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Install app" })).toHaveCount(0);
+});
+
+test("browser installation also supports the separate userChoice result", async ({ page }) => {
+  await installFixtures(page);
+  await page.goto("/");
+  await page.evaluate(() => {
+    const event = new Event("beforeinstallprompt", { cancelable: true });
+    Object.assign(event, { prompt: async () => undefined, userChoice: Promise.resolve({ outcome: "accepted" }) });
+    window.dispatchEvent(event);
+  });
+  await page.getByRole("button", { name: "Install app", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Install app", exact: true })).toHaveCount(0);
+});
