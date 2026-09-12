@@ -7,6 +7,7 @@ namespace Erudoza.Infrastructure.Persistence;
 public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
     : DbContext(options), IErudozaDbContext
 {
+    public DbSet<PbeTrainingRecord> PbeTrainingRecords => Set<PbeTrainingRecord>();
     public DbSet<MasteryHonorUnlock> MasteryHonorUnlocks => Set<MasteryHonorUnlock>();
     public DbSet<MasteryPassageProof> MasteryPassageProofs => Set<MasteryPassageProof>();
     public DbSet<ProfileAvatarSelection> ProfileAvatarSelections => Set<ProfileAvatarSelection>();
@@ -80,6 +81,15 @@ public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<PbeTrainingRecord>(entity =>
+        {
+            entity.HasKey(r => new { r.OrganizationId, r.Kind, r.Id });
+            entity.HasIndex(r => new { r.OrganizationId, r.SeasonId, r.OwnerId, r.Kind });
+            entity.HasIndex(r => new { r.OrganizationId, r.SeasonId, r.OwnerId, r.Kind, r.Id });
+            entity.Property(r => r.Kind).HasMaxLength(100);
+            entity.Property(r => r.Id).HasMaxLength(200);
+            entity.Property(r => r.Revision).IsConcurrencyToken();
+        });
         modelBuilder.Entity<MasteryHonorUnlock>(entity =>
         {
             entity.HasKey(x => x.Id);

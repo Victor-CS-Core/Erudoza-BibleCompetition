@@ -40,6 +40,7 @@ export interface Pack {
     chapters?: LibraryChapter[];
 }
 export interface Season {
+    pbeEnabled?: boolean;
     id: string;
     organizationId: string;
     name: string;

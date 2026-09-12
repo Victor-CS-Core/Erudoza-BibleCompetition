@@ -7,6 +7,11 @@ namespace Erudoza.Api.Practice;
 
 public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime runtime, IConfiguration configuration)
 {
+    private static bool IsLegacyQuestion(string definition)
+    {
+        using var document = System.Text.Json.JsonDocument.Parse(definition);
+        return !document.RootElement.EnumerateObject().Any(p => p.Name.Equals("schemaVersion", StringComparison.OrdinalIgnoreCase));
+    }
     private DbSet<PracticeRoomRecord> Rooms => db.Set<PracticeRoomRecord>();
     private DbSet<PracticeQuestionRecord> Questions => db.Set<PracticeQuestionRecord>();
     public async Task Check(PracticeActor actor, Guid org, CancellationToken ct, bool requireEnabled = true)
@@ -56,7 +61,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
             invitations = states.SelectMany(r => r.Invitations).Where(i => i.UserId == actor.Id && !i.Accepted && i.ExpiresAt > runtime.Now),
             achievements = CalculateAwards(states).Where(a => a.UserId == actor.Id).DistinctBy(a => (a.Key, a.SeasonId)),
             trends = Trends(states, actor.Id),
-            questions = questions.Select(q => new { q.Id, q.SeasonId, q.Published, question = PracticeJson.Read<PracticeQuestion>(q.DefinitionJson) })
+            questions = questions.Where(q => IsLegacyQuestion(q.DefinitionJson)).Select(q => new { q.Id, q.SeasonId, q.Published, question = PracticeJson.Read<PracticeQuestion>(q.DefinitionJson) })
         };
     }
     public async Task<object> Create(Guid org, PracticeActor actor, CreatePracticeRoom request, CancellationToken ct)

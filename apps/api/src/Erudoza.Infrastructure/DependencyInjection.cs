@@ -40,6 +40,7 @@ public static class DependencyInjection
         services.AddSingleton<IBlobStorage, DisabledBlobStorage>();
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<DevelopmentSeeder>();
+        services.AddScoped<IPbeQuestionBank, PbeQuestionBank>();
         services.AddScoped<ICompetitionScopeResolver, CompetitionScopeResolver>();
         services.AddScoped<IStudentStudyScopeService, StudentStudyScopeService>();
         services.AddScoped<ContentImportService>();

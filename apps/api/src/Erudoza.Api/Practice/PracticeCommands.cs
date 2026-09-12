@@ -198,7 +198,7 @@ public sealed partial class PracticeService
         var records = await Questions.Where(q => q.OrganizationId == org && q.SeasonId == room.SeasonId && q.Published).ToListAsync(ct);
         var scope = await new Erudoza.Application.Content.CompetitionScopeResolver(db).ResolveAsync(org, room.SeasonId, ct);
         var sources = await db.SourceUnits.Where(s => (s.OrganizationId == org && s.ContentPack!.OrganizationId == org || s.OrganizationId == BuiltInLibrary.OrganizationId && s.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && s.ContentPack.IsBuiltIn) && scope.Contains(s.Id) && s.IsActive && !s.IsRetired && s.ContentPack!.IsActive).ToDictionaryAsync(s => s.Id, ct);
-        var eligible = records.GroupBy(r => r.QuestionKey).Select(g => g.MaxBy(q => q.Version)!)
+        var eligible = records.Where(r => IsLegacyQuestion(r.DefinitionJson)).GroupBy(r => r.QuestionKey).Select(g => g.MaxBy(q => q.Version)!)
             .Select(r => PracticeJson.Read<PracticeQuestion>(r.DefinitionJson))
             .Where(q => scope.Contains(q.SourceUnitId) && sources.TryGetValue(q.SourceUnitId, out var s)
                 && q.ContentPackId == s.ContentPackId && (string.IsNullOrEmpty(room.BookKey) || s.BookKey == room.BookKey))

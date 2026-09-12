@@ -16,9 +16,29 @@ public static class PracticeEndpoints
         group.AddEndpointFilter(async (context, next) =>
         {
             try { return await next(context); }
+            catch (UnauthorizedAccessException) { return Results.Forbid(); }
             catch (PracticeForbiddenException) { PracticeMetrics.RejectedCommands.Add(1); return Results.Forbid(); }
             catch (Erudoza.Domain.DomainException) { PracticeMetrics.RejectedCommands.Add(1); throw; }
         });
+        var pbe = group.MapGroup("/pbe/seasons/{seasonId:guid}");
+        pbe.AddEndpointFilter(async (context, next) =>
+        {
+            try { return await next(context); }
+            catch (PbeBankConflictException error) { return Results.Conflict(new { message = error.Message }); }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException) { return Results.Conflict(new { message = "The PBE record changed. Refresh and retry." }); }
+            catch (Microsoft.Data.Sqlite.SqliteException error) when (error.SqliteErrorCode is 5 or 6) { return Results.Conflict(new { message = "The PBE record changed. Refresh and retry." }); }
+        });
+        pbe.MapGet("/bank", (Guid orgId, Guid seasonId, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbeMetadata(orgId, seasonId, Actor(user), bank, ct));
+        pbe.MapPost("/enabled", async (Guid orgId, Guid seasonId, PbeEnabledRequest request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => { await service.PbeEnable(orgId, seasonId, request.Enabled, Actor(user), bank, ct); return Results.NoContent(); });
+        pbe.MapPost("/questions/import", async (Guid orgId, Guid seasonId, System.Text.Json.JsonElement request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) =>
+        {
+            ImportPbeQuestions? input;
+            try { input = System.Text.Json.JsonSerializer.Deserialize<ImportPbeQuestions>(request.GetRawText(), Erudoza.Application.Study.PbeQuestionBank.Json); }
+            catch (System.Text.Json.JsonException) { return Results.BadRequest(new { message = "Malformed PBE import." }); }
+            if (input is null) return Results.BadRequest(new { message = "Malformed PBE import." });
+            await service.PbeImport(orgId, seasonId, input, Actor(user), bank, ct); return Results.NoContent();
+        });
+        pbe.MapPost("/questions/{id:guid}/{version:int}/publish", async (Guid orgId, Guid seasonId, Guid id, int version, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => { await service.PbePublish(orgId, seasonId, id, version, Actor(user), bank, ct); return Results.NoContent(); });
         group.MapGet("/bootstrap", (Guid orgId, ICurrentUser user, PracticeService service, CancellationToken ct) => service.Bootstrap(orgId, Actor(user), ct));
         group.MapPost("/enabled", async (Guid orgId, EnabledRequest request, ICurrentUser user, PracticeService service, CancellationToken ct) =>
         { await service.SetEnabled(orgId, request.Enabled, Actor(user), ct); return Results.NoContent(); });
@@ -39,8 +59,17 @@ public static class PracticeEndpoints
             await hub.Clients.All.SendAsync("Changed", cancellationToken: ct); // Invalidation only: never contains tenant data.
             return result;
         });
-        group.MapPost("/questions/import", async (Guid orgId, ImportPracticeQuestions request, ICurrentUser user, PracticeService service, CancellationToken ct) =>
-        { await service.Import(orgId, Actor(user), request, ct); return Results.NoContent(); });
+        group.MapPost("/questions/import", async (Guid orgId, System.Text.Json.JsonElement request, ICurrentUser user, PracticeService service, CancellationToken ct) =>
+        {
+            if (request.ValueKind != System.Text.Json.JsonValueKind.Object) return Results.BadRequest();
+            foreach (var property in request.EnumerateObject().Where(p => p.Name.Equals("questions", StringComparison.OrdinalIgnoreCase)))
+                if (property.Value.ValueKind == System.Text.Json.JsonValueKind.Array && property.Value.EnumerateArray().Any(q => q.ValueKind == System.Text.Json.JsonValueKind.Object && q.EnumerateObject().Any(p => p.Name.Equals("schemaVersion", StringComparison.OrdinalIgnoreCase)))) return Results.BadRequest(new { message = "Versioned PBE questions require the PBE import endpoint." });
+            ImportPracticeQuestions? input;
+            try { input = System.Text.Json.JsonSerializer.Deserialize<ImportPracticeQuestions>(request.GetRawText(), PracticeJson.Options); }
+            catch (System.Text.Json.JsonException) { return Results.BadRequest(); }
+            if (input is null) return Results.BadRequest();
+            await service.Import(orgId, Actor(user), input, ct); return Results.NoContent();
+        });
         group.MapPost("/questions/{id:guid}/publish", async (Guid orgId, Guid id, ICurrentUser user, PracticeService service, CancellationToken ct) =>
         { await service.Publish(orgId, id, Actor(user), ct); return Results.NoContent(); });
         app.MapHub<PracticeHub>("/api/v1/pvp/hub", options => options.AllowStatefulReconnects = true).RequireAuthorization();
