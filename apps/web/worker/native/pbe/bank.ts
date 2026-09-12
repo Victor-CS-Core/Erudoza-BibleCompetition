@@ -34,7 +34,7 @@ export async function loadPbeBank(ctx:RequestContext,scope:BankScope):Promise<Pb
 export async function loadPbeBankMetadata(ctx:RequestContext,scope:Omit<BankScope,'sourceUnitIds'>){
  const initial=await resolvePbeSources(ctx,scope);
  const bank=await loadFromResolvedSources(ctx,{...scope,sourceUnitIds:initial.sources.map(s=>s.id)},initial);
- return {questionCount:bank.questions.length,targetCount:bank.targets.length,sourceUnitCount:initial.sources.length,missingSourceUnitIds:bank.missingSourceUnitIds};
+ return {questionCount:bank.questions.length,targetCount:bank.targets.length,sourceUnitCount:initial.sources.length,missingSourceUnitIds:bank.missingSourceUnitIds,...(scope.studentId?{}:{uncoveredTargets:bank.targets.filter(t=>!bank.questions.some(q=>q.parts.some(p=>p.targetId===t.id))).length,singleVariantTargets:bank.targets.filter(t=>bank.questions.filter(q=>q.parts.some(p=>p.targetId===t.id)).length===1).length})};
 }
 async function loadFromResolvedSources(ctx:RequestContext,scope:BankScope,initial:Awaited<ReturnType<typeof resolvePbeSources>>):Promise<PbeBank>{
  const restriction=new Set(scope.sourceUnitIds.map(guid));

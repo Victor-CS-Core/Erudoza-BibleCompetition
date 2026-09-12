@@ -8,7 +8,7 @@ const SOURCE_KINDS = new Set(["Scripture", "Commentary"]);
 const SKILLS = new Set(["FactualRecall", "ExactWords"]);
 
 const requiredText = (value: unknown, max = 10_000): value is string =>
-  typeof value === "string" && value.trim().length > 0 && value.length <= max;
+  typeof value === "string" && value.replace(/[\s\u0085]+/gu, "").length > 0 && value.length <= max;
 const guid = (value: unknown): value is string => typeof value === "string" && GUID.test(value) && value !== "00000000-0000-0000-0000-000000000000";
 const exactKeys = (value: object, keys: string[]) => {
   const actual = Object.keys(value).sort();
@@ -26,6 +26,10 @@ const normalize = (text: string) => Array.from(text.normalize("NFC")).map((chara
 }).join("")
   // eslint-disable-next-line no-control-regex
   .replace(/[\u0009-\u000d\u0085\p{Z}]+/gu, " ").replace(/^ +| +$/g, "");
+
+export function validatePbeTarget(target: PbeTarget): void {
+ if (!target || typeof target !== "object" || !exactKeys(target, ["id", "sourceUnitIds", "skill", "label"]) || !guid(target.id) || !guidArray(target.sourceUnitIds) || !SKILLS.has(target.skill) || !requiredText(target.label)) throw new Error("PBE target is invalid.");
+}
 
 export function validatePbeQuestion(question: PbeQuestion, targets: PbeTarget[]): void {
   if (!question || typeof question !== "object" || !exactKeys(question, ["schemaVersion", "id", "version", "contentPackId", "sourceUnitId", "sourceUnitIds", "sourceKind", "reference", "evidence", "kind", "prompt", "ordered", "parts"]))

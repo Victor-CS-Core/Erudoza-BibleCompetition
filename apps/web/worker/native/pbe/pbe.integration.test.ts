@@ -31,6 +31,7 @@ async function setup(measureD1=false){
 }
 it('imports and publishes through HTTP without legacy Team Practice, respects all sources and hides keys',async()=>{
  const {send,ctx,scope}=await setup();
+ const cookie=(await app.login()).headers.get('set-cookie')!.split(';')[0];const bootstrap=await app.fetch(`/api/v1/organizations/${TEST_ORG}/practice/bootstrap`,{headers:{Cookie:cookie}});expect(await bootstrap.json()).toMatchObject({enabled:false,seasons:[{id:season}],questions:[]});
  expect((await send('/questions/import',{questions:[question],targets:[target]})).status).toBe(204);
  expect((await loadPbeBank(ctx,{...scope,studentId:undefined})).questions).toHaveLength(0);
  expect((await send(`/questions/${question.id}/1/publish`,{})).status).toBe(204);
@@ -153,4 +154,36 @@ it('imports Int32 maximum versions but rejects max-plus-one through HTTP',async(
  expect((await send('/questions/import',{questions:[{...question,version:2147483647}],targets:[target]})).status).toBe(204);
  expect((await send('/questions/import',{questions:[{...question,version:2147483648}],targets:[target]})).status).toBe(400);
  const records=await store.list<{question:{version:number}}>('pbe-question',TEST_ORG,{seasonId:season});expect(records.map(r=>r.question.version)).toEqual([2147483647]);
+});
+it('rejects Unicode-only rubric text through HTTP',async()=>{
+ const {send}=await setup();
+ for(const blank of ['\ufeff','\u0085'])for(const field of ['prompt','evidence','label']){
+ const q={...question,id:crypto.randomUUID(),...(field==='label'?{}:{[field]:blank})};const t={...target,...(field==='label'?{label:blank}:{})};
+ expect((await send('/questions/import',{questions:[q],targets:[t]})).status,`${field} ${blank.codePointAt(0)}`).toBe(400);
+ }
+});
+it('imports the supported 100-question 500-target batch within the complete HTTP query budget',async()=>{
+ const {send}=await setup(true);
+ const targets=Array.from({length:500},()=>({...target,id:crypto.randomUUID()}));
+ const questions=Array.from({length:100},(_,i)=>({...question,id:crypto.randomUUID(),parts:targets.slice(i*5,i*5+5).map(t=>({targetId:t.id,acceptedAnswers:['Alpha'],points:1}))}));
+ const response=await send('/questions/import',{questions,targets});expect(response.status).toBe(204);
+ const meter=JSON.parse(response.headers.get('x-test-d1-meter')!);process.stdout.write('A3 import budget '+JSON.stringify(meter)+'\n');expect(meter.statements).toBeLessThanOrEqual(50);
+});
+it('declares targets before questions and bounds coach-only authoring pages',async()=>{
+ const {send}=await setup();
+ expect((await send('/targets',{targets:[null]})).status).toBe(400);
+ expect((await send('/targets',{targets:[target]})).status).toBe(204);
+ const targets=await send('/targets?limit=1');expect(targets.status).toBe(200);expect(await targets.json()).toMatchObject({items:[target],nextCursor:null});
+ const meta=await send('/authoring');expect(meta.status).toBe(200);expect(await meta.json()).toMatchObject({selectedBookKeys:['GEN'],sources:expect.any(Array)});
+ expect((await send('/questions?limit=101')).status).toBe(400);
+ expect((await send('/questions/import',{questions:[question],targets:[target]})).status).toBe(204);
+ expect(await (await send('/questions')).json()).toMatchObject({items:[{published:false,publishedHeadVersion:null,question}],nextCursor:null});
+ const login=await app.fetch('/api/v1/auth/login',{method:'POST',headers:{Origin:'https://erudoza.test','Content-Type':'application/json'},body:JSON.stringify({identifier:'pbe-student',password:'Testing!123'})});
+ for(const path of ['/authoring','/targets','/questions'])expect((await app.fetch(`/api/v1/organizations/${TEST_ORG}/practice/pbe/seasons/${season}${path}`,{headers:{Cookie:login.headers.get('set-cookie')!.split(';')[0]}})).status).toBe(403);
+});
+it('coach authoring pages do not scan unrelated same-season student history',async()=>{
+ const {ctx,send}=await setup();await send('/targets',{targets:[target]});
+ const measure=async()=>{let reads=0;const db=ctx.env.DB;const wrapped=new Proxy(db,{get(object,key){if(key==='prepare')return(sql:string)=>{const statement=object.prepare(sql);if(!sql.startsWith('SELECT id,data FROM Records INDEXED'))return statement;const wrap=(s:typeof statement):typeof statement=>new Proxy(s,{get(o,k){if(k==='bind')return(...v:unknown[])=>wrap(o.bind(...v));if(k==='all')return async()=>{const result=await o.all();reads+=result.meta.rows_read??0;return result;};const member=Reflect.get(o,k);return typeof member==='function'?member.bind(o):member;}});return wrap(statement);};const member=Reflect.get(object,key);return typeof member==='function'?member.bind(object):member;}});
+ const result=await pbeRoutes({...ctx,env:{...ctx.env,DB:wrapped},path:`/practice/pbe/seasons/${season}/targets`,request:new Request(`https://erudoza.test/practice/pbe/seasons/${season}/targets`)});expect(result!.status).toBe(200);return reads;};
+ const before=await measure();await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) SELECT 'pbe-progress',CAST(value AS TEXT),?,?,?,'{}' FROM json_each(?)").bind(TEST_ORG,season,student,JSON.stringify(Array.from({length:1000},(_,i)=>i))).run();const after=await measure();process.stdout.write("A3 authoring page rows "+JSON.stringify({before,after})+"\n");expect(after).toBeLessThanOrEqual(before+2);
 });

@@ -35,6 +35,16 @@ public static class PracticeEndpoints
         pbe.MapPost("/introductions/{id:guid}/review", (Guid orgId, Guid seasonId, Guid id, System.Text.Json.JsonElement request, PbeIntroductionService service, CancellationToken ct) => service.Update(orgId, seasonId, id, true, request, ct));
         pbe.MapPost("/introductions/{id:guid}/assignments", (Guid orgId, Guid seasonId, Guid id, System.Text.Json.JsonElement request, PbeIntroductionService service, CancellationToken ct) => service.Update(orgId, seasonId, id, false, request, ct));
         pbe.MapGet("/introductions/{id:guid}/reader", (Guid orgId, Guid seasonId, Guid id, PbeIntroductionService service, CancellationToken ct) => service.Reader(orgId, seasonId, id, ct));
+        pbe.MapGet("/authoring", (Guid orgId, Guid seasonId, string? membersAfter, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbeAuthoring(orgId, seasonId, membersAfter, Actor(user), bank, ct));
+        pbe.MapGet("/targets", (Guid orgId, Guid seasonId, int? limit, string? after, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbePage(orgId, seasonId, "pbe-target", limit, after, Actor(user), bank, ct));
+        pbe.MapGet("/questions", (Guid orgId, Guid seasonId, int? limit, string? after, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbePage(orgId, seasonId, "pbe-question", limit, after, Actor(user), bank, ct));
+        pbe.MapPost("/targets", async (Guid orgId, Guid seasonId, System.Text.Json.JsonElement request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) =>
+        {
+            List<Erudoza.Domain.Practice.PbeTarget>? targets;
+            try { targets = System.Text.Json.JsonSerializer.Deserialize<List<Erudoza.Domain.Practice.PbeTarget>>(request.GetProperty("targets").GetRawText(), PbeQuestionBank.Json); }
+            catch (Exception e) when (e is System.Text.Json.JsonException or KeyNotFoundException or InvalidOperationException) { throw new Erudoza.Domain.DomainException("Malformed targets."); }
+            await service.PbeTargets(orgId, seasonId, targets!, Actor(user), bank, ct); return Results.NoContent();
+        });
         pbe.MapGet("/bank", (Guid orgId, Guid seasonId, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbeMetadata(orgId, seasonId, Actor(user), bank, ct));
         pbe.MapPost("/enabled", async (Guid orgId, Guid seasonId, PbeEnabledRequest request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => { await service.PbeEnable(orgId, seasonId, request.Enabled, Actor(user), bank, ct); return Results.NoContent(); });
         pbe.MapPost("/questions/import", async (Guid orgId, Guid seasonId, System.Text.Json.JsonElement request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) =>

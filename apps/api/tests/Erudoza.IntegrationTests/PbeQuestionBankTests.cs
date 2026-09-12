@@ -82,6 +82,18 @@ public sealed class PbeQuestionBankTests
         var qid = Guid.NewGuid(); var tid = Guid.NewGuid();
         var question = new { schemaVersion = 2, id = qid, version = 1, contentPackId = a.ContentPackId, sourceUnitId = a.Id, sourceUnitIds = new[] { a.Id, b.Id }, sourceKind = "Scripture", reference = $"{a.CitationLabel}; {b.CitationLabel}", evidence = a.CanonicalText, kind = "ShortAnswer", prompt = "Name both labels.", ordered = false, parts = new[] { new { targetId = tid, acceptedAnswers = new[] { "Alpha and Beta" }, points = 1 } } };
         var input = new { questions = new[] { question }, targets = new[] { new { id = tid, sourceUnitIds = new[] { a.Id, b.Id }, skill = "FactualRecall", label = "Both labels" } } };
+        foreach (var blank in new[] { "\ufeff", "\u0085" }) foreach (var field in new[] { "prompt", "evidence", "label" })
+        {
+            var unicode = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(input))!;
+            if (field == "label") unicode["targets"]![0]![field] = blank;
+            else unicode["questions"]![0]![field] = blank;
+            Assert.Equal(HttpStatusCode.BadRequest, (await coach.PostAsJsonAsync(path + "/questions/import", unicode)).StatusCode);
+        }
+        Assert.Equal(HttpStatusCode.BadRequest, (await coach.PostAsJsonAsync(path + "/targets", new { targets = new object?[] { null } })).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await coach.PostAsJsonAsync(path + "/targets", new { targets = input.targets })).StatusCode);
+        Assert.Single((await coach.GetFromJsonAsync<JsonElement>(path + "/targets?limit=1")).GetProperty("items").EnumerateArray());
+        Assert.Equal(HttpStatusCode.OK, (await coach.GetAsync(path + "/authoring")).StatusCode);
+        foreach (var endpoint in new[] { "/authoring", "/targets", "/questions" }) Assert.Equal(HttpStatusCode.Forbidden, (await student.GetAsync(path + endpoint)).StatusCode);
         var malformed = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(input))!;
         foreach (var invalid in new[] { "null", "{\"schemaVersion\":2}" })
         {

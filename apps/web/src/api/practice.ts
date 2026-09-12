@@ -28,3 +28,29 @@ export const practiceApi = {
   import: (org: string, seasonId: string, questions: PracticeQuestion[]) => post<void>(`${base(org)}/questions/import`, { seasonId, questions }),
   publish: (org: string, id: string) => post<void>(`${base(org)}/questions/${encodeURIComponent(id)}/publish`, {}),
 };
+
+// Coach-only authoring DTOs. These keys never belong in learner bootstrap data.
+export type PbeTargetView = { id:string; label:string; skill:'FactualRecall'|'ExactWords' };
+export type PbeTarget = PbeTargetView & {sourceUnitIds:string[]};
+export type PbeAuthorQuestion = {schemaVersion:2;id:string;version:number;contentPackId:string;sourceUnitId:string;sourceUnitIds:string[];sourceKind:'Scripture'|'Commentary';reference:string;evidence:string;kind:'ShortAnswer'|'List'|'ExactWords'|'TrueFalse';prompt:string;ordered:boolean;parts:{targetId:string;acceptedAnswers:string[];points:number}[]};
+export type PbeSource = {id:string;contentPackId:string;sourceKind:'Scripture'|'Commentary';bookKey:string;chapter:number|null;verse:number|null;citation:string;canonicalText:string};
+export type PbeAuthoring = {sources:PbeSource[];selectedBookKeys:string[];pbeEnabled:boolean;members:{id:string;displayName:string}[];membersNextCursor:string|null};
+export type PbeBank = {questionCount:number;targetCount:number;sourceUnitCount:number;missingSourceUnitIds:string[];uncoveredTargets:number;singleVariantTargets:number};
+export type PbeQuestionRecord = {id:string;seasonId:string;published:boolean;publishedHeadVersion:number|null;question:PbeAuthorQuestion};
+export type PbeIntroduction = {id:string;bookKey:string;sourceEdition:string;title:string;citation:string;licensingStatus:string;reviewed:boolean;units:{id:string;citation:string;canonicalText:string}[];revision:number;assignedStudentIds:string[]};
+type Page<T> = {items:T[];nextCursor:string|null};
+const pbeBase=(org:string,season:string)=>`${base(org)}/pbe/seasons/${encodeURIComponent(season)}`;
+export const pbeApi = {
+ authoring:(org:string,season:string,after='')=>request<PbeAuthoring>(`${pbeBase(org,season)}/authoring?membersAfter=${encodeURIComponent(after)}`),
+ bank:(org:string,season:string)=>request<PbeBank>(`${pbeBase(org,season)}/bank`),
+ targets:(org:string,season:string,after='')=>request<Page<PbeTarget>>(`${pbeBase(org,season)}/targets?limit=100&after=${encodeURIComponent(after)}`),
+ questions:(org:string,season:string,after='')=>request<Page<PbeQuestionRecord>>(`${pbeBase(org,season)}/questions?limit=100&after=${encodeURIComponent(after)}`),
+ declare:(org:string,season:string,targets:PbeTarget[])=>post<void>(`${pbeBase(org,season)}/targets`,{targets}),
+ import:(org:string,season:string,questions:PbeAuthorQuestion[],targets:PbeTarget[])=>post<void>(`${pbeBase(org,season)}/questions/import`,{questions,targets}),
+ publish:(org:string,season:string,id:string,version:number)=>post<void>(`${pbeBase(org,season)}/questions/${id}/${version}/publish`,{}),
+ enabled:(org:string,season:string,enabled:boolean)=>post<void>(`${pbeBase(org,season)}/enabled`,{enabled}),
+ introductions:(org:string,season:string)=>request<PbeIntroduction[]>(`${pbeBase(org,season)}/introductions`),
+ createIntroduction:(org:string,season:string,input:{bookKey:string;sourceEdition:string;title:string;citation:string;licensingStatus:string;units:{citation:string;canonicalText:string}[]})=>post<PbeIntroduction>(`${pbeBase(org,season)}/introductions`,input),
+ reviewIntroduction:(org:string,season:string,id:string,revision:number,reviewed:boolean)=>post<PbeIntroduction>(`${pbeBase(org,season)}/introductions/${id}/review`,{revision,reviewed}),
+ assignIntroduction:(org:string,season:string,id:string,revision:number,studentIds:string[])=>post<PbeIntroduction>(`${pbeBase(org,season)}/introductions/${id}/assignments`,{revision,studentIds}),
+};

@@ -155,7 +155,11 @@ public static partial class PbeRubric
 
     private static bool HasExtra(Dictionary<string, JsonElement>? extra) => extra is { Count: > 0 };
     private static bool ValidIds(List<Guid>? ids) => ids is { Count: > 0 and <= 50 } && ids.All(id => id != Guid.Empty) && ids.Distinct().Count() == ids.Count;
-    private static bool Text(string? value, int max = 10_000) => !string.IsNullOrWhiteSpace(value) && value.Length <= max;
+    public static void ValidateTarget(PbeTarget target)
+    {
+        if (target is null || HasExtra(target.Extra) || target.Id == Guid.Empty || !ValidIds(target.SourceUnitIds) || !Enum.IsDefined(target.Skill) || !Text(target.Label)) throw new ArgumentException("Invalid PBE target.");
+    }
+    private static bool Text(string? value, int max = 10_000) => value is not null && value.Any(c => !char.IsWhiteSpace(c) && c != '\ufeff') && value.Length <= max;
     private static string Normalize(string text) => Whitespace().Replace(text.Normalize(NormalizationForm.FormC).Trim(), " ").ToUpperInvariant();
     [GeneratedRegex(@"\s+")]
     private static partial Regex Whitespace();

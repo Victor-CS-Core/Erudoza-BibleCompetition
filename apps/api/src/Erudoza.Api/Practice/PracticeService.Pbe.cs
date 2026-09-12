@@ -18,7 +18,53 @@ public sealed partial class PracticeService
         var resolved = await bank.ResolveAsync(org, season, student, ct);
         var result = await bank.LoadAsync(new(org, season, student, resolved.Sources.Select(s => s.Id).ToList()), ct);
         if ((await bank.ResolveAsync(org, season, student, ct)).Fingerprint != resolved.Fingerprint) throw new PbeBankConflictException("The PBE scope changed. Refresh and retry.");
-        return new { questionCount = result.Questions.Count, targetCount = result.Targets.Count, sourceUnitCount = resolved.Sources.Count, missingSourceUnitIds = result.MissingSourceUnitIds };
+        if (student is not null) return new { questionCount = result.Questions.Count, targetCount = result.Targets.Count, sourceUnitCount = resolved.Sources.Count, missingSourceUnitIds = result.MissingSourceUnitIds };
+        return new { questionCount = result.Questions.Count, targetCount = result.Targets.Count, sourceUnitCount = resolved.Sources.Count, missingSourceUnitIds = result.MissingSourceUnitIds, uncoveredTargets = result.Targets.Count(t => !result.Questions.Any(q => q.Parts.Any(p => p.TargetId == t.Id))), singleVariantTargets = result.Targets.Count(t => result.Questions.Count(q => q.Parts.Any(p => p.TargetId == t.Id)) == 1) };
+    }
+    public async Task<object> PbeAuthoring(Guid org, Guid season, string? membersAfter, PracticeActor actor, IPbeQuestionBank bank, CancellationToken ct)
+    {
+        await Check(actor, org, ct, false); if (!actor.Admin) throw new PracticeForbiddenException();
+        var resolved = await bank.ResolveAsync(org, season, null, ct);
+        var after = membersAfter ?? "";
+        var members = await db.CompetitionMembers.Where(m => m.OrganizationId == org && m.SeasonId == season)
+            .Join(db.Users.Where(u => u.IsActive && u.Kind == UserKind.Student && db.OrganizationMembers.Any(o => o.OrganizationId == org && o.UserId == u.Id && o.Role == OrganizationRole.Student)), m => m.UserId, u => u.Id, (m, u) => new { u.Id, u.DisplayName })
+            .Where(u => string.Compare(u.Id.ToString(), after) > 0).OrderBy(u => u.Id).Take(101).ToListAsync(ct);
+        var books = await db.ScopeEntries.Where(e => e.OrganizationId == org && e.SeasonId == season && e.Kind == ScopeEntryKind.Include).Select(e => e.BookKey).Distinct().ToListAsync(ct);
+        return new { sources = resolved.Sources.Select(s => new { s.Id, s.ContentPackId, s.SourceKind, s.BookKey, s.Chapter, s.Verse, s.Ordinal, citation = s.CitationLabel, s.CanonicalText }), selectedBookKeys = books.Order().ToList(), pbeEnabled = await db.Seasons.Where(s => s.OrganizationId == org && s.Id == season).Select(s => s.PbeEnabled).SingleAsync(ct), members = members.Take(100), membersNextCursor = members.Count > 100 ? members[99].Id.ToString() : null };
+    }
+    public async Task<object> PbePage(Guid org, Guid season, string kind, int? limit, string? after, PracticeActor actor, IPbeQuestionBank bank, CancellationToken ct)
+    {
+        await Check(actor, org, ct, false); if (!actor.Admin) throw new PracticeForbiddenException();
+        await bank.ResolveAsync(org, season, null, ct);
+        var size = limit ?? 50; var cursor = after ?? "";
+        if (size is < 1 or > 100 || cursor.Length > 100) throw new DomainException("Choose a page size from 1 to 100.");
+        var rows = await db.PbeTrainingRecords.AsNoTracking().Where(r => r.OrganizationId == org && r.SeasonId == season && r.Kind == kind && string.Compare(r.Id, cursor) > 0).OrderBy(r => r.Id).Take(size + 1).ToListAsync(ct);
+        if (kind == "pbe-question")
+        {
+            var data = rows.Take(size).Select(r => JsonSerializer.Deserialize<PbeBankQuestionData>(r.DataJson, PbeQuestionBank.Json)!).ToList();
+            var ids = data.Select(r => r.Question.Id.ToString()).Distinct().ToList();
+            var heads = await db.PbeTrainingRecords.AsNoTracking().Where(r => r.OrganizationId == org && r.SeasonId == season && r.Kind == "pbe-question-head" && ids.Contains(r.Id)).ToListAsync(ct);
+            var versions = heads.ToDictionary(r => r.Id, r => JsonSerializer.Deserialize<PbeBankQuestionData>(r.DataJson, PbeQuestionBank.Json)!.Question.Version);
+            return new { items = data.Select(r => new { r.Id, r.SeasonId, r.Published, r.Question, publishedHeadVersion = versions.TryGetValue(r.Question.Id.ToString(), out var version) ? (int?)version : null }), nextCursor = rows.Count > size ? rows[size - 1].Id : null };
+        }
+        return new { items = rows.Take(size).Select(r => JsonSerializer.Deserialize<JsonElement>(r.DataJson)), nextCursor = rows.Count > size ? rows[size - 1].Id : null };
+    }
+    public async Task PbeTargets(Guid org, Guid season, List<PbeTarget> targets, PracticeActor actor, IPbeQuestionBank bank, CancellationToken ct)
+    {
+        await Check(actor, org, ct, false); if (!actor.Admin) throw new PracticeForbiddenException();
+        try { if (targets is null || targets.Count is < 1 or > 500 || targets.Any(t => t is null) || targets.Select(t => t.Id).Distinct().Count() != targets.Count) throw new ArgumentException(); foreach (var t in targets) PbeRubric.ValidateTarget(t); }
+        catch (ArgumentException) { throw new DomainException("Declare 1–500 valid targets."); }
+        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        var resolved = await bank.ResolveAsync(org, season, null, ct);
+        foreach (var t in targets)
+        {
+            if (t.SourceUnitIds.Any(id => !resolved.Sources.Any(s => s.Id == id))) throw new DomainException("Choose approved season sources.");
+            var id = t.Id.ToString(); var json = JsonSerializer.Serialize(t, PbeQuestionBank.Json);
+            var prior = await db.PbeTrainingRecords.SingleOrDefaultAsync(r => r.OrganizationId == org && r.Kind == "pbe-target" && r.Id == id, ct);
+            if (prior is not null) { if (prior.SeasonId != season || prior.DataJson != json) throw new PbeBankConflictException("Target meaning is immutable; declare a new target ID."); }
+            else db.PbeTrainingRecords.Add(new() { OrganizationId = org, SeasonId = season, Kind = "pbe-target", Id = id, OwnerId = t.SourceUnitIds[0], DataJson = json });
+        }
+        await db.SaveChangesAsync(ct); await transaction.CommitAsync(ct);
     }
     public async Task PbeEnable(Guid org, Guid season, bool enabled, PracticeActor actor, IPbeQuestionBank bank, CancellationToken ct)
     {

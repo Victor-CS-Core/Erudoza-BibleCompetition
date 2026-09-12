@@ -161,8 +161,8 @@ export function PracticeHub() {
           <p>{trend.distinctQuestions} distinct questions · {trend.distinctPassages} passages · {trend.participatedQuestions} questions with your participation · {trend.unansweredQuestions} unanswered questions.</p><small>Rules: {trend.ruleVersion}</small>
         </article>)}
       </Panel>
-      {coach && <div id="question-bank"><QuestionEditor org={org} data={data} /></div>}
     </>}
+    {data && coach && <div id="question-bank"><QuestionEditor org={org} data={data} /></div>}
     <p className="practice-hub-footnote">Erudoza head-to-head training · Accuracy first, teamwork throughout.</p>
   </div>;
 }
