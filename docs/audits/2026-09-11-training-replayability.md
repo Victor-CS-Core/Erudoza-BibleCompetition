@@ -4,7 +4,9 @@ Date: September 11, 2026. Reviewed source: `6be36f0`, whose application files ma
 
 ## Assessment
 
-Training has a useful repeatable foundation: assigned Scripture, five exercises, saved sessions, daily review and practice, weekly goals, passage progress, permanent Honors and profile rewards. Students can continue after completing the daily mission. The important next step is to make repeated practice reliably cover each passage's missing skills and then verify recall after a delay.
+Training has a useful repeatable foundation: assigned Scripture, five exercises, saved sessions, daily review and practice, weekly goals, passage progress, permanent Honors and profile rewards. Students can continue after completing the daily mission. The important next step is to make repeated practice cover the assigned material through PBE-style questions and then verify recall after a delay.
+
+**PBE standards follow-up:** the current application is not yet a faithful competition rehearsal. The [official-rule crosswalk and revised priorities](2026-09-11-pbe-training-alignment.md) supersede any implication that reference guessing, verse construction, or speed rewards establish PBE readiness. They remain possible study aids. Short factual answers with references supplied, rubric points, and competition timing must drive rehearsal. This follow-up changes recommendations, not deployed behavior.
 
 The current selector can repeatedly give a verse the same exercise. The scheduler can postpone a failed wording review after a correct recognition answer. Advanced exercise design also introduces avoidable repetition and excessive input work. These are material limitations for the goal of memorizing complete assigned chapters.
 
@@ -44,7 +46,7 @@ In 16 consecutive all-correct Standard drills over Daniel 1:1–8, all 128 cards
 
 The same Advanced experiment produced wording evidence on only three of eight verses and reference evidence on two. No verse gained both. Daniel 1:4 remained without its own accepted recall evidence: using it as the prompt for verse 5 correctly credits the answer verse, but the selector keeps counting verse 4 as exposed. A 24-verse Advanced assignment repeated three eight-card templates across 12 drills and showed the same allocation weakness.
 
-**Recommendation:** select the passage and the skill together. Track accepted evidence and recent activity per passage; rotate eligible wording, reference and sequence opportunities across sessions. Give weak or overdue skills explicit priority, while retaining coverage of new assigned content. Preserve deterministic generation and immutable cards after selection. Do not fabricate exact-wording credit for recognition or for merely displaying a prompt.
+**Recommendation:** select the passage and the tested knowledge together. Track accepted evidence and recent questions per passage; prioritize factual recall and question-specific wording across sessions. Rotate reference and sequence exercises as supporting study activities. Give weak or overdue knowledge explicit priority, while retaining coverage of new assigned content. Preserve deterministic generation and immutable cards after selection. Do not fabricate recall credit for recognition or for merely displaying a prompt.
 
 Sources: [native selector](../../apps/web/worker/native/study/routes.ts), particularly lines 112–140; [activity chooser](../../apps/web/worker/native/study/engine.ts), line 29; [canonical StudyEngine](../../apps/api/src/Erudoza.Application/Study/StudyEngine.cs).
 
@@ -62,7 +64,7 @@ Sources: [native mastery and review functions](../../apps/web/worker/native/stud
 
 Advanced divides a verse into individual words. The student can move each word only one position at a time with Up/Down. Daniel 1:2 has 47 whitespace-delimited words; 20 deterministic shuffles required 281–449 adjacent moves (median 375) even when the correct order was already known. Duplicate words were treated as interchangeable when calculating the minimum moves. This measures interface work, not observed student completion time.
 
-**Recommendation:** retain phrase-sized chunks for long verses, offer tap-to-append or accessible direct-position movement, and make full-verse typing the advanced recall task. Support keyboard and touch. Choose a maximum reasonable interaction count and test representative long verses on a phone before shipping.
+**Recommendation:** retain phrase-sized chunks for long verses and offer tap-to-append or accessible direct-position movement. Keep full-verse typing available as an optional memorization exercise; advanced PBE rehearsal should use the answer length and rubric required by the question. Support keyboard and touch. Choose a maximum reasonable interaction count and test representative long verses on a phone before shipping.
 
 Sources: [native Verse Builder generation](../../apps/web/worker/native/study/engine.ts), line 35; [student answer controls](../../apps/web/src/features/student/StudyPage.tsx), `ChallengeInput`; [canonical generator](../../apps/api/src/Erudoza.Domain/Study/VerseBuilderGenerator.cs).
 
@@ -72,7 +74,7 @@ Across 20 generated sessions for each of Daniel 1's 21 verses, 20 verses retaine
 
 This is useful cued recall, but it is not an independent full-verse recall check. Current passage `Mastered` means exact wording at least 80 and recognition at least 70; it does not itself require delayed recall or reference mastery. Some newer Honors have stricter reference and delayed-retest criteria, which is a valuable existing distinction.
 
-**Recommendation:** add a transparent progression from supported reading to varied gaps, reduced cues and full-verse recall. Require delayed unaided evidence for a retained/chapter-ready state. Preserve existing earned Honors and version any changed scoring criteria.
+**Recommendation:** add a transparent progression from supported reading to varied gaps and unaided answers. Use full-verse recall when practicing a quotation or when the student chooses that memorization goal. Require delayed unaided PBE-format evidence for a separate rehearsal-readiness state. Preserve existing earned Honors and version any changed scoring criteria.
 
 Sources: [native generation/scoring](../../apps/web/worker/native/study/engine.ts), lines 34 and 48; [canonical Missing Words](../../apps/api/src/Erudoza.Domain/Study/MissingWordsGenerator.cs); [mastery Honor evidence](../../apps/web/worker/native/mastery/solo-rules.ts).
 
@@ -93,14 +95,14 @@ Sources: [Honor catalog](../../apps/web/worker/native/mastery/catalog.ts); [Hono
 Extend the existing Pathfinder journey and patch system with these mechanics, in order:
 
 1. **Chapter expeditions.** Turn each assigned chapter into selectable groups of roughly three to five verses. Each group visibly progresses through practiced, recalled and retained. Use the exact assigned denominator when only part of a chapter is assigned; every assigned passage remains accessible.
-2. **Verse chains and chapter checkpoints.** Recall adjacent assigned verses with fewer cues, then start from a different reference to test flexible recall. Combine wording, reference and sequence in a chapter checkpoint. Give a dated chapter stamp after an unaided delayed retest, with a later maintenance challenge. Never cross excluded or unassigned content.
+2. **PBE chapter checkpoints.** Answer fresh, source-backed factual, list and exact-word questions from the assigned chapter, with references supplied. Give a dated chapter stamp after an unaided delayed retest, with a later maintenance challenge. Verse chains can support memorization, but do not replace this checkpoint. Never cross excluded or unassigned content.
 3. **Comeback quests.** Offer a small “repair these two passages” activity after mistakes, highlight exactly what needs work, and reward later successful recall. Retrying should feel productive; errors should not erase the day's effort or existing patches.
-4. **Focused daily choices.** Offer “strengthen wording,” “practice references,” or “continue this chapter,” selected from actual missing evidence. Keep the daily workload bounded. Optional reference speed rounds fit rehearsal after accuracy develops; ordinary learning should reward recall rather than typing speed.
+4. **Focused daily choices.** Offer “review missed questions,” “practice exact words,” or “continue this chapter,” selected from actual missing evidence. Keep the daily workload bounded. Timed rehearsal should use the question's point-based response window and reward correct answer parts, with no early-answer bonus. Reference games remain optional study aids.
 5. **Shared team expeditions and seasonal keepsakes.** Let each student contribute a bounded amount by retaining their own assigned passages. Award a team/season pennant alongside permanent mastery patches. Use personal improvement and cooperative goals so assignment size, typing speed and access to the app do not determine who matters most.
 
-A concrete session could review three due passages, practice three new/weak ones, repair one earlier error, and finish with a short verse chain. This is a proposed composition, not a rigid replacement for the existing eight-card rule. Measure effort and adjust for long verses and student ability.
+A concrete session could answer three due PBE-style questions, practice three new or weak knowledge targets, repair one earlier error, and finish with a fresh question testing transfer. This is a proposed short practice composition, not a full competition simulation or a rigid replacement for the existing eight-card rule. Measure effort and adjust for student ability.
 
-The first implementation priority should be skill coverage and review scheduling, paired with the Verse Builder input fix. Chapter expeditions and checkpoints then give those improvements a clear student-facing purpose. Additional currencies or more static badge art would add less value at this stage.
+The first implementation priority should be PBE question delivery and accurate rehearsal scoring, coupled with question coverage and review scheduling. Improve Verse Builder as a supporting study tool. Chapter expeditions and checkpoints then give those improvements a clear student-facing purpose. Additional currencies or more static badge art would add less value at this stage.
 
 ## Learning rationale and success measures
 
@@ -110,11 +112,11 @@ Cepeda and colleagues found that useful practice spacing depends on the intended
 
 Sailer and colleagues found that different game elements affected different motivational needs; their experiment supports connecting feedback, meaningful progress and team identity to a purpose. It does not show that adding badges alone guarantees learning. [Original research](https://doi.org/10.1016/j.chb.2016.12.033).
 
-Evaluate changes using the fraction of assigned verses receiving each relevant recall skill, first-attempt unaided recall after 48 hours and seven days, chapter/reference accuracy, recovery of missed passages, session completion/return rates, and median actions/time per exercise. Compare cohorts or a small coached pilot using the same passage scope and difficulty; record hints separately. Exercise count, a completed mission and a permanent Honor are useful evidence of different things and should not be treated as interchangeable measures of current chapter readiness.
+Evaluate changes using coverage of published knowledge targets across assigned passages, first-attempt unaided PBE question accuracy after 48 hours and seven days, rubric points earned, recovery of missed knowledge, session completion/return rates, and median actions/time per exercise. Track reference and sequence skill separately as study outcomes. Compare cohorts or a small coached pilot using the same passage scope and difficulty; record hints separately. Exercise count, a completed mission and a permanent Honor are useful evidence of different things and should not be treated as interchangeable measures of current chapter readiness.
 
 ## Next verification gates
 
-- Demonstrate wording and reference opportunities for every eligible verse across repeated sessions with assignment sizes 1, 2, 8, 16, 21, 24 and 100+, including uneven/excluded ranges. Test both exposure and answer-target coverage.
+- First satisfy the [PBE alignment acceptance gates](2026-09-11-pbe-training-alignment.md#acceptance-gates). Demonstrate relevant factual and exact-word question coverage across repeated sessions with assignment sizes 1, 2, 8, 16, 21, 24 and 100+, including uneven/excluded ranges. Test both prompt exposure and answer-target coverage; identify passages missing authored questions instead of overstating readiness.
 - Demonstrate that recognition or hinted success cannot clear an unresolved unaided recall failure; test correct, wrong and partially completed review sessions across days.
 - Exercise coach difficulty changes, short assignments, long verses, deterministic replay, immutable results and retained historical Honors in both runtimes.
 - Check actual student/coach flows on desktop and phone, then run a small student pilot measuring delayed recall. Synthetic canonical answers only validate software behavior.
