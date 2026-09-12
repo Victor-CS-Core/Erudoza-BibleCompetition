@@ -359,3 +359,82 @@ test("browser installation also supports the separate userChoice result", async 
   await page.getByRole("button", { name: "Install app", exact: true }).click();
   await expect(page.getByRole("button", { name: "Install app", exact: true })).toHaveCount(0);
 });
+
+const minimizeSupport = (page: Page) => page.getByRole("button", { name: "Minimize support widget" });
+const restoreSupport = (page: Page) => page.getByRole("button", { name: "Show floating support button" });
+const footerSupport = (page: Page) => page.getByRole("link", { name: "Support Erudoza (opens in a new tab)" });
+
+for (const width of [1440, 390, 320]) {
+  test(`support minimization persists through reload and account transitions at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 844 });
+    await installFixtures(page);
+    await page.goto("/");
+    await expect(launcher(page)).toBeVisible();
+    const before = await page.locator("footer").evaluate(el => parseFloat(getComputedStyle(el).paddingBottom));
+    const box = await assertWithinViewport(page, minimizeSupport(page));
+    expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
+    const providerBox = await launcher(page).boundingBox();
+    expect(box.x + box.width).toBeLessThanOrEqual(providerBox!.x);
+    await page.screenshot({ path: info.outputPath(`support-expanded-${width}.png`) });
+    await minimizeSupport(page).click();
+    await expect(launcher(page)).toBeHidden(); await expect(fallbackLink(page)).toHaveCount(0);
+    await expect(footerSupport(page)).toBeFocused();
+    expect(await page.locator("footer").evaluate(el => parseFloat(getComputedStyle(el).paddingBottom))).toBeLessThan(before);
+    await footerSupport(page).scrollIntoViewIfNeeded();
+    await assertNoOverflow(page);
+    await page.screenshot({ path: info.outputPath(`support-minimized-${width}.png`) });
+    await page.addInitScript(() => {
+      if (localStorage.getItem("erudoza:coffee-minimized:v1") !== "1") return;
+      new MutationObserver(() => {
+        if (document.documentElement?.dataset.erudozaCoffeeReady === "true") document.documentElement.dataset.coffeeFlashed = "true";
+      }).observe(document, { subtree: true, attributes: true, attributeFilter: ["data-erudoza-coffee-ready"] });
+    });
+    await page.reload();
+    await expect(restoreSupport(page)).toBeVisible(); await expect(launcher(page)).toBeHidden();
+    await expect(page.locator("html")).not.toHaveAttribute("data-coffee-flashed", "true");
+    await page.getByRole("link", { name: "Sign in", exact: true }).click();
+    await expect(restoreSupport(page)).toHaveCount(0);
+    await signIn(page, "coach");
+    await expect(restoreSupport(page)).toBeVisible(); await expect(launcher(page)).toBeHidden();
+    await signOut(page); await signIn(page, "student");
+    await expect(footerSupport(page)).toHaveCount(0); await expect(minimizeSupport(page)).toHaveCount(0);
+    await signOut(page); await signIn(page, "coach");
+    await restoreSupport(page).click();
+    await expect(minimizeSupport(page)).toBeFocused(); await expect(launcher(page)).toBeVisible();
+    await page.reload(); await expect(launcher(page)).toBeVisible();
+  });
+}
+
+test("support minimization works with a blocked provider and unavailable storage", async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(window, "localStorage", { get() { throw new DOMException("Denied", "SecurityError"); } }));
+  await page.setViewportSize({ width: 320, height: 844 });
+  await installFixtures(page, true);
+  await page.goto("/");
+  await assertWithinViewport(page, minimizeSupport(page));
+  await assertWithinViewport(page, fallbackLink(page));
+  await minimizeSupport(page).click();
+  await expect(fallbackLink(page)).toHaveCount(0);
+  await page.getByRole("link", { name: "Sign in", exact: true }).click();
+  await signIn(page, "coach");
+  await expect(restoreSupport(page)).toBeVisible();
+  await expect(footerSupport(page)).toHaveAttribute("href", "https://buymeacoffee.com/erudoza");
+  await restoreSupport(page).click();
+  await expect(fallbackLink(page)).toBeVisible(); await expect(minimizeSupport(page)).toBeFocused();
+});
+
+test("support minimization synchronizes tabs and safely closes an open popup", async ({ page, context }) => {
+  await installFixtures(page); await page.goto("/");
+  const other = await context.newPage();
+  await installFixtures(other); await other.goto("/");
+  await launcher(other).click(); await expect(other.locator("#root")).toHaveJSProperty("inert", true);
+  await minimizeSupport(page).click();
+  await expect(launcher(other)).toBeHidden(); await expect(other.locator("#bmc-iframe")).toBeHidden();
+  await expect(other.locator("#root")).toHaveJSProperty("inert", false);
+  await expect(footerSupport(other)).toBeFocused();
+  await restoreSupport(other).click();
+  await expect(launcher(page)).toBeVisible(); await expect(launcher(other)).toBeVisible();
+  await minimizeSupport(page).click();
+  await other.evaluate(() => localStorage.clear());
+  await expect(launcher(page)).toBeVisible();
+  await other.close();
+});

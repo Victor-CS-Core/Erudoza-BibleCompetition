@@ -5,7 +5,7 @@ import { PathfinderBackdrop } from "../../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../../components/AppIcon";
 import { LinkButton } from "../../components/ui";
 import { InstallApp } from "../install/InstallApp";
-import { CoffeeWidget } from "../support/CoffeeWidget";
+import { CoffeeFooter, CoffeeWidget } from "../support/CoffeeWidget";
 import "../../styles/training-public.css";
 
 export function LandingPage() {
@@ -33,6 +33,6 @@ export function LandingPage() {
       </section>
       <section className="public-coach"><img className="public-coach-art" src="/assets/training/coach-guide-480.webp" srcSet="/assets/training/coach-guide-480.webp 480w, /assets/training/coach-guide-960.webp 960w" sizes="(min-width: 900px) 320px, 80vw" width={480} height={320} loading="lazy" alt="" /><div><h2>Give every student a clear next step.</h2><p>Choose a season’s passages, set each student’s difficulty, and follow their progress in one place.</p><Link to="/signup">Create a club with a coach account →</Link></div><LinkButton to="/login" variant="secondary">Sign in as a coach<AppIcon name="arrow" /></LinkButton></section>
     </main>
-    <footer className="public-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</footer>
+    <footer className="public-footer"><CoffeeFooter />SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</footer>
   </div>;
 }

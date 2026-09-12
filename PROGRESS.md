@@ -4,6 +4,8 @@ Read this file before starting repository work. `AGENTS.md` defines the required
 
 ## Current state — 2026-09-12
 
+- Remembered support minimization is locally verified on `codex/coffee-minimize` based on `cda9e0c`: 627 source tests passed / 1 optional skip; 154 complete cross-engine browser checks plus normal/blocked native chapter flows passed. Scope is browser-local preference and eligible footer controls. No main merge/deployment for this task; reviewed checkpoint/push follows. See the [audit](docs/audits/2026-09-12-support-minimization.md).
+
 - The chapter-assignment feature is LIVE at https://erudoza.com from verified main source `1080f8a`, including the separately merged coach/student mode and coffee/PWA changes. Worker `f7675d55-aa5c-400a-8b9f-96df2a9ecf86` receives100%traffic; no database migration was needed. Thirty credential-free live checks passed at15:56:34UTC. Both local and remote `codex/chapter-assignments` branches are deleted; the detached worktree retains ignored build/test evidence. Source CI run34703655578 is still in progress and is not claimed passed. See the final release gate below.
 
 ### Earlier release state (historical)
@@ -342,3 +344,16 @@ At each gate, refresh Current state/Next actions and add the result to Gates and
 - Credential-free live smoke passed **30/30** at **15:56:34UTC**: native API/D1 health, three anonymous401guards, landing/login/signup and exact HTML, fourJS/CSS assets, all ten Honor images, standalone manifest and three installation icons, configured support script/order, canonical path/query redirects and disabled workers.dev. Private report: .local/deployment/chapter-release-20260912/production-edge-1080f8a.json. No authenticated production account mutation, hosted fixture, message, email, payment or physical-device installation was performed; authenticated chapter/progress/player flows retain the local evidence above.
 - Cleanup verified: remote codex/chapter-assignments was deleted; local branch deletion succeeded after confirming it is an ancestor of main and detaching its clean worktree at1080f8a. The detached worktree retains ignored test/build evidence. Other task branches/worktrees are preserved. Remote main still matches1080f8a at cleanup readback.
 - GitHub CI for source1080f8a is running at https://github.com/Victor-CS-Core/Erudoza-BibleCompetition/actions/runs/34703655578; the infrastructure job passed at the latest snapshot, with other jobs still running. The earlier main browser failures were corrected and validated locally; a new complete remote CI pass is not claimed. This documentation-only release checkpoint uses [skip ci] to avoid a duplicate run on identical application code while that source run continues. Deployment and requested branch cleanup are complete.
+
+## Remembered support minimization — implementation started, September 12
+
+- User approved browser-local minimization to eligible footer support/restore controls, with persistent versioned preference, tab synchronization and in-memory storage fallback. No donor verification, backend/schema change, main merge or deployment.
+- Isolated branch `codex/coffee-minimize` in `.worktrees/coffee-minimize` starts at latest main `cda9e0c`, preserving the chapter assignment sticky-action positioning fix. Baseline support suite: 35 tests passed.
+- At the user’s request, notified the active chapter-assignment and training-replayability tasks of shared support/footer/test paths and integration boundaries. Next: regression-first implementation, browser/source verification, review and task-branch push.
+
+## Remembered support minimization — final local gate, September 12
+
+- Final implementation preserves the chapter release’s support positioning and student/account exclusions. A versioned browser-wide preference hides floating controls and extra footer padding, exposes footer support/restore actions, synchronizes tabs and survives storage failure in-memory. No donor verification or backend/schema change.
+- Final checks: 627 web/native tests passed / 1 existing optional skip, web/native TypeScript, full ESLint, both production builds and whitespace. Browser production previews passed 77 contract cases and 77 official-script cases across Chromium/Firefox/WebKit/iPhone emulation. Normal and blocked-provider native chapter flows each passed at 390/320px, including new-control save clearance and retained chapter selections. Public/coach/student captures were inspected.
+- Four cross-tab focus failures were reproduced and fixed by restoring focus after footer DOM insertion; unchanged focused regression 4/4 and subsequent full suites passed. Independent source review found no additional blocker; its visible-focus suggestion was applied. Existing bundle advisory and physical-device/payment/full-gameplay limits remain in the audit.
+- Both affected tasks were informed; the chapter task acknowledged and its required clearance regression passed. Explicit task-file staging, credential-pattern/whitespace review, commit/push and checkpoint notification are next. No main or production mutation.

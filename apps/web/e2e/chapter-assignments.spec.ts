@@ -90,7 +90,7 @@ test("whole-book season supports separate chapter selections, overlapping studen
       const chapter = await chapterButton(page, 1).boundingBox();
       const masthead = await page.locator(".command-masthead").boundingBox();
       if (process.env.ERUDOZA_CHAPTER_BLOCK_COFFEE) await expect(page.locator(".coffee-fallback")).toBeVisible();
-      const supportControls = await page.locator("#bmc-wbtn, .coffee-fallback").evaluateAll(elements => elements.flatMap(element => {
+      const supportControls = await page.locator("#bmc-wbtn, .coffee-fallback, .coffee-minimize").evaluateAll(elements => elements.flatMap(element => {
         const style = getComputedStyle(element), rect = element.getBoundingClientRect();
         return style.display === "none" || style.visibility === "hidden" || !rect.width || !rect.height ? [] : [{ name: element.id || element.className, x: rect.x, y: rect.y, width: rect.width, height: rect.height, bottom: style.bottom, transform: style.transform, transition: style.transition, animation: style.animation, activeAnimations: element.getAnimations().map(animation => ({ playState: animation.playState, currentTime: animation.currentTime, transitionProperty: animation instanceof CSSTransition ? animation.transitionProperty : null })) }];
       }));
@@ -104,6 +104,17 @@ test("whole-book season supports separate chapter selections, overlapping studen
       expect.soft(save!.y + save!.height).toBeLessThanOrEqual(dock!.y);
       expect.soft(save!.y).toBeGreaterThanOrEqual(chapter!.y + chapter!.height);
       expect.soft(chapter!.y).toBeGreaterThanOrEqual(masthead!.y + masthead!.height);
+      const minimize = page.getByRole("button", { name: "Minimize support widget" });
+      if (await minimize.isVisible()) {
+        await minimize.click();
+        await expect(page.locator("#bmc-wbtn")).toBeHidden();
+        await expect(page.locator(".coffee-fallback")).toHaveCount(0);
+        await expect(page.getByRole("link", { name: "Support Erudoza (opens in a new tab)" })).toBeFocused();
+        await page.screenshot({ path: info.outputPath(`chapter-support-minimized-${width}.png`) });
+        await page.getByRole("button", { name: "Show floating support button" }).click();
+        await expect(minimize).toBeFocused();
+        await expect(chapterButton(page, 1)).toHaveAttribute("aria-pressed", "true");
+      }
     }
     await page.screenshot({ path: info.outputPath(`chapter-picker-${width}.png`), fullPage: true });
   }
