@@ -62,3 +62,7 @@ Honors now mean the versioned mastery collection. Historical participation and c
 ## Sign-in artwork correction — September 12
 
 The user restored the original faded, full-height landscape on the left side of desktop sign-in. Use the existing training-landscape image fading into navy, with the compact branded header on phones. Sign-in uses the approved Camp essentials illustration at the bottom right of the ivory panel to balance the landscape; this supersedes its earlier panoramic-card and left Trail navigation assignment. Other route artwork and solid form surfaces remain as specified above.
+
+## Signup alignment — September 12
+
+The user requested that signup match sign-in. Signup now shares the full-height landscape, Camp essentials at the bottom right, 390px form width, heading spacing, arrow actions, back-link treatment and footer. Keep signup's own coach copy and email-verification steps. At narrow phone widths, keep sign-in's 20px form inset and let only the security check extend to its required 300px width, including when the longer second step creates a scrollbar. This supersedes signup's separate coach illustration and Campcraft assignment; recovery, invitation and workspace artwork remain unchanged.

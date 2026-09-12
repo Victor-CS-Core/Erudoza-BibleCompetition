@@ -1,7 +1,9 @@
-.coach-onboarding .training-login-form-wrap { max-width: 440px; }
-.coach-onboarding .ds-page-header { margin-bottom: var(--er-space-6); }
+.coach-onboarding:not(.coach-signup) .training-login-form-wrap { max-width: 440px; }
+.coach-onboarding:not(.coach-signup) .ds-page-header { margin-bottom: var(--er-space-6); }
 .coach-onboarding .ds-notice { margin-block: var(--er-space-4); overflow-wrap: anywhere; }
 .coach-onboarding form > p { margin-top: var(--er-space-2); }
+.coach-signup #coach-code { margin-bottom: 0; }
+.coach-signup #coach-code-help { margin: var(--er-space-2) 0 var(--er-space-6); }
 .coach-form-actions { display: flex; flex-wrap: wrap; gap: var(--er-space-3); margin-top: var(--er-space-4); }
 .coach-security-check { width: 100%; min-width: 0; margin-block: var(--er-space-4); }
 .coach-code-resend { margin-top: var(--er-space-6); }
@@ -13,4 +15,7 @@
 @media (max-width: 380px) {
   /* Turnstile's flexible widget has a 300px minimum width. */
   .coach-onboarding .training-login-main { padding-inline: 8px; }
+  /* Keep sign-in's form inset; only the security widget needs the wider space. */
+  .coach-signup .training-login-main { padding-inline: 20px; }
+  .coach-signup .coach-security-check { width: max(100%, 300px); margin-inline: min(0px, calc((100% - 300px) / 2)); }
 }

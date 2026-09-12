@@ -1,5 +1,12 @@
 # Erudoza progress log
 
+## Signup aligned with sign-in — September 12
+
+- User requested matching signup and sign-in design. Work continues in the retained isolated workspace on codex/signup-signin-alignment from main faf35d5. Signup reuses sign-in's full-height landscape, Camp essentials corner, 390px form, 32px heading gap, arrow actions and footer. Existing signup copy, validation, verification, resend and session behavior remain intact; recovery/invitation retain their existing presentation.
+- Local gate: all 46 existing login, onboarding and artwork tests passed before and after the change. Native production build, web/native TypeScript, full ESLint and whitespace passed. Both signup steps were inspected in a local layout fixture at 1440/390/320; desktop form geometry matches sign-in. A 320px second-step scrollbar narrowed the security-check area; the fix preserves 20px form insets while allowing only the widget to use 300px. Final client/scroll widths both measured 305px with a 300px widget, showing no overflow.
+- The preview at http://localhost:5209/signup uses the actual page components with a labeled local security placeholder and mocked code receipt; it sends no email and cannot create accounts. The normal native preview at 5208 retains actual service availability. Fixture files/configuration remain ignored, and the loopback-only preview service is retained. Evidence and limits are in [the audit](docs/audits/2026-09-12-signup-signin-alignment.md).
+- Next: explicit scoped commit/push. This is a locally verified follow-up; this signup change is not merged to main or deployed.
+
 ## Expedition landing — authorized main integration, September 12
 
 - User approved the finished preview and explicitly requested merge to main. Fresh fetch found main a34da04 with the separately approved centered header. Merged it into the landing branch without conflicts, preserving both design directions and progress histories. The training task was notified to coordinate main advancement.

@@ -42,7 +42,7 @@
 }
 @media(pointer:coarse) { .training-login-password .ds-button { min-height:44px; top:0; } }
 
-/* Sign-in restores the original full-height landscape, fading into the navy brand panel. */
+/* Account pages share the original full-height landscape, fading into the navy brand panel. */
 .training-login-hero-landscape { position:relative; isolation:isolate; overflow:hidden; }
 .training-login-hero-landscape::before { content:""; position:absolute; z-index:-1; inset:0; pointer-events:none; background:linear-gradient(180deg,var(--er-ink-navy) 8%,color-mix(in srgb,var(--er-ink-navy) 90%,transparent) 38%,color-mix(in srgb,var(--er-ink-navy) 40%,transparent) 70%,transparent),url('/brand/training-landscape.webp') center bottom/cover; }
 .training-login-hero-landscape .training-login-motto { margin-top:auto; padding-top:160px; }

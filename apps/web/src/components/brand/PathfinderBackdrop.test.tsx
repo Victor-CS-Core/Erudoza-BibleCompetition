@@ -7,7 +7,7 @@ describe("approved Pathfinder page artwork", () => {
   it.each([
     ["/", "camp", "right"],
     ["/login", "camp", "right"],
-    ["/signup", "campcraft", "right"],
+    ["/signup", "camp", "right"],
     ["/admin", "notes", "left"],
     ["/student", "camp", "right"],
     ["/student/study", "trail", "left"],
