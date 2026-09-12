@@ -7,6 +7,8 @@
 - The local fixture backend had also stopped between turns. Restarted it as the loopback-only transient user service erudoza-landing-fixture.service, with private ignored fixture configuration. Its readiness returned HTTP 204 and the browser reached the real sign-in form again. The landing preview remains open and its worktree/ignored evidence are retained.
 - Next: checkpoint/push the verified integration, then fast-forward and normally push main after a fresh ancestry guard. No deployment was requested or performed; remote CI success is not claimed.
 
+- Main integration completed: verified integration 60b7665 was pushed to the task branch, then clean main fast-forwarded from a34da04. Normal push and exact remote readback confirmed origin/main at 60b7665411f05c8a40065d8b524389b9db81995a. This documentation-only checkpoint records completion without rerunning unchanged application checks. The landing, centered header and previously merged sign-in artwork are in main; this task performed no deployment. The preview remains available.
+
 ## Pathfinder Expedition landing — implementation gate, September 12
 
 - The user selected A, requested natural copy through a humanizer skill, then chose B's numbered training/sample-Honors middle section. Implemented that combination with A's hero and coach panel, exact existing brand emblem, live text, shared primitives and existing account routes. [DESIGN.md](DESIGN.md) records the latest landing authority; the original mockups remain unchanged.
@@ -33,6 +35,8 @@
 Read this file before starting repository work. `AGENTS.md` defines the required update and commit/push workflow. Times below are UTC. This log is the shared handoff; detailed audits remain the evidence for individual checks.
 
 ## Current state — 2026-09-12
+
+- The approved Expedition landing with the selected Field Guide middle section is merged and pushed to main through 60b7665. It includes current main's centered header; the integrated source passed 628 tests with one optional skip, both builds/types, ESLint and responsive landing checks. Deployment remains separate.
 
 - Centered header C is merged and pushed to main through `b77555e`. Fresh merged-tree verification passed 627 tests with one existing optional skip; the identical application source retains its earlier builds, lint, review and responsive browser evidence. Header C and the separately merged sign-in artwork remain pending deployment. See the [header audit](docs/audits/2026-09-12-centered-header.md).
 
