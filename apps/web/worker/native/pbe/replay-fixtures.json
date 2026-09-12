@@ -1,0 +1,21 @@
+{
+ "targetId":"aaaaaaaa-0000-0000-0000-000000000001",
+ "questionId":"bbbbbbbb-0000-0000-0000-000000000001",
+ "selectionSessionId":"01234567-89ab-cdef-0123-456789abcdef",
+ "selectionQuestionNumbers":[12,9,5,2,11,1,4,3],
+ "events":[
+  {"number":1,"atMs":1000,"earned":0,"unaided":true,"recall":true,"index":-1,"due":1000,"unresolved":true},
+  {"number":2,"atMs":2000,"earned":1,"unaided":true,"recall":false,"index":-1,"due":1000,"unresolved":true},
+  {"number":3,"atMs":2000,"earned":1,"unaided":false,"recall":true,"index":-1,"due":1000,"unresolved":true},
+  {"number":4,"atMs":2000,"earned":1,"unaided":true,"recall":true,"index":0,"due":86402000,"unresolved":false},
+  {"number":5,"atMs":3000,"earned":1,"unaided":true,"recall":true,"index":0,"due":86402000,"unresolved":false},
+  {"number":6,"atMs":86402000,"earned":1,"unaided":true,"recall":true,"index":1,"due":345602000,"unresolved":false},
+  {"number":7,"atMs":345602000,"earned":1,"unaided":true,"recall":true,"index":2,"due":950402000,"unresolved":false},
+  {"number":8,"atMs":950402000,"earned":1,"unaided":true,"recall":true,"index":3,"due":2160002000,"unresolved":false},
+  {"number":9,"atMs":2160002000,"earned":1,"unaided":true,"recall":true,"index":3,"due":3369602000,"unresolved":false},
+  {"number":10,"atMs":2160002001,"earned":0,"unaided":false,"recall":true,"index":-1,"due":2160002001,"unresolved":true},
+  {"number":11,"atMs":2160002002,"earned":1,"unaided":true,"recall":false,"index":-1,"due":2160002001,"unresolved":true},
+  {"number":12,"atMs":2160002003,"earned":1,"unaided":false,"recall":true,"index":-1,"due":2160002001,"unresolved":true},
+  {"number":13,"atMs":2160002004,"earned":1,"unaided":true,"recall":true,"index":0,"due":2246402004,"unresolved":false}
+ ]
+}

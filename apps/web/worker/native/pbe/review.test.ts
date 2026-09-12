@@ -1,0 +1,35 @@
+import { expect, it } from 'vitest';
+import { advanceReview, initialReview, groupRecallEvidence } from './review';
+import fixtures from './rubric-fixtures.json';
+it('recognition and aided success cannot postpone failed recall; early success cannot simulate delay', () => {
+    let s = initialReview('t');
+    const e = { attemptId: '1', targetId: 't', questionId: 'q', atMs: 1000, earnedPoints: 0, availablePoints: 1, unaided: true, recall: true };
+    s = advanceReview(s, e);
+    expect(s.unresolved).toBe(true);
+    expect(advanceReview(s, { ...e, attemptId: '2', earnedPoints: 1, recall: false })).toEqual(s);
+    s = advanceReview(s, { ...e, attemptId: '3', earnedPoints: 1, unaided: false });
+    expect(s.dueAtMs).toBe(1000);
+    expect(s.unresolved).toBe(true);
+    s = advanceReview(s, { ...e, attemptId: '4', atMs: 2000, earnedPoints: 1 });
+    expect([s.intervalIndex, s.dueAtMs]).toEqual([0, 86402000]);
+    s = advanceReview(s, { ...e, attemptId: '5', atMs: 3000, earnedPoints: 1 });
+    expect([s.intervalIndex, s.dueAtMs]).toEqual([0, 86402000]);
+    s = advanceReview(s, { ...e, attemptId: '6', atMs: 86402000, earnedPoints: 1 });
+    expect([s.intervalIndex, s.dueAtMs]).toEqual([1, 345602000]);
+    s = advanceReview(s, { ...e, attemptId: '7', atMs: 345602000, earnedPoints: 1 });
+    expect([s.intervalIndex, s.dueAtMs]).toEqual([2, 950402000]);
+    s = advanceReview(s, { ...e, attemptId: '8', atMs: 950402000, earnedPoints: 1 });
+    expect([s.intervalIndex, s.dueAtMs]).toEqual([3, 2160002000]);
+    s = advanceReview(s, { ...e, attemptId: '9', atMs: 950402001, unaided: false });
+    expect([s.intervalIndex, s.dueAtMs, s.unresolved]).toEqual([-1, 950402001, true]);
+});
+it('groups same-target parts and derives recognition/strict-skill evidence from frozen server rubric', () => {
+    const q = structuredClone(fixtures.cases[0].question);
+    const t = q.parts[0].targetId;
+    q.parts = [{ targetId: t, acceptedAnswers: ['A'], points: 1 }, { targetId: t, acceptedAnswers: ['B'], points: 2 }];
+    q.ordered = true;
+    const targets = [{ id: t, sourceUnitIds: q.sourceUnitIds, skill: 'FactualRecall', label: 'Labels' }];
+    const result = groupRecallEvidence(q as never, targets as never, ['A', 'wrong'], 'attempt', 1000, true);
+    expect(result).toEqual([{ attemptId: 'attempt', targetId: t, questionId: q.id, atMs: 1000, earnedPoints: 1, availablePoints: 3, unaided: true, recall: true }]);
+    expect(groupRecallEvidence(q as never, [{ ...targets[0], skill: 'ExactWords' }] as never, ['A', 'B'], 'attempt', 1000, true)[0].recall).toBe(false);
+});
