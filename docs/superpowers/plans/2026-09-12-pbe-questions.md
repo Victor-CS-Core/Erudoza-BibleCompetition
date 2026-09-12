@@ -61,7 +61,7 @@ export const responseSeconds = (points: number): number => {
 // questionView(question: PbeQuestion): PbeQuestionView
 ```
 
-- [ ] Add the contract and a failing rubric test. The complete synthetic question in the test avoids reliance on a hosted book:
+- [x] Add the contract and a failing rubric test. The complete synthetic question in the test avoids reliance on a hosted book:
 
 ```ts
 import { expect, it } from 'vitest';
@@ -88,10 +88,10 @@ it('awards each correct part once and preserves the missing target', () => {
 });
 ```
 
-- [ ] Run `npm --workspace apps/web run test -- worker/native/pbe/grading.test.ts --maxWorkers=2`; expect a missing implementation or behavioral failure before implementation.
-- [ ] Implement validation: nonempty source/ref/evidence; all source IDs in target source coverage; each part references a declared target; correct skill for exact-word questions; supported kind; total 1–8; part count matches requested answer fields; no empty variants. Preserve NFC/case/whitespace rules from current practice scoring. No automatic edit-distance acceptance. Use the existing weighted matching algorithm for unordered answers, exposing its chosen answer indexes; ordered/ExactWords compare each corresponding part. Reject extra fields at both evaluator and command boundaries.
-- [ ] Add boundary cases for reversed exact words, duplicated answers, overlapping variants, unequal part weights, recognizable-but-unlisted spelling, 1/8/9 points and no answer-key leak in `questionView`. Hand-author the expected grades in `rubric-fixtures.json` and load it from both native and xUnit tests; never derive expected points from the evaluator under test. Do not overwrite existing C# generator fixtures.
-- [ ] Run native PBE/scoring tests and `dotnet test apps/api/tests/Erudoza.UnitTests/Erudoza.UnitTests.csproj --filter 'FullyQualifiedName~PbeRubric|FullyQualifiedName~PracticeScoring'`. Commit the explicitly listed files as `feat: add versioned PBE rubrics`. Missing .NET execution leaves this task's parity gate open.
+- [x] Run `npm --workspace apps/web run test -- worker/native/pbe/grading.test.ts --maxWorkers=2`; expect a missing implementation or behavioral failure before implementation.
+- [x] Implement validation: nonempty source/ref/evidence; all source IDs in target source coverage; each part references a declared target; correct skill for exact-word questions; supported kind; total 1–8; part count matches requested answer fields; no empty variants. Preserve NFC/case/whitespace rules from current practice scoring. No automatic edit-distance acceptance. Use the existing weighted matching algorithm for unordered answers, exposing its chosen answer indexes; ordered/ExactWords compare each corresponding part. Reject extra fields at the evaluator boundary. HTTP command-boundary rejection is verified when those commands are implemented in B2 and C3.
+- [x] Add boundary cases for reversed exact words, duplicated answers, overlapping variants, unequal part weights, recognizable-but-unlisted spelling, 1/8/9 points and no answer-key leak in `questionView`. Hand-author the expected grades in `rubric-fixtures.json` and load it from both native and xUnit tests; never derive expected points from the evaluator under test. Do not overwrite existing C# generator fixtures.
+- [x] Run native PBE/scoring tests and `dotnet test apps/api/tests/Erudoza.UnitTests/Erudoza.UnitTests.csproj --filter 'FullyQualifiedName~PbeRubric|FullyQualifiedName~PracticeScoring'`. Commit the explicitly listed files as `feat: add versioned PBE rubrics`. Missing .NET execution leaves this task's parity gate open.
 
 ## Task A2: Scoped bank queries and additive target storage
 

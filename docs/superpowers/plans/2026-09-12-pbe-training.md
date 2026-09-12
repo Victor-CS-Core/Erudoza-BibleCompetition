@@ -90,7 +90,7 @@ These values are implementation choices for the pilot, not official PBE requirem
 
 ## Execution and release discipline
 
-- [ ] Before coding, read this index, the target child plan, both assessments and current progress; create an isolated implementation worktree with the repository branch prefix. The current task branch contains planning documents only.
+- [x] Before coding, read this index, the target child plan, both assessments and current progress; create an isolated implementation worktree with the repository branch prefix. The current task branch contains planning documents only.
 - [ ] For every task: add the behavioral regression first, observe failure for the expected reason, implement the smallest change, run its focused tests, review the diff, explicitly stage and commit. Update progress and push at the child plan's verified gate. Do not stage unrelated files or generated private artifacts.
 - [ ] Run the full release checks in D3 only after the integrated behavior exists. Tests listed in these plans are future execution steps; the earlier audit's passing tests do not satisfy them.
 - [ ] Prepare rollout with new features disabled, a reviewed additive migration, backup/rollback procedure, and a selected coach's source-reviewed question bank. A question bank is prepared ahead of play; live coach presence is never an availability dependency.
@@ -99,3 +99,7 @@ These values are implementation choices for the pilot, not official PBE requirem
 ## Plan review result
 
 All assessment findings map to tasks above. The unresolved execution prerequisites are a verified question bank for the actual selected season and a working canonical .NET test environment. They do not block implementing against isolated synthetic fixtures. Browser speech availability and proper-name pronunciation are explicit Phase C tests with a labeled text fallback; no automatic-audio success is assumed.
+
+## Execution status
+
+The user authorized this plan as an active implementation goal on September 11. Work is isolated in `.worktrees/pbe-training` on `codex/pbe-training`; the baseline is verified and A1 implementation has passed independent review. A2 bank/storage is next. The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. Fresh baseline: web/native 579 passed/1 optional skip; .NET 267 passed/1 optional load skip. See [PROGRESS.md](../../../PROGRESS.md) for verified checkpoints. No deployment or main merge is authorized by this implementation step.
