@@ -1,3 +1,4 @@
+import {maintenanceOffline,dispatchMaintenance,MAINTENANCE_PREFIX} from '../maintenance/protocol';
 import {prepareTeamHonors} from '../mastery/store';
 import {DurableObject} from 'cloudflare:workers';
 import type {Env} from '../types';
@@ -15,16 +16,18 @@ interface Stage extends Scope {nodes:{hash:string;data:string}[]}
 interface Publication {manifest:RoomManifest;summary:RoomHistorySummary}
 /** One projection authority per organization/season prevents cross-room award races. */
 export class PracticeReports extends DurableObject<Env>{
- constructor(ctx:DurableObjectState,env:Env){super(ctx,env);ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS verification(root TEXT,hash TEXT,done INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(root,hash))');ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS publications(root TEXT PRIMARY KEY,data TEXT NOT NULL)');ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS scope(id INTEGER PRIMARY KEY,data TEXT NOT NULL)');}
+ constructor(ctx:DurableObjectState,env:Env){super(ctx,env);if(maintenanceOffline(env))return;ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS verification(root TEXT,hash TEXT,done INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(root,hash))');ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS publications(root TEXT PRIMARY KEY,data TEXT NOT NULL)');ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS scope(id INTEGER PRIMARY KEY,data TEXT NOT NULL)');}
  private tail:Promise<void>=Promise.resolve();
  private bindScope(s:Scope){if(![s.id,s.orgId,s.seasonId].every(x=>typeof x==='string'&&x.length>0&&x.length<=100))throw new Error('Invalid history scope.');const value=JSON.stringify([s.orgId,s.seasonId]),old=this.ctx.storage.sql.exec<{data:string}>('SELECT data FROM scope WHERE id=1').toArray()[0];if(old&&old.data!==value)throw new Error('History scope conflict.');if(!old)this.ctx.storage.sql.exec('INSERT INTO scope(id,data) VALUES(1,?)',value);}
  private async stage(input:Stage){
+  if(maintenanceOffline(this.env))throw new Error('Offline maintenance.');
   this.bindScope(input);if(!Array.isArray(input.nodes)||!input.nodes.length||input.nodes.length>ROOM_STAGE_NODES)throw new Error('Invalid history stage.');
   for(const n of input.nodes)await parseNode(n.hash,n.data);
   await this.env.DB.batch(input.nodes.map(n=>this.env.DB.prepare('INSERT INTO PracticeRoomComponents(org_id,season_id,room_id,hash,data) VALUES(?,?,?,?,?) ON CONFLICT(org_id,season_id,room_id,hash) DO UPDATE SET data=CASE WHEN PracticeRoomComponents.data=excluded.data THEN PracticeRoomComponents.data ELSE NULL END').bind(input.orgId,input.seasonId,input.id,n.hash,n.data)));
   return json({acknowledged:input.nodes.map(n=>n.hash)});
  }
  private async verify(input:Publication):Promise<boolean>{
+  if(maintenanceOffline(this.env))throw new Error('Offline maintenance.');
   const m=input.manifest;validateManifest(m);this.bindScope(m);if(input.summary.summaryVersion!==1||input.summary.id!==m.id||input.summary.orgId!==m.orgId||input.summary.seasonId!==m.seasonId||input.summary.revision!==m.revision||!['Completed','Interrupted'].includes(input.summary.status))throw new Error('Invalid terminal history.');
   const data=JSON.stringify(input),root=await contentHash(data),old=this.ctx.storage.sql.exec<{data:string}>('SELECT data FROM publications WHERE root=?',root).toArray()[0];
   if(old&&old.data!==data)throw new Error('Publication identity conflict.');
@@ -44,6 +47,7 @@ export class PracticeReports extends DurableObject<Env>{
   return true;
  }
  private async publish(r:RoomHistorySummary,raw:Room|RoomHistoryEnvelope,review:boolean){
+  if(maintenanceOffline(this.env))throw new Error('Offline maintenance.');
   const store=new Store(this.env.DB),old=await store.get<Room|RoomHistoryEnvelope>('match',r.id,r.orgId);
   if(!review&&old&&old.revision>r.revision)return json({projected:true});
   if(!review&&old&&old.revision===r.revision){if(r.format==='Pbe'&&JSON.stringify(old.value)!==JSON.stringify(raw))throw new Error('Conflicting history at the same revision.');return json({projected:true});}
@@ -65,6 +69,8 @@ export class PracticeReports extends DurableObject<Env>{
   await this.env.DB.batch(statements);return json({projected:true});
  }
  async fetch(request:Request):Promise<Response>{
+  if(maintenanceOffline(this.env))return dispatchMaintenance(request,this.ctx.storage,this.env,'reports',this.ctx.id.toString());
+  if(new URL(request.url).pathname.startsWith(MAINTENANCE_PREFIX))return new Response(null,{status:404});
   const input=await body<Stage|Publication|Scope|Room>(request,ROOM_STAGE_BYTES),previous=this.tail;let release!:()=>void;this.tail=new Promise<void>(resolve=>release=resolve);await previous;
   try{
    const path=new URL(request.url).pathname;

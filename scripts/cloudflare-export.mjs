@@ -42,7 +42,8 @@ export function readSource(sourcePath) {
   } finally { db.close(); }
 }
 
-export function convertSnapshot(snapshot) {
+export function convertSnapshot(snapshot, options = {}) {
+  const bound = options.bound === true;
   const {tables} = snapshot;
   for (const name of core) if (!tables[name]) fail(`required table ${name} is absent`);
   for(const [table,columns]of Object.entries(requiredColumns))for(const row of tables[table]??[])for(const column of columns.split(' '))if(!Object.hasOwn(row,column))fail(`required column ${table}.${column} is absent`);
@@ -52,7 +53,7 @@ export function convertSnapshot(snapshot) {
     (tables.__EFMigrationsHistory??[]).some(row=>row.MigrationId?.endsWith('_MissingWordsSlotAnswers')) ||
     tables.Attempts.some(row=>Object.hasOwn(row,'AnswerPayloadJson'));
   if(hasSlotSchema)for(const row of tables.Attempts)if(!Object.hasOwn(row,'AnswerPayloadJson'))fail('required column Attempts.AnswerPayloadJson is absent');
-  for (const [name,rows] of Object.entries(tables)) if (!core.includes(name) && !archive.includes(name) && !trainingTables.includes(name) && rows.length) fail(`unsupported nonempty table ${name}`);
+  for (const [name,rows] of Object.entries(tables)) if (!core.includes(name) && !archive.includes(name) && !trainingTables.includes(name) && !(bound && name==='PbeTrainingRecords') && rows.length) fail(`unsupported nonempty table ${name}`);
   const rows = name => tables[name] ?? [];
   const index = name => new Map(rows(name).map(r=>[guid(r.Id),r]));
   const orgs=index('Organizations'), users=index('Users'), seasons=index('Seasons'), packs=index('ContentPacks'), sources=index('SourceUnits'), knowledge=index('KnowledgeUnits'), profiles=index('RuleProfiles'), sessions=index('StudySessions'), cards=index('ChallengeCards');
@@ -76,7 +77,7 @@ export function convertSnapshot(snapshot) {
     if((kind==='Student')!==(role==='Student'))fail('user kind and role mismatch');
     if(typeof r.PasswordHash!=='string'||!/^pbkdf2:[A-Za-z0-9+/]+={0,2}:[A-Za-z0-9+/]+={0,2}$/.test(r.PasswordHash))fail('unsupported password hash format');
     userOrg.set(guid(r.Id),guid(m.OrganizationId));
-    native.users.push({id:guid(r.Id),org_id:guid(m.OrganizationId),user_name:r.UserName,email:r.Email,display_name:r.DisplayName,kind,role,password_hash:r.PasswordHash,credential_version:r.SecurityStamp||`migration-${randomUUID()}`,active:r.IsActive});
+    native.users.push({id:guid(r.Id),org_id:guid(m.OrganizationId),user_name:r.UserName,email:r.Email,display_name:r.DisplayName,kind,role,password_hash:r.PasswordHash,credential_version:r.SecurityStamp||`migration-${bound?hash(JSON.stringify([r.Id,r.PasswordHash])):randomUUID()}`,active:r.IsActive});
   }
   const checkStudent=(user,org)=>{const u=requireRef(users,user,'student');if(u.Kind!==2||userOrg.get(guid(user))!==guid(org))fail('student is outside organization');};
   const rule = r => {
@@ -118,7 +119,7 @@ export function convertSnapshot(snapshot) {
   }
   for(const r of rows('Seasons')) {
     const profile=requireRef(profiles,r.RuleProfileId,'rule profile');
-    add('season',guid(r.Id),r.OrganizationId,{id:guid(r.Id),organizationId:guid(r.OrganizationId),name:r.Name,yearLabel:r.YearLabel,status:enumValue('season',r.Status),ruleProfileKey:profile.Key,ruleProfileVersion:profile.Version,startDate:r.StartDate,targetCompetitionDate:r.TargetCompetitionDate,createdAtUtc:iso(r.CreatedAtUtc),activatedAtUtc:iso(r.ActivatedAtUtc)});
+    add('season',guid(r.Id),r.OrganizationId,{id:guid(r.Id),organizationId:guid(r.OrganizationId),name:r.Name,yearLabel:r.YearLabel,status:enumValue('season',r.Status),ruleProfileKey:profile.Key,ruleProfileVersion:profile.Version,startDate:r.StartDate,targetCompetitionDate:r.TargetCompetitionDate,createdAtUtc:iso(r.CreatedAtUtc),activatedAtUtc:iso(r.ActivatedAtUtc),...(bound?{pbeEnabled:!!r.PbeEnabled}:{})});
     const scopes=rows('ScopeEntries').filter(s=>guid(s.SeasonId)===guid(r.Id));
     for(const s of scopes){sameOrg(s.OrganizationId,r.OrganizationId,'scope');contentOrg(requireRef(packs,s.ContentPackId,'scope pack'),r.OrganizationId,'scope pack');if(![1,2].includes(s.Kind))fail('unsupported scope kind');}
     const entries=[...group(scopes,'ContentPackId')].map(([contentPackId,list])=>({contentPackId,includes:list.filter(s=>s.Kind===1).map(range),excludes:list.filter(s=>s.Kind===2).map(range)}));
@@ -251,7 +252,7 @@ export function convertSnapshot(snapshot) {
     }
     add('user-profile',id,r.OrganizationId,value,null,r.UserId);
   }
-  for(const r of rows('PracticeRoomRecord'))if(!['Completed','Abandoned'].includes(r.Status))fail('finish or abandon every legacy PVP room before cutover; active timers cannot be converted');
+  for(const r of rows('PracticeRoomRecord'))if(!bound&&!['Completed','Abandoned'].includes(r.Status))fail('finish or abandon every legacy PVP room before cutover; active timers cannot be converted');
   for(const r of rows('PracticeSetting'))add('practice-setting',guid(r.OrganizationId),r.OrganizationId,{enabled:!!r.Enabled});
   for(const r of rows('PracticeQuestionRecord')) {
     sameOrg(requireRef(seasons,r.SeasonId,'practice question season').OrganizationId,r.OrganizationId,'practice question');
@@ -267,7 +268,7 @@ export function convertSnapshot(snapshot) {
   // Immutable legacy PVP evidence remains queryable in archives; no clock or scoring evidence is invented.
   // Every source row is retained verbatim, including original IDs and JSON strings, so adaptation is reversible.
   const firstOrg=[...orgs.keys()][0];
-  for(const [table,data] of Object.entries(tables))for(const [n,r] of data.entries()) {
+  if(!bound)for(const [table,data] of Object.entries(tables))for(const [n,r] of data.entries()) {
     let org=r.OrganizationId?guid(r.OrganizationId):null;
     if(table==='Organizations')org=guid(r.Id);
     if(table==='Users')org=userOrg.get(guid(r.Id));
@@ -314,11 +315,20 @@ export async function exportDatabase(sourcePath, outputDirectory) {
   return manifest;
 }
 
+export async function exportBoundDatabase(sourcePath, outputDirectory, inventoryPath) {
+  if(!inventoryPath){const {exportCanonicalBundle}=await import('./lib/cloudflare-canonical-bundle.mjs');return exportCanonicalBundle(sourcePath,outputDirectory);}
+  const {lstat}=await import('node:fs/promises');const {CAPS,nativeSqliteBundleInput,writeBundle}=await import('./lib/cloudflare-bound-bundle.mjs');
+  const stat=await lstat(inventoryPath);if(!stat.isFile()||stat.isSymbolicLink()||stat.size>CAPS.bundle)throw new Error('Restore blocked: inventory file cap/type');
+  const declared=JSON.parse(await readFile(inventoryPath,'utf8'));
+  return writeBundle(outputDirectory,await nativeSqliteBundleInput(sourcePath,declared.source,declared.objects));
+}
+
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   const args=process.argv.slice(2),option=name=>{const index=args.indexOf(name);return index<0?undefined:args[index+1];};
-  if(args.includes('--help')) {console.log('Usage: node scripts/cloudflare-export.mjs --source <offline-sqlite.db> --output <new-private-directory>\nWithout options, exports the development DB into ignored test-results/migration. No remote writes.');process.exit(0);}
-  if(args.some((arg,i)=>i%2===0?!['--source','--output'].includes(arg):arg.startsWith('--'))||args.length%2!==0){console.error('Expected --source <path> and/or --output <path>. Use --help.');process.exit(1);}
+  if(args.includes('--help')) {console.log('Usage: node scripts/cloudflare-export.mjs --source <offline-sqlite.db> --output <new-private-directory>\nWithout options, exports the development DB into ignored test-results/migration. No remote writes. Bound transport: add --format bound (canonical SQLite), or --format bound --inventory <completed-native-capture.json> for an explicitly inventoried stopped native source.');process.exit(0);}
+  if(args.some((arg,i)=>i%2===0?!['--source','--output','--format','--inventory'].includes(arg):arg.startsWith('--'))||args.length%2!==0){console.error('Expected --source <path> and/or --output <path>. Use --help.');process.exit(1);}
   const source=option('--source')??resolve(root,'apps/api/src/Erudoza.Api/erudoza.dev.db');
   const output=option('--output')??resolve(root,'apps/web/test-results/migration',new Date().toISOString().replaceAll(':','-'));
-  exportDatabase(source,output).then(manifest=>console.log(JSON.stringify({output:resolve(output),...manifest},null,2))).catch(error=>{console.error(error.message);process.exitCode=1;});
+  const format=option('--format')??'sql';if(!['sql','bound'].includes(format)||format==='sql'&&option('--inventory')){console.error('Expected --format sql or bound; --inventory is only for declared native bound sources.');process.exit(1);}
+  (format==='bound'?exportBoundDatabase(source,output,option('--inventory')):exportDatabase(source,output)).then(manifest=>console.log(JSON.stringify({output:resolve(output),...manifest},null,2))).catch(error=>{console.error(error.message);process.exitCode=1;});
 }

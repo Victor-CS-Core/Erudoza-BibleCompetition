@@ -1,3 +1,4 @@
+import {maintenanceOffline,dispatchMaintenance,MAINTENANCE_PREFIX} from '../maintenance/protocol';
 import {DurableObject} from "cloudflare:workers";
 import type {Env,RequestContext} from "../types";
 import {body,HttpError,json} from "../types";
@@ -14,10 +15,11 @@ import type {Room,Command} from "./state";
 export class PracticeRoom extends DurableObject<Env> {
  private codec=new RoomCodec();
  private epoch=crypto.randomUUID();private pending=0;private tail:Promise<unknown>=Promise.resolve();private keepAlive:ReturnType<typeof setInterval>|undefined;
- constructor(ctx:DurableObjectState,env:Env){super(ctx,env);ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS state(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)");ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS outbox(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)");ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS room_components(hash TEXT PRIMARY KEY,data TEXT NOT NULL)");ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS room_uploaded(hash TEXT PRIMARY KEY)");}
+ constructor(ctx:DurableObjectState,env:Env){super(ctx,env);if(maintenanceOffline(env))return;ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS state(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)");ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS outbox(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)");ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS room_components(hash TEXT PRIMARY KEY,data TEXT NOT NULL)");ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS room_uploaded(hash TEXT PRIMARY KEY)");}
  private readNode=(hash:string):string|null=>this.ctx.storage.sql.exec<{data:string}>("SELECT data FROM room_components WHERE hash=?",hash).toArray()[0]?.data??null;
  private async load():Promise<Room|null>{const row=this.ctx.storage.sql.exec<{data:string}>("SELECT data FROM state WHERE id=1").toArray()[0];if(!row)return null;const data=JSON.parse(row.data);if(!isRoomManifest(data)&&data.format!==undefined&&data.format!=='Pbe'&&data.format!=='Arcade')throw new Error('Unsupported stored room format.');return isRoomManifest(data)?this.codec.decode(data,this.readNode):data as Room;}
  private async save(r:Room){
+  if(maintenanceOffline(this.env))return;
   const encoded=r.format==='Pbe'?await this.codec.encode(r):null,data=JSON.stringify(encoded?.manifest??r);
   this.ctx.storage.transactionSync(()=>{
    for(const [hash,value] of encoded?.nodes??[]){const old=this.readNode(hash);if(old!==null&&old!==value)throw new Error('Immutable room component conflict.');if(old===null)this.ctx.storage.sql.exec("INSERT INTO room_components(hash,data) VALUES(?,?)",hash,value);}
@@ -27,13 +29,15 @@ export class PracticeRoom extends DurableObject<Env> {
  }
  private async serialize<T>(fn:()=>Promise<T>):Promise<T>{const previous=this.tail;let release!:()=>void;this.tail=new Promise<void>(resolve=>release=resolve);await previous;try{return await fn();}finally{release();}}
  private async arm(r:Room){
+  if(maintenanceOffline(this.env))return;
   // A live round's epoch must survive ordinary hibernation. This consumes DO duration quota.
   if(r.status==="Playing"&&!this.keepAlive)this.keepAlive=setInterval(()=>{},30000);
   if(r.status!=="Playing"&&this.keepAlive){clearInterval(this.keepAlive);this.keepAlive=undefined;}
   const cleanup=r.messages.length?Date.parse(r.messages[0].createdAt)+30*86400000:null;const next=[r.phaseEndsAt,cleanup].filter((x):x is number=>x!==null);if(next.length)await this.ctx.storage.setAlarm(Math.max(Date.now()+50,Math.min(...next)));else await this.ctx.storage.deleteAlarm();
  }
- private async continueProjection(){const alarm=await this.ctx.storage.getAlarm();await this.ctx.storage.setAlarm(Math.min(alarm??Infinity,Date.now()+1000));}
+ private async continueProjection(){if(maintenanceOffline(this.env))return;const alarm=await this.ctx.storage.getAlarm();await this.ctx.storage.setAlarm(Math.min(alarm??Infinity,Date.now()+1000));}
  private async project(){
+  if(maintenanceOffline(this.env))return;
   const row=this.ctx.storage.sql.exec<{data:string}>("SELECT data FROM outbox WHERE id=1").toArray()[0];if(!row)return;
   const stored=JSON.parse(row.data),r=isRoomManifest(stored)?await this.codec.decode(stored,this.readNode):stored as Room,summary={id:r.id,seasonId:r.seasonId,ownerId:r.ownerId,coachId:r.coachId,format:r.format??'Arcade',teamCount:r.teamCount??2,teamSize:r.teamSize,questionCount:r.questionCount,coached:r.coached,status:r.status,memberCount:r.members.length,memberIds:r.members.map(m=>m.userId),hasAppeals:r.submissions.some(s=>s.appealed),invitations:r.invitations};
   const projection={...r,messages:[],drafts:{},applied:{}};
@@ -68,10 +72,12 @@ export class PracticeRoom extends DurableObject<Env> {
   }
   this.ctx.storage.sql.exec("DELETE FROM outbox WHERE id=1 AND data=?",row.data);
  }
- private async projectSafely(){try{await this.project();}catch{const existing=await this.ctx.storage.getAlarm();await this.ctx.storage.setAlarm(Math.min(existing??Infinity,Date.now()+5000));}}
+ private async projectSafely(){if(maintenanceOffline(this.env))return;try{await this.project();}catch{const existing=await this.ctx.storage.getAlarm();await this.ctx.storage.setAlarm(Math.min(existing??Infinity,Date.now()+5000));}}
  private async publicView(r:Room,actor:RequestContext["actor"],now:number,materialUnavailable=false){return view(materialUnavailable?r:(await overlayRooms(new Store(this.env.DB),r.orgId,[r]))[0],actor,now,materialUnavailable);}
- private broadcast(){for(const socket of this.ctx.getWebSockets()){try{socket.send(JSON.stringify({type:"Changed"}));}catch{socket.close(1011,"Reconnect");}}}
+ private broadcast(){if(maintenanceOffline(this.env))return;for(const socket of this.ctx.getWebSockets()){try{socket.send(JSON.stringify({type:"Changed"}));}catch{socket.close(1011,"Reconnect");}}}
  async fetch(request:Request):Promise<Response>{
+  if(maintenanceOffline(this.env))return dispatchMaintenance(request,this.ctx.storage,this.env,'room',this.ctx.id.toString());
+  if(new URL(request.url).pathname.startsWith(MAINTENANCE_PREFIX))return new Response(null,{status:404});
   try{
    const url=new URL(request.url),match=url.pathname.match(/^\/api\/v1\/organizations\/([^/]+)\/practice\/rooms\/([^/]+)(.*)$/);if(!match)throw new HttpError(404,"Room route not found.");
    const isCommand=match[3]==="/commands"&&request.method==="POST";
@@ -138,8 +144,9 @@ export class PracticeRoom extends DurableObject<Env> {
    const scope=await authorizePbeRoom({env:this.env,store,orgId:r.orgId,path:'',request:new Request('https://internal/room-clock'),actor:{userId:user.id,organizationId:r.orgId,organizationName:'',displayName:user.display_name,userName:user.user_name,email:null,kind:user.kind,role:user.role,credentialVersion:user.credential_version}},r);return {reserveIds:scope.eligibleReserveIds};
   }catch{return null;}
  }
- async alarm(){await this.serialize(async()=>{const r=await this.load();if(!r)return;const authorization=await this.authorizeBackground(r);if(!authorization){await this.ctx.storage.setAlarm(Date.now()+5000);await this.projectSafely();return;}const now=Date.now(),previousRevision=r.revision;if(r.epoch!==this.epoch){recover(r,this.epoch,now,"runtime-replacement",authorization.reserveIds);r.revision++;}if(advance(r,now,this.pending>0,authorization.reserveIds))r.revision++;if(r.format!=='Pbe'||r.revision!==previousRevision)await this.save(r);await this.arm(r);this.broadcast();await this.projectSafely();});}
+ async alarm(){if(maintenanceOffline(this.env))return;await this.serialize(async()=>{const r=await this.load();if(!r)return;const authorization=await this.authorizeBackground(r);if(!authorization){await this.ctx.storage.setAlarm(Date.now()+5000);await this.projectSafely();return;}const now=Date.now(),previousRevision=r.revision;if(r.epoch!==this.epoch){recover(r,this.epoch,now,"runtime-replacement",authorization.reserveIds);r.revision++;}if(advance(r,now,this.pending>0,authorization.reserveIds))r.revision++;if(r.format!=='Pbe'||r.revision!==previousRevision)await this.save(r);await this.arm(r);this.broadcast();await this.projectSafely();});}
  async webSocketMessage(socket:WebSocket,message:string|ArrayBuffer){
+  if(maintenanceOffline(this.env)){socket.close(1001,"Offline maintenance");return;}
   const ingress=Date.now();
   if(typeof message!=="string"||message.length>1024){socket.close(1008,"Invalid message");return;}
   const stored=socket.deserializeAttachment() as {userId:string;credentialVersion:string};const user=await this.env.DB.prepare("SELECT credential_version,active FROM Users WHERE id=?").bind(stored.userId).first<{credential_version:string;active:number}>();if(!user||!user.active||user.credential_version!==stored.credentialVersion){socket.close(1008,"Sign in again");return;}
@@ -150,5 +157,5 @@ export class PracticeRoom extends DurableObject<Env> {
   // Diagnostics live in the socket attachment and acknowledgement, never immutable room/history publication.
   else if(input.type==="AckProbe") {if(!state.probe||state.probe.nonce!==input.nonce)return;const elapsed=ingress-state.probe.at;delete state.probe;if(elapsed<0||elapsed>10000){socket.serializeAttachment(state);return;}state.samples=[...(state.samples??[]),elapsed].slice(-20);socket.serializeAttachment(state);const jitter=state.samples.slice(1).reduce((n,x,i)=>n+Math.abs(x-state.samples![i]),0)/Math.max(1,state.samples.length-1);const quality={rttMs:elapsed,jitterMs:jitter,samples:state.samples.length,observedAt:ingress};socket.send(JSON.stringify({type:"AckProbe",id:input.id,...quality}));}
  }
- async webSocketClose(socket:WebSocket,code:number,reason:string){socket.close(code,reason);}
+ async webSocketClose(socket:WebSocket,code:number,reason:string){if(maintenanceOffline(this.env)){socket.close(1001,"Offline maintenance");return;}socket.close(code,reason);}
 }

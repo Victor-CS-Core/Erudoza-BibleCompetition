@@ -3,24 +3,9 @@ import {afterEach,expect,it} from 'vitest';
 import type {PracticeRoom,PracticeBootstrap} from '../../../src/api/practice';
 import type {Room} from './state';
 import {readRoomHistory} from './room-history';
-import {createNativeTestApp,TEST_ORG,TEST_USER} from '../test-runtime';
-import {Store} from '../store';
+import {TEST_ORG} from '../test-runtime';
+import {probeFixture} from './pbe-room-source-fixture';
 import type {Env} from '../types';
-import type {PbeQuestion} from '../pbe/types';
-import {sourceProof} from '../pbe/bank';
-async function probeFixture(){
- let now=Date.now(),realClock=false;
- const app=await createNativeTestApp({measureD1:true,replaceRoomAuthority:true,roomTestClock:true,roomStorageDiagnostics:true});const store=new Store(app.db as unknown as Env['DB']),season=crypto.randomUUID(),pack=crypto.randomUUID(),source=crypto.randomUUID();
- await store.insert('practice-setting',TEST_ORG,TEST_ORG,{enabled:true});await store.insert('season',season,TEST_ORG,{id:season,organizationId:TEST_ORG,status:'Active',pbeEnabled:true});await store.insert('pack',pack,TEST_ORG,{id:pack,isActive:true,licensingStatus:'approved',sourceType:'Scripture'});
- const labels=['Alpha','Beta'];
- const unit={id:source,contentPackId:pack,bookKey:'GEN',chapter:1,verse:1,ordinal:1,citation:'Genesis 1:1',canonicalText:'Alpha and Beta',isActive:true};await store.insert('source',source,TEST_ORG,unit,{ownerId:pack});const range={bookKey:'GEN',startChapter:1,startVerse:1,endChapter:1,endVerse:1};await store.insert('scope',season,TEST_ORG,{contentPackId:pack,includes:[range],excludes:[]});
- const targets=labels.map((_,n)=>({id:crypto.randomUUID(),sourceUnitIds:[source],skill:'FactualRecall',label:`Label ${n}`}));for(const target of targets)await store.insert('pbe-target',target.id,TEST_ORG,target,{seasonId:season,ownerId:source});
- for(let n=0;n<91;n++){const q:PbeQuestion={schemaVersion:2,id:crypto.randomUUID(),version:1,contentPackId:pack,sourceUnitId:source,sourceUnitIds:[source],sourceKind:'Scripture',reference:unit.citation,evidence:unit.canonicalText,kind:'List',prompt:`Name the labels, variant ${n}.`,ordered:false,parts:targets.map((t,i)=>({targetId:t.id,acceptedAnswers:[labels[i]],points:1}))};await store.insert('pbe-question-head',q.id,TEST_ORG,{id:q.id,seasonId:season,published:true,sourceFingerprint:await sourceProof(q,new Map([[source,unit]])),question:q},{seasonId:season,ownerId:source});}
- const players:{id:string;cookie:string}[]=[];for(let n=0;n<6;n++){const id=crypto.randomUUID(),name=`dispute-player-${n}`;await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) SELECT ?,org_id,?,?,'Student','Student',password_hash,credential_version FROM Users WHERE id=?").bind(id,name,name,TEST_USER).run();await store.insert('membership',`${season}:${id}`,TEST_ORG,{seasonId:season,userId:id,difficulty:'Advanced'},{seasonId:season,ownerId:id});await store.insert('assignment',crypto.randomUUID(),TEST_ORG,{seasonId:season,studentUserId:id,contentPackId:pack,...range},{seasonId:season,ownerId:id});const login=await app.fetch('/api/v1/auth/login',{method:'POST',headers:{Origin:'https://erudoza.test'},body:JSON.stringify({identifier:name,password:'Testing!123'})});players.push({id,cookie:login.headers.get('set-cookie')!.split(';')[0]});}
- const coach=(await app.login()).headers.get('set-cookie')!.split(';')[0];
- const call=async(actor:number,path:string,data?:unknown,headers:Record<string,string>={})=>{const response=await app.fetch('/api/v1'+path,{method:data?'POST':'GET',headers:{Cookie:actor===-1?coach:players[actor].cookie,Origin:'https://erudoza.test',...(realClock?{}:{'x-test-room-now':String(now)}),...headers},...(data?{body:JSON.stringify(data)}:{})});return response;};
- return {app,store,season,players,call,advance:(ms:number)=>{now+=ms;},useRealClock:()=>{realClock=true;},get now(){return now;}};
-}
 
 let fixture:Awaited<ReturnType<typeof probeFixture>>;
 afterEach(async()=>{await fixture?.app.runtime.dispose();});

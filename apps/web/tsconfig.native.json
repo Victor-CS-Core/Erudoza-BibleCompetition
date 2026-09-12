@@ -6,5 +6,5 @@
     "types": ["@cloudflare/workers-types"]
   },
   "include": ["worker/native/**/*.ts"],
-  "exclude": ["worker/native/**/*.test.ts", "worker/native/test-runtime.ts", "worker/native/pbe/dispute-fixture.ts"]
+  "exclude": ["worker/native/**/*.test.ts", "worker/native/test-runtime.ts", "worker/native/pbe/dispute-fixture.ts", "worker/native/pbe/restore-source-fixture.ts", "worker/native/practice/pbe-room-source-fixture.ts"]
 }

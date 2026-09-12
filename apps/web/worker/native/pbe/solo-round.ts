@@ -1,3 +1,4 @@
+import {maintenanceOffline} from '../maintenance/protocol';
 import { DurableObject } from 'cloudflare:workers';
 import { authenticate, checkOrigin } from '../auth';
 import { Store } from '../store';
@@ -19,13 +20,13 @@ export class PbeSoloRound extends DurableObject<Env>{
   private readonly epoch=crypto.randomUUID();
   private tail:Promise<unknown>=Promise.resolve();
   private pending=0;
-  constructor(ctx:DurableObjectState,env:Env){super(ctx,env);ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS state(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)');}
+  constructor(ctx:DurableObjectState,env:Env){super(ctx,env);if(maintenanceOffline(env))return;ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS state(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)');}
   private load():SoloState|null{
     const row=this.ctx.storage.sql.exec<{data:string}>('SELECT data FROM state WHERE id=1').toArray()[0];
     if(!row)return null;
     const state=JSON.parse(row.data) as SoloState;state.history??=[];return state;
   }
-  private save(state:SoloState){this.ctx.storage.sql.exec('INSERT INTO state(id,data) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data',JSON.stringify(state));}
+  private save(state:SoloState){if(maintenanceOffline(this.env))throw new Error('Offline maintenance.');this.ctx.storage.sql.exec('INSERT INTO state(id,data) VALUES(1,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data',JSON.stringify(state));}
   private async serialize<T>(fn:()=>Promise<T>){
     if(this.pending>=32)throw new HttpError(429,'Too many pending timed rehearsal commands.');
     this.pending++;const before=this.tail;let release!:()=>void;this.tail=new Promise<void>(resolve=>release=resolve);
@@ -45,6 +46,7 @@ export class PbeSoloRound extends DurableObject<Env>{
     state.status='Settling';this.save(state);
   }
   private async recover(state:SoloState,partCount:number){
+    if(maintenanceOffline(this.env))throw new Error('Offline maintenance.');
     if(state.epoch===this.epoch)return;
     state.epoch=this.epoch;
     if(state.status==='Armed'){
@@ -54,10 +56,12 @@ export class PbeSoloRound extends DurableObject<Env>{
     else if(state.status==='Presenting'){state.revision++;state.readyScribeIds=[];state.responseStartsAtMs=null;state.responseEndsAtMs=null;this.save(state);}
   }
   private async recordInterruption(state:SoloState){
+    if(maintenanceOffline(this.env))throw new Error('Offline maintenance.');
     const store=new Store(this.env.DB),prior=await store.get('pbe-solo-interruption',state.sessionId,state.actor.organizationId);
     if(!prior)await store.insert('pbe-solo-interruption',state.sessionId,state.actor.organizationId,{sessionId:state.sessionId,questionId:state.questionId,status:'Interrupted',restartAllowed:true},{ownerId:state.actor.userId});
   }
   private async settle(state:SoloState,request:Request){
+    if(maintenanceOffline(this.env))throw new Error('Offline maintenance.');
     if(state.status==='Settled')return{...state.response as Record<string,unknown>,alreadyProcessed:true};
     if(!state.frozen)throw new HttpError(409,'No frozen answer is ready.');
     state.status='Settling';this.save(state);
@@ -68,6 +72,7 @@ export class PbeSoloRound extends DurableObject<Env>{
   }
   private exact(frozen:FrozenSubmission,input:Input){return input.clientSubmissionId===frozen.input.clientSubmissionId&&Array.isArray(input.answers)&&JSON.stringify(input.answers)===JSON.stringify(frozen.retryAnswers);}
   async fetch(request:Request):Promise<Response>{
+    if(maintenanceOffline(this.env))return new Response(null,{status:404});
     try{
       const match=new URL(request.url).pathname.match(/^\/api\/v1\/study\/sessions\/([a-f0-9-]{36})\/timed$/i);if(!match)throw new HttpError(404,'Timed rehearsal route not found.');
       const url=new URL(request.url),expected=url.searchParams.get('questionId'),input=request.method==='POST'?await body<Input>(request,32768):null,ingress=Date.now();
@@ -125,6 +130,7 @@ export class PbeSoloRound extends DurableObject<Env>{
     }catch(error){if(error instanceof HttpError)return json({title:error.message,detail:error.message},error.status);console.error('PBE solo authority failed',error instanceof Error?error.name:'UnknownError');return json({title:'Timed rehearsal temporarily unavailable'},503);}
   }
   async alarm(){
+    if(maintenanceOffline(this.env))return;
     await this.serialize(async()=>{const state=this.load();if(!state)return;const session=await this.session(state.actor,state.sessionId),card=session.cards[session.attempts.length];await this.recover(state,card?.question.parts.length??0);if(state.status==='Interrupted'){await this.recordInterruption(state);return;}if(state.status==='Armed'){if(!card||card.id!==state.questionId){state.status='Interrupted';this.save(state);await this.recordInterruption(state);return;}this.freezeDraft(state,card.question.parts.length);}if(state.status==='Settling')await this.settle(state,new Request(`https://internal/api/v1/study/sessions/${state.sessionId}/timed`));});
   }
 }
