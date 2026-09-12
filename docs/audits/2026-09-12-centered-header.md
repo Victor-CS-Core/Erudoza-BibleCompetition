@@ -15,4 +15,10 @@ The command center, Ctrl/Cmd+K, mobile More, saved desktop pins, account mode sw
 
 These are local results, using browser API fixtures and blocked external resources or the existing local provider contract. They do not establish a deployed release, hosted authentication, live payment behavior or physical-device acceptance. No remote CI result is claimed.
 
-Ignored evidence is under `apps/web/.local/header-centered/` in `.worktrees/header-centered`, including the baseline/final JSON reports and viewport captures. The verified native entry is `index-Chdqamcg.js`, with stylesheet `index-DYpiOBGX.css`. Implementation `165d40f` is committed and pushed to `origin/codex/header-centered`, with exact remote readback confirmed. The separate main checkout is unchanged. Main integration and production deployment remain separate actions.
+Ignored evidence is under `apps/web/.local/header-centered/` in `.worktrees/header-centered`, including the baseline/final JSON reports and viewport captures. The verified native entry is `index-Chdqamcg.js`, with stylesheet `index-DYpiOBGX.css`. Implementation `165d40f` was committed and pushed to `origin/codex/header-centered`, with exact remote readback confirmed.
+
+## Authorized main integration
+
+The user subsequently requested merge. Fresh remote inspection found main `1cf2c99` unchanged and an ancestor of task tip `b77555e`. Clean main fast-forwarded without conflicts; its tree matched the reviewed task tip exactly. A fresh merged-tree suite passed 627 tests with one existing optional skip in 20.86 seconds. Whitespace passed. Earlier builds/types, lint, review and responsive browser evidence apply to unchanged application source.
+
+Normal push advanced `origin/main` to `b77555e170e1e3401fd24e5e3fb5600e3e51f7e4`, confirmed by exact remote readback. The task worktree retains ignored screenshots and reports. This documentation follow-up allows normal main CI; no completed remote CI result or production deployment is claimed.
