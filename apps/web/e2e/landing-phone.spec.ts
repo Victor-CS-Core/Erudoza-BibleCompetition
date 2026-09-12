@@ -17,7 +17,7 @@ for (const width of phoneWidths) {
     await expect(page.getByRole("heading", { name: "Rehearse with your team" })).toBeVisible();
     await expect(page.getByRole("figure", { name: "A glimpse of Erudoza Honors" })).toContainText("Sample artwork");
     await expect(page.getByTestId("start-studying")).toHaveAttribute("href", "/login");
-    await expect(page.getByTestId("build-a-season")).toHaveAttribute("href", "/login");
+    await expect(page.getByTestId("build-a-season")).toHaveAttribute("href", "/signup");
 
     const overflow = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,

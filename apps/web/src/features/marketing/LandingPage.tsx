@@ -39,7 +39,7 @@ export function LandingPage() {
             description="Learn your assigned passages. Practice recalling them for your next Bible competition." />
           <div className="public-actions">
             <LinkButton to="/login" size="large" data-testid="start-studying">Start studying<AppIcon name="arrow" /></LinkButton>
-            <LinkButton to="/login" size="large" variant="secondary" data-testid="build-a-season">Coach your team</LinkButton>
+            <LinkButton to="/signup" size="large" variant="secondary" data-testid="build-a-season">Coach your team</LinkButton>
           </div>
           <p className="public-access-note ds-caption">Use the account provided by your coach.</p>
         </div>

@@ -57,7 +57,7 @@ describe("LandingPage", () => {
     expect(within(header).getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
     const start = screen.getByRole("link", { name: "Start studying" });
     expect(start).toHaveAttribute("href", "/login");
-    expect(screen.getByRole("link", { name: "Coach your team" })).toHaveAttribute("href", "/login");
+    expect(screen.getByRole("link", { name: "Coach your team" })).toHaveAttribute("href", "/signup");
     expect(screen.getByRole("link", { name: "Create your club" })).toHaveAttribute("href", "/signup");
 
     fireEvent.click(start);
