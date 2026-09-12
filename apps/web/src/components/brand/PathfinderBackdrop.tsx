@@ -12,8 +12,8 @@ const artworks = {
 /** Page families keep their approved artwork when filters, seasons, or steps change. */
 export function pathfinderArtworkForRoute(path: string) {
   const pathname = path.split(/[?#]/, 1)[0].replace(/\/+$/, "") || "/";
-  if (pathname === "/" || pathname === "/student" || /^\/student\/sessions\/[^/]+\/recap$/.test(pathname)) return artworks.camp;
-  if (pathname === "/login" || pathname === "/forgot-password" || pathname === "/student/study") return artworks.trail;
+  if (pathname === "/" || pathname === "/login" || pathname === "/student" || /^\/student\/sessions\/[^/]+\/recap$/.test(pathname)) return artworks.camp;
+  if (pathname === "/forgot-password" || pathname === "/student/study") return artworks.trail;
   if (pathname === "/signup" || pathname === "/student/progress" || /^\/admin\/seasons\/[^/]+\/students\/[^/]+\/progress$/.test(pathname)) return artworks.campcraft;
   if (pathname === "/admin" || pathname === "/student/honors" || pathname === "/join-coach") return artworks.notes;
   if (/^\/admin\/seasons(?:\/|$)/.test(pathname)) return artworks.trail;

@@ -6,7 +6,7 @@ import { PathfinderBackdrop, pathfinderArtworkForRoute } from "./PathfinderBackd
 describe("approved Pathfinder page artwork", () => {
   it.each([
     ["/", "camp", "right"],
-    ["/login", "trail", "left"],
+    ["/login", "camp", "right"],
     ["/signup", "campcraft", "right"],
     ["/admin", "notes", "left"],
     ["/student", "camp", "right"],
