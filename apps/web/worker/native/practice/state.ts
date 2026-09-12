@@ -91,10 +91,13 @@ export function advance(r:Room,now:number,pending=false,eligibleReserveIds?:Set<
  if(r.phase==="Break"&&now>=r.phaseEndsAt!){next(r,now);return true;}
  return before!==r.messages.length;
 }
+// Preserved terminal phases are historical evidence, never permission to resume play.
+export function isTerminatedPbePlay(r:Room,action:string){return isPbeRoom(r)&&!['Lobby','Playing'].includes(r.status)&&['ready','start','next','present','present-ready','ack','draft','submit'].includes(action);}
 export function applyCommand(r:Room,a:Actor,c:Command,ingress:number,now:number,options:{questions?:Question[];invitee?:{id:string;displayName:string};pending?:boolean}={}):void {
  need(participant(r,a)||(canCoach(r,a)&&c.action==="judge"),"Room access denied.",403);
  need(typeof c.commandId==="string"&&/^[a-f0-9-]{36}$/i.test(c.commandId),"A command ID is required.");
  if(r.applied[c.commandId]){need(r.applied[c.commandId]===a.userId,"Command belongs to another player.",403);return;}
+ need(!isTerminatedPbePlay(r,c.action),"This rehearsal has ended.");
  if(!(isPbeRoom(r)&&["remove","leave","abandon"].includes(c.action))&&!["submit","ack","draft","present","present-ready"].includes(c.action))advance(r,now,options.pending);
  if(["move","swap","remove","owner","start","captain","scribe"].includes(c.action))need(c.revision===r.revision,"Room changed. Refresh and retry.",409);
  const m=r.members.find(m=>m.userId===a.userId),target=r.members.find(m=>m.userId===c.targetUserId),owner=r.ownerId===a.userId;
@@ -114,7 +117,7 @@ export function applyCommand(r:Room,a:Actor,c:Command,ingress:number,now:number,
  case "invite":lobby();need(options.invitee&&options.invitee.id===c.targetUserId&&!r.members.some(x=>x.userId===c.targetUserId),"Player not found or already joined.");need(c.team===undefined||activeTeams(r).includes(c.team),"Choose a team.");need(c.team===undefined||owner||m?.team===c.team,"Invite to your own team.",403);need(!r.invitations.some(i=>i.userId===c.targetUserId&&!i.accepted&&Date.parse(i.expiresAt)>now),"An invitation is already pending.");r.invitations.push({id:crypto.randomUUID(),roomId:r.id,userId:c.targetUserId!,team:c.team,inviterName:a.displayName,expiresAt:new Date(now+86400000).toISOString(),accepted:false});break;
  case "start":lobby();need(owner||independentCaptain,"Only the owner or an independent PBE captain can start.",403);need(r.members.length===r.teamSize*activeTeams(r).length&&r.members.every(x=>x.ready),"All active teams must be full and ready.");need(options.questions&&options.questions.length>=r.questionCount,"Insufficient eligible published questions.");if(isPbeRoom(r)){need(options.questions.length>r.questionCount,'A distinct eligible recovery reserve is required.');need(validRoomSet(options.questions.slice(0,r.questionCount),r.questionCount),'The final rehearsal set violates its quotas.');need(new Set(options.questions.map(q=>q.id)).size===options.questions.length,'Question IDs must be distinct.');}r.questions=structuredClone(options.questions.slice(0,r.questionCount));r.reserves=structuredClone(options.questions.slice(r.questionCount));r.status="Playing";presentation(r,now);break;
  case "present":case "present-ready":{
-  need(isPbeRoom(r)&&r.phase==='Presentation','This presentation is not awaiting readings.');need(c.questionId===current(r).id&&c.revision===r.revision,'Presentation changed. Refresh and retry.',409);
+  need(isPbeRoom(r)&&r.status==='Playing'&&r.phase==='Presentation','This presentation is not awaiting readings.');need(c.questionId===current(r).id&&c.revision===r.revision,'Presentation changed. Refresh and retry.',409);
   const scribes=r.members.filter(m=>m.scribe).map(m=>m.userId);
   if(r.coached){
    if(c.action==='present'){need(r.coachId===a.userId&&canCoach(r,a),'Only the designated non-playing coach can confirm readings.',403);need(c.delivery==='Coach','Confirm both coach readings.');r.coachReading={questionId:current(r).id,coachId:a.userId,completedAtMs:ingress};}

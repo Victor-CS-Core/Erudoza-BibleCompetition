@@ -15,6 +15,14 @@ public sealed partial class PracticeService
         var row = await Load(org, id, ct);
         var room = PracticeJson.Read<PracticeRoom>(row.StateJson);
         if (!Member(room, actor) && !(actor.Admin && command.Action == "judge")) throw new PracticeForbiddenException();
+        // Historical phase data cannot admit new play, even when material was revoked before cleanup.
+        if (IsPbe(room) && room.Status is not ("Lobby" or "Playing") && command.Action is "ready" or "start" or "next" or "present" or "present-ready" or "ack" or "draft" or "submit")
+        {
+            if (command.CommandId == Guid.Empty) throw new DomainException("A command ID is required.");
+            if (!room.AppliedCommands.TryGetValue(command.CommandId, out var acceptedActor)) throw new DomainException("This rehearsal has ended.");
+            if (acceptedActor != actor.Id) throw new PracticeForbiddenException();
+            return View(room, actor);
+        }
         var cleanup = IsPbe(room) && command.Action is "remove" or "leave" or "abandon";
         if (!cleanup && IsPbe(room) && room.Status is "Lobby" or "Playing") { var authorized = await AuthorizePbeRoom(org, room, ct); if (room.Status == "Playing" && room.ProcessId != runtime.ProcessId) { Advance(room, EligiblePbeReserves(room, authorized)); await Save(row, room, ct); } }
         if (command.CommandId == Guid.Empty) throw new DomainException("A command ID is required.");
@@ -109,7 +117,7 @@ public sealed partial class PracticeService
                 break;
             case "present":
             case "present-ready":
-                if (!IsPbe(room) || room.Phase != "Presentation" || command.QuestionId != Current(room).Id || command.Revision != room.Revision) throw new DomainException("Presentation changed. Refresh and retry.");
+                if (!IsPbe(room) || room.Status != "Playing" || room.Phase != "Presentation" || command.QuestionId != Current(room).Id || command.Revision != room.Revision) throw new DomainException("Presentation changed. Refresh and retry.");
                 var scribes = room.Members.Where(m => m.Scribe).Select(m => m.UserId).ToList();
                 if (room.Coached)
                 {

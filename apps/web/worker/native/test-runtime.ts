@@ -46,7 +46,7 @@ export async function createNativeTestApp(options:{measureD1?:boolean;onD1Meter?
     else source=source.replace('private tail:', 'constructor(ctx:DurableObjectState,env:Env){super(ctx,meteredObjectEnv(env));} private tail:');
     if(options.replaceRoomAuthority&&args.path.endsWith('room.ts')){
       const ingress='const now=Date.now();let r=this.load();';if(!source.includes(ingress))throw new Error('Room replacement hook no longer matches.');
-      source=source.replace(ingress,ingress+"if(request.headers.has('x-test-authority-replaced')&&r){r.epoch='fixture-replaced';this.save(r);await this.ctx.storage.setAlarm(Date.now());return json({status:'replacement-scheduled',snapshotUtf8Bytes:new TextEncoder().encode(JSON.stringify(r)).length,questions:r.questions.length,reserves:r.reserves.length,roster:r.members.length});}");
+      source=source.replace(ingress,ingress+"if(request.headers.has('x-test-room-snapshot'))return json(r);if(request.headers.has('x-test-authority-replaced')&&r){r.epoch='fixture-replaced';this.save(r);await this.ctx.storage.setAlarm(Date.now());return json({status:'replacement-scheduled',snapshotUtf8Bytes:new TextEncoder().encode(JSON.stringify(r)).length,questions:r.questions.length,reserves:r.reserves.length,roster:r.members.length});}");
     }
     source=source.replace('async fetch(request:Request):Promise<Response>{',`async fetch(request:Request):Promise<Response>{return measureD1Fetch((req,env)=>objectDatabase.run(env.DB,()=>this.unmeteredFetch(req)),${before},${report})(request,this.env);} async unmeteredFetch(request:Request):Promise<Response>{`);
     return {loader:"ts",contents:source};

@@ -78,3 +78,13 @@ it.each(['coach-first','scribes-first'])('arms coached PBE only after designated
  expect(r.phase).toBe('Scheduled');expect(r.presentationDelivery).toEqual({'player-0':'Coach','player-2':'Coach'});expect(r.responseStartsAt).toBe(4000);expect(r.presentations?.[q]).toMatchObject({coachReading:{questionId:q,coachId:coach.userId,completedAtMs:1000},delivery:{'player-0':'Coach','player-2':'Coach'}});
  expect(()=>c(coach,'draft',{questionId:q,answers:['the answer']})).toThrow();expect(()=>c(coach,'submit',{questionId:q,answers:['the answer']})).toThrow();
 });
+
+it.each([true,false].flatMap(coached=>['Presentation','Scheduled','Response'].map(phase=>({coached,phase}))))('rejects new terminal PBE work without changing retained state, $coached/$phase',({coached,phase})=>{
+ const coach:Actor={...actor(9),kind:'Adult',role:'Admin'};const r=makeRoom('room',coach,{seasonId:'season',format:'Pbe',coached,teamCount:2,teamSize:2,questionCount:10},'epoch',1000);
+ for(let n=0;n<4;n++)join(r,actor(n),Math.floor(n/2)+1);r.members.forEach(m=>m.ready=true);
+ const command=(a:Actor,action:string,extra:Record<string,unknown>={},at=1000)=>applyCommand(r,a,{commandId:crypto.randomUUID(),revision:r.revision,action,...extra},at,at,{questions:Array.from({length:11},(_,n)=>question(n+1))});
+ command(coach,'start');const questionId=r.questions[0].id;
+ if(phase!=='Presentation'){if(coached){command(coach,'present',{questionId,delivery:'Coach'});command(actor(0),'present-ready',{questionId});command(actor(2),'present-ready',{questionId});}else{command(actor(0),'present',{questionId,delivery:'Audio'});command(actor(2),'present',{questionId,delivery:'TextFallback'});}if(phase==='Response')advance(r,4000);}
+ command(coach,'abandon',{},phase==='Response'?4000:1000);const before=JSON.stringify(r);
+ for(const [a,action,extra] of [[actor(0),'present-ready',{}],[actor(2),'present-ready',{}],[coach,'present',{delivery:'Coach'}],[actor(0),'present',{delivery:'TextFallback'}],[actor(0),'ack',{}],[actor(0),'draft',{answers:['New answer after termination']}],[actor(0),'submit',{answers:['New answer after termination']}]] as const){expect(()=>command(a,action,{questionId,...extra},4100)).toThrow();expect(JSON.stringify(r)).toBe(before);}
+});
