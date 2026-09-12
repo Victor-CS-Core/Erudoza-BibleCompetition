@@ -4,7 +4,7 @@ import { applyAcceptedAttempt, prepareStart, makeRecap, scopeVersion, startPaylo
 import type { SessionTraining, MissionRecord } from '../training/store';
 import type { RequestContext } from '../types';
 import { admin, body, HttpError, json, requiredString } from '../types';
-import { atomic, contains, effectiveSources, fail, id, memberId, student } from '../application/model';
+import { atomic, contains, effectiveSources, fail, id, memberId, student, requireLearner } from '../application/model';
 import type { Assignment, Membership, Season, Source } from '../application/model';
 import { builtInContentSql, scopeEntriesSql } from '../application/library-access';
 import { applyMastery, chooseActivity, eligibleActivities, evaluateAnswer, generateActivity, MASTERY_VERSION, nextReview, normalizeDifficulty, toCardDto } from './engine';
@@ -25,7 +25,7 @@ const sessionDto = (s: Session) => ({ id: s.id, seasonId: s.seasonId, status: s.
 const cardDto = (s: Session, c: Card) => toCardDto(c, { id: c.id, sessionId: s.id, sequence: c.sequence, total: s.targetCardCount }, sourceUnit(c.source), s.mode !== 'Simulation' || s.ruleProfile.showReference, false);
 const summary = (s: Session) => ({ sessionId: s.id, mode: s.mode, attempted: s.attempts.length, correct: s.attempts.filter(a => a.isCorrect).length, targetCardCount: s.targetCardCount, status: s.status, ...(s.recap ? { recap: s.recap } : {}) });
 const replay = (a: Attempt) => ({ ...a.result, alreadyProcessed: true });
-function requireStudent(ctx: RequestContext) { if (ctx.actor.kind !== 'Student' || ctx.actor.role !== 'Student') throw new HttpError(403, 'Student access is required.'); }
+
 async function listAll<T extends { id: string }>(ctx: RequestContext, kind: string, scope: { seasonId?: string; ownerId?: string } = {}) {
   const result: T[] = []; let after: string | undefined;
   for (;;) { const page = await ctx.store.list<T>(kind, ctx.orgId, { ...scope, after, limit: 5000 }); result.push(...page); if (page.length < 5000) return result; after = page.at(-1)!.id; }
@@ -45,7 +45,7 @@ async function activeScope(ctx: RequestContext, seasonId: string, studentId: str
   if (season.value.status !== 'Active') fail('The season must be active for study.');
   const sources = await effectiveSources(ctx, seasonId, studentId);
   if (!sources.length) fail('The student has no assigned study scope.');
-  return { sources, guards: [...rows.results, { kind: '@active-user', id: studentId, revision: 0 }] };
+  return { sources, guards: [...rows.results, { kind: '@active-learner', id: studentId, revision: 0 }] };
 }
 async function sessionScope(ctx: RequestContext, session: Session, persistInvalidation = false) {
   try {
@@ -211,13 +211,13 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
   const { path, request } = ctx, method = request.method;
   if (ctx.orgId !== ctx.actor.organizationId) throw new HttpError(403, 'Organization access denied.');
   const coachProgress = path.match(/^\/seasons\/([^/]+)\/students\/([^/]+)\/progress$/);
-  if (coachProgress && method === 'GET') { admin(ctx.actor); return progress(ctx, coachProgress[2], coachProgress[1]); }
+  if (coachProgress && method === 'GET') { admin(ctx.actor); await student(ctx,coachProgress[2]); return progress(ctx, coachProgress[2], coachProgress[1]); }
   if (!/^\/api\/v1\/(study|progress)(\/|$)/.test(path)) return null;
   if (path === '/api/v1/progress/me' && method === 'GET') {
     if (ctx.actor.kind !== 'Student') admin(ctx.actor);
     return progress(ctx, ctx.actor.userId, new URL(request.url).searchParams.get('seasonId'));
   }
-  requireStudent(ctx);
+  await requireLearner(ctx);
   if (path === '/api/v1/progress/me/seasons' && method === 'GET') {
     const assignments = await listAll<Assignment>(ctx, 'assignment', { ownerId: ctx.actor.userId });
     const seasons = await listAll<Season>(ctx, 'season');

@@ -34,7 +34,7 @@ it("returns ordered locators and text only for active, assigned, included verses
   expect(result.verses[0]).toMatchObject({ citation: "Genesis 1:1", canonicalText: "Assigned text 1." });
 });
 
-it("requires student authentication, tenant ownership and season membership", async () => {
+it("requires learner authentication, tenant ownership and season membership", async () => {
   expect((await app.fetch(url)).status).toBe(401);
   const otherSeason = "aaaaaaaa-aaaa-4aaa-8aaa-bbbbbbbbbbbb";
   await app.db.prepare("INSERT INTO Organizations(id,name,slug) VALUES('another-organization','Isolated','isolated-reader')").run();
@@ -44,6 +44,8 @@ it("requires student authentication, tenant ownership and season membership", as
   expect((await request()).status).toBe(404);
   await record("membership", `${season}:${TEST_USER}`, { id: `${season}:${TEST_USER}` }, season, TEST_USER);
   await app.db.prepare("UPDATE Users SET kind='Adult',role='Owner' WHERE id=?").bind(TEST_USER).run();
+  expect((await request()).status).toBe(200);
+  await app.db.prepare("UPDATE Users SET role='Student' WHERE id=?").bind(TEST_USER).run();
   expect((await request()).status).toBe(403);
   await app.db.prepare("UPDATE Users SET kind='Student',role='Student' WHERE id=?").bind(TEST_USER).run();
 });

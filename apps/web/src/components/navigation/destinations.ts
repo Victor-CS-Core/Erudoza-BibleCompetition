@@ -1,7 +1,7 @@
 import type { IconName } from "../AppIcon";
 export type Destination = { id: string; label: string; to: string; icon: IconName; testId?: string; children?: Destination[] };
 const child = (id: string, label: string, to: string, icon: IconName = "arrow"): Destination => ({ id, label, to, icon });
-export function navigation(coach: boolean, selectedSeason?: string | null): Destination[] {
+export function navigation(coach: boolean, selectedSeason?: string | null, personalAssignments = false): Destination[] {
   const student = (path: string) => selectedSeason ? `${path}${path.includes("?") ? "&" : "?"}seasonId=${encodeURIComponent(selectedSeason)}` : path;
   return coach ? [
     { id: "overview", label: "Overview", to: "/admin", icon: "home", testId: "coach-tab-overview" },
@@ -14,6 +14,7 @@ export function navigation(coach: boolean, selectedSeason?: string | null): Dest
     { id: "library", label: "Scripture library", to: "/admin/content", icon: "book", testId: "nav-content", children: [child("books", "Books of the Bible", "/admin/content#library-books"), child("preview", "Read Scripture", "/admin/content#library-preview", "book")] },
   ] : [
     { id: "home", label: "Training HQ", to: student("/student"), icon: "home", testId: "learner-tab-home" },
+    ...(personalAssignments ? [{ id: "my-assignments", label: "My assignments", to: student("/student/assignments"), icon: "book" as const, testId: "nav-my-assignments" }] : []),
     { id: "study", label: "Study", to: student("/student/study"), icon: "book", testId: "nav-academy-learner" },
     { id: "review", label: "Review", to: student("/student/study?mode=Review"), icon: "review", testId: "nav-review" },
     { id: "simulation", label: "Simulation", to: student("/student/study?mode=Simulation"), icon: "flag", testId: "nav-simulation" },

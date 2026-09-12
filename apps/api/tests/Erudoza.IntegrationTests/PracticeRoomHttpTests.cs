@@ -13,6 +13,52 @@ namespace Erudoza.IntegrationTests;
 
 public sealed class PracticeRoomHttpTests
 {
+    [Fact]
+    public async Task Coach_can_play_without_judge_privileges_and_can_receive_player_invitations()
+    {
+        using var fixture = await Setup.Create();
+        var bootstrap = await fixture.Admin.GetFromJsonAsync<JsonElement>(fixture.Path + "/bootstrap");
+        var adminId = (await fixture.Admin.GetFromJsonAsync<JsonElement>("/api/v1/me")).GetProperty("userId").GetGuid();
+        Assert.Contains(bootstrap.GetProperty("players").EnumerateArray(), p => p.GetProperty("id").GetGuid() == adminId);
+        var created = await fixture.Admin.PostAsJsonAsync(fixture.Path + "/rooms", new { seasonId = fixture.SeasonId, teamSize = 1, questionCount = 10, coached = false });
+        created.EnsureSuccessStatusCode();
+        var personal = await created.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(adminId, Assert.Single(personal.GetProperty("members").EnumerateArray()).GetProperty("userId").GetGuid());
+        Assert.False(personal.GetProperty("isCoach").GetBoolean());
+        var judge = await fixture.Admin.PostAsJsonAsync(fixture.Path + "/rooms/" + personal.GetProperty("id").GetGuid() + "/commands", new { action = "judge", commandId = Guid.NewGuid(), revision = personal.GetProperty("revision").GetInt64() });
+        Assert.Equal(HttpStatusCode.Forbidden, judge.StatusCode);
+        var room = await fixture.CreateRoom(1);
+        room = await fixture.Command(room, "invite", adminId, 2);
+        bootstrap = await fixture.Admin.GetFromJsonAsync<JsonElement>(fixture.Path + "/bootstrap");
+        var invitation = Assert.Single(bootstrap.GetProperty("invitations").EnumerateArray()).GetProperty("id").GetGuid();
+        var accepted = await fixture.Admin.PostAsJsonAsync(fixture.Path + $"/invitations/{invitation}/accept", new { team = 2 });
+        accepted.EnsureSuccessStatusCode();
+        Assert.False((await accepted.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("isCoach").GetBoolean());
+        var roomPath = fixture.Path + "/rooms/" + room.GetProperty("id").GetGuid();
+        (await fixture.Owner.PostAsJsonAsync(roomPath + "/commands", new { action = "chat", commandId = Guid.NewGuid(), text = "Opponent private discussion" })).EnsureSuccessStatusCode();
+        fixture.Admin.DefaultRequestHeaders.Add("X-Erudoza-Mode", "coach");
+        var playerView = await fixture.Admin.GetFromJsonAsync<JsonElement>(roomPath);
+        Assert.False(playerView.GetProperty("isCoach").GetBoolean());
+        Assert.Empty(playerView.GetProperty("messages").EnumerateArray());
+        Assert.Equal(HttpStatusCode.Forbidden, (await fixture.Admin.PostAsJsonAsync(roomPath + "/commands", new { action = "judge", commandId = Guid.NewGuid() })).StatusCode);
+    }
+
+    [Fact]
+    public async Task Nonplaying_room_coach_cannot_receive_a_player_invitation()
+    {
+        using var fixture = await Setup.Create();
+        var adminId = (await fixture.Admin.GetFromJsonAsync<JsonElement>("/api/v1/me")).GetProperty("userId").GetGuid();
+        var created = await fixture.Admin.PostAsJsonAsync(fixture.Path + "/rooms", new { seasonId = fixture.SeasonId, teamSize = 1, questionCount = 10, coached = true });
+        created.EnsureSuccessStatusCode();
+        var room = await created.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(adminId, room.GetProperty("coachId").GetGuid());
+        var response = await fixture.Admin.PostAsJsonAsync(fixture.Path + "/rooms/" + room.GetProperty("id").GetGuid() + "/commands",
+            new { action = "invite", commandId = Guid.NewGuid(), targetUserId = adminId, team = 1 });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var bootstrap = await fixture.Admin.GetFromJsonAsync<JsonElement>(fixture.Path + "/bootstrap");
+        Assert.Empty(bootstrap.GetProperty("invitations").EnumerateArray());
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(2)]

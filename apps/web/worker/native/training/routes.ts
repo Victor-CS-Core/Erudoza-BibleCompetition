@@ -1,3 +1,4 @@
+import { requireLearner } from '../application/model';
 import type { RequestContext } from '../types';
 import { body, HttpError, json } from '../types';
 import { atomic } from '../application/model';
@@ -11,8 +12,7 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
     const recap = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)\/recap$/);
     if (!recap && !/^\/api\/v1\/progress\/me\/(today|honors|journey|preferences)$/.test(path))
         return null;
-    if (ctx.actor.kind !== 'Student' || ctx.actor.role !== 'Student' || ctx.orgId !== ctx.actor.organizationId)
-        throw new HttpError(403, 'Student access is required.');
+    await requireLearner(ctx);
     const url = new URL(request.url), seasonId = url.searchParams.get('seasonId');
     if (recap && method === 'GET') {
         const s = (await ctx.store.require<Session>('session', recap[1], ctx.orgId)).value;

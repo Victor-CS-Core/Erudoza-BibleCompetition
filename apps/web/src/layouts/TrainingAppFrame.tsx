@@ -23,8 +23,15 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const location = useLocation();
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
+  const canSwitch = me?.kind === "Adult" && (me.role === "Owner" || me.role === "Admin");
+  const seasonStorageKey = `erudoza:learner-season:${me?.organizationId}:${me?.userId}`;
   const selectedSeason = params.get("seasonId");
-  const items = navigation(coach, selectedSeason);
+  let rememberedSeason: string | null = null;
+  try { rememberedSeason = sessionStorage.getItem(seasonStorageKey); } catch { /* Storage is optional. */ }
+  const pathSeason = coach ? location.pathname.match(/^\/admin\/seasons\/([^/]+)/)?.[1] : undefined;
+  const switchSeason = (pathSeason && pathSeason !== "new" ? pathSeason : null) ?? selectedSeason ?? rememberedSeason;
+  useEffect(() => { if (selectedSeason) { try { sessionStorage.setItem(seasonStorageKey, selectedSeason); } catch { /* Storage is optional. */ } } }, [seasonStorageKey, selectedSeason]);
+  const items = navigation(coach, selectedSeason, canSwitch);
   const active = currentDestination(items, location.pathname, location.search);
   const route = location.pathname + location.search + location.hash;
   const [commandRoute, setCommandRoute] = useState<string | null>(null);
@@ -121,8 +128,9 @@ function CommandFrame({ coach }: { coach: boolean }) {
       <Button variant={coach ? "secondary" : "inverse"} className="command-trigger" aria-label={searchLabel} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="search" /><span className="command-trigger-copy">{coach ? `${searchLabel}…` : "Find a section or season"}</span><span className="command-trigger-short">Search</span><kbd>Ctrl K</kbd></Button>
       <span className="command-academy">{me?.organizationName}</span>
       <NavigationMenu key={`account:${route}`} name="Account" label={<><ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? ""} /><span className="command-account-name">{me?.displayName}</span></>}>
-        <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach account" : "Student account"}</small></div>
+        <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach mode" : "Student mode"}</small></div>
         <Link to={coach ? "/admin/profile" : `/student/profile${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`}><AppIcon name="users" />Your profile</Link>
+        {canSwitch && <Link data-testid="switch-workspace" to={`${coach ? "/student" : "/admin"}${switchSeason ? `?seasonId=${encodeURIComponent(switchSeason)}` : ""}`}><AppIcon name="arrow" />Switch to {coach ? "Student" : "Coach"} mode</Link>}
         <Button variant="ghost" onClick={() => void signOut()} disabled={signingOut} data-testid="logout"><AppIcon name="logout" />{signingOut ? "Signing out…" : "Sign out"}</Button>
       </NavigationMenu>
     </div></header>

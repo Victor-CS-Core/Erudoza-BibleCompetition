@@ -79,7 +79,7 @@ test("real browsers invite, synchronize and earn server-measured speed points", 
     await a.page.setViewportSize({ width: 1440, height: 1000 });
     await a.page.getByRole("combobox", { name: /^Season/ }).selectOption(fixture.seasonId);
     await a.page.getByRole("button", { name: "Create room", exact: true }).click();
-    await expect(a.page).toHaveURL(/\/student\/practice\/[a-f0-9-]+$/);
+    await expect(a.page).toHaveURL(/\/student\/practice\/[a-f0-9-]+(?:\?seasonId=[a-f0-9-]+)?$/);
     await expect(a.page.getByText("Live connection", { exact: true })).toBeVisible();
     const roomId = new URL(a.page.url()).pathname.split("/").pop()!;
     await capturePractice(a.page, info, "student", "lobby");
@@ -189,4 +189,75 @@ test("5v5 completes ten scored questions with ten authenticated players, refresh
     const locked = await players[1].page.request.put("/api/v1/profile/me/avatar", { data: { honorKey: "team:first-fellowship" } });
     expect(locked.status()).toBe(403);
   } finally { for (const player of players) await player.context.close().catch(() => {}); }
+});
+
+test("coach in Student mode joins by invitation, completes a match and wears an earned Honor in both workspaces", async ({ page: coach, browser }, info) => {
+  test.setTimeout(420000);
+  const fixture = await setup(coach);
+  const me = await json(coach.request, '/api/v1/me');
+  const other = await newPlayer(browser, coach, fixture.org, 'Coach practice partner');
+  try {
+    await other.page.goto('/student/practice');
+    await other.page.getByRole('combobox', { name: /^Season/ }).selectOption(fixture.seasonId);
+    await other.page.getByRole('button', { name: 'Create room', exact: true }).click();
+    await expect(other.page).toHaveURL(/\/student\/practice\/[a-f0-9-]+(?:\?seasonId=[a-f0-9-]+)?$/);
+    const roomId = new URL(other.page.url()).pathname.split('/').pop()!;
+    await other.page.getByRole('combobox', { name: /^Invite player/ }).selectOption(me.userId);
+    await other.page.getByRole('combobox', { name: /^Destination/ }).selectOption('2');
+    await other.page.getByRole('button', { name: 'Send invitation' }).click();
+    await coach.goto('/student/practice');
+    await coach.getByRole('button', { name: 'Join Team 2', exact: true }).click();
+    await expect(coach).toHaveURL(new RegExp(`/student/practice/${roomId}`));
+    await expect(coach.getByText('Live connection', { exact: true })).toBeVisible();
+    await capturePractice(coach, info, 'student', 'coach-player-lobby');
+    await coach.getByRole('button', { name: 'I’m ready' }).click();
+    await other.page.getByRole('button', { name: 'I’m ready' }).click();
+    await other.page.getByRole('button', { name: 'Start match' }).click();
+    for (let round = 0; round < 10; round++) {
+      for (const player of [coach, other.page]) {
+        await expect(player.getByRole('button', { name: 'Lock final answer' })).toBeEnabled({ timeout: 35000 });
+        await player.getByLabel('Answer 1', { exact: true }).fill('Daniel');
+        await player.getByRole('button', { name: 'Lock final answer' }).click();
+        await expect(player.getByText('Answer locked. Wait for the question review.').or(player.getByRole('heading', { name: 'Round review', exact: true }))).toBeVisible();
+      }
+      await expect.poll(async () => (await json(coach.request, `${fixture.path}/rooms/${roomId}`)).results.length, { timeout: 35000 }).toBe((round + 1) * 2);
+      if (round === 0) {
+        await coach.goto(`/admin/practice/${roomId}`);
+        await expect(coach.getByRole('button', { name: 'Record judgment' })).toHaveCount(0);
+        const room = await json(coach.request, `${fixture.path}/rooms/${roomId}`);
+        expect(room.isCoach).toBe(false);
+        const forbidden = await coach.request.post(`${fixture.path}/rooms/${roomId}/commands`, { data: { commandId: randomUUID(), revision: room.revision, action: 'judge', questionId: room.results[0].questionId, team: 2, points: 1, text: 'Cannot judge own match' } });
+        expect(forbidden.status()).toBe(403);
+        await coach.goto(`/student/practice/${roomId}`);
+      }
+      console.info(`Coach player completed question ${round + 1}/10`);
+    }
+    await expect.poll(async () => (await json(coach.request, `${fixture.path}/rooms/${roomId}`)).status, { timeout: 20000 }).toBe('Completed');
+    const completedRoom = await json(coach.request, `${fixture.path}/rooms/${roomId}`);
+    expect(completedRoom.members.find((member: { userId: string }) => member.userId === me.userId)).toMatchObject({ team: 2, scribe: true });
+    expect(completedRoom.results.filter((result: { team: number }) => result.team === 2)).toHaveLength(10);
+    for (const result of completedRoom.results) expect(result.accuracyHundredths).toBe(100);
+    for (const score of completedRoom.scores) {
+      expect(score.accuracyHundredths).toBe(1000);
+      expect(score.totalHundredths).toBe(score.accuracyHundredths + score.speedHundredths);
+    }
+    const earnedHere = await json(coach.request, `${fixture.path}/bootstrap`);
+    expect(earnedHere.achievements.some((award: { seasonId: string; key: string }) => award.seasonId === fixture.seasonId && award.key === 'first-fellowship')).toBe(true);
+    await capturePractice(coach, info, 'student', 'coach-player-results');
+    console.info('Coach match finalized; checking mastery profile');
+    const profile = await json(coach.request, '/api/v1/profile/me');
+    expect(profile.honors.find((honor: { key: string }) => honor.key === 'team:first-fellowship').earnedAtUtc).toBeTruthy();
+    await coach.goto('/student/profile');
+    await coach.getByRole('button', { name: 'Use First Fellowship as profile image', exact: true }).click();
+    await expect(coach.locator('[data-profile-honor="team:first-fellowship"]')).toHaveCount(2);
+    await coach.reload();
+    await expect(coach.locator('[data-profile-honor="team:first-fellowship"]')).toHaveCount(2);
+    console.info('Coach avatar saved and reloaded; checking Coach mode');
+    await coach.goto('/admin/profile');
+    await expect(coach.locator('[data-profile-honor="team:first-fellowship"]')).toHaveCount(2);
+    expect((await json(coach.request, '/api/v1/me')).userId).toBe(me.userId);
+    const locked = await coach.request.put('/api/v1/profile/me/avatar', { data: { honorKey: 'team:rehearsal-complete' } });
+    expect(locked.status()).toBe(403);
+    console.info('Coach scores, Honor, cross-mode avatar and locked selection verified');
+  } finally { await other.page.goto('about:blank').catch(() => {}); await other.context.close(); }
 });

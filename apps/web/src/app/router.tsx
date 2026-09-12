@@ -15,6 +15,7 @@ import { CoachOnboardingPage } from "../features/auth/CoachOnboardingPage";
 import { CoachesPage } from "../features/admin/CoachesPage";
 import { LandingPage } from "../features/marketing/LandingPage";
 import { ProgressPage } from "../features/student/ProgressPage";
+import { MyAssignmentsPage } from "../features/student/MyAssignmentsPage";
 import { StudentHomePage } from "../features/student/StudentHomePage";
 import { ProfilePage } from "../features/profile/ProfilePage";
 import { HonorsPage } from "../features/student/HonorsPage";
@@ -40,7 +41,7 @@ function Guard({ role, children }: { role: "admin" | "student"; children: ReactN
   if (role === "admin" && me.kind === "Student") {
     return <Navigate to="/student" replace />;
   }
-  if (role === "student" && me.kind !== "Student") {
+  if (role === "student" && me.kind !== "Student" && !(me.kind === "Adult" && (me.role === "Owner" || me.role === "Admin"))) {
     return <Navigate to="/admin" replace />;
   }
   return children;
@@ -87,6 +88,7 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <StudentHomePage /> },
+      { path: "assignments", element: <MyAssignmentsPage /> },
       { path: "study", element: <StudyPage /> },
       { path: "sessions/:sessionId/recap", element: <SessionRecapPage /> },
       { path: "honors", element: <HonorsPage /> },

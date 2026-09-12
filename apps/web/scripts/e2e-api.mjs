@@ -14,7 +14,8 @@ const run = mkdtempSync(path.join(tmpdir(), "erudoza-e2e-"));
 const project = path.resolve(import.meta.dirname, "../../api/src/Erudoza.Api/Erudoza.Api.csproj");
 copyFileSync(path.resolve(import.meta.dirname, "../../../global.json"), path.join(run, "global.json"));
 const artifacts = path.join(run, "artifacts");
-const build = spawnSync("dotnet", ["build", project, "--artifacts-path", artifacts], { cwd: run, stdio: "inherit" });
+// Keep compilation inside this fixture, with no shared build servers or parallel child nodes.
+const build = spawnSync("dotnet", ["build", project, "--artifacts-path", artifacts, "--disable-build-servers", "-m:1", "/p:UseSharedCompilation=false"], { cwd: run, stdio: "inherit" });
 if (build.status !== 0) process.exit(build.status ?? 1);
 const application=path.join(artifacts, "bin/Erudoza.Api/debug/Erudoza.Api.dll");
 const environment={ ...process.env,

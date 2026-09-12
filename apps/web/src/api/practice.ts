@@ -7,6 +7,7 @@ export type RoomSummary = { id: string; seasonId: string; teamSize: number; ques
 export type PracticeTrend = { seasonId: string; teamSize: number; bookKey: string | null; ruleVersion: string; matches: number; wins: number; draws: number; accuracyHundredths: number; speedHundredths: number; availableHundredths: number; unansweredQuestions: number; averageResponseMs: number; distinctQuestions: number; distinctPassages: number; participatedQuestions: number };
 export type PracticeBootstrap = { trends?: PracticeTrend[]; enabled: boolean; seasons: { id: string; name: string }[]; players: { id: string; displayName: string }[]; rooms: RoomSummary[]; invitations: { id: string; roomId: string; team?: number; inviterName: string; expiresAt: string }[]; achievements: PracticeAward[]; questions: { id: string; seasonId: string; published: boolean; question: PracticeQuestion }[] };
 export type PracticeRoom = {
+  coachId?: string | null;
   id: string; seasonId: string; teamSize: number; questionCount: number; coached: boolean; ownerId: string; revision: number; status: string; phase: string; questionIndex: number; serverNow: string; phaseEndsAt?: string; scheduleId?: string;
   members: { userId: string; displayName: string; team: number; ready: boolean; captain: boolean; scribe: boolean }[];
   question?: { id: string; prompt: string; reference: string; kind: string; partCount: number; points: number; durationSeconds: number };

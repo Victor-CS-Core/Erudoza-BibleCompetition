@@ -111,6 +111,9 @@ public sealed record CreateAssignmentRequest(
     ScopeRangeDto Range,
     TrainingDifficulty? Difficulty = null);
 
+[System.Text.Json.Serialization.JsonUnmappedMemberHandling(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)]
+public sealed record CreatePersonalAssignmentRequest(AssignmentType Type, Guid ContentPackId, ScopeRangeDto Range, TrainingDifficulty? Difficulty = null);
+
 public sealed record SetStudentDifficultyRequest(TrainingDifficulty Difficulty);
 
 public sealed record AssignmentDto(

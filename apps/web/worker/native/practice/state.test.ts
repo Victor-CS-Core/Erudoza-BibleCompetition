@@ -34,3 +34,10 @@ it("exposes sanitized recovery reasons only to the owner and an authorized non-p
  expect(JSON.stringify(view(r,a,50000))).not.toContain("private-runtime-value");
  expect(()=>view(r,{...coach,userId:"unrelated-coach"},50000)).toThrow("Room access denied");
 });
+
+it('rejects invitations to the room judge before creating an unusable invitation',()=>{
+ const coach:Actor={...actor('coach'),kind:'Adult',role:'Owner'};
+ const r=makeRoom('room',coach,{seasonId:'season',teamSize:1,questionCount:10,coached:true},'epoch',1000);
+ expect(()=>applyCommand(r,coach,{commandId:crypto.randomUUID(),revision:r.revision,action:'invite',targetUserId:coach.userId,team:1},1000,1000,{invitee:{id:coach.userId,displayName:coach.displayName}})).toThrow('The room judge cannot be invited to play.');
+ expect(r.invitations).toHaveLength(0);
+});

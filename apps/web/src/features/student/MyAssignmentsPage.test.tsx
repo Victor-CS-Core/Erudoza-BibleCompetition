@@ -1,0 +1,48 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { beforeEach, expect, it, vi } from "vitest";
+import { api } from "../../api/client";
+import { MyAssignmentsPage } from "./MyAssignmentsPage";
+vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "coach", organizationId: "org", kind: "Adult", role: "Owner" } }) }));
+vi.mock("../../api/client", () => ({ api: { seasons: vi.fn(), seasonScope: vi.fn(), sourceUnits: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
+const range = { bookKey: "Daniel", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 };
+beforeEach(() => {
+ vi.clearAllMocks();
+ vi.mocked(api.seasons).mockResolvedValue([{ id: "season", name: "Daniel", status: "Active" }] as never);
+ vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "pack", includes: [range], excludes: [] });
+ vi.mocked(api.sourceUnits).mockResolvedValue([1, 2, 3].map(verse => ({ id: String(verse), bookKey: "Daniel", chapter: 1, verse, text: "Scripture" })) as never);
+ vi.mocked(api.myAssignments).mockResolvedValue([]);
+ vi.mocked(api.assignMyself).mockResolvedValue({ id: "assignment" } as never);
+ vi.mocked(api.removeMyAssignment).mockResolvedValue();
+});
+function mount() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}><MemoryRouter initialEntries={["/student/assignments?seasonId=season"]}><MyAssignmentsPage /></MemoryRouter></QueryClientProvider>); }
+it("adds a personal assignment using permitted passages and Standard difficulty", async () => {
+ mount();
+ const add = await screen.findByRole("button", { name: "Add assignment" });
+ await waitFor(() => expect(add).toBeEnabled());
+ expect(screen.getByLabelText("Training difficulty")).toHaveValue("Standard");
+ fireEvent.click(add);
+ await waitFor(() => expect(api.assignMyself).toHaveBeenCalledWith("org", "season", { contentPackId: "pack", type: "PrimarySpecialist", difficulty: "Standard", range }));
+ expect(await screen.findByText("Assignment saved.")).toBeInTheDocument();
+});
+it("shows an empty organization without offering season creation", async () => {
+ vi.mocked(api.seasons).mockResolvedValue([]); mount();
+ expect(await screen.findByText(/No seasons are available/)).toBeInTheDocument();
+ expect(screen.queryByRole("link", { name: "Create season" })).not.toBeInTheDocument();
+});
+it("keeps closed season assignments visible without allowing changes", async () => {
+ vi.mocked(api.seasons).mockResolvedValue([{ id: "season", name: "Daniel", status: "Completed" }] as never); mount();
+ expect(await screen.findByText(/This season is closed/)).toBeInTheDocument();
+ expect(screen.queryByRole("button", { name: "Add assignment" })).not.toBeInTheDocument();
+});
+
+it("removes only the selected personal assignment after confirmation", async () => {
+ HTMLDialogElement.prototype.showModal = function() { this.setAttribute("open", ""); };
+ HTMLDialogElement.prototype.close = function() { this.removeAttribute("open"); };
+ vi.mocked(api.myAssignments).mockResolvedValue([{ id: "mine", ...range, type: "PrimarySpecialist", difficulty: "Standard", contentPackId: "pack" }] as never);
+ mount(); fireEvent.click(await screen.findByRole("button", { name: /Remove assignment Daniel/ }));
+ expect(api.removeMyAssignment).not.toHaveBeenCalled();
+ fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Remove assignment" }));
+ await waitFor(() => expect(api.removeMyAssignment).toHaveBeenCalledWith("org", "season", "mine"));
+});

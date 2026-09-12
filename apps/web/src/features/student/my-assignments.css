@@ -1,0 +1,23 @@
+.my-assignment-form {
+  display: grid;
+  gap: var(--er-space-4);
+}
+.my-assignment-form > .ds-button {
+  justify-self: start;
+}
+.my-assignment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--er-space-4);
+  padding-block: var(--er-space-4);
+}
+.my-assignment-row > .ds-button {
+  flex: 0 0 auto;
+}
+@media (max-width: 600px) {
+  .my-assignment-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -4,14 +4,15 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import { AppShell } from "./AppShell";
 import { api } from "../api/client";
+const account = vi.hoisted(() => ({ kind: "Student", role: "Owner" }));
 const logout = vi.hoisted(() => vi.fn());
-vi.mock("../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "user", organizationId: "org", displayName: "Daniel", organizationName: "Academy" }, logout }) }));
+vi.mock("../auth/AuthContext", () => ({ useAuth: () => ({ me: { ...account, userId: "user", organizationId: "org", displayName: "Daniel", organizationName: "Academy" }, logout }) }));
 vi.mock("../api/client", () => ({ request: vi.fn().mockResolvedValue([]), api: { seasons: vi.fn(), students: vi.fn(), assignedSeasons: vi.fn(), season: vi.fn() } }));
 function shell(path = "/student", variant: "student" | "admin" = "student") {
  return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={[path]}><AppShell variant={variant} /></MemoryRouter></QueryClientProvider>);
 }
 beforeEach(() => {
- vi.clearAllMocks(); logout.mockReset(); localStorage.clear(); vi.mocked(api.seasons).mockResolvedValue([]); vi.mocked(api.students).mockResolvedValue([]); vi.mocked(api.assignedSeasons).mockResolvedValue([]);
+ account.kind = "Student"; vi.clearAllMocks(); logout.mockReset(); localStorage.clear(); sessionStorage.clear(); vi.mocked(api.seasons).mockResolvedValue([]); vi.mocked(api.students).mockResolvedValue([]); vi.mocked(api.assignedSeasons).mockResolvedValue([]);
  HTMLDialogElement.prototype.showModal = function() { this.setAttribute("open", ""); };
  HTMLDialogElement.prototype.close = function() { this.removeAttribute("open"); };
 });
@@ -173,4 +174,32 @@ it("retains section navigation when live search results fail", async () => {
  fireEvent.click(screen.getByRole("button", { name: "All sections" }));
  expect(await screen.findByRole("alert")).toHaveTextContent("Sections are still available");
  expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Seasons" })).toHaveAttribute("href", "/admin/seasons");
+});
+
+it("lets a coach switch workspaces with the same season and learner assignment navigation", () => {
+ account.kind = "Adult";
+ shell("/student/study?seasonId=season-two");
+ fireEvent.click(screen.getByRole("button", { name: "Account" }));
+ expect(screen.getByRole("link", { name: "Switch to Coach mode" })).toHaveAttribute("href", "/admin?seasonId=season-two");
+ fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ expect(within(screen.getByRole("dialog")).getByRole("link", { name: "My assignments" })).toHaveAttribute("href", "/student/assignments?seasonId=season-two");
+});
+it("does not offer student accounts a Coach mode switch or personal assignment management", () => {
+ shell(); fireEvent.click(screen.getByRole("button", { name: "Account" }));
+ expect(screen.queryByTestId("switch-workspace")).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button", { name: "All sections" }));
+ expect(screen.queryByRole("link", { name: "My assignments" })).not.toBeInTheDocument();
+});
+
+it("restores the coach's learner season after navigating Coach tools", () => {
+ account.kind = "Adult";
+ const learner = shell("/student?seasonId=kept-season"); learner.unmount();
+ shell("/admin/students", "admin"); fireEvent.click(screen.getByRole("button", { name: "Account" }));
+ expect(screen.getByRole("link", { name: "Switch to Student mode" })).toHaveAttribute("href", "/student?seasonId=kept-season");
+});
+
+it("uses the open Coach season when switching to Student mode", () => {
+ account.kind = "Adult"; vi.mocked(api.season).mockResolvedValue({ id: "open-season", name: "Open season" } as never); shell("/admin/seasons/open-season", "admin");
+ fireEvent.click(screen.getByRole("button", { name: "Account" }));
+ expect(screen.getByRole("link", { name: "Switch to Student mode" })).toHaveAttribute("href", "/student?seasonId=open-season");
 });

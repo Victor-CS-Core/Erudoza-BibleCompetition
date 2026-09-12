@@ -116,7 +116,7 @@ public sealed partial class PracticeService
     private object View(PracticeRoom room, PracticeActor actor)
     {
         var member = room.Members.FirstOrDefault(m => m.UserId == actor.Id);
-        bool coach = actor.Admin && (room.OwnerId == actor.Id || room.CoachId == actor.Id || room.Submissions.Any(s => s.Appealed));
+        bool coach = member is null && actor.Admin && (room.OwnerId == actor.Id || room.CoachId == actor.Id || room.Submissions.Any(s => s.Appealed));
         var revealed = room.Questions.Take(room.Status == "Completed" ? room.Questions.Count : room.QuestionIndex + (room.Phase == "Review" ? 1 : 0)).Select(q => q.Id).ToHashSet();
         var visibleSubmissions = room.Submissions.Where(s => revealed.Contains(s.QuestionId)).ToList();
         var current = room.Status is "Playing" or "Completed" && room.Questions.Count > 0 ? Current(room) : null;

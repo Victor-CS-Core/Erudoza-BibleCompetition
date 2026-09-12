@@ -39,8 +39,9 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         var enabled = await Enabled(org, ct);
         var seasons = await db.Seasons.Where(s => s.OrganizationId == org && s.Status == SeasonStatus.Active)
             .Select(s => new { s.Id, s.Name }).ToListAsync(ct);
-        var players = enabled ? await db.Users.Where(u => u.IsActive && u.Kind == UserKind.Student
-            && db.OrganizationMembers.Any(m => m.OrganizationId == org && m.UserId == u.Id))
+        var players = enabled ? await db.Users.Where(u => u.IsActive
+            && db.OrganizationMembers.Any(m => m.OrganizationId == org && m.UserId == u.Id
+                && (u.Kind == UserKind.Student && m.Role == OrganizationRole.Student || u.Kind == UserKind.Adult && (m.Role == OrganizationRole.Admin || m.Role == OrganizationRole.Owner))))
             .Select(u => new { u.Id, u.DisplayName }).ToListAsync(ct) : [];
         var records = enabled ? await Rooms.Where(r => r.OrganizationId == org).ToListAsync(ct) : [];
         var states = records.Select(r => PracticeJson.Read<PracticeRoom>(r.StateJson)).ToList();
@@ -77,14 +78,14 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         };
         var record = new PracticeRoomRecord { Id = room.Id, OrganizationId = org, SeasonId = room.SeasonId };
         db.Add(record);
-        if (!actor.Admin) Join(room, actor, 1);
+        if (!request.Coached) Join(room, actor, 1);
         await Save(record, room, ct);
         return View(room, actor);
     }
     private static void Join(PracticeRoom room, PracticeActor actor, int team)
     {
         if (room.Status != "Lobby" || team is not (1 or 2)) throw new DomainException("Choose a team in an open lobby.");
-        if (actor.Admin) throw new DomainException("Coaches moderate rather than play.");
+        if (room.CoachId == actor.Id) throw new DomainException("The room judge cannot also play.");
         if (room.Members.Any(m => m.UserId == actor.Id)) throw new DomainException("You are already in this room.");
         if (room.Members.Count(m => m.Team == team) >= room.TeamSize) throw new DomainException("That team is full.");
         var first = !room.Members.Any(m => m.Team == team);

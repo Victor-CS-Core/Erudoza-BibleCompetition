@@ -61,7 +61,7 @@ export class PracticeRoom extends DurableObject<Env> {
      }else if(isCommand){
       const c=input as unknown as Command;if(!participant(r,actor)&&!(canCoach(r,actor)&&c.action==="judge"))throw new HttpError(403,"Room access denied.");
       const questions=c.action==="start"?await eligibleQuestions(context,r.seasonId,r.questionCount,r.bookKey):undefined;
-      const invitee=c.action==="invite"?await this.env.DB.prepare("SELECT id,display_name AS displayName FROM Users WHERE id=? AND org_id=? AND active=1 AND kind='Student'").bind(c.targetUserId??"",r.orgId).first<{id:string;displayName:string}>():undefined;
+      const invitee=c.action==="invite"?await this.env.DB.prepare("SELECT id,display_name AS displayName FROM Users WHERE id=? AND org_id=? AND active=1 AND ((kind='Student' AND role='Student') OR (kind='Adult' AND role IN ('Owner','Admin')))").bind(c.targetUserId??"",r.orgId).first<{id:string;displayName:string}>():undefined;
       applyCommand(r,actor,c,ingress,now,{questions,invitee:invitee??undefined,pending:this.pending>(sensitive?1:0)});
      }else if(match[3]===""&&request.method==="GET"){
       if(!participant(r,actor)&&!canCoach(r,actor))throw new HttpError(403,"Room access denied.");if(advance(r,now,this.pending>0))r.revision++;
