@@ -1,5 +1,12 @@
 # Erudoza progress log
 
+## Pathfinder landing mockups — review gate, September 12
+
+- User requested a stronger Pathfinder landing-page direction and multiple mockups to choose from. Three refined desktop/phone concept boards are saved in [the review package](docs/product/mockups/2026-09-12-pathfinder-landing/README.md): A — The Expedition (recommended), B — The Field Guide, and C — The Basecamp. Selection remains pending.
+- Work is isolated in `.worktrees/landing-pathfinder-mockups` on `codex/landing-pathfinder-mockups`, based on `1cf2c99`. The live landing page and current source/design tokens were inspected. Existing art provided the visual references; built-in image generation produced the boards. Exact initial/refinement prompts and image metadata/hashes accompany the package.
+- Local review gate passed: all three refined boards visually inspected; each PNG is 1448×1086 with valid chunk CRCs and byte-identical to its generated source. Three prompt pairs parse as JSON; all four review-document links resolve; Git whitespace is clean. Refined headings use system sans, Erudoza stays text beside its emblem, and phone headers expose Sign in. Raster concepts do not prove responsive layout, accessibility, application tests, or CI.
+- No application source, shared styles, gameplay, authentication, production configuration, or deployed site changed. Patches in the concepts are illustrative, not new earned awards or official certification. At implementation use exact approved brand assets, shared primitives/tokens, existing entry routes, and support behavior. Next: commit/push this review package, then let the user choose A, B, C, or a specific combination before implementation.
+
 Read this file before starting repository work. `AGENTS.md` defines the required update and commit/push workflow. Times below are UTC. This log is the shared handoff; detailed audits remain the evidence for individual checks.
 
 ## Current state — 2026-09-12

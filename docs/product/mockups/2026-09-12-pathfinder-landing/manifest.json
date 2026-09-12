@@ -1,0 +1,27 @@
+{
+  "method": "built-in image_gen",
+  "status": "proposal-only",
+  "images": [
+    {
+      "file": "a-expedition.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2079407,
+      "sha256": "be9868990ebd8b4ff2100c8b3a7315e9334e3d0942147aa11997b00b6d17539b"
+    },
+    {
+      "file": "b-field-guide.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2035171,
+      "sha256": "733566c018a96d2a7b7524f4fcedd13ade5b33d395f75ffe0b51c180ede7f7d1"
+    },
+    {
+      "file": "c-basecamp.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 1965675,
+      "sha256": "d6c97b31cb94d506d22f08c8863fe3d46a0007d028a5f74cf6f19506613c57f8"
+    }
+  ]
+}
