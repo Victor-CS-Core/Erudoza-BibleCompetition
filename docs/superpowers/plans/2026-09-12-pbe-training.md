@@ -102,13 +102,13 @@ All assessment findings map to tasks above. A verified question bank for the act
 
 ## Execution status
 
-The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Eight of thirteen tasks have passed independent review. The source checkpoints below distinguish pushed work from the current local gate. Production remains unchanged; deployment and main merge require separate authorization.
+The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Nine of thirteen tasks have passed independent review. The source checkpoints below distinguish pushed work from the current local gate. Production remains unchanged; deployment and main merge require separate authorization.
 
 | Phase | Reviewed tasks | Source checkpoint | Current work |
 |---|---|---|---|
 | A — Questions and grading | A1, A2, A2b, A3 (4/4) | `80dfae5` | Complete locally and pushed |
 | B — Solo learning and replay | B1, B2, B3 (3/3) | `9448ba1` | Complete locally and pushed |
-| C — Independent rehearsal | C1 (1/3) | `4776811` locally reviewed; checkpoint push follows | C1 timed solo and shared presentation complete; C2 rooms next, then C3 disputes |
+| C — Independent rehearsal | C1, C2 (2/3) | C1 pushed `6aacc2e`; C2 reviewed through `277fe00`, push follows | C3 deferred disputes next; one invitation UI minor carried forward |
 | D — Chapter progress and release | 0/3 | Pending | Starts after Phase C |
 
 The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. The pre-implementation baseline passed 579 web/native checks with one optional skip, and 267 .NET checks with one optional load skip. [PROGRESS.md](../../../PROGRESS.md) records each later gate's exact tests, review fixes, pushes and limitations. Synthetic delayed answers establish bookkeeping, not human retention; the actual coach-approved season bank and learner pilot remain external release gates.
@@ -150,3 +150,10 @@ New enabled-season Memory sessions save their Warmup or coach-permitted Advanced
 Shortened solo Simulation freezes the actual eligible set, uses two readings or explicitly confirmed text fallback, and defers scoring feedback until completion. Native per-session PbeSoloRound and canonical IPbeSoloTimingAuthority capture trusted ingress, enforce inclusive accuracy-only deadlines and persist verified drafts/finals for idempotent delivery. Canonical pbe-solo-outbox is an indexed pending marker; complete timing/retry data lives in pbe-session. Original response lock time is separate from transaction acceptance chronology for later retention proof.
 
 Clock loss cannot reopen an armed window. Trusted saved answers settle; unrecoverable sessions retain earlier effort and sanitized partial scores with independent recap/restart. Question-scoped receipts and cancelled-ticket cleanup were independently reviewed after focused fixes. C2 must integrate the shared presentation/timing contracts into real one/two-team rooms. Native v3-pbe-solo source configuration is additive and unapplied; D3 must handle pending authority state during export and rollback. Local test evidence does not establish deployed eviction, hosted ticker cadence, physical speech or SQL Server execution.
+
+
+### C2 room authority and exposure boundary
+
+PBE rooms freeze the requested 10/30/90 questions plus one compatible reserve, select from approved season material using participant maximum question-service history, and keep personal-study scope separate. One/two teams, student-captain independent control, explicit coached readings/readiness, accuracy points and a hidden-question halfway break are saved-version behavior. Team service is exposure only, with idempotent bulk projections and durable outboxes; it does not create individual retention evidence.
+
+Active material revocation yields a sanitized management view with existing cleanup authority. Cleanup preserves earlier answers and authorized revealed history; terminal admission rejects new play before recovery/mutation while preserving original-actor accepted command retries. Native full authority stays in DO state/outbox; canonical full room and pbe-room-service-outbox are persisted separately from read projections. D3 must retain coach-reading metadata, source proofs, question/rubric wrappers, reserve/replacement identities, schedules and response lock times. The final C2 task review closes all blocking findings; C3 owns the tracked one-team invitation minor, deferred disputes and full Phase C/load checks.
