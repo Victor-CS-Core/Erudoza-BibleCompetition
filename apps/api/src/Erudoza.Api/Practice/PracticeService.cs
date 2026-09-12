@@ -147,7 +147,11 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         var record = await Load(org, id, ct);
         var room = PracticeJson.Read<PracticeRoom>(record.StateJson);
         if (!Member(room, actor) && !(actor.Admin && room.Submissions.Any(s => s.Appealed))) throw new PracticeForbiddenException();
-        var authorized = IsPbe(room) && room.Status is "Lobby" or "Playing" ? await AuthorizePbeRoom(org, room, ct) : null;
+        Erudoza.Application.Abstractions.PbeSourceScope? authorized = null;
+        if (IsPbe(room) && room.Status is "Lobby" or "Playing")
+        {
+            try { authorized = await AuthorizePbeRoom(org, room, ct); } catch (PracticeForbiddenException) { return View(room, actor, true); } catch (DomainException) { return View(room, actor, true); }
+        }
         var changed = Advance(room, authorized is null ? null : EligiblePbeReserves(room, authorized));
         using var awards = room.Status == "Completed" ? await runtime.EnterAwards(org, ct) : null;
         if (room.Status == "Completed") { await ReconcileAwards(org, room, ct, issueMastery: changed); changed = true; }

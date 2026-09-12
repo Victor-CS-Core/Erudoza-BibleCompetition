@@ -15,7 +15,7 @@ public sealed partial class PracticeService
     private void Presentation(PracticeRoom room)
     {
         if (IsPbe(room)) { var q = Current(room).Rubric!; if (!room.Services.Any(s => s.QuestionId == q.Id)) room.Services.Add(new PbeRoomService(Guid.NewGuid(), q.Id, q.Kind.ToString(), q.Parts.Select(p => p.TargetId).Distinct().ToArray(), room.Members.Select(m => m.UserId).ToArray(), runtime.Now.ToUnixTimeMilliseconds())); }
-        room.Drafts.Clear(); room.DraftReceivedAt.Clear(); room.PresentationDelivery.Clear(); room.Acknowledged.Clear(); room.ResponseStartsAt = null;
+        room.CoachReading = null; room.CoachReadyScribeIds.Clear(); room.Drafts.Clear(); room.DraftReceivedAt.Clear(); room.PresentationDelivery.Clear(); room.Acknowledged.Clear(); room.ResponseStartsAt = null;
         Phase(room, "Presentation", 15);
         if (room.Coached || IsPbe(room)) room.PhaseEndsAt = null;
     }
@@ -26,7 +26,7 @@ public sealed partial class PracticeService
         room.ScheduleId = Guid.NewGuid(); room.Acknowledged.Clear();
         room.ResponseTimestamp = runtime.After(room.PhaseTimestamp, TimeSpan.FromSeconds(3));
         room.ResponseStartsAt = room.PhaseEndsAt;
-        if (IsPbe(room)) room.Presentations[Current(room).Id] = new(room.ScheduleId, room.ResponseStartsAt!.Value, room.ResponseStartsAt.Value.AddSeconds(Duration(Current(room))), new(room.PresentationDelivery));
+        if (IsPbe(room)) room.Presentations[Current(room).Id] = new(room.ScheduleId, room.ResponseStartsAt!.Value, room.ResponseStartsAt.Value.AddSeconds(Duration(Current(room))), new(room.PresentationDelivery), room.CoachReading);
     }
     private void Next(PracticeRoom room)
     {
@@ -128,7 +128,7 @@ public sealed partial class PracticeService
             SpeedHundredths = IsPbe(room) ? 0 : score.SpeedHundredths
         });
     }
-    private object View(PracticeRoom room, PracticeActor actor)
+    private object View(PracticeRoom room, PracticeActor actor, bool materialUnavailable = false)
     {
         var member = room.Members.FirstOrDefault(m => m.UserId == actor.Id);
         bool coach = actor.Admin && (room.OwnerId == actor.Id || room.CoachId == actor.Id || room.Submissions.Any(s => s.Appealed));
@@ -137,6 +137,7 @@ public sealed partial class PracticeService
         var current = room.Status is "Playing" or "Completed" or "Interrupted" && room.Questions.Count > 0 ? Current(room) : null;
         return new
         {
+            materialUnavailable,
             room.Id,
             room.SeasonId,
             room.OwnerId,
@@ -155,15 +156,17 @@ public sealed partial class PracticeService
             room.ResponseStartsAt,
             room.ScheduleId,
             presentationDelivery = room.PresentationDelivery,
+            coachReading = room.CoachReading,
+            coachReadyScribeIds = room.CoachReadyScribeIds,
             serverNow = runtime.Now,
             members = room.Members,
             isCoach = coach,
             room.RuleVersion,
             room.ScoringVersion,
-            question = current is null || IsPbe(room) && room.Phase == "Paused" ? null : new { current.Id, current.Prompt, current.Reference, current.Kind, partCount = current.Parts.Count, points = Points(current), durationSeconds = Duration(current) },
-            draft = member is null ? [] : room.Drafts.GetValueOrDefault(member.Team) ?? [],
+            question = materialUnavailable || current is null || IsPbe(room) && room.Phase is "Paused" or "Break" ? null : new { current.Id, current.Prompt, current.Reference, current.Kind, partCount = current.Parts.Count, points = Points(current), durationSeconds = Duration(current) },
+            draft = materialUnavailable || member is null ? [] : room.Drafts.GetValueOrDefault(member.Team) ?? [],
             submitted = member is not null && current is not null && room.Submissions.Any(s => s.QuestionId == current.Id && s.Team == member.Team),
-            messages = room.Messages.Where(m => m.CreatedAt >= runtime.Now.AddDays(-30) && (coach || m.Team == member?.Team)),
+            messages = room.Messages.Where(m => !materialUnavailable).Where(m => m.CreatedAt >= runtime.Now.AddDays(-30) && (coach || m.Team == member?.Team)),
             scores = ActiveTeams(room).Select(team => new
             {
                 team,
@@ -172,7 +175,7 @@ public sealed partial class PracticeService
                 availableHundredths = visibleSubmissions.Where(s => s.Team == team).Sum(s => Points(room.Questions.Single(q => q.Id == s.QuestionId)) * 100),
                 totalHundredths = visibleSubmissions.Where(s => s.Team == team).Sum(s => s.AccuracyHundredths + s.SpeedHundredths)
             }),
-            results = visibleSubmissions.Select(s =>
+            results = visibleSubmissions.Where(_ => !materialUnavailable).Select(s =>
             {
                 var q = room.Questions.Single(q => q.Id == s.QuestionId);
                 return new

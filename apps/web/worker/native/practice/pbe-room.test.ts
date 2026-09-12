@@ -25,7 +25,7 @@ it.each([1,2] as const)('completes a genuine 90-question PBE state journey with 
   expect(()=>command(0,'scribe',{targetUserId:'player-1'})).toThrow(/between questions/);
   if(q===1){now+=30001;advance(r,now);}else for(const scribe of r.members.filter(m=>m.scribe))command(Number(scribe.userId.split('-')[1]),'submit',{questionId:r.questions[q].id,answers:['the answer']});
   expect(r.phase).toBe('Review');now+=10000;advance(r,now);
-  if(r.phase==='Break'){breaks++;expect(q).toBe(44);now+=300000;advance(r,now);}
+  if(r.phase==='Break'){expect(view(r,actor(0),now).question).toBeNull();breaks++;expect(q).toBe(44);now+=300000;advance(r,now);}
  }
  expect(r.status).toBe('Completed');expect(breaks).toBe(1);expect(r.submissions).toHaveLength(90*teamCount);
  expect(r.submissions.every(s=>s.speedHundredths===0)).toBe(true);
@@ -65,4 +65,16 @@ it('keeps an independent coach owner outside student seats and lets the full stu
  expect(r.status).toBe('Playing');expect(r.members).toHaveLength(2);expect(view(r,coach,1000).isCoach).toBe(true);
  recover(r,'replacement',1001,'runtime-replacement');expect(r.phase).toBe('Paused');applyCommand(r,actor(0),{commandId:crypto.randomUUID(),revision:r.revision,action:'next'},1001,1001);expect(r.phase).toBe('Presentation');
  expect(()=>applyCommand(r,coach,{commandId:crypto.randomUUID(),revision:r.revision,action:'present',questionId:r.questions[0].id,delivery:'TextFallback'},1000,1000)).toThrow();
+});
+
+it.each(['coach-first','scribes-first'])('arms coached PBE only after designated readings and both current scribes: %s',order=>{
+ const coach:Actor={...actor(9),kind:'Adult',role:'Admin'};const r=makeRoom('room',coach,{seasonId:'season',format:'Pbe',coached:true,teamCount:2,teamSize:2,questionCount:10},'epoch',1000);
+ for(let n=0;n<4;n++)join(r,actor(n),Math.floor(n/2)+1);r.members.forEach(m=>m.ready=true);
+ const c=(a:Actor,action:string,extra:Record<string,unknown>={})=>applyCommand(r,a,{commandId:crypto.randomUUID(),revision:r.revision,action,...extra},1000,1000,{questions:Array.from({length:11},(_,n)=>question(n+1))});c(coach,'start');const q=r.questions[0].id;
+ expect(()=>c(actor(0),'present',{questionId:q,delivery:'Coach'})).toThrow();expect(()=>c({...coach,userId:'other-coach'},'present',{questionId:q,delivery:'Coach'})).toThrow();expect(()=>c(actor(1),'present-ready',{questionId:q})).toThrow();
+ if(order==='coach-first')c(coach,'present',{questionId:q,delivery:'Coach'});
+ c(actor(0),'present-ready',{questionId:q});expect(r.phase).toBe('Presentation');c(actor(2),'present-ready',{questionId:q});
+ if(order==='scribes-first'){expect(r.phase).toBe('Presentation');c(coach,'present',{questionId:q,delivery:'Coach'});}
+ expect(r.phase).toBe('Scheduled');expect(r.presentationDelivery).toEqual({'player-0':'Coach','player-2':'Coach'});expect(r.responseStartsAt).toBe(4000);expect(r.presentations?.[q]).toMatchObject({coachReading:{questionId:q,coachId:coach.userId,completedAtMs:1000},delivery:{'player-0':'Coach','player-2':'Coach'}});
+ expect(()=>c(coach,'draft',{questionId:q,answers:['the answer']})).toThrow();expect(()=>c(coach,'submit',{questionId:q,answers:['the answer']})).toThrow();
 });

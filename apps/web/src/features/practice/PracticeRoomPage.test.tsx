@@ -168,3 +168,43 @@ it('lets an independent student captain resume an unarmed replacement without th
  mount(room({format:'Pbe',ownerId:'offline-coach',teamCount:1,status:'Playing',phase:'Paused',question:null,members:[{...member('player',1),captain:true,scribe:true}]}));
  fireEvent.click(await screen.findByRole('button',{name:'Resume match'}));await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'next'})));
 });
+
+it('keeps revoked-material owner cleanup reachable without play controls',async()=>{
+ mount(room({format:'Pbe',materialUnavailable:true,members:[member('player',1),member('other',1)],question:null}));
+ expect(await screen.findByText(/Room material is unavailable/)).toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Start match'})).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:'Remove other'}));
+ await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'remove',targetUserId:'other'})));
+ expect(screen.getByRole('button',{name:'Abandon room'})).toBeInTheDocument();
+});
+it('lets a saved lobby member leave a room with unavailable material',async()=>{
+ mount(room({format:'Pbe',materialUnavailable:true,ownerId:'other',question:null}));
+ fireEvent.click(await screen.findByRole('button',{name:'Leave room'}));
+ await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'leave'})));
+ expect(screen.queryByRole('button',{name:'Abandon room'})).not.toBeInTheDocument();
+});
+it('requires two coach confirmations and exposes no adult answer controls',async()=>{
+ auth.me={...auth.me,kind:'Adult'};
+ mount(room({format:'Pbe',coached:true,coachId:'player',isCoach:true,members:[member('student',1)],status:'Playing',phase:'Presentation',question:{id:'q',prompt:'Who answered?',reference:'Daniel 1:8',kind:'ShortAnswer',partCount:1,points:2,durationSeconds:30}}));
+ fireEvent.click(await screen.findByRole('button',{name:'Confirm first coach reading'}));
+ expect(practiceApi.command).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByRole('button',{name:'Confirm second coach reading'}));
+ await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'present',delivery:'Coach',questionId:'q'})));
+ expect(screen.queryByRole('button',{name:'Lock final answer'})).not.toBeInTheDocument();
+});
+it('lets the current coached student scribe confirm readiness without claiming Coach delivery',async()=>{
+ mount(room({format:'Pbe',coached:true,coachId:'coach',status:'Playing',phase:'Presentation',question:{id:'q',prompt:'Who answered?',reference:'Daniel 1:8',kind:'ShortAnswer',partCount:1,points:2,durationSeconds:30}}));
+ fireEvent.click(await screen.findByRole('button',{name:'Ready for coach presentation'}));
+ await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'present-ready',questionId:'q'})));
+ expect(vi.mocked(practiceApi.command).mock.calls[0][2].delivery).toBeUndefined();
+});
+
+it('lets the saved owner terminate unavailable active material through confirmation',async()=>{
+ mount(room({format:'Pbe',materialUnavailable:true,status:'Playing',phase:'Response',question:null}));
+ expect(await screen.findByText(/Room material is unavailable/)).toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Lock final answer'})).not.toBeInTheDocument();
+ expect(screen.queryByRole('textbox',{name:'Suggestion'})).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:'Abandon room'}));
+ fireEvent.click(within(screen.getByRole('dialog',{name:'Abandon this room?'})).getByRole('button',{name:'Abandon room'}));
+ await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'abandon'})));
+});

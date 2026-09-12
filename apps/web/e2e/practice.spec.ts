@@ -225,3 +225,34 @@ test('PBE six-student independent room reads twice, retries a locked final and r
   let replay=await json(owner.request,fixture.path+'/rooms',{seasonId:fixture.seasonId,format:'Pbe',teamCount:1,teamSize:6,questionCount:10,coached:false});replay=await fillRoom(replay);replay=await command(owner,fixture.path,replay,'start');expect(replay.question.id).not.toBe(first);await owner.goto(`/student/practice/${replay.id}`);await expect(owner.getByRole('button',{name:'I’m ready to hear the question'})).toBeVisible();
  }finally{for(const player of players)await player.context.close().catch(()=>{});}
 });
+
+test('PBE coached presentation waits for two readings and both current student scribes',async({page:admin,browser},info)=>{
+ test.setTimeout(120000);
+ const fixture=await setup(admin),players=[] as Awaited<ReturnType<typeof newPlayer>>[];
+ const packs=await json(admin.request,`${fixture.org}/content-packs`),pack=packs.find((p:{packKey:string})=>p.packKey==='dev-daniel');
+ const units=await json(admin.request,`${fixture.org}/content-packs/${pack.id}/source-units`),source=units[0],answer=source.canonicalText.trim().split(/\s+/)[0];
+ const range={bookKey:source.bookKey,startChapter:source.chapter,startVerse:source.verse,endChapter:source.chapter,endVerse:source.verse};
+ try{
+  for(let n=0;n<4;n++){
+   const player=await newPlayer(browser,admin,fixture.org,`Coached rehearsal ${n+1}`);players.push(player);
+   await json(admin.request,`${fixture.org}/seasons/${fixture.seasonId}/assignments`,{studentUserId:player.id,contentPackId:pack.id,type:'PrimarySpecialist',difficulty:'Advanced',range});
+  }
+  const target=randomUUID(),pbe=`${fixture.path}/pbe/seasons/${fixture.seasonId}`;
+  const questions=Array.from({length:12},(_,i)=>({schemaVersion:2,id:randomUUID(),version:1,contentPackId:pack.id,sourceUnitId:source.id,sourceUnitIds:[source.id],sourceKind:'Scripture',reference:source.citation,evidence:source.canonicalText,kind:'ShortAnswer',ordered:false,prompt:`What is the opening word of the approved passage? Rehearsal variant ${i+1}.`,parts:[{targetId:target,acceptedAnswers:[answer],points:1}]}));
+  await json(admin.request,pbe+'/questions/import',{targets:[{id:target,sourceUnitIds:[source.id],skill:'FactualRecall',label:'Opening word'}],questions});for(const q of questions)await json(admin.request,`${pbe}/questions/${q.id}/1/publish`,{});await json(admin.request,pbe+'/enabled',{enabled:true});
+
+  let room=await json(admin.request,fixture.path+'/rooms',{seasonId:fixture.seasonId,format:'Pbe',teamCount:2,teamSize:2,questionCount:10,coached:true});
+  for(let n=0;n<4;n++){room=await command(admin,fixture.path,room,'invite',{targetUserId:players[n].id,team:Math.floor(n/2)+1});const inbox=await json(players[n].page.request,fixture.path+'/bootstrap');const invite=inbox.invitations.find((i:{roomId:string})=>i.roomId===room.id);room=await json(players[n].page.request,`${fixture.path}/invitations/${invite.id}/accept`,{team:Math.floor(n/2)+1});}
+  for(const player of players)room=await command(player.page,fixture.path,room,'ready');
+  await admin.goto(`/admin/practice/${room.id}`);await admin.getByRole('button',{name:'Start match',exact:true}).click();
+  await expect(admin.getByRole('button',{name:'Confirm first coach reading'})).toBeVisible();await capturePractice(admin,info,'coach','pbe-coached-reading');
+  await admin.getByRole('button',{name:'Confirm first coach reading'}).click();room=await json(admin.request,`${fixture.path}/rooms/${room.id}`);expect(room.phase).toBe('Presentation');expect(room.coachReading).toBeNull();
+  await admin.getByRole('button',{name:'Confirm second coach reading'}).click();
+  await expect(admin.getByRole('button',{name:'Confirm second coach reading'})).toHaveCount(0);expect((await json(admin.request,`${fixture.path}/rooms/${room.id}`)).phase).toBe('Presentation');
+  for(const n of [0,2]){const student=players[n].page;await student.goto(`/student/practice/${room.id}`);await expect(student.getByRole('button',{name:'Ready for coach presentation'})).toBeVisible();if(n===0)await capturePractice(student,info,'student','pbe-coached-ready');await student.getByRole('button',{name:'Ready for coach presentation'}).click();await expect(student.getByRole('button',{name:'Ready for coach presentation'})).toHaveCount(0);if(n===0)expect((await json(admin.request,`${fixture.path}/rooms/${room.id}`)).phase).toBe('Presentation');}
+  await expect(admin.getByRole('button',{name:'Lock final answer'})).toHaveCount(0);
+  for(const n of [0,2]){const student=players[n].page;await expect(student.getByRole('button',{name:'Lock final answer'})).toBeEnabled({timeout:10000});await student.getByRole('textbox',{name:'Answer 1',exact:true}).fill(answer);await student.getByRole('button',{name:'Lock final answer'}).click();}
+  await expect(admin.getByRole('button',{name:'Next question',exact:true})).toBeEnabled();room=await json(admin.request,`${fixture.path}/rooms/${room.id}`);expect(room.phase).toBe('Review');expect(room.results).toHaveLength(2);expect(Object.values(room.presentationDelivery)).toEqual(['Coach','Coach']);await capturePractice(admin,info,'coach','pbe-coached-review');
+  await admin.getByRole('button',{name:'Next question',exact:true}).click();await expect(admin.getByRole('button',{name:'Confirm first coach reading'})).toBeVisible();
+ }finally{for(const player of players)await player.context.close().catch(()=>{});}
+});

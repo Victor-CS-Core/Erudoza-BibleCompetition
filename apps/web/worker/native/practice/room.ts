@@ -42,7 +42,7 @@ export class PracticeRoom extends DurableObject<Env> {
    const isCommand=match[3]==="/commands"&&request.method==="POST";
    const input=request.method==="POST"?await body<Record<string,unknown>>(request,isCommand?32768:8192):null;
    // Captured after complete body ingress and before auth, application queue, or grading.
-   const ingress=Date.now();const sensitive=isCommand&&["submit","ack","draft","present"].includes(String(input?.action));
+   const ingress=Date.now();const sensitive=isCommand&&["submit","ack","draft","present","present-ready"].includes(String(input?.action));
    if(sensitive&&this.pending>=16)throw new HttpError(429,"Too many pending submissions.");if(sensitive)this.pending++;
    try{
     const response=await this.serialize(async()=>{
@@ -52,10 +52,14 @@ export class PracticeRoom extends DurableObject<Env> {
      if(!r){if(request.method!=="POST"||match[3]!=="")throw new HttpError(404,"Room not found.");const creation=input as unknown as Parameters<typeof makeRoom>[2];const season=await context.store.require<{status:string}>("season",creation.seasonId,context.orgId);if(season.value.status!=="Active")throw new HttpError(400,"Choose an active season.");r=makeRoom(match[2],actor,creation,this.epoch,now);if(r.format==='Pbe')await authorizePbeRoom(context,r,true);this.save(r);await this.arm(r);this.ctx.waitUntil(this.projectSafely());return json(view(r,actor,now));}
      if(r.orgId!==actor.organizationId||r.id!==match[2])throw new HttpError(403,"Room access denied.");
      if(r.format==='Pbe'&&match[3]!=='/accept'&&!participant(r,actor)&&!canCoach(r,actor))throw new HttpError(403,'Room access denied.');
-     const authorized=r.format==='Pbe'&&['Lobby','Playing'].includes(r.status)&&match[3]!=='/accept'?await authorizePbeRoom(context,r):null;
+     const cleanup=r.format==='Pbe'&&isCommand&&['remove','leave','abandon'].includes(String(input?.action));
+     let authorized:Awaited<ReturnType<typeof authorizePbeRoom>>|null=null;
+     if(!cleanup&&r.format==='Pbe'&&['Lobby','Playing'].includes(r.status)&&match[3]!=='/accept'){
+      try{authorized=await authorizePbeRoom(context,r);}catch(error){if(match[3]===''&&request.method==='GET'&&error instanceof HttpError&&[400,403,404].includes(error.status))return json(view(r,actor,now,true));throw error;}
+     }
      const previousRevision=r.revision;
-     if(r.epoch!==this.epoch){recover(r,this.epoch,now,"runtime-replacement",authorized?.eligibleReserveIds);r.revision++;this.save(r);}
-     if(now<r.lastObserved){recover(r,this.epoch,now,"backwards-clock",authorized?.eligibleReserveIds);r.revision++;this.save(r);await this.arm(r);this.broadcast();this.ctx.waitUntil(this.projectSafely());throw new HttpError(409,"Clock anomaly detected. Refresh the replaced question.");}
+     if(!cleanup&&r.epoch!==this.epoch){recover(r,this.epoch,now,"runtime-replacement",authorized?.eligibleReserveIds);r.revision++;this.save(r);}
+     if(!cleanup&&now<r.lastObserved){recover(r,this.epoch,now,"backwards-clock",authorized?.eligibleReserveIds);r.revision++;this.save(r);await this.arm(r);this.broadcast();this.ctx.waitUntil(this.projectSafely());throw new HttpError(409,"Clock anomaly detected. Refresh the replaced question.");}
      if(match[3]==="/socket"&&request.headers.get("upgrade")?.toLowerCase()==="websocket"){
       if(!participant(r,actor)&&!canCoach(r,actor))throw new HttpError(403,"Room access denied.");const pair=new WebSocketPair();this.ctx.acceptWebSocket(pair[1]);pair[1].serializeAttachment({userId:actor.userId,credentialVersion:actor.credentialVersion});return new Response(null,{status:101,webSocket:pair[0]});
      }
@@ -72,7 +76,7 @@ export class PracticeRoom extends DurableObject<Env> {
      if(r.revision!==previousRevision){this.save(r);await this.arm(r);this.broadcast();}
      // SQL projection is an outbox; failure cannot undo or retime a committed final answer.
      if(r.revision!==previousRevision){if(r.format==='Pbe')await this.projectSafely();else this.ctx.waitUntil(this.projectSafely());}
-     return json(participant(r,actor)||canCoach(r,actor)?view(r,actor,now):{left:true});
+     return json(participant(r,actor)||canCoach(r,actor)?view(r,actor,now,cleanup):{left:true});
     });return response;
    }finally{if(sensitive){this.pending--;if(this.pending===0&&this.load()?.format==='Pbe')await this.ctx.storage.setAlarm(Date.now()+50);else if(this.pending===0)this.ctx.waitUntil(this.serialize(async()=>{const r=this.load();if(r&&await this.authorizeBackground(r)&&advance(r,Date.now(),false)){r.revision++;this.save(r);await this.arm(r);this.broadcast();await this.projectSafely();}}));}}
   }catch(error){if(error instanceof HttpError)return json({title:error.message,detail:error.message},error.status);console.error("Practice command failed",error instanceof Error?error.name:"UnknownError");return json({title:"Practice temporarily unavailable"},503);}

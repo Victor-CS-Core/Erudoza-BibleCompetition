@@ -15,6 +15,8 @@ public sealed class PracticeRoom
     public int? TeamCount { get; set; }
     public string? SelectionVersion { get; set; }
     public Guid SelectionSeed { get; set; }
+    public PbeCoachReading? CoachReading { get; set; }
+    public List<Guid> CoachReadyScribeIds { get; set; } = [];
     public Dictionary<Guid, string> PresentationDelivery { get; set; } = [];
     public Dictionary<int, long> DraftReceivedAt { get; set; } = [];
     public Dictionary<Guid, string> SourceProofs { get; set; } = [];
@@ -104,6 +106,7 @@ public static class PracticeJson
 
 public sealed record PbeRoomService(Guid Id, Guid QuestionId, string QuestionKind, Guid[] TargetIds, Guid[] MemberIds, long AtMs);
 
-public sealed record PbeRoomPresentation(Guid ScheduleId, DateTimeOffset ResponseStartsAtUtc, DateTimeOffset ResponseEndsAtUtc, Dictionary<Guid, string> Delivery);
+public sealed record PbeRoomPresentation(Guid ScheduleId, DateTimeOffset ResponseStartsAtUtc, DateTimeOffset ResponseEndsAtUtc, Dictionary<Guid, string> Delivery, PbeCoachReading? CoachReading = null);
+public sealed record PbeCoachReading(Guid QuestionId, Guid CoachId, long CompletedAtMs);
 
 public sealed record PbeRoomReplacement(PracticeQuestion Original, Guid ReplacementId, DateTimeOffset AtUtc, string Reason);

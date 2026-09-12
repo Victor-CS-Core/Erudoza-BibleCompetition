@@ -15,14 +15,15 @@ public sealed partial class PracticeService
         var row = await Load(org, id, ct);
         var room = PracticeJson.Read<PracticeRoom>(row.StateJson);
         if (!Member(room, actor) && !(actor.Admin && command.Action == "judge")) throw new PracticeForbiddenException();
-        if (IsPbe(room) && room.Status is "Lobby" or "Playing") { var authorized = await AuthorizePbeRoom(org, room, ct); if (room.Status == "Playing" && room.ProcessId != runtime.ProcessId) { Advance(room, EligiblePbeReserves(room, authorized)); await Save(row, room, ct); } }
+        var cleanup = IsPbe(room) && command.Action is "remove" or "leave" or "abandon";
+        if (!cleanup && IsPbe(room) && room.Status is "Lobby" or "Playing") { var authorized = await AuthorizePbeRoom(org, room, ct); if (room.Status == "Playing" && room.ProcessId != runtime.ProcessId) { Advance(room, EligiblePbeReserves(room, authorized)); await Save(row, room, ct); } }
         if (command.CommandId == Guid.Empty) throw new DomainException("A command ID is required.");
         if (room.AppliedCommands.TryGetValue(command.CommandId, out var previousActor))
         {
             if (previousActor != actor.Id) throw new PracticeForbiddenException();
-            return View(room, actor);
+            return View(room, actor, cleanup);
         }
-        if (command.Action is not ("submit" or "draft" or "present" or "ack") && Advance(room)) await Save(row, room, ct);
+        if (!cleanup && command.Action is not ("submit" or "draft" or "present" or "present-ready" or "ack") && Advance(room)) await Save(row, room, ct);
         // Scheduling and live chat are concurrent streams. Membership-changing commands require revisions.
         if (command.Action is "move" or "swap" or "remove" or "owner" or "start" or "captain" or "scribe" && command.Revision != room.Revision)
             throw new DomainException("The room changed. Refresh and try again.");
@@ -107,10 +108,33 @@ public sealed partial class PracticeService
                 Presentation(room);
                 break;
             case "present":
-                RequirePlayer();
-                if (!IsPbe(room) || room.Phase != "Presentation" || !member!.Scribe || command.QuestionId != Current(room).Id || command.Revision != room.Revision || command.Delivery is not ("Audio" or "TextFallback")) throw new DomainException("Only the current scribe can confirm two readings for this presentation.");
-                room.PresentationDelivery[actor.Id] = command.Delivery;
-                if (room.Members.Where(m => m.Scribe).All(m => room.PresentationDelivery.ContainsKey(m.UserId))) { Schedule(room); room.Acknowledged = room.Members.Where(m => m.Scribe).Select(m => m.UserId).ToList(); }
+            case "present-ready":
+                if (!IsPbe(room) || room.Phase != "Presentation" || command.QuestionId != Current(room).Id || command.Revision != room.Revision) throw new DomainException("Presentation changed. Refresh and retry.");
+                var scribes = room.Members.Where(m => m.Scribe).Select(m => m.UserId).ToList();
+                if (room.Coached)
+                {
+                    if (command.Action == "present")
+                    {
+                        if (room.CoachId != actor.Id || !actor.Admin || member is not null) throw new PracticeForbiddenException();
+                        if (command.Delivery != "Coach") throw new DomainException("Confirm both coach readings.");
+                        room.CoachReading = new(Current(room).Id, actor.Id, runtime.Now.Subtract(runtime.Elapsed(ingress, runtime.Stamp())).ToUnixTimeMilliseconds());
+                    }
+                    else
+                    {
+                        RequirePlayer();
+                        if (!member!.Scribe || actor.Admin) throw new PracticeForbiddenException();
+                        if (command.Delivery is not null) throw new DomainException("Readiness does not confirm a delivery method.");
+                        if (!room.CoachReadyScribeIds.Contains(actor.Id)) room.CoachReadyScribeIds.Add(actor.Id);
+                    }
+                    if (room.CoachReading is not null && scribes.All(room.CoachReadyScribeIds.Contains)) { room.PresentationDelivery = scribes.ToDictionary(id => id, _ => "Coach"); Schedule(room); room.Acknowledged = scribes; }
+                }
+                else
+                {
+                    RequirePlayer();
+                    if (command.Action != "present" || !member!.Scribe || command.Delivery is not ("Audio" or "TextFallback")) throw new DomainException("Only the current scribe can confirm two readings for this presentation.");
+                    room.PresentationDelivery[actor.Id] = command.Delivery;
+                    if (scribes.All(room.PresentationDelivery.ContainsKey)) { Schedule(room); room.Acknowledged = scribes; }
+                }
                 break;
             case "ack":
                 RequirePlayer();
@@ -192,7 +216,7 @@ public sealed partial class PracticeService
             case "abandon":
                 RequireOwner();
                 if (room.Status is not ("Lobby" or "Playing")) throw new DomainException("A finalized match cannot be abandoned.");
-                room.Status = "Abandoned"; room.Awards.Clear();
+                room.Status = "Abandoned"; if (IsPbe(room)) room.PhaseEndsAt = null; room.Awards.Clear();
                 break;
             default: throw new DomainException("Unknown room command.");
         }
@@ -200,7 +224,7 @@ public sealed partial class PracticeService
         using var awards = room.Status == "Completed" ? await runtime.EnterAwards(org, ct) : null;
         if (room.Status == "Completed") await ReconcileAwards(org, room, ct);
         await Save(row, room, ct);
-        return Member(room, actor) || actor.Admin && command.Action == "judge" ? View(room, actor) : new { left = true };
+        return Member(room, actor) || actor.Admin && command.Action == "judge" ? View(room, actor, cleanup) : new { left = true };
     }
     private async Task SelectQuestions(Guid org, PracticeRoom room, CancellationToken ct)
     {

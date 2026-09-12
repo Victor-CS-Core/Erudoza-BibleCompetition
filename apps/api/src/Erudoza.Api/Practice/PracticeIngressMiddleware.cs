@@ -43,7 +43,7 @@ public sealed class PracticeIngressMiddleware(RequestDelegate next)
             using var payload = await System.Text.Json.JsonDocument.ParseAsync(context.Request.Body, cancellationToken: context.RequestAborted);
             var action = payload.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object
                 ? payload.RootElement.EnumerateObject().LastOrDefault(p => p.Name.Equals("action", StringComparison.OrdinalIgnoreCase)).Value : default;
-            if (action.ValueKind != System.Text.Json.JsonValueKind.String || action.GetString() is not ("submit" or "ack" or "draft" or "present")) admission.Dispose();
+            if (action.ValueKind != System.Text.Json.JsonValueKind.String || action.GetString() is not ("submit" or "ack" or "draft" or "present" or "present-ready")) admission.Dispose();
 
         }
         catch (System.Text.Json.JsonException) { context.Response.StatusCode = 400; return; }
