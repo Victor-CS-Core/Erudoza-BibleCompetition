@@ -84,4 +84,57 @@ public sealed class PbeSelectionTests
         Assert.Throws<ArgumentException>(() => PbeSelectionRules.Select(input with { Candidates = [c with { RepairTargetIds = [Id(9999)] }] }));
         Assert.Throws<ArgumentException>(() => PbeSelectionRules.Select(input with { Candidates = [c with { RepairTargetIds = [Id(1001), Id(1001)] }] }));
     }
+    [Fact]
+    public void Infeasible_spacing_cannot_starve_failure_behind_eight_variants_of_one_other_target()
+    {
+        using var fixture = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "pbe/replay-fixtures.json")));
+        var witness = fixture.RootElement.GetProperty("selectionWitnesses").GetProperty("infeasibleSpacing");
+        var failed = new PbeSelectionCandidate(Id(witness.GetProperty("failedQuestion").GetInt32()), [Id(1001)], [Id(2001)], "Scripture", "ShortAnswer", 0, null, true, true);
+        var candidates = new List<PbeSelectionCandidate> { failed };
+        candidates.AddRange(witness.GetProperty("otherQuestions").EnumerateArray().Select(n => new PbeSelectionCandidate(Id(n.GetInt32()), [Id(1002)], [Id(2002)], "Scripture", "ShortAnswer", 0, null, false, false)));
+        var history = new List<IReadOnlyList<Guid>> { failed.TargetIds };
+        for (var session = 0; session < witness.GetProperty("sessions").GetInt32(); session++)
+        {
+            var input = new PbeSelectionInput(Id(7000 + session), witness.GetProperty("count").GetInt32(), "Practice", candidates, [], [], .1, history);
+            var picked = PbeSelectionRules.Select(input);
+            Assert.Equal(8, picked.Count);
+            Assert.Contains(failed.QuestionId, picked);
+            Assert.Equal(picked, PbeSelectionRules.Select(input));
+            foreach (var questionId in picked)
+            {
+                var index = candidates.FindIndex(q => q.QuestionId == questionId);
+                var c = candidates[index];
+                candidates[index] = c with { ServedCount = c.ServedCount + 1, LastServedAtMs = session };
+                history.Add(c.TargetIds);
+            }
+        }
+    }
+
+    [Fact]
+    public void Simulation_preserves_eleven_card_feasibility_with_overlapping_quotas()
+    {
+        using var fixture = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "pbe/replay-fixtures.json")));
+        var witness = fixture.RootElement.GetProperty("selectionWitnesses").GetProperty("overlappingQuotas");
+        PbeSelectionCandidate Candidate(int n, string sourceKind = "Scripture", string kind = "ShortAnswer", int served = 1) =>
+            new(Id(n), [Id(n + 1000)], [Id(n + 2000)], sourceKind, kind, served, null, false, false);
+        var candidates = witness.GetProperty("ordinaryQuestions").EnumerateArray().Select(n => Candidate(n.GetInt32())).ToList();
+        candidates.Add(Candidate(witness.GetProperty("commentaryOnly").GetInt32(), sourceKind: "Commentary"));
+        candidates.Add(Candidate(witness.GetProperty("trueFalseOnly").GetInt32(), kind: "TrueFalse"));
+        candidates.Add(Candidate(witness.GetProperty("both").GetInt32(), "Commentary", "TrueFalse", 0));
+        var input = new PbeSelectionInput(Id(7000), witness.GetProperty("count").GetInt32(), "Simulation", candidates, [], [], .1);
+        var picked = PbeSelectionRules.Select(input);
+        Assert.Equal(11, picked.Count);
+        Assert.Equal(witness.GetProperty("expectedQuestions").EnumerateArray().Select(n => Id(n.GetInt32())).Order(), picked.Order());
+        Assert.Equal(picked, PbeSelectionRules.Select(input));
+    }
+    [Fact]
+    public void Multipart_siblings_that_always_repeat_failure_cannot_make_spacing_feasible()
+    {
+        var failed = new PbeSelectionCandidate(Id(1), [Id(1001), Id(1003)], [Id(2001)], "Scripture", "ShortAnswer", 0, null, true, true);
+        var candidates = new List<PbeSelectionCandidate> { failed };
+        candidates.AddRange(Enumerable.Range(2, 8).Select(n => new PbeSelectionCandidate(Id(n), [Id(1002)], [Id(2002)], "Scripture", "ShortAnswer", 0, null, false, false)));
+        var picked = PbeSelectionRules.Select(new(Id(7000), 8, "Practice", candidates, [], [], .1, [failed.TargetIds]));
+        Assert.Equal(8, picked.Count);
+        Assert.Contains(failed.QuestionId, picked);
+    }
 }

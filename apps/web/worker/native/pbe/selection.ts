@@ -33,6 +33,42 @@ export function repairEligible(targetId: string, history: (string | string[])[])
         last = i; });
     return last >= 0 && new Set(groups.slice(last + 1).flat().filter(t => t !== targetId)).size >= 2;
 }
+const quotaCategory = (c: SelectionCandidate) => Number(c.sourceKind === 'Commentary') + 2 * Number(c.kind === 'TrueFalse');
+function categoryCounts(candidates: SelectionCandidate[]): number[] {
+    const counts = [0, 0, 0, 0];
+    for (const c of candidates) counts[quotaCategory(c)]++;
+    return counts;
+}
+/** Singles consume one allowance; dual-category questions consume both. This is the exact maximum attainable count. */
+function quotaCapacity(counts: number[], commentary: number, trueFalse: number, removedCategory = -1): number {
+    if (commentary < 0 || trueFalse < 0) return -1;
+    const ordinary = counts[0] - Number(removedCategory === 0);
+    const commentaryOnly = Math.min(counts[1] - Number(removedCategory === 1), commentary);
+    const trueFalseOnly = Math.min(counts[2] - Number(removedCategory === 2), trueFalse);
+    const both = Math.min(counts[3] - Number(removedCategory === 3), commentary - commentaryOnly, trueFalse - trueFalseOnly);
+    return ordinary + commentaryOnly + trueFalseOnly + both;
+}
+function simulationChoices(remaining: SelectionCandidate[], selected: SelectionCandidate[], count: number, commentaryMax: number, trueFalseMax: number): SelectionCandidate[] {
+    const counts = categoryCounts(remaining);
+    const commentary = commentaryMax - selected.filter(c => c.sourceKind === 'Commentary').length;
+    const trueFalse = trueFalseMax - selected.filter(c => c.kind === 'TrueFalse').length;
+    const neededAfterChoice = count - selected.length - 1;
+    // Count once per slot, then test each candidate with four counters rather than another bank scan.
+    return remaining.filter(c => quotaCapacity(counts, commentary - Number(c.sourceKind === 'Commentary'), trueFalse - Number(c.kind === 'TrueFalse'), quotaCategory(c)) >= neededAfterChoice);
+}
+function spacingStillPossible(target: string, groups: string[][], remaining: SelectionCandidate[]): boolean {
+    let last = -1;
+    groups.forEach((group, index) => { if (group.includes(target)) last = index; });
+    const intervening = new Set(last < 0 ? [] : groups.slice(last + 1).flat());
+    if (intervening.size >= 2) return true;
+    for (const c of remaining) {
+        // A card containing this target resets its encounter anchor; its siblings cannot supply spacing.
+        if (c.targetIds.includes(target)) continue;
+        for (const other of c.targetIds) intervening.add(other);
+        if (intervening.size >= 2) return true;
+    }
+    return false;
+}
 export function selectPbeQuestions(input: SelectionInput): string[] {
     input = { ...input, sessionId: input.sessionId.toLowerCase(), usedQuestionIds: input.usedQuestionIds.map(id => id.toLowerCase()), usedTargetIds: input.usedTargetIds.map(id => id.toLowerCase()), acceptedTargetGroups: input.acceptedTargetGroups?.map(g => g.map(id => id.toLowerCase())), candidates: input.candidates.map(c => ({ ...c, questionId: c.questionId.toLowerCase(), targetIds: c.targetIds.map(id => id.toLowerCase()), sourceUnitIds: c.sourceUnitIds.map(id => id.toLowerCase()), lastQuestionId: c.lastQuestionId?.toLowerCase(), repairTargetIds: c.repairTargetIds?.map(id => id.toLowerCase()) })) };
     for (const c of input.candidates)
@@ -43,17 +79,25 @@ export function selectPbeQuestions(input: SelectionInput): string[] {
     const candidates = input.candidates.filter(c => !input.usedQuestionIds.includes(c.questionId) && (input.mode !== 'Review' || c.due));
     if (new Set(input.candidates.map(c => c.questionId)).size !== input.candidates.length)
         throw new Error('Duplicate question identity.');
+    const bankCategories = categoryCounts(candidates);
     // Find a feasible actual size first: mix limits must also hold after a short bank truncates a set.
     for (let count = Math.min(input.count, candidates.length); count >= 0; count--) {
         const selected: SelectionCandidate[] = [], groups: string[][] = (input.acceptedTargetGroups ?? input.usedTargetIds.map(t => [t])).map(g => [...g]);
         const commentaryMax = Math.max(0, Math.ceil(count * .1) - 1), tfMax = Math.floor(count * input.trueFalseMaxRatio);
+        if (input.mode === 'Simulation' && quotaCapacity(bankCategories, commentaryMax, tfMax) < count) continue;
         for (let slot = 0; slot < count; slot++) {
-            let available = candidates.filter(c => !selected.includes(c) && (input.mode !== 'Simulation' || (c.sourceKind !== 'Commentary' || selected.filter(q => q.sourceKind === 'Commentary').length < commentaryMax) && (c.kind !== 'TrueFalse' || selected.filter(q => q.kind === 'TrueFalse').length < tfMax)));
+            let available = candidates.filter(c => !selected.includes(c));
+            if (input.mode === 'Simulation') available = simulationChoices(available, selected, count, commentaryMax, tfMax);
             const spaced = (c: SelectionCandidate) => c.spacedRepair || (c.repairTargetIds ?? c.targetIds).every(t => repairEligible(t, groups));
             if (input.mode !== 'Simulation') {
-                const qualified = available.filter(c => !c.repairEligible || spaced(c));
-                if (qualified.length)
-                    available = qualified;
+                const possible = new Map<string, boolean>();
+                const canSpace = (target: string) => {
+                    if (!possible.has(target)) possible.set(target, spacingStillPossible(target, groups, available));
+                    return possible.get(target)!;
+                };
+                const qualified = available.filter(c => !c.repairEligible || spaced(c) || (c.repairTargetIds ?? c.targetIds).every(t => repairEligible(t, groups) || !canSpace(t)));
+                // Infeasible spacing permits a next-session retry, without labeling it a spaced repair.
+                if (qualified.length) available = qualified;
             }
             const category = input.mode !== 'Practice' ? 'coverage' : slot < 3 ? 'due' : slot < 6 ? 'coverage' : slot === 6 ? 'repair' : slot === 7 ? 'transfer' : 'coverage';
             let pool = available.filter(c => category === 'due' ? c.due : category === 'repair' ? c.repairEligible && spaced(c) : category === 'transfer' ? c.alternateForm : true);

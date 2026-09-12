@@ -40,19 +40,58 @@ public sealed class PbeProgressService(IErudozaDbContext db)
     }
     public async Task<PbePreparedProgress> PrepareRecallEvidenceAsync(Guid org, Guid season, Guid student, string scopeVersion, IReadOnlyList<PbeRecallEvidence> evidence, CancellationToken ct = default, string? questionKind = null)
     {
-        Scope(org, season, student); if (questionKind is not null && !new[] { "ShortAnswer", "List", "ExactWords", "TrueFalse" }.Contains(questionKind)) throw new ArgumentException("Invalid accepted question kind."); if (string.IsNullOrEmpty(scopeVersion) || scopeVersion.Length > 1000 || evidence.Count is < 1 or > 8) throw new ArgumentException("Invalid PBE evidence."); var first = evidence[0];
-        if (evidence.Any(e => e.AttemptId == Guid.Empty || e.TargetId == Guid.Empty || e.QuestionId == Guid.Empty || !Time(e.AtMs) || e.AvailablePoints is < 1 or > 8 || e.EarnedPoints < 0 || e.EarnedPoints > e.AvailablePoints || e.AttemptId != first.AttemptId || e.QuestionId != first.QuestionId || e.AtMs != first.AtMs || e.Unaided != first.Unaided) || evidence.Select(e => e.TargetId).Distinct().Count() != evidence.Count || evidence.Sum(e => e.AvailablePoints) > 8) throw new ArgumentException("Invalid grouped PBE evidence.");
-        evidence = evidence.OrderBy(e => e.TargetId.ToString(), StringComparer.Ordinal).ToList(); var id = Key(student, season, first.AttemptId); var existing = await Get(org, season, student, "pbe-recall-event", id, ct);
-        if (existing is not null) { var saved = Read<RecallEvent>(existing); if (saved.QuestionKind != questionKind || !saved.Evidence.SequenceEqual(evidence)) throw new PbeProgressConflictException(); return new(true, saved.AcceptedSequence); }
-        var sid = Key(student, season); var oldSequence = await Get(org, season, student, "pbe-recall-sequence", sid, ct); var previous = oldSequence is null ? null : Read<Sequence>(oldSequence);
-        if (previous is not null && first.AtMs < previous.LastAtMs) throw new PbeProgressConflictException("PBE chronological acceptance conflict."); var sequence = (previous?.AcceptedSequence ?? 0) + 1; if (sequence > 9007199254740991) throw new PbeProgressConflictException();
+        Scope(org, season, student);
+        if (questionKind is not null && !new[] { "ShortAnswer", "List", "ExactWords", "TrueFalse" }.Contains(questionKind))
+            throw new ArgumentException("Invalid accepted question kind.");
+        if (string.IsNullOrEmpty(scopeVersion) || scopeVersion.Length > 1000 || evidence.Count is < 1 or > 8)
+            throw new ArgumentException("Invalid PBE evidence.");
+
+        var first = evidence[0];
+        if (evidence.Any(e =>
+                e.AttemptId == Guid.Empty || e.TargetId == Guid.Empty || e.QuestionId == Guid.Empty ||
+                !Time(e.AtMs) || e.AvailablePoints is < 1 or > 8 || e.EarnedPoints < 0 || e.EarnedPoints > e.AvailablePoints ||
+                e.AttemptId != first.AttemptId || e.QuestionId != first.QuestionId || e.AtMs != first.AtMs || e.Unaided != first.Unaided) ||
+            evidence.Select(e => e.TargetId).Distinct().Count() != evidence.Count || evidence.Sum(e => e.AvailablePoints) > 8)
+            throw new ArgumentException("Invalid grouped PBE evidence.");
+
+        evidence = evidence.OrderBy(e => e.TargetId.ToString(), StringComparer.Ordinal).ToList();
+        var id = Key(student, season, first.AttemptId);
+        var existing = await Get(org, season, student, "pbe-recall-event", id, ct);
+        if (existing is not null)
+        {
+            var saved = Read<RecallEvent>(existing);
+            if (saved.QuestionKind != questionKind || !saved.Evidence.SequenceEqual(evidence))
+                throw new PbeProgressConflictException();
+            return new(true, saved.AcceptedSequence);
+        }
+
+        var sid = Key(student, season);
+        var oldSequence = await Get(org, season, student, "pbe-recall-sequence", sid, ct);
+        var previous = oldSequence is null ? null : Read<Sequence>(oldSequence);
+        if (previous is not null && first.AtMs < previous.LastAtMs)
+            throw new PbeProgressConflictException("PBE chronological acceptance conflict.");
+        var sequence = (previous?.AcceptedSequence ?? 0) + 1;
+        if (sequence > 9007199254740991) throw new PbeProgressConflictException();
+
         var old = await Rows(org, season, student, "pbe-target-review", evidence.Select(e => Key(student, season, e.TargetId)).ToArray(), ct);
-        var recent = (previous?.RecentTargets ?? []).Where(t => !evidence.Any(e => e.TargetId == t.TargetId)).Concat(evidence.Select(e => new PbeRecentTarget(e.TargetId, sequence))).OrderByDescending(t => t.AcceptedSequence).ThenBy(t => t.TargetId.ToString(), StringComparer.Ordinal).Take(3).ToList();
+        var recent = (previous?.RecentTargets ?? [])
+            .Where(t => !evidence.Any(e => e.TargetId == t.TargetId))
+            .Concat(evidence.Select(e => new PbeRecentTarget(e.TargetId, sequence)))
+            .OrderByDescending(t => t.AcceptedSequence)
+            .ThenBy(t => t.TargetId.ToString(), StringComparer.Ordinal)
+            .Take(3)
+            .ToList();
         Write(org, season, student, "pbe-recall-sequence", sid, new Sequence(sid, sequence, first.AtMs, recent), oldSequence);
         Write(org, season, student, "pbe-recall-event", id, new RecallEvent(id, scopeVersion, sequence, questionKind, evidence), null);
         foreach (var e in evidence)
         {
-            var pid = Key(student, season, e.TargetId); var prior = old.SingleOrDefault(r => r.Id == pid); var p = prior is null ? null : Read<PbeReviewProjection>(prior); var review = PbeReviewRules.Advance(p?.Review ?? PbeReviewRules.Initial(e.TargetId), e); long? failed = e.Recall && e.EarnedPoints < e.AvailablePoints ? sequence : review.Unresolved ? p?.FailedSequence : null;
+            var pid = Key(student, season, e.TargetId);
+            var prior = old.SingleOrDefault(r => r.Id == pid);
+            var p = prior is null ? null : Read<PbeReviewProjection>(prior);
+            var review = PbeReviewRules.Advance(p?.Review ?? PbeReviewRules.Initial(e.TargetId), e);
+            long? failed = e.Recall && e.EarnedPoints < e.AvailablePoints
+                ? sequence
+                : review.Unresolved ? p?.FailedSequence : null;
             Write(org, season, student, "pbe-target-review", pid, new PbeReviewProjection(pid, e.TargetId, review, sequence, failed, e.QuestionId, questionKind), prior);
         }
         return new(false, sequence);

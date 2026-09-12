@@ -17,5 +17,9 @@
   {"number":11,"atMs":2160002002,"earned":1,"unaided":true,"recall":false,"index":-1,"due":2160002001,"unresolved":true},
   {"number":12,"atMs":2160002003,"earned":1,"unaided":false,"recall":true,"index":-1,"due":2160002001,"unresolved":true},
   {"number":13,"atMs":2160002004,"earned":1,"unaided":true,"recall":true,"index":0,"due":2246402004,"unresolved":false}
- ]
+ ],
+ "selectionWitnesses": {
+  "infeasibleSpacing": {"failedQuestion":1,"otherQuestions":[2,3,4,5,6,7,8,9],"count":8,"sessions":3},
+  "overlappingQuotas": {"ordinaryQuestions":[1,2,3,4,5,6,7,8,9],"commentaryOnly":10,"trueFalseOnly":11,"both":12,"count":11,"expectedQuestions":[1,2,3,4,5,6,7,8,9,10,11]}
+ }
 }

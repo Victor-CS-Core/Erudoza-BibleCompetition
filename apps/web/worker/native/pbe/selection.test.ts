@@ -91,3 +91,45 @@ it('rejects contradictory repair subsets and normalizes GUID casing', () => {
     const q = 'aaaaaaaa-0000-0000-0000-000000000001';
     expect(selectPbeQuestions({ ...input, candidates: [{ ...c, questionId: q.toUpperCase() }], usedQuestionIds: [q] })).toEqual([]);
 });
+
+it('infeasible spacing cannot starve a failed target behind eight variants of one other target', () => {
+    const witness = replay.selectionWitnesses.infeasibleSpacing;
+    const failed = { ...candidate(witness.failedQuestion), due: true, repairEligible: true };
+    const candidates = [failed, ...witness.otherQuestions.map(n => ({ ...candidate(n), targetIds: [id(1002)] }))];
+    const history = [failed.targetIds];
+    for (let session = 0; session < witness.sessions; session++) {
+        const input = { sessionId: id(7000 + session), count: witness.count, mode: 'Practice' as const, candidates, usedQuestionIds: [], usedTargetIds: [], acceptedTargetGroups: history, trueFalseMaxRatio: .1 };
+        const picked = selectPbeQuestions(input);
+        expect(picked).toHaveLength(8);
+        expect(picked).toContain(failed.questionId);
+        expect(selectPbeQuestions(input)).toEqual(picked);
+        for (const questionId of picked) {
+            const c = candidates.find(q => q.questionId === questionId)!;
+            c.servedCount++;
+            c.lastServedAtMs = session;
+            history.push(c.targetIds);
+        }
+    }
+});
+it('Simulation preserves an eleven-card feasible set across overlapping commentary and true-false quotas', () => {
+    const witness = replay.selectionWitnesses.overlappingQuotas;
+    const candidates = [
+        ...witness.ordinaryQuestions.map(n => ({ ...candidate(n), servedCount: 1 })),
+        { ...candidate(witness.commentaryOnly), sourceKind: 'Commentary' as const, servedCount: 1 },
+        { ...candidate(witness.trueFalseOnly), kind: 'TrueFalse', servedCount: 1 },
+        { ...candidate(witness.both), sourceKind: 'Commentary' as const, kind: 'TrueFalse' }
+    ];
+    const input = { sessionId: id(7000), count: witness.count, mode: 'Simulation' as const, candidates, usedQuestionIds: [], usedTargetIds: [], trueFalseMaxRatio: .1 };
+    const picked = selectPbeQuestions(input);
+    expect(picked).toHaveLength(11);
+    expect(new Set(picked)).toEqual(new Set(witness.expectedQuestions.map(id)));
+    expect(selectPbeQuestions(input)).toEqual(picked);
+});
+
+it('multipart siblings that always repeat the failed target cannot make spacing feasible', () => {
+    const failed = { ...candidate(1), targetIds: [id(1001), id(1003)], repairEligible: true, due: true };
+    const candidates = [failed, ...Array.from({ length: 8 }, (_, i) => ({ ...candidate(i + 2), targetIds: [id(1002)] }))];
+    const picked = selectPbeQuestions({ sessionId: id(7000), count: 8, mode: 'Practice', candidates, usedQuestionIds: [], usedTargetIds: [], acceptedTargetGroups: [failed.targetIds], trueFalseMaxRatio: .1 });
+    expect(picked).toHaveLength(8);
+    expect(picked).toContain(failed.questionId);
+});
