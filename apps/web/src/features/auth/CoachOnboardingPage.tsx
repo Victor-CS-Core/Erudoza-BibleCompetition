@@ -5,6 +5,7 @@ import { ApiError } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
 import { PathfinderBackdrop } from "../../components/brand/PathfinderBackdrop";
+import { AppIcon } from "../../components/AppIcon";
 import { Button, Input, LinkButton, LoadingState, Notice, PageHeader } from "../../components/ui";
 import { TurnstileChallenge } from "./TurnstileChallenge";
 import { useCoachOptions } from "./useCoachOptions";
@@ -119,16 +120,17 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
   }
   const invitationUnavailable = mode === "invitation" && (!invitationToken || invitationError);
   const ready = options?.available && options.turnstileSiteKey && !invitationUnavailable && (mode !== "invitation" || invitation);
-  return <main className="training-login coach-onboarding">
-    <section className="training-login-hero" aria-label="Erudoza">
+  const isSignup = mode === "signup";
+  return <main className={`training-login coach-onboarding${isSignup ? " coach-signup" : ""}`}>
+    <section className={`training-login-hero${isSignup ? " training-login-hero-landscape" : ""}`} aria-label="Erudoza">
       <Link className="training-login-brand" to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
       <div className="training-login-message"><h2>Give your team<br /><em>a place to grow.</em></h2><p>Choose passages, guide your students, and prepare for competition together.</p></div>
-      <img className="training-login-art training-login-coach-art" src="/assets/training/coach-guide-960.webp" width={960} height={640} loading="lazy" alt="" />
+      {!isSignup && <img className="training-login-art training-login-coach-art" src="/assets/training/coach-guide-960.webp" width={960} height={640} loading="lazy" alt="" />}
       <p className="training-login-motto">Discover · Interpret · Serve</p>
     </section>
     <section className="training-login-main pathfinder-canvas" aria-label={titles[mode]}>
       <PathfinderBackdrop />
-      <Link to="/login" className="training-login-back">Back to sign in</Link>
+      <Link to="/login" className="training-login-back">{isSignup ? "← Back to sign in" : "Back to sign in"}</Link>
       <div className="training-login-form-wrap">
         <PageHeader title={titles[mode]} description={messages[mode]} />
         {auth.loading ? <LoadingState label="Checking your account…" /> : auth.error ? <><Notice tone="danger">{auth.error}</Notice><Button onClick={() => void auth.refresh()}>Try again</Button></> : auth.me ? <>
@@ -151,18 +153,19 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
               <div className="training-login-password"><Input id="coach-password" type={showPassword ? "text" : "password"} value={password} onChange={event => setPassword(event.target.value)} autoComplete="new-password" minLength={12} maxLength={128} required disabled={pending} aria-describedby="coach-password-help" /><Button variant="ghost" size="compact" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} disabled={pending} onClick={() => setShowPassword(value => !value)}>{showPassword ? "Hide" : "Show"}</Button></div>
               <p id="coach-password-help">Use 12–128 characters. A long, unique phrase works well.</p>
               {error && <Notice id="coach-error" tone="danger">{error}</Notice>}
-              <Button type="submit" disabled={pending || expired}>{pending ? "Verifying…" : mode === "signup" ? "Create club and coach account" : mode === "recovery" ? "Reset password" : "Join club as a coach"}</Button>
+              <Button className={isSignup ? "training-login-submit" : undefined} type="submit" disabled={pending || expired}>{pending ? "Verifying…" : mode === "signup" ? "Create club and coach account" : mode === "recovery" ? "Reset password" : "Join club as a coach"}{isSignup && <AppIcon name="arrow" />}</Button>
             </form>
             <div className="coach-code-resend"><p>Need another code? Complete the security check again.</p><TurnstileChallenge siteKey={options.turnstileSiteKey!} action={actions[mode]} resetKey={resetKey} onToken={setTurnstileToken} /><div className="coach-form-actions"><Button variant="secondary" disabled={pending || cooldown > 0 || !turnstileToken} onClick={() => void sendCode()}>{cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}</Button><Button variant="ghost" disabled={pending} onClick={() => { setReceipt(null); setCode(""); setPassword(""); setError(""); setTurnstileToken(null); }}>Change email</Button></div></div>
           </> : <form ref={form} onSubmit={event => void sendCode(event)} aria-busy={pending}>
             <label htmlFor="coach-email">Email address</label><Input id="coach-email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} required value={email} onChange={event => setEmail(event.target.value)} disabled={pending} aria-invalid={!!error} aria-describedby={error ? "coach-error" : undefined} />
             {error && <Notice id="coach-error" tone="danger">{error}</Notice>}
             <TurnstileChallenge siteKey={options.turnstileSiteKey!} action={actions[mode]} resetKey={resetKey} onToken={setTurnstileToken} />
-            <Button type="submit" disabled={pending || cooldown > 0 || !turnstileToken}>{pending ? "Sending code…" : cooldown > 0 ? `Send code in ${cooldown}s` : "Send verification code"}</Button>
+            <Button className={isSignup ? "training-login-submit" : undefined} type="submit" disabled={pending || cooldown > 0 || !turnstileToken}>{pending ? "Sending code…" : cooldown > 0 ? `Send code in ${cooldown}s` : "Send verification code"}{isSignup && <AppIcon name="arrow" />}</Button>
           </form>}
         </>}
         <p className="training-login-help">Students: use the account your coach provided. Ask your coach for help signing in.</p>
       </div>
+      {isSignup && <p className="training-login-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</p>}
     </section>
   </main>;
 }

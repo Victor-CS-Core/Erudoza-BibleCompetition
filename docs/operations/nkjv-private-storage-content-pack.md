@@ -1,6 +1,6 @@
 # NKJV private storage → content pack runbook
 
-> Historical proposal from September 9, 2026. Preserved as dated evidence. Its hosting, import routes and authorization assumptions are superseded by the current [README](../README.md), [progress log](../PROGRESS.md) and [Cloudflare operations](operations/cloudflare-native.md); follow current library workflows.
+> Historical proposal from September 9, 2026. Preserved as dated evidence. Its hosting, import routes and authorization assumptions are superseded by the current [README](../../README.md), [progress log](../../PROGRESS.md) and [Cloudflare operations](cloudflare-native.md); follow current library workflows.
 
 | Field | Value |
 | --- | --- |
