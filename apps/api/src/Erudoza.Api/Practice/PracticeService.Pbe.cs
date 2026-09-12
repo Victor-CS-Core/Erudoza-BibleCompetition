@@ -25,13 +25,19 @@ public sealed partial class PracticeService
     {
         await Check(actor, org, ct, false); if (!actor.Admin) throw new PracticeForbiddenException();
         var resolved = await bank.ResolveAsync(org, season, null, ct);
-        var after = membersAfter ?? "";
-        var members = await db.CompetitionMembers.Where(m => m.OrganizationId == org && m.SeasonId == season)
-            .Join(db.Users.Where(u => u.IsActive && u.Kind == UserKind.Student && db.OrganizationMembers.Any(o => o.OrganizationId == org && o.UserId == u.Id && o.Role == OrganizationRole.Student)), m => m.UserId, u => u.Id, (m, u) => new { u.Id, u.DisplayName })
-            .Where(u => string.Compare(u.Id.ToString(), after) > 0).OrderBy(u => u.Id).Take(101).ToListAsync(ct);
+        var after = (membersAfter ?? "").ToLowerInvariant();
+        var members = await PbeMemberPage(org, season, after).ToListAsync(ct);
         var books = await db.ScopeEntries.Where(e => e.OrganizationId == org && e.SeasonId == season && e.Kind == ScopeEntryKind.Include).Select(e => e.BookKey).Distinct().ToListAsync(ct);
         return new { sources = resolved.Sources.Select(s => new { s.Id, s.ContentPackId, s.SourceKind, s.BookKey, s.Chapter, s.Verse, s.Ordinal, citation = s.CitationLabel, s.CanonicalText }), selectedBookKeys = books.Order().ToList(), pbeEnabled = await db.Seasons.Where(s => s.OrganizationId == org && s.Id == season).Select(s => s.PbeEnabled).SingleAsync(ct), members = members.Take(100), membersNextCursor = members.Count > 100 ? members[99].Id.ToString() : null };
     }
+    private sealed record PbeAuthoringMember(Guid Id, string DisplayName);
+    // SQL Server uniqueidentifier ordering differs from text ordering. Normalize both
+    // the cursor predicate and sort key, including SQLite's uppercase GUID storage.
+    private IQueryable<PbeAuthoringMember> PbeMemberPage(Guid org, Guid season, string after) =>
+        db.CompetitionMembers.Where(m => m.OrganizationId == org && m.SeasonId == season)
+            .Join(db.Users.Where(u => u.IsActive && u.Kind == UserKind.Student && db.OrganizationMembers.Any(o => o.OrganizationId == org && o.UserId == u.Id && o.Role == OrganizationRole.Student)), m => m.UserId, u => u.Id, (m, u) => new { u.Id, u.DisplayName })
+            .Where(u => string.Compare(u.Id.ToString().ToLower(), after) > 0).OrderBy(u => u.Id.ToString().ToLower()).Take(101).Select(u => new PbeAuthoringMember(u.Id, u.DisplayName));
+
     public async Task<object> PbePage(Guid org, Guid season, string kind, int? limit, string? after, PracticeActor actor, IPbeQuestionBank bank, CancellationToken ct)
     {
         await Check(actor, org, ct, false); if (!actor.Admin) throw new PracticeForbiddenException();
