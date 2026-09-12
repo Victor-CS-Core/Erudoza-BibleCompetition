@@ -167,6 +167,7 @@ export async function pbeSimulationJourney(page: Page, info: TestInfo) {
         await expect(page.getByTestId('challenge-card')).toBeVisible(); await page.getByLabel('Answer 1',{exact:true}).fill(words[0]); await page.getByLabel('Answer 2',{exact:true}).fill(words[1]);
         await expect(page.getByTestId('submit-answer')).toBeEnabled({timeout:7000}); const accepted=page.waitForResponse(r=>r.url().endsWith(`/study/sessions/${sid}/timed`)&&r.request().postDataJSON()?.action==='submit');
         const next=index+1<card.total?page.waitForResponse(r=>r.url().endsWith(`/study/sessions/${sid}/next`)):null; await page.getByTestId('submit-answer').click(); const response=await accepted,input=response.request().postDataJSON(),receipt=await response.json(); expect(receipt).toMatchObject({feedbackDeferred:true}); expect(JSON.stringify(receipt)).not.toMatch(/earnedPoints|expectedParts/);
+        expect(await json(page.request,`/api/v1/study/sessions/${sid}/timed?questionId=${card.id}`)).toMatchObject({attemptId:receipt.attemptId,questionId:card.id,alreadyProcessed:true});
         expect(await json(page.request,`/api/v1/study/sessions/${sid}/timed`,input)).toMatchObject({alreadyProcessed:true}); const changed=await page.request.post(`/api/v1/study/sessions/${sid}/timed`,{data:{...input,answers:['changed','answer']}});expect(changed.status()).toBe(409);
         if(next)card=await (await next).json() as PbeSessionCard;
     }

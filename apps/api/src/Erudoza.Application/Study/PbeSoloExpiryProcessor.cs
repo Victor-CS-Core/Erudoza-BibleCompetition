@@ -20,7 +20,7 @@ public sealed class PbeSoloExpiryProcessor(IErudozaDbContext db, IClock clock, I
                 var current = new SavedCurrentUser(row.OrganizationId, row.OwnerId!.Value);
                 var resolver = new PbeSourceResolver(db, current, competition, assignments);
                 var service = new PbeSessionService(db, current, clock, resolver, bank, progress, effort, timing);
-                await service.TimedStatusAsync(Guid.Parse(row.Id), ct);
+                await service.TimedStatusAsync(Guid.Parse(row.Id), null, ct);
             }
             catch (PbeProgressConflictException) { }
             catch (KeyNotFoundException) { }

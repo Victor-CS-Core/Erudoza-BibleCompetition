@@ -87,8 +87,9 @@ export class PbeSoloRound extends DurableObject<Env>{
         if(state?.status==='Interrupted'){
           await this.recordInterruption(state);throw new HttpError(409,'This rehearsal was interrupted. Start another shortened timed practice.');
         }
-        if(request.method==='GET'&&state?.status==='Settling'){const settled=await this.settle(state,request);return settled instanceof Response?settled:json(settled);}
-        if(request.method==='GET'&&state?.status==='Armed'&&state.responseEndsAtMs!==null&&ingress>=state.responseEndsAtMs){this.freezeDraft(state,partCount);const settled=await this.settle(state,request);return settled instanceof Response?settled:json(settled);}
+        if(request.method==='GET'&&state?.status==='Settled')return json({...state.response as Record<string,unknown>,alreadyProcessed:true,questionId:state.questionId});
+        if(request.method==='GET'&&state?.status==='Settling'){const settled=await this.settle(state,request);return settled instanceof Response?settled:json({...settled as Record<string,unknown>,questionId:state.questionId});}
+        if(request.method==='GET'&&state?.status==='Armed'&&state.responseEndsAtMs!==null&&ingress>=state.responseEndsAtMs){this.freezeDraft(state,partCount);const settled=await this.settle(state,request);return settled instanceof Response?settled:json({...settled as Record<string,unknown>,questionId:state.questionId});}
         if(request.method==='GET'&&state)return json(this.view(state));
         if(!card||card.servedAtMs===null)throw new HttpError(409,'Choose the active saved card.');
         if(request.method==='GET')return json({status:'NotPresented',questionId:card.id,revision:0,serverNow:new Date().toISOString(),feedbackDeferred:true});

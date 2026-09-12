@@ -16,6 +16,7 @@ beforeEach(() => {
     vi.spyOn(api, 'startSession');
     vi.spyOn(api, 'nextCard');
     vi.spyOn(api, 'nextPbeCard').mockResolvedValue(saved.card!);
+    vi.spyOn(api, 'completeSession');
     vi.spyOn(api, 'submitPbeAttempt').mockResolvedValue(result);
     vi.spyOn(api, 'pbeTimed');
     vi.spyOn(api, 'pbeTimedStatus');
@@ -63,7 +64,7 @@ it('starts PBE Simulation as shortened timed practice', async () => {
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'Simulation', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
 });
 it('shows a terminal interrupted rehearsal with an independent restart instead of requesting the old card',async()=>{
-    vi.mocked(api.resumeSession).mockResolvedValue({...saved,session:{...saved.session,mode:'Simulation',status:'Interrupted'},card:null,interruption:{status:'Interrupted',restartAllowed:true}} as never);
+    vi.mocked(api.resumeSession).mockResolvedValue({...saved,session:{...saved.session,mode:'Simulation',status:'Interrupted'},card:null,summary:{sessionId:'pbe-session',format:'Pbe',mode:'Simulation',attempted:1,status:'Interrupted',earnedPoints:1,availablePoints:2,results:[result]},interruption:{status:'Interrupted',restartAllowed:true}} as never);
     mount('/student/study?sessionId=pbe-session&format=Pbe');
     expect(await screen.findByText(/Earlier accepted answers are retained/)).toBeInTheDocument();
     expect(screen.getByRole('link',{name:'Start another shortened timed practice'})).toHaveAttribute('href',expect.stringContaining('mode=Simulation'));
@@ -93,11 +94,20 @@ it('retries a lost acknowledgement response without opening a replacement card',
 it('reconciles a blank expired window and advances from the server receipt',async()=>{
     vi.useFakeTimers();
     vi.mocked(api.resumeSession).mockResolvedValue({...saved,session:{...saved.session,mode:'Simulation'}} as never);
-    vi.mocked(api.pbeTimedStatus).mockResolvedValueOnce({questionId:'card',revision:1,delivery:'TextFallback',requiredScribeIds:['student'],readyScribeIds:['student'],responseStartsAtMs:Date.now()-40000,responseEndsAtMs:Date.now()-1000,status:'Armed',serverNow:new Date().toISOString(),feedbackDeferred:true}).mockResolvedValueOnce({attemptId:'attempt',acceptedAtUtc:new Date().toISOString(),acceptedSequence:1,alreadyProcessed:true,feedbackDeferred:true,responseLockedAtUtc:new Date().toISOString()});
+    vi.mocked(api.pbeTimedStatus).mockResolvedValueOnce({questionId:'card',revision:1,delivery:'TextFallback',requiredScribeIds:['student'],readyScribeIds:['student'],responseStartsAtMs:Date.now()-40000,responseEndsAtMs:Date.now()-1000,status:'Armed',serverNow:new Date().toISOString(),feedbackDeferred:true}).mockResolvedValueOnce({attemptId:'attempt',acceptedAtUtc:new Date().toISOString(),acceptedSequence:1,alreadyProcessed:true,feedbackDeferred:true,responseLockedAtUtc:new Date().toISOString(),questionId:'card'});
     mount('/student/study?sessionId=pbe-session&format=Pbe');
     await vi.waitFor(()=>expect(api.pbeTimedStatus).toHaveBeenCalledTimes(1));
     await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
     expect(api.nextPbeCard).toHaveBeenCalledWith('pbe-session');
+});
+it('keeps polling Settled, NotPresented and transient failures until the final-card receipt completes',async()=>{
+    vi.useFakeTimers();const finalCard={...saved.card!,sequence:1,total:1};
+    vi.mocked(api.resumeSession).mockResolvedValue({...saved,session:{...saved.session,mode:'Simulation'},card:finalCard} as never);
+    const base:PbePresentationState={questionId:'card',revision:1,delivery:'TextFallback',requiredScribeIds:['student'],readyScribeIds:['student'],responseStartsAtMs:Date.now()-40000,responseEndsAtMs:Date.now()-1000,status:'Armed',serverNow:new Date().toISOString(),feedbackDeferred:true};
+    vi.mocked(api.pbeTimedStatus).mockResolvedValueOnce(base).mockResolvedValueOnce({...base,status:'Settled'}).mockResolvedValueOnce({...base,status:'NotPresented',responseStartsAtMs:null,responseEndsAtMs:null}).mockRejectedValueOnce(new ApiError('Still delivering',503)).mockResolvedValueOnce({attemptId:'attempt',acceptedAtUtc:new Date().toISOString(),acceptedSequence:1,alreadyProcessed:true,feedbackDeferred:true,questionId:'card'});
+    vi.mocked(api.completeSession).mockResolvedValue({} as never);mount('/student/study?sessionId=pbe-session&format=Pbe');await vi.waitFor(()=>expect(api.pbeTimedStatus).toHaveBeenCalledTimes(1));
+    await act(async()=>{await vi.advanceTimersByTimeAsync(2500);});
+    expect(api.completeSession).toHaveBeenCalledWith('pbe-session');expect(api.nextPbeCard).not.toHaveBeenCalled();
 });
 it('defaults an eligible new season to PBE and does not run Memory start or next', async () => {
     vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);

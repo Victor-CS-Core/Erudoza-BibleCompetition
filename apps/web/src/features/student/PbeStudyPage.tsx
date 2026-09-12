@@ -43,20 +43,20 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
         }, onSuccess: r => { if (mode === 'Simulation') { setTimedReceipt(r as PbeTimedReceipt); if (card!.sequence === card!.total) complete.mutate(); else next.mutate(session!.id); } else setResult(r as PbeAttemptResult); sessionStorage.removeItem(`erudoza:pbe-attempt:${session!.id}`); frozen.current = null; } });
     useEffect(() => {
         if (saved?.summary && !recapped.current) {
+            if (saved.interruption) return;
             recapped.current = true;
             navigate(`/student/sessions/${saved.session.id}/recap?seasonId=${saved.session.seasonId}`, { replace: true });
             return;
         }
         if (saved) {
-            if (saved.interruption) return;
             if (saved.session.mode === 'Simulation' && saved.card && saved.attempt && 'feedbackDeferred' in saved.attempt) {
                 if (saved.card.sequence === saved.card.total) complete.mutate();
                 else next.mutate(saved.session.id);
             } else if (saved.session.mode === 'Simulation' && saved.card) {
-                void api.pbeTimedStatus(saved.session.id).then(value => {
+                void api.pbeTimedStatus(saved.session.id,saved.card!.id).then(value => {
                     if ('attemptId' in value) { setTimedReceipt(value); if (saved.card!.sequence === saved.card!.total) complete.mutate(); else next.mutate(saved.session.id); }
                     else if (value.status === 'Interrupted') setInterrupted(true);
-                    else if (value.status !== 'NotPresented') { serverClock.current={server:Date.parse(value.serverNow),observed:performance.now()}; setPresentation(value); }
+                    else if ('questionId' in value && value.status !== 'NotPresented') { serverClock.current={server:Date.parse(value.serverNow),observed:performance.now()}; setPresentation(value); }
                 }).catch(error => setTimingError(error instanceof Error ? error.message : 'Timed rehearsal unavailable.'));
             } else if (!saved.card)
                 next.mutate(saved.session.id);
@@ -78,9 +78,36 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     void tick;
     const displayedNow=serverClock.current?serverClock.current.server+performance.now()-serverClock.current.observed:Date.now();
     const remaining = presentation?.responseEndsAtMs ? Math.max(0, Math.ceil((presentation.responseEndsAtMs - displayedNow) / 1000)) : null;
-    // Mutation functions are stable; mutation objects would restart the expiry poll on every render.
+    useEffect(() => {
+        if (mode !== 'Simulation' || remaining !== 0 || !session || !card || timedReceipt) return;
+        let active=true,timer:number;
+        const poll=async()=>{
+            try {
+                const value=await api.pbeTimedStatus(session.id,card.id);
+                if(!active)return;
+                if('attemptId' in value){
+                    if(!value.questionId||value.questionId===card.id){
+                        setTimingError('');setTimedReceipt(value);
+                        if(card.sequence===card.total)complete.mutate();else next.mutate(session.id);
+                        return;
+                    }
+                    timer=window.setTimeout(()=>void poll(),500);
+                    return;
+                }
+                if('status' in value&&value.status==='Interrupted'){setInterrupted(true);return;}
+                if('questionId' in value&&value.status==='Armed')setPresentation(value);
+                timer=window.setTimeout(()=>void poll(),500);
+            } catch(error) {
+                if(!active)return;
+                setTimingError(error instanceof Error?error.message:'Timed rehearsal unavailable.');
+                timer=window.setTimeout(()=>void poll(),500);
+            }
+        };
+        timer=window.setTimeout(()=>void poll(),250);
+        return()=>{active=false;window.clearTimeout(timer);};
+    // Mutation functions are stable; mutation objects would restart this poll on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => { if (mode !== 'Simulation' || remaining !== 0 || !session || timedReceipt) return; const timer=window.setTimeout(() => { void api.pbeTimedStatus(session.id).then(value => { if ('attemptId' in value) { setTimedReceipt(value); if (card?.sequence === card?.total) complete.mutate(); else next.mutate(session.id); } else setPresentation(value); }).catch(error => setTimingError(error instanceof Error ? error.message : 'Timed rehearsal unavailable.')); },250); return()=>window.clearTimeout(timer); },[remaining,mode,session,timedReceipt,card]);
+    },[remaining,mode,session,card,timedReceipt]);
     if (card && remaining !== null && remaining <= 10 && warned.current !== card.id) warned.current = card.id;
     const home = `/student?seasonId=${encodeURIComponent(session?.seasonId ?? seasonId)}`, practice = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Pbe`, memory = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Memory`;
     const error = start.error ?? next.error ?? submit.error ?? aid.error ?? complete.error;

@@ -521,6 +521,7 @@ it('keeps a frozen native final immutable across projection failure and retries 
     const range={bookKey:'GEN',startChapter:1,startVerse:1,endChapter:1,endVerse:1};await store.insert('assignment','assignment',TEST_ORG,{id:'assignment',seasonId:season,studentUserId:student,contentPackId:pack,...range},{seasonId:season,ownerId:student});
     await app.fetch(`/api/v1/study/sessions/${session.id}/timed`,{headers:{Cookie:cookie,Origin:'https://erudoza.test','x-test-authority-replaced':'1'}});
     for(let attempt=0;attempt<30&&(await store.list('pbe-attempt',TEST_ORG,{ownerId:student})).length===0;attempt++)await new Promise(resolve=>setTimeout(resolve,100));
+    expect(await(await send(`/study/sessions/${session.id}/timed`)).json()).toMatchObject({attemptId:expect.any(String),questionId:card.id,alreadyProcessed:true});
     expect(await (await send(`/study/sessions/${session.id}/timed`,original)).json()).toMatchObject({feedbackDeferred:true,alreadyProcessed:true});
     expect(await store.list('pbe-attempt',TEST_ORG,{ownerId:student})).toHaveLength(1);
 },10000);

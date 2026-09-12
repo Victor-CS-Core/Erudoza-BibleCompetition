@@ -17,7 +17,8 @@ public sealed class PracticeIngressMiddleware(RequestDelegate next)
             try { context.Items[PbeStampKey] = solo.CaptureIfActive(session); }
             catch (Erudoza.Application.Study.PbePendingLimitException) { context.Response.StatusCode = 429; return; }
             context.Request.Body.Position = 0;
-            await next(context);
+            try { await next(context); }
+            finally { (context.Items[PbeStampKey] as Erudoza.Application.Study.PbeSoloIngress)?.Complete(); }
             return;
         }
         if (context.Request.Method != "POST" || segments.Length != 8 || segments[0] != "api" || segments[1] != "v1"

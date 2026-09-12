@@ -502,8 +502,8 @@ public static class ApiEndpoints
             HttpContext http,
             CancellationToken cancellationToken) => Results.Ok(await pbe.TimedActionAsync(sessionId, request,
                 http.Items[Erudoza.Api.Practice.PracticeIngressMiddleware.PbeStampKey] as Erudoza.Application.Study.PbeSoloIngress, cancellationToken)));
-        study.MapGet("/sessions/{sessionId:guid}/timed", async (Guid sessionId, PbeSessionService pbe,
-            CancellationToken cancellationToken) => Results.Ok(await pbe.TimedStatusAsync(sessionId, cancellationToken)));
+        study.MapGet("/sessions/{sessionId:guid}/timed", async (Guid sessionId, Guid? questionId, PbeSessionService pbe,
+            CancellationToken cancellationToken) => Results.Ok(await pbe.TimedStatusAsync(sessionId, questionId, cancellationToken)));
 
         study.MapPost("/sessions/{sessionId:guid}/complete", async (
             Guid sessionId,

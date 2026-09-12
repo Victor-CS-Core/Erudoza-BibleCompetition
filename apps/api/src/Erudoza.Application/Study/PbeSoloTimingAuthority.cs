@@ -10,7 +10,7 @@ public sealed class PbeSoloIngress(Guid sessionId, IngressStamp stamp, DateTimeO
     public Guid SessionId { get; } = sessionId;
     public IngressStamp Stamp { get; } = stamp;
     public DateTimeOffset ReceivedAtUtc { get; } = receivedAtUtc;
-    public Task WaitAsync() => predecessor;
+    public Task WaitAsync(CancellationToken ct = default) => predecessor.WaitAsync(ct);
     public void Complete() { if (Interlocked.Exchange(ref completed, 1) == 0) release(); }
 }
 public sealed record PbeTimedDecision(string ClientSubmissionId, IReadOnlyList<string> Answers, IReadOnlyList<string> RetryAnswers, long ElapsedMs, DateTimeOffset LockedAtUtc);
@@ -26,6 +26,7 @@ public interface IPbeSoloTimingAuthority
     PbeSoloTimingView Acknowledge(Guid sessionId, Guid student, Guid question, int revision, string delivery, PbeSoloIngress? ingress);
     PbeTimedDraft Draft(Guid sessionId, Guid student, Guid question, int revision, string[] answers, PbeSoloIngress? ingress);
     PbeTimedDecision Lock(Guid sessionId, Guid student, Guid question, int revision, string clientSubmissionId, string[] answers, PbeSoloIngress? ingress);
+    PbeTimedDecision? Expire(Guid sessionId, Guid student, Guid question, int revision, PbeSoloIngress? ingress, int answerCount);
 }
 
 public sealed class PbeSoloTimingAuthority(TimeProvider time) : IPbeSoloTimingAuthority
@@ -55,7 +56,7 @@ public sealed class PbeSoloTimingAuthority(TimeProvider time) : IPbeSoloTimingAu
             entry.Pending++;
             var predecessor = entry.Tail;
             var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            entry.Tail = completion.Task;
+            entry.Tail = Task.WhenAll(predecessor, completion.Task);
             return new(sessionId, entry.Clock.CaptureIngress(), time.GetUtcNow(), predecessor, () => { lock (entry.Gate) entry.Pending--; completion.TrySetResult(); });
         }
     }
@@ -102,6 +103,17 @@ public sealed class PbeSoloTimingAuthority(TimeProvider time) : IPbeSoloTimingAu
         if (elapsed > TimeSpan.FromSeconds(entry.Schedule!.DurationSeconds) && entry.Draft is { } draft) return entry.Frozen = new(clientSubmissionId, draft.Answers, [.. answers], draft.ElapsedMs, draft.LockedAtUtc);
         var chosen = elapsed <= TimeSpan.FromSeconds(entry.Schedule.DurationSeconds) ? answers : answers.Select(_ => "").ToArray();
         return entry.Frozen = new(clientSubmissionId, chosen, [.. answers], checked((long)elapsed.TotalMilliseconds), ingress!.ReceivedAtUtc);
+    }
+    public PbeTimedDecision? Expire(Guid sessionId, Guid student, Guid question, int revision, PbeSoloIngress? ingress, int answerCount)
+    {
+        var entry = Require(sessionId, student, question, revision);
+        if (entry.Frozen is not null) return entry.Frozen;
+        var elapsed = Elapsed(entry, ingress);
+        if (elapsed <= TimeSpan.FromSeconds(entry.Schedule!.DurationSeconds)) return null;
+        if (entry.Draft is { } draft) return entry.Frozen = new(Guid.NewGuid().ToString(), draft.Answers, draft.Answers, draft.ElapsedMs, draft.LockedAtUtc);
+        var answers = Enumerable.Range(0, answerCount).Select(_ => "").ToArray();
+        var lockedAt = entry.Schedule.StartsAtUtc.AddSeconds(entry.Schedule.DurationSeconds);
+        return entry.Frozen = new(Guid.NewGuid().ToString(), answers, answers, checked((long)elapsed.TotalMilliseconds), lockedAt);
     }
     private Entry Require(Guid session, Guid student, Guid question, int revision)
     {

@@ -97,6 +97,8 @@ export type SessionRecap = {
             after: SkillScores;
         }[];
     }[];
+    interrupted?: boolean;
+    results?: { attemptId:string;earnedPoints:number;availablePoints:number;acceptedAtUtc:string }[] | null;
 };
 export type StartTrainingContext = {
     clientStartId: string;

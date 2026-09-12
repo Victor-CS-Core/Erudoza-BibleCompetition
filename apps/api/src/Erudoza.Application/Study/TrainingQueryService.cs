@@ -69,7 +69,7 @@ public sealed class TrainingQueryService(IErudozaDbContext db, TrainingProgressS
         {
             var s = Read<PbeSessionSnapshot>(pbe.DataJson);
             if (s.Status is not ("Completed" or "Interrupted")) throw new TrainingConflictException("Complete your session to save its recap.");
-            return new("pbe-daily-v2", s.Id, s.SeasonId, s.Mode, s.CompletedAtUtc, s.Attempts.Count, s.Attempts.Count(a => a.Result.EarnedPoints == a.Result.AvailablePoints), s.Cards.Count, s.Cards.Count == s.Attempts.Count, s.NewlyCreditedDay, s.MissionLocalDate, s.CreditedLocalDate, PbeSessionService.Steps(s), [], []);
+            return new("pbe-daily-v2", s.Id, s.SeasonId, s.Mode, s.CompletedAtUtc, s.Attempts.Count, s.Attempts.Count(a => a.Result.EarnedPoints == a.Result.AvailablePoints), s.Cards.Count, s.Cards.Count == s.Attempts.Count, s.NewlyCreditedDay, s.MissionLocalDate, s.CreditedLocalDate, PbeSessionService.Steps(s), [], [], s.Status == "Interrupted", s.Status == "Interrupted" ? s.Attempts.Select(a => new SessionResultSummaryDto(a.Result.AttemptId, a.Result.EarnedPoints, a.Result.AvailablePoints, a.Result.AcceptedAtUtc)).ToList() : null);
         }
         var session = await db.StudySessions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == sessionId && x.OrganizationId == org && x.StudentUserId == student, ct) ?? throw new DomainException("Study session was not found.");
         if (session.Status != StudySessionStatus.Completed) throw new TrainingConflictException($"Resume /student/study?sessionId={session.Id} to finish this session.");
