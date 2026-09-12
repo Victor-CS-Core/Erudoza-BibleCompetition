@@ -2,6 +2,12 @@
 
 The approved Field Guide Academy mockup and supplied assets are the visual authority. Refine both coach and student workspaces with the quiet precision of an Apple product, using the approved Option C command navigation and preserving the working coach setup flow. This is a product UI: tasks and readability come first.
 
+## Approved public Expedition landing — September 12
+
+For the landing route, the latest visual authority is [Option A](docs/product/mockups/2026-09-12-pathfinder-landing/a-expedition.png) with the user's [selected middle section from B](docs/product/mockups/2026-09-12-pathfinder-landing/selected-middle-section.png). Keep A's integrated navy mountain-lake/Bible/compass/neckerchief hero, exact existing emblem and text wordmark, two entry actions, and lantern/notebook coach panel. The ivory middle contains numbered study/review/rehearsal steps beside three embroidered sample Honors with a vertical divider on desktop. It stacks at 760px, with a horizontal divider before the sample artwork.
+
+This direction supersedes the earlier landing banner and corner-art assignment only. Use shared display typography, numbered steps, inverse surface and large buttons; system sans remains the interface face. Public copy uses concrete study and coach actions, following the Humanizer editing pass. Keep sample artwork explicitly labeled; retain /login for existing students/coaches and /signup for club creation. Preserve support controls and browser-dependent installation, with installation in the footer on phones. See the [artwork package](docs/brand/2026-09-12-landing-expedition/README.md) and [implementation audit](docs/audits/2026-09-12-pathfinder-landing.md).
+
 ## Shared rules
 
 - One source of values: `apps/web/src/styles/tokens.css`. One source of controls and type: `styles/design-system.css` and `components/ui/index.tsx`.

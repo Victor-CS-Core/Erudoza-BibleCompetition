@@ -1,0 +1,28 @@
+{
+  "date": "2026-09-12",
+  "tool": "image_gen.imagegen",
+  "references": {
+    "hero": "docs/product/mockups/2026-09-12-pathfinder-landing/a-expedition.png",
+    "coach": "docs/product/mockups/2026-09-12-pathfinder-landing/a-expedition.png",
+    "flame": "docs/product/mockups/2026-09-12-pathfinder-landing/b-field-guide.png",
+    "mountain": "docs/product/mockups/2026-09-12-pathfinder-landing/b-field-guide.png"
+  },
+  "prompts": [
+    {
+      "id": "hero",
+      "prompt": "Use case: compositing / UI artwork extraction. The attached image is the APPROVED Erudoza Option A desktop+mobile presentation. Produce ONLY the large desktop HERO BACKGROUND ART as a clean production-ready standalone raster background. Reconstruct the exact visual composition from the top desktop panel: deep matte navy #102e47 over left 40%, blending into the mountain lake scene on right; tall alpine mountain range upper right, pine forests around turquoise lake, large open ivory Bible lower-right foreground with fine nearly blank page texture, accurate brass compass and folded gold Pathfinder neckerchief with red edging at bottom right. Match the painting style, mountain shapes, lighting, lake color and object positions faithfully. Remove EVERY piece of website UI: no wordmark, no logo, no text, no buttons, no header links, no border, no rounded corners, no presentation labels, no phone, no lower-page sections. Fill the removed text/button regions naturally with uninterrupted navy. The output is a full-bleed wide landscape image about 2.2:1 (e.g. 1920x880), composition closely matching the approved desktop hero rectangle. Left side stays very dark flat navy to accept live HTML headings. Right-side open Bible, compass and neckerchief must be fully visible within the bottom right 55% of image. No sun disk. No invented objects, no handwriting, no frame, no new graphic elements. This is an extraction/reconstruction of the APPROVED artwork, not a new design."
+    },
+    {
+      "id": "coach",
+      "prompt": "Use case: compositing / UI artwork extraction. Attached is the APPROVED Erudoza Option A desktop+mobile presentation. Produce ONLY the small coach-panel illustration found near bottom right of desktop: glowing brass lantern on left among gray stones, pine trees, mountain lake and distant alpine peaks behind, a small spiral notebook with blank ivory pages at lower right. Match its exact painterly style, golden light, mountain shapes, colors and object placement closely. Output a standalone wide landscape about 3:1 (1536x512). Art occupies right 80%; its left perimeter has soft organic brush edges fading smoothly into a solid near-white #fffefa background, to sit beside live HTML copy. Remove all website layout, no typography, no buttons, no border, no rounded frame, no device, no board labels. Keep the notebook blank, no writing. Preserve complete lantern, notebook and lake; do not add the large Bible or neckerchief. This is a precise reconstruction of the small APPROVED coach artwork, not a new scene."
+    },
+    {
+      "id": "flame",
+      "prompt": "Extract and faithfully reconstruct ONLY the FIRST round embroidered sample patch from the lower middle section of this Erudoza Field Guide mockup. The patch is a navy circular textile disk, thick golden thread rim, thin red inner ring, with the approved red-and-ivory flame rising over an open ivory-and-teal Bible centered inside. Match the reference shape and rich visible embroidery stitch texture. A standalone front-facing full complete patch centered with a small consistent transparent margin. GENUINELY TRANSPARENT alpha background, no ground, no frame, no text, no drop shadow baked outside patch. Square image, 1024x1024. Do not include other patches, page content or UI. Preserve the existing logo motif and patch proportions; this is a production asset from the approved middle-section concept."
+    },
+    {
+      "id": "mountain",
+      "prompt": "Extract and faithfully reconstruct ONLY the SECOND round embroidered sample patch from the lower middle section of this Erudoza Field Guide mockup. A circular detailed embroidered alpine landscape badge, thick golden thread rim and thin red inner ring, snow-capped mountains at upper middle, navy pine trees at both sides, turquoise lake with stitched reflections in lower middle, small golden sun disk in upper right of badge sky, pale clouds. Match reference colors, composition, shape and rich textile stitch texture closely. A standalone front-facing full complete patch centered with a small consistent transparent margin. GENUINELY TRANSPARENT alpha background, no ground, no frame, no text, no baked exterior shadow. Square image, 1024x1024. Do not include other patches, page content or UI. This is a decorative sample preview asset from the approved middle-section concept, not a new achievement criterion."
+    }
+  ]
+}

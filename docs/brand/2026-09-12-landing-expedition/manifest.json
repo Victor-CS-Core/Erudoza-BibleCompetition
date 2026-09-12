@@ -1,0 +1,137 @@
+{
+  "generatedWith": "image_gen.imagegen",
+  "date": "2026-09-12",
+  "masters": [
+    {
+      "path": "docs/brand/2026-09-12-landing-expedition/masters/expedition-hero.png",
+      "bytes": 2080491,
+      "sha256": "1c854544efe64c7a707d7f0f07725e4932d7cf2d71ec829d018b396445e73f21",
+      "width": 1855,
+      "height": 848,
+      "format": "png",
+      "hasAlpha": false
+    },
+    {
+      "path": "docs/brand/2026-09-12-landing-expedition/masters/expedition-coach.png",
+      "bytes": 2358265,
+      "sha256": "1466081db937483373a57a421cc09fc6f83f7f51977ece3771078e6800a6e326",
+      "width": 2172,
+      "height": 724,
+      "format": "png",
+      "hasAlpha": false
+    },
+    {
+      "path": "docs/brand/2026-09-12-landing-expedition/masters/honor-flame.png",
+      "bytes": 2523856,
+      "sha256": "95f2b6e1ba57c2860c883ca3f9bbc978b240d58f160c015d938aecde56624ca2",
+      "width": 1254,
+      "height": 1254,
+      "format": "png",
+      "hasAlpha": true,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "path": "docs/brand/2026-09-12-landing-expedition/masters/honor-mountain.png",
+      "bytes": 2404375,
+      "sha256": "8d6a03d12d5d9b2606cd3aa975e17a3a237cb0d1b8fb2c72cb1600f2b3c04bdb",
+      "width": 1254,
+      "height": 1254,
+      "format": "png",
+      "hasAlpha": true,
+      "alphaMin": 0,
+      "alphaMax": 255
+    }
+  ],
+  "derivatives": [
+    {
+      "path": "apps/web/public/assets/landing/expedition-hero-960.webp",
+      "bytes": 82480,
+      "sha256": "933fb86eb64711895d1afa4e64bfade499079294b86d426ff7c209b9a03dbcfe",
+      "width": 960,
+      "height": 439,
+      "format": "webp",
+      "hasAlpha": false
+    },
+    {
+      "path": "apps/web/public/assets/landing/expedition-hero-1440.webp",
+      "bytes": 153974,
+      "sha256": "e16ad2427b63c6486ca8705a51c6404b8ca622d5bf867902e0a1ac24d597b1fe",
+      "width": 1440,
+      "height": 658,
+      "format": "webp",
+      "hasAlpha": false
+    },
+    {
+      "path": "apps/web/public/assets/landing/expedition-hero-1920.webp",
+      "bytes": 214298,
+      "sha256": "a8e034bc32634408e53ce608df78d1ed1331d061e0b73f24485fb2bb051e277f",
+      "width": 1920,
+      "height": 878,
+      "format": "webp",
+      "hasAlpha": false
+    },
+    {
+      "path": "apps/web/public/assets/landing/expedition-coach-640.webp",
+      "bytes": 40532,
+      "sha256": "06a1adf62aac8734b3b3071a62c40695f6563a863ada35716d0ca5627a5d9433",
+      "width": 640,
+      "height": 213,
+      "format": "webp",
+      "hasAlpha": false
+    },
+    {
+      "path": "apps/web/public/assets/landing/expedition-coach-960.webp",
+      "bytes": 81292,
+      "sha256": "c971f72815d89361f5059ab716ab6bfe082c8e7334e2d535d9d0c4fffd951926",
+      "width": 960,
+      "height": 320,
+      "format": "webp",
+      "hasAlpha": false
+    },
+    {
+      "path": "apps/web/public/assets/landing/honor-flame-160.webp",
+      "bytes": 13122,
+      "sha256": "95787e6663ebeb8daf5ec893f2cc15a13feec3d55981d88d70d247ad95651065",
+      "width": 160,
+      "height": 160,
+      "format": "webp",
+      "hasAlpha": true,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "path": "apps/web/public/assets/landing/honor-flame-320.webp",
+      "bytes": 44220,
+      "sha256": "ab3e266b77900547410a635ed82e23a1d056b91e1eded2b9d7712983ec588d6b",
+      "width": 320,
+      "height": 320,
+      "format": "webp",
+      "hasAlpha": true,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "path": "apps/web/public/assets/landing/honor-mountain-160.webp",
+      "bytes": 15474,
+      "sha256": "f1dea30723311edce3d3a20eb552837aad6c52a4bbee64ef35e723a8a77f383e",
+      "width": 160,
+      "height": 160,
+      "format": "webp",
+      "hasAlpha": true,
+      "alphaMin": 0,
+      "alphaMax": 255
+    },
+    {
+      "path": "apps/web/public/assets/landing/honor-mountain-320.webp",
+      "bytes": 49438,
+      "sha256": "928637c1e42bba22d684ef64b63c2216f8128a46e09fd9d1c811ddbf4c9048c1",
+      "width": 320,
+      "height": 320,
+      "format": "webp",
+      "hasAlpha": true,
+      "alphaMin": 0,
+      "alphaMax": 255
+    }
+  ]
+}

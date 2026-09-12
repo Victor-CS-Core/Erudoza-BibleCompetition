@@ -1,5 +1,13 @@
 # Erudoza progress log
 
+## Pathfinder Expedition landing — implementation gate, September 12
+
+- The user selected A, requested natural copy through a humanizer skill, then chose B's numbered training/sample-Honors middle section. Implemented that combination with A's hero and coach panel, exact existing brand emblem, live text, shared primitives and existing account routes. [DESIGN.md](DESIGN.md) records the latest landing authority; the original mockups remain unchanged.
+- Used Humanizer 3.0.0 from its author's repository for an embedded copy pass. Four generated artwork masters, exact prompts and hashes are preserved in [the production package](docs/brand/2026-09-12-landing-expedition/README.md); nine responsive WebP derivatives total 694,830 bytes. The supplied middle-section reference and all four masters are byte-identical to their sources. Sample Honors remain decorative and labeled.
+- Local gate: six landing tests and the full 628-test web/native suite passed with one existing optional skip; both production builds, web/native TypeScript, ESLint and whitespace passed. Node 26 required --no-experimental-webstorage for the jsdom fixture; no application workaround. Existing bundle advisory remains. Final Chrome layouts at 1440/1100/762/760/390/320 showed no overflow or broken art, and keyboard skip focus worked. Coach overview and Student Mode at 1440/390/320 retained their existing layout and type.
+- Independent review closed its Install app contrast finding after the navy treatment measured at least 4.55:1 across the checked desktop control rectangles. Complete evidence and limits are in [the audit](docs/audits/2026-09-12-pathfinder-landing.md): local fixture/development browser checks, no new actual-provider or physical-device installation gate, and no full gameplay or remote CI claim.
+- The local preview is open at http://localhost:5208/. Next: explicit scoped staging, commit and normal push of codex/landing-pathfinder-mockups. This gate is local verification; main integration and deployment have not been requested or performed.
+
 ## Pathfinder landing mockups — review gate, September 12
 
 - User requested a stronger Pathfinder landing-page direction and multiple mockups to choose from. Three refined desktop/phone concept boards are saved in [the review package](docs/product/mockups/2026-09-12-pathfinder-landing/README.md): A — The Expedition (recommended), B — The Field Guide, and C — The Basecamp. Selection remains pending.

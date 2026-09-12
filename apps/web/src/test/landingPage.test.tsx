@@ -19,33 +19,33 @@ describe("LandingPage", () => {
 
     const main = screen.getByRole("main");
     expect(within(main).getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Know the passage.Own the moment.",
+      "Rooted in Scripture. Ready for the journey.",
     );
-    expect(within(main).getByText(/Study your assigned passages, strengthen your recall, and prepare together/))
+    expect(within(main).getByText(/Learn your assigned passages/))
       .toBeInTheDocument();
-    expect(within(main).getByText("Sign in with the account provided by your coach or academy."))
+    expect(within(main).getByText("Use the account provided by your coach."))
       .toBeInTheDocument();
-    expect(within(main).getByRole("heading", { level: 2, name: "Give every student a clear next step." }))
+    expect(within(main).getByRole("heading", { level: 2, name: "Guide your team’s next step." }))
       .toBeInTheDocument();
-    expect(within(main).getByText(/Choose a season’s passages, set each student’s difficulty, and follow their progress/))
+    expect(within(main).getByText(/Assign passages and see where each student needs practice/))
       .toBeInTheDocument();
   });
 
   it("presents learning, due review, and competition rehearsal in order", () => {
     renderLanding();
 
-    const training = screen.getByRole("region", { name: "A clear path to confident recall." });
+    const training = screen.getByRole("region", { name: "Your training, chapter by chapter." });
     const steps = within(within(training).getByRole("list")).getAllByRole("listitem");
     expect(steps).toHaveLength(3);
     expect(within(steps[0]).getByRole("heading", { level: 3, name: "Learn your passages" }))
       .toBeInTheDocument();
-    expect(steps[0]).toHaveTextContent("Restore missing words, rebuild verses, and match references from the Scripture your coach assigns.");
-    expect(within(steps[1]).getByRole("heading", { level: 3, name: "Review what needs attention" }))
+    expect(steps[0]).toHaveTextContent("Read the Scripture your coach assigns, then work through it a few verses at a time.");
+    expect(within(steps[1]).getByRole("heading", { level: 3, name: "Review with purpose" }))
       .toBeInTheDocument();
-    expect(steps[1]).toHaveTextContent("Return to due verses and follow your saved progress as your recall grows.");
-    expect(within(steps[2]).getByRole("heading", { level: 3, name: "Rehearse for competition" }))
+    expect(steps[1]).toHaveTextContent("Return to the verses you missed and review them when they’re due.");
+    expect(within(steps[2]).getByRole("heading", { level: 3, name: "Rehearse with your team" }))
       .toBeInTheDocument();
-    expect(steps[2]).toHaveTextContent("Practice under time pressure in a simulation or join your team in a coach-led room.");
+    expect(steps[2]).toHaveTextContent("Try a timed rehearsal or answer questions together in your coach’s practice room.");
     expect(training).not.toHaveTextContent(/%|streak/i);
   });
 
@@ -58,8 +58,7 @@ describe("LandingPage", () => {
     const start = screen.getByRole("link", { name: "Start studying" });
     expect(start).toHaveAttribute("href", "/login");
     expect(screen.getByRole("link", { name: "Coach your team" })).toHaveAttribute("href", "/login");
-    expect(screen.getByRole("link", { name: "Sign in as a coach" })).toHaveAttribute("href", "/login");
-    expect(screen.getByRole("link", { name: /Create a club with a coach account/ })).toHaveAttribute("href", "/signup");
+    expect(screen.getByRole("link", { name: "Create your club" })).toHaveAttribute("href", "/signup");
 
     fireEvent.click(start);
     expect(screen.getByRole("heading", { name: "Account sign in" })).toBeInTheDocument();
@@ -81,13 +80,22 @@ describe("LandingPage", () => {
     const mark = within(home).getByTestId("erudoza-mark");
     expect(mark).toHaveAttribute("src", "/brand/erudoza-patch-96.webp");
     expect(mark).toHaveAttribute("alt", "");
-    expect(screen.getByRole("img", { name: "Mountains and forest surrounding an open valley" }))
+    expect(screen.getByRole("img", { name: /An open Bible, compass and Pathfinder neckerchief/ }))
       .toBeInTheDocument();
-    expect(screen.getByRole("contentinfo")).toHaveTextContent("SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH");
+    expect(screen.getByRole("contentinfo")).toHaveTextContent("Study. Master. Compete.");
+  });
+
+  it("labels decorative Honors as examples without presenting earned progress", () => {
+    renderLanding();
+    const preview = screen.getByRole("figure", { name: /A glimpse of Erudoza Honors/ });
+    expect(preview).toHaveTextContent("Sample artwork");
+    expect(preview).not.toHaveTextContent(/unlocked|earned|\d+%/i);
+    expect(within(preview).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(preview).queryByRole("link")).not.toBeInTheDocument();
   });
 });
 
 it("offers phone installation help without relying on a browser install prompt", () => {
   renderLanding();
-  expect(screen.getByRole("button", { name: "Install app" })).toBeVisible();
+  expect(screen.getAllByRole("button", { name: "Install app" })[0]).toBeVisible();
 });

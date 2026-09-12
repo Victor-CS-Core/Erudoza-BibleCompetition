@@ -1,0 +1,79 @@
+{
+  "tool": "sharp",
+  "version": "0.34.5",
+  "resize": "width, full composition",
+  "webp": {
+    "quality": 86,
+    "effort": 6,
+    "alphaQuality": 100
+  },
+  "files": [
+    {
+      "source": "docs/brand/2026-09-12-landing-expedition/masters/expedition-hero.png",
+      "destination": "apps/web/public/assets/landing/expedition-hero-960.webp",
+      "width": 960,
+      "height": 439,
+      "bytes": 82480
+    },
+    {
+      "source": "docs/brand/2026-09-12-landing-expedition/masters/expedition-hero.png",
+      "destination": "apps/web/public/assets/landing/expedition-hero-1440.webp",
+      "width": 1440,
+      "height": 658,
+      "bytes": 153974
+    },
+    {
+      "source": "docs/brand/2026-09-12-landing-expedition/masters/expedition-hero.png",
+      "destination": "apps/web/public/assets/landing/expedition-hero-1920.webp",
+      "width": 1920,
+      "height": 878,
+      "bytes": 214298
+    },
+    {
+      "source": "docs/brand/2026-09-12-landing-expedition/masters/expedition-coach.png",
+      "destination": "apps/web/public/assets/landing/expedition-coach-640.webp",
+      "width": 640,
+      "height": 213,
+      "bytes": 40532
+    },
+    {
+      "source": "docs/brand/2026-09-12-landing-expedition/masters/expedition-coach.png",
+      "destination": "apps/web/public/assets/landing/expedition-coach-960.webp",
+      "width": 960,
+      "height": 320,
+      "bytes": 81292
+    },
+    {
+      "source": "docs/brand/2026-09-12-landing-expedition/masters/honor-flame.png",
+      "destination": "apps/web/public/assets/landing/honor-flame-160.webp",
+      "width": 160,
+      "height": 160,
+      "bytes": 13122,
+      "preparation": "Trim empty alpha margin; contain full patch inside 5% transparent padding"
+    },
+    {
+      "source": "docs/brand/2026-09-12-landing-expedition/masters/honor-flame.png",
+      "destination": "apps/web/public/assets/landing/honor-flame-320.webp",
+      "width": 320,
+      "height": 320,
+      "bytes": 44220,
+      "preparation": "Trim empty alpha margin; contain full patch inside 5% transparent padding"
+    },
+    {
+      "source": "docs/brand/2026-09-12-landing-expedition/masters/honor-mountain.png",
+      "destination": "apps/web/public/assets/landing/honor-mountain-160.webp",
+      "width": 160,
+      "height": 160,
+      "bytes": 15474,
+      "preparation": "Trim empty alpha margin; contain full patch inside 5% transparent padding"
+    },
+    {
+      "source": "docs/brand/2026-09-12-landing-expedition/masters/honor-mountain.png",
+      "destination": "apps/web/public/assets/landing/honor-mountain-320.webp",
+      "width": 320,
+      "height": 320,
+      "bytes": 49438,
+      "preparation": "Trim empty alpha margin; contain full patch inside 5% transparent padding"
+    }
+  ]
+}

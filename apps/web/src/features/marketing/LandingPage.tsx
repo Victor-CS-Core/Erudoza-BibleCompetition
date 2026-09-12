@@ -1,38 +1,88 @@
 import { Link } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
-import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
-import { PathfinderBackdrop } from "../../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../../components/AppIcon";
-import { LinkButton } from "../../components/ui";
+import { LinkButton, PageHeader, Panel } from "../../components/ui";
+import { PatchArtwork } from "../../components/ui/PatchArtwork";
 import { InstallApp } from "../install/InstallApp";
 import { CoffeeFooter, CoffeeWidget } from "../support/CoffeeWidget";
 import "../../styles/training-public.css";
 
+const trainingSteps = [
+  { title: "Learn your passages", description: "Read the Scripture your coach assigns, then work through it a few verses at a time." },
+  { title: "Review with purpose", description: "Return to the verses you missed and review them when they’re due." },
+  { title: "Rehearse with your team", description: "Try a timed rehearsal or answer questions together in your coach’s practice room." },
+];
+
 export function LandingPage() {
-  return <div className="training-public pathfinder-canvas">
-    <PathfinderBackdrop />
+  return <div className="training-public public-expedition">
     <CoffeeWidget />
     <a className="training-skip" href="#public-main">Skip to content</a>
-    <header className="public-header"><Link to="/" aria-label="Erudoza home"><ErudozaWordmark compact inverted /></Link><LinkButton to="/login" variant="secondary">Sign in<AppIcon name="arrow" /></LinkButton></header>
-    <main id="public-main" className="public-main" data-testid="landing-phone-column">
-      <div className="public-welcome"><LandscapeBanner className="public-landscape" priority sizes="(min-width: 1200px) 1128px, 100vw" alt="Mountains and forest surrounding an open valley" /><section className="public-intro">
-        <h1>Know the passage.<br /><em>Own the moment.</em></h1>
-        <p>Focused Scripture training for your next Bible competition. Study your assigned passages, strengthen your recall, and prepare together.</p>
-        <div className="public-actions"><LinkButton to="/login" data-testid="start-studying">Start studying<AppIcon name="arrow" /></LinkButton><LinkButton to="/login" data-testid="build-a-season" variant="secondary">Coach your team</LinkButton></div>
-        <div className="public-actions"><InstallApp /></div>
-        <p className="public-access-note">Sign in with the account provided by your coach or academy.</p>
-      </section>
+    <header className="public-header">
+      <Link to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
+      <div className="public-header-actions">
+        <div className="public-install-desktop"><InstallApp variant="ghost" className="ds-text-action" /></div>
+        <LinkButton to="/login" variant="secondary">Sign in</LinkButton>
       </div>
-      <section className="public-training" aria-labelledby="training-title">
-        <div><h2 id="training-title">A clear path to confident recall.</h2><p>One assigned passage. Different ways to make it stick.</p></div>
-        <ol className="public-training-steps">
-          <li><AppIcon name="book" /><div><h3>Learn your passages</h3><p>Restore missing words, rebuild verses, and match references from the Scripture your coach assigns.</p></div></li>
-          <li><AppIcon name="review" /><div><h3>Review what needs attention</h3><p>Return to due verses and follow your saved progress as your recall grows.</p></div></li>
-          <li><AppIcon name="flag" /><div><h3>Rehearse for competition</h3><p>Practice under time pressure in a simulation or join your team in a coach-led room.</p></div></li>
-        </ol>
+    </header>
+    <main id="public-main" className="public-main" data-testid="landing-phone-column" tabIndex={-1}>
+      <section className="public-hero ds-inverse-surface" aria-labelledby="public-title">
+        <img className="public-hero-art"
+          src="/assets/landing/expedition-hero-1440.webp"
+          srcSet="/assets/landing/expedition-hero-960.webp 960w, /assets/landing/expedition-hero-1440.webp 1440w, /assets/landing/expedition-hero-1920.webp 1920w"
+          sizes="(max-width: 760px) 760px, 100vw"
+          width={1855} height={848} fetchPriority="high"
+          alt="An open Bible, compass and Pathfinder neckerchief beside a mountain lake" />
+        <div className="public-hero-inner">
+          <p className="ds-eyebrow">Bible competition preparation</p>
+          <PageHeader as="div" titleId="public-title" className="ds-display-header"
+            title={<><span>Rooted in Scripture.</span>{" "}<span>Ready for the journey.</span></>}
+            description="Learn your assigned passages. Practice recalling them for your next Bible competition." />
+          <div className="public-actions">
+            <LinkButton to="/login" size="large" data-testid="start-studying">Start studying<AppIcon name="arrow" /></LinkButton>
+            <LinkButton to="/login" size="large" variant="secondary" data-testid="build-a-season">Coach your team</LinkButton>
+          </div>
+          <p className="public-access-note ds-caption">Use the account provided by your coach.</p>
+        </div>
       </section>
-      <section className="public-coach"><img className="public-coach-art" src="/assets/training/coach-guide-480.webp" srcSet="/assets/training/coach-guide-480.webp 480w, /assets/training/coach-guide-960.webp 960w" sizes="(min-width: 900px) 320px, 80vw" width={480} height={320} loading="lazy" alt="" /><div><h2>Give every student a clear next step.</h2><p>Choose a season’s passages, set each student’s difficulty, and follow their progress in one place.</p><Link to="/signup">Create a club with a coach account →</Link></div><LinkButton to="/login" variant="secondary">Sign in as a coach<AppIcon name="arrow" /></LinkButton></section>
+      <div className="public-content">
+        <section className="public-training" aria-labelledby="training-title">
+          <h2 id="training-title" className="ds-section-title">Your training, chapter by chapter.</h2>
+          <div className="public-training-columns">
+            <ol className="public-training-steps">
+              {trainingSteps.map((step, index) => <li key={step.title}>
+                <span className="ds-step-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                <div><h3>{step.title}</h3><p>{step.description}</p></div>
+              </li>)}
+            </ol>
+            <figure className="public-honors" aria-labelledby="public-honors-title">
+              <figcaption>
+                <h3 id="public-honors-title">A glimpse of Erudoza Honors</h3>
+                <p className="ds-caption">Sample artwork</p>
+              </figcaption>
+              <div className="public-honor-art">
+                <PatchArtwork src="/assets/landing/honor-flame-320.webp" srcSet="/assets/landing/honor-flame-160.webp 160w, /assets/landing/honor-flame-320.webp 320w" sizes="(max-width: 760px) 28vw, (max-width: 1200px) 16vw, 216px" size={216} alt="" />
+                <PatchArtwork src="/assets/landing/honor-mountain-320.webp" srcSet="/assets/landing/honor-mountain-160.webp 160w, /assets/landing/honor-mountain-320.webp 320w" sizes="(max-width: 760px) 28vw, (max-width: 1200px) 16vw, 216px" size={216} alt="" />
+                <PatchArtwork src="/assets/training/exact-recall-320.webp" srcSet="/assets/training/exact-recall-160.webp 160w, /assets/training/exact-recall-320.webp 320w" sizes="(max-width: 760px) 28vw, (max-width: 1200px) 16vw, 216px" size={216} alt="" />
+              </div>
+            </figure>
+          </div>
+        </section>
+        <Panel className="public-coach" aria-labelledby="coach-title">
+          <img className="public-coach-art" src="/assets/landing/expedition-coach-960.webp" srcSet="/assets/landing/expedition-coach-640.webp 640w, /assets/landing/expedition-coach-960.webp 960w" sizes="(min-width: 761px) 50vw, 100vw" width={2172} height={724} loading="lazy" alt="" />
+          <div className="public-coach-copy">
+            <h2 id="coach-title" className="ds-section-title">Guide your team’s next step.</h2>
+            <p>Assign passages and see where each student needs practice.</p>
+            <LinkButton to="/signup" variant="ghost" className="ds-text-action">Create your club<AppIcon name="arrow" /></LinkButton>
+          </div>
+        </Panel>
+      </div>
     </main>
-    <footer className="public-footer"><CoffeeFooter />SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</footer>
+    <footer className="public-footer">
+      <div className="public-footer-brand"><span className="ds-brand-name">Erudoza</span><span className="ds-caption">Study. Master. Compete.</span></div>
+      <div className="public-footer-actions">
+        <div className="public-install-mobile"><InstallApp variant="ghost" className="ds-text-action" /></div>
+        <CoffeeFooter />
+      </div>
+    </footer>
   </div>;
 }

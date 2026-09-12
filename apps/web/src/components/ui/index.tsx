@@ -5,7 +5,7 @@ export { ProgressMeter, WeeklyProgressStrip } from "./TrainingProgress";
 export { HonorArtwork } from "./HonorArtwork";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "inverse";
-type ActionStyle = { variant?: Variant; size?: "default" | "compact" };
+type ActionStyle = { variant?: Variant; size?: "default" | "compact" | "large" };
 const actionClass = (variant: Variant, size: string, extra = "") => `ds-button ds-button-${variant} ds-button-${size} ${extra}`;
 export function Button({ variant = "primary", size = "default", className, type = "button", ...props }: ButtonHTMLAttributes<HTMLButtonElement> & ActionStyle & { ref?: Ref<HTMLButtonElement> }) {
   return <button type={type} className={actionClass(variant, size, className)} {...props} />;
@@ -20,8 +20,8 @@ export function Input({ className = "", ...props }: InputHTMLAttributes<HTMLInpu
 export function Select({ className = "", ...props }: SelectHTMLAttributes<HTMLSelectElement>) { return <select className={`ds-input ds-select ${className}`} {...props} />; }
 export function Textarea({ className = "", ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) { return <textarea className={`ds-input ds-textarea ${className}`} {...props} />; }
 export function Panel({ as: Tag = "section", className = "", ...props }: HTMLAttributes<HTMLElement> & { as?: "section" | "article" | "div" | "aside" }) { return <Tag className={`ds-panel ${className}`} {...props} />; }
-export function PageHeader({ title, description, action, children, className = "" }: { title: string; description?: ReactNode; action?: ReactNode; children?: ReactNode; className?: string }) {
-  return <header className={`ds-page-header ${className}`}><div><h1>{title}</h1>{description && <p>{description}</p>}{children}</div>{action && <div className="ds-page-action">{action}</div>}</header>;
+export function PageHeader({ as: Tag = "header", titleId, title, description, action, children, className = "" }: { as?: "header" | "div"; titleId?: string; title: ReactNode; description?: ReactNode; action?: ReactNode; children?: ReactNode; className?: string }) {
+  return <Tag className={`ds-page-header ${className}`}><div><h1 id={titleId}>{title}</h1>{description && <p>{description}</p>}{children}</div>{action && <div className="ds-page-action">{action}</div>}</Tag>;
 }
 export function Badge({ tone = "neutral", className = "", ...props }: HTMLAttributes<HTMLSpanElement> & { tone?: "neutral" | "success" | "warning" | "danger" | "info" }) { return <span className={`ds-badge ds-badge-${tone} ${className}`} {...props} />; }
 export function Notice({ tone = "info", className = "", ...props }: HTMLAttributes<HTMLDivElement> & { tone?: "info" | "success" | "danger" }) { return <div role={tone === "danger" ? "alert" : "status"} className={`ds-notice ds-notice-${tone} ${className}`} {...props} />; }

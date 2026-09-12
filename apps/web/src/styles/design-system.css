@@ -134,3 +134,42 @@
 @media(prefers-reduced-motion:no-preference) { .ds-loading>span { animation:ds-loading-turn 1s linear infinite; } }
 @keyframes ds-loading-turn { to { transform:rotate(360deg); } }
 @media(max-width:760px) { .ds-section-tabs { gap:0; } .ds-section-tabs .ds-button { padding-inline:12px; font-size:var(--er-text-xs); } }
+
+/* Public display treatments extend the shared palette and type scale. */
+.ds-inverse-surface { color:var(--er-on-navy); background:var(--er-ink-navy); }
+.ds-inverse-surface :is(h1,h2,h3), .ds-inverse-surface .ds-page-header p { color:var(--er-on-navy); }
+.ds-display-header h1 { font-size:var(--er-text-display); line-height:1.08; font-weight:700; letter-spacing:-.035em; text-wrap:initial; }
+.ds-display-header p { font-size:var(--er-text-lead); line-height:1.5; }
+.ds-section-title { font-size:var(--er-text-section); line-height:1.2; font-weight:700; text-wrap:initial; }
+.ds-eyebrow { color:var(--er-action-blue); font-size:var(--er-text-xs); font-weight:700; letter-spacing:.15em; text-transform:uppercase; margin-bottom:20px; }
+.ds-inverse-surface .ds-eyebrow { color:var(--er-thread-gold); }
+.ds-caption { color:var(--er-muted-ink); font-size:var(--er-text-xs); line-height:1.5; }
+.ds-inverse-surface .ds-caption { color:var(--er-on-navy); }
+.ds-step-number { display:grid; place-items:center; width:44px; height:44px; border-radius:50%; color:var(--er-action-blue); background:var(--er-selected); font-size:var(--er-text-lg); font-weight:700; font-variant-numeric:tabular-nums; }
+.ds-button-large { min-height:64px; padding:14px 28px; font-size:var(--er-text-lg); }
+.ds-text-action { padding-inline:0; text-decoration:underline; text-underline-offset:.2em; }
+.ds-text-action:hover:not(:disabled) { background:transparent; text-decoration-thickness:2px; }
+.ds-brand-name { color:var(--er-ink-navy); font:700 var(--er-text-title)/1.1 var(--er-font-reading); }
+.public-header .er-wordmark-name { margin:0; font:700 2.125rem/1.05 var(--er-font-reading); letter-spacing:0; }
+.public-header .er-wordmark-tagline { display:block; color:var(--er-on-navy); font-size:var(--er-text-xs); font-weight:400; letter-spacing:0; text-transform:none; }
+.public-header .ds-text-action { color:var(--er-ink-navy); }
+.public-training-steps p,.public-coach-copy p { color:var(--er-graphite); }
+@media(min-width:761px) and (max-width:1100px) {
+  .ds-display-header h1 { font-size:3.25rem; }
+  .ds-section-title { font-size:1.75rem; }
+}
+@media(max-width:760px) {
+  .ds-display-header h1 { font-size:var(--er-text-page); line-height:1.12; letter-spacing:-.035em; }
+  .ds-display-header p { font-size:1rem; line-height:1.5; }
+  .ds-section-title { font-size:1.625rem; line-height:1.2; }
+  .ds-eyebrow { font-size:.625rem; letter-spacing:.08em; margin-bottom:14px; }
+  .ds-button-large { min-height:52px; font-size:var(--er-text-base); }
+  .public-header .er-wordmark-name { font-size:1.625rem; }
+  .public-header .er-wordmark-tagline { font-size:.625rem; }
+}
+@media(max-width:360px) {
+  .ds-display-header h1 { font-size:1.625rem; }
+  .ds-section-title { font-size:1.375rem; }
+  .ds-step-number { width:38px; height:38px; font-size:var(--er-text-base); }
+  .public-header .er-wordmark-name { font-size:1.375rem; }
+}
