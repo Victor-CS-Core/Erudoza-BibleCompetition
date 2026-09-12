@@ -1,3 +1,4 @@
+import {cooperation,continueCooperation,cooperationStudents} from './pbe/cooperation-progress';
 import { coverage } from './application/coverage';
 import type { RequestContext } from './types';
 import { admin, body, HttpError, json, noContent, requiredString } from './types';
@@ -30,6 +31,12 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     if (!/^\/(students|seasons|content-packs|scripture-catalog|library)(\/|$)/.test(path))
         return null;
     admin(ctx.actor);
+    if(seasonMatch&&/^\/pbe-cooperation(?:\/(?:continue|students))?$/.test(seasonMatch[2])){
+        const seasonId=seasonMatch[1],suffix=seasonMatch[2];
+        if(method==='GET')return json(suffix.endsWith('/students')?await cooperationStudents(ctx,seasonId,new URL(request.url)):await cooperation(ctx,seasonId,'CoachSummary'));
+        if(method==='POST'&&suffix.endsWith('/continue')){const input=await body<{seasonId:string;workId?:string}>(request);if(input.seasonId!==seasonId)throw new HttpError(400,'Choose the route season.');return json(await continueCooperation(ctx,input,'CoachContinue'));}
+        return null;
+    }
     if (path.startsWith('/scripture-catalog') || path === '/content-packs/import' || path === '/content-packs/import-from-catalog')
         throw new HttpError(410, 'Manual imports have been retired. Choose books from the built-in NKJV library.');
     if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method))

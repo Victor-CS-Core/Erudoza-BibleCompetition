@@ -3,12 +3,13 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
+import type { ChapterPage } from "../../api/pbeTypes";
 import { trainingApi } from "../../api/training";
 import { useMyProfile, type MyProfile } from "../profile/profile";
 import { HonorsPage } from "./HonorsPage";
 import { honorFixture } from "./trainingFixtures";
 vi.mock("../../api/client", () => ({ api: { assignedSeasons: vi.fn() } }));
-vi.mock("../../api/training", () => ({ trainingApi: { honors: vi.fn() } }));
+vi.mock("../../api/training", () => ({ trainingApi: { honors: vi.fn(), chapters: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
 vi.mock("../profile/profile", () => ({ useMyProfile: vi.fn() }));
 const profile: MyProfile = { userId: "student", displayName: "Anna", avatarHonorKey: null, honors: [
@@ -18,12 +19,16 @@ const profile: MyProfile = { userId: "student", displayName: "Anna", avatarHonor
 ] };
 function profileResult(overrides: object = {}) { return { data: profile, isPending: false, isError: false, isSuccess: true, refetch: vi.fn(), ...overrides } as unknown as ReturnType<typeof useMyProfile>; }
 function page() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><HonorsPage /></MemoryRouter></QueryClientProvider>); }
+function stampPage(matchesCurrentScope: boolean | null): ChapterPage {
+  return { seasonId: 's', ruleVersion: 'r', scopeVersion: matchesCurrentScope === null ? null : 'v', snapshotId: matchesCurrentScope === null ? null : 'snap', chapterKey: null, work: { id: null, state: 'Complete', stage: null, reason: null }, currentAvailable: true, historyAvailable: true, asOfUtc: '2026-09-12T00:00:00Z', dueRefreshAtUtc: '2099-09-12T00:00:00Z', nextCursor: null, view: 'Stamps', items: [{ stampId: 'stamp-1', chapterKey: 'chapter:pack:Daniel:1', kind: 'Chapter', label: 'Assigned passages retained', scopeLabel: 'Daniel 1:1–3', scopeVersion: 'v', ruleVersion: 'r', earnedAtUtc: '2026-09-10T12:00:00Z', matchesCurrentScope }] };
+}
 beforeEach(() => {
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
   HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
   vi.mocked(useMyProfile).mockReturnValue(profileResult());
   vi.mocked(api.assignedSeasons).mockResolvedValue([{ id: "s", name: "Daniel" }]);
   vi.mocked(trainingApi.honors).mockResolvedValue([honorFixture()]);
+  vi.mocked(trainingApi.chapters).mockResolvedValue(stampPage(false));
 });
 it("shows mastery requirements and only earned profile choices, independently of assignments", async () => {
   vi.mocked(api.assignedSeasons).mockResolvedValue([]); page();
@@ -72,4 +77,21 @@ it("shows a milestone error independently of the mastery collection", async () =
   fireEvent.click(screen.getByText("Practice milestones", { selector: "summary" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Practice milestones could not load");
   expect(screen.getByRole("link", { name: "Use Reference Ready as profile image" })).toBeInTheDocument();
+});
+it('keeps dated chapter stamps separate from permanent Honors and legacy milestones', async () => {
+  page();
+  expect(await screen.findByRole('heading', { name: 'PBE chapter stamps' })).toBeVisible();
+  expect(await screen.findByText('Assigned passages retained')).toBeVisible();
+  expect(screen.getByText('Earned for an earlier assigned scope.')).toBeVisible();
+  fireEvent.click(screen.getByText('Practice milestones', { selector: 'summary' }));
+  expect(screen.getByText(/Team Practice answers do not establish individual Solo accuracy/)).toBeVisible();
+  expect(screen.queryByRole('link', { name: /profile image/i })).toBeInTheDocument();
+});
+it('keeps an unverifiable scope match distinct from an unavailable current assignment', async () => {
+  vi.mocked(trainingApi.chapters).mockResolvedValue(stampPage(null));
+  page();
+  expect(await screen.findByText('Assigned passages retained')).toBeVisible();
+  expect(screen.getByText('Its match to your current assignment is not yet verified; this dated stamp remains saved.')).toBeVisible();
+  expect(screen.queryByText(/Current assignment is unavailable/)).not.toBeInTheDocument();
+  expect(screen.getByText('Sep 10, 2026')).toBeVisible();
 });

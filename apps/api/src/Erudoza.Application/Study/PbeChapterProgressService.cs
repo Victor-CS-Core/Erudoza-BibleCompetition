@@ -423,7 +423,12 @@ public sealed class PbeChapterProgressService(IErudozaDbContext db, IClock clock
     }
     /// <summary>D2 resolves this owned intent before invoking the existing full-assignment target selector.</summary>
     public async Task<IReadOnlyList<Guid>> ResolveProgressScope(Guid org, Guid student, Guid season, PbeProgressScope selector, CancellationToken ct)
+        => (await PrepareProgressScope(org, student, season, selector, ct)).TargetIds;
+    internal sealed record PreparedSelection(PbeSourceScope Scope, IReadOnlyList<Guid> TargetIds, string GenerationId, long PointerRevision);
+    // Caller must own the existing serializable start transaction through session insertion.
+    internal async Task<PreparedSelection> PrepareProgressScope(Guid org, Guid student, Guid season, PbeProgressScope selector, CancellationToken ct)
     {
+        if (string.IsNullOrWhiteSpace(selector.Key) || selector.Key.Length > 1000 || string.IsNullOrWhiteSpace(selector.ScopeVersion) || selector.ScopeVersion.Length > 128) throw new DomainException("Choose a valid chapter scope.");
         if (await Admission(org, student, season, ct) is not null) throw new PbeChapterConflictException("PBE_CHAPTER_CURSOR_STALE");
         var pointer = await Get(org, student, season, "pbe-chapter-work", Owner(student, season), ct);
         var work = pointer is null ? null : Read<Work>(pointer);
@@ -431,7 +436,7 @@ public sealed class PbeChapterProgressService(IErudozaDbContext db, IClock clock
         if (work?.State != "Complete" || input.ScopeVersion != selector.ScopeVersion || work.ScopeVersion != selector.ScopeVersion) throw new PbeChapterConflictException("PBE_CHAPTER_CURSOR_STALE");
         await VerifyManifest(org, student, season, work, input, ct);
         var group = input.Groups.SingleOrDefault(g => g.Key == selector.Key) ?? throw new PbeChapterConflictException("PBE_CHAPTER_CURSOR_STALE");
-        return Targets(input, group);
+        return new(input.Sources, Targets(input, group), work.Id, pointer!.Revision);
     }
     static readonly string[] ControlFamilies = ["scope", "assignment", "assignment-scope", "intro-assignment", "introduction", "pack", "member"];
     async Task<IReadOnlyList<(string Id, string Entry)>> ControlPage(Guid org, Guid student, Guid season, string family, string after, int limit, CancellationToken ct)

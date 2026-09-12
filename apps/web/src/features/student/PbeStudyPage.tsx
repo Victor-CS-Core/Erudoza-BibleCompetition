@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { api } from '../../api/client';
+import { api, ApiError } from '../../api/client';
 import type { Session } from '../../api/types';
 import type { PbeAttemptResult, PbePresentationState, PbeResumedSession, PbeSessionCard, PbeSubmission, PbeTimedReceipt } from '../../api/pbeTypes';
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from '../../components/ui';
@@ -25,16 +25,22 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
 }) {
     const [params, setParams] = useSearchParams(), navigate = useNavigate(), queries = useQueryClient();
     const mode = saved?.session.mode ?? params.get('mode') ?? 'Practice';
+    const progressScopeKey = params.get('progressScopeKey'), progressScopeVersion = params.get('progressScopeVersion');
+    const progressScopeIncomplete = !saved && (!!progressScopeKey !== !!progressScopeVersion);
+    const selection = !saved && progressScopeKey && progressScopeVersion ? { progressScope: { key: progressScopeKey, scopeVersion: progressScopeVersion } } : undefined;
     const [session, setSession] = useState<Session | null>(saved?.session ?? null), [card, setCard] = useState<PbeSessionCard | null>(saved?.card ?? null), [result, setResult] = useState<PbeAttemptResult | null>(saved?.attempt && 'earnedPoints' in saved.attempt ? saved.attempt : null);
     const [answers, setAnswers] = useState<string[]>(() => saved?.card ? pending(saved.session.id, saved.card.id)?.answers ?? saved.card.question.partPoints.map(() => '') : []);
     const [presentation,setPresentation]=useState<PbePresentationState|null>(null),[timedReceipt,setTimedReceipt]=useState<PbeTimedReceipt|null>(saved?.attempt && 'feedbackDeferred' in saved.attempt && saved.attempt.questionId===saved.card?.id ? saved.attempt : null),[interruptionSummary,setInterruptionSummary]=useState(saved?.interruption?saved.summary:null),[timingError,setTimingError]=useState(''),[tick,setTick]=useState(0);
     const warned=useRef(''), serverClock=useRef<{server:number;observed:number}|null>(null);
     const frozen = useRef<PbeSubmission | null>(saved?.card ? pending(saved.session.id, saved.card.id) : null), startId = useRef(params.get('startId') ?? crypto.randomUUID());
     const recapped = useRef(false);
-    const complete = useMutation({ mutationFn: () => api.completeSession(session!.id), onSuccess: () => { for (const key of ['progress', 'training-today', 'training-journey', 'training-honors'])
+    const complete = useMutation({ mutationFn: () => api.completeSession(session!.id), onSuccess: () => { for (const key of ['progress', 'training-today', 'training-journey', 'training-honors', 'pbe-chapters', 'pbe-cooperation'])
             void queries.invalidateQueries({ queryKey: [key] }); navigate(`/student/sessions/${session!.id}/recap?seasonId=${session!.seasonId}`); } });
     const next = useMutation({ mutationFn: (id: string) => api.nextPbeCard(id), onSuccess: c => { setCard(c); setResult(null); setTimedReceipt(null); setPresentation(null); frozen.current = pending(c.sessionId, c.id); setAnswers(frozen.current?.answers ?? c.question.partPoints.map(() => '')); aid.reset(); } });
-    const start = useMutation({ mutationFn: () => api.startSession(seasonId, mode as 'Practice' | 'Review' | 'Simulation', { clientStartId: startId.current, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }, 'Pbe'), onSuccess: s => { setSession(s); setParams({ sessionId: s.id, seasonId: s.seasonId, mode: s.mode, format: 'Pbe' }, { replace: true }); } });
+    const start = useMutation({ mutationFn: () => {
+            const training = { clientStartId: startId.current, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
+            return selection ? api.startSession(seasonId, mode as 'Practice' | 'Review' | 'Simulation', training, 'Pbe', undefined, selection) : api.startSession(seasonId, mode as 'Practice' | 'Review' | 'Simulation', training, 'Pbe');
+        }, onSuccess: s => { setSession(s); setParams({ sessionId: s.id, seasonId: s.seasonId, mode: s.mode, format: 'Pbe' }, { replace: true }); } });
     const aid = useMutation({ mutationFn: () => api.pbeSource(session!.id, card!.id), onSuccess: () => setCard(c => c ? { ...c, assisted: true } : c) });
     const submit = useMutation<PbeAttemptResult | PbeTimedReceipt | PbePresentationState>({ mutationFn: () => {
             frozen.current ??= { clientSubmissionId: crypto.randomUUID(), challengeCardId: card!.id, answers: [...answers], hintsUsed: card!.assisted };
@@ -62,7 +68,7 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
                 next.mutate(saved.session.id);
             return;
         }
-        if (unavailable)
+        if (unavailable || progressScopeIncomplete)
             return;
         if (!params.get('startId')) {
             const p = new URLSearchParams(params);
@@ -111,10 +117,11 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     if (card && remaining !== null && remaining <= 10 && warned.current !== card.id) warned.current = card.id;
     const home = `/student?seasonId=${encodeURIComponent(session?.seasonId ?? seasonId)}`, practice = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Pbe`, memory = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Memory`;
     const error = start.error ?? next.error ?? submit.error ?? aid.error ?? complete.error;
+    const staleScope = start.error instanceof ApiError && ['PBE_CHAPTER_SCOPE_STALE', 'PBE_CHAPTER_CURSOR_STALE'].includes(start.error.code ?? '');
     const locked = !!result || submit.isPending || !!frozen.current;
     return <div className="er-study-stage space-y-4"><PageHeader title="PBE practice" description={seasonName} action={<Badge>{mode === 'Simulation' ? 'Shortened timed practice' : `Untimed ${mode.toLowerCase()}`}</Badge>}/>
-  {unavailable ? <Panel><Notice>{unavailable}</Notice></Panel> : <>
-   {error && <Notice tone="danger">{error.message}{start.isError && <Button variant="secondary" onClick={() => start.mutate()}>Retry start</Button>}{next.isError && session && <Button variant="secondary" onClick={() => next.mutate(session.id)}>Retry next card</Button>}</Notice>}
+  {unavailable || progressScopeIncomplete ? <Panel><Notice tone={progressScopeIncomplete ? 'danger' : 'info'}>{progressScopeIncomplete ? 'This chapter-practice link is incomplete. Return to chapter progress and choose Practice or Review again.' : unavailable}</Notice></Panel> : <>
+   {error && <Notice tone="danger">{staleScope ? <>This chapter action is out of date. Load current progress and choose Practice or Review again.<LinkButton variant="secondary" to={`/student/progress?seasonId=${encodeURIComponent(seasonId)}`}>Return to chapter progress</LinkButton></> : <>{error.message}{start.isError && <Button variant="secondary" onClick={() => start.mutate()}>Retry start</Button>}{next.isError && session && <Button variant="secondary" onClick={() => next.mutate(session.id)}>Retry next card</Button>}</>}</Notice>}
    {timingError && <Notice tone="danger">{timingError}<Button variant="secondary" onClick={() => { setTimingError(''); setPresentation(null); }}>Retry presentation</Button></Notice>}
    {interruptionSummary && <Panel><Notice tone="info">This shortened timed practice was interrupted. Earlier accepted answers are retained.</Notice>{interruptionSummary.results?.map(savedResult=><p key={savedResult.attemptId}>{savedResult.earnedPoints} / {savedResult.availablePoints} points</p>)}<LinkButton variant="secondary" to={`/student/sessions/${session?.id??saved?.session.id}/recap?seasonId=${encodeURIComponent(session?.seasonId??seasonId)}`}>View partial recap</LinkButton><LinkButton variant="primary" to={practice.replace('mode=Practice','mode=Simulation')}>Start another shortened timed practice</LinkButton></Panel>}
    {!card && !start.isError && !next.isError && <LoadingState label="Loading your saved PBE questions…"/>}

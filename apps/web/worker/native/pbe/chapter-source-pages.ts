@@ -109,3 +109,6 @@ export async function chapterSelectedSources(ctx:RequestContext,seasonId:string,
  if(page.after!==null)throw tooLarge();
  return page.items.map(x=>x.source);
 }
+
+/** Internal metadata predicates; callers must supply a verified operation and explicit subject context. */
+export const chapterSourcePredicates = {scriptureFrom,personallyAssigned,introductionFrom};

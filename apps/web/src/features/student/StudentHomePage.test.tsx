@@ -7,7 +7,7 @@ import { trainingApi } from "../../api/training";
 import { StudentHomePage } from "./StudentHomePage";
 import { todayFixture, journeyFixture } from "./trainingFixtures";
 vi.mock("../../api/client", () => ({ api: { progress: vi.fn(), assignedSeasons: vi.fn() } }));
-vi.mock("../../api/training", () => ({ trainingApi: { today: vi.fn(), journey: vi.fn() } }));
+vi.mock("../../api/training", () => ({ trainingApi: { today: vi.fn(), journey: vi.fn(), chapters: vi.fn(), continueChapters: vi.fn(), cooperation: vi.fn(), continueCooperation: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
 function home() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>); }
 beforeEach(() => { vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture()); vi.mocked(trainingApi.today).mockResolvedValue(todayFixture()); vi.mocked(api.assignedSeasons).mockResolvedValue([{ id: "s", name: "Daniel" }, { id: "other", name: "Joshua" }]); });
@@ -41,10 +41,14 @@ it("labels effort-based sidebar progress as a milestone", async () => {
 
 it("offers shortened timed PBE practice", async () => {
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ format: "Pbe" }));
+  vi.mocked(trainingApi.chapters).mockResolvedValue({ seasonId: 's', ruleVersion: 'r', scopeVersion: 'v', snapshotId: 'snap', chapterKey: null, work: { id: null, state: 'Complete', stage: null, reason: null }, currentAvailable: true, historyAvailable: false, asOfUtc: '2026-09-12T00:00:00Z', dueRefreshAtUtc: '2099-09-12T00:00:00Z', nextCursor: null, view: 'Chapters', items: [] });
+  vi.mocked(trainingApi.cooperation).mockResolvedValue({ seasonId: 's', ruleVersion: 'r', scopeVersion: 'v', snapshotId: 'coop', state: 'Snapshot', reason: null, checkedAtUtc: '2026-09-12T00:00:00Z', dueRefreshAtUtc: '2099-09-12T00:00:00Z', rosterStudents: 1, unknownStudents: 0, scripture: null, introduction: null, own: null, work: { id: null, next: 'None' } });
   home();
   expect(await screen.findByTestId("start-simulation")).toHaveAttribute("href", expect.stringContaining("mode=Simulation"));
   expect(screen.getByTestId("start-simulation")).toHaveTextContent("Start shortened timed practice");
   expect(screen.getByRole("link", { name: "Practice another drill" })).toHaveAttribute("href", expect.stringContaining("format=Pbe"));
+  expect(await screen.findByRole('heading', { name: 'Your PBE chapter journey' })).toBeVisible();
+  expect(screen.getByRole('heading', { name: 'Season cooperation' })).toBeVisible();
 });
 
 it("offers the saved PBE mission resume action after its published bank becomes unavailable", async () => {

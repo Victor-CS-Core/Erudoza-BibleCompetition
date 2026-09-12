@@ -117,4 +117,24 @@ public sealed class PbeProgressTests
         Assert.InRange(System.Text.RegularExpressions.Regex.Matches(sql, "DECLARE ").Count, 1, 5);
         Assert.Contains("OPENJSON", sql);
     }
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task First_recall_preserves_an_existing_index_readiness_cursor_count_and_revision(bool ready)
+    {
+        using var factory = new ErudozaApiFactory { DisablePracticeTicker = true }; using var scope = factory.Services.CreateScope(); var db = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>();
+        var service = new PbeProgressService(db); var org = Guid.NewGuid(); var student = Guid.NewGuid(); var id = $"{student}:{Season}";
+        var original = JsonSerializer.Serialize(new PbeEvidenceIndex(id, ready, "saved-legacy-cursor", 17), PbeProgressService.Json);
+        db.PbeTrainingRecords.Add(new() { OrganizationId = org, SeasonId = Season, OwnerId = student, Kind = "pbe-evidence-index", Id = id, DataJson = original, Revision = 9 }); await db.SaveChangesAsync(); db.ChangeTracker.Clear();
+        await using (var tx = await db.BeginSerializableTransactionAsync())
+        {
+            var result = await service.PrepareRecallEvidenceAsync(org, Season, student, "scope", [E(1)]); Assert.Equal(1, result.AcceptedSequence);
+            await db.SaveChangesAsync(); await tx.CommitAsync();
+        }
+        db.ChangeTracker.Clear();
+        var index = await db.PbeTrainingRecords.SingleAsync(r => r.OrganizationId == org && r.Kind == "pbe-evidence-index"); Assert.Equal(original, index.DataJson); Assert.Equal(9, index.Revision);
+        Assert.Single(await db.PbeTrainingRecords.Where(r => r.OrganizationId == org && r.Kind == "pbe-evidence-ref").ToListAsync());
+        Assert.True((await service.ExecuteAsync(ct => service.PrepareRecallEvidenceAsync(org, Season, student, "scope", [E(1)], ct))).Replayed);
+    }
+
 }

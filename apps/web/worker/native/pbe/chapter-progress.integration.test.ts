@@ -243,3 +243,25 @@ it('fix1 makes one missing-history repair per generation then finishes DataGap w
  for(const before of accepted){const after=(await store.require<ReviewProjection>('pbe-target-review',before.id,TEST_ORG)).value;expect(after).toMatchObject({acceptedSequence:before.acceptedSequence,failedSequence:before.failedSequence,lastAnsweredQuestionId:before.lastAnsweredQuestionId,lastAnsweredQuestionKind:before.lastAnsweredQuestionKind,review:before.review,retention:{dataGap:true}});}
  const jobs=await store.list<{missingReferenceRepairAttempted:boolean;generation:number}>('pbe-evidence-replay',TEST_ORG,{seasonId:season,ownerId:student});expect(jobs).toHaveLength(2);expect(jobs.every(j=>j.missingReferenceRepairAttempted&&j.generation===1)).toBe(true);expect((await store.require('pbe-evidence-index',`${student}:${season}`,TEST_ORG)).revision).toBe(index.revision+5);expect(await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student})).toEqual([]);
 },30000);
+
+it.each(['bank','assignment'] as const)('history conservatively defers %s scope comparison until ordinary projection verifies it',async(change)=>{
+ const {send,store}=await setup();await seedPair(store);await finish(send);const stamps=await store.list<{id:string}>('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student});
+ if(change==='bank')await store.insert('pbe-target',tid(3),TEST_ORG,{id:tid(3),sourceUnitIds:[source],skill:'FactualRecall',label:'New declared target'},{seasonId:season,ownerId:source});
+ else {const a=await store.require<Record<string,unknown>>('assignment','assignment',TEST_ORG);await store.put('assignment','assignment',TEST_ORG,{...a.value,endVerse:2},a.revision);}
+ const before=await app.db.prepare("SELECT kind,id,data,revision FROM Records WHERE org_id=? AND season_id=? AND kind LIKE 'pbe-chapter-%' ORDER BY kind,id").bind(TEST_ORG,season).all();
+ const response=await send(`/progress/me/chapters?seasonId=${season}&view=Stamps`);expect(response.status).toBe(200);const history=await response.json() as ChapterPage;expect(history.scopeVersion).toBeNull();expect(history.items[0]).toMatchObject({matchesCurrentScope:null});
+ const current=await(await send(`/progress/me/chapters?seasonId=${season}`)).json() as ChapterPage;expect(current.items).toEqual([]);expect(current.snapshotId).toBeNull();expect(await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student})).toEqual(stamps);
+ const after=await app.db.prepare("SELECT kind,id,data,revision FROM Records WHERE org_id=? AND season_id=? AND kind LIKE 'pbe-chapter-%' ORDER BY kind,id").bind(TEST_ORG,season).all();expect(after.results).toEqual(before.results);
+ await finish(send);const rebuilt=await(await send(`/progress/me/chapters?seasonId=${season}&view=Stamps`)).json() as ChapterPage;expect(rebuilt.scopeVersion).toBeTruthy();
+ for(const stamp of stamps){expect(rebuilt.items.find(item=>'stampId' in item&&item.stampId===stamp.id)).toMatchObject({matchesCurrentScope:false});expect((await store.require('pbe-chapter-stamp',stamp.id,TEST_ORG)).value).toEqual(stamp);}
+},30000);
+it('history keeps a matching authorized scope after evidence-only invalidation without publishing counters',async()=>{
+ const {send,store}=await setup();const {ctx,start}=await seedPair(store);await finish(send);const stamps=await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student});
+ const attemptId=crypto.randomUUID(),w=await prepareRecallEvidence(ctx,season,'saved',[{attemptId,targetId:tid(1),questionId:tid(100),atMs:start+3*172800000,earnedPoints:0,availablePoints:1,unaided:true,recall:true}],'List',{questionVersion:1,responseLockedAtMs:start+3*172800000});await atomic(ctx,'test.wrong',w.statements,w.guards);
+ const history=await(await send(`/progress/me/chapters?seasonId=${season}&view=Stamps`)).json() as ChapterPage;expect(history.items[0]).toMatchObject({matchesCurrentScope:true});expect(history.snapshotId).toBeNull();expect(await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student})).toEqual(stamps);
+},30000);
+it.each(['disabled','membership','assignment'] as const)('history keeps owned dated stamps without a comparison after %s revocation',async(change)=>{
+ const {send,store}=await setup();await seedPair(store);await finish(send);const stamps=await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student});
+ if(change==='disabled'){const row=await store.require<Record<string,unknown>>('season',season,TEST_ORG);await store.put('season',season,TEST_ORG,{...row.value,pbeEnabled:false},row.revision);}else await store.remove(change,change==='membership'?`${season}:${student}`:'assignment',TEST_ORG);
+ const response=await send(`/progress/me/chapters?seasonId=${season}&view=Stamps`);expect(response.status).toBe(200);const history=await response.json() as ChapterPage;expect(history.items[0]).toMatchObject({matchesCurrentScope:null});expect(history.currentAvailable).toBe(false);expect(await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student})).toEqual(stamps);
+},30000);

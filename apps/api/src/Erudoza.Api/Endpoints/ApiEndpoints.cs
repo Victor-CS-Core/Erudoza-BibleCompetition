@@ -422,6 +422,8 @@ public static class ApiEndpoints
         study.AddEndpointFilter(async (context, next) =>
         {
             try { return await next(context); }
+            catch (PbeChapterConflictException error) { return Results.Conflict(new { code = error.Code }); }
+            catch (PbeChapterLimitException error) { return Results.Json(new { code = error.Reason }, statusCode: 413); }
             catch (PbeSessionUnavailableException error) { return Results.Conflict(new { code = error.Code, message = error.Message, format = "Pbe" }); }
             catch (PbeProgressConflictException error) { return Results.Conflict(new { message = error.Message }); }
             catch (KeyNotFoundException error) { return Results.NotFound(new { message = error.Message }); }
@@ -445,6 +447,7 @@ public static class ApiEndpoints
             StartSessionRequest request;
             try { request = System.Text.Json.JsonSerializer.Deserialize<StartSessionRequest>(payload.GetRawText(), PbeQuestionBank.Json) ?? throw new System.Text.Json.JsonException(); }
             catch (System.Text.Json.JsonException) { throw new DomainException("Choose a valid format, mode and session scope."); }
+            if (payload.TryGetProperty("progressScope", out _) && (request.Format != "Pbe" || request.ProgressScope is null || request.Chapter is not null || request.TargetIds is not null)) throw new DomainException("Choose one PBE progress scope.");
             if (request.Format == "Pbe") return Results.Ok(await pbe.StartAsync(request, cancellationToken));
             if (request.Format is not (null or "Memory")) throw new DomainException("Choose Memory or Pbe.");
             var session = await sessions.StartAsync(current.OrganizationId, current.UserId, request, cancellationToken);

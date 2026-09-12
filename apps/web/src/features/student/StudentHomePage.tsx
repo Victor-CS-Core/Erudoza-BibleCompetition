@@ -8,6 +8,7 @@ import { AppIcon } from "../../components/AppIcon";
 import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
 import { Badge, Button, HonorArtwork, LinkButton, LoadingState, Notice, PageHeader, Panel, ProgressMeter, Select, WeeklyProgressStrip } from "../../components/ui";
 import { PassageJourney } from "./PassageJourney";
+import { SeasonCoveragePanel } from "./SeasonCoverage";
 import { WeeklyGoalDialog } from "./WeeklyGoalDialog";
 import { honorAsset, trainingLink } from "./trainingAssets";
 import "./student.css";
@@ -81,7 +82,8 @@ export function StudentHomePage() {
           <Panel className="training-next-honor"><h2>{nextHonor ? "Your next milestone" : "Practice milestones"}</h2>{nextHonor ? <div className="training-next-honor-content"><HonorArtwork {...honorAsset(nextHonor.key)} size={72} muted /><div><h3>{nextHonor.title}</h3><p>{nextHonor.scopeLabel}</p><ProgressMeter label={nextHonor.title} value={nextHonor.completed} max={nextHonor.target} /></div></div> : <p>Your recorded milestones track practice progress. Honors have separate mastery requirements.</p>}<Link to={link("/student/honors")}>Explore mastery Honors<AppIcon name="arrow" /></Link></Panel>
         </aside>
       </div>
-      {seasonId && <PassageJourney key={seasonId} seasonId={seasonId} preview />}
+      {seasonId && <PassageJourney key={`${seasonId}:${data.format ?? 'Memory'}`} seasonId={seasonId} format={data.format ?? 'Memory'} preview />}
+      {seasonId && data.format === 'Pbe' && <SeasonCoveragePanel key={`cooperation:${seasonId}`} seasonId={seasonId} audience="student" />}
       <Panel className="training-more"><div><h2>Keep exploring</h2><p>Choose the practice that fits today.</p></div><div className="training-controls">{available && <><LinkButton variant="secondary" to={study("Practice", null)}>Practice another drill</LinkButton>{data.mission.steps.some(step => step.kind === "Review" && step.target > 0 && step.status !== "NotNeeded") && <LinkButton variant="secondary" data-testid="start-reviews" to={study("Review", null)}>Start due reviews</LinkButton>}<>{data.format === "Pbe" ? <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start shortened timed practice</LinkButton> : <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start rehearsal</LinkButton>}</></>}<LinkButton variant="secondary" to={link("/student/practice")}>Team Practice</LinkButton></div></Panel>
       {goalOpen && <WeeklyGoalDialog preferences={data.preferences} onClose={() => setGoalOpen(false)} />}
     </>}

@@ -222,12 +222,16 @@ export async function chapters(ctx:RequestContext,url:URL):Promise<ChapterPage>{
  if(rows.results.length>items.length&&items.length)base.nextCursor=encodeCursor({...binding,after:last});return {...base,view:view as 'Chapters'|'Groups',items};
 }
 /** D2 uses this private owned manifest lookup before loading the complete current eligible assignment. */
-export async function resolveChapterProgressScope(ctx:RequestContext,seasonId:string,selection:{key:string;scopeVersion:string}):Promise<{targetIds:string[];scope:PbeSourceScope}>{
- seasonId=guid(seasonId);const admitted=await admission(ctx,seasonId),baseAdmission=await chapterBase(ctx,seasonId),work=(await ctx.store.get<Work>('pbe-chapter-work',ownerId(ctx,seasonId),ctx.orgId))?.value;
+export async function prepareChapterProgressScope(ctx:RequestContext,seasonId:string,selection:{key:string;scopeVersion:string}){
+ seasonId=guid(seasonId);const admitted=await admission(ctx,seasonId),baseAdmission=await chapterBase(ctx,seasonId),storedWork=await ctx.store.get<Work>('pbe-chapter-work',ownerId(ctx,seasonId),ctx.orgId),work=storedWork?.value;
  if(admitted.reason||!work||work.stage!=='Complete'||work.scopeVersion!==selection.scopeVersion||work.sourceHash!==baseAdmission.signature||!await current(ctx,work))throw new HttpError(409,'PBE_CHAPTER_SCOPE_STALE');
  const result=await ctx.env.DB.prepare(`WITH ${chapterGroupCtes()},selected AS (SELECT id FROM members WHERE parentKey=? OR groupKey=?)
  SELECT json_extract(e.value,'$.target.id') AS id FROM Records m INDEXED BY Records_training_scope JOIN json_each(m.data,'$.entries') e WHERE m.org_id=? AND m.season_id=? AND m.owner_id=? AND m.kind='pbe-chapter-manifest' AND json_extract(m.data,'$.generationId')=? AND json_extract(m.data,'$.family')='targets' AND EXISTS(SELECT 1 FROM json_each(e.value,'$.target.sourceUnitIds') unit WHERE unit.value IN (SELECT id FROM selected)) ORDER BY id LIMIT 10001`).bind(ctx.orgId,seasonId,ctx.actor.userId,work.workId,selection.key,selection.key,ctx.orgId,seasonId,ctx.actor.userId,work.workId).all<{id:string}>();
  if(result.results.length>10000)throw new HttpError(413,'PBE_CHAPTER_SCOPE_TOO_LARGE');
  const known=await ctx.env.DB.prepare("SELECT 1 AS present FROM Records m INDEXED BY Records_training_scope JOIN json_each(m.data,'$.entries') e WHERE m.org_id=? AND m.season_id=? AND m.owner_id=? AND m.kind='pbe-chapter-manifest' AND json_extract(m.data,'$.generationId')=? AND json_extract(m.data,'$.family')='groups' AND json_extract(e.value,'$.key')=? LIMIT 1").bind(ctx.orgId,seasonId,ctx.actor.userId,work.workId,selection.key).first();if(!known)throw new HttpError(404,'Choose a current progress group.');
- return {targetIds:result.results.map(r=>r.id),scope:admitted.scope!};
+ return {targetIds:result.results.map(r=>r.id),scope:admitted.scope!,inputGuard:chapterInputGuard(ctx,seasonId,work.workId,work.pageCount,'evidence'),pointerGuard:{kind:'pbe-chapter-work',id:ownerId(ctx,seasonId),revision:storedWork!.revision}};
+}
+
+export async function resolveChapterProgressScope(ctx:RequestContext,seasonId:string,selection:{key:string;scopeVersion:string}):Promise<{targetIds:string[];scope:PbeSourceScope}>{
+ const prepared=await prepareChapterProgressScope(ctx,seasonId,selection);return {targetIds:prepared.targetIds,scope:prepared.scope};
 }

@@ -129,6 +129,7 @@ if (!app.Environment.IsEnvironment("Testing") && app.Configuration.GetValue("Dat
 if (app.Environment.IsDevelopment()) app.MapOpenApi().AllowAnonymous();
 app.MapErudozaApi();
 app.MapTrainingEndpoints();
+app.MapPbeCooperationEndpoints();
 app.MapProfileEndpoints();
 app.MapLifecycleEndpoints();
 app.MapScriptureReaderEndpoints();

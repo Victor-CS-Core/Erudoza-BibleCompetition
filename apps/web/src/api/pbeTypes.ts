@@ -67,3 +67,73 @@ export type ChapterPage = {
 }&({view:'Chapters'|'Groups';items:ProgressRow[]}|{view:'Stamps';items:StampSummary[]});
 export type ContinueChaptersRequest = {seasonId:string;workId?:string};
 export type ContinueChaptersResponse = {seasonId:string;scopeVersion:string|null;work:ChapterWork;next:'Continue'|'Reload'|'None'};
+
+export type CountRange = { known: number; possible: number };
+export type MaterialSummary = {
+  assigned: number;
+  questionCovered: CountRange;
+  practiced: CountRange;
+  retained: CountRange;
+  due: CountRange;
+  equalRetained: {
+    lower: number;
+    upper: number;
+    students: number;
+    unknownStudents: number;
+    unassignedStudents: number;
+  } | null;
+};
+export type OwnMaterialSummary = {
+  assigned: number;
+  practiced: CountRange;
+  retained: CountRange;
+  due: CountRange;
+};
+export type OwnSummary = {
+  scripture: OwnMaterialSummary;
+  introduction: OwnMaterialSummary;
+  state: 'Known' | 'Unknown' | 'Unassigned';
+};
+export type CooperationWork = {
+  id: string | null;
+  next: 'Continue' | 'Reload' | 'None';
+};
+export type CooperationSnapshot = {
+  seasonId: string;
+  ruleVersion: string;
+  scopeVersion: string | null;
+  snapshotId: string | null;
+  state: 'NotStarted' | 'Updating' | 'Snapshot' | 'Provisional' | 'Blocked';
+  reason: 'PbeDisabled' | 'SeasonClosed' | 'ScopeTooLarge' | 'InputTooLarge' | 'DataGap' | null;
+  checkedAtUtc: string | null;
+  dueRefreshAtUtc: string | null;
+  rosterStudents: number;
+  unknownStudents: number;
+  scripture: MaterialSummary | null;
+  introduction: MaterialSummary | null;
+  own: OwnSummary | null;
+  work: CooperationWork;
+};
+export type ContinueCooperationRequest = { seasonId: string; workId?: string };
+export type ContinueCooperationResponse = CooperationSnapshot;
+
+export type CooperationStudentSummary = {
+  studentId: string;
+  displayName: string;
+  state: 'Known' | 'Unknown' | 'Unassigned';
+  reason: 'NotStarted' | 'Working' | 'Blocked' | 'DataGap' | null;
+  scripture: OwnMaterialSummary;
+  introduction: OwnMaterialSummary;
+};
+export type CooperationStudentPage = {
+  seasonId: string;
+  snapshotId: string;
+  nextCursor: string | null;
+  items: CooperationStudentSummary[];
+};
+
+export type PbeProgressScope = { key: string; scopeVersion: string };
+export type PbeSessionSelection =
+  | { progressScope: PbeProgressScope; chapter?: never; targetIds?: never }
+  | { chapter: { contentPackId: string; chapter: number }; progressScope?: never; targetIds?: string[] }
+  | { targetIds: string[]; progressScope?: never; chapter?: never };

@@ -38,9 +38,9 @@ it('uses the saved PBE format despite a Memory URL and preserves server-recorded
     expect(api.submitPbeAttempt).toHaveBeenCalledWith('pbe-session', expect.objectContaining({ answers: ['Alpha', ''], hintsUsed: true }));
 });
 it('uses saved Memory despite enabled PBE and a contradictory URL without running PBE effects', async () => {
-    vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: 'memory', seasonId: 'season', mode: 'Practice', status: 'Active', targetCardCount: 8 }, card: { id: 'm-card', sessionId: 'memory', activityType: 'MissingWords', citation: 'GEN 1:1', prompt: 'Memory prompt', tokens: [], sequence: 1, total: 8 }, attempt: null, summary: null });
+    vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: 'memory', seasonId: 'season', mode: 'Practice', status: 'Active', targetCardCount: 8 }, card: { id: 'm-card', sessionId: 'memory', activityType: 'MissingWords', citation: 'GEN 1:1', prompt: 'Memory ____', tokens: [{ index: 0, display: 'Memory', hidden: false }, { index: 2, display: '____', hidden: true }], sequence: 1, total: 8 }, attempt: null, summary: null });
     mount('/student/study?sessionId=memory&format=Pbe');
-    await screen.findByTestId('missing-words-answer');
+    await screen.findByRole('textbox', { name: 'Blank 1 of 1' });
     expect(api.nextPbeCard).not.toHaveBeenCalled();
     expect(api.startSession).not.toHaveBeenCalled();
 });
@@ -62,6 +62,26 @@ it('starts PBE Simulation as shortened timed practice', async () => {
     vi.mocked(api.startSession).mockResolvedValue({ ...saved.session, mode: 'Simulation' });
     mount('/student/study?seasonId=season&format=Pbe&mode=Simulation');
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'Simulation', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
+});
+it('retries a guarded chapter action with the same selector and client start identity', async () => {
+    vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);
+    vi.mocked(api.startSession).mockRejectedValueOnce(new ApiError('Connection lost', 503)).mockResolvedValueOnce(saved.session);
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review&startId=chapter-start&progressScopeKey=group%3Achapter%3Apack%3ADaniel%3A1%3As1%3As3&progressScopeVersion=scope-v1');
+    fireEvent.click(await screen.findByRole('button', { name: 'Retry start' }));
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledTimes(2));
+    const expectedTraining = { clientStartId: 'chapter-start', timeZone: expect.any(String) };
+    const expectedSelection = { progressScope: { key: 'group:chapter:pack:Daniel:1:s1:s3', scopeVersion: 'scope-v1' } };
+    expect(vi.mocked(api.startSession).mock.calls[0]).toEqual(['season', 'Review', expectedTraining, 'Pbe', undefined, expectedSelection]);
+    expect(vi.mocked(api.startSession).mock.calls[1]).toEqual(vi.mocked(api.startSession).mock.calls[0]);
+    expect(expectedTraining).not.toHaveProperty('missionId');
+});
+it.each(['PBE_CHAPTER_SCOPE_STALE', 'PBE_CHAPTER_CURSOR_STALE'])('returns a %s guarded action to current chapter progress instead of retrying the old selector', async code => {
+    vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);
+    vi.mocked(api.startSession).mockRejectedValue(new ApiError(code, 409, undefined, code));
+    mount('/student/study?seasonId=season&format=Pbe&mode=Practice&startId=stale-start&progressScopeKey=chapter%3Apack%3ADaniel%3A1&progressScopeVersion=old-scope');
+    expect(await screen.findByRole('alert')).toHaveTextContent('This chapter action is out of date');
+    expect(screen.queryByRole('button', { name: 'Retry start' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Return to chapter progress' })).toHaveAttribute('href', '/student/progress?seasonId=season');
 });
 it('shows a terminal interrupted rehearsal with an independent restart instead of requesting the old card',async()=>{
     vi.mocked(api.resumeSession).mockResolvedValue({...saved,session:{...saved.session,mode:'Simulation',status:'Interrupted'},card:null,summary:{sessionId:'pbe-session',format:'Pbe',mode:'Simulation',attempted:1,status:'Interrupted',earnedPoints:1,availablePoints:2,results:[result]},interruption:{status:'Interrupted',restartAllowed:true}} as never);

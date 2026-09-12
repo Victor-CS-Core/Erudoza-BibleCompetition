@@ -1,3 +1,4 @@
+import {prepareChapterProgressScope} from './chapter-progress';
 import type {PbeResultOverlay} from './result-overlays';
 import type { RequestContext } from '../types';
 import { HttpError, json, requiredString } from '../types';
@@ -74,6 +75,7 @@ interface Start {
         chapter: number;
     };
     targetIds?: string[];
+    progressScope?: {key:string;scopeVersion:string};
     training?: StartTrainingContext;
 }
 interface Submission {
@@ -110,7 +112,12 @@ export async function startPbeSession(ctx: RequestContext, input: Start) {
         throw new HttpError(400, 'Choose a matching training step.');
     if (input.training?.missionRevision !== undefined && !input.training.missionId || input.training?.missionId && (input.training.missionRevision !== 1 || input.training.step !== mode))
         throw new HttpError(400, 'Choose a matching mission revision and step.');
-    const payload = JSON.stringify({ seasonId, mode, format: 'Pbe', chapter: input.chapter ? { contentPackId: input.chapter.contentPackId, chapter: input.chapter.chapter } : null, targetIds: input.targetIds ?? null, training: input.training ? { clientStartId: input.training.clientStartId, timeZone: input.training.timeZone ?? null, missionId: input.training.missionId ?? null, missionRevision: input.training.missionRevision ?? null, step: input.training.step ?? null } : null });
+    let progressScope:{key:string;scopeVersion:string}|undefined;
+    if(input.progressScope!==undefined){
+        if(input.format!==undefined&&input.format!=='Pbe'||input.chapter!==undefined||input.targetIds!==undefined||!input.progressScope||typeof input.progressScope!=='object'||Array.isArray(input.progressScope))throw new HttpError(400,'Choose one PBE progress selector.');
+        progressScope={key:requiredString(input.progressScope.key,'Progress key',1000),scopeVersion:requiredString(input.progressScope.scopeVersion,'Progress scope version',200)};
+    }
+    const payload = JSON.stringify({ seasonId, mode, format: 'Pbe', ...(progressScope?{progressScope}:{}), chapter: input.chapter ? { contentPackId: input.chapter.contentPackId, chapter: input.chapter.chapter } : null, targetIds: input.targetIds ?? null, training: input.training ? { clientStartId: input.training.clientStartId, timeZone: input.training.timeZone ?? null, missionId: input.training.missionId ?? null, missionRevision: input.training.missionRevision ?? null, step: input.training.step ?? null } : null });
     const startKey = input.training?.clientStartId ? `${ctx.actor.userId}:${seasonId}:${Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input.training.clientStartId))), b => b.toString(16).padStart(2, '0')).join('')}` : null;
     if (input.training?.clientStartId) {
         const row = await ctx.store.get<{
@@ -124,7 +131,8 @@ export async function startPbeSession(ctx: RequestContext, input: Start) {
             return json(pbeSessionDto(saved));
         }
     }
-    const scope = await resolvePbeSources(ctx, { organizationId: ctx.orgId, seasonId, studentId: ctx.actor.userId });
+    const prepared=progressScope?await prepareChapterProgressScope(ctx,seasonId,progressScope):null;
+    const scope = prepared?.scope ?? await resolvePbeSources(ctx, { organizationId: ctx.orgId, seasonId, studentId: ctx.actor.userId });
     if (!scope.guards.some(g => g.kind === 'membership'))
         throw new HttpError(403, 'Current season membership required.');
     if (input.training?.missionId)
@@ -137,10 +145,12 @@ export async function startPbeSession(ctx: RequestContext, input: Start) {
         sources = sources.filter(s => s.contentPackId === pack && s.chapter === input.chapter!.chapter);
     }
     const bank = await loadFromResolvedSources(ctx, { organizationId: ctx.orgId, seasonId, studentId: ctx.actor.userId, sourceUnitIds: sources.map(s => s.id) }, scope, true);
-    if (input.targetIds !== undefined) {
-        if (!Array.isArray(input.targetIds) || !input.targetIds.length)
+    const selectedTargets=prepared?.targetIds??input.targetIds;
+    if(prepared&&!selectedTargets?.length)return json({code:'PBE_COVERAGE_UNAVAILABLE',message:'No eligible published questions are available for this progress group.',format:'Pbe'},409);
+    if (selectedTargets !== undefined) {
+        if (!Array.isArray(selectedTargets) || !selectedTargets.length)
             throw new HttpError(400, 'Choose assigned targets.');
-        const ids = new Set(input.targetIds.map(guid));
+        const ids = new Set(selectedTargets.map(guid));
         if ([...ids].some(id => !bank.targets.some(t => t.id === id)))
             throw new HttpError(403, 'Choose assigned targets.');
         bank.questions = bank.questions.filter(q => q.parts.some(p => ids.has(p.targetId)));
@@ -164,7 +174,7 @@ export async function startPbeSession(ctx: RequestContext, input: Start) {
     const effort = mode === 'Simulation' ? { statements: [], guards: [] } : await preparePbeStartEffort(ctx, s, input.training?.timeZone);
     if (s.clientStartId)
         effort.statements.push(ctx.env.DB.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) VALUES('pbe-session-start',?,?,?,?,?) ON CONFLICT(kind,id,org_id) DO UPDATE SET data='invalid-json'").bind(startKey!, ctx.orgId, seasonId, ctx.actor.userId, JSON.stringify({ sessionId: s.id, format:s.format, ruleVersion:s.ruleVersion, scoringVersion:s.scoringVersion, selectionVersion:s.selectionVersion })));
-    await atomic(ctx, 'pbe.session.start', [pbeAssignmentSetGuard(ctx, scope), ...effort.statements, ctx.store.insertion('pbe-session', s.id, ctx.orgId, s, { seasonId, ownerId: ctx.actor.userId })], [...scope.guards, ...effort.guards]);
+    try { await atomic(ctx, 'pbe.session.start', [...(prepared?[prepared.inputGuard]:[]), pbeAssignmentSetGuard(ctx, scope), ...effort.statements, ctx.store.insertion('pbe-session', s.id, ctx.orgId, s, { seasonId, ownerId: ctx.actor.userId })], [...scope.guards, ...effort.guards,...(prepared?[prepared.pointerGuard]:[])]); } catch(error) { if(prepared&&error instanceof HttpError&&error.status===409)throw new HttpError(409,'PBE_CHAPTER_SCOPE_STALE');throw error; }
     return json(pbeSessionDto(s));
 }
 export async function submitTimedPbeSession(ctx: RequestContext, sessionId: string, input: unknown, elapsedMs: number, lockedAtMs:number) {

@@ -85,7 +85,10 @@ public sealed class PbeProgressService(IErudozaDbContext db)
         Write(org, season, student, "pbe-recall-sequence", sid, new Sequence(sid, sequence, first.AtMs, recent), oldSequence);
         Write(org, season, student, "pbe-recall-event", id, new RecallEvent(id, scopeVersion, sequence, questionKind, evidence, questionVersion, responseLockedAtMs), null);
         foreach (var reference in PbeEvidenceReplayService.References(student, season, new RecallEvent(id, scopeVersion, sequence, questionKind, evidence, questionVersion, responseLockedAtMs))) Write(org, season, student, "pbe-evidence-ref", reference.Id, reference, null);
-        if (previous is null) Write(org, season, student, "pbe-evidence-index", sid, new PbeEvidenceIndex(sid, true, "", 0), null);
+        // Chapter reads may initialize an index before the first accepted recall.
+        // Preserve its readiness and legacy cursor; a new append cannot complete an unfinished index.
+        if (previous is null && await Get(org, season, student, "pbe-evidence-index", sid, ct) is null)
+            Write(org, season, student, "pbe-evidence-index", sid, new PbeEvidenceIndex(sid, true, "", 0), null);
         foreach (var e in evidence)
         {
             var pid = Key(student, season, e.TargetId);

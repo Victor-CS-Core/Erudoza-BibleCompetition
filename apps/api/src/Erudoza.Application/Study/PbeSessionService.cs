@@ -61,7 +61,7 @@ public sealed record PbeSessionResult(Guid AttemptId, int EarnedPoints, int Avai
 public sealed record PbeSessionAttempt(Guid Id, Guid CardId, string ClientSubmissionId, IReadOnlyList<string> Answers, bool HintsUsed, long AtMs, PbeSessionResult Result, DateTimeOffset? ResponseLockedAtUtc = null, IReadOnlyList<string>? OriginalTimedAnswers = null);
 public sealed record PbeAnswerRequest(string ClientSubmissionId, Guid ChallengeCardId, IReadOnlyList<string> Answers, bool HintsUsed);
 public sealed class PbeSessionUnavailableException(string code, string message) : Exception(message) { public string Code { get; } = code; }
-public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, IClock clock, PbeSourceResolver resolver, IPbeQuestionBank bank, PbeProgressService progress, PbeEffortService effort, IPbeSoloTimingAuthority timing)
+public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, IClock clock, PbeSourceResolver resolver, IPbeQuestionBank bank, PbeProgressService progress, PbeEffortService effort, IPbeSoloTimingAuthority timing, PbeChapterProgressService? chapters = null)
 {
     public Task<bool> ExistsAsync(Guid sessionId, CancellationToken ct) => db.PbeTrainingRecords.AnyAsync(r => r.OrganizationId == user.OrganizationId && r.OwnerId == user.UserId && r.Kind == "pbe-session" && r.Id == sessionId.ToString(), ct);
     internal static void Write(IErudozaDbContext db, Guid org, PbeSessionSnapshot s, string kind, string id, object value, PbeTrainingRecord? row = null)
@@ -111,6 +111,7 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
     }
     public Task<object> StartAsync(StartSessionRequest input, CancellationToken ct) => progress.ExecuteAsync<object>(async token =>
     {
+        if (input.ProgressScope is not null && (input.Format != "Pbe" || input.Chapter is not null || input.TargetIds is not null)) throw new DomainException("Choose one PBE progress scope.");
         var mode = input.Mode.ToString();
         if (mode is not ("Practice" or "Review" or "Simulation") || input.SeasonId == Guid.Empty) throw new DomainException("Choose Practice, Review, or Simulation and an active season.");
         if (input.Training is { } training && (string.IsNullOrWhiteSpace(training.ClientStartId) || training.ClientStartId.Length > 200 || training.Step is not null && training.Step != mode)) throw new DomainException("Choose a matching training step and start ID.");
@@ -131,7 +132,8 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
                 return SessionDto(saved);
             }
         }
-        var scope = await resolver.ResolveAsync(user.OrganizationId, input.SeasonId, user.UserId, token);
+        var selection = input.ProgressScope is null ? null : await (chapters ?? throw new InvalidOperationException("Chapter selection service is required.")).PrepareProgressScope(user.OrganizationId, user.UserId, input.SeasonId, input.ProgressScope, token);
+        var scope = selection?.Scope ?? await resolver.ResolveAsync(user.OrganizationId, input.SeasonId, user.UserId, token);
         if (!await db.CompetitionMembers.AnyAsync(m => m.OrganizationId == user.OrganizationId && m.SeasonId == input.SeasonId && m.UserId == user.UserId, token)) throw new UnauthorizedAccessException("Current season membership required.");
         if (input.Training?.MissionId is not null) throw new PbeProgressConflictException("Resume the saved session for this mission, or reload Training HQ.");
         var sources = scope.Sources;
@@ -142,7 +144,7 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
         }
         var loaded = await ((PbeQuestionBank)bank).LoadResolvedAsync(new(user.OrganizationId, input.SeasonId, user.UserId, sources.Select(s => s.Id).ToList()), scope, true, token);
         var questions = loaded.Questions.ToList();
-        if (input.TargetIds is { } targetIds)
+        if ((selection?.TargetIds ?? input.TargetIds) is { } targetIds)
         {
             if (!targetIds.Any() || targetIds.Any(id => !loaded.Targets.Any(t => t.Id == id))) throw new UnauthorizedAccessException("Choose assigned targets.");
             questions = questions.Where(q => q.Parts.Any(p => targetIds.Contains(p.TargetId))).ToList();

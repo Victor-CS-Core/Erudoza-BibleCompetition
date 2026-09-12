@@ -19,7 +19,7 @@ import { apiUrl } from "./url";
 import type { StartTrainingContext } from "./trainingTypes";
 
 export class ApiError extends Error {
-  constructor(message: string, public readonly status: number, public readonly retryAfterSeconds?: number) { super(message); }
+  constructor(message: string, public readonly status: number, public readonly retryAfterSeconds?: number, public readonly code?: string) { super(message); }
 }
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -34,15 +34,17 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     let detail = response.statusText;
+    let code: string | undefined;
     try {
-      const problem = (await response.json()) as { detail?: string; title?: string; message?: string };
+      const problem = (await response.json()) as { detail?: string; title?: string; message?: string; code?: unknown };
       detail = problem.detail ?? problem.title ?? problem.message ?? detail;
+      code = typeof problem.code === 'string' ? problem.code : /^PBE_[A-Z0-9_]+$/.test(detail) ? detail : undefined;
     } catch {
       // Problem Details may be absent for 401/403 redirects.
     }
     const retryHeader = response.headers.get("Retry-After");
     const retrySeconds = retryHeader && /^\d+$/.test(retryHeader) ? Number(retryHeader) : undefined;
-    throw new ApiError(detail, response.status, retrySeconds);
+    throw new ApiError(detail, response.status, retrySeconds, code);
   }
 
   if (response.status === 204) {
@@ -112,8 +114,8 @@ export const api = {
   ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body) }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
-  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext, format: "Memory" | "Pbe" = "Memory", memoryChallenge?: "Warmup" | "Advanced") =>
-    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, format, ...(memoryChallenge ? {memoryChallenge} : {}), ...(training ? { training } : {}) }) }),
+  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext, format: "Memory" | "Pbe" = "Memory", memoryChallenge?: "Warmup" | "Advanced", selection?: import("./pbeTypes").PbeSessionSelection) =>
+    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, format, ...(memoryChallenge ? {memoryChallenge} : {}), ...(training ? { training } : {}), ...selection }) }),
   nextPbeCard: (sessionId:string) => request<import('./pbeTypes').PbeSessionCard>(`/api/v1/study/sessions/${sessionId}/next`),
   submitPbeAttempt: (sessionId:string, body:import('./pbeTypes').PbeSubmission) => request<import('./pbeTypes').PbeAttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`,{method:'POST',body:JSON.stringify(body)}),
   pbeTimed: (sessionId:string, body:unknown) => request<import('./pbeTypes').PbePresentationState|import('./pbeTypes').PbeTimedReceipt>(`/api/v1/study/sessions/${sessionId}/timed`,{method:'POST',body:JSON.stringify(body)}),

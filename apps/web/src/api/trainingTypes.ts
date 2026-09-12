@@ -134,3 +134,5 @@ export type PassageJourneyPage = {
 };
 
 export type {ChapterCounts,ProgressAction,StampSummary,ProgressRow,ChapterWork,ChapterPage,ContinueChaptersRequest,ContinueChaptersResponse} from './pbeTypes';
+
+export type {CountRange,MaterialSummary,OwnMaterialSummary,OwnSummary,CooperationWork,CooperationSnapshot,ContinueCooperationRequest,ContinueCooperationResponse,CooperationStudentSummary,CooperationStudentPage,PbeProgressScope,PbeSessionSelection} from './pbeTypes';

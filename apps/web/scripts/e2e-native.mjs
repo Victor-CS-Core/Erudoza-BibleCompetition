@@ -8,6 +8,7 @@ import {Miniflare} from 'miniflare';
 import {createServer} from 'node:http';
 import {loadLibrary,seedStatements} from './nkjv-library.mjs';
 import {readNativeMigrations} from './native-migrations.mjs';
+import {startPbeBrowserFixtureServer} from './pbe-browser-fixture.mjs';
 const root=new URL('../',import.meta.url),origin='http://localhost:8789';
 const password=process.env.ERUDOZA_E2E_PASSWORD;if(!password)throw new Error('Explicit E2E password required.');
 if(process.env.ERUDOZA_NATIVE_PID_FILE){await mkdir(new URL('test-results/',root),{recursive:true});await writeFile(process.env.ERUDOZA_NATIVE_PID_FILE,String(process.pid));}
@@ -27,7 +28,11 @@ for(let verse=1;verse<=12;verse++){const id=randomUUID();await record('source',i
 await runtime.ready;
 // The Worker starts listening before fixture seeding finishes. Playwright waits on
 // this separate loopback readiness socket so login cannot race initial accounts.
+const fixtureServer=await startPbeBrowserFixtureServer({port:8791,runId:process.env.ERUDOZA_NATIVE_RUN_ID,insert:async(body,stamp)=>{
+ await db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data,revision) VALUES('pbe-chapter-stamp',?,?,?,?,?,1)")
+  .bind(stamp.stampId,body.organizationId,body.seasonId,body.studentId,JSON.stringify(stamp.data)).run();
+}});
 const readyServer=createServer((request,response)=>{response.writeHead(request.url==='/ready'?204:404);response.end();});
 await new Promise((resolve,reject)=>{readyServer.once('error',reject);readyServer.listen(8790,'127.0.0.1',resolve);});
 console.log(`Native fixture ready at ${origin}`);
-for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{readyServer.close();await runtime.dispose();process.exit(0);});
+for(const signal of ['SIGINT','SIGTERM'])process.on(signal,async()=>{fixtureServer.close();readyServer.close();await runtime.dispose();process.exit(0);});

@@ -130,7 +130,7 @@ public sealed record AssignmentDto(
 
 public sealed record ActivationResultDto(bool Activated, IReadOnlyList<string> BlockingProblems);
 
-public sealed record StartSessionRequest(Guid SeasonId, [property: System.Text.Json.Serialization.JsonConverter(typeof(Erudoza.Domain.Practice.ExactEnumJsonConverter<StudyMode>))] StudyMode Mode = StudyMode.Practice, StartTrainingContext? Training = null, string? Format = null, PbeChapterRequest? Chapter = null, IReadOnlyList<Guid>? TargetIds = null, [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? MemoryChallenge = null);
+public sealed record StartSessionRequest(Guid SeasonId, [property: System.Text.Json.Serialization.JsonConverter(typeof(Erudoza.Domain.Practice.ExactEnumJsonConverter<StudyMode>))] StudyMode Mode = StudyMode.Practice, StartTrainingContext? Training = null, string? Format = null, PbeChapterRequest? Chapter = null, IReadOnlyList<Guid>? TargetIds = null, [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] string? MemoryChallenge = null, [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] PbeProgressScope? ProgressScope = null);
 public sealed record PbeChapterRequest(Guid ContentPackId, int Chapter);
 
 public sealed record SessionDto(Guid Id, Guid SeasonId, string Status, string Mode, int TargetCardCount, string Difficulty = "Standard", string? MemoryChallenge = null, string? GeneratorVersion = null, string? EvidenceProfile = null);

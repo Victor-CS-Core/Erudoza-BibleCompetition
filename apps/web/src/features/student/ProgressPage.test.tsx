@@ -6,7 +6,7 @@ import { api } from "../../api/client";
 import { trainingApi } from "../../api/training";
 import type { Progress, SessionSummary } from "../../api/types";
 import { ProgressPage } from "./ProgressPage";
-vi.mock("../../api/training", () => ({ trainingApi: { journey: vi.fn() } }));
+vi.mock("../../api/training", () => ({ trainingApi: { journey: vi.fn(), chapters: vi.fn(), continueChapters: vi.fn(), cooperation: vi.fn(), continueCooperation: vi.fn(), coachCooperation: vi.fn(), continueCoachCooperation: vi.fn(), cooperationStudents: vi.fn() } }));
 
 vi.mock("../../api/client", () => ({
   api: {
@@ -141,6 +141,22 @@ describe("ProgressPage recorded evidence", () => {
     expect(trainingApi.journey).not.toHaveBeenCalled();
     expect(screen.getByRole("link", { name: "Back to assignments" })).toHaveAttribute("href", "/admin/assignments?studentId=student-1&seasonId=season-1");
     expect(screen.queryByRole("link", { name: "Start due reviews" })).not.toBeInTheDocument();
+  });
+  it('shows current PBE chapters to the student and coach-authorized cooperation detail to the coach', async () => {
+    const chapters = { seasonId: 'season-1', ruleVersion: 'r', scopeVersion: 'v', snapshotId: 'snap', chapterKey: null, work: { id: null, state: 'Complete', stage: null, reason: null }, currentAvailable: true, historyAvailable: false, asOfUtc: '2026-09-12T00:00:00Z', dueRefreshAtUtc: '2099-09-12T00:00:00Z', nextCursor: null, view: 'Chapters', items: [] } as never;
+    const cooperation = { seasonId: 'season-1', ruleVersion: 'r', scopeVersion: 'v', snapshotId: 'coop', state: 'Snapshot', reason: null, checkedAtUtc: '2026-09-12T00:00:00Z', dueRefreshAtUtc: '2099-09-12T00:00:00Z', rosterStudents: 1, unknownStudents: 0, scripture: null, introduction: null, own: null, work: { id: null, next: 'None' } } as never;
+    vi.mocked(api.progress).mockResolvedValue(progress({ pbeEnabled: true }));
+    vi.mocked(api.studentProgress).mockResolvedValue(progress({ pbeEnabled: true }));
+    vi.mocked(trainingApi.chapters).mockResolvedValue(chapters);
+    vi.mocked(trainingApi.cooperation).mockResolvedValue(cooperation);
+    vi.mocked(trainingApi.coachCooperation).mockResolvedValue(cooperation);
+    vi.mocked(trainingApi.cooperationStudents).mockResolvedValue({ seasonId: 'season-1', snapshotId: 'coop', nextCursor: null, items: [{ studentId: 'student-1', displayName: 'Daniel Student', state: 'Known', reason: null, scripture: { assigned: 3, practiced: { known: 2, possible: 2 }, retained: { known: 1, possible: 1 }, due: { known: 1, possible: 1 } }, introduction: { assigned: 0, practiced: { known: 0, possible: 0 }, retained: { known: 0, possible: 0 }, due: { known: 0, possible: 0 } } }] } as never);
+    renderProgress('/student/progress');
+    expect(await screen.findByRole('heading', { name: 'Your PBE chapter journey' })).toBeVisible();
+    expect(trainingApi.cooperation).toHaveBeenCalledWith('season-1');
+    renderProgress('/admin/seasons/season-1/students/student-1/progress');
+    expect(await screen.findByText('Daniel Student')).toBeVisible();
+    expect(trainingApi.coachCooperation).toHaveBeenCalledWith('org-1', 'season-1');
   });
   it("lets a student act on due reviews in the recorded season", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ reviewDueCount: 2 }));

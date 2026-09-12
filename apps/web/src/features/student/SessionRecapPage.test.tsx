@@ -44,3 +44,9 @@ it("flags a saved PBE attempt without blocking replay and refreshes corrected re
   expect(await screen.findByText("2 / 2 points")).toBeVisible();
   expect(screen.getByText("Review resolved")).toBeVisible();
 });
+it('sends a finished PBE session back to current chapter progress without claiming a stamp', async () => {
+  vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ version: 'pbe-daily-v2', results: [], attempted: 1, correct: 1 }));
+  page();
+  expect(await screen.findByRole('link', { name: 'See current PBE chapter progress' })).toHaveAttribute('href', '/student/progress?seasonId=s');
+  expect(screen.getByText(/A session result does not by itself earn a chapter stamp/)).toBeVisible();
+});

@@ -29,8 +29,8 @@ function currentSourceSql(){return `SELECT DISTINCT u.id FROM Records sc JOIN js
  AND EXISTS(SELECT 1 FROM Records sc JOIN json_each(${scopeEntriesSql('sc')}) selected JOIN json_each(selected.value,'$.includes') inc WHERE sc.org_id=intro.org_id AND sc.kind='scope' AND sc.id=intro.season_id AND upper(json_extract(inc.value,'$.bookKey'))=json_extract(intro.data,'$.bookKey'))
  AND EXISTS(SELECT 1 FROM Records m WHERE m.org_id=intro.org_id AND m.kind='membership' AND m.season_id=intro.season_id AND m.id=intro.season_id||':'||? AND m.owner_id=substr(m.id,length(intro.season_id)+2) )`;}
 /** One indexed atomic set comparison; only small ownership/generation identifiers are bound. */
-export function chapterInputGuard(ctx:RequestContext,seasonId:string,generationId:string,expectedPages:number, targetFamily?:string,readOnly=false):D1PreparedStatement{
- const owner=ctx.actor.userId,org=ctx.orgId,bindings:unknown[]=[];
+export function chapterInputGuard(ctx:RequestContext,seasonId:string,generationId:string,expectedPages:number, targetFamily?:string,readOnly=false,subjectId=ctx.actor.userId):D1PreparedStatement{
+ const owner=subjectId,org=ctx.orgId,bindings:unknown[]=[];
  const entries=(family:string)=>{bindings.push(org,seasonId,owner,generationId);return manifestEntriesSql(`m${bindings.length}`,family);};
  const guards=entries('guards'),sources=entries('sources'),targets=entries('targets'),heads=entries('heads');
  bindings.push(org,seasonId,owner,org,seasonId,owner,owner);
