@@ -41,7 +41,8 @@ export async function readTwice(text: string, port: SpeechPort, signal: AbortSig
 }
 
 /** Creates a browser speech port only when an installed local voice is available. */
-export async function localSpeechPort(synthesis: SpeechSynthesis = window.speechSynthesis): Promise<SpeechPort | null> {
+export async function localSpeechPort(synthesis: SpeechSynthesis | undefined = window.speechSynthesis): Promise<SpeechPort | null> {
+  if (!synthesis || typeof synthesis.getVoices !== 'function') return null;
   const local = () => synthesis.getVoices().find(voice => voice.localService);
   let voice = local();
   if (!voice) {

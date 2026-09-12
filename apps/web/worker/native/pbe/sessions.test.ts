@@ -10,8 +10,8 @@ const season = 'cccccccc-0000-0000-0000-000000000001', student = 'dddddddd-0000-
 const tid = (n: number) => `bbbbbbbb-0000-0000-0000-${String(n).padStart(12, '0')}`;
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
 afterEach(async () => { await app?.runtime.dispose(); });
-async function setup(count = 2, beforeD1Statement?: (sql: string) => Promise<void>) {
-    app = await createNativeTestApp({ measureD1: true, beforeD1Statement });
+async function setup(count = 2, beforeD1Statement?: (sql: string) => Promise<void>, options: {replaceSoloAuthority?:boolean} = {}) {
+    app = await createNativeTestApp({ measureD1: true, beforeD1Statement, ...options });
     const store = new Store(app.db as unknown as Env['DB']);
     await store.insert('season', season, TEST_ORG, { id: season, name: 'Test season', organizationId: TEST_ORG, status: 'Active', pbeEnabled: true });
     await store.insert('pack', pack, TEST_ORG, { id: pack, isActive: true, licensingStatus: 'approved', sourceType: 'Scripture' });
@@ -35,7 +35,7 @@ async function setup(count = 2, beforeD1Statement?: (sql: string) => Promise<voi
         bindingCalls: number;
         statements: number;
     }; expect(meter.statements, `${path}: ${JSON.stringify(meter)}`).toBeLessThanOrEqual(50); return r; };
-    return { store, send };
+    return { store, send, cookie };
 }
 it('delivers immutable private PBE cards, persists partial target grades and original retries through actual HTTP', async () => {
     const { send, store } = await setup();
@@ -507,3 +507,34 @@ it('accepts solo Simulation only through the authority and defers all feedback u
     expect(completed.summary).toMatchObject({earnedPoints:2,results:[{earnedPoints:2,expectedParts:['Alpha','Beta']}]});
     expect(await store.list('training-day',TEST_ORG,{ownerId:student})).toEqual([]);
 });
+it('keeps a frozen native final immutable across projection failure and retries its durable outbox',async()=>{
+    const {send,store,cookie}=await setup(1,undefined,{replaceSoloAuthority:true});
+    const session=await (await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as {id:string};
+    const card=await (await send(`/study/sessions/${session.id}/next`)).json() as {id:string};
+    const shown=await (await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as {revision:number};
+    await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:shown.revision,delivery:'TextFallback'});await new Promise(resolve=>setTimeout(resolve,3100));
+    const original={action:'submit',questionId:card.id,revision:shown.revision,answers:['Alpha','Beta'],clientSubmissionId:crypto.randomUUID()};
+    await store.remove('assignment','assignment',TEST_ORG);
+    expect((await send(`/study/sessions/${session.id}/timed`,original)).status).toBe(409);
+    expect((await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:shown.revision,delivery:'TextFallback'})).status).toBe(409);
+    expect((await send(`/study/sessions/${session.id}/timed`,{...original,answers:['changed','answer'],clientSubmissionId:crypto.randomUUID()})).status).toBe(409);
+    const range={bookKey:'GEN',startChapter:1,startVerse:1,endChapter:1,endVerse:1};await store.insert('assignment','assignment',TEST_ORG,{id:'assignment',seasonId:season,studentUserId:student,contentPackId:pack,...range},{seasonId:season,ownerId:student});
+    await app.fetch(`/api/v1/study/sessions/${session.id}/timed`,{headers:{Cookie:cookie,Origin:'https://erudoza.test','x-test-authority-replaced':'1'}});
+    for(let attempt=0;attempt<30&&(await store.list('pbe-attempt',TEST_ORG,{ownerId:student})).length===0;attempt++)await new Promise(resolve=>setTimeout(resolve,100));
+    expect(await (await send(`/study/sessions/${session.id}/timed`,original)).json()).toMatchObject({feedbackDeferred:true,alreadyProcessed:true});
+    expect(await store.list('pbe-attempt',TEST_ORG,{ownerId:student})).toHaveLength(1);
+},10000);
+it('preserves an exact accepted final retry after presenting the next card',async()=>{
+    const {send}=await setup(2);const session=await(await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as{id:string};const first=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};
+    const shown=await(await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as{revision:number};await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:first.id,revision:shown.revision,delivery:'TextFallback'});await new Promise(resolve=>setTimeout(resolve,3100));
+    const original={action:'submit',questionId:first.id,revision:shown.revision,answers:['Alpha','Beta'],clientSubmissionId:crypto.randomUUID()};const accepted=await(await send(`/study/sessions/${session.id}/timed`,original)).json();const second=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'});
+    expect(await(await send(`/study/sessions/${session.id}/timed`,original)).json()).toEqual({...accepted as object,alreadyProcessed:true});expect((await send(`/study/sessions/${session.id}/timed`,{...original,answers:['changed','answer']})).status).toBe(409);expect(second.id).not.toBe(first.id);
+});
+it('freezes a saved draft and projects it through an actual alarm after authority replacement',async()=>{
+    const {send,store,cookie}=await setup(1,undefined,{replaceSoloAuthority:true});const session=await(await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as{id:string};const card=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};
+    const shown=await(await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as{revision:number};await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:shown.revision,delivery:'TextFallback'});await new Promise(resolve=>setTimeout(resolve,3100));
+    await send(`/study/sessions/${session.id}/timed`,{action:'draft',questionId:card.id,revision:shown.revision,answers:['Alpha','Beta']});
+    const replacement=await app.fetch(`/api/v1/study/sessions/${session.id}/timed`,{headers:{Cookie:cookie,Origin:'https://erudoza.test','x-test-authority-replaced':'1'}});expect(replacement.status).toBe(200);
+    for(let attempt=0;attempt<20&&(await store.list('pbe-attempt',TEST_ORG,{ownerId:student})).length===0;attempt++)await new Promise(resolve=>setTimeout(resolve,100));
+    const saved=await store.list<{answers:string[]}>('pbe-attempt',TEST_ORG,{ownerId:student});expect(saved).toHaveLength(1);expect(saved[0].answers).toEqual(['Alpha','Beta']);
+},10000);

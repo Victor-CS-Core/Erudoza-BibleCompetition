@@ -48,5 +48,27 @@ it('uses explicit text fallback while the tab is hidden', async () => {
   fireEvent.click(screen.getByRole('button', { name: /ready to hear/i }));
   expect(screen.getByText(/text reading 1 of 2/i)).toBeInTheDocument();
   expect(port.speak).not.toHaveBeenCalled();
-  if (visible) Object.defineProperty(document, 'visibilityState', visible);
+  if (visible) Object.defineProperty(document, 'visibilityState', visible); else Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});
+});
+
+it('recovers from missing or failed speech setup and lets a stalled reading switch to text', async () => {
+  Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});
+  const failed=render(<PbePresentation text="Question" createPort={async()=>{throw new Error('missing')}} onReady={vi.fn()}/>);
+  fireEvent.click(screen.getByRole('button',{name:/ready to hear/i}));
+  expect(await screen.findByText(/text reading 1 of 2/i)).toBeInTheDocument();failed.unmount();
+  const port:SpeechPort={speak:vi.fn(),cancel:vi.fn()};
+  render(<PbePresentation text="Question" createPort={async()=>port} onReady={vi.fn()}/>);
+  fireEvent.click(screen.getByRole('button',{name:/ready to hear/i}));await act(async()=>{});
+  fireEvent.click(screen.getByRole('button',{name:/use text fallback/i}));
+  expect(port.cancel).toHaveBeenCalled();expect(screen.getByText(/text reading 1 of 2/i)).toBeInTheDocument();
+});
+
+it('cancels active speech when the tab becomes hidden without acknowledging audio',async()=>{
+  Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});
+  const port:SpeechPort={speak:vi.fn(),cancel:vi.fn()},ready=vi.fn();
+  render(<PbePresentation text="Question" createPort={async()=>port} onReady={ready}/>);
+  fireEvent.click(screen.getByRole('button',{name:/ready to hear/i}));await act(async()=>{});
+  Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'});await act(async()=>fireEvent(document,new Event('visibilitychange')));
+  expect(port.cancel).toHaveBeenCalled();expect(ready).not.toHaveBeenCalled();expect(screen.getByText(/text reading 1 of 2/i)).toBeInTheDocument();
+  Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});
 });

@@ -14,7 +14,8 @@ public sealed class PracticeIngressMiddleware(RequestDelegate next)
             context.Request.EnableBuffering(32768, 32768);
             try { var buffer = new byte[4096]; while (await context.Request.Body.ReadAsync(buffer, context.RequestAborted) > 0) { } }
             catch (IOException) { context.Response.StatusCode = 413; return; }
-            context.Items[PbeStampKey] = solo.CaptureIfActive(session);
+            try { context.Items[PbeStampKey] = solo.CaptureIfActive(session); }
+            catch (Erudoza.Application.Study.PbePendingLimitException) { context.Response.StatusCode = 429; return; }
             context.Request.Body.Position = 0;
             await next(context);
             return;

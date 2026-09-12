@@ -27,7 +27,7 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     const mode = saved?.session.mode ?? params.get('mode') ?? 'Practice';
     const [session, setSession] = useState<Session | null>(saved?.session ?? null), [card, setCard] = useState<PbeSessionCard | null>(saved?.card ?? null), [result, setResult] = useState<PbeAttemptResult | null>(saved?.attempt && 'earnedPoints' in saved.attempt ? saved.attempt : null);
     const [answers, setAnswers] = useState<string[]>(() => saved?.card ? pending(saved.session.id, saved.card.id)?.answers ?? saved.card.question.partPoints.map(() => '') : []);
-    const [presentation,setPresentation]=useState<PbePresentationState|null>(null),[timedReceipt,setTimedReceipt]=useState<PbeTimedReceipt|null>(saved?.attempt && 'feedbackDeferred' in saved.attempt ? saved.attempt : null),[tick,setTick]=useState(0);
+    const [presentation,setPresentation]=useState<PbePresentationState|null>(null),[timedReceipt,setTimedReceipt]=useState<PbeTimedReceipt|null>(saved?.attempt && 'feedbackDeferred' in saved.attempt ? saved.attempt : null),[interrupted,setInterrupted]=useState(!!saved?.interruption),[timingError,setTimingError]=useState(''),[tick,setTick]=useState(0);
     const warned=useRef(''), serverClock=useRef<{server:number;observed:number}|null>(null);
     const frozen = useRef<PbeSubmission | null>(saved?.card ? pending(saved.session.id, saved.card.id) : null), startId = useRef(params.get('startId') ?? crypto.randomUUID());
     const recapped = useRef(false);
@@ -48,9 +48,16 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
             return;
         }
         if (saved) {
+            if (saved.interruption) return;
             if (saved.session.mode === 'Simulation' && saved.card && saved.attempt && 'feedbackDeferred' in saved.attempt) {
                 if (saved.card.sequence === saved.card.total) complete.mutate();
                 else next.mutate(saved.session.id);
+            } else if (saved.session.mode === 'Simulation' && saved.card) {
+                void api.pbeTimedStatus(saved.session.id).then(value => {
+                    if ('attemptId' in value) { setTimedReceipt(value); if (saved.card!.sequence === saved.card!.total) complete.mutate(); else next.mutate(saved.session.id); }
+                    else if (value.status === 'Interrupted') setInterrupted(true);
+                    else if (value.status !== 'NotPresented') { serverClock.current={server:Date.parse(value.serverNow),observed:performance.now()}; setPresentation(value); }
+                }).catch(error => setTimingError(error instanceof Error ? error.message : 'Timed rehearsal unavailable.'));
             } else if (!saved.card)
                 next.mutate(saved.session.id);
             return;
@@ -71,6 +78,9 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     void tick;
     const displayedNow=serverClock.current?serverClock.current.server+performance.now()-serverClock.current.observed:Date.now();
     const remaining = presentation?.responseEndsAtMs ? Math.max(0, Math.ceil((presentation.responseEndsAtMs - displayedNow) / 1000)) : null;
+    // Mutation functions are stable; mutation objects would restart the expiry poll on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => { if (mode !== 'Simulation' || remaining !== 0 || !session || timedReceipt) return; const timer=window.setTimeout(() => { void api.pbeTimedStatus(session.id).then(value => { if ('attemptId' in value) { setTimedReceipt(value); if (card?.sequence === card?.total) complete.mutate(); else next.mutate(session.id); } else setPresentation(value); }).catch(error => setTimingError(error instanceof Error ? error.message : 'Timed rehearsal unavailable.')); },250); return()=>window.clearTimeout(timer); },[remaining,mode,session,timedReceipt,card]);
     if (card && remaining !== null && remaining <= 10 && warned.current !== card.id) warned.current = card.id;
     const home = `/student?seasonId=${encodeURIComponent(session?.seasonId ?? seasonId)}`, practice = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Pbe`, memory = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Memory`;
     const error = start.error ?? next.error ?? submit.error ?? aid.error ?? complete.error;
@@ -78,8 +88,10 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     return <div className="er-study-stage space-y-4"><PageHeader title="PBE practice" description={seasonName} action={<Badge>{mode === 'Simulation' ? 'Shortened timed practice' : `Untimed ${mode.toLowerCase()}`}</Badge>}/>
   {unavailable ? <Panel><Notice>{unavailable}</Notice></Panel> : <>
    {error && <Notice tone="danger">{error.message}{start.isError && <Button variant="secondary" onClick={() => start.mutate()}>Retry start</Button>}{next.isError && session && <Button variant="secondary" onClick={() => next.mutate(session.id)}>Retry next card</Button>}</Notice>}
+   {timingError && <Notice tone="danger">{timingError}<Button variant="secondary" onClick={() => { setTimingError(''); setPresentation(null); }}>Retry presentation</Button></Notice>}
+   {interrupted && <Panel><Notice tone="info">This shortened timed practice was interrupted. Earlier accepted answers are retained.</Notice><LinkButton variant="primary" to={practice.replace('mode=Practice','mode=Simulation')}>Start another shortened timed practice</LinkButton></Panel>}
    {!card && !start.isError && !next.isError && <LoadingState label="Loading your saved PBE questions…"/>}
-   {card && mode === 'Simulation' && !presentation && <PbePresentation key={card.id} text={`For ${card.question.points} ${card.question.points === 1 ? 'point' : 'points'}. ${card.question.reference}. ${card.question.prompt}`} onReady={async delivery => { const shown = await api.pbeTimed(session!.id, { action: 'present', delivery }) as PbePresentationState; const armed = await api.pbeTimed(session!.id, { action: 'ack', questionId: card.id, revision: shown.revision, delivery }) as PbePresentationState; serverClock.current={server:Date.parse(armed.serverNow),observed:performance.now()}; setPresentation(armed); }}/>}
+   {card && !interrupted && mode === 'Simulation' && !presentation && <PbePresentation key={card.id} text={`For ${card.question.points} ${card.question.points === 1 ? 'point' : 'points'}. ${card.question.reference}. ${card.question.prompt}`} onReady={async delivery => { try { const shown = await api.pbeTimed(session!.id, { action: 'present', delivery }) as PbePresentationState; const armed = await api.pbeTimed(session!.id, { action: 'ack', questionId: card.id, revision: shown.revision, delivery }) as PbePresentationState; serverClock.current={server:Date.parse(armed.serverNow),observed:performance.now()}; setPresentation(armed); } catch(error) { setTimingError(error instanceof Error ? error.message : 'Timed rehearsal unavailable.'); throw error; } }}/>}
    {card && (mode !== 'Simulation' || presentation) && <Panel className="student-challenge" data-testid="challenge-card"><div className="flex flex-wrap items-center justify-between gap-3"><p>{card.question.reference}</p><Badge>{card.question.points} points</Badge><p data-testid="card-progress">{card.sequence} / {card.total}</p></div><progress className="training-session-progress" aria-label="Study session progress" value={card.sequence} max={card.total}/><h2 className="mt-6" data-testid="challenge-prompt">{card.question.prompt}</h2>
     {mode === 'Simulation' && presentation && <><p role="timer">{presentation.responseStartsAtMs && displayedNow < presentation.responseStartsAtMs ? 'Response starts shortly' : `${remaining} seconds remaining`}</p>{warned.current === card.id && remaining !== null && remaining <= 10 && <Notice>Ten seconds remain.</Notice>}</>}
     {card.question.kind === 'TrueFalse' ? <div className="mt-6 flex flex-wrap gap-3" aria-label="True or false">{['True', 'False'].map(value => <Button key={value} aria-pressed={answers[0] === value} variant={answers[0] === value ? 'primary' : 'secondary'} disabled={locked} onClick={() => setAnswers([value])}>{value}</Button>)}</div> : <PbeAnswerInput partPoints={card.question.partPoints} answers={answers} onChange={setAnswers} disabled={locked}/>}

@@ -12,7 +12,7 @@ import type { Env } from './types';
 import { readNativeMigrations } from '../../scripts/native-migrations.mjs';
 export const TEST_ORG="11111111-1111-4111-8111-111111111111";
 export const TEST_USER="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
-export async function createNativeTestApp(options:{measureD1?:boolean;beforeD1Statement?:(sql:string)=>Promise<void>;delayAuthentication?:boolean;beforePasswordHash?:()=>Promise<void>;bindings?:Record<string,string>;outboundService?:(request:TestRequest)=>Promise<TestResponse>}={}) {
+export async function createNativeTestApp(options:{measureD1?:boolean;beforeD1Statement?:(sql:string)=>Promise<void>;delayAuthentication?:boolean;replaceSoloAuthority?:boolean;beforePasswordHash?:()=>Promise<void>;bindings?:Record<string,string>;outboundService?:(request:TestRequest)=>Promise<TestResponse>}={}) {
   // Test-only compilation hook: exercise ingress ordering while authentication waits.
   // No delay header or equivalent bypass is included in the deployed bundle.
   const plugins=options.delayAuthentication||options.beforePasswordHash?[{name:"test-auth-delay",setup(builder:import("esbuild").PluginBuild){builder.onLoad({filter:/native[/\\]auth\.ts$/},async args=>{
@@ -34,6 +34,12 @@ export async function createNativeTestApp(options:{measureD1?:boolean;beforeD1St
     if(source.split(signature).length!==2)throw new Error("D1 meter hook no longer matches the HTTP entry point.");
     const hook=options.beforeD1Statement?', async sql => { await fetch("https://native-test.invalid/d1-statement", {method:"POST",body:sql}); }':'';
     return {loader:"ts",contents:source.replace(signature,'const unmeteredApp = {')+'\nimport {measureD1Fetch} from "./test-d1-meter";\nexport default {...unmeteredApp,fetch:measureD1Fetch(unmeteredApp.fetch'+hook+')};'};
+  });}});
+  if(options.replaceSoloAuthority)plugins.push({name:"test-solo-replacement",setup(builder:import("esbuild").PluginBuild){builder.onLoad({filter:/native[/\\]pbe[/\\]solo-round\.ts$/},async args=>{
+    const source=await readFile(args.path,"utf8"),signature="      const input=request.method==='POST'?await body<Input>(request,32768):null,ingress=Date.now();";
+    if(source.split(signature).length!==2)throw new Error("Solo replacement hook no longer matches the authority ingress.");
+    const replacement=`${signature}\n      if(request.headers.has('x-test-authority-replaced')){const replaced=this.load();if(replaced){replaced.epoch='test-replaced-authority';this.save(replaced);await this.ctx.storage.setAlarm(Date.now());}return json({status:'replacement-scheduled'});}`;
+    return {loader:"ts",contents:source.replace(signature,replacement)};
   });}});
   const bundle=await build({entryPoints:[new URL("./index.ts",import.meta.url).pathname.replace(/^\/([A-Za-z]:)/,"$1")],bundle:true,write:false,format:"esm",platform:"neutral",target:"es2022",external:["cloudflare:workers"],plugins});
   const outboundService=options.beforePasswordHash||options.beforeD1Statement?async(request:TestRequest)=>{

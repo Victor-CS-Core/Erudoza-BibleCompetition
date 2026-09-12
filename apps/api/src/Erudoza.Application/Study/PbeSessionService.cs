@@ -31,7 +31,24 @@ public sealed class PbeSessionSnapshot
     public bool NewlyCreditedDay { get; set; }
     public string? TimingStatus { get; set; }
     public Guid? TimingQuestionId { get; set; }
+    public PbePersistedTiming? Timing { get; set; }
 }
+public sealed class PbePersistedTiming
+{
+    public Guid QuestionId { get; set; }
+    public int Revision { get; set; }
+    public string Delivery { get; set; } = "Audio";
+    public string Status { get; set; } = "Presenting";
+    public IReadOnlyList<string>? DraftAnswers { get; set; }
+    public long? DraftElapsedMs { get; set; }
+    public DateTimeOffset? DraftLockedAtUtc { get; set; }
+    public string? ClientSubmissionId { get; set; }
+    public IReadOnlyList<string>? Answers { get; set; }
+    public IReadOnlyList<string>? RetryAnswers { get; set; }
+    public long? ElapsedMs { get; set; }
+    public DateTimeOffset? LockedAtUtc { get; set; }
+}
+public sealed record PbeSoloOutbox(Guid SessionId);
 public sealed class PbeSessionCard
 {
     public Guid Id { get; set; }
@@ -41,7 +58,7 @@ public sealed class PbeSessionCard
     public long? AssistedAtMs { get; set; }
 }
 public sealed record PbeSessionResult(Guid AttemptId, int EarnedPoints, int AvailablePoints, IReadOnlyList<string> ExpectedParts, string SourceEvidence, string Citation, bool Unaided, DateTimeOffset AcceptedAtUtc, long AcceptedSequence, bool AlreadyProcessed);
-public sealed record PbeSessionAttempt(Guid Id, Guid CardId, string ClientSubmissionId, IReadOnlyList<string> Answers, bool HintsUsed, long AtMs, PbeSessionResult Result, DateTimeOffset? ResponseLockedAtUtc = null);
+public sealed record PbeSessionAttempt(Guid Id, Guid CardId, string ClientSubmissionId, IReadOnlyList<string> Answers, bool HintsUsed, long AtMs, PbeSessionResult Result, DateTimeOffset? ResponseLockedAtUtc = null, IReadOnlyList<string>? OriginalTimedAnswers = null);
 public sealed record PbeAnswerRequest(string ClientSubmissionId, Guid ChallengeCardId, IReadOnlyList<string> Answers, bool HintsUsed);
 public sealed class PbeSessionUnavailableException(string code, string message) : Exception(message) { public string Code { get; } = code; }
 public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, IClock clock, PbeSourceResolver resolver, IPbeQuestionBank bank, PbeProgressService progress, PbeEffortService effort, IPbeSoloTimingAuthority timing)
@@ -137,48 +154,114 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
         return SessionDto(s);
     }, ct);
     public Task<object> ActionAsync(Guid sessionId, string? action, JsonElement? input, CancellationToken ct) => ActionCoreAsync(sessionId, action, input, null, ct);
+    public async Task<object> TimedStatusAsync(Guid sessionId, CancellationToken ct)
+    {
+        var ingress = timing.CaptureIfActive(sessionId);
+        if (ingress is not null) await ingress.WaitAsync();
+        try { return await TimedCoreAsync(sessionId, null, ingress, ct); }
+        finally { ingress?.Complete(); }
+    }
     public async Task<object> TimedActionAsync(Guid sessionId, JsonElement input, PbeSoloIngress? ingress, CancellationToken ct)
+    {
+        if (ingress is not null) await ingress.WaitAsync();
+        try { return await TimedCoreAsync(sessionId, input, ingress, ct); }
+        finally { ingress?.Complete(); }
+    }
+    private async Task<object> TimedCoreAsync(Guid sessionId, JsonElement? input, PbeSoloIngress? ingress, CancellationToken ct)
     {
         var row = await db.PbeTrainingRecords.SingleOrDefaultAsync(r => r.OrganizationId == user.OrganizationId && r.OwnerId == user.UserId && r.Kind == "pbe-session" && r.Id == sessionId.ToString(), ct) ?? throw new KeyNotFoundException("Study session was not found.");
         var session = JsonSerializer.Deserialize<PbeSessionSnapshot>(row.DataJson, PbeQuestionBank.Json)!;
         if (session.Mode != "Simulation") throw new KeyNotFoundException("Timed rehearsal was not found.");
-        var action = input.TryGetProperty("action", out var a) && a.ValueKind == JsonValueKind.String ? a.GetString() : null;
-        var question = input.TryGetProperty("questionId", out var q) && q.TryGetGuid(out var qid) ? qid : Guid.Empty;
-        var revision = input.TryGetProperty("revision", out var r) && r.TryGetInt32(out var rev) ? rev : 0;
-        var delivery = input.TryGetProperty("delivery", out var d) && d.ValueKind == JsonValueKind.String ? d.GetString()! : "Audio";
-        string[] Answers() => input.TryGetProperty("answers", out var values) && values.ValueKind == JsonValueKind.Array ? values.EnumerateArray().Select(v => v.ValueKind == JsonValueKind.String ? v.GetString()! : throw new DomainException("Provide one text answer per requested part.")).ToArray() : throw new DomainException("Provide one text answer per requested part.");
-        if (action == "submit")
+        if (session.Status == "Interrupted" || session.Timing?.Status == "Interrupted") throw new PbeProgressConflictException("This rehearsal was interrupted. Start another shortened timed practice.");
+        var action = input is { } body && body.TryGetProperty("action", out var a) && a.ValueKind == JsonValueKind.String ? a.GetString() : null;
+        var question = input is { } qbody && qbody.TryGetProperty("questionId", out var q) && q.TryGetGuid(out var qid) ? qid : Guid.Empty;
+        var revision = input is { } rbody && rbody.TryGetProperty("revision", out var r) && r.TryGetInt32(out var rev) ? rev : 0;
+        string[] Answers() => input is { } abody && abody.TryGetProperty("answers", out var values) && values.ValueKind == JsonValueKind.Array ? values.EnumerateArray().Select(v => v.ValueKind == JsonValueKind.String ? v.GetString()! : throw new DomainException("Provide one text answer per requested part.")).ToArray() : throw new DomainException("Provide one text answer per requested part.");
+        var clientId = input is { } cbody && cbody.TryGetProperty("clientSubmissionId", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString()! : "";
+        var previous = action == "submit" ? session.Attempts.SingleOrDefault(attempt => attempt.ClientSubmissionId == clientId) : null;
+        if (previous is not null)
         {
-            var clientId = input.TryGetProperty("clientSubmissionId", out var c) && c.ValueKind == JsonValueKind.String ? c.GetString()! : "";
-            var decision = timing.Lock(sessionId, user.UserId, question, revision, clientId, Answers(), ingress);
-            var payload = JsonSerializer.SerializeToElement(new PbeAnswerRequest(decision.ClientSubmissionId, question, decision.Answers, false), PbeQuestionBank.Json);
+            var supplied = Answers();
+            if (previous.CardId != question || !(previous.OriginalTimedAnswers ?? previous.Answers).SequenceEqual(supplied)) throw new PbeProgressConflictException("This submission ID was already used with a different answer payload.");
+            return new { previous.Result.AttemptId, previous.Result.AcceptedAtUtc, previous.Result.AcceptedSequence, AlreadyProcessed = true, feedbackDeferred = true, previous.ResponseLockedAtUtc };
+        }
+        async Task SaveTiming()
+        {
+            Write(db, user.OrganizationId, session, "pbe-session", session.Id.ToString(), session, row);
+            var outbox = await db.PbeTrainingRecords.SingleOrDefaultAsync(record => record.OrganizationId == user.OrganizationId && record.OwnerId == user.UserId && record.Kind == "pbe-solo-outbox" && record.Id == session.Id.ToString(), ct);
+            Write(db, user.OrganizationId, session, "pbe-solo-outbox", session.Id.ToString(), new PbeSoloOutbox(session.Id), outbox);
+            await db.SaveChangesAsync(ct);
+        }
+        async Task<object> Project(PbeTimedDecision decision)
+        {
+            session.Timing = new() { QuestionId = question == Guid.Empty ? session.Timing!.QuestionId : question, Revision = revision == 0 ? session.Timing!.Revision : revision, Delivery = session.Timing!.Delivery, Status = "Frozen", ClientSubmissionId = decision.ClientSubmissionId, Answers = decision.Answers, RetryAnswers = decision.RetryAnswers, ElapsedMs = decision.ElapsedMs, LockedAtUtc = decision.LockedAtUtc };
+            await SaveTiming();
+            var payload = JsonSerializer.SerializeToElement(new PbeAnswerRequest(decision.ClientSubmissionId, session.Timing.QuestionId, decision.Answers, false), PbeQuestionBank.Json);
             return await ActionCoreAsync(sessionId, "attempts", payload, decision, ct);
         }
+        if (session.Timing?.Status == "Frozen")
+        {
+            if (session.Timing.ClientSubmissionId is null || session.Timing.Answers is null || session.Timing.RetryAnswers is null || session.Timing.ElapsedMs is null || session.Timing.LockedAtUtc is null) throw new PbeProgressConflictException("The saved timed response is incomplete.");
+            if (action is not null && (action != "submit" || session.Timing.ClientSubmissionId != clientId || session.Timing.QuestionId != question || session.Timing.Revision != revision || !session.Timing.RetryAnswers.SequenceEqual(Answers()))) throw new PbeProgressConflictException("The frozen response has another submission payload.");
+            return await Project(new(session.Timing.ClientSubmissionId, session.Timing.Answers, session.Timing.RetryAnswers, session.Timing.ElapsedMs.Value, session.Timing.LockedAtUtc.Value));
+        }
         var card = session.Cards.ElementAtOrDefault(session.Attempts.Count) ?? throw new PbeProgressConflictException("Choose the active saved card.");
+        var current = timing.Current(sessionId, user.UserId, card.Id);
+        if (session.Timing?.Status == "Armed" && current is null)
+        {
+            if (session.Timing.DraftAnswers is not null)
+            {
+                question = session.Timing.QuestionId; revision = session.Timing.Revision;
+                var recovered = new PbeTimedDecision(Guid.NewGuid().ToString(), session.Timing.DraftAnswers, session.Timing.DraftAnswers, session.Timing.DraftElapsedMs!.Value, session.Timing.DraftLockedAtUtc!.Value);
+                return await Project(recovered);
+            }
+            session.Status = "Interrupted"; session.Timing.Status = "Interrupted"; await SaveTiming();
+            throw new PbeProgressConflictException("This rehearsal was interrupted. Start another shortened timed practice.");
+        }
+        if (action is null)
+        {
+            if (current is null) return new { status = "NotPresented", questionId = card.Id, revision = 0, serverNow = clock.UtcNow, feedbackDeferred = true };
+            if (current.Status == "Armed" && current.ResponseEndsAtMs <= current.ServerNow.ToUnixTimeMilliseconds())
+            {
+                var captured = ingress ?? timing.CaptureIfActive(sessionId)!;
+                var ownsCapture = ingress is null;
+                if (ownsCapture) await captured.WaitAsync();
+                try { question = card.Id; revision = current.Revision; return await Project(timing.Lock(sessionId, user.UserId, card.Id, current.Revision, Guid.NewGuid().ToString(), card.Question.Parts.Select(_ => "").ToArray(), captured)); }
+                finally { if (ownsCapture) captured.Complete(); }
+            }
+            return current;
+        }
+        var delivery = input!.Value.TryGetProperty("delivery", out var d) && d.ValueKind == JsonValueKind.String ? d.GetString()! : "Audio";
         if (action == "present")
         {
+            if (current is not null) return current;
             var view = timing.Present(sessionId, user.UserId, card.Id, card.Question.Parts.Sum(p => p.Points), delivery);
-            session.TimingStatus = "Presenting"; session.TimingQuestionId = card.Id; Write(db, user.OrganizationId, session, "pbe-session", session.Id.ToString(), session, row); await db.SaveChangesAsync(ct);
-            return view;
+            session.Timing = new() { QuestionId = card.Id, Revision = view.Revision, Delivery = view.Delivery, Status = "Presenting" }; await SaveTiming(); return view;
         }
-        if (question != card.Id) throw new PbeProgressConflictException("This action is for another presentation revision.");
+        if (question != card.Id || session.Timing?.QuestionId != card.Id) throw new PbeProgressConflictException("This action is for another presentation revision.");
         if (action == "ack")
         {
             var view = timing.Acknowledge(sessionId, user.UserId, question, revision, delivery, ingress);
-            session.TimingStatus = "Armed"; session.TimingQuestionId = card.Id; Write(db, user.OrganizationId, session, "pbe-session", session.Id.ToString(), session, row); await db.SaveChangesAsync(ct);
-            return view;
+            session.Timing.Status = "Armed"; await SaveTiming(); return view;
         }
-        if (action == "draft") return timing.Draft(sessionId, user.UserId, question, revision, Answers(), ingress);
-        throw new DomainException("Choose a timed rehearsal action.");
+        var answers = Answers();
+        if (answers.Length != card.Question.Parts.Count || answers.Any(answer => answer.Length > 10000)) throw new DomainException("Provide one text answer per requested part.");
+        if (action == "draft")
+        {
+            var draft = timing.Draft(sessionId, user.UserId, question, revision, answers, ingress);
+            session.Timing.DraftAnswers = draft.Answers; session.Timing.DraftElapsedMs = draft.ElapsedMs; session.Timing.DraftLockedAtUtc = draft.LockedAtUtc; await SaveTiming(); return draft.View;
+        }
+        if (action != "submit") throw new DomainException("Choose a timed rehearsal action.");
+        return await Project(timing.Lock(sessionId, user.UserId, question, revision, clientId, answers, ingress));
     }
     private Task<object> ActionCoreAsync(Guid sessionId, string? action, JsonElement? input, PbeTimedDecision? timed, CancellationToken ct) => progress.ExecuteAsync<object>(async token =>
     {
         var row = await db.PbeTrainingRecords.SingleOrDefaultAsync(r => r.OrganizationId == user.OrganizationId && r.OwnerId == user.UserId && r.Kind == "pbe-session" && r.Id == sessionId.ToString(), token) ?? throw new KeyNotFoundException("Study session was not found.");
         var s = JsonSerializer.Deserialize<PbeSessionSnapshot>(row.DataJson, PbeQuestionBank.Json)!;
-        if (s.Mode == "Simulation" && s.TimingStatus == "Armed" && timing.CaptureIfActive(sessionId) is null)
+        if (s.Mode == "Simulation" && s.Timing is null && s.TimingStatus == "Armed") { s.Status = "Interrupted"; s.TimingStatus = "Interrupted"; Write(db, user.OrganizationId, s, "pbe-session", s.Id.ToString(), s, row); }
+        if (s.Status == "Interrupted" || s.Timing?.Status == "Interrupted")
         {
-            s.Status = "Interrupted"; s.TimingStatus = "Interrupted"; Write(db, user.OrganizationId, s, "pbe-session", s.Id.ToString(), s, row);
-            if (action is null) return new { session = SessionDto(s), card = (object?)null, attempt = (object?)null, summary = (object?)null, interruption = new { status = "Interrupted", restartAllowed = true } };
+            if (action is null) return new { session = SessionDto(s), card = (object?)null, attempt = (object?)null, summary = new { sessionId = s.Id, s.Format, s.Mode, attempted = s.Attempts.Count, targetCardCount = s.Cards.Count, status = "Interrupted", restartAllowed = true }, interruption = new { status = "Interrupted", restartAllowed = true } };
             throw new PbeProgressConflictException("This rehearsal was interrupted. Start another shortened timed practice.");
         }
         if (action is null && s.Status == "Completed") return new { session = SessionDto(s), card = (object?)null, attempt = (object?)null, summary = Summary(s) };
@@ -194,13 +277,13 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
             }
             catch (JsonException) { throw new DomainException("Provide text answers and a hints indicator."); }
             if (answer.Answers is null || answer.Answers.Any(a => a is null || a.Length > 10000) || string.IsNullOrWhiteSpace(answer.ClientSubmissionId) || answer.ClientSubmissionId.Length > 200) throw new DomainException("Provide text answers and a submission ID.");
-            if (s.Mode == "Simulation" && timed is null) throw new PbeProgressConflictException("Timed rehearsal answers must use the authoritative response window.");
             var previous = s.Attempts.SingleOrDefault(a => a.ClientSubmissionId == answer.ClientSubmissionId);
             if (previous is not null)
             {
-                if (previous.CardId != answer.ChallengeCardId || previous.HintsUsed != answer.HintsUsed || !previous.Answers.SequenceEqual(answer.Answers)) throw new PbeProgressConflictException("This submission ID was already used with a different answer payload.");
+                if (previous.CardId != answer.ChallengeCardId || previous.HintsUsed != answer.HintsUsed || !(previous.OriginalTimedAnswers ?? previous.Answers).SequenceEqual(answer.Answers)) throw new PbeProgressConflictException("This submission ID was already used with a different answer payload.");
                 return s.Mode == "Simulation" ? (object)new { previous.Result.AttemptId, previous.Result.AcceptedAtUtc, previous.Result.AcceptedSequence, AlreadyProcessed = true, feedbackDeferred = true } : previous.Result with { AlreadyProcessed = true };
             }
+            if (s.Mode == "Simulation" && timed is null) throw new PbeProgressConflictException("Timed rehearsal answers must use the authoritative response window.");
             var card = s.Cards.ElementAtOrDefault(s.Attempts.Count);
             if (s.Status == "Completed" || card is null || card.Id != answer.ChallengeCardId || card.ServedAtMs is null) throw new PbeProgressConflictException("Answer the active saved card.");
             if (answer.Answers.Count != card.Question.Parts.Count) throw new DomainException("Provide one answer per requested part.");
@@ -212,10 +295,12 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
             var evidence = PbeReviewRules.Group(card.Question, card.Targets, answer.Answers, aid, atMs, unaided);
             var prepared = await progress.PrepareRecallEvidenceAsync(user.OrganizationId, s.SeasonId, user.UserId, s.ScopeVersion, evidence, token, card.Question.Kind.ToString());
             var result = new PbeSessionResult(aid, earned, grade.AvailablePoints, card.Question.Parts.Select(p => p.AcceptedAnswers[0]).ToList(), card.Question.Evidence, card.Question.Reference, unaided, DateTimeOffset.FromUnixTimeMilliseconds(atMs), prepared.AcceptedSequence!.Value, false);
-            var attempt = new PbeSessionAttempt(aid, card.Id, answer.ClientSubmissionId, answer.Answers.ToList(), answer.HintsUsed, atMs, result, timed?.LockedAtUtc);
+            var attempt = new PbeSessionAttempt(aid, card.Id, answer.ClientSubmissionId, answer.Answers.ToList(), answer.HintsUsed, atMs, result, timed?.LockedAtUtc, timed?.RetryAnswers);
             s.Attempts.Add(attempt);
             s.Status = "Active";
-            s.TimingStatus = null; s.TimingQuestionId = null;
+            s.TimingStatus = null; s.TimingQuestionId = null; s.Timing = null;
+            var timingOutbox = await db.PbeTrainingRecords.SingleOrDefaultAsync(record => record.OrganizationId == user.OrganizationId && record.OwnerId == user.UserId && record.Kind == "pbe-solo-outbox" && record.Id == s.Id.ToString(), token);
+            if (timingOutbox is not null) db.PbeTrainingRecords.Remove(timingOutbox);
             if (s.Mode != "Simulation") await effort.ApplyAsync(user.OrganizationId, s, result.AcceptedAtUtc, token);
             Write(db, user.OrganizationId, s, "pbe-attempt", aid.ToString(), new { attempt.Id, attempt.CardId, attempt.ClientSubmissionId, attempt.Answers, attempt.HintsUsed, attempt.AtMs, attempt.ResponseLockedAtUtc, attempt.Result, sessionId = s.Id, s.Format, s.RuleVersion, s.ScoringVersion, s.SelectionVersion });
             Save();

@@ -4,16 +4,27 @@ using Erudoza.Domain.Practice;
 
 namespace Erudoza.Application.Study;
 
-public sealed record PbeSoloIngress(Guid SessionId, IngressStamp Stamp, DateTimeOffset ReceivedAtUtc);
-public sealed record PbeTimedDecision(string ClientSubmissionId, IReadOnlyList<string> Answers, long ElapsedMs, DateTimeOffset LockedAtUtc);
+public sealed class PbeSoloIngress(Guid sessionId, IngressStamp stamp, DateTimeOffset receivedAtUtc, Task predecessor, Action release)
+{
+    private int completed;
+    public Guid SessionId { get; } = sessionId;
+    public IngressStamp Stamp { get; } = stamp;
+    public DateTimeOffset ReceivedAtUtc { get; } = receivedAtUtc;
+    public Task WaitAsync() => predecessor;
+    public void Complete() { if (Interlocked.Exchange(ref completed, 1) == 0) release(); }
+}
+public sealed record PbeTimedDecision(string ClientSubmissionId, IReadOnlyList<string> Answers, IReadOnlyList<string> RetryAnswers, long ElapsedMs, DateTimeOffset LockedAtUtc);
+public sealed record PbeTimedDraft(PbeSoloTimingView View, IReadOnlyList<string> Answers, long ElapsedMs, DateTimeOffset LockedAtUtc);
 public sealed record PbeSoloTimingView(Guid QuestionId, int Revision, string Delivery, IReadOnlyList<Guid> RequiredScribeIds, IReadOnlyList<Guid> ReadyScribeIds, long? ResponseStartsAtMs, long? ResponseEndsAtMs, string Status, DateTimeOffset ServerNow, bool FeedbackDeferred = true);
+public sealed class PbePendingLimitException : Exception { }
 
 public interface IPbeSoloTimingAuthority
 {
     PbeSoloIngress? CaptureIfActive(Guid sessionId);
+    PbeSoloTimingView? Current(Guid sessionId, Guid student, Guid question);
     PbeSoloTimingView Present(Guid sessionId, Guid student, Guid question, int points, string delivery);
     PbeSoloTimingView Acknowledge(Guid sessionId, Guid student, Guid question, int revision, string delivery, PbeSoloIngress? ingress);
-    PbeSoloTimingView Draft(Guid sessionId, Guid student, Guid question, int revision, string[] answers, PbeSoloIngress? ingress);
+    PbeTimedDraft Draft(Guid sessionId, Guid student, Guid question, int revision, string[] answers, PbeSoloIngress? ingress);
     PbeTimedDecision Lock(Guid sessionId, Guid student, Guid question, int revision, string clientSubmissionId, string[] answers, PbeSoloIngress? ingress);
 }
 
@@ -30,10 +41,25 @@ public sealed class PbeSoloTimingAuthority(TimeProvider time) : IPbeSoloTimingAu
         public RoundSchedule? Schedule { get; set; }
         public (IReadOnlyList<string> Answers, long ElapsedMs, DateTimeOffset LockedAtUtc)? Draft { get; set; }
         public PbeTimedDecision? Frozen { get; set; }
-        public IReadOnlyList<string>? RetryAnswers { get; set; }
+        public Task Tail { get; set; } = Task.CompletedTask;
+        public int Pending { get; set; }
+        public object Gate { get; } = new();
     }
     private readonly ConcurrentDictionary<Guid, Entry> entries = [];
-    public PbeSoloIngress? CaptureIfActive(Guid sessionId) => entries.TryGetValue(sessionId, out var e) ? new(sessionId, e.Clock.CaptureIngress(), time.GetUtcNow()) : null;
+    public PbeSoloIngress? CaptureIfActive(Guid sessionId)
+    {
+        if (!entries.TryGetValue(sessionId, out var entry)) return null;
+        lock (entry.Gate)
+        {
+            if (entry.Pending >= 32) throw new PbePendingLimitException();
+            entry.Pending++;
+            var predecessor = entry.Tail;
+            var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            entry.Tail = completion.Task;
+            return new(sessionId, entry.Clock.CaptureIngress(), time.GetUtcNow(), predecessor, () => { lock (entry.Gate) entry.Pending--; completion.TrySetResult(); });
+        }
+    }
+    public PbeSoloTimingView? Current(Guid sessionId, Guid student, Guid question) => entries.TryGetValue(sessionId, out var entry) && entry.Student == student && entry.Question == question ? View(entry) : null;
     public PbeSoloTimingView Present(Guid sessionId, Guid student, Guid question, int points, string delivery)
     {
         if (delivery is not ("Audio" or "TextFallback")) throw new DomainException("Choose audio or disclosed text fallback.");
@@ -48,23 +74,45 @@ public sealed class PbeSoloTimingAuthority(TimeProvider time) : IPbeSoloTimingAu
     }
     public PbeSoloTimingView Acknowledge(Guid sessionId, Guid student, Guid question, int revision, string delivery, PbeSoloIngress? ingress)
     {
-        var e = Require(sessionId, student, question, revision); if (e.Delivery != delivery || ingress is null) throw new DomainException("Confirm the saved presentation delivery.");
-        e.Schedule ??= e.Clock.Schedule([student], TimeSpan.FromSeconds(3), PbeRules.ResponseSeconds(e.Points));
-        if (!e.Clock.Acknowledge(e.Schedule.Id, student)) throw new DomainException("Presentation acknowledgement expired.");
-        return View(e);
+        var entry = Require(sessionId, student, question, revision);
+        if (entry.Schedule is not null) return View(entry);
+        if (entry.Delivery != delivery || ingress is null) throw new DomainException("Confirm the saved presentation delivery.");
+        entry.Schedule = entry.Clock.Schedule([student], TimeSpan.FromSeconds(3), PbeRules.ResponseSeconds(entry.Points));
+        if (!entry.Clock.Acknowledge(entry.Schedule.Id, student)) throw new DomainException("Presentation acknowledgement expired.");
+        return View(entry);
     }
-    public PbeSoloTimingView Draft(Guid sessionId, Guid student, Guid question, int revision, string[] answers, PbeSoloIngress? ingress)
+    public PbeTimedDraft Draft(Guid sessionId, Guid student, Guid question, int revision, string[] answers, PbeSoloIngress? ingress)
     {
-        var e = Require(sessionId, student, question, revision); var elapsed = Elapsed(e, ingress); if (elapsed <= TimeSpan.FromSeconds(e.Schedule!.DurationSeconds)) e.Draft = ([.. answers], checked((long)elapsed.TotalMilliseconds), ingress!.ReceivedAtUtc); return View(e);
+        var entry = Require(sessionId, student, question, revision);
+        var elapsed = Elapsed(entry, ingress);
+        if (elapsed <= TimeSpan.FromSeconds(entry.Schedule!.DurationSeconds)) entry.Draft = ([.. answers], checked((long)elapsed.TotalMilliseconds), ingress!.ReceivedAtUtc);
+        var draft = entry.Draft ?? throw new PbeProgressConflictException("The response window has closed.");
+        return new(View(entry), draft.Answers, draft.ElapsedMs, draft.LockedAtUtc);
     }
     public PbeTimedDecision Lock(Guid sessionId, Guid student, Guid question, int revision, string clientSubmissionId, string[] answers, PbeSoloIngress? ingress)
     {
         if (string.IsNullOrWhiteSpace(clientSubmissionId) || clientSubmissionId.Length > 200) throw new DomainException("Submission ID is required.");
-        var e = Require(sessionId, student, question, revision); if (e.Frozen is not null) { if (e.Frozen.ClientSubmissionId != clientSubmissionId || e.RetryAnswers is null || !e.RetryAnswers.SequenceEqual(answers)) throw new PbeProgressConflictException("The frozen response has another submission payload."); return e.Frozen; }
-        e.RetryAnswers = [.. answers];
-        var elapsed = Elapsed(e, ingress); if (elapsed > TimeSpan.FromSeconds(e.Schedule!.DurationSeconds) && e.Draft is { } draft) return e.Frozen = new(clientSubmissionId, draft.Answers, draft.ElapsedMs, draft.LockedAtUtc); var chosen = elapsed <= TimeSpan.FromSeconds(e.Schedule.DurationSeconds) ? answers : answers.Select(_ => "").ToArray(); return e.Frozen = new(clientSubmissionId, chosen, checked((long)elapsed.TotalMilliseconds), ingress!.ReceivedAtUtc);
+        var entry = Require(sessionId, student, question, revision);
+        if (entry.Frozen is not null)
+        {
+            if (entry.Frozen.ClientSubmissionId != clientSubmissionId || !entry.Frozen.RetryAnswers.SequenceEqual(answers)) throw new PbeProgressConflictException("The frozen response has another submission payload.");
+            return entry.Frozen;
+        }
+        var elapsed = Elapsed(entry, ingress);
+        if (elapsed > TimeSpan.FromSeconds(entry.Schedule!.DurationSeconds) && entry.Draft is { } draft) return entry.Frozen = new(clientSubmissionId, draft.Answers, [.. answers], draft.ElapsedMs, draft.LockedAtUtc);
+        var chosen = elapsed <= TimeSpan.FromSeconds(entry.Schedule.DurationSeconds) ? answers : answers.Select(_ => "").ToArray();
+        return entry.Frozen = new(clientSubmissionId, chosen, [.. answers], checked((long)elapsed.TotalMilliseconds), ingress!.ReceivedAtUtc);
     }
-    private Entry Require(Guid session, Guid student, Guid question, int revision) { if (!entries.TryGetValue(session, out var e) || e.Student != student || e.Question != question || e.Revision != revision) throw new DomainException("This action is for another presentation revision."); return e; }
-    private static TimeSpan Elapsed(Entry e, PbeSoloIngress? ingress) { if (ingress is null || e.Schedule is null) throw new DomainException("The response window has not opened."); try { return e.Clock.Elapsed(ingress.Stamp); } catch (InvalidOperationException) { throw new DomainException("The response window has not opened."); } }
-    private PbeSoloTimingView View(Entry e) => new(e.Question, e.Revision, e.Delivery, [e.Student], e.Schedule is null ? [] : [e.Student], e.Schedule?.StartsAtUtc.ToUnixTimeMilliseconds(), e.Schedule is null ? null : e.Schedule.StartsAtUtc.AddSeconds(e.Schedule.DurationSeconds).ToUnixTimeMilliseconds(), e.Frozen is null ? e.Schedule is null ? "Presenting" : "Armed" : "Settled", time.GetUtcNow());
+    private Entry Require(Guid session, Guid student, Guid question, int revision)
+    {
+        if (!entries.TryGetValue(session, out var entry) || entry.Student != student || entry.Question != question || entry.Revision != revision) throw new DomainException("This action is for another presentation revision.");
+        return entry;
+    }
+    private static TimeSpan Elapsed(Entry entry, PbeSoloIngress? ingress)
+    {
+        if (ingress is null || entry.Schedule is null) throw new DomainException("The response window has not opened.");
+        try { return entry.Clock.Elapsed(ingress.Stamp); }
+        catch (InvalidOperationException) { throw new DomainException("The response window has not opened."); }
+    }
+    private PbeSoloTimingView View(Entry entry) => new(entry.Question, entry.Revision, entry.Delivery, [entry.Student], entry.Schedule is null ? [] : [entry.Student], entry.Schedule?.StartsAtUtc.ToUnixTimeMilliseconds(), entry.Schedule is null ? null : entry.Schedule.StartsAtUtc.AddSeconds(entry.Schedule.DurationSeconds).ToUnixTimeMilliseconds(), entry.Frozen is null ? entry.Schedule is null ? "Presenting" : "Armed" : "Settled", time.GetUtcNow());
 }

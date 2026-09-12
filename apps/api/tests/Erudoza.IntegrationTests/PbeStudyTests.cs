@@ -26,6 +26,81 @@ public sealed class PbeStudyTests
         Assert.Equal("Interrupted", resumed.GetProperty("session").GetProperty("status").GetString());
         Assert.True(resumed.GetProperty("interruption").GetProperty("restartAllowed").GetBoolean());
         Assert.Equal(JsonValueKind.Null, resumed.GetProperty("card").ValueKind);
+        Assert.Equal("Interrupted", (await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}")).GetProperty("session").GetProperty("status").GetString());
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.GetAsync($"/api/v1/study/sessions/{id}/next")).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "present", delivery = "TextFallback" })).StatusCode);
+        var recap = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}/recap");
+        Assert.Equal(0, recap.GetProperty("attempted").GetInt32());
+        Assert.False(recap.GetProperty("fullTargetReached").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Persisted_timed_draft_survives_authority_loss_and_projects_without_a_client_request()
+    {
+        using var f = await Fixture.Create();
+        var started = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Practice" })).Content.ReadFromJsonAsync<JsonElement>();
+        var id = started.GetProperty("id").GetGuid(); var card = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}/next");
+        var row = await f.Db.PbeTrainingRecords.SingleAsync(r => r.Kind == "pbe-session" && r.Id == id.ToString());
+        var snapshot = JsonSerializer.Deserialize<PbeSessionSnapshot>(row.DataJson, PbeQuestionBank.Json)!; snapshot.Mode = "Simulation";
+        snapshot.Timing = new() { QuestionId = card.GetProperty("id").GetGuid(), Revision = 1, Delivery = "TextFallback", Status = "Armed", DraftAnswers = ["Alpha", "Beta"], DraftElapsedMs = 1000, DraftLockedAtUtc = DateTimeOffset.UnixEpoch.AddSeconds(1) };
+        row.DataJson = JsonSerializer.Serialize(snapshot, PbeQuestionBank.Json);
+        f.Db.PbeTrainingRecords.Add(new() { OrganizationId = f.Org, SeasonId = f.Season, OwnerId = f.StudentId, Kind = "pbe-solo-outbox", Id = id.ToString(), DataJson = JsonSerializer.Serialize(new PbeSoloOutbox(id), PbeQuestionBank.Json) }); await f.Db.SaveChangesAsync();
+        using (var processorScope = f.Factory.Services.CreateScope()) await processorScope.ServiceProvider.GetRequiredService<PbeSoloExpiryProcessor>().RunOnceAsync(null);
+        var accepted = Assert.Single((JsonSerializer.Deserialize<PbeSessionSnapshot>((await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.Kind == "pbe-session" && r.Id == id.ToString())).DataJson, PbeQuestionBank.Json)!).Attempts);
+        Assert.False(await f.Db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-solo-outbox" && r.Id == id.ToString()));
+        await f.Student.GetAsync($"/api/v1/study/sessions/{id}/next");
+        (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "present", delivery = "TextFallback" })).EnsureSuccessStatusCode();
+        var retry = await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "submit", questionId = accepted.CardId, revision = 1, answers = accepted.OriginalTimedAnswers, clientSubmissionId = accepted.ClientSubmissionId });
+        retry.EnsureSuccessStatusCode();
+        Assert.True((await retry.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("alreadyProcessed").GetBoolean());
+        Assert.Equal(HttpStatusCode.Conflict, (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "submit", questionId = accepted.CardId, revision = 1, answers = new[] { "changed", "answer" }, clientSubmissionId = accepted.ClientSubmissionId })).StatusCode);
+    }
+
+    [Fact]
+    public async Task Live_authority_expiry_projects_the_durable_draft_without_a_client_request()
+    {
+        var time = new ManualTime();
+        using var f = await Fixture.Create(time);
+        var started = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Practice" })).Content.ReadFromJsonAsync<JsonElement>();
+        var id = started.GetProperty("id").GetGuid();
+        var card = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}/next");
+        var cardId = card.GetProperty("id").GetGuid();
+        var row = await f.Db.PbeTrainingRecords.SingleAsync(r => r.Kind == "pbe-session" && r.Id == id.ToString());
+        var snapshot = JsonSerializer.Deserialize<PbeSessionSnapshot>(row.DataJson, PbeQuestionBank.Json)!;
+        snapshot.Mode = "Simulation";
+        row.DataJson = JsonSerializer.Serialize(snapshot, PbeQuestionBank.Json);
+        await f.Db.SaveChangesAsync();
+
+        var presented = await (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "present", delivery = "TextFallback" })).Content.ReadFromJsonAsync<JsonElement>();
+        var revision = presented.GetProperty("revision").GetInt32();
+        (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "ack", questionId = cardId, revision, delivery = "TextFallback" })).EnsureSuccessStatusCode();
+        time.Advance(TimeSpan.FromSeconds(4));
+        (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{id}/timed", new { action = "draft", questionId = cardId, revision, answers = new[] { "Alpha", "Beta" } })).EnsureSuccessStatusCode();
+        time.Advance(TimeSpan.FromSeconds(30));
+
+        using (var processorScope = f.Factory.Services.CreateScope())
+            await processorScope.ServiceProvider.GetRequiredService<PbeSoloExpiryProcessor>().RunOnceAsync(null);
+
+        var saved = JsonSerializer.Deserialize<PbeSessionSnapshot>((await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.Kind == "pbe-session" && r.Id == id.ToString())).DataJson, PbeQuestionBank.Json)!;
+        Assert.Equal(["Alpha", "Beta"], Assert.Single(saved.Attempts).Answers);
+        Assert.False(await f.Db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-solo-outbox" && r.Id == id.ToString()));
+    }
+
+    [Fact]
+    public async Task Persisted_frozen_outbox_retries_original_envelope_after_projection_guard_failure()
+    {
+        using var f = await Fixture.Create();
+        var started = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Practice" })).Content.ReadFromJsonAsync<JsonElement>();
+        var id = started.GetProperty("id").GetGuid(); var card = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{id}/next"); var cardId = card.GetProperty("id").GetGuid();
+        var row = await f.Db.PbeTrainingRecords.SingleAsync(r => r.Kind == "pbe-session" && r.Id == id.ToString()); var snapshot = JsonSerializer.Deserialize<PbeSessionSnapshot>(row.DataJson, PbeQuestionBank.Json)!; snapshot.Mode = "Simulation";
+        snapshot.Timing = new() { QuestionId = cardId, Revision = 1, Delivery = "TextFallback", Status = "Frozen", ClientSubmissionId = "durable-final", Answers = ["Alpha", "Beta"], RetryAnswers = ["Alpha", "Beta"], ElapsedMs = 1000, LockedAtUtc = DateTimeOffset.UnixEpoch.AddSeconds(1) };
+        row.DataJson = JsonSerializer.Serialize(snapshot, PbeQuestionBank.Json); f.Db.PbeTrainingRecords.Add(new() { OrganizationId = f.Org, SeasonId = f.Season, OwnerId = f.StudentId, Kind = "pbe-solo-outbox", Id = id.ToString(), DataJson = JsonSerializer.Serialize(new PbeSoloOutbox(id), PbeQuestionBank.Json) });
+        var membership = await f.Db.CompetitionMembers.SingleAsync(m => m.SeasonId == f.Season && m.UserId == f.StudentId); f.Db.CompetitionMembers.Remove(membership); await f.Db.SaveChangesAsync(); using (var failedScope = f.Factory.Services.CreateScope()) await failedScope.ServiceProvider.GetRequiredService<PbeSoloExpiryProcessor>().RunOnceAsync(null);
+        Assert.True(await f.Db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-solo-outbox" && r.Id == id.ToString()));
+        f.Db.CompetitionMembers.Add(membership); await f.Db.SaveChangesAsync(); using (var retryScope = f.Factory.Services.CreateScope()) await retryScope.ServiceProvider.GetRequiredService<PbeSoloExpiryProcessor>().RunOnceAsync(null);
+        var saved = JsonSerializer.Deserialize<PbeSessionSnapshot>((await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.Kind == "pbe-session" && r.Id == id.ToString())).DataJson, PbeQuestionBank.Json)!;
+        Assert.Equal("durable-final", Assert.Single(saved.Attempts).ClientSubmissionId);
+        Assert.False(await f.Db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-solo-outbox" && r.Id == id.ToString()));
     }
 
     [Fact]
@@ -279,9 +354,9 @@ i++)
             Scope.Dispose();
             Factory.Dispose();
         }
-        public static async Task<Fixture> Create()
+        public static async Task<Fixture> Create(TimeProvider? timeProvider = null)
         {
-            var f = new Fixture { Factory = new ErudozaApiFactory { DisablePracticeTicker = true } };
+            var f = new Fixture { Factory = new ErudozaApiFactory { DisablePracticeTicker = true, TestTimeProvider = timeProvider } };
             f.Coach = await TestHttp.LoginAsync(f.Factory, "admin@erudoza.local", "DevAdmin!234");
             f.Student = await TestHttp.LoginAsync(f.Factory, "daniel.student", "DevStudent!234");
             f.Org = (await f.Coach.GetFromJsonAsync<JsonElement>("/api/v1/me")).GetProperty("organizationId").GetGuid();
@@ -314,5 +389,15 @@ i++)
             }
             return f;
         }
+    }
+
+    private sealed class ManualTime : TimeProvider
+    {
+        private readonly DateTimeOffset origin = DateTimeOffset.UtcNow;
+        private long timestamp;
+        public override long TimestampFrequency => 1000;
+        public override long GetTimestamp() => timestamp;
+        public override DateTimeOffset GetUtcNow() => origin.AddMilliseconds(timestamp);
+        public void Advance(TimeSpan elapsed) => timestamp += (long)elapsed.TotalMilliseconds;
     }
 }

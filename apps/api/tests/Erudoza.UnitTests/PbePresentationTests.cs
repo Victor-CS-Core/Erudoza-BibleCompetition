@@ -54,6 +54,18 @@ public sealed class PbePresentationTests
         Assert.Throws<PbeProgressConflictException>(() => authority.Lock(session, student, question, shown.Revision, "submission", ["changed"], authority.CaptureIfActive(session)));
     }
 
+    [Fact]
+    public async Task Captured_commands_preserve_arrival_order_and_bound_pending_work()
+    {
+        var time = new ManualTime(); var authority = new PbeSoloTimingAuthority(time); var session = Guid.NewGuid(); var student = Guid.NewGuid(); var question = Guid.NewGuid();
+        var shown = authority.Present(session, student, question, 1, "TextFallback"); var ack = authority.CaptureIfActive(session)!; await ack.WaitAsync(); authority.Acknowledge(session, student, question, shown.Revision, shown.Delivery, ack); ack.Complete();
+        time.Advance(TimeSpan.FromSeconds(4)); var draftIngress = authority.CaptureIfActive(session)!; time.Advance(TimeSpan.FromSeconds(30)); var finalIngress = authority.CaptureIfActive(session)!;
+        var finalReady = finalIngress.WaitAsync(); Assert.False(finalReady.IsCompleted);
+        await draftIngress.WaitAsync(); authority.Draft(session, student, question, shown.Revision, ["timely"], draftIngress); draftIngress.Complete();
+        await finalReady; var decision = authority.Lock(session, student, question, shown.Revision, "submission", ["late"], finalIngress); finalIngress.Complete(); Assert.Equal(["timely"], decision.Answers);
+        var pending = Enumerable.Range(0, 32).Select(_ => authority.CaptureIfActive(session)!).ToList(); Assert.Throws<PbePendingLimitException>(() => authority.CaptureIfActive(session)); foreach (var ingress in pending) ingress.Complete();
+    }
+
     private sealed class ManualTime : TimeProvider
     {
         private long timestamp;

@@ -67,7 +67,8 @@ public sealed class TrainingQueryService(IErudozaDbContext db, TrainingProgressS
         var pbe = await db.PbeTrainingRecords.AsNoTracking().SingleOrDefaultAsync(r => r.OrganizationId == org && r.OwnerId == student && r.Kind == "pbe-session" && r.Id == sessionId.ToString(), ct);
         if (pbe is not null)
         {
-            var s = Read<PbeSessionSnapshot>(pbe.DataJson); if (s.Status != "Completed") throw new TrainingConflictException("Complete your session to save its recap.");
+            var s = Read<PbeSessionSnapshot>(pbe.DataJson);
+            if (s.Status is not ("Completed" or "Interrupted")) throw new TrainingConflictException("Complete your session to save its recap.");
             return new("pbe-daily-v2", s.Id, s.SeasonId, s.Mode, s.CompletedAtUtc, s.Attempts.Count, s.Attempts.Count(a => a.Result.EarnedPoints == a.Result.AvailablePoints), s.Cards.Count, s.Cards.Count == s.Attempts.Count, s.NewlyCreditedDay, s.MissionLocalDate, s.CreditedLocalDate, PbeSessionService.Steps(s), [], []);
         }
         var session = await db.StudySessions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == sessionId && x.OrganizationId == org && x.StudentUserId == student, ct) ?? throw new DomainException("Study session was not found.");
