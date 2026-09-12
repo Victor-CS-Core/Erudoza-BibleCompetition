@@ -10,6 +10,11 @@
 
 - Git checkpoint confirmed: 30 scoped files passed staged whitespace, document-link and credential-pattern review. Implementation commit e531d37 was pushed normally to origin/codex/landing-pathfinder-mockups; remote readback matched e531d374166ec6d36f569e32e43d2c44f0fc7e4f. The destination was freshly verified private with ADMIN access. Task-owned dependency symlink was removed; ignored fixtures and build/browser evidence were excluded. This documentation follow-up records the checkpoint. The preview is retained; next action is user review of the combined design. Main and production remain unchanged by this task.
 
+## Landing preview availability — September 12
+
+- The user reported that localhost did not load. Port 5208 had no listener and the prior Vite process had exited with SIGTERM; the local fixture backend was still running. Restarted the same preview as the user transient service erudoza-landing-preview.service, bound only to 127.0.0.1:5208, so it is independent of the tool execution session. No application source changed.
+- Verified the service active/running, successful HTTP reads for the page and hero asset, and an actual Chrome reload showing the complete redesigned landing page with all images loaded and styled headings. Reopened http://127.0.0.1:5208/ in the app. The service is temporary (not enabled at login); main and production remain unchanged.
+
 ## Pathfinder landing mockups — review gate, September 12
 
 - User requested a stronger Pathfinder landing-page direction and multiple mockups to choose from. Three refined desktop/phone concept boards are saved in [the review package](docs/product/mockups/2026-09-12-pathfinder-landing/README.md): A — The Expedition (recommended), B — The Field Guide, and C — The Basecamp. Selection remains pending.
