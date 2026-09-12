@@ -210,7 +210,7 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
         const atMs = Date.parse(trainingNow()), attemptId = id(), unaided = card.assistedAtMs === null && !submission.hintsUsed;
         const grade = gradePbe(card.question, submission.answers);
         if (s.mode === 'Simulation') grade.earnedPoints = rehearsalPoints(grade.earnedPoints, timed!.elapsedMs, grade.availablePoints);
-        const evidence = groupRecallEvidence(card.question, card.targets, submission.answers, attemptId, atMs, unaided), progress = await prepareRecallEvidence(ctx, s.seasonId, s.scopeVersion, evidence, card.question.kind);
+        const evidence = groupRecallEvidence(card.question, card.targets, submission.answers, attemptId, atMs, unaided), progress = await prepareRecallEvidence(ctx, s.seasonId, s.scopeVersion, evidence, card.question.kind, {questionVersion:card.question.version,responseLockedAtMs:s.mode==='Simulation'?timed!.lockedAtMs:atMs});
         const result: PbeResult = { attemptId, earnedPoints: grade.earnedPoints, availablePoints: grade.availablePoints, expectedParts: card.question.parts.map(p => p.acceptedAnswers[0]), sourceEvidence: card.question.evidence, citation: card.question.reference, unaided, acceptedAtUtc: new Date(atMs).toISOString(), acceptedSequence: progress.acceptedSequence!, alreadyProcessed: false };
         const attempt: PbeAttempt = { id: attemptId, cardId: card.id, clientSubmissionId: submission.clientSubmissionId, answers: [...submission.answers], hintsUsed: submission.hintsUsed, atMs, ...(s.mode === 'Simulation' ? { responseLockedAtMs: timed!.lockedAtMs } : {}), result };
         s.attempts.push(attempt);

@@ -4,10 +4,25 @@ using Erudoza.Domain;
 using Microsoft.EntityFrameworkCore;
 namespace Erudoza.Application.Study;
 
-public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, ICompetitionScopeResolver competition, IStudentStudyScopeService assignments)
+public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, ICompetitionScopeResolver competition, IStudentStudyScopeService assignments, IPbeChapterJsonReader? chapterJson = null)
 {
     public static bool Licensed(string status) => status is "approved" or "public-domain" or "creative-commons";
     public Task<List<PbeTrainingRecord>> IntroductionRows(Guid org, Guid season, CancellationToken ct) => db.PbeTrainingRecords.AsNoTracking().Where(r => r.OrganizationId == org && r.SeasonId == season && r.OwnerId == null && r.Kind == "pbe-introduction").OrderBy(r => r.Id).ToListAsync(ct);
+    public async Task<PbeSourceScope> ResolveChaptersAsync(Guid org, Guid season, Guid student, CancellationToken ct = default)
+    {
+        if (await ChapterAdmission(org, season, student, ct) is not null) throw new UnauthorizedAccessException("Active PBE season required.");
+        return await ReadChapterSources(org, season, student, ct);
+    }
+    internal async Task<PbeSourceScope> ReadChapterSources(Guid org, Guid season, Guid student, CancellationToken ct)
+    {
+        if (chapterJson is null) throw new NotSupportedException("Chapter metadata provider is required.");
+        // Only the final guarded publication/current GET calls this full relevant-source reader.
+        var scripture = await ChapterScripturePage(org, season, student, "", 10001, ct);
+        if (scripture.Count(s => s.SourceKind == Erudoza.Domain.Practice.PbeSourceKind.Scripture) > 5000) throw new PbeChapterLimitException("ScopeTooLarge");
+        var introductions = await chapterJson.IntroductionPage(org, season, student, "", 10001, ct);
+        if (scripture.Count + introductions.Count > 10000) throw new PbeChapterLimitException("ScopeTooLarge");
+        return new(scripture.Concat(introductions).ToArray(), "");
+    }
     public Task<PbeSourceScope> ResolveAsync(Guid organizationId, Guid seasonId, Guid? studentId, CancellationToken ct = default) => ResolveCoreAsync(organizationId, seasonId, studentId, false, ct);
     public async Task<PbeSourceScope> ResolveSessionAsync(Guid organizationId, Guid sessionId, CancellationToken ct = default)
     {
@@ -21,7 +36,7 @@ public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, I
         var material = JsonSerializer.Serialize(new object[] { season.ToString(), student.ToString(), scope.Sources.OrderBy(s => s.Id.ToString(), StringComparer.Ordinal).Select(s => new object?[] { s.Id.ToString(), s.ContentPackId.ToString(), s.SourceKind.ToString(), s.BookKey, s.Chapter, s.Verse, s.Ordinal, s.CitationLabel, s.CanonicalText }).ToArray() }, new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
         return Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(material)));
     }
-    private async Task<PbeSourceScope> ResolveCoreAsync(Guid organizationId, Guid seasonId, Guid? studentId, bool continuation, CancellationToken ct)
+    internal async Task<(ApplicationUser Actor, OrganizationMember Membership)> AuthorizeActor(Guid organizationId, Guid seasonId, Guid? studentId, CancellationToken ct)
     {
         if (!user.IsAuthenticated || user.OrganizationId != organizationId || organizationId == Guid.Empty || seasonId == Guid.Empty)
             throw new UnauthorizedAccessException("Organization access denied.");
@@ -29,6 +44,18 @@ public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, I
         var membership = await db.OrganizationMembers.AsNoTracking().SingleOrDefaultAsync(m => m.UserId == user.UserId && m.OrganizationId == organizationId, ct);
         if (actor is null || membership is null || (actor.Kind == UserKind.Student ? membership.Role != OrganizationRole.Student || studentId != actor.Id : membership.Role is not (OrganizationRole.Owner or OrganizationRole.Admin)))
             throw new UnauthorizedAccessException("Active membership required.");
+        return (actor, membership);
+    }
+    internal async Task<string?> ChapterAdmission(Guid organizationId, Guid seasonId, Guid studentId, CancellationToken ct)
+    {
+        var (actor, _) = await AuthorizeActor(organizationId, seasonId, studentId, ct);
+        if (actor.Id != studentId || actor.Kind != UserKind.Student) throw new UnauthorizedAccessException("Student access required.");
+        var season = await db.Seasons.AsNoTracking().SingleOrDefaultAsync(s => s.OrganizationId == organizationId && s.Id == seasonId, ct) ?? throw new DomainException("Season was not found.");
+        return season.Status != SeasonStatus.Active ? "SeasonClosed" : season.PbeEnabled ? null : "PbeDisabled";
+    }
+    private async Task<PbeSourceScope> ResolveCoreAsync(Guid organizationId, Guid seasonId, Guid? studentId, bool continuation, CancellationToken ct)
+    {
+        var (actor, membership) = await AuthorizeActor(organizationId, seasonId, studentId, ct);
         var season = await db.Seasons.AsNoTracking().SingleOrDefaultAsync(s => s.Id == seasonId && s.OrganizationId == organizationId, ct)
             ?? throw new DomainException("Season was not found.");
         if (season.Status != SeasonStatus.Active) throw new DomainException("Choose an active season.");
@@ -84,5 +111,26 @@ public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, I
             })
         }, PbeQuestionBank.Json);
         return new(combined, fingerprint);
+    }
+    internal IQueryable<SourceUnit> ChapterScriptureQuery(Guid org, Guid season, Guid student)
+    {
+        return db.SourceUnits.AsNoTracking().Where(s =>
+            (s.OrganizationId == org && s.ContentPack!.OrganizationId == org || s.OrganizationId == BuiltInLibrary.OrganizationId && s.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && s.ContentPack.IsBuiltIn) &&
+            s.IsActive && !s.IsRetired && s.ContentPack!.IsActive &&
+            (s.ContentPack.LicensingStatus.ToLower() == "development-sample" || s.ContentPack.LicensingStatus.ToLower() == "approved" || s.ContentPack.LicensingStatus.ToLower() == "public-domain" || s.ContentPack.LicensingStatus.ToLower() == "creative-commons") &&
+            db.AssignmentScopes.Any(a => a.Assignment!.OrganizationId == org && a.Assignment.SeasonId == season && a.Assignment.StudentUserId == student &&
+                (a.Assignment.Type == AssignmentType.PrimarySpecialist || a.Assignment.Type == AssignmentType.RequiredCoverage || a.Assignment.Type == AssignmentType.OptionalReview) &&
+                a.ContentPackId == s.ContentPackId && a.BookKey.ToUpper() == s.BookKey.ToUpper() &&
+                s.Chapter >= a.StartChapter && s.Chapter <= a.EndChapter && (s.Chapter != a.StartChapter || s.Verse >= a.StartVerse) && (s.Chapter != a.EndChapter || s.Verse <= a.EndVerse)) &&
+            db.ScopeEntries.Any(e => e.OrganizationId == org && e.SeasonId == season && e.Kind == ScopeEntryKind.Include && e.ContentPackId == s.ContentPackId && e.BookKey.ToUpper() == s.BookKey.ToUpper() &&
+                s.Chapter >= e.StartChapter && s.Chapter <= e.EndChapter && (s.Chapter != e.StartChapter || s.Verse >= e.StartVerse) && (s.Chapter != e.EndChapter || s.Verse <= e.EndVerse)) &&
+            !db.ScopeEntries.Any(e => e.OrganizationId == org && e.SeasonId == season && e.Kind == ScopeEntryKind.Exclude && e.ContentPackId == s.ContentPackId && e.BookKey.ToUpper() == s.BookKey.ToUpper() &&
+                s.Chapter >= e.StartChapter && s.Chapter <= e.EndChapter && (s.Chapter != e.StartChapter || s.Verse >= e.StartVerse) && (s.Chapter != e.EndChapter || s.Verse <= e.EndVerse)));
+    }
+    internal async Task<IReadOnlyList<PbeSourceUnit>> ChapterScripturePage(Guid org, Guid season, Guid student, string after, int limit, CancellationToken ct)
+    {
+        var query = ChapterScriptureQuery(org, season, student).Where(s => string.Compare(s.Id.ToString().ToLower(), after) > 0);
+        return await query.OrderBy(s => s.Id.ToString().ToLower()).Take(limit).Select(s => new PbeSourceUnit(s.Id, s.ContentPackId,
+            s.ContentPack!.SourceType == SourceType.Supplemental ? Erudoza.Domain.Practice.PbeSourceKind.Commentary : Erudoza.Domain.Practice.PbeSourceKind.Scripture, s.BookKey, s.Chapter, s.Verse, s.Ordinal, s.CitationLabel, s.CanonicalText)).ToListAsync(ct);
     }
 }

@@ -46,6 +46,9 @@ public static class DependencyInjection
         services.AddScoped<PbeProgressService>();
         services.AddScoped<PbeSessionService>();
         services.AddScoped<PbeEvidenceReplayService>();
+        services.AddScoped<PbeChapterProgressService>();
+        services.AddScoped<IPbeChapterJsonReader, PbeChapterJsonReader>();
+        services.AddScoped<IPbeChapterProjectionReader, PbeChapterProjectionReader>();
         services.AddScoped<PbeEffortService>();
         services.AddScoped<ICompetitionScopeResolver, CompetitionScopeResolver>();
         services.AddScoped<IStudentStudyScopeService, StudentStudyScopeService>();

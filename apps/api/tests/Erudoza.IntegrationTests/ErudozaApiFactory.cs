@@ -15,6 +15,7 @@ namespace Erudoza.IntegrationTests;
 
 public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
 {
+    public Microsoft.EntityFrameworkCore.Diagnostics.DbCommandInterceptor? CommandInterceptor { get; set; }
     public bool DisablePracticeTicker { get; set; }
     public TimeProvider? TestTimeProvider { get; set; }
     private readonly string _dbPath = Path.Combine(Path.GetTempPath(), $"erudoza-{Guid.NewGuid():N}.db");
@@ -53,7 +54,7 @@ public sealed class ErudozaApiFactory : WebApplicationFactory<Program>
                 services.Remove(descriptor);
             }
 
-            services.AddDbContext<ErudozaDbContext>(options => options.UseSqlite($"Data Source={_dbPath}"));
+            services.AddDbContext<ErudozaDbContext>(options => { options.UseSqlite($"Data Source={_dbPath}"); if (CommandInterceptor is not null) options.AddInterceptors(CommandInterceptor); });
             services.RemoveAll<IBibleTextClient>();
             services.AddSingleton<IBibleTextClient, FakeBibleTextClient>();
         });

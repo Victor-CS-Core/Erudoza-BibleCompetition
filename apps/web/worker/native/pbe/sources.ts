@@ -45,7 +45,12 @@ export type PbeGuard = {
     id: string;
     revision: number;
 };
-export async function introductionRows(ctx: RequestContext, seasonId: string) {
+export async function introductionRows(ctx: RequestContext, seasonId: string, chapterStudentId?:string) {
+    if(chapterStudentId){
+        const page=await ctx.env.DB.prepare("SELECT data,revision FROM Records WHERE kind='pbe-introduction' AND org_id=? AND season_id=? AND id IN (SELECT json_extract(data,'$.contentPackId') FROM Records WHERE kind='pbe-introduction-assignment' AND org_id=? AND season_id=? AND owner_id=?) LIMIT 10001").bind(ctx.orgId,seasonId,ctx.orgId,seasonId,chapterStudentId).all<{data:string;revision:number}>();
+        if(page.results.length>10000)throw new HttpError(413,'PBE_CHAPTER_SCOPE_TOO_LARGE');
+        return page.results.map(r=>({value:JSON.parse(r.data) as PbeIntroduction,revision:r.revision}));
+    }
     const result = [] as {
         value: PbeIntroduction;
         revision: number;
@@ -80,6 +85,10 @@ export type PbeSourceScope = {
     }[];
 };
 export async function resolvePbeSources(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitIds'>): Promise<PbeSourceScope> { return resolve(ctx, scope, false); }
+export async function resolvePbeChapterSources(ctx:RequestContext,seasonId:string){
+ const counts=await ctx.env.DB.prepare("SELECT kind,count(*) AS n FROM Records WHERE org_id=? AND season_id=? AND owner_id=? AND kind IN ('assignment','pbe-introduction-assignment') GROUP BY kind").bind(ctx.orgId,seasonId,ctx.actor.userId).all<{kind:string;n:number}>();
+ if(counts.results.some(r=>r.n>10000))throw new HttpError(413,'PBE_CHAPTER_SCOPE_TOO_LARGE');
+ return resolve(ctx,{organizationId:ctx.orgId,seasonId,studentId:ctx.actor.userId},false,undefined,true);}
 /** Continuation is granted only after proving a persisted session belongs to this actor. */
 export async function resolvePbeSessionSources(ctx: RequestContext, sessionId: string): Promise<PbeSourceScope> {
     const saved = await ctx.store.require<{
@@ -101,7 +110,7 @@ export async function resolvePbeRoomSources(ctx:RequestContext,room:import('../p
  resolved.guards.push(...roster.results.flatMap(r=>[{kind:'membership',id:r.membershipId,revision:r.revision},{kind:'@active-user',id:r.id,revision:0}]));
  return resolved;
 }
-async function resolve(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitIds'>, continuation: boolean, room?: import('../practice/state').Room): Promise<PbeSourceScope> {
+async function resolve(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitIds'>, continuation: boolean, room?: import('../practice/state').Room, chapter=false): Promise<PbeSourceScope> {
     const organizationId = guid(scope.organizationId), seasonId = guid(scope.seasonId), studentId = scope.studentId === undefined ? undefined : guid(scope.studentId);
     if (organizationId !== ctx.orgId || ctx.actor.organizationId !== ctx.orgId)
         throw new HttpError(403, 'Organization access denied.');
@@ -134,6 +143,7 @@ async function resolve(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitId
         revision: number;
         data: string;
     }>();
+    if(chapter&&['assignment','pbe-introduction-assignment'].some(kind=>revisions.results.filter(r=>r.kind===kind).length>10000))throw new HttpError(413,'PBE_CHAPTER_SCOPE_TOO_LARGE');
     const savedScope = revisions.results.find(r => r.kind === 'scope');
     const entries = savedScope ? scopePacks(JSON.parse(savedScope.data) as Scope) : [];
     // Source text, licensing and their revisions come from the same SQL snapshot.
@@ -152,7 +162,7 @@ async function resolve(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitId
     const sourceRecords = allowedRows.map(r => ({ value: JSON.parse(r.data) as Source, revision: r.revision }));
     const packs = [...new Map(allowedRows.map(r => { const p = JSON.parse(r.pack) as Pack; return [p.id, { value: p, revision: r.packRevision }] as const; })).values()];
     const legacy = sourceRecords.map(r => r.value);
-    const intros = await introductionRows(ctx, seasonId), storedScope = revisions.results.find(r => r.kind === 'scope');
+    const intros = await introductionRows(ctx, seasonId,chapter?studentId:undefined), storedScope = revisions.results.find(r => r.kind === 'scope');
     const books = new Set(storedScope ? scopePacks(JSON.parse(storedScope.data) as Scope).flatMap(p => p.includes.map(r => r.bookKey.toUpperCase())) : []);
     const membership = studentId ? await ctx.store.get('membership', memberId(seasonId, studentId), organizationId) : null;
     const assigned = new Set(revisions.results.filter(r => r.kind === 'pbe-introduction-assignment').map(r => (JSON.parse(r.data) as PbeIntroductionAssignment).contentPackId));
@@ -160,6 +170,7 @@ async function resolve(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitId
     for (const { value: p } of intros)
         if (p.organizationId === organizationId && p.seasonId === seasonId && p.reviewed && introductionLicensed(p.licensingStatus) && books.has(p.bookKey) && (!studentId || membership && assigned.has(p.id)))
             sources.push(...p.units.map((u, i) => ({ ...u, contentPackId: p.id, sourceKind: 'Commentary' as const, bookKey: p.bookKey, chapter: null, verse: null, ordinal: i + 1 })));
+    if(chapter&&sources.length>10000)throw new HttpError(413,'PBE_CHAPTER_SCOPE_TOO_LARGE');
     const guards = [{ kind: 'season', id: seasonId, revision: season.revision }, ...revisions.results.map(({ kind, id, revision }) => ({ kind, id, revision })), ...packs.map(p => ({ kind: 'pack', id: p.value.id, revision: p.revision })), ...sourceRecords.map(s => ({ kind: 'source', id: s.value.id, revision: s.revision })), ...intros.map(p => ({ kind: 'pbe-introduction', id: p.value.id, revision: p.revision })), ...(membership ? [{ kind: 'membership', id: memberId(seasonId, studentId!), revision: membership.revision }] : []), { kind: actor.kind === 'Student' ? '@active-user' : '@active-admin', id: ctx.actor.userId, revision: 0 }, ...(studentId ? [{ kind: '@active-user', id: studentId, revision: 0 }] : [])];
     const material = JSON.stringify([seasonId, studentId, sources.slice().sort((a, b) => a.id.localeCompare(b.id)).map(s => [s.id, s.contentPackId, s.sourceKind, s.bookKey, s.chapter, s.verse, s.ordinal, s.citation, s.canonicalText])]);
     const eligibility = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(material)))].map(b => b.toString(16).padStart(2, '0')).join('');

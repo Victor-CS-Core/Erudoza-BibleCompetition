@@ -47,3 +47,23 @@ export interface PbeSubmission { clientSubmissionId:string; challengeCardId:stri
 export interface PbeInterruption {status:'Interrupted';restartAllowed:true}
 export interface PbeInterruptionStatus extends PbeInterruption {session?:import('./types').Session;summary?:import('./types').SessionSummary}
 export interface PbeResumedSession { session:import('./types').Session; card:PbeSessionCard|null; attempt:PbeAttemptResult|PbeTimedReceipt|null; summary:import('./types').SessionSummary|null; interruption?:PbeInterruption|null }
+
+export type ChapterCounts = {
+  assignedPassages:number; questionCoveredPassages:number; totalTargets:number;
+  practicedTargets:number; recalledTargets:number; retainedTargets:number;
+  dueTargets:number; missingVariantTargets:number;
+};
+export type ProgressAction = {mode:'Practice'|'Review';label:string;progressScope:{key:string;scopeVersion:string}};
+export type StampSummary = {stampId:string;chapterKey:string;kind:'Chapter'|'Introduction';label:string;scopeLabel:string;scopeVersion:string;ruleVersion:string;earnedAtUtc:string;matchesCurrentScope:boolean|null};
+export type ProgressRow = {
+  key:string;parentChapterKey:string|null;kind:'Chapter'|'PassageGroup'|'Introduction';label:string;scopeLabel:string;
+  contentPackId:string;bookKey:string;chapter:number|null;wholeChapterAssigned:boolean|null;counts:ChapterCounts;
+  currentReadiness:'Retained'|'Incomplete'|'Updating';stamp:StampSummary|null;hasHistoricalStamps:boolean;actions:ProgressAction[];
+};
+export type ChapterWork = {id:string|null;state:'NotStarted'|'Working'|'Complete'|'Blocked';stage:'Indexing'|'Replaying'|'Projecting'|'Cleanup'|null;reason:'PbeDisabled'|'SeasonClosed'|'NoAssignment'|'DataGap'|'ScopeTooLarge'|'InputTooLarge'|null};
+export type ChapterPage = {
+  seasonId:string;ruleVersion:string;scopeVersion:string|null;snapshotId:string|null;chapterKey:string|null;work:ChapterWork;
+  currentAvailable:boolean;historyAvailable:boolean;asOfUtc:string|null;dueRefreshAtUtc:string|null;nextCursor:string|null;
+}&({view:'Chapters'|'Groups';items:ProgressRow[]}|{view:'Stamps';items:StampSummary[]});
+export type ContinueChaptersRequest = {seasonId:string;workId?:string};
+export type ContinueChaptersResponse = {seasonId:string;scopeVersion:string|null;work:ChapterWork;next:'Continue'|'Reload'|'None'};

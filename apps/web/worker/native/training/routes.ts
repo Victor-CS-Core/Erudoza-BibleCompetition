@@ -1,3 +1,4 @@
+import {chapters,continueChapters} from '../pbe/chapter-progress';
 import { reviewedPbeSummary, type PbeSession } from '../pbe/sessions';
 import type { RequestContext } from '../types';
 import { body, HttpError, json } from '../types';
@@ -10,7 +11,7 @@ import { today, honors, journey } from './query';
 export async function handleTraining(ctx: RequestContext): Promise<Response | null> {
     const { path, request } = ctx, method = request.method;
     const recap = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)\/recap$/);
-    if (!recap && !/^\/api\/v1\/progress\/me\/(today|honors|journey|preferences)$/.test(path))
+    if (!recap && !/^\/api\/v1\/progress\/me\/(today|honors|journey|preferences|chapters(?:\/continue)?)$/.test(path))
         return null;
     if (ctx.actor.kind !== 'Student' || ctx.actor.role !== 'Student' || ctx.orgId !== ctx.actor.organizationId)
         throw new HttpError(403, 'Student access is required.');
@@ -25,7 +26,9 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
             throw new HttpError(409, `Resume /student/study?sessionId=${s.id} before viewing the recap.`);
         return json(s.recap ?? await makeRecap(ctx, s));
     }
+    if(method==='POST'&&path.endsWith('/chapters/continue'))return json(await continueChapters(ctx,await body(request)));
     if (method === 'GET') {
+        if(path.endsWith('/chapters'))return json(await chapters(ctx,url));
         if (path.endsWith('/today'))
             return json(await today(ctx, seasonId));
         if (path.endsWith('/honors'))

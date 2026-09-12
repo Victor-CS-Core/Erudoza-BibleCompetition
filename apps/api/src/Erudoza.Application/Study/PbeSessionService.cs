@@ -333,7 +333,7 @@ public sealed class PbeSessionService(IErudozaDbContext db, ICurrentUser user, I
             var grade = PbeRubric.Grade(card.Question, answer.Answers);
             var earned = s.Mode == "Simulation" ? PbePresentationRules.RehearsalPoints(grade.EarnedPoints, timed!.ElapsedMs, grade.AvailablePoints) : grade.EarnedPoints;
             var evidence = PbeReviewRules.Group(card.Question, card.Targets, answer.Answers, aid, atMs, unaided);
-            var prepared = await progress.PrepareRecallEvidenceAsync(user.OrganizationId, s.SeasonId, user.UserId, s.ScopeVersion, evidence, token, card.Question.Kind.ToString());
+            var prepared = await progress.PrepareRecallEvidenceAsync(user.OrganizationId, s.SeasonId, user.UserId, s.ScopeVersion, evidence, token, card.Question.Kind.ToString(), card.Question.Version, timed?.LockedAtUtc.ToUnixTimeMilliseconds());
             var result = new PbeSessionResult(aid, earned, grade.AvailablePoints, card.Question.Parts.Select(p => p.AcceptedAnswers[0]).ToList(), card.Question.Evidence, card.Question.Reference, unaided, DateTimeOffset.FromUnixTimeMilliseconds(atMs), prepared.AcceptedSequence!.Value, false);
             var attempt = new PbeSessionAttempt(aid, card.Id, answer.ClientSubmissionId, answer.Answers.ToList(), answer.HintsUsed, atMs, result, timed?.LockedAtUtc, timed?.RetryAnswers);
             s.Attempts.Add(attempt);

@@ -132,3 +132,5 @@ export type PassageJourneyPage = {
         }[];
     }[];
 };
+
+export type {ChapterCounts,ProgressAction,StampSummary,ProgressRow,ChapterWork,ChapterPage,ContinueChaptersRequest,ContinueChaptersResponse} from './pbeTypes';

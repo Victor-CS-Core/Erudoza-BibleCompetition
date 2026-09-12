@@ -2,6 +2,7 @@ import type { D1PreparedStatement } from '@cloudflare/workers-types';
 import type { RequestContext } from '../types';
 import { HttpError } from '../types';
 import {bulkRefs,evidenceRefs} from './evidence-replay';
+import {advanceRetention,initialRetentionState,RETENTION_RULE_VERSION,type RetentionState} from './chapters';
 import type { Stored } from '../store';
 import { advanceReview, initialReview, type RecallEvidence, type TargetReview } from './review';
 export interface PbeWriteBatch {
@@ -15,6 +16,7 @@ export interface PbeWriteBatch {
     replayed?: boolean;
 }
 export interface ReviewProjection {
+    retention?:RetentionState;
     provisional?:boolean;
     pendingCount?:number;
     evidenceGeneration?:number;
@@ -50,7 +52,10 @@ interface Sequence {
         acceptedSequence: number;
     }[];
 }
+export interface RecallProvenance {questionVersion:number;responseLockedAtMs:number}
 export interface RecallEvent {
+    questionVersion?:number;
+    responseLockedAtMs?:number;
     id: string;
     scopeVersion: string;
     acceptedSequence: number;
@@ -83,13 +88,14 @@ async function rows<T>(ctx: RequestContext, season: string, kind: string, ids: s
     return result.results.map(r => ({ value: JSON.parse(r.data), revision: r.revision }));
 }
 /** Prepares exactly one accepted attempt (all grouped target parts). Caller must append guards and writes to its attempt transaction, with fresh eligibility guards. */
-export async function prepareRecallEvidence(ctx: RequestContext, seasonId: string, scopeVersion: string, evidence: RecallEvidence[], questionKind: string | null = null): Promise<PbeWriteBatch> {
+export async function prepareRecallEvidence(ctx: RequestContext, seasonId: string, scopeVersion: string, evidence: RecallEvidence[], questionKind: string | null = null, provenance?:RecallProvenance): Promise<PbeWriteBatch> {
     scope(ctx, seasonId);
     seasonId = seasonId.toLowerCase();
     if (questionKind !== null && !['ShortAnswer', 'List', 'ExactWords', 'TrueFalse'].includes(questionKind))
         throw new HttpError(400, 'Invalid accepted question kind.');
     if (!scopeVersion || scopeVersion.length > 1000 || !evidence.length || evidence.length > 8)
         throw new HttpError(400, 'Invalid PBE evidence.');
+    if(provenance&&(!Number.isSafeInteger(provenance.questionVersion)||provenance.questionVersion<1||provenance.questionVersion>2147483647||!validTime(provenance.responseLockedAtMs)))throw new HttpError(400,'Invalid frozen recall provenance.');
     const first = evidence[0];
     for (const e of evidence)
         if (!validId(e.attemptId) || !validId(e.targetId) || !validId(e.questionId) || !validTime(e.atMs) || !Number.isInteger(e.availablePoints) || e.availablePoints < 1 || e.availablePoints > 8 || !Number.isInteger(e.earnedPoints) || e.earnedPoints < 0 || e.earnedPoints > e.availablePoints || typeof e.unaided !== 'boolean' || typeof e.recall !== 'boolean' || e.attemptId.toLowerCase() !== first.attemptId.toLowerCase() || e.questionId.toLowerCase() !== first.questionId.toLowerCase() || e.atMs !== first.atMs || e.unaided !== first.unaided)
@@ -114,13 +120,17 @@ export async function prepareRecallEvidence(ctx: RequestContext, seasonId: strin
     // Three most recent distinct targets suffice to prove two targets after any failed sequence; ties retain their attempt grouping.
     recent.sort((a, b) => b.acceptedSequence - a.acceptedSequence || (a.targetId < b.targetId ? -1 : 1));
     write(ctx, w, 'pbe-recall-sequence', sid, { id: sid, acceptedSequence: sequence, lastAtMs: first.atMs, recentTargets: recent.slice(0, 3) }, oldSequence, seasonId);
-    write(ctx, w, 'pbe-recall-event', id, { id, scopeVersion, acceptedSequence: sequence, questionKind, evidence }, null, seasonId);
-    w.statements.push(bulkRefs(ctx,ctx.actor.userId,seasonId,evidenceRefs(ctx.actor.userId,seasonId,{id,scopeVersion,acceptedSequence:sequence,questionKind,evidence})));
+    write(ctx, w, 'pbe-recall-event', id, { id, scopeVersion, acceptedSequence: sequence, questionKind, evidence, ...provenance }, null, seasonId);
+    w.statements.push(bulkRefs(ctx,ctx.actor.userId,seasonId,evidenceRefs(ctx.actor.userId,seasonId,{id,scopeVersion,acceptedSequence:sequence,questionKind,evidence,...provenance})));
     if(!previous)w.statements.push(ctx.env.DB.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data,revision) VALUES('pbe-evidence-index',?,?,?,?,?,1) ON CONFLICT(kind,id,org_id) DO NOTHING").bind(sid,ctx.orgId,seasonId,ctx.actor.userId,JSON.stringify({id:sid,ready:true,after:'',coveredLegacyEvents:0})));
     for (const e of evidence) {
         const pid = key(ctx, seasonId, e.targetId), prior = old.find(r => r.value.id === pid) ?? null, review = advanceReview(prior?.value.review ?? initialReview(e.targetId), e);
         const failed = e.recall && e.earnedPoints < e.availablePoints ? sequence : review.unresolved ? prior?.value.failedSequence ?? null : null;
-        write(ctx, w, 'pbe-target-review', pid, { id: pid, targetId: e.targetId, review, provisional:prior?.value.provisional??false,pendingCount:prior?.value.pendingCount??0,evidenceGeneration:prior?.value.evidenceGeneration, acceptedSequence: sequence, failedSequence: failed, lastAnsweredQuestionId: e.questionId, lastAnsweredQuestionKind: questionKind }, prior, seasonId);
+        const base=prior?.value.retention;
+        const initialized=!prior||base?.ruleVersion===RETENTION_RULE_VERSION;
+        const retention=initialized&&prior?.value.provisional!==true?advanceRetention(base??initialRetentionState(),{targetId:e.targetId,questionId:e.questionId,questionVersion:provenance?.questionVersion??0,attemptId:e.attemptId,atMs:provenance?.responseLockedAtMs??e.atMs,acceptedSequence:sequence,fullCredit:e.earnedPoints===e.availablePoints,unaided:e.unaided,final:true,recall:e.recall,activity:'Solo'}):base;
+        if(retention&&!provenance)retention.dataGap=true;
+        write(ctx, w, 'pbe-target-review', pid, { id: pid, retention, targetId: e.targetId, review, provisional:prior?.value.provisional??false,pendingCount:prior?.value.pendingCount??0,evidenceGeneration:prior?.value.evidenceGeneration, acceptedSequence: sequence, failedSequence: failed, lastAnsweredQuestionId: e.questionId, lastAnsweredQuestionKind: questionKind }, prior, seasonId);
     }
     return w;
 }
