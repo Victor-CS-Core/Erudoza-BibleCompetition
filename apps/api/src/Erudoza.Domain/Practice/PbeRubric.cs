@@ -5,15 +5,36 @@ using System.Text.RegularExpressions;
 
 namespace Erudoza.Domain.Practice;
 
+[JsonConverter(typeof(ExactEnumJsonConverter<RecallSkill>))]
 public enum RecallSkill { FactualRecall, ExactWords }
+[JsonConverter(typeof(ExactEnumJsonConverter<PbeSourceKind>))]
 public enum PbeSourceKind { Scripture, Commentary }
+[JsonConverter(typeof(ExactEnumJsonConverter<PbeQuestionKind>))]
 public enum PbeQuestionKind { ShortAnswer, List, ExactWords, TrueFalse }
+
+public sealed class ExactEnumJsonConverter<TEnum> : JsonConverter<TEnum> where TEnum : struct, Enum
+{
+    public override TEnum Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.String) throw new JsonException($"{typeof(TEnum).Name} requires an exact string name.");
+        var value = reader.GetString();
+        foreach (var name in Enum.GetNames<TEnum>())
+            if (string.Equals(value, name, StringComparison.Ordinal)) return Enum.Parse<TEnum>(name);
+        throw new JsonException($"Unsupported {typeof(TEnum).Name} value.");
+    }
+
+    public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options)
+    {
+        var name = Enum.GetName(value) ?? throw new JsonException($"Unsupported {typeof(TEnum).Name} value.");
+        writer.WriteStringValue(name);
+    }
+}
 
 public sealed class PbeTarget
 {
     [JsonRequired] public Guid Id { get; set; }
     [JsonRequired] public List<Guid> SourceUnitIds { get; set; } = [];
-    [JsonRequired] public RecallSkill Skill { get; set; }
+    [JsonRequired, JsonConverter(typeof(ExactEnumJsonConverter<RecallSkill>))] public RecallSkill Skill { get; set; }
     [JsonRequired] public string Label { get; set; } = "";
     [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; set; }
 }
@@ -34,10 +55,10 @@ public sealed class PbeQuestion
     [JsonRequired] public Guid ContentPackId { get; set; }
     [JsonRequired] public Guid SourceUnitId { get; set; }
     [JsonRequired] public List<Guid> SourceUnitIds { get; set; } = [];
-    [JsonRequired] public PbeSourceKind SourceKind { get; set; }
+    [JsonRequired, JsonConverter(typeof(ExactEnumJsonConverter<PbeSourceKind>))] public PbeSourceKind SourceKind { get; set; }
     [JsonRequired] public string Reference { get; set; } = "";
     [JsonRequired] public string Evidence { get; set; } = "";
-    [JsonRequired] public PbeQuestionKind Kind { get; set; }
+    [JsonRequired, JsonConverter(typeof(ExactEnumJsonConverter<PbeQuestionKind>))] public PbeQuestionKind Kind { get; set; }
     [JsonRequired] public string Prompt { get; set; } = "";
     [JsonRequired] public bool Ordered { get; set; }
     [JsonRequired] public List<PbeQuestionPart> Parts { get; set; } = [];

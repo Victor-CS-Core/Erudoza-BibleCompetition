@@ -86,6 +86,43 @@ public sealed class PbeRubricTests
     }
 
     [Theory]
+    [InlineData("\"sourceKind\":\"Scripture\"", "\"sourceKind\":0")]
+    [InlineData("\"sourceKind\":\"Scripture\"", "\"sourceKind\":\"scripture\"")]
+    [InlineData("\"sourceKind\":\"Scripture\"", "\"sourceKind\":\"0\"")]
+    [InlineData("\"kind\":\"ShortAnswer\"", "\"kind\":0")]
+    [InlineData("\"kind\":\"ShortAnswer\"", "\"kind\":\"shortanswer\"")]
+    [InlineData("\"kind\":\"ShortAnswer\"", "\"kind\":\"0\"")]
+    public void Question_enum_json_requires_exact_v2_names(string validToken, string invalidToken)
+    {
+        var json = ValidQuestionJson.Replace(validToken, invalidToken, StringComparison.Ordinal);
+        var act = () => JsonSerializer.Deserialize<PbeQuestion>(json, JsonOptions);
+        act.Should().Throw<JsonException>();
+    }
+
+    [Theory]
+    [InlineData("0")]
+    [InlineData("\"factualrecall\"")]
+    [InlineData("\"0\"")]
+    public void Target_skill_json_requires_exact_v2_name(string invalidToken)
+    {
+        var json = $$"""{"id":"00000000-0000-0000-0000-000000000011","sourceUnitIds":["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"],"skill":{{invalidToken}},"label":"Alpha"}""";
+        var act = () => JsonSerializer.Deserialize<PbeTarget>(json, JsonOptions);
+        act.Should().Throw<JsonException>();
+    }
+
+    [Fact]
+    public void Pbe_enums_serialize_as_their_exact_v2_names()
+    {
+        using var questionJson = JsonDocument.Parse(JsonSerializer.Serialize(JsonSerializer.Deserialize<PbeQuestion>(ValidQuestionJson, JsonOptions), JsonOptions));
+        questionJson.RootElement.GetProperty("sourceKind").GetString().Should().Be("Scripture");
+        questionJson.RootElement.GetProperty("kind").GetString().Should().Be("ShortAnswer");
+
+        var target = new PbeTarget { Id = Guid.Parse("00000000-0000-0000-0000-000000000011"), SourceUnitIds = [Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")], Skill = RecallSkill.ExactWords, Label = "Alpha" };
+        using var targetJson = JsonDocument.Parse(JsonSerializer.Serialize(target, JsonOptions));
+        targetJson.RootElement.GetProperty("skill").GetString().Should().Be("ExactWords");
+    }
+
+    [Theory]
     [InlineData(1, 25)]
     [InlineData(8, 60)]
     public void Response_window_follows_question_points(int points, int expected) => PbeRules.ResponseSeconds(points).Should().Be(expected);
@@ -104,6 +141,10 @@ public sealed class PbeRubricTests
         var path = Path.Combine(AppContext.BaseDirectory, "pbe", "rubric-fixtures.json");
         return JsonSerializer.Deserialize<FixtureRoot>(File.ReadAllText(path), JsonOptions)!;
     }
+
+    private const string ValidQuestionJson = """
+        {"schemaVersion":2,"id":"00000000-0000-0000-0000-000000000031","version":1,"contentPackId":"00000000-0000-0000-0000-000000000041","sourceUnitId":"aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa","sourceUnitIds":["aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"],"sourceKind":"Scripture","reference":"Fixture","evidence":"Alpha","kind":"ShortAnswer","prompt":"Name it.","ordered":false,"parts":[{"targetId":"00000000-0000-0000-0000-000000000011","acceptedAnswers":["Alpha"],"points":1}]}
+        """;
 
     private sealed class FixtureRoot
     {
