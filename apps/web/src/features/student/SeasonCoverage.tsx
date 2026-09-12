@@ -57,7 +57,7 @@ const blockedReason: Record<string, string> = {
 
 export function SeasonCoverage({ snapshot, audience, students = [], onContinue, onRetry, busy = false }: SeasonCoverageProps) {
   const published = (snapshot.state === 'Snapshot' || snapshot.state === 'Provisional') && !!snapshot.snapshotId;
-  const empty = published && !snapshot.scripture && !snapshot.introduction;
+  const empty = published && (snapshot.scripture?.assigned ?? 0) === 0 && (snapshot.introduction?.assigned ?? 0) === 0;
   return <Panel className="pbe-season-coverage" aria-labelledby="pbe-season-coverage-title">
     <div className="training-panel-title"><div><h2 id="pbe-season-coverage-title">Season cooperation</h2><p>Independent Solo progress across assigned material. Team answers do not count as Solo recall.</p></div><Badge tone={snapshot.state === 'Snapshot' ? 'success' : snapshot.state === 'Provisional' ? 'warning' : 'neutral'}>{snapshot.state === 'Snapshot' ? 'Checked snapshot' : snapshot.state}</Badge></div>
     {snapshot.state === 'NotStarted' && <><p>Season progress has not been checked yet.</p>{onContinue && <Button disabled={busy} onClick={onContinue}>{busy ? 'Starting…' : 'Check season progress'}</Button>}</>}
@@ -67,7 +67,7 @@ export function SeasonCoverage({ snapshot, audience, students = [], onContinue, 
       {snapshot.state === 'Provisional' && <p>{snapshot.unknownStudents} of {snapshot.rosterStudents} student records are still unknown. Possible values are labeled separately.</p>}
       {empty ? <p>No eligible material is assigned for this season.</p> : <div className="pbe-coverage-grid">{snapshot.scripture && <TeamMaterial kind="Scripture" summary={snapshot.scripture} />}{snapshot.introduction && <TeamMaterial kind="Introduction" summary={snapshot.introduction} />}</div>}
       {audience === 'student' && snapshot.own && <div className="pbe-own-contribution"><h3>Your assigned progress</h3>{snapshot.own.state === 'Unassigned' ? <p>You are unassigned in this season.</p> : snapshot.own.state === 'Unknown' ? <p>Your assignment is counted, but your saved progress is still unknown.</p> : <><OwnMaterial kind="passages" summary={snapshot.own.scripture} /><OwnMaterial kind="introduction units" summary={snapshot.own.introduction} /></>}</div>}
-      {audience === 'coach' && <div className="pbe-coach-breakdown"><h3>Student progress</h3>{students.length ? <ul className="training-list">{students.map(student => <li key={student.studentId}><div><strong>{student.displayName}</strong><p>{student.state === 'Unassigned' ? 'Unassigned' : student.state === 'Unknown' ? 'Progress unknown' : `${student.scripture.retained.known} of ${student.scripture.assigned} passages retained`}</p></div><Badge tone={student.state === 'Known' ? 'success' : 'neutral'}>{student.state}</Badge></li>)}</ul> : <p>No student detail is available for this snapshot.</p>}</div>}
+      {audience === 'coach' && <div className="pbe-coach-breakdown"><h3>Student progress</h3>{students.length ? <ul className="training-list">{students.map(student => <li key={student.studentId}><div><strong>{student.displayName}</strong>{student.state === 'Unassigned' ? <p>Unassigned</p> : student.state === 'Unknown' ? <p>Progress unknown</p> : <>{student.scripture.assigned > 0 && <p>{student.scripture.retained.known} of {student.scripture.assigned} passages retained</p>}{student.introduction.assigned > 0 && <p>{student.introduction.retained.known} of {student.introduction.assigned} introduction units retained</p>}</>}</div><Badge tone={student.state === 'Known' ? 'success' : 'neutral'}>{student.state}</Badge></li>)}</ul> : <p>No student detail is available for this snapshot.</p>}</div>}
       {snapshot.checkedAtUtc && <p><small>Checked <time dateTime={snapshot.checkedAtUtc}>{evidenceDate(snapshot.checkedAtUtc)}</time>. Maintenance counts are as of this check.</small></p>}
     </>}
   </Panel>;
@@ -98,7 +98,7 @@ export function SeasonCoveragePanel({ seasonId, audience, organizationId }: { se
       if (!staleRecoveryAttempted.current && error instanceof ApiError && (error.code === 'PBE_COOPERATION_WORK_STALE' || error.code === 'PBE_COOPERATION_CURSOR_STALE')) {
         staleRecoveryAttempted.current = true;
         void snapshot.refetch().then(result => {
-          if (!active.current || currentScope.current !== input.scopeKey || result.isError) return;
+          if (!active.current || currentScope.current !== input.scopeKey || currentPublication.current !== input.publicationId || result.isError) return;
           started.current = true;
           continuation.mutate({ ...input, workId: undefined });
         });
@@ -156,10 +156,10 @@ export function SeasonCoveragePanel({ seasonId, audience, organizationId }: { se
       return;
     }
     if (started.current) return;
-    if (data.state === 'NotStarted' || (data.state === 'Updating' && data.work.next === 'Continue') || dueExpired) {
+    if (data.state === 'NotStarted' || (data.state === 'Updating' && data.work.next === 'Continue')) {
       started.current = true;
       continuation.mutate({ scopeKey, publicationId: currentPublication.current, audience, organizationId, seasonId, workId: data.work.id ?? undefined });
-    } else if (data.state === 'Updating' && data.work.next === 'Reload') {
+    } else if (dueExpired || (data.state === 'Updating' && data.work.next === 'Reload')) {
       started.current = true;
       continuation.mutate({ scopeKey, publicationId: currentPublication.current, audience, organizationId, seasonId });
     }
@@ -174,6 +174,11 @@ export function SeasonCoveragePanel({ seasonId, audience, organizationId }: { se
     {students.isError && <Notice tone="danger">Student cooperation detail could not load. <Button variant="secondary" onClick={() => void students.refetch()}>Retry student detail</Button></Notice>}
     <SeasonCoverage snapshot={snapshot.data} audience={audience} students={detailMismatch ? undefined : students.data?.items} busy={continuation.isPending || snapshot.isFetching}
       onContinue={() => { started.current = true; continuation.mutate({ scopeKey, publicationId: currentPublication.current, audience, organizationId, seasonId, workId: snapshot.data.state === 'Updating' && snapshot.data.work.next === 'Reload' ? undefined : snapshot.data.work.id ?? undefined }); }}
-      onRetry={() => { started.current = false; if (continuation.isError) continuation.reset(); void snapshot.refetch(); }} />
+      onRetry={() => {
+        continuation.reset();
+        staleRecoveryAttempted.current = false;
+        started.current = true;
+        continuation.mutate({ scopeKey, publicationId: currentPublication.current, audience, organizationId, seasonId });
+      }} />
   </>;
 }

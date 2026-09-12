@@ -190,6 +190,63 @@ public sealed class PbeCooperationTests
         Assert.Equal("ScopeTooLarge", page.GetProperty("reason").GetString()); Assert.Equal(JsonValueKind.Null, page.GetProperty("introduction").ValueKind); Assert.False(await f.Db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-cooperation-snapshot"));
     }
 
+    [Theory]
+    [InlineData("roster")]
+    [InlineData("assignment")]
+    public async Task Publication_rechecks_admission_after_growth_before_input_capture(string growth)
+    {
+        using var f = await PbeStudyTests.Fixture.Create();
+        var prior = await Finish(f); var publishedId = prior.GetProperty("snapshotId").GetString()!;
+        var protectedRows = await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.Kind == "pbe-cooperation-snapshot" || r.Kind == "pbe-cooperation-manifest" && r.Id.StartsWith(publishedId + ":")).ToDictionaryAsync(r => r.Kind + ":" + r.Id, r => new { r.DataJson, r.Revision });
+        const string path = "/api/v1/progress/me/pbe-cooperation/continue";
+        var started = await f.Student.PostAsJsonAsync(path, new { seasonId = f.Season }); started.EnsureSuccessStatusCode();
+        var workId = (await started.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("work").GetProperty("id").GetString()!;
+        Assert.NotEqual(publishedId, workId);
+        var admitted = JsonDocument.Parse((await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.Kind == "pbe-cooperation-work")).DataJson).RootElement;
+        Assert.Equal("Sources", admitted.GetProperty("stage").GetString());
+        Assert.False(await f.Db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-cooperation-manifest" && r.Id.StartsWith(workId + ":")));
+        // The original early check admitted one student and one assignment. Grow before any inputs are captured.
+        if (growth == "roster")
+        {
+            for (var i = 0; i < 32; i++) await AddMember(f, false);
+            Assert.Equal(33, await f.Db.CompetitionMembers.CountAsync(r => r.OrganizationId == f.Org && r.SeasonId == f.Season));
+        }
+        else
+        {
+            var body = JsonSerializer.Serialize(new { contentPackId = f.Intro }, PbeQuestionBank.Json);
+            f.Db.PbeTrainingRecords.AddRange(Enumerable.Range(0, 10000).Select(n => new PbeTrainingRecord { OrganizationId = f.Org, SeasonId = f.Season, OwnerId = f.StudentId, Kind = "pbe-introduction-assignment", Id = "late-assignment-" + n, DataJson = body })); await f.Db.SaveChangesAsync();
+            Assert.Equal(10001, await f.Db.PbeTrainingRecords.CountAsync(r => r.OrganizationId == f.Org && r.SeasonId == f.Season && r.Kind == "pbe-introduction-assignment"));
+        }
+        using var meter = new PbeChapterResourceMeter(); f.Factory.CommandInterceptor = meter;
+        var measurements = new List<object>(); JsonElement terminal = default; var reachedPublication = false;
+        for (var i = 0; i < 150; i++)
+        {
+            var stored = await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.Kind == "pbe-cooperation-work");
+            var final = JsonDocument.Parse(stored.DataJson).RootElement.GetProperty("stage").GetString() == "Publishing";
+            meter.Reset(); meter.Active = true;
+            var response = await f.Student.PostAsJsonAsync(path, new { seasonId = f.Season, workId }); meter.Active = false;
+            Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync()); Assert.InRange(meter.Statements, 1, 50);
+            if (!final) { Assert.InRange(meter.Rows, 0, 128); Assert.InRange(meter.ValueBytes, 0, 65536); }
+            measurements.Add(new { final, meter.Statements, meter.Rows, meter.ValueBytes, meter.MaxQueryValueBytes, meter.MaxBoundBytes });
+            var step = await response.Content.ReadFromJsonAsync<JsonElement>();
+            if (final) { terminal = step; reachedPublication = true; break; }
+            Assert.Equal("Continue", step.GetProperty("work").GetProperty("next").GetString());
+        }
+        await File.WriteAllTextAsync(Path.Combine(AppContext.BaseDirectory, $"d2-fix1-canonical-{growth}-resource.json"), JsonSerializer.Serialize(measurements));
+        Assert.True(reachedPublication, "The consistent grown inputs must reach actual publication within the existing continuation bound.");
+        Assert.Equal("Blocked", terminal.GetProperty("state").GetString());
+        Assert.Equal("ScopeTooLarge", terminal.GetProperty("reason").GetString());
+        Assert.Equal("None", terminal.GetProperty("work").GetProperty("next").GetString());
+        Assert.Equal(JsonValueKind.Null, terminal.GetProperty("scripture").ValueKind); Assert.Equal(JsonValueKind.Null, terminal.GetProperty("introduction").ValueKind);
+        Assert.False(await f.Db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-cooperation-snapshot" && r.Id == workId));
+        Assert.False(await f.Db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-cooperation-manifest" && r.Id.StartsWith(workId + ":subjects:")));
+        var blocked = JsonDocument.Parse((await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.Kind == "pbe-cooperation-work")).DataJson).RootElement;
+        Assert.Equal("Blocked", blocked.GetProperty("stage").GetString()); Assert.Equal(publishedId, blocked.GetProperty("publishedId").GetString());
+        foreach (var row in await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.Kind == "pbe-cooperation-snapshot" || r.Kind == "pbe-cooperation-manifest" && r.Id.StartsWith(publishedId + ":")).ToListAsync())
+        { Assert.True(protectedRows.Remove(row.Kind + ":" + row.Id, out var expected)); Assert.Equal((expected!.DataJson, expected.Revision), (row.DataJson, row.Revision)); }
+        Assert.Empty(protectedRows);
+    }
+
     [Fact]
     public void Portable_codec_preserves_supplementary_unicode_and_control_escapes()
     {

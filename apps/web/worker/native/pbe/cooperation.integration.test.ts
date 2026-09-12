@@ -243,3 +243,49 @@ it('D2 resource whole cleanup request includes authorization and work rows withi
  const cleanup=meters.slice(1);expect(Math.max(...cleanup.map(m=>Number(m.returnedRows)))).toBeLessThanOrEqual(128);expect(Math.max(...cleanup.map(m=>Number(m.returnedBytes)))).toBeLessThanOrEqual(65536);
  expect(await store.list('pbe-cooperation-manifest',TEST_ORG,{seasonId:season})).toEqual([]);expect((await store.require<{abandonedId:string|null}>('pbe-cooperation-work',season,TEST_ORG)).value.abandonedId).toBeNull();
 },30000);
+
+// Completed continuations are receipts or bounded bootstraps; only a current GET
+// and actual publication may run the complete captured-input predicate.
+it.each(['fresh','expired'] as const)('D2 completed %s cooperation retries are immutable small receipts',async(age)=>{
+ const queries:string[]=[];const {send,store,meters}=await setup(2,async sql=>{queries.push(sql);});
+ const published=await finishCooperation(send);
+ if(age==='expired'){
+  const saved=await store.require<Record<string,unknown>>('pbe-cooperation-snapshot',published.snapshotId!,TEST_ORG);
+  await store.put('pbe-cooperation-snapshot',published.snapshotId!,TEST_ORG,{...saved.value,dueRefreshAtUtc:'2000-01-01T00:00:00.000Z'},saved.revision);
+ }
+ const beforeWork=await store.require('pbe-cooperation-work',season,TEST_ORG),beforeSnapshot=await store.require('pbe-cooperation-snapshot',published.snapshotId!,TEST_ORG);
+ queries.length=0;const firstMeter=meters.length;
+ const response=await send('/progress/me/pbe-cooperation/continue',{seasonId:season,workId:published.work.id});
+ expect(response.status).toBe(200);
+ expect(await response.json()).toMatchObject({state:'Updating',snapshotId:null,scopeVersion:null,scripture:null,work:{id:published.work.id,next:'Reload'}});
+ expect(queries.filter(sql=>sql.includes('root(org,season,generation,roster,descriptors,baseGuards,pageCount)'))).toEqual([]);
+ expect(await store.require('pbe-cooperation-work',season,TEST_ORG)).toEqual(beforeWork);
+ expect(await store.require('pbe-cooperation-snapshot',published.snapshotId!,TEST_ORG)).toEqual(beforeSnapshot);
+ for(const meter of meters.slice(firstMeter)){expect(Number(meter.returnedRows)).toBeLessThanOrEqual(128);expect(Number(meter.returnedBytes)).toBeLessThanOrEqual(65536);}
+ queries.length=0;const current=await send(`/progress/me/pbe-cooperation?seasonId=${season}`);
+ expect(current.status).toBe(200);expect((await current.json() as CooperationSnapshot).snapshotId).toBe(published.snapshotId);
+ expect(queries.some(sql=>sql.includes('root(org,season,generation,roster,descriptors,baseGuards,pageCount)'))).toBe(true);
+},30000);
+it.each(['fresh','cleanup'] as const)('D2 completed no-ID %s request starts bounded fresh cooperation work',async(mode)=>{
+ const queries:string[]=[];const {send,store,meters}=await setup(2,async sql=>{queries.push(sql);});
+ const published=await finishCooperation(send),beforeSnapshot=await store.require('pbe-cooperation-snapshot',published.snapshotId!,TEST_ORG);
+ let abandonedId:string|undefined;
+ if(mode==='cleanup'){
+  abandonedId=crypto.randomUUID();const old=await store.require<Record<string,unknown>>('pbe-cooperation-work',season,TEST_ORG);
+  await store.put('pbe-cooperation-work',season,TEST_ORG,{...old.value,abandonedId},old.revision);
+  await app.db.prepare("WITH RECURSIVE n(i) AS(VALUES(1) UNION ALL SELECT i+1 FROM n WHERE i<130) INSERT INTO Records(kind,id,org_id,season_id,data) SELECT 'pbe-cooperation-manifest',?||':sources:'||printf('%06d',i),?,?,json_object('generationId',?,'entries',json('[]')) FROM n").bind(abandonedId,TEST_ORG,season,abandonedId).run();
+ }
+ queries.length=0;const firstMeter=meters.length;let started:CooperationSnapshot|null=null;
+ for(let n=0;n<4;n++){
+  const response=await send('/progress/me/pbe-cooperation/continue',{seasonId:season});expect(response.status).toBe(200);
+  started=await response.json() as CooperationSnapshot;
+  expect(started).toMatchObject({state:'Updating',snapshotId:null,scopeVersion:null,work:{next:'Continue'}});
+  if(started.work.id)break;
+ }
+ expect(started!.work.id).toBeTruthy();expect(started!.work.id).not.toBe(published.work.id);
+ expect(queries.filter(sql=>sql.includes('root(org,season,generation,roster,descriptors,baseGuards,pageCount)'))).toEqual([]);
+ for(const meter of meters.slice(firstMeter)){expect(Number(meter.returnedRows)).toBeLessThanOrEqual(128);expect(Number(meter.returnedBytes)).toBeLessThanOrEqual(65536);}
+ expect((await store.require<{publishedId:string}>('pbe-cooperation-work',season,TEST_ORG)).value.publishedId).toBe(published.snapshotId);
+ expect(await store.require('pbe-cooperation-snapshot',published.snapshotId!,TEST_ORG)).toEqual(beforeSnapshot);
+ if(abandonedId)expect((await app.db.prepare("SELECT count(*) AS n FROM Records WHERE org_id=? AND kind='pbe-cooperation-manifest' AND json_extract(data,'$.generationId')=?").bind(TEST_ORG,abandonedId).first<{n:number}>())!.n).toBe(0);
+},30000);

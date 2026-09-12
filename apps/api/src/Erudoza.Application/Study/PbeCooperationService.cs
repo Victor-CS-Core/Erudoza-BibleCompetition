@@ -136,6 +136,9 @@ public sealed class PbeCooperationService(IErudozaDbContext db, ICurrentUser use
     }
     async Task<Work> Publish(VerifiedCooperationScope scope, Work work, CancellationToken ct)
     {
+        // Current inputs can grow after early admission; recheck caps in this publication transaction before reducing or writing.
+        var reason = await reader.LimitReason(scope, ct);
+        if (reason is not null) throw new PbeChapterLimitException(reason);
         if (!await PagesValid(scope, work.WorkId, ct, work.PageCount, work.Bytes) || !await reader.InputsCurrent(scope, work.WorkId, ct)) throw new PbeCooperationConflictException("PBE_COOPERATION_WORK_STALE");
         var now = DateTimeOffset.FromUnixTimeMilliseconds(clock.UtcNow.ToUnixTimeMilliseconds());
         var rows = await reader.Totals(scope, work.WorkId, now.ToUnixTimeMilliseconds(), ct);

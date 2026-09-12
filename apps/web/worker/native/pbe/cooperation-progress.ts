@@ -90,7 +90,7 @@ export async function continueCooperation(ctx:RequestContext,input:ContinueCoope
  if(input.workId&&(!w||input.workId!==w.workId||w.stage==='Blocked'))throw cooperationStale();
  try{
   if(!w||w.stage==='Complete'||w.stage==='Blocked'){
-   if(w?.stage==='Complete'){const prior=await snapshot(scope,w);if(prior&&Date.parse(prior.dueRefreshAtUtc)>Date.parse(trainingNow())&&await current(scope,prior))return view(scope,w,false);}
+   if(w?.stage==='Complete'&&input.workId)return empty(scope,w,'Updating');
    if(w?.abandonedId&&old&&await cleanup(scope,w,old))return {...empty(scope,w,'Updating'),work:{id:null,next:'Continue'}};
    const roster=await cooperationRoster(scope);await cooperationCaps(scope,roster);
    const previous=w;w={schemaVersion:1,ruleVersion:COOPERATION_RULE,workId:crypto.randomUUID(),seasonId:scope.seasonId,stage:roster.length?'Sources':'Publishing',subjectIndex:0,after:'',pageCount:0,bytes:0,guardBytes:0,roster,descriptors:[],baseGuards:scope.guards,publishedId:previous?.publishedId??null,abandonedId:previous&&previous.workId!==previous.publishedId?previous.workId:null,reason:null};

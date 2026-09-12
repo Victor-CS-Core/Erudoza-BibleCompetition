@@ -69,9 +69,17 @@ it('keeps provisional known and possible values distinct', () => {
 });
 
 it('treats zero denominators as unassigned', () => {
+  const zeroMaterial = {
+    assigned: 0,
+    questionCovered: { known: 0, possible: 0 },
+    practiced: { known: 0, possible: 0 },
+    retained: { known: 0, possible: 0 },
+    due: { known: 0, possible: 0 },
+    equalRetained: null,
+  };
   render(<SeasonCoverage snapshot={snapshot({
-    scripture: null,
-    introduction: null,
+    scripture: zeroMaterial,
+    introduction: zeroMaterial,
     own: {
       state: 'Unassigned',
       scripture: { assigned: 0, practiced: { known: 0, possible: 0 }, retained: { known: 0, possible: 0 }, due: { known: 0, possible: 0 } },
@@ -80,7 +88,23 @@ it('treats zero denominators as unassigned', () => {
   })} audience="student" />);
   expect(screen.getByText('No eligible material is assigned for this season.')).toBeVisible();
   expect(screen.getByText('You are unassigned in this season.')).toBeVisible();
+  expect(screen.queryByRole('heading', { name: 'Scripture' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: 'Introduction' })).not.toBeInTheDocument();
   expect(screen.queryByText('100%')).not.toBeInTheDocument();
+});
+
+it('shows a separate Introduction fraction for an Introduction-only coach row', () => {
+  const students: CooperationStudentSummary[] = [{
+    studentId: 'student-2',
+    displayName: 'Leah Student',
+    state: 'Known',
+    reason: null,
+    scripture: { assigned: 0, practiced: { known: 0, possible: 0 }, retained: { known: 0, possible: 0 }, due: { known: 0, possible: 0 } },
+    introduction: { assigned: 3, practiced: { known: 3, possible: 3 }, retained: { known: 2, possible: 2 }, due: { known: 1, possible: 1 } },
+  }];
+  render(<SeasonCoverage snapshot={snapshot()} audience="coach" students={students} />);
+  expect(screen.getByText('2 of 3 introduction units retained')).toBeVisible();
+  expect(screen.queryByText('0 of 0 passages retained')).not.toBeInTheDocument();
 });
 
 it('never displays peer identities to students and limits coach detail to a published snapshot', () => {
@@ -116,14 +140,19 @@ function panel(audience: 'student' | 'coach' = 'student', client = new QueryClie
   </QueryClientProvider>), client };
 }
 
-it('does not loop when maintenance refetch returns the same expired snapshot', async () => {
-  vi.mocked(trainingApi.cooperation).mockResolvedValue(snapshot({ dueRefreshAtUtc: '2020-01-01T00:00:00Z' }));
-  vi.mocked(trainingApi.continueCooperation).mockResolvedValue(snapshot({ dueRefreshAtUtc: '2099-01-01T00:00:00Z' }));
+it('bootstraps expired canonical work without its completed receipt ID and stops on unchanged readback', async () => {
+  const expired = snapshot({ dueRefreshAtUtc: '2020-01-01T00:00:00Z', work: { id: 'completed-work', next: 'Reload' } });
+  vi.mocked(trainingApi.cooperation).mockResolvedValue(expired);
+  vi.mocked(trainingApi.continueCooperation)
+    .mockResolvedValueOnce(snapshot({ state: 'Updating', snapshotId: null, scopeVersion: null, scripture: null, introduction: null, own: null, work: { id: 'replacement-work', next: 'Continue' } }))
+    .mockResolvedValueOnce(expired);
   panel();
   await screen.findByText('5 of 9 passages retained by at least one student');
-  await waitFor(() => expect(trainingApi.continueCooperation).toHaveBeenCalledOnce());
+  await waitFor(() => expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(2));
+  expect(trainingApi.continueCooperation).toHaveBeenNthCalledWith(1, { seasonId: 'season-1' });
+  expect(trainingApi.continueCooperation).toHaveBeenNthCalledWith(2, { seasonId: 'season-1', workId: 'replacement-work' });
   await waitFor(() => expect(trainingApi.cooperation).toHaveBeenCalledTimes(2));
-  expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(1);
+  expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(2);
 });
 
 it('advances the bounded invalidated-publication trace through cleanup to published readback', async () => {
@@ -179,6 +208,43 @@ it('reloads once, bootstraps without a work ID and stops if stale recovery also 
   expect(await screen.findByText('Season cooperation could not finish checking. Use Try again to restart from saved work.')).toBeVisible();
   expect(screen.getByRole('button', { name: 'Continue checking progress' })).toBeVisible();
   expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(2);
+});
+
+it('does not resume stale recovery after its refetch crosses into a newer chapter publication', async () => {
+  const stale = new ApiError('PBE_COOPERATION_WORK_STALE', 409, undefined, 'PBE_COOPERATION_WORK_STALE');
+  const oldWork = snapshot({ state: 'Updating', snapshotId: null, scopeVersion: null, scripture: null, introduction: null, own: null, work: { id: 'old-work', next: 'Continue' } });
+  let finishOldRefetch!: (value: CooperationSnapshot) => void;
+  vi.mocked(trainingApi.cooperation)
+    .mockResolvedValueOnce(oldWork)
+    .mockReturnValueOnce(new Promise(resolve => { finishOldRefetch = resolve; }));
+  vi.mocked(trainingApi.continueCooperation)
+    .mockRejectedValueOnce(stale)
+    .mockReturnValue(new Promise(() => {}));
+  const view = panel();
+  await waitFor(() => expect(trainingApi.cooperation).toHaveBeenCalledTimes(2));
+
+  await act(async () => { view.client.setQueryData(['pbe-chapter-publication', 'season-1'], 'chapter-snapshot-2'); });
+  await waitFor(() => expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(2));
+  expect(trainingApi.continueCooperation).toHaveBeenNthCalledWith(2, { seasonId: 'season-1' });
+
+  await act(async () => {
+    finishOldRefetch(oldWork);
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+  expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(2);
+  view.unmount();
+});
+
+it.each(['DataGap', 'SeasonClosed', 'PbeDisabled'] as const)('explicitly retries persisted %s work once without a work ID and stops if it remains blocked', async reason => {
+  const blocked = snapshot({ state: 'Blocked', reason, snapshotId: null, scopeVersion: null, scripture: null, introduction: null, own: null, work: { id: 'blocked-work', next: 'None' } });
+  vi.mocked(trainingApi.cooperation).mockResolvedValue(blocked);
+  vi.mocked(trainingApi.continueCooperation).mockResolvedValue(blocked);
+  panel();
+  fireEvent.click(await screen.findByRole('button', { name: 'Try again' }));
+  await waitFor(() => expect(trainingApi.continueCooperation).toHaveBeenCalledOnce());
+  expect(trainingApi.continueCooperation).toHaveBeenCalledWith({ seasonId: 'season-1' });
+  await waitFor(() => expect(trainingApi.cooperation).toHaveBeenCalledTimes(2));
+  expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(1);
 });
 
 it('starts one fresh cooperation epoch after a newer chapter publication supersedes two stale attempts', async () => {

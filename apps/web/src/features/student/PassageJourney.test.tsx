@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, MemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import type { ChapterPage, ProgressRow } from "../../api/pbeTypes";
@@ -154,6 +154,33 @@ it('does not invalidate cooperation when an old chapter continuation finishes af
   finish({ seasonId: 's', scopeVersion: 'scope-v2', work: { id: 'work-1', state: 'Complete', stage: null, reason: null }, next: 'Reload' });
   await screen.findByText('2 of 3 assigned passages have questions');
   expect(invalidate).not.toHaveBeenCalled();
+});
+
+it('ignores an old-season stale rejection without consuming the current season recovery', async () => {
+  const working = (seasonId: string, workId: string) => chapterPage({ seasonId, snapshotId: null, scopeVersion: null, items: [], work: { id: workId, state: 'Working', stage: 'Projecting', reason: null } });
+  vi.mocked(trainingApi.chapters).mockImplementation(async seasonId => working(seasonId, seasonId === 's' ? 'old-work' : 'current-work'));
+  let rejectOld!: (error: unknown) => void;
+  let rejectCurrent!: (error: unknown) => void;
+  vi.mocked(trainingApi.continueChapters).mockImplementation(input => {
+    if (input.workId === 'old-work') return new Promise((_resolve, reject) => { rejectOld = reject; });
+    if (input.workId === 'current-work') return new Promise((_resolve, reject) => { rejectCurrent = reject; });
+    return Promise.resolve({ seasonId: input.seasonId, scopeVersion: 'scope-current', work: { id: 'replacement-work', state: 'Complete', stage: null, reason: null }, next: 'Reload' });
+  });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const view = render(<QueryClientProvider client={client}><MemoryRouter><PassageJourney seasonId="s" format="Pbe" /></MemoryRouter></QueryClientProvider>);
+  await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledWith({ seasonId: 's', workId: 'old-work' }));
+
+  view.rerender(<QueryClientProvider client={client}><MemoryRouter><PassageJourney seasonId="season-2" format="Pbe" /></MemoryRouter></QueryClientProvider>);
+  await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledWith({ seasonId: 'season-2', workId: 'current-work' }));
+  await act(async () => {
+    rejectOld(new ApiError('PBE_CHAPTER_WORK_STALE', 409, undefined, 'PBE_CHAPTER_WORK_STALE'));
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+  expect(trainingApi.continueChapters).toHaveBeenCalledTimes(2);
+
+  await act(async () => { rejectCurrent(new ApiError('PBE_CHAPTER_SCOPE_STALE', 409, undefined, 'PBE_CHAPTER_SCOPE_STALE')); });
+  await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledTimes(3));
+  expect(trainingApi.continueChapters).toHaveBeenNthCalledWith(3, { seasonId: 'season-2' });
 });
 
 it('attempts one bounded bootstrap and leaves an actionable error when stale recovery also fails', async () => {
