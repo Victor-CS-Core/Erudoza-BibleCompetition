@@ -1,7 +1,8 @@
+import { introductionRoutes } from './introductions';
 import type { RequestContext } from '../types';
 import { admin,body,HttpError,json,noContent } from '../types';
 import { atomic } from '../application/model';
-import type { Pack, Season } from '../application/model';
+import type { Season } from '../application/model';
 import { guid,loadPbeBank,resolvePbeSources,sourceProof } from './bank';
 import type { PbeQuestionRecord } from './bank';
 import type { PbeQuestion,PbeTarget } from './types';
@@ -11,6 +12,7 @@ function normalizeTarget(t:PbeTarget):PbeTarget{const {id,sourceUnitIds,skill,la
 export async function pbeRoutes(ctx:RequestContext):Promise<Response|null>{
  const match=ctx.path.match(/^\/practice\/pbe\/seasons\/([^/]+)(.*)$/);if(!match)return null;
  const seasonId=guid(match[1]),path=match[2],base={organizationId:ctx.orgId,seasonId};
+ const introduction=await introductionRoutes(ctx,seasonId,path);if(introduction)return introduction;
  if(path==='/bank'&&ctx.request.method==='GET'){
   const scope={...base,...(ctx.actor.kind==='Student'?{studentId:ctx.actor.userId}:{})},resolved=await resolvePbeSources(ctx,scope);
   const bank=await loadPbeBank(ctx,{...scope,sourceUnitIds:resolved.sources.map(s=>s.id)});
@@ -30,8 +32,8 @@ export async function pbeRoutes(ctx:RequestContext):Promise<Response|null>{
   if(new Set(targets.map(t=>t.id)).size!==targets.length||new Set(questions.map(q=>`${q.id}:${q.version}`)).size!==questions.length)throw new HttpError(400,'Duplicate question or target identities.');
   // Validate each declared target even when no question references it.
   if(targets.some(t=>!questions.some(q=>q.parts.some(p=>p.targetId===t.id))))throw new HttpError(400,'Every imported target must be used by a question.');
-  const sources=new Map(resolved.sources.map(s=>[s.id,s])),packs=new Map((await ctx.store.getMany<Pack>('pack',[...new Set(resolved.sources.map(s=>s.contentPackId))],ctx.orgId)).map(p=>[p.value.id,p.value]));
-  for(const q of questions)if(q.sourceUnitIds.some(id=>{const s=sources.get(id);return !s||s.contentPackId!==q.contentPackId||packs.get(s.contentPackId)?.sourceType!==(q.sourceKind==='Scripture'?'Scripture':'Supplemental');}))throw new HttpError(400,'Each source must be approved season content of the declared kind.');
+  const sources=new Map(resolved.sources.map(s=>[s.id,s]));
+  for(const q of questions)if(q.sourceUnitIds.some(id=>{const s=sources.get(id);return !s||s.contentPackId!==q.contentPackId||s.sourceKind!==q.sourceKind;}))throw new HttpError(400,'Each source must be approved season content of the declared kind.');
   const statements=[];
   for(const t of targets){const prior=await ctx.store.get<PbeTarget>('pbe-target',t.id,ctx.orgId);if(prior){const owner=await ctx.env.DB.prepare("SELECT season_id FROM Records WHERE kind='pbe-target' AND org_id=? AND id=?").bind(ctx.orgId,t.id).first<{season_id:string}>();if(owner?.season_id!==seasonId)throw new HttpError(409,'Declare a new target ID for this season.');if(JSON.stringify(prior.value)!==JSON.stringify(t))throw new HttpError(409,'Target meaning is immutable; declare a new target ID.');}else statements.push(ctx.store.insertion('pbe-target',t.id,ctx.orgId,t,{seasonId,ownerId:t.sourceUnitIds[0]}));}
   for(const q of questions){
@@ -53,7 +55,7 @@ export async function pbeRoutes(ctx:RequestContext):Promise<Response|null>{
   if(row.value.seasonId!==seasonId)throw new HttpError(404,'Question was not found in this season.');
   const targets=await ctx.store.getMany<PbeTarget>('pbe-target',row.value.question.parts.map(p=>p.targetId),ctx.orgId);
   try{validatePbeQuestion(row.value.question,targets.map(t=>t.value));}catch{throw new HttpError(400,'Malformed PBE question or target.');}
-  if(row.value.question.sourceUnitIds.some(id=>!resolved.sources.some(s=>s.id===id)))throw new HttpError(400,'Question sources are no longer in the approved season scope.');
+  if(row.value.question.sourceUnitIds.some(id=>!resolved.sources.some(s=>s.id===id&&s.contentPackId===row.value.question.contentPackId&&s.sourceKind===row.value.question.sourceKind)))throw new HttpError(400,'Question sources are no longer in the approved season scope.');
   if(await sourceProof(row.value.question,new Map(resolved.sources.map(s=>[s.id,s])))!==row.value.sourceFingerprint)throw new HttpError(409,'Question sources changed; import a new version.');
   const published={...row.value,published:true},head=await ctx.store.get<PbeQuestionRecord>('pbe-question-head',row.value.question.id,ctx.orgId);
   if(head&&head.value.seasonId!==seasonId)throw new HttpError(409,'Declare a new question ID for this season.');

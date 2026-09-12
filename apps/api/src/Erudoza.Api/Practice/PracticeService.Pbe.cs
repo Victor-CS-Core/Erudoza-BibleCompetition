@@ -42,7 +42,7 @@ public sealed partial class PracticeService
         var resolved = await bank.ResolveAsync(org, season, null, ct);
         var sources = resolved.Sources.ToDictionary(s => s.Id);
         foreach (var q in input.Questions)
-            if (q.SourceUnitIds.Any(id => !sources.TryGetValue(id, out var s) || s.ContentPackId != q.ContentPackId || s.ContentPack!.SourceType != (q.SourceKind == PbeSourceKind.Scripture ? SourceType.Scripture : SourceType.Supplemental))) throw new DomainException("Each source must be approved season content of the declared kind.");
+            if (q.SourceUnitIds.Any(id => !sources.TryGetValue(id, out var s) || s.ContentPackId != q.ContentPackId || s.SourceKind != q.SourceKind)) throw new DomainException("Each source must be approved season content of the declared kind.");
         foreach (var target in input.Targets)
         {
             var id = target.Id.ToString(); var json = JsonSerializer.Serialize(target, PbeQuestionBank.Json);
@@ -72,7 +72,7 @@ public sealed partial class PracticeService
         var targets = await db.PbeTrainingRecords.Where(r => r.OrganizationId == org && r.SeasonId == season && r.Kind == "pbe-target" && ids.Contains(r.Id)).ToListAsync(ct);
         try { PbeRubric.Validate(data.Question, targets.Select(t => JsonSerializer.Deserialize<PbeTarget>(t.DataJson, PbeQuestionBank.Json)!).ToList()); }
         catch (ArgumentException) { throw new DomainException("Malformed PBE question or target."); }
-        if (data.Question.SourceUnitIds.Any(id => !resolved.Sources.Any(s => s.Id == id && s.ContentPackId == data.Question.ContentPackId && s.ContentPack!.SourceType == (data.Question.SourceKind == PbeSourceKind.Scripture ? SourceType.Scripture : SourceType.Supplemental)))) throw new DomainException("Question sources are no longer in the approved season scope.");
+        if (data.Question.SourceUnitIds.Any(id => !resolved.Sources.Any(s => s.Id == id && s.ContentPackId == data.Question.ContentPackId && s.SourceKind == data.Question.SourceKind))) throw new DomainException("Question sources are no longer in the approved season scope.");
         if (PbeQuestionBank.SourceProof(data.Question, resolved.Sources.ToDictionary(s => s.Id)) != data.SourceFingerprint) throw new PbeBankConflictException("Question sources changed; import a new version.");
         row.DataJson = JsonSerializer.Serialize(data with { Published = true }, PbeQuestionBank.Json); row.Revision++;
         var headId = id.ToString();

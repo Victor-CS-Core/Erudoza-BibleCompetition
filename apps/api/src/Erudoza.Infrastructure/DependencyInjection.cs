@@ -41,6 +41,8 @@ public static class DependencyInjection
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<DevelopmentSeeder>();
         services.AddScoped<IPbeQuestionBank, PbeQuestionBank>();
+        services.AddScoped<PbeSourceResolver>();
+        services.AddScoped<PbeIntroductionService>();
         services.AddScoped<ICompetitionScopeResolver, CompetitionScopeResolver>();
         services.AddScoped<IStudentStudyScopeService, StudentStudyScopeService>();
         services.AddScoped<ContentImportService>();

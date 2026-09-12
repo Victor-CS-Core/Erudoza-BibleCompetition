@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Erudoza.Application.Abstractions;
+using Erudoza.Application.Study;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
@@ -24,10 +25,16 @@ public static class PracticeEndpoints
         pbe.AddEndpointFilter(async (context, next) =>
         {
             try { return await next(context); }
+            catch (KeyNotFoundException error) { return Results.NotFound(new { message = error.Message }); }
             catch (PbeBankConflictException error) { return Results.Conflict(new { message = error.Message }); }
             catch (Microsoft.EntityFrameworkCore.DbUpdateException) { return Results.Conflict(new { message = "The PBE record changed. Refresh and retry." }); }
             catch (Microsoft.Data.Sqlite.SqliteException error) when (error.SqliteErrorCode is 5 or 6) { return Results.Conflict(new { message = "The PBE record changed. Refresh and retry." }); }
         });
+        pbe.MapGet("/introductions", (Guid orgId, Guid seasonId, PbeIntroductionService service, CancellationToken ct) => service.List(orgId, seasonId, ct));
+        pbe.MapPost("/introductions", (Guid orgId, Guid seasonId, System.Text.Json.JsonElement request, PbeIntroductionService service, CancellationToken ct) => service.Create(orgId, seasonId, request, ct));
+        pbe.MapPost("/introductions/{id:guid}/review", (Guid orgId, Guid seasonId, Guid id, System.Text.Json.JsonElement request, PbeIntroductionService service, CancellationToken ct) => service.Update(orgId, seasonId, id, true, request, ct));
+        pbe.MapPost("/introductions/{id:guid}/assignments", (Guid orgId, Guid seasonId, Guid id, System.Text.Json.JsonElement request, PbeIntroductionService service, CancellationToken ct) => service.Update(orgId, seasonId, id, false, request, ct));
+        pbe.MapGet("/introductions/{id:guid}/reader", (Guid orgId, Guid seasonId, Guid id, PbeIntroductionService service, CancellationToken ct) => service.Reader(orgId, seasonId, id, ct));
         pbe.MapGet("/bank", (Guid orgId, Guid seasonId, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => service.PbeMetadata(orgId, seasonId, Actor(user), bank, ct));
         pbe.MapPost("/enabled", async (Guid orgId, Guid seasonId, PbeEnabledRequest request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) => { await service.PbeEnable(orgId, seasonId, request.Enabled, Actor(user), bank, ct); return Results.NoContent(); });
         pbe.MapPost("/questions/import", async (Guid orgId, Guid seasonId, System.Text.Json.JsonElement request, ICurrentUser user, PracticeService service, IPbeQuestionBank bank, CancellationToken ct) =>

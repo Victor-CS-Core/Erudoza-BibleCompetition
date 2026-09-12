@@ -7,6 +7,8 @@ namespace Erudoza.Infrastructure.Persistence;
 public sealed class ErudozaDbContext(DbContextOptions<ErudozaDbContext> options)
     : DbContext(options), IErudozaDbContext
 {
+    public Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginSerializableTransactionAsync(CancellationToken cancellationToken = default) => Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, cancellationToken);
+
     public DbSet<PbeTrainingRecord> PbeTrainingRecords => Set<PbeTrainingRecord>();
     public DbSet<MasteryHonorUnlock> MasteryHonorUnlocks => Set<MasteryHonorUnlock>();
     public DbSet<MasteryPassageProof> MasteryPassageProofs => Set<MasteryPassageProof>();

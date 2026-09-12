@@ -37,5 +37,6 @@ public interface IErudozaDbContext
     DbSet<ReviewSchedule> ReviewSchedules { get; }
     DbSet<AuditEvent> AuditEvents { get; }
 
+    Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> BeginSerializableTransactionAsync(CancellationToken cancellationToken = default);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
