@@ -1,5 +1,7 @@
 # Team Practice operations
 
+This document's original scoring, team-size and recovery procedure describes the historical Arcade profile. The new PBE implementation is still in progress; its separate [PBE release procedure](pbe-training.md) records the accuracy-only profile, independent completion, deferred review and remaining release gates. Read saved profiles when interpreting old results. No PBE deployment is implied by this documentation update.
+
 Team Practice is an Erudoza preparation activity. Its head-to-head results and speed bonus are not official Pathfinder Bible Experience scoring. The versioned baseline is the [NAD 2023–24 guide](https://nadpbe.org/wp-content/uploads/2023/11/How-to-Bible-Experience-2023-24.pdf); verify newer regional and NAD instructions with the competition organizer before a rehearsal. Do not advertise current official certification.
 
 ## Enable a pilot

@@ -124,3 +124,9 @@ Evaluate changes using coverage of published knowledge targets across assigned p
 - Demonstrate that recognition or hinted success cannot clear an unresolved unaided recall failure; test correct, wrong and partially completed review sessions across days.
 - Exercise coach difficulty changes, short assignments, long verses, deterministic replay, immutable results and retained historical Honors in both runtimes.
 - Check actual student/coach flows on desktop and phone, then run a small student pilot measuring delayed recall. Synthetic canonical answers only validate software behavior.
+
+## User addition — September 12: answer in each blank
+
+The user supplied a mobile Missing Words example in which the verse contains separate blanks but the answer is entered as comma-separated phrases in one textarea. Add inline fields at the frozen blank positions so students can see exactly where each answer belongs. Preserve that position through authoritative grading, including empty, adjacent and repeated-word slots; joining fields alone loses information and can mark a misplaced answer correct.
+
+[Task B4](../superpowers/plans/2026-09-12-pbe-solo-replay.md#task-b4-type-directly-into-missing-word-blanks) covers accessible mobile/keyboard entry, post-submission per-blank feedback, native/canonical positional verification, immutable structured retries and unchanged historical string-only attempts. This is an added requirement and source-grounded plan, not an implemented or deployed fix.

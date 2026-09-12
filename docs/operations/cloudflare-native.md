@@ -1,5 +1,7 @@
 # Cloudflare native pilot
 
+The versioned PBE implementation remains in progress. Its [separate release procedure](pbe-training.md) tracks the additive solo authority, bounded room storage work, populated export/restore requirements and compatible rollback. The commands below do not yet establish a supported import of new populated PBE records; use the final reviewed D3 procedure when available.
+
 This target runs the existing React interface on Workers Static Assets, the API on Workers, relational records in D1, and private PVP rooms in SQLite-backed Durable Objects. An internal PasswordCrypto Durable Object performs the existing PBKDF2 password work. It does not call Azure, the ASP.NET host, or the Sites bridge. The legacy build remains available during migration. Domain registration/renewal is separate from free DNS and hosting.
 
 The first staging deployment is recorded in [the deployment audit](../audits/2026-09-10-cloudflare-staging.md). `wrangler.staging.jsonc` contains its explicit account/database binding and HTTPS origin. The generic `wrangler.native.jsonc` remains a local/deployment template. erudoza.com DNS has not changed.

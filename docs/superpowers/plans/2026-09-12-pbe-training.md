@@ -20,6 +20,7 @@
 - Commentary must be fewer than 10% of a rehearsal set; `maximum = Math.ceil(count * 0.1) - 1`. The existing 10% true/false cap remains a named Erudoza policy, not an official percentage. New rehearsal profiles default to the same cap. These event-mix limits do not restrict focused Practice/Review, which may study assigned commentary directly. Do not require either question kind when none is available; surface missing commentary coverage separately.
 - Team rehearsal supports 2–6 students per team and one or two teams. Individual practice may use one student but is labeled solo practice. No claim of official placing from app percent-correct or head-to-head results.
 - “Preserve deterministic generation and immutable cards after selection.” New session selection may vary; refresh, retries and resume must not reroll questions or rubrics.
+- User addition, September 12: missing-word activities let students type directly into the displayed blanks. Preserve each blank's identity through submission and grading; do not require students to invent comma-separated answer formatting or flatten empty slots into a potentially correct answer. B4 implements this against frozen MissingWords tokens with legacy retry compatibility.
 - Preserve historical scores, difficulty evidence ceilings, earned permanent Honors, profile unlocks and existing routes. New chapter stamps are separate dated evidence, not a replacement for permanent Honors.
 - Native production and C# reference behavior must pass common fixtures. No parity claim from source inspection alone. The planning-time SDK blocker is resolved with task-local SDK 10.0.303 matching root `global.json`; run and record canonical checks for each implemented gate.
 - Read [DESIGN.md](../../../DESIGN.md) and [PROGRESS.md](../../../PROGRESS.md) before implementation. Reuse shared controls/tokens; 44px touch targets, 1440/390/320px checks, keyboard and reduced motion. No new artwork or design system is required.
@@ -102,14 +103,14 @@ All assessment findings map to tasks above. A verified question bank for the act
 
 ## Execution status
 
-The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Nine of thirteen tasks have passed independent review. The source checkpoints below distinguish pushed work from the current local gate. Production remains unchanged; deployment and main merge require separate authorization.
+The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Nine of fourteen tasks have passed independent review. The user added B4 inline missing-word answers after the original Phase B gate; run B4 after the active C3 checkpoint and before chapter integration. The source checkpoints below distinguish pushed work from the current local gate. Production remains unchanged; deployment and main merge require separate authorization.
 
 | Phase | Reviewed tasks | Source checkpoint | Current work |
 |---|---|---|---|
 | A — Questions and grading | A1, A2, A2b, A3 (4/4) | `80dfae5` | Complete locally and pushed |
-| B — Solo learning and replay | B1, B2, B3 (3/3) | `9448ba1` | Complete locally and pushed |
-| C — Independent rehearsal | C1, C2 (2/3) | C1 pushed `6aacc2e`; C2 reviewed through `277fe00`, push follows | C3 deferred disputes next; one invitation UI minor carried forward |
-| D — Chapter progress and release | 0/3 | Pending | Starts after Phase C |
+| B — Solo learning and replay | B1, B2, B3 (3/4) | `9448ba1` | Original gate reviewed/pushed; added B4 inline blanks follows C3 |
+| C — Independent rehearsal | C1, C2 (2/3) | `e1b9e3b` | C3 disputes/rewards/UI and required bounded room-storage repair in progress |
+| D — Chapter progress and release | 0/3 | Pending | Isolated pure-calculation prework and release drafts; integration follows reviewed C3 |
 
 The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. The pre-implementation baseline passed 579 web/native checks with one optional skip, and 267 .NET checks with one optional load skip. [PROGRESS.md](../../../PROGRESS.md) records each later gate's exact tests, review fixes, pushes and limitations. Synthetic delayed answers establish bookkeeping, not human retention; the actual coach-approved season bank and learner pilot remain external release gates.
 
@@ -119,7 +120,7 @@ The implementation uses dedicated native `pbe-question`/`pbe-target` kinds and c
 
 ### Introduction source refinement
 
-Task A2b was added after source inspection showed that the current range-only assignment model cannot represent commentary introductions without fabricated coordinates. It uses explicit season-owned introduction packs and student assignments in A2's record storage, with source review before question publication. This adds one implementation task (13 total) within the approved PBE source-coverage requirement. A3 adds its coach controls, B2 consumes the shared resolver, and D2 displays separate introduction groups.
+Task A2b was added after source inspection showed that the current range-only assignment model cannot represent commentary introductions without fabricated coordinates. It uses explicit season-owned introduction packs and student assignments in A2's record storage, with source review before question publication. This added one implementation task within the approved PBE source-coverage requirement; the later user-requested B4 brings the current total to 14. A3 adds its coach controls, B2 consumes the shared resolver, and D2 displays separate introduction groups.
 
 A2 also keeps a `pbe-question-head` projection for the newest published version of each question. Its source anchor enables indexed assignment reads without falling back to an older version when a new version moves outside the student's scope. Publication updates the head and source index atomically; old versions remain immutable for authoring/history. D3 exports this projection alongside raw versions.
 
@@ -157,3 +158,8 @@ Clock loss cannot reopen an armed window. Trusted saved answers settle; unrecove
 PBE rooms freeze the requested 10/30/90 questions plus one compatible reserve, select from approved season material using participant maximum question-service history, and keep personal-study scope separate. One/two teams, student-captain independent control, explicit coached readings/readiness, accuracy points and a hidden-question halfway break are saved-version behavior. Team service is exposure only, with idempotent bulk projections and durable outboxes; it does not create individual retention evidence.
 
 Active material revocation yields a sanitized management view with existing cleanup authority. Cleanup preserves earlier answers and authorized revealed history; terminal admission rejects new play before recovery/mutation while preserving original-actor accepted command retries. Native full authority stays in DO state/outbox; canonical full room and pbe-room-service-outbox are persisted separately from read projections. D3 must retain coach-reading metadata, source proofs, question/rubric wrappers, reserve/replacement identities, schedules and response lock times. The final C2 task review closes all blocking findings; C3 owns the tracked one-team invitation minor, deferred disputes and full Phase C/load checks.
+
+
+### B4 inline answer addition
+
+The user's supplied Missing Words screen requires direct entry in each displayed blank. [Task B4](2026-09-12-pbe-solo-replay.md#task-b4-type-directly-into-missing-word-blanks) preserves public frozen token indices and verifies original indexed answers on both servers. A UI-only join is insufficient: entries `['in the', '']` must not pass for `['in', 'the']`. The task adds versioned structured attempt storage while retaining old string-only pending retries and historical scores. It follows C3 without interrupting that checkpoint; D3 must include its additive payload/migration in populated restore tests. Current free-form PBE parts do not expose blank positions and must not be guessed from underscores.

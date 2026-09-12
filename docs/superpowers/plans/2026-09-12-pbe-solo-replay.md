@@ -158,3 +158,64 @@ it('appends a chosen token directly rather than moving it repeatedly', () => {
 
 - [x] Run native study/PBE/training suites, frontend student tests and equivalent canonical study/training tests. Repeat the earlier 8/24-verse and simulated 28-day audit scenarios using the new bank/target evidence; report target coverage and delayed accuracy separately from exercise counts.
 - [x] Review student and coach views at 1440/390/320px. Publish no production fixtures. Update progress, explicitly commit and push the verified implementation checkpoint. Phase C completes timed Simulation; Phase D consumes retained target evidence.
+
+## Task B4: Type directly into missing-word blanks
+
+**User addition — September 12:** The supplied mobile Missing Words example (Esther 1:22) shows several blanks in the verse followed by a single answer textarea. Students must instead type directly into each missing word or phrase. The server must verify the corresponding position, without asking students to invent comma-separated answer formatting. This task was added after the original Phase B gate; execute it after the active C3 checkpoint and before D1/D2 integration. The earlier reviewed B1–B3 work remains accepted.
+
+**Files — create:** `apps/web/src/features/student/MissingWordsInput.tsx`, `MissingWordsInput.test.tsx`; `apps/web/worker/native/study/missing-word-answers.ts`, `missing-word-answers.test.ts`; `apps/api/src/Erudoza.Domain/Study/MissingWordAnswers.cs`; `apps/api/tests/Erudoza.UnitTests/MissingWordAnswersTests.cs`; `apps/api/tests/Erudoza.IntegrationTests/MissingWordAnswerTests.cs`.
+
+**Files — modify:** `StudyPage.tsx`, `StudyPage.test.tsx`; shared `src/api/{types,client}.ts`; native `study/{routes,engine}.ts` and covering tests; canonical `Contracts/ApiContracts.cs`, `Study/StudySessionService.cs`, `Domain/StudyEntities.cs`, `Persistence/ErudozaDbContext.cs` and generated EF model/migration files. Extend the shared Input primitive/styles only if an inline layout variant is needed; keep page CSS to layout. Add the accepted structured-answer fixture to `e2e/pbe-training.spec.ts` and the D3 exporter tests. These paths are relative to their existing application roots; existing files must be handed off after C3 before parallel edits.
+
+**Interfaces and persistence:**
+
+```ts
+export interface MissingWordAnswer { index: number; text: string }
+export interface MissingWordAnswerPayload {
+  format: 'missing-words-slots/v1';
+  answers: MissingWordAnswer[];
+  results: { index: number; isCorrect: boolean; expected: string }[]; // server-generated
+}
+// Native pure adapter (new missing-word-answers.ts):
+// evaluateMissingWordAnswers(tokens: Token[], answers: MissingWordAnswer[]):
+//   { isCorrect: boolean; results: {index:number; isCorrect:boolean; expected:string}[] };
+// Token is the existing private study/engine.ts type. Invalid index shape throws.
+// MissingWordsInput props:
+// tokens: ChallengeCard['tokens']; values: Record<number, string>;
+// onChange(values: Record<number, string>): void; disabled: boolean;
+// results?: { index: number; isCorrect: boolean; expected: string }[];
+// Extend the existing attempt request with exactly one answer representation:
+type MissingWordsAnswerBody =
+  | { submittedAnswer: string; missingWordAnswers?: never }
+  | { submittedAnswer?: never; missingWordAnswers: MissingWordAnswer[] };
+```
+
+Keep the existing submission ID, card ID, elapsed-time and hints fields. The structured path is valid only for MissingWords. Derive slots and expected text from the private **saved card**, never client-provided text, positions or points. Require exactly the saved hidden-index set, with one string per index; reject duplicates, visible/unknown/missing indices, malformed values, simultaneous representations and existing body/aggregate answer-size violations. Retain explicit empty strings and canonicalize array order by saved token order without normalizing the original text. Compare each value to its own private token using that card's existing MissingWords normalization; binary overall correctness requires every slot correct. Empty/whitespace-only input cannot be correct. If a private punctuation-only token normalizes to empty, compare nonempty trimmed original text for that slot. Do not impose a single-word regex: frozen tokens can contain embedded whitespace.
+
+Persist new structured submissions as a versioned native `answerPayload` on the immutable attempt and nullable canonical `AnswerPayloadJson` on `Attempt` in `Domain/StudyEntities.cs`. The existing `SubmittedAnswer` remains a server-derived readable rendering for legacy recap consumers; it is not the grading or retry authority for the structured path. Generate the additive EF migration named `MissingWordsSlotAnswers` and retain the model snapshot; native JSON storage needs no new table solely for this payload. Exact retries compare the saved format and original indexed text plus existing request identity/timing/hints; two layouts that join to the same string are still different answers. Preserve historical string-only attempts and retries without reparsing, regrading or changing their scores/Honors. D3 must preserve the new payload and prove populated restore/retry.
+Return optional `missingWordResults` on the accepted attempt result/DTO from the saved server-generated payload results, and feed those into the component's `results` prop only after the existing feedback boundary. The client request contains answers only; it cannot supply expected text or correctness. Persist the original per-slot results so later code changes cannot silently reinterpret historical feedback.
+
+A concrete pure grading regression for the new adapter is:
+
+```ts
+import { expect, it } from 'vitest';
+import { evaluateMissingWordAnswers } from './missing-word-answers';
+it('does not move words across an empty blank', () => {
+  const tokens = [
+    {index: 2, text: 'in', hidden: true},
+    {index: 3, text: 'the', hidden: true},
+  ];
+  expect(evaluateMissingWordAnswers(tokens, [
+    {index: 2, text: 'in the'}, {index: 3, text: ''},
+  ]).isCorrect).toBe(false);
+});
+```
+
+- [ ] Add the failing inline-input test before implementation. Use the public token shape with redacted hidden display, including two adjacent hidden indices and separated/repeated blanks. For a controlled wrapper, type `sent` and `letters` into “Blank 1 of 2” and “Blank 2 of 2”; assert values remain keyed to their own indices and the page submits `missingWordAnswers: [{index:2,text:'sent'},{index:3,text:'letters'}]`. Assert the separate “Type the missing phrase” textarea is absent. Run `npm --workspace apps/web run test -- src/features/student/MissingWordsInput.test.tsx src/features/student/StudyPage.test.tsx` and record genuine behavioral RED.
+- [ ] Add matching pure and actual HTTP grading regressions in both runtimes: expected `['in','the']` with entered `['in the','']` must be incorrect; swapped different words must fail; repeated equal words retain distinct positions; an empty middle slot cannot shift later entries; duplicate/unknown/missing indices fail validation. Cover case, spaces, apostrophes, commas, hyphens, embedded whitespace and punctuation-only source tokens under the defined policy. Verify legacy `submittedAnswer` strings retain their original meaning. Run the new focused native/Vitest and canonical unit/integration files before adding their adapters.
+- [ ] Render the passage once from the frozen public token sequence, replacing every hidden token with the shared Input control. Keep visible words as Scripture text and controls in system sans. Use stable card/index keys and labels “Blank N of M.” Size fields from a neutral minimum and user-entered text only; do not leak expected word lengths, letters, punctuation or answers through HTML, placeholders or accessibility labels. Use clear focus, at least 44px touch targets, natural wrapping and no page overflow. Disable autocomplete, spelling correction and automatic capitalization for recall inputs.
+- [ ] Support Tab/Shift+Tab and mobile Next/Done navigation without submitting mid-composition or moving focus based on guessed answer length. Keep an explicit Submit action; allow a deliberately unfilled slot to remain an incorrect answer rather than silently filling or compacting it. Preserve entered fields on rerender, clear only when card identity changes, and lock them while a saved submission is pending or accepted. After the existing authorized feedback boundary, show per-blank correctness with text/icons and source review; color alone is insufficient. Keep timed/deferred feedback boundaries unchanged.
+- [ ] Implement the structured server adapters and atomic immutable payload persistence described above. Apply existing authority, assignment, assistance, mastery ceilings and version rules. Do not award per-word partial mastery or change the Memory/PBE scoring policies as a side effect of the input change. Verify original raw slot values, result and submission identity survive reload and a lost-response retry; reject a reused ID with different slot values even when the readable joined string matches.
+- [ ] Preserve saved legacy pending requests exactly: keep their existing read-only answer notice and retry their original text, ID, elapsed time and hints. Never guess how a comma-separated legacy answer maps to blanks or replace it with a newly generated request. New pending requests restore their indexed fields under the existing same-owner authentication guard. Cover unknown/changed identity and logout clearing without weakening B3 recovery checks.
+- [ ] Apply inline entry across current MissingWords modes and saved Warmup/Advanced profiles. Reuse the component for any activity with explicit frozen blank positions. Current PBE cards expose rubric parts, not blank positions: do not parse underscores, treat every part as a blank, or fabricate missing words for full-quotation/list/short-answer questions. Authored PBE blank templates require explicit validated/frozen slot metadata before this renderer can consume them; retain their distinct grading rules.
+- [ ] Run focused student UI, native study, canonical slot/unit/HTTP checks, both type checks, lint and applicable format/build checks. Verify native and canonical browser journeys at 1440/390/320px with keyboard, reduced motion, adjacent/separated blanks, long entries, correct/incorrect feedback, and saved-answer recovery. Include coach/student views if shared Input styling changes. Test the additive EF migration against an isolated populated database and preserve earlier records. Commit `feat: answer missing words directly in verse blanks`, complete independent task review, and push the verified checkpoint before D1/D2 integration. A plan update is not implementation or deployment evidence.
