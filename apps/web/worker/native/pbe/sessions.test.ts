@@ -440,3 +440,34 @@ it('keeps licensed immutable built-in sources available through daily discovery 
  const today=await send(`/progress/me/today?seasonId=${season}`);expect(today.status).toBe(200);expect(await today.json()).toMatchObject({format:'Pbe'});
  const started=await send('/study/sessions',{seasonId:season,format:'Pbe'});expect(started.status).toBe(200);const s=await started.json() as {id:string};const card=await (await send(`/study/sessions/${s.id}/next`)).json() as {id:string};expect((await send(`/study/sessions/${s.id}/attempts`,{clientSubmissionId:crypto.randomUUID(),challengeCardId:card.id,answers:['Alpha','Beta'],hintsUsed:false})).status).toBe(200);
 });
+
+it('keeps a frozen daily mission discoverable when publication moves outside the personal scope', async () => {
+    const { send, store } = await setup(1);
+    const scope = await store.require<{ contentPackId: string; includes: unknown[]; excludes: unknown[] }>('scope', season, TEST_ORG);
+    await store.put('scope', season, TEST_ORG, { ...scope.value, includes: [{ bookKey: 'GEN', startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 }] }, scope.revision);
+    const outside = { id: tid(9000), contentPackId: pack, bookKey: 'GEN', chapter: 1, verse: 2, ordinal: 2, citation: 'GEN 1:2', canonicalText: 'Gamma', isActive: true };
+    await store.insert('source', outside.id, TEST_ORG, outside, { ownerId: pack });
+    const started = await send('/study/sessions', { seasonId: season, format: 'Pbe' });
+    expect(started.status).toBe(200);
+    const session = await started.json() as { id: string };
+    const path = `/study/sessions/${session.id}`;
+    const card = await (await send(path + '/next')).json() as { id: string };
+    const todayPath = `/progress/me/today?seasonId=${season}`;
+    const before = await (await send(todayPath)).json() as { mission: { scopeVersion: string } };
+    const target: PbeTarget = { id: tid(9001), sourceUnitIds: [outside.id], skill: 'FactualRecall', label: 'Gamma' };
+    await store.insert('pbe-target', target.id, TEST_ORG, target, { seasonId: season, ownerId: outside.id });
+    const head = await store.require<{ question: PbeQuestion }>('pbe-question-head', tid(100), TEST_ORG);
+    const question: PbeQuestion = { ...head.value.question, version: 2, sourceUnitId: outside.id, sourceUnitIds: [outside.id], reference: outside.citation, evidence: outside.canonicalText, kind: 'ShortAnswer', parts: [{ targetId: target.id, acceptedAnswers: ['Gamma'], points: 1 }] };
+    await app.db.prepare("UPDATE Records SET owner_id=?,data=?,revision=revision+1 WHERE kind='pbe-question-head' AND id=? AND org_id=?").bind(outside.id, JSON.stringify({ ...head.value, question, sourceFingerprint: await sourceProof(question, new Map([[outside.id, outside]])) }), question.id, TEST_ORG).run();
+    const today = await send(todayPath);
+    expect(today.status).toBe(200);
+    expect(await today.json()).toMatchObject({ format: 'Pbe', mission: { id: session.id, status: 'Active', scopeVersion: before.mission.scopeVersion, steps: [{ target: 1, completed: 0, sessionId: session.id }] }, nextAction: { sessionId: session.id, mode: 'Practice' } });
+    const newStart = await send('/study/sessions', { seasonId: season, format: 'Pbe' });
+    expect(newStart.status).toBe(409);
+    expect(await newStart.json()).toMatchObject({ code: 'PBE_COVERAGE_UNAVAILABLE' });
+    expect(await (await send(path + '/next')).json()).toMatchObject({ id: card.id });
+    expect(await (await send(path + '/attempts', { clientSubmissionId: crypto.randomUUID(), challengeCardId: card.id, answers: ['Alpha', 'Beta'], hintsUsed: false })).json()).toMatchObject({ earnedPoints: 2 });
+    await store.remove('membership', `${season}:${student}`, TEST_ORG);
+    expect(await (await send(todayPath)).json()).toMatchObject({ mission: { status: 'Unavailable' }, nextAction: null });
+    expect((await send(path + '/complete', {})).status).toBe(409);
+});

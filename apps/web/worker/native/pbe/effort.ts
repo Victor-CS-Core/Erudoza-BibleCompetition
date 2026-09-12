@@ -58,14 +58,18 @@ export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: s
 }
 export const pbeMissionSteps = (s: PbeSession) => [{ kind: s.mode, target: s.cards.length, completed: s.attempts.length, status: s.attempts.length === s.cards.length ? 'Complete' : 'Active', sessionId: s.id }];
 export async function pbeToday(ctx: RequestContext, season: import('../application/model').Season, now: string): Promise<import('../../../src/api/trainingTypes').TrainingToday> {
-    const { resolvePbeSources } = await import('./sources'), { loadFromResolvedSources } = await import('./bank');
-    const scope = await resolvePbeSources(ctx, { organizationId: ctx.orgId, seasonId: season.id, studentId: ctx.actor.userId });
-    const bank = await loadFromResolvedSources(ctx, { organizationId: ctx.orgId, seasonId: season.id, studentId: ctx.actor.userId, sourceUnitIds: scope.sources.map(s => s.id) }, scope, true);
+    const { resolvePbeSources, resolvePbeSessionSources } = await import('./sources'), { loadFromResolvedSources } = await import('./bank');
     const old = await preference(ctx), p = resolvePreference(ctx, old, now), c = resolveTrainingCalendar(now, p), week = (await ctx.store.get<WeekRecord>('training-week', identity(ctx, c.weekStartLocalDate), ctx.orgId))?.value;
     const head = await ctx.store.get<{
         missionId: string;
     }>('pbe-daily-mission-head', identity(ctx, season.id, c.localDate), ctx.orgId), saved = head ? await ctx.store.get<PbeSession>('pbe-session', head.value.missionId, ctx.orgId) : null, s = saved?.value;
-    const stale = !!s && s.scopeVersion !== scope.eligibility, available = bank.questions.length > 0 && scope.guards.some(g => g.kind === 'membership');
+    const owned = s?.format === 'Pbe' && s.studentUserId === ctx.actor.userId && s.seasonId === season.id;
+    const scope = owned ? await resolvePbeSessionSources(ctx, s.id) : await resolvePbeSources(ctx, { organizationId: ctx.orgId, seasonId: season.id, studentId: ctx.actor.userId });
+    const bank = await loadFromResolvedSources(ctx, { organizationId: ctx.orgId, seasonId: season.id, studentId: ctx.actor.userId, sourceUnitIds: scope.sources.map(s => s.id) }, scope, true);
+    const stale = !!s && (!owned || s.scopeVersion !== scope.eligibility);
+    // Published heads govern new admission; a compatible saved set remains resumable.
+    const frozenAvailable = owned && !stale && s.cards.length > 0 && scope.sources.length > 0;
+    const available = (frozenAvailable || bank.questions.length > 0) && scope.guards.some(g => g.kind === 'membership');
     const steps: import('../../../src/api/trainingTypes').TrainingStep[] = s && !stale ? pbeMissionSteps(s).map(step => ({ ...step, status: step.status as 'Active' | 'Complete' })) : [{ kind: 'Practice', target: Math.min(8, bank.questions.length), completed: 0, status: 'Pending', sessionId: null }];
     const complete = steps.every(step => step.status === 'Complete'), next = steps.find(step => step.status !== 'Complete');
     // Recheck every captured raw guard in one bounded query after the bank/mission reads.

@@ -46,3 +46,14 @@ it("disables the PBE rehearsal entry until timed presentation is implemented", a
   expect(screen.queryByRole("link", { name: "Start rehearsal" })).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Practice another drill" })).toHaveAttribute("href", expect.stringContaining("format=Pbe"));
 });
+
+it("offers the saved PBE mission resume action after its published bank becomes unavailable", async () => {
+  vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({
+    format: "Pbe",
+    mission: { id: "frozen", revision: 1, status: "Active", scopeVersion: "unchanged", explanation: null, steps: [{ kind: "Practice", target: 2, completed: 0, status: "Active", sessionId: "frozen" }] },
+    nextAction: { label: "Resume PBE practice", mode: "Practice", sessionId: "frozen" },
+  }));
+  home();
+  expect(await screen.findByTestId("start-todays-deck")).toHaveAttribute("href", "/student/study?mode=Practice&format=Pbe&sessionId=frozen&step=Practice&missionId=frozen&missionRevision=1&seasonId=s");
+  expect(screen.queryByTestId("academy-track-unavailable")).not.toBeInTheDocument();
+});

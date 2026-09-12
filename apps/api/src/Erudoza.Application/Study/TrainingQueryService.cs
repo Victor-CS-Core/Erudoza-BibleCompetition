@@ -33,15 +33,19 @@ public sealed class TrainingQueryService(IErudozaDbContext db, TrainingProgressS
         if (season is null) return new(null, "No season", "Unavailable", calendar.LocalDate, prefs, week, new(null, null, "Unavailable", null, [], "Ask your coach for an assignment."), null, []);
         if (season.PbeEnabled && season.Status == SeasonStatus.Active)
         {
-            var resolved = await resolver.ResolveAsync(org, season.Id, student, ct);
-            var loaded = await ((PbeQuestionBank)bank).LoadResolvedAsync(new(org, season.Id, student, resolved.Sources.Select(s => s.Id).ToList()), resolved, false, ct);
             var headId = TrainingProgressService.Identity(org, student, season.Id.ToString(), calendar.LocalDate);
             var head = await db.PbeTrainingRecords.AsNoTracking().SingleOrDefaultAsync(r => r.OrganizationId == org && r.Kind == "pbe-daily-mission-head" && r.Id == headId, ct);
             var mid = head is null ? null : JsonDocument.Parse(head.DataJson).RootElement.GetProperty("missionId").GetString();
             var row = mid is null ? null : await db.PbeTrainingRecords.AsNoTracking().SingleOrDefaultAsync(r => r.OrganizationId == org && r.OwnerId == student && r.Kind == "pbe-session" && r.Id == mid, ct);
-            var saved = row is null ? null : Read<PbeSessionSnapshot>(row.DataJson); var version = PbeSourceResolver.Eligibility(season.Id, student, resolved);
-            var stalePbe = saved is not null && saved.ScopeVersion != version;
-            var available = loaded.Questions.Count > 0 && await db.CompetitionMembers.AnyAsync(m => m.OrganizationId == org && m.SeasonId == season.Id && m.UserId == student, ct);
+            var saved = row is null ? null : Read<PbeSessionSnapshot>(row.DataJson);
+            var owned = saved is { Format: "Pbe" } && saved.StudentUserId == student && saved.SeasonId == season.Id;
+            var resolved = owned ? await resolver.ResolveSessionAsync(org, saved!.Id, ct) : await resolver.ResolveAsync(org, season.Id, student, ct);
+            var loaded = await ((PbeQuestionBank)bank).LoadResolvedAsync(new(org, season.Id, student, resolved.Sources.Select(s => s.Id).ToList()), resolved, false, ct);
+            var version = PbeSourceResolver.Eligibility(season.Id, student, resolved);
+            var stalePbe = saved is not null && (!owned || saved.ScopeVersion != version);
+            // Published heads govern new admission; a compatible saved set remains resumable.
+            var frozenAvailable = owned && !stalePbe && saved!.Cards.Count > 0 && resolved.Sources.Count > 0;
+            var available = (frozenAvailable || loaded.Questions.Count > 0) && await db.CompetitionMembers.AnyAsync(m => m.OrganizationId == org && m.SeasonId == season.Id && m.UserId == student, ct);
             IReadOnlyList<TrainingStepDto> pbeSteps = saved is not null && !stalePbe ? PbeSessionService.Steps(saved) : [new("Practice", Math.Min(8, loaded.Questions.Count), 0, "Pending", null)];
             var done = pbeSteps.All(s => s.Status == "Complete"); var nextPbe = pbeSteps.FirstOrDefault(s => s.Status != "Complete");
             return new(season.Id, season.Name, season.Status.ToString(), calendar.LocalDate, prefs, week, new(saved is not null && !stalePbe ? saved.Id.ToString() : null, saved is not null && !stalePbe ? 1 : null, !available ? "Unavailable" : stalePbe ? "Invalidated" : saved is null ? "Suggested" : done ? "Complete" : "Active", version, pbeSteps, !available ? "No eligible published PBE questions. Ask your coach to prepare this scope, or choose Memory." : stalePbe ? "Your assignment changed. Start a fresh daily mission." : null), available && nextPbe is not null ? new(saved?.Status == "Active" ? "Resume PBE practice" : "Start PBE practice", nextPbe.Kind, saved?.Status == "Completed" ? null : nextPbe.SessionId) : null, [], "Pbe");
