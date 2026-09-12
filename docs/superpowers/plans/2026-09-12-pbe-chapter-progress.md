@@ -99,6 +99,8 @@ it('gives a small assignment an honest next action', () => {
 
 ## Task D3: Integrated quality, pilot and controlled rollout
 
+Read the [local restore implementation contract](../../operations/pbe-restore-contract.md) for approved private-adapter scope, numeric caps and honest unsupported boundaries. Final accepted D1/D2 storage mappings remain prerequisites.
+
 **Files — create:** `apps/web/e2e/pbe-training.spec.ts`; `docs/operations/pbe-training.md`; `docs/audits/2026-09-12-pbe-implementation.md` for executed evidence, not copied planning claims.
 
 **Files — modify:** `apps/web/playwright.native.config.ts` to include the new spec; default Playwright config only if an explicit test match requires it; native/canonical regression files from prior phases; `scripts/cloudflare-export.mjs` and populated export/resume tests for new PBE records; `docs/operations/{cloudflare-native,pvp}.md`; `PROGRESS.md`.
