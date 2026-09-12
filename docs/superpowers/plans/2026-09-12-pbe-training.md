@@ -82,6 +82,7 @@ These values are implementation choices for the pilot, not official PBE requirem
 | No repeated first-bank slice or fixed verse/activity mapping | B1, C2 |
 | Recognition cannot erase failed recall | B1 |
 | Advanced Builder actions and repeated masks | B3 |
+| Direct typing in MissingWords blanks and positional verification | B4 |
 | Official timing, no speed points, 90 questions, six students | C1–C2 |
 | Complete/replay without coach; later disputes | C2–C3 |
 | Short assignments, transparent difficulty and missing coverage | A3, D1–D2 |
@@ -103,14 +104,14 @@ All assessment findings map to tasks above. A verified question bank for the act
 
 ## Execution status
 
-The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Nine of fourteen tasks have passed independent review. The user added B4 inline missing-word answers after the original Phase B gate; run B4 after the active C3 checkpoint and before chapter integration. The source checkpoints below distinguish pushed work from the current local gate. Production remains unchanged; deployment and main merge require separate authorization.
+The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Ten of fourteen tasks have passed independent review. The user added B4 inline missing-word answers after the original Phase B gate; run B4 from the reviewed C3 checkpoint and before chapter integration. The source checkpoints below distinguish pushed work from the current local gate. Production remains unchanged; deployment and main merge require separate authorization.
 
 | Phase | Reviewed tasks | Source checkpoint | Current work |
 |---|---|---|---|
 | A — Questions and grading | A1, A2, A2b, A3 (4/4) | `80dfae5` | Complete locally and pushed |
 | B — Solo learning and replay | B1, B2, B3 (3/4) | `9448ba1` | Original gate reviewed/pushed; added B4 inline blanks follows C3 |
-| C — Independent rehearsal | C1, C2 (2/3) | `e1b9e3b` | C3 disputes/rewards/UI and required bounded room-storage repair in progress |
-| D — Chapter progress and release | 0/3 | Pending | Isolated pure-calculation prework and release drafts; integration follows reviewed C3 |
+| C — Independent rehearsal | C1, C2, C3 (3/3) | `88b14d7` | Source reviewed and pushed; physical speech and capacity gates remain external/final checks |
+| D — Chapter progress and release | 0/3 | Pending | Isolated pure-calculation prework and release drafts; integration follows reviewed C3 and B4 |
 
 The planning-time .NET blocker is resolved with task-local SDK 10.0.303 and EF tooling 10.0.11. The pre-implementation baseline passed 579 web/native checks with one optional skip, and 267 .NET checks with one optional load skip. [PROGRESS.md](../../../PROGRESS.md) records each later gate's exact tests, review fixes, pushes and limitations. Synthetic delayed answers establish bookkeeping, not human retention; the actual coach-approved season bank and learner pilot remain external release gates.
 
