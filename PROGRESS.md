@@ -4,7 +4,7 @@ Read this file before starting repository work. `AGENTS.md` defines the required
 
 ## Current state — 2026-09-12
 
-- Remembered support minimization is LIVE at https://erudoza.com from source `f031134`, merged and pushed to main under the user’s explicit authorization. Worker `ebb8dcac-8236-4aab-830f-b3502ef64b39` receives 100% of traffic. Thirty credential-free edge checks and six live browser flows passed by 16:18:05 UTC. No migration; prior chapter/coach/PWA functionality is retained. Source: 627 tests passed / 1 optional skip; 154 local browser cases and both mobile chapter flows passed. See the [audit](docs/audits/2026-09-12-support-minimization.md).
+- Remembered support minimization and its quieter unboxed hide control are LIVE at https://erudoza.com from source `9e05215`. Worker `1c29e34e-34c9-4761-b9ae-923971affdca` receives 100% of traffic. Thirty edge checks and six live browser flows passed by 16:25:03 UTC. Main also contains the separately merged sign-in artwork, which is not deployed. See the [audit](docs/audits/2026-09-12-support-minimization.md).
 
 ### Earlier release state (historical)
 
@@ -380,3 +380,11 @@ At each gate, refresh Current state/Next actions and add the result to Gates and
 - User requested merge to main. Integrated latest main781a76d, preserving support minimization and its release evidence. Only PROGRESS.md conflicted; both histories were retained. The resulting diff from main contains only the six reviewed artwork/test/documentation files.
 - Fresh integrated gate:30login/artwork tests passed, native production build and web/native TypeScript passed; whitespace clean. Prior responsive screenshots and lint remain applicable to the unchanged artwork source. Next: fast-forward main and normal push, with fresh remote ancestry guard. No deployment requested or performed in this turn.
 - Main integration completed: main fast-forwarded to914c6b8 and normal push advanced origin/main from781a76d to914c6b8. Remote readback confirmed the source checkpoint. Login artwork is merged and pushed; production deployment remains separate.
+
+## Quieter support hide control — September 12
+
+- The user found the filled hide button intrusive. Changed only its shared Button variant from secondary to ghost: unboxed minus with no persistent fill or visible border, retaining the 44px target, hover/focus feedback and remembered preference. Independent review found no concern.
+- Local checks: 39 support tests, 28 official-provider responsive/minimization browser cases across Chromium/Firefox/WebKit/iPhone, both production builds/types, ESLint and deployment dry run passed. The 320px capture was inspected. Implementation `9e05215` was committed and pushed before deployment.
+- Coordinated with the concurrent login task: it had already merged artwork to main `26438b5` under merge-only authorization. Deployed the exact pre-login correction source `9e05215`, then merged latest main into the task branch as `d791577` without conflicts, preserving both source changes. The combined source passed 627 web/native tests / 1 optional skip in 32.12 seconds. Login artwork remains pending deployment.
+- Production version readback and immediate empty room projection preceded the correction rollout; existing private backup and unchanged schema/bindings were retained. At 16:24:29 UTC, deployment `38f2e983-7888-485e-9b40-374e37d7142c` activated Worker `1c29e34e-34c9-4761-b9ae-923971affdca` at 100%. Binding comparison matches the prior version; no migration, credential, account or payment action. Previous compatible Worker: `ebb8dcac-8236-4aab-830f-b3502ef64b39`.
+- Live edge checks passed 30/30 at 16:25:00 UTC. Six browser flows passed by 16:25:03 UTC across Chromium/Firefox/WebKit, each normal/blocked provider: transparent background/border, 44px target, minimize/reload/restore, focus and no overflow/page errors. Ignored evidence: `.local/deployment/quiet-support-20260912/` and `.local/coffee-minimize/quiet-browser/`. Main integration/evidence checkpoint follows; future deployment must account for main’s pending sign-in changes.
