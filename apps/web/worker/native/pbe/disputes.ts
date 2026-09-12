@@ -51,7 +51,7 @@ export async function resolvePbeDispute(ctx:RequestContext,disputeId:string,expe
  const resolved:PbeDispute={...d,status:'Resolved',revision:d.revision+1,resolution:{pointsByPart,reason,resolvedBy:ctx.actor.userId,resolvedAtUtc:new Date().toISOString()}};
  const adjustment={id:`${d.id}:${resolved.revision}`,disputeId:d.id,activity:d.activity,sessionId:d.sessionId,attemptId:d.attemptId,questionId:d.questionId,questionVersion:d.questionVersion,team:d.team,pointsByPart,...resolved.resolution,originalAcceptedAtUtc:d.acceptedAtUtc};
  const overlay=await prepareResultOverlay(ctx,resolved),evidence=await prepareEvidenceDispute(ctx,resolved);
- await atomic(ctx,'pbe-dispute.resolve',[...evidence.statements,...overlay.statements,ctx.store.update('pbe-dispute',d.id,ctx.orgId,resolved,stored.revision),uniqueInsertion(ctx,'pbe-grade-adjustment',adjustment.id,adjustment,d.seasonId,d.participantIds[0]),deletion(ctx,'pbe-dispute-pending',d.id)],[...evidence.guards,...overlay.guards,...gates,{kind:'@active-admin',id:ctx.actor.userId,revision:0},{kind:'pbe-dispute',id:d.id,revision:stored.revision}]);
+ await atomic(ctx,'pbe-dispute.resolve',[...evidence.statements,...overlay.statements,ctx.store.update('pbe-dispute',d.id,ctx.orgId,resolved,stored.revision),uniqueInsertion(ctx,'pbe-grade-adjustment',adjustment.id,adjustment,d.seasonId,d.participantIds[0]),deletion(ctx,'pbe-dispute-pending',d.id),...(d.activity==='Solo'?[uniqueInsertion(ctx,'pbe-dispute-correction',d.id,resolved,d.seasonId,'Solo')]:[])],[...evidence.guards,...overlay.guards,...gates,{kind:'@active-admin',id:ctx.actor.userId,revision:0},{kind:'pbe-dispute',id:d.id,revision:stored.revision}]);
  await reconcileTeamAwards(ctx,resolved);return resolved;
 }
 export async function disputeRoutes(ctx:RequestContext):Promise<Response|null>{
@@ -75,9 +75,13 @@ export async function disputeRoutes(ctx:RequestContext):Promise<Response|null>{
   if(!admin(ctx))throw new HttpError(403,'Coach access is required.');
   const after=new URL(ctx.request.url).searchParams.get('after')??'';if(after.length>450)throw new HttpError(400,'Invalid cursor.');
   const enabled=(await ctx.store.get<{enabled:boolean}>('practice-setting',ctx.orgId,ctx.orgId))?.value.enabled;
-  const rows=await ctx.env.DB.prepare("SELECT data,id FROM Records INDEXED BY Records_owner WHERE org_id=? AND kind='pbe-dispute-pending' AND owner_id IN (SELECT value FROM json_each(?)) AND id>? ORDER BY id LIMIT 51").bind(ctx.orgId,JSON.stringify(enabled?['Solo','Team']:['Solo']),after).all<{data:string;id:string}>();
-  const page=rows.results.slice(0,50),items=page.map(row=>JSON.parse(row.data) as PbeDispute).filter(d=>coach(ctx,d)).map(publicDispute);
-  return json({items,nextCursor:rows.results.length>50?page[49].id:null});
+  // Seek and cap each indexed kind/activity stream before the bounded in-memory merge.
+  const streams=[['pbe-dispute-pending','Solo'],['pbe-dispute-correction','Solo'],...(enabled?[['pbe-dispute-pending','Team']]:[])];
+  const candidates:{data:string;id:string}[]=[];
+  for(const [kind,activity] of streams){const rows=await ctx.env.DB.prepare("SELECT data,id FROM Records INDEXED BY Records_owner WHERE org_id=? AND kind=? AND owner_id=? AND id>? ORDER BY id LIMIT 51").bind(ctx.orgId,kind,activity,after).all<{data:string;id:string}>();candidates.push(...rows.results);}
+  const rows=candidates.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0).slice(0,51);
+  const page=rows.slice(0,50),items=page.map(row=>JSON.parse(row.data) as PbeDispute).filter(d=>coach(ctx,d)).map(publicDispute);
+  return json({items,nextCursor:rows.length>50?page[49].id:null});
  }
  const match=ctx.path.match(/^\/api\/v1\/pbe\/disputes\/([^/]+)(\/(?:resolve|replay|evidence))?$/);if(!match)return null;
  const id=decodeURIComponent(match[1]);

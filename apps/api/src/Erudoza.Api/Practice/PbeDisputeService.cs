@@ -60,9 +60,15 @@ public sealed class PbeDisputeService(ErudozaDbContext db, ICurrentUser user, Pr
     {
         await Gate("Solo", ct); if (user.Kind != UserKind.Adult || !user.IsAdmin) throw new PracticeForbiddenException();
         if (after?.Length > 200) throw new DomainException("Invalid cursor.");
-        var enabled = await practice.DisputeTeamEnabled(user.OrganizationId, ct); var query = Rows("pbe-dispute-pending").AsNoTracking();
-        if (!enabled) query = query.Where(r => r.Id.StartsWith("Solo:")); if (!string.IsNullOrEmpty(after)) query = query.Where(r => string.Compare(r.Id, after) > 0);
-        var rows = await query.OrderBy(r => r.Id).Take(51).ToListAsync(ct); var page = rows.Take(50).ToList();
+        var enabled = await practice.DisputeTeamEnabled(user.OrganizationId, ct); var candidates = new List<PbeTrainingRecord>();
+        foreach (var kind in new[] { "pbe-dispute-pending", "pbe-dispute-correction" })
+        {
+            var query = Rows(kind).AsNoTracking();
+            if (!enabled) query = query.Where(r => r.Id.StartsWith("Solo:"));
+            if (!string.IsNullOrEmpty(after)) query = query.Where(r => string.Compare(r.Id, after) > 0);
+            candidates.AddRange(await query.OrderBy(r => r.Id).Take(51).ToListAsync(ct));
+        }
+        var rows = candidates.OrderBy(r => r.Id, StringComparer.Ordinal).Take(51).ToList(); var page = rows.Take(50).ToList();
         return new { items = page.Select(r => JsonSerializer.Deserialize<PbeDispute>(r.DataJson, PbeQuestionBank.Json)!).Where(Coach).Select(Dto), nextCursor = rows.Count > 50 ? page[^1].Id : null };
     }
     public async Task<PbeDispute> Resolve(string id, PbeDisputeResolve input, CancellationToken ct)
@@ -77,6 +83,7 @@ public sealed class PbeDisputeService(ErudozaDbContext db, ICurrentUser user, Pr
         await Overlay(final, ct); await evidence.StageDispute(final, ct);
         row.DataJson = JsonSerializer.Serialize(final, PbeQuestionBank.Json); row.Revision++;
         Add("pbe-grade-adjustment", $"{d.Id}:{final.Revision}", d, new { id = $"{d.Id}:{final.Revision}", disputeId = d.Id, d.Activity, d.SessionId, d.AttemptId, d.QuestionId, d.QuestionVersion, d.Team, input.PointsByPart, reason, resolvedBy = user.UserId, resolvedAtUtc = final.Resolution.ResolvedAtUtc, originalAcceptedAtUtc = d.AcceptedAtUtc });
+        if (d.Activity == "Solo") Add("pbe-dispute-correction", id, final, final);
         db.PbeTrainingRecords.Remove(await Required("pbe-dispute-pending", id, ct)); await db.SaveChangesAsync(ct); if (d.Activity == "Team") await practice.ReconcileReviewedAwards(user.OrganizationId, d.SeasonId, ct); await transaction.CommitAsync(ct); return final;
     }
 }

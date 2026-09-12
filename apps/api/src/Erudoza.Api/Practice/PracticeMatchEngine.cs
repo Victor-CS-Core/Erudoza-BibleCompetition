@@ -284,8 +284,8 @@ public sealed partial class PracticeService
                 yield return new("pbe-team-v1:first-fellowship", "First Fellowship", season.Key, user);
                 if (played.Count >= 10 && played.Select(r => r.CompletedAt!.Value.UtcDateTime.Date).Distinct().Count() >= 3) yield return new("pbe-team-v1:team-steady", "Team Steady", season.Key, user);
                 if (played.SelectMany(r => r.Submissions).Where(s => s.ScribeId == user && !s.DeadlineDraft).Select(s => s.QuestionId).Distinct().Count() >= 10) yield return new("pbe-team-v1:shared-scribe", "Shared Scribe", season.Key, user);
-                var final = played.SelectMany(r => r.Submissions.Where(s => s.Team == r.Members.Single(m => m.UserId == user).Team).Select(s => new { Submission = s, Question = r.Questions.Single(q => q.Id == s.QuestionId) })).GroupBy(x => x.Question.Id).Select(g => g.First()).Where(x => x.Submission.Resolved).ToList();
-                if (final.Count >= 30 && final.Sum(x => x.Submission.AccuracyHundredths) * 10L >= final.Sum(x => Points(x.Question) * 100L) * 9) yield return new("pbe-team-v1:team-precision", "Team Precision", season.Key, user);
+                var final = played.SelectMany(r => r.Submissions.Where(s => s.Team == r.Members.Single(m => m.UserId == user).Team).Select(s => new { Submission = s, Question = r.Questions.Single(q => q.Id == s.QuestionId) })).GroupBy(x => x.Question.Id).Select(g => g.First()).ToList();
+                if (final.All(x => x.Submission.Resolved) && final.Count >= 30 && final.Sum(x => x.Submission.AccuracyHundredths) * 10L >= final.Sum(x => Points(x.Question) * 100L) * 9) yield return new("pbe-team-v1:team-precision", "Team Precision", season.Key, user);
                 if (played.Any(r => r.QuestionCount == 90)) yield return new("pbe-team-v1:rehearsal-complete", "Rehearsal Complete", season.Key, user);
             }
     }

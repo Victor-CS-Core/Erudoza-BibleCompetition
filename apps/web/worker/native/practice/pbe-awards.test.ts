@@ -18,3 +18,16 @@ it('keeps PBE participation while the decisive score is pending, then qualifies 
  overlay.entries[attemptId]={...overlay.entries[attemptId],status:'Resolved',revision:2,pointsByPart:[2]};const final=overlayRoom(r,overlay);
  expect(calculateAwards([final]).filter(a=>a.userId===actor(0).userId&&a.key==='pbe-team-v1:team-precision')).toHaveLength(1);expect(calculateAwards([overlayRoom(r,overlay)])).toEqual(calculateAwards([final]));expect(teamQualifiers([final],actor(0).userId)).toEqual([]);expect(JSON.stringify(r)).toBe(original);
 });
+it('does not manufacture precision by flagging a zero in 161 of 180 points, and retains completed coverage',()=>{
+ const actor:Actor={userId:'student',organizationId:'org',organizationName:'Org',displayName:'Student',userName:'student',email:null,kind:'Student',role:'Student',credentialVersion:'v1'};
+ const r=makeRoom('threshold',actor,{seasonId:'season',format:'Pbe',teamCount:1,teamSize:2,questionCount:90},'epoch',1000);
+ r.status='Completed';r.completedAt='2026-09-12T00:00:00Z';
+ r.questions=Array.from({length:90},(_,i)=>({id:`q${i}`,version:1,sourceUnitId:`source${i}`,parts:[{points:2}]})) as typeof r.questions;
+ r.submissions=r.questions.map((q,i)=>({questionId:q.id,team:1,scribeId:actor.userId,elapsedMs:1000,deadlineDraft:false,accuracyHundredths:i<80?200:i===80?100:0,speedHundredths:0,appealed:false,resolved:true,answers:['answer']}));
+ const precision=()=>calculateAwards([r]).filter(a=>a.key==='pbe-team-v1:team-precision');
+ expect(precision()).toHaveLength(0);r.submissions[89].resolved=false;
+ expect.soft(precision()).toHaveLength(0);
+ expect(trends([r],actor.userId)[0]).toMatchObject({distinctQuestions:90,distinctPassages:90,pendingCount:1,accuracyHundredths:16100,availableHundredths:17800});
+ expect(calculateAwards([r]).map(a=>a.key)).toContain('pbe-team-v1:rehearsal-complete');
+ r.submissions[89].resolved=true;expect(precision()).toHaveLength(0);
+});

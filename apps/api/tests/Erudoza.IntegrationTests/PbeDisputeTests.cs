@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Erudoza.Domain;
 using Erudoza.Domain.Practice;
+using Erudoza.Domain.Study;
 using Erudoza.Application.Study;
 using Erudoza.Application.Abstractions;
 using Erudoza.Infrastructure.Persistence;
@@ -19,6 +20,10 @@ public sealed class PbeDisputeTests
         using var f = await PbeStudyTests.Fixture.Create();
         var started = await (await f.Student.PostAsJsonAsync("/api/v1/study/sessions", new { seasonId = f.Season, format = "Pbe", mode = "Practice" })).Content.ReadFromJsonAsync<JsonElement>();
         var sessionId = started.GetProperty("id").GetGuid(); var card = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{sessionId}/next");
+        var owner = (await f.Student.GetFromJsonAsync<JsonElement>("/api/v1/me")).GetProperty("userId").GetGuid();
+        var snapshot = JsonSerializer.Deserialize<PbeSessionSnapshot>((await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.Kind == "pbe-session" && r.Id == sessionId.ToString())).DataJson, PbeQuestionBank.Json)!; var frozen = snapshot.Cards.Single(c => c.Id == card.GetProperty("id").GetGuid()).Question; var question = frozen.Id; var targets = frozen.Parts.Select(p => p.TargetId).Distinct().ToArray();
+        var progress = new PbeProgressService(f.Db);
+        for (var n = 0; n < 321; n++) { var attempt = Guid.NewGuid(); var items = targets.Select(t => new PbeRecallEvidence(attempt, t, question, n * 86400000L, 1, 1, true, true)).ToArray(); await progress.ExecuteAsync(ct => progress.PrepareRecallEvidenceAsync(f.Org, f.Season, owner, "older-frozen-scope", items, ct, "List")); f.Db.ChangeTracker.Clear(); }
         var accepted = await (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{sessionId}/attempts", new { clientSubmissionId = Guid.NewGuid().ToString(), challengeCardId = card.GetProperty("id").GetGuid(), answers = new[] { "Alpha", "wrong" }, hintsUsed = false })).Content.ReadFromJsonAsync<JsonElement>();
         (await f.Student.PostAsJsonAsync($"/api/v1/study/sessions/{sessionId}/complete", new { })).EnsureSuccessStatusCode();
         var original = (await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.Kind == "pbe-session" && r.Id == sessionId.ToString())).DataJson;
@@ -28,8 +33,14 @@ public sealed class PbeDisputeTests
         Assert.Equal(original, (await f.Db.PbeTrainingRecords.AsNoTracking().SingleAsync(r => r.Kind == "pbe-session" && r.Id == sessionId.ToString())).DataJson);
         Assert.Single(await f.Db.PbeTrainingRecords.Where(r => r.Kind == "pbe-grade-adjustment").ToListAsync());
         var recap = await f.Student.GetFromJsonAsync<JsonElement>($"/api/v1/study/sessions/{sessionId}/recap"); Assert.Equal(2, recap.GetProperty("results")[0].GetProperty("earnedPoints").GetInt32()); Assert.Equal(1, recap.GetProperty("results")[0].GetProperty("originalEarnedPoints").GetInt32());
+        var recovery = await f.Coach.GetFromJsonAsync<JsonElement>("/api/v1/pbe/disputes"); Assert.Single(recovery.GetProperty("items").EnumerateArray()); Assert.Equal("Resolved", recovery.GetProperty("items")[0].GetProperty("status").GetString());
         var disputeId = $"Solo:{sessionId}:{input.attemptId}"; var ready = false;
-        for (var page = 0; page < 12 && !ready; page++) { var replay = await f.Coach.PostAsJsonAsync("/api/v1/pbe/disputes/" + Uri.EscapeDataString(disputeId) + "/replay", new { }); Assert.Equal(HttpStatusCode.OK, replay.StatusCode); ready = (await replay.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString() == "Ready"; }
+        for (var page = 0; page < 20; page++) { var batch = await (await f.Coach.PostAsJsonAsync("/api/v1/pbe/disputes/" + Uri.EscapeDataString(disputeId) + "/replay", new { })).Content.ReadFromJsonAsync<JsonElement>(); Assert.Equal("Provisional", batch.GetProperty("status").GetString()); }
+        Assert.Single((await f.Coach.GetFromJsonAsync<JsonElement>("/api/v1/pbe/disputes")).GetProperty("items").EnumerateArray());
+        for (var page = 0; page < 64 && !ready; page++) { var replay = await f.Coach.PostAsJsonAsync("/api/v1/pbe/disputes/" + Uri.EscapeDataString(disputeId) + "/replay", new { }); Assert.Equal(HttpStatusCode.OK, replay.StatusCode); ready = (await replay.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString() == "Ready"; }
+        Assert.Empty((await f.Coach.GetFromJsonAsync<JsonElement>("/api/v1/pbe/disputes")).GetProperty("items").EnumerateArray());
+        (await f.Coach.PostAsJsonAsync("/api/v1/pbe/disputes/" + Uri.EscapeDataString(disputeId) + "/resolve", new { expectedRevision = 1, pointsByPart = new[] { 1, 1 }, reason = "Both labels are supported by the frozen source." })).EnsureSuccessStatusCode();
+        Assert.Empty((await f.Coach.GetFromJsonAsync<JsonElement>("/api/v1/pbe/disputes")).GetProperty("items").EnumerateArray());
         Assert.True(ready); var proofs = await f.Db.PbeTrainingRecords.AsNoTracking().Where(r => r.Kind == "pbe-target-review" && r.SeasonId == f.Season).ToListAsync(); Assert.All(proofs, row => Assert.False(JsonDocument.Parse(row.DataJson).RootElement.GetProperty("review").GetProperty("unresolved").GetBoolean()));
     }
     [Theory]
@@ -39,7 +50,8 @@ public sealed class PbeDisputeTests
     [InlineData(false, 10, true, 2, 2)]
     [InlineData(false, 90, false, 1, 6)]
     [InlineData(false, 90, false, 2, 6)]
-    public async Task Team_actual_authority_retains_immutable_attempt_and_hides_unreviewed_interrupted_final(bool interrupted, int questionCount, bool coached, int teamCount, int teamSize)
+    [InlineData(false, 90, false, 2, 2, true)]
+    public async Task Team_actual_authority_retains_immutable_attempt_and_hides_unreviewed_interrupted_final(bool interrupted, int questionCount, bool coached, int teamCount, int teamSize, bool threshold = false)
     {
         var time = new TestTime(); using var f = await PracticeRoomHttpTests.Setup.Create(true, time);
         var clients = new List<HttpClient> { f.Owner }; for (var n = 1; n < teamCount * teamSize; n++) clients.Add(await f.Student("dispute-player"));
@@ -62,7 +74,7 @@ public sealed class PbeDisputeTests
         if (coached) { await Command(clients[0], "present-ready", new { questionId }); if (teamCount == 2) await Command(clients[teamSize], "present-ready", new { questionId }); await Command(f.Admin, "present", new { questionId, delivery = "Coach" }); }
         else { await Command(clients[0], "present", new { questionId, delivery = "Audio" }); if (teamCount == 2) await Command(clients[teamSize], "present", new { questionId, delivery = "TextFallback" }); }
         time.Advance(TimeSpan.FromSeconds(3));
-        await Command(clients[0], "submit", new { questionId, answers = new[] { "Daniel", "wrong" } });
+        await Command(clients[0], "submit", new { questionId, answers = threshold ? new[] { "wrong", "wrong" } : new[] { "Daniel", "wrong" } });
         string original; string attemptId;
         using (var scope = f.Factory.Services.CreateScope()) { var db = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>(); var record = await db.Set<PracticeRoomRecord>().SingleAsync(r => r.Id == roomId); var state = PracticeJson.Read<PracticeRoom>(record.StateJson); original = PracticeJson.Write(state.Submissions[0]); attemptId = state.Submissions[0].AttemptId.ToString(); Assert.NotEqual(Guid.Empty.ToString(), attemptId); if (interrupted) { state.ProcessId = "replacement"; record.StateJson = PracticeJson.Write(state); await db.SaveChangesAsync(); } }
         if (interrupted) { room = await clients[0].GetFromJsonAsync<JsonElement>(path); Assert.Equal("Interrupted", room.GetProperty("status").GetString()); Assert.Single(room.GetProperty("results").EnumerateArray()); var other = await opponent.GetFromJsonAsync<JsonElement>(path); Assert.Empty(other.GetProperty("results").EnumerateArray()); Assert.DoesNotContain("acceptedAnswers", other.GetRawText()); var coach = await f.Admin.GetFromJsonAsync<JsonElement>(path); Assert.Single(coach.GetProperty("results").EnumerateArray()); }
@@ -76,7 +88,7 @@ public sealed class PbeDisputeTests
         var input = new { activity = "Team", sessionId = roomId, attemptId, reason = "Please check the second part." };
         Assert.Equal(HttpStatusCode.Forbidden, (await opponent.PostAsJsonAsync("/api/v1/pbe/disputes", input)).StatusCode);
         var flag = await clients[0].PostAsJsonAsync("/api/v1/pbe/disputes", input); Assert.Equal(HttpStatusCode.Created, flag.StatusCode);
-        var pending = await clients[0].GetFromJsonAsync<JsonElement>(path); Assert.True(pending.GetProperty("provisional").GetBoolean()); Assert.Equal(100, pending.GetProperty("results")[0].GetProperty("accuracyHundredths").GetInt32());
+        var pending = await clients[0].GetFromJsonAsync<JsonElement>(path); Assert.True(pending.GetProperty("provisional").GetBoolean()); Assert.Equal(threshold ? 0 : 100, pending.GetProperty("results")[0].GetProperty("accuracyHundredths").GetInt32());
         var d = await flag.Content.ReadFromJsonAsync<JsonElement>(); var reviewPath = "/api/v1/pbe/disputes/" + Uri.EscapeDataString(d.GetProperty("id").GetString()!);
         Assert.Equal(HttpStatusCode.Forbidden, (await opponent.GetAsync(reviewPath)).StatusCode);
         (await f.Admin.PostAsJsonAsync(f.Path + "/enabled", new { enabled = false })).EnsureSuccessStatusCode(); Assert.Empty((await f.Admin.GetFromJsonAsync<JsonElement>("/api/v1/pbe/disputes")).GetProperty("items").EnumerateArray()); Assert.Equal(HttpStatusCode.Forbidden, (await clients[0].GetAsync(reviewPath)).StatusCode); (await f.Admin.PostAsJsonAsync(f.Path + "/enabled", new { enabled = true })).EnsureSuccessStatusCode();
@@ -92,13 +104,21 @@ public sealed class PbeDisputeTests
                 if (q == 16) { using var reconnect = await TestHttp.LoginAsync(f.Factory, "daniel.student", "DevStudent!234"); var resumed = await reconnect.GetFromJsonAsync<JsonElement>(path); Assert.Equal(room.GetProperty("questionIndex").GetInt32(), resumed.GetProperty("questionIndex").GetInt32()); }
                 var next = room.GetProperty("question").GetProperty("id").GetGuid();
                 for (var team = 0; team < teamCount; team++) await Command(clients[scribes[team]], "present", new { questionId = next, delivery = team == 0 ? "TextFallback" : "Audio" }); time.Advance(TimeSpan.FromSeconds(3));
-                for (var team = 0; team < teamCount; team++) await Command(clients[scribes[team]], "submit", new { questionId = next, answers = new[] { "Daniel", "heart" } });
+                for (var team = 0; team < teamCount; team++) await Command(clients[scribes[team]], "submit", new { questionId = next, answers = threshold && team == 0 && q > 80 ? (q == 81 ? new[] { "Daniel", "wrong" } : new[] { "wrong", "wrong" }) : new[] { "Daniel", "heart" } });
             }
             time.Advance(TimeSpan.FromSeconds(10)); room = await clients[0].GetFromJsonAsync<JsonElement>(path); Assert.Equal("Completed", room.GetProperty("status").GetString()); Assert.Equal(questionCount == 90 ? 1 : 0, breaks); Assert.Equal(questionCount * teamCount, room.GetProperty("results").GetArrayLength());
-            var bootstrap = await clients[0].GetFromJsonAsync<JsonElement>(f.Path + "/bootstrap"); var keys = bootstrap.GetProperty("achievements").EnumerateArray().Select(a => a.GetProperty("key").GetString()).ToList(); Assert.Contains("pbe-team-v1:first-fellowship", keys); if (questionCount == 30) Assert.DoesNotContain("pbe-team-v1:team-precision", keys);
-            var trend = bootstrap.GetProperty("trends")[0]; Assert.Equal(1, trend.GetProperty("pendingCount").GetInt32()); Assert.Equal((questionCount - 1) * 200, trend.GetProperty("accuracyHundredths").GetInt32()); Assert.Equal((questionCount - 1) * 200, trend.GetProperty("availableHundredths").GetInt32());
+            var bootstrap = await clients[0].GetFromJsonAsync<JsonElement>(f.Path + "/bootstrap"); var keys = bootstrap.GetProperty("achievements").EnumerateArray().Select(a => a.GetProperty("key").GetString()).ToList(); Assert.Contains("pbe-team-v1:first-fellowship", keys); if (questionCount == 30 || threshold) Assert.DoesNotContain("pbe-team-v1:team-precision", keys);
+            var trend = bootstrap.GetProperty("trends")[0]; Assert.Equal(1, trend.GetProperty("pendingCount").GetInt32()); Assert.Equal(threshold ? 16100 : (questionCount - 1) * 200, trend.GetProperty("accuracyHundredths").GetInt32()); Assert.Equal((questionCount - 1) * 200, trend.GetProperty("availableHundredths").GetInt32());
+            Assert.Equal(questionCount, trend.GetProperty("distinctQuestions").GetInt32()); Assert.Equal(1, trend.GetProperty("distinctPassages").GetInt32());
             if (teamCount == 2) { var other = await opponent.GetFromJsonAsync<JsonElement>(f.Path + "/bootstrap"); Assert.Contains(other.GetProperty("achievements").EnumerateArray(), a => a.GetProperty("key").GetString() == "pbe-team-v1:team-precision"); }
             (await clients[0].PostAsJsonAsync(f.Path + "/rooms", new { seasonId = f.SeasonId, format = "Pbe", teamCount, teamSize, questionCount })).EnsureSuccessStatusCode();
+        }
+        if (threshold)
+        {
+            Assert.Equal(d.GetRawText(), (await (await clients[0].PostAsJsonAsync("/api/v1/pbe/disputes", input)).Content.ReadFromJsonAsync<JsonElement>()).GetRawText());
+            var ruling = new { expectedRevision = 1, pointsByPart = new[] { 0, 0 }, reason = "Original zero confirmed" };
+            (await f.Admin.PostAsJsonAsync(reviewPath + "/resolve", ruling)).EnsureSuccessStatusCode(); (await f.Admin.PostAsJsonAsync(reviewPath + "/resolve", ruling)).EnsureSuccessStatusCode();
+            var after = await clients[0].GetFromJsonAsync<JsonElement>(f.Path + "/bootstrap"); Assert.DoesNotContain(after.GetProperty("achievements").EnumerateArray(), a => a.GetProperty("key").GetString() == "pbe-team-v1:team-precision"); return;
         }
         await AssertReview(clients[0], f.Admin, d, input);
         var corrected = await clients[0].GetFromJsonAsync<JsonElement>(path); Assert.False(corrected.GetProperty("provisional").GetBoolean()); Assert.Equal(200, corrected.GetProperty("results")[0].GetProperty("accuracyHundredths").GetInt32());

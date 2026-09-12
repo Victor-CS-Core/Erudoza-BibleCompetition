@@ -1,7 +1,7 @@
 import type {RequestContext} from '../types';
 import {HttpError} from '../types';
 import type {Stored} from '../store';
-import {atomic} from '../application/model';
+import {atomic,deletion} from '../application/model';
 import type {PbeDispute} from './disputes';
 import type {PbeWriteBatch,ReviewProjection,RecallEvent} from './progress';
 import {advanceReview,initialReview,type RecallEvidence} from './review';
@@ -46,7 +46,10 @@ export async function replayDisputeEvidence(ctx:RequestContext,d:PbeDispute){
  if(!await indexPage(ctx,d))return {status:'Provisional',stage:'Indexing',indexReady:false,revision:d.revision};
  const owner=d.participantIds[0],targets=[...new Set(d.question.parts.map(p=>p.targetId.toLowerCase()))],ids=targets.map(t=>targetKey(d,t));
  const dirty=await ctx.store.getMany<Dirty>('pbe-evidence-dirty',ids,ctx.orgId),next=dirty.find(r=>r.value.completedGeneration!==r.value.generation);
- if(!next){const proofs=await ctx.store.getMany<ReviewProjection>('pbe-target-review',ids,ctx.orgId);return {status:'Ready',indexReady:true,revision:d.revision,proofs:proofs.map(p=>({revision:p.revision,...p.value}))};}
+ if(!next){
+  const correction=await ctx.store.get<PbeDispute>('pbe-dispute-correction',d.id,ctx.orgId);
+  if(correction)await atomic(ctx,'pbe-evidence.correction-complete',[deletion(ctx,'pbe-dispute-correction',d.id)],[{kind:'pbe-dispute-correction',id:d.id,revision:correction.revision},...dirty.map(row=>({kind:'pbe-evidence-dirty',id:row.value.id,revision:row.revision}))]);
+  const proofs=await ctx.store.getMany<ReviewProjection>('pbe-target-review',ids,ctx.orgId);return {status:'Ready',indexReady:true,revision:d.revision,proofs:proofs.map(p=>({revision:p.revision,...p.value}))};}
  const id=next.value.id,oldJob=await ctx.store.get<ReplayJob>('pbe-evidence-replay',id,ctx.orgId),job=oldJob?.value.generation===next.value.generation?oldJob.value:{id,generation:next.value.generation,after:id+':',projection:initialProjection(id,next.value.targetId),pendingCount:0};
  const sequenceId=ownerKey(owner,d.seasonId),sequence=await ctx.store.get('pbe-recall-sequence',sequenceId,ctx.orgId);
  const refs=await ctx.env.DB.prepare("SELECT data FROM Records INDEXED BY Records_training_scope WHERE org_id=? AND season_id=? AND owner_id=? AND kind='pbe-evidence-ref' AND id>? AND id<? ORDER BY id LIMIT 33").bind(ctx.orgId,d.seasonId,owner,job.after,id+';').all<{data:string}>();
