@@ -7,6 +7,8 @@
 - The preview at http://localhost:5209/signup uses the actual page components with a labeled local security placeholder and mocked code receipt; it sends no email and cannot create accounts. The normal native preview at 5208 retains actual service availability. Fixture files/configuration remain ignored, and the loopback-only preview service is retained. Evidence and limits are in [the audit](docs/audits/2026-09-12-signup-signin-alignment.md).
 - Next: explicit scoped commit/push. This is a locally verified follow-up; this signup change is not merged to main or deployed.
 
+- Git checkpoint confirmed: eight scoped source/test/documentation files were committed as 4b58a8c and pushed normally to origin/codex/signup-signin-alignment. Exact remote readback matched 4b58a8c4d968561b83ec5dcc918aafbbd91558cd; repository privacy and ADMIN access were freshly verified. Local fixture files and configuration were excluded. The signup preview is open for review; main and production remain unchanged by this follow-up.
+
 ## Expedition landing — authorized main integration, September 12
 
 - User approved the finished preview and explicitly requested merge to main. Fresh fetch found main a34da04 with the separately approved centered header. Merged it into the landing branch without conflicts, preserving both design directions and progress histories. The training task was notified to coordinate main advancement.
