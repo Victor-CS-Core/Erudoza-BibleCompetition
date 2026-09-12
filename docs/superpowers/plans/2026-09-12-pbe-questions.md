@@ -154,7 +154,7 @@ The integration test must import a complete valid two-source question, publish i
 
 **Interfaces:** `PbeTargetFields({ targets: PbeTargetView[], selectedTargetId: string | null, onSelect(id: string): void })`, where `PbeTargetView = { id: string; label: string; skill: 'FactualRecall' | 'ExactWords' }` is public authoring metadata. `PbeBankCoverage({ coveredSources: number, assignedSources: number, singleVariantTargets: number })`. Coach import/publish accepts the A1 contract; student bootstrap returns counts only, never the unrevealed bank.
 
-- [ ] Add failing UI checks for a missing target and a sparse bank:
+- [x] Add failing UI checks for a missing target and a sparse bank:
 
 ```tsx
 import { render, screen } from '@testing-library/react';
@@ -168,12 +168,12 @@ it('shows gaps without claiming chapter readiness', () => {
 });
 ```
 
-- [ ] Run `npm --workspace apps/web run test -- src/features/practice/PbeBankCoverage.test.tsx src/features/practice/QuestionEditor.test.tsx`; expect the new coverage assertions to fail.
-- [ ] Add source/target selection, kind/point constraints, per-part accepted answers and source preview to the existing editor. Reword a question by creating another question ID attached to the same target; correcting a rubric creates a new version of the same ID. Require explicit publish after source review. Use existing primitives, preview validation and friendly errors. Include a bank coverage panel with links to add questions; do not imply one question covers every fact in a verse.
-- [ ] Add coach controls for A2b introduction preparation: selected book, edition/citation and source text, explicit source-review action, and deliberate assignment to selected active season members. Display these as book introductions with no chapter/verse fields. Expose standalone target declaration and paginated coach-only draft/target reads if A2 has not added them; importing a question must not be the only way to declare a learning target.
-- [ ] Verify student/coach role separation and no answer keys in student bootstrap, assignment cuts through multi-source questions, commentary source labels, short chapters and import validation. Review at 1440/390/320px with keyboard. Run relevant frontend and native/canonical integration tests, then commit `feat: add PBE bank preparation and coverage`.
+- [x] Run `npm --workspace apps/web run test -- src/features/practice/PbeBankCoverage.test.tsx src/features/practice/QuestionEditor.test.tsx`; expect the new coverage assertions to fail.
+- [x] Add source/target selection, kind/point constraints, per-part accepted answers and source preview to the existing editor. Reword a question by creating another question ID attached to the same target; correcting a rubric creates a new version of the same ID. Require explicit publish after source review. Use existing primitives, preview validation and friendly errors. Include a bank coverage panel with links to add questions; do not imply one question covers every fact in a verse.
+- [x] Add coach controls for A2b introduction preparation: selected book, edition/citation and source text, explicit source-review action, and deliberate assignment to selected active season members. Display these as book introductions with no chapter/verse fields. Expose standalone target declaration and paginated coach-only draft/target reads if A2 has not added them; importing a question must not be the only way to declare a learning target.
+- [x] Verify student/coach role separation and no answer keys in student bootstrap, assignment cuts through multi-source questions, commentary source labels, short chapters and import validation. Review at 1440/390/320px with keyboard. Run relevant frontend and native/canonical integration tests, then commit `feat: add PBE bank preparation and coverage`.
 
 ## Phase A gate
 
-- [ ] Run the three task suites, native/frontend type checks and existing study/practice compatibility tests. Confirm zero changed historical grades against saved fixtures and no new production content.
+- [x] Run the Phase A suites, native/frontend type checks and existing study/practice compatibility tests. Confirm zero changed historical grades against saved fixtures and no new production content.
 - [ ] Update progress with tests actually executed, migration checks and SDK limitations; explicitly stage, commit and push the implementation branch. The next phase consumes the exact contracts above, not private frontend copies of answer keys.
