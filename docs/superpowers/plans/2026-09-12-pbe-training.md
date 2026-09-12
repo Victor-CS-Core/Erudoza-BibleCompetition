@@ -12,7 +12,7 @@
 
 ## Global constraints
 
-- The user has authorized implementation as an active goal; deployment and main merge remain separate. Planning baseline: `71cc6ac`; its application files matched deployed source `838a066`.
+- The user authorized implementation as an active goal and subsequently authorized committing, pushing, integrating the latest work from all branches into `main`, deploying the validated combined app, and removing other branches after preservation. Complete training and release checks before consolidation/deployment/cleanup. Planning baseline: `71cc6ac`; its application files matched deployed source `838a066`.
 - “Students should be able to start, finish and replay ordinary matches without an adult online.” Automatic grading is the default; coach-led rehearsal is explicitly selected. Disputes do not block play.
 - “Preserve the coach's selected season and assignment.” Support multiple books and separately approved commentary introductions. Never fill an insufficient bank with unassigned or invented material. Solo scope is the student’s personal assignment; team rehearsal uses the coach-selected season’s approved material through an authenticated room boundary, following the stated team-scope default in C2. This does not expand generic student bank or reader access.
 - NAD baseline: references supplied; short answers, lists, exact quotations/blanks; no multiple choice in rehearsal. Exact words/order for quotations; configured variants and later adjudication for factual answers. No runtime generative-AI grading or blanket fuzzy matching.
@@ -96,7 +96,8 @@ These values are implementation choices for the pilot, not official PBE requirem
 - [ ] For every task: add the behavioral regression first, observe failure for the expected reason, implement the smallest change, run its focused tests, review the diff, explicitly stage and commit. Update progress and push at the child plan's verified gate. Do not stage unrelated files or generated private artifacts.
 - [ ] Run the full release checks in D3 only after the integrated behavior exists. Tests listed in these plans are future execution steps; the earlier audit's passing tests do not satisfy them.
 - [ ] Prepare rollout with new features disabled, a reviewed additive migration, backup/rollback procedure, and a selected coach's source-reviewed question bank. A question bank is prepared ahead of play; live coach presence is never an availability dependency.
-- [ ] Record local verification, pushed source, approved pilot and live deployment separately. This planning request does not request a deployment or a merge to main.
+- [ ] Record local verification, pushed source, approved pilot and live deployment separately. The subsequent user instruction authorizes the final main integration, production deployment and branch cleanup; it does not authorize real-world pilot contacts or silently enabling an unreviewed season bank.
+- [ ] Before cleanup, inventory every local/remote branch and worktree, preserve uncommitted work and unique branch history in main, resolve superseded changes against the validated current app, and verify final remote reachability. Deploy and read back the combined build before deleting other branch refs. Do not discard ignored private tooling, backups or active previews through worktree removal.
 
 ## Plan review result
 
@@ -104,7 +105,7 @@ All assessment findings map to tasks above. A verified question bank for the act
 
 ## Execution status
 
-The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Eleven of fourteen tasks have passed independent review. The user-added B4 inline missing-word work is reviewed and pushed after C3; chapter integration is next. The source checkpoints below distinguish pushed work from the current local gate. This training task has made no production changes; deployment and main merge require separate authorization.
+The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Eleven of fourteen tasks have passed independent review. The user-added B4 inline missing-word work is reviewed and pushed after C3; chapter integration is active. The source checkpoints below distinguish pushed work from the current local gate. This training task has made no production changes. The user's subsequent all-branch instruction authorizes final integration, deployment and cleanup after the remaining checks.
 
 | Phase | Reviewed tasks | Source checkpoint | Current work |
 |---|---|---|---|
