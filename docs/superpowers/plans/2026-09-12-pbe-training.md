@@ -1,0 +1,101 @@
+# PBE Training Implementation Plan
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Help students retain their assigned season material through varied PBE questions and complete independent practice without waiting for a coach.
+
+**Architecture:** Add a versioned PBE question/rubric layer shared by native solo and team delivery, with equivalent C# contracts and behavior. Persist immutable attempts and per-target review evidence; derive chapter progress from that evidence. Keep historical study sessions, arcade matches and Honors on their original contracts.
+
+**Tech Stack:** Existing React/TypeScript/Vitest/Playwright frontend, Cloudflare Worker/D1/Durable Objects, and .NET/EF Core reference backend. Use existing dependencies; browser speech synthesis is optional presentation support, not a grading service.
+
+**Spec:** [Replayability assessment](../../audits/2026-09-11-training-replayability.md) and [PBE alignment assessment, including accepted independent grading](../../audits/2026-09-11-pbe-training-alignment.md).
+
+## Global constraints
+
+- This deliverable is a plan, not authorization to deploy or a claim that the app is already aligned. Planning baseline: `71cc6ac`; application files match deployed source `838a066`.
+- “Students should be able to start, finish and replay ordinary matches without an adult online.” Automatic grading is the default; coach-led rehearsal is explicitly selected. Disputes do not block play.
+- “Preserve the coach's selected season and assignment.” Support multiple books and separately approved commentary introductions. Never fill an insufficient bank with unassigned or invented material.
+- NAD baseline: references supplied; short answers, lists, exact quotations/blanks; no multiple choice in rehearsal. Exact words/order for quotations; configured variants and later adjudication for factual answers. No runtime generative-AI grading or blanket fuzzy matching.
+- PBE rehearsal earns accuracy points only. Supported question totals are 1–8; response windows are `20 + 5 * points` seconds, following two readings, with a ten-second warning. Full rehearsal is 90 questions and a five-minute break after question 45. These are separate from shortened practice.
+- Commentary must be fewer than 10% of a rehearsal set; `maximum = Math.ceil(count * 0.1) - 1`. The existing 10% true/false cap remains a named Erudoza policy, not an official percentage. New rehearsal profiles default to the same cap. These event-mix limits do not restrict focused Practice/Review, which may study assigned commentary directly. Do not require either question kind when none is available; surface missing commentary coverage separately.
+- Team rehearsal supports 2–6 students per team and one or two teams. Individual practice may use one student but is labeled solo practice. No claim of official placing from app percent-correct or head-to-head results.
+- “Preserve deterministic generation and immutable cards after selection.” New session selection may vary; refresh, retries and resume must not reroll questions or rubrics.
+- Preserve historical scores, difficulty evidence ceilings, earned permanent Honors, profile unlocks and existing routes. New chapter stamps are separate dated evidence, not a replacement for permanent Honors.
+- Native production and C# reference behavior must pass common fixtures. No parity claim from source inspection alone. The current host has no working .NET SDK; use the version in root `global.json` during execution or record canonical verification as blocked.
+- Read [DESIGN.md](../../../DESIGN.md) and [PROGRESS.md](../../../PROGRESS.md) before implementation. Reuse shared controls/tokens; 44px touch targets, 1440/390/320px checks, keyboard and reduced motion. No new artwork or design system is required.
+- Use additive persistence changes. Keep existing feature behavior until the new season setting is enabled. Production bindings, private data and generated fixtures stay outside this documentation checkpoint.
+
+---
+
+## Delivery order and boundaries
+
+The assessment spans four subsystems. Execute these linked plans serially at first; each produces an independently testable gate. Team rehearsal can be developed after Phase A without waiting for Phase B, but shared contract changes need one owner.
+
+| Phase | Plan | Working deliverable | Prerequisite |
+|---|---|---|---|
+| A | [Questions and grading](2026-09-12-pbe-questions.md) | Versioned rubrics, reusable scoped question bank, coach publishing/coverage tools | Existing application |
+| B | [Solo learning and replay](2026-09-12-pbe-solo-replay.md) | Factual daily practice, skill-specific review, reproducible session variation, usable memory exercises | A |
+| C | [Independent team rehearsal](2026-09-12-pbe-team-rehearsal.md) | Accuracy-only matches, six-student teams, independent presentation, deferred disputes | A; B's target-history contract |
+| D | [Chapter progress and release](2026-09-12-pbe-chapter-progress.md) | Evidence-based chapter stamps/season map and integrated release validation | B and C |
+
+The first useful pilot is A+B: students can practice assigned PBE questions without an adult online. C adds event-style team practice. D adds progression once the underlying evidence is trustworthy. Do not release all four as one unreviewable change.
+
+## Shared file and ownership map
+
+All paths below are relative to the repository root. `Create` paths in the child plans are proposed files, not existing APIs.
+
+| Boundary | Native/frontend | C# equivalent |
+|---|---|---|
+| Private rules and rubrics | Create `apps/web/worker/native/pbe/{types,rules,grading,bank}.ts` | Create `Erudoza.Domain/Practice/PbeRules.cs`, `PbeRubric.cs`; application bank abstraction/service |
+| Public DTOs | Create `apps/web/src/api/pbeTypes.ts`; adapt existing study/practice clients | Create `Erudoza.Application/Contracts/PbeContracts.cs` |
+| Target evidence and selection | Create `worker/native/pbe/{selection,review,progress}.ts`; integrate study/training stores | Create domain review/selection rules and application persistence adapters |
+| Team runtime | Existing `worker/native/practice/{state,room,routes,reports,awards}.ts` | Existing `Erudoza.Api/Practice/` services/engine/commands |
+| Shared presentation | Create `src/features/study/PbePresentation.tsx`, `pbeSpeech.ts` | Server presentation contract; browser UI is shared |
+| Readiness and rewards | Existing training/mastery services plus separate PBE projections | New PBE projection records, existing training query services |
+
+Do not move the existing five generators or rewrite the monolithic room engine wholesale. Add focused modules and branch at the version boundary. Frontend DTO modules must never import server answer-key objects.
+
+## Persistence and compatibility decisions
+
+Native storage reuses the `Records` infrastructure with new kinds `pbe-target`, `pbe-progress`, `pbe-session-summary`, `pbe-chapter-stamp` and `pbe-dispute`. Use deterministic identities scoped by organization/season/student and immutable question IDs/versions in attempts. Create `apps/web/migrations/0005_pbe_training.sql` in Phase A, after checking no other branch has claimed that number. It adds only the indexes actually used by scoped queries; no historical data rewrite.
+
+C# adds `PbeTrainingRecord` (organization, kind, string ID, season, optional owner, JSON, revision) and an indexed EF mapping for these projections. Existing `PracticeQuestionRecord.DefinitionJson` and room snapshots retain their purpose. Add a generated migration named `PbeTrainingRecords`; let EF produce its timestamped filenames and model snapshot rather than hand-authoring designer files.
+
+Create `Season.PbeTrainingEnabled` / native season `pbeTrainingEnabled`, default false when absent. New session `format` is `Memory | Pbe`; new room `format` is `Arcade | Pbe`. New clients default to Pbe for enabled seasons with eligible published content; unavailable banks show an actionable empty state and an explicit Memory option. Never silently substitute Memory for a requested Pbe session. Missing format on persisted records means legacy behavior. Every new record snapshots its rule, scoring and selection versions.
+
+## Proposed product defaults
+
+These values are implementation choices for the pilot, not official PBE requirements or proven optimal learning intervals:
+
+- Daily eight-question practice prefers three due targets, three least-practiced targets, one eligible repair and one alternate-form transfer question. Unavailable categories fall back to least-practiced eligible targets. Review mode uses due targets only.
+- Review intervals after fully correct, unaided retrieval: 1, 3, 7 and 14 days. A failed/partial answer resets the target's interval and remains due; a hinted success cannot clear it. Repair waits for two intervening answer targets when the assignment permits.
+- Chapter stamp: all coach-declared targets in the assigned range have two fully correct unaided attempts at least 48 hours apart using different question IDs. A stamp stores coverage and date; current readiness can become due again. Missing targets or only one question variant prevent a retained claim rather than enlarging the assignment.
+- Use current honor artwork and ordinary text/progress indicators. No new currency, public ranking, paid service or push-notification system.
+
+## Coverage checklist
+
+| Assessment requirement | Implementation task |
+|---|---|
+| Real factual/list/exact questions and source coverage | A1–A3, B2 |
+| Automatic partial credit, conservative spelling and answer secrecy | A1, B2, C3 |
+| No repeated first-bank slice or fixed verse/activity mapping | B1, C2 |
+| Recognition cannot erase failed recall | B1 |
+| Advanced Builder actions and repeated masks | B3 |
+| Official timing, no speed points, 90 questions, six students | C1–C2 |
+| Complete/replay without coach; later disputes | C2–C3 |
+| Short assignments, transparent difficulty and missing coverage | A3, D1–D2 |
+| Delayed checkpoints, comeback quests, season cooperation | B1–B2, D1–D2 |
+| Historical awards and runtime parity | A1–A2, C3, D1, D3 |
+| Mobile usability, pilot and rollout evidence | Each phase gate and D3 |
+
+## Execution and release discipline
+
+- [ ] Before coding, read this index, the target child plan, both assessments and current progress; create an isolated implementation worktree with the repository branch prefix. The current task branch contains planning documents only.
+- [ ] For every task: add the behavioral regression first, observe failure for the expected reason, implement the smallest change, run its focused tests, review the diff, explicitly stage and commit. Update progress and push at the child plan's verified gate. Do not stage unrelated files or generated private artifacts.
+- [ ] Run the full release checks in D3 only after the integrated behavior exists. Tests listed in these plans are future execution steps; the earlier audit's passing tests do not satisfy them.
+- [ ] Prepare rollout with new features disabled, a reviewed additive migration, backup/rollback procedure, and a selected coach's source-reviewed question bank. A question bank is prepared ahead of play; live coach presence is never an availability dependency.
+- [ ] Record local verification, pushed source, approved pilot and live deployment separately. This planning request does not request a deployment or a merge to main.
+
+## Plan review result
+
+All assessment findings map to tasks above. The unresolved execution prerequisites are a verified question bank for the actual selected season and a working canonical .NET test environment. They do not block implementing against isolated synthetic fixtures. Browser speech availability and proper-name pronunciation are explicit Phase C tests with a labeled text fallback; no automatic-audio success is assumed.

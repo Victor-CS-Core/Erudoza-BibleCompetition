@@ -2,6 +2,8 @@
 
 Reviewed September 11, 2026 (US/Eastern); local verification completed September 12 UTC. Application source matches `838a066`; task checkpoint at review start: `0b206bc`. Assessment and proposed acceptance criteria only. No application change, rules migration, or deployment.
 
+Implementation planning: [four-phase PBE training plan](../superpowers/plans/2026-09-12-pbe-training.md). Plan tasks have not been executed.
+
 ## Conclusion and authority
 
 Erudoza's existing study activities support memorization, but its solo Simulation and Team Practice modes do not yet reproduce PBE testing faithfully. The next replayability work must prioritize competition-relevant questions and grading. More varied word puzzles alone will not close that gap.

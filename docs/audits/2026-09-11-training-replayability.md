@@ -2,6 +2,8 @@
 
 Date: September 11, 2026. Reviewed source: `6be36f0`, whose application files match deployed release source `838a066`. Scope: assessment and recommendations; no application change or deployment.
 
+Implementation planning: [four-phase PBE training plan](../superpowers/plans/2026-09-12-pbe-training.md), including the accepted independent-grading decision. Plan tasks have not been executed.
+
 ## Assessment
 
 Training has a useful repeatable foundation: assigned Scripture, five exercises, saved sessions, daily review and practice, weekly goals, passage progress, permanent Honors and profile rewards. Students can continue after completing the daily mission. The important next step is to make repeated practice cover the assigned material through PBE-style questions and then verify recall after a delay.
