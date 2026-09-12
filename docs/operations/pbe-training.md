@@ -1,6 +1,6 @@
 # PBE training release operations
 
-Status: preparation in progress, not a ready-to-run release procedure. Source through C3 is reviewed and pushed at `88b14d78cc98377a1aba932f827d87cbe8895787`; B4 inline missing-word answers, chapter progress and final integration remain open. No PBE deployment, production migration, import or real-user pilot has run for this goal. The [implementation evidence](../audits/2026-09-12-pbe-implementation.md) and [progress log](../../PROGRESS.md) distinguish local checks from pushed source and live releases.
+Status: preparation in progress, not a ready-to-run release procedure. Source through B4 is reviewed and pushed at `0fa0ea20117413cbf29cfa4d45cb042680c30b4c`; chapter progress and final integration remain open. No PBE deployment, production migration, import or real-user pilot has run for this goal. The [implementation evidence](../audits/2026-09-12-pbe-implementation.md) and [progress log](../../PROGRESS.md) distinguish local checks from pushed source and live releases.
 
 Use this document with the [Cloudflare native operations](cloudflare-native.md) and [Team Practice operations](pvp.md). The latter's speed-bonus and restart descriptions belong to historical Arcade behavior. New PBE rehearsals use the saved PBE profile described below; never reinterpret an existing match through a current default.
 
@@ -18,10 +18,10 @@ Complete the following manifest from the final reviewed checkpoint before prepar
 
 | Required field | Current state |
 |---|---|
-| Exact reviewed release commit and pushed remote readback | C3 source reviewed through `88b14d7`; B4/D integration and final review remain pending |
+| Exact reviewed release commit and pushed remote readback | Source reviewed through B4 `0fa0ea2`; D integration and final review remain pending |
 | Ordered native migration names and hashes | `0005_pbe_training.sql` exists; C3 adds `0006_practice_room_components.sql`, reviewed at C3; final hashes/inventory pending |
 | Worker artifact hash, compatible configuration and DO migrations | Additive `v3-pbe-solo` exists in source; final build/config verification pending |
-| Canonical EF migration and populated conversion mapping | `20260912021321_PbeTrainingRecords`; B4 slot-answer migration and final C3/D record mapping pending |
+| Canonical EF migration and populated conversion mapping | `20260912021321_PbeTrainingRecords` and `20260912154835_MissingWordsSlotAnswers` locally verified; final C3/D record mapping pending |
 | Populated local restore, native resume and original retry proof | Pending D3 |
 | Full native/canonical tests, types, lint, formatting, builds and browser results | Pending final integrated gate; earlier task results remain in the audit |
 | Six/twelve-student full rehearsal and local load measurements | Native and canonical 90-question tests pass locally; C3 source review passed. Native chat p95 across 10 rooms with 60/120 actors missed the 500ms target (3.57/9.08s); live cohort capacity remains unverified |
@@ -63,3 +63,10 @@ Confirm readable text fallback, keyboard access and responsive coach/student scr
 
 
 Accepted C3 recovery mapping: `pbe-dispute-correction` stores durable unfinished Solo correction work under organization/kind/dispute ID, separate from immutable grade adjustments. The review queue must keep it discoverable after a lost resolve response or navigation, and guarded replay completion removes only its own finished work. D3 conversion must preserve these records and their revisions; restoring only resolved disputes or visible recap scores can strand scheduling updates. This note does not authorize a live import or cleanup.
+
+
+## Accepted B4 conversion boundary
+
+Preserve nullable canonical `Attempt.AnswerPayloadJson` as the native immutable `answerPayload` with format `missing-words-slots/v1`, original indexed text and saved results. Preserve matching accepted DTO `missingWordAnswers`/`missingWordResults`, IDs, timing and hints. Do not reconstruct entries from expected text or the readable joined answer. Older schemas may omit the column; a declaring schema requires it on every row and null remains legacy. Invalid or contradictory payload/result data must fail conversion.
+
+Three scoped B4 exporter checks include real canonical HTTP acceptance, native migration/import, authenticated saved GET, reordered identical retry, changed raw answer rejection and exact legacy retry with unchanged records. This fixture has no `PbeTrainingRecords`; full PBE, room authority, correction and chapter recovery remain D3 requirements. Populated EF upgrade used SQLite and SQL Server script generation; production migration has not run.

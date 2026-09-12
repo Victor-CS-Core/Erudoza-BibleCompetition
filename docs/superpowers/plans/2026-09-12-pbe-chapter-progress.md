@@ -18,6 +18,8 @@ Apply index constraints. “Chapter stamps should reflect fresh unaided PBE-form
 
 ## Task D1: Chapter evidence, readiness and dated stamps
 
+Read the [chapter projection/action contract](../../product/2026-09-12-pbe-chapter-contract.md) for the approved parent/child grouping, bounded API/bootstrap, exact input guards, historical stamp visibility and D2 action handoff. The following pure interfaces remain the counter/evidence foundation.
+
 **Files — create:** `apps/web/worker/native/pbe/chapters.ts`, `chapters.test.ts`; `apps/api/src/Erudoza.Domain/Study/PbeChapterRules.cs`; `apps/api/tests/Erudoza.UnitTests/PbeChapterTests.cs`; `apps/api/tests/Erudoza.IntegrationTests/PbeChapterProgressTests.cs`.
 
 **Files — modify:** native `pbe/progress.ts`, `training/{query,store,routes}.ts`, `mastery/store.ts`; `src/api/{pbeTypes,trainingTypes,training}.ts`; C# `TrainingQueryService.cs`, `TrainingProgressService.cs`, `PbeContracts.cs` and PBE record adapters.

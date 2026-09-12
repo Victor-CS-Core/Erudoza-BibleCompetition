@@ -1,6 +1,6 @@
 # PBE implementation evidence
 
-Status: implementation in progress. The source through deferred-review task C3 is independently reviewed and pushed at `88b14d78cc98377a1aba932f827d87cbe8895787` on `codex/pbe-training`. Inline missing-word integration, chapter progress and final integration checks remain open. This document records local evidence; it is not a deployment or pilot result.
+Status: implementation in progress. The source through B4 inline missing-word answers is independently reviewed and pushed at `0fa0ea20117413cbf29cfa4d45cb042680c30b4c` on `codex/pbe-training`. Chapter progress and final integration checks remain open. This document records local evidence; it is not a deployment or pilot result.
 
 The [implementation plan](../superpowers/plans/2026-09-12-pbe-training.md) follows the [replayability assessment](2026-09-11-training-replayability.md) and [PBE alignment assessment](2026-09-11-pbe-training-alignment.md). [PROGRESS.md](../../PROGRESS.md) records individual test and review chronology, fixes and source checkpoints.
 
@@ -27,7 +27,7 @@ These counts describe checks executed at the stated task gates. They are not a f
 | C1 — timed solo, `6aacc2e` | Two readings or confirmed fallback, authoritative accuracy-only windows, delayed Simulation feedback, immutable timed retries, interrupted partial recap and restart | Final amended paths: canonical 10 presentation unit/22 study integration checks plus 1 immediate-post-ack HTTP check; native 26; UI 19. Earlier positive native/canonical browser journeys passed. Final recovery-only changes used actual HTTP/DO and component checks without claiming a repeated browser run. |
 | C2 — independent teams, `e1b9e3b` | One/two teams, 2–6 students, 10/30/90 questions, non-playing adult owners, student captain start/recovery, explicit coached delivery, one reserve, interrupted evidence and terminal admission safety | Final fix: 19 native state/HTTP and12 canonical HTTP checks. Prior fix: 35 native/HTTP/UI, 27 canonical HTTP and both coached browser journeys at 1440/390/320. Earlier independent six-student browsers passed. Full 90 was covered by native state and canonical actual HTTP; full native HTTP 90 with disputes belongs to C3. |
 
-Both runtimes preserve immutable question/rubric snapshots. Disabling new season admission does not reroll compatible active work; actual source, assignment, membership or season revocation still rejects continuation. Terminal history retains authorized frozen results. C3 local HTTP fixtures cover the interrupted-current-final visibility gap across room and dispute responses. The task remains unaccepted pending the separate independent-review fixes below.
+Both runtimes preserve immutable question/rubric snapshots. Disabling new season admission does not reroll compatible active work; actual source, assignment, membership or season revocation still rejects continuation. Terminal history retains authorized frozen results. C3 local HTTP fixtures cover the interrupted-current-final visibility gap across room and dispute responses. The following investigation sections preserve their historical local status; the accepted C3 and B4 gates are recorded below.
 
 ## Timing, persistence and recovery
 
@@ -80,3 +80,14 @@ The first corrective source checkpoint is local `88b14d7` and awaiting scoped re
 
 
 C3 acceptance: root read the complete scoped fix re-review, which addressed I1/I2/I3/M1 with no new findings. Source through `88b14d7` is independently reviewed and pushed, with exact remote readback. The earlier in-progress paragraphs preserve the diagnostic and fix chronology. M2 output advisories and the explicit physical-speech/load/storage/SQLServer release limits remain; B4 and D1–D3 still require their own integrated gates.
+
+
+## B4 accepted inline-answer gate
+
+Source `3b4ee4d` and compatibility fix `0fa0ea2` are independently reviewed and pushed. The app displays one passage with indexed missing-word fields, preserves explicit empties/raw values and grades the saved positions independently. Legacy text attempts retain their original interpretation; saved feedback and original fields survive retries, reloads and the tested populated canonical-to-native conversion.
+
+Final focused checks: 48 native; 62 UI/component/auth; 3 populated export/restore; 53 canonical integration; 10 canonical pure. Both type checks, native production build, scoped lint and C# formatting pass. The generated nullable `MissingWordsSlotAnswers` migration passed populated SQLite upgrade/reopen with historical answers/results/Honors unchanged; SQL Server evidence is generated SQL only. The final inline browser journey passed on native and canonical at 1440/390/320 with 21 captures each. An observed 41.703125px empty-field width was corrected and both dimensions now have 44px assertions.
+
+Independent review found four older browser callers still using removed selectors. After a genuine reader RED, the test-only fix passed nine affected cases across three commands (1 native reader, 2 native multi-book/PBE daily, 6 canonical desktop/mobile cases), retaining reader drafts, hints, saved-format and source-secrecy assertions. Scoped re-review closed I1 with no new finding. M1 color/FluentAssertions/bundle output advisories remain with C3 M2 for final triage; the current build reports a 544.65kB main chunk. No physical keyboard/Safari IME/screen-reader, SQL Server runtime, full D3 restore, human retention or live-release claim follows.
+
+The next local work is [D1 chapter evidence](../product/2026-09-12-pbe-chapter-contract.md), then D2 presentation and D3 integrated validation/release preparation. The selected real cohort bank, physical speech, load/storage limits and learner pilot remain separate gates.

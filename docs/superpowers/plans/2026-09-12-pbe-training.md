@@ -104,12 +104,12 @@ All assessment findings map to tasks above. A verified question bank for the act
 
 ## Execution status
 
-The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Ten of fourteen tasks have passed independent review. The user added B4 inline missing-word answers after the original Phase B gate; run B4 from the reviewed C3 checkpoint and before chapter integration. The source checkpoints below distinguish pushed work from the current local gate. Production remains unchanged; deployment and main merge require separate authorization.
+The implementation goal is active in `.worktrees/pbe-training` on `codex/pbe-training`. Eleven of fourteen tasks have passed independent review. The user-added B4 inline missing-word work is reviewed and pushed after C3; chapter integration is next. The source checkpoints below distinguish pushed work from the current local gate. This training task has made no production changes; deployment and main merge require separate authorization.
 
 | Phase | Reviewed tasks | Source checkpoint | Current work |
 |---|---|---|---|
 | A — Questions and grading | A1, A2, A2b, A3 (4/4) | `80dfae5` | Complete locally and pushed |
-| B — Solo learning and replay | B1, B2, B3 (3/4) | `9448ba1` | Original gate reviewed/pushed; added B4 inline blanks follows C3 |
+| B — Solo learning and replay | B1, B2, B3, B4 (4/4) | `0fa0ea2` | Inline answers and compatibility fixes reviewed and pushed |
 | C — Independent rehearsal | C1, C2, C3 (3/3) | `88b14d7` | Source reviewed and pushed; physical speech and capacity gates remain external/final checks |
 | D — Chapter progress and release | 0/3 | Pending | Isolated pure-calculation prework and release drafts; integration follows reviewed C3 and B4 |
 
@@ -164,3 +164,10 @@ Active material revocation yields a sanitized management view with existing clea
 ### B4 inline answer addition
 
 The user's supplied Missing Words screen requires direct entry in each displayed blank. [Task B4](2026-09-12-pbe-solo-replay.md#task-b4-type-directly-into-missing-word-blanks) preserves public frozen token indices and verifies original indexed answers on both servers. A UI-only join is insufficient: entries `['in the', '']` must not pass for `['in', 'the']`. The task adds versioned structured attempt storage while retaining old string-only pending retries and historical scores. It follows C3 without interrupting that checkpoint; D3 must include its additive payload/migration in populated restore tests. Current free-form PBE parts do not expose blank positions and must not be guessed from underscores.
+
+
+### B4 inline-answer boundary
+
+MissingWords now uses shared inline inputs keyed to saved hidden-token indices. Binary grading compares each original slot independently; empty or misplaced words cannot become a correct joined phrase. The immutable versioned payload preserves raw entries and server-generated feedback in native attempts and nullable canonical `Attempt.AnswerPayloadJson`. Accepted reloads restore the submitted values, including wrong/empty slots. Historical string-only answers and pending retries remain unchanged. New structured requests enforce the 1,048,576-byte received-body/100,000-character answer limits and 409 conflicting-retry contract; canonical legacy-only admission/status behavior is preserved.
+
+B4 is reviewed/pushed through `0fa0ea2`; populated Memory export/restore and generated EF migration checks pass locally. D3 still owns full PBE/C3/D archive and operational recovery coverage. Chapter integration follows the [chapter projection contract](../../product/2026-09-12-pbe-chapter-contract.md), with evidence-based parent stamps and small selectable groups; its adapters are not yet implemented.
