@@ -14,6 +14,6 @@
 - [x] Integrate the editor in `review.tsx`, preserving state across pages and appearance/attire changes. Keep the existing download action name and PNG dimensions. Style with shared primitives/tokens and existing patch/scene art; no character outlines.
 - [x] User follow-up: replace the unstable single-pixel skin reference, bound highlights and check 36 hairstyle/skin combinations, especially the light low-bun face. Verify all sash registrations descend upper-left to lower-right in screen coordinates; preserve current correct direction without mirroring patches or characters.
 - [x] Build and type-check; run the Share checks, existing full review checks and background regressions. Inspect desktop, 390px and 320px, both body types/attires and a decorated night export. Save intentional Share review captures, document limitations and update PROGRESS.md.
-- [ ] Review scoped diff, explicitly stage, commit and normally push the current task branch; read back the remote checkpoint. Leave the local preview ready for user review.
+- [x] Review scoped diff, explicitly stage, commit and normally push the current task branch; read back the remote checkpoint. Leave the local preview ready for user review.
 
 The user has authorized implementation of this preview. Work runs inline on the existing `codex/profile-character-assets` branch; no additional approval ceremony or new task is needed.
