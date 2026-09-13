@@ -1,5 +1,5 @@
 {
-  "method": "neutral-checkerboard-connected-background-v1",
+  "method": "neutral-checkerboard-connected-background-v2-active-edge-decontamination",
   "assets": [
     {
       "name": "coach-bob",
@@ -13,7 +13,7 @@
       "transparentFraction": 0.6565,
       "width": 1024,
       "height": 1536,
-      "pngSha256": "649516d6f6466f903535d0d44f2a2d45073c17d48376e6829875b50911276955"
+      "pngSha256": "420efa20417c86d85e684fa0bdf7b8e4bd7f576decb00b6e8594cab8feb40555"
     },
     {
       "name": "coach-curls",
@@ -27,7 +27,7 @@
       "transparentFraction": 0.6654,
       "width": 1024,
       "height": 1536,
-      "pngSha256": "0618e4898780d425d2e577a86ef792a61c3bc80283013f290a9586db640d7b83"
+      "pngSha256": "2bfe5980b11cb286d4d6f65b235cdfc2dedec794ba6472ef15a4613a2eb40483"
     },
     {
       "name": "coach-sweep",
@@ -55,7 +55,7 @@
       "transparentFraction": 0.7161,
       "width": 1024,
       "height": 1536,
-      "pngSha256": "99334b4db9abb80bc954e77fa068c35ae9d483f8a09e7e7153580df318636ce5"
+      "pngSha256": "a0850bd7daaa7012e4d1a417eec137c8c3adb19d181f84ad09058c9f6ed70652"
     },
     {
       "name": "satchel",
@@ -83,7 +83,7 @@
       "transparentFraction": 0.6852,
       "width": 1024,
       "height": 1536,
-      "pngSha256": "bdd23902d4aec5eaf8daf7fc157d9502312e37ef28be5de4738b0739083981e0"
+      "pngSha256": "665f2a6c78de24630f984733f9939c484fd95220778cd032abfe6855ed900dc2"
     },
     {
       "name": "student-curls",
@@ -97,7 +97,7 @@
       "transparentFraction": 0.6623,
       "width": 1024,
       "height": 1536,
-      "pngSha256": "e37012c6aee727c2b038b5f019063047408db0f4fe6f6bd7ea9e797ca3ec3d67"
+      "pngSha256": "3ae159b71882ae0f4f155cc66c4fc1d5477966c47234de8242678d8f11d33937"
     },
     {
       "name": "student-sweep",

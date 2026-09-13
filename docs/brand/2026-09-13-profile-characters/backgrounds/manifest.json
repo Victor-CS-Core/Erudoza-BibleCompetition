@@ -1,0 +1,71 @@
+[
+  {
+    "name": "sunrise",
+    "source": "sources/sunrise.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "source_sha256": "ad795e8397c5becfbe1f2c119d8e43a688e4c7a53924a122e54cd73c806399e0",
+    "derivatives": [
+      {
+        "path": "sunrise.webp",
+        "width": 1024,
+        "bytes": 272388,
+        "sha256": "59d52dba7ed9da5ae19c270e2f94b07792993df99b796b494e6c847d1ecbb799"
+      },
+      {
+        "path": "sunrise-320.webp",
+        "width": 320,
+        "bytes": 24046,
+        "sha256": "30922516df0072c67e41a158ffe661c2faac2bca45fd8583499ff6e307a06bf5"
+      }
+    ]
+  },
+  {
+    "name": "basecamp",
+    "source": "sources/basecamp.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "source_sha256": "4cc7739150253e37c177f45f196658e2298853688b84158652434fe73d1d430b",
+    "derivatives": [
+      {
+        "path": "basecamp.webp",
+        "width": 1024,
+        "bytes": 280750,
+        "sha256": "c919156ee6202bfd0b2eb1b0fcd79cbd7339927397e46c09343ec7c24a09f4b3"
+      },
+      {
+        "path": "basecamp-320.webp",
+        "width": 320,
+        "bytes": 26940,
+        "sha256": "9cb457e027c6ff86f106e87e736131887cda2be92a11b447e83e3a4f2e3d076f"
+      }
+    ]
+  },
+  {
+    "name": "starlight",
+    "source": "sources/starlight.png",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "source_sha256": "674abf6049fad0dde42309b45cc03b964a14399a96c69d3c340e4d2863f4de53",
+    "derivatives": [
+      {
+        "path": "starlight.webp",
+        "width": 1024,
+        "bytes": 211798,
+        "sha256": "a186e4e9c8994d8a87312d7f9edad5b22c7d25ae94e7bed83b525b48e495861d"
+      },
+      {
+        "path": "starlight-320.webp",
+        "width": 320,
+        "bytes": 19242,
+        "sha256": "c20ca2dc251d9c26437391aece4dbc5ce3370ceef6d45e11f5145ea1c08d8fab"
+      }
+    ]
+  }
+]

@@ -1,18 +1,18 @@
-import {applyAppearance,paintBackground, Skin, Eyes, Background} from './appearance';
-export const styles = ['curls', 'sweep', 'bob'] as const;
-export type Style = typeof styles[number];
+import {BodyType,HairColor,appearanceHead,headPlacement,bodySources,bodyFrame,characterTopInset} from './hair';
+import {applyAppearance,paintBackground,paintGroundShadow,backgrounds, Skin, Eyes, Background} from './appearance';
 export type Attire = 'student' | 'coach';
-export const styleNames = {curls: 'Short curls', sweep: 'Side sweep', bob: 'Curly bob'};
 export const honors = [
   {key: 'solo:exact-recall', title: 'Exact recall', src: '../../../apps/web/public/assets/training/exact-recall-320.webp'},
   {key: 'solo:chapter-strong', title: 'Chapter strong', src: '../../../apps/web/public/assets/training/chapter-strong-320.webp'},
   {key: 'team:first-fellowship', title: 'First fellowship', src: '../../../apps/web/public/brand/practice/first-fellowship-512.webp'},
 ] as const;
 export type Slots = [string | null, string | null, string | null];
-export type Configuration = {style: Style; attire: Attire; skin: Skin; eyes: Eyes; background: Background; slots: Slots};
+export type Configuration = {bodyType: BodyType; style: string; hairColor: HairColor; attire: Attire; skin: Skin; eyes: Eyes; background: Background; slots: Slots};
 type Point = [number, number];
 type Registration = {shoulder: Point; hip: Point};
 // Individually inspected attachment coordinates in each 1024 × 1536 source.
+// Screen coordinates: upper-left shoulder to lower-right hip, for both bodies
+// and both attires. Never mirror the character or Honor artwork to change fit.
 export const registration: Record<string, Registration> = {
   'student-curls': {shoulder: [352, 572], hip: [628, 900]},
   'student-sweep': {shoulder: [363, 595], hip: [625, 913]},
@@ -50,10 +50,13 @@ function dotted(ctx: CanvasRenderingContext2D, x: number, y: number, radius: num
   }
 }
 export async function renderCharacter(canvas: HTMLCanvasElement, config: Configuration, background: string | null = '#fffefa', quality: 'preview' | 'export' = 'preview') {
-  const name = `${config.attire}-${config.style}`;
+  const name = bodySources[config.bodyType][config.attire];
+  const headName=`${config.bodyType}-${config.style}`;
   const extension = quality==='export' ? '.png' : '-512.webp';
-  const [body, accessory, ...patches] = await Promise.all([
-    loadImage(`prepared/${name}${extension}`), loadImage(`prepared/sash${extension}`),
+  const backdrop=backgrounds.find(b=>b.key===config.background)!;
+  const [body, garment, accessory, head, mask, scene, ...patches] = await Promise.all([
+    loadImage(`prepared/${name}${extension}`), loadImage(`body-layers/${name}${quality==='export'?'.png':'.webp'}`), loadImage(`prepared/sash${extension}`), loadImage(`heads/${headName}${quality==='export'?'.png':'.webp'}`), loadImage(`heads/${headName}-mask.png`),
+    background?loadImage(quality==='export'?backdrop.fullSrc:backdrop.src):Promise.resolve(null),
     ...config.slots.map(key => {const h=honors.find(h=>h.key===key); return h ? loadImage(h.src) : Promise.resolve(null);}),
   ]);
   // Render to an offscreen buffer so asynchronous selection changes never
@@ -62,7 +65,14 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
   const ctx = buffer.getContext('2d')!;
   const reg = registration[name];
   const matrix = transform([[205,190],[795,1280]], [reg.shoulder, reg.hip]);
-  ctx.drawImage(applyAppearance(body,name,config.skin,config.eyes),0,0,1024,1536);
+  const frame=bodyFrame(name),placement=headPlacement(headName,frame.reference);
+  ctx.drawImage(appearanceHead(head,mask,headName,config.skin,config.eyes,config.hairColor),placement.x,placement.y+characterTopInset,512*placement.scale,512*placement.scale);
+  // Normalize the garment, sash and its Honors together without stretching.
+  ctx.save();ctx.transform(frame.scale,0,0,frame.scale,frame.x,frame.y);
+  const coloredBody=applyAppearance(body,name,config.skin,config.eyes);
+  const bodyContext=coloredBody.getContext('2d')!;bodyContext.globalCompositeOperation='destination-in';
+  bodyContext.drawImage(garment,0,0,coloredBody.width,coloredBody.height);
+  bodyContext.globalCompositeOperation='source-over';ctx.drawImage(coloredBody,0,0,1024,1536);
   ctx.save(); ctx.transform(matrix.a,matrix.b,-matrix.b,matrix.a,matrix.x,matrix.y);
   ctx.drawImage(accessory,0,0,1024,1536); ctx.restore();
   const centers: Point[] = [[282,393],[516,720],[741,1048]];
@@ -74,8 +84,11 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
       ctx.drawImage(patches[i]!,x-radius,y-radius,radius*2,radius*2); ctx.restore();
     } else dotted(ctx,x,y,radius*.9);
   });
+  ctx.restore();
   canvas.width=1536;canvas.height=1536;const output=canvas.getContext('2d')!;
-  if(background)paintBackground(output,config.background,1536,1536);
+  if(scene)paintBackground(output,scene,1536,1536);
+  // Ground contact follows the measured boot bottoms in each body source.
+  paintGroundShadow(output,768,frame.groundY-2,225);
   output.drawImage(buffer,256,0);
   return canvas;
 }
@@ -85,4 +98,19 @@ export function setSlot(slots: Slots, index: number, value: string | null): Slot
   if (value && !honors.some(h=>h.key===value)) throw new Error('Unknown review Honor');
   if (value && slots.some((s,i)=>i!==index && s===value)) throw new Error('That Honor is already displayed');
   const next: Slots=[...slots]; next[index]=value; return next;
+}
+
+// The avatar is drawn directly from the head layer. It never samples the
+// character stage, garment, background, or ground shadow.
+export async function renderPortrait(canvas:HTMLCanvasElement,config:Configuration){
+ const name=`${config.bodyType}-${config.style}`;
+ const [head,mask]=await Promise.all([loadImage(`heads/${name}.png`),loadImage(`heads/${name}-mask.png`)]);
+ const colored=appearanceHead(head,mask,name,config.skin,config.eyes,config.hairColor);
+ const pixels=colored.getContext('2d')!.getImageData(0,0,512,512).data;
+ let left=512,top=512,right=0,bottom=0;
+ for(let i=0;i<pixels.length;i+=4)if(pixels[i+3]>8){const x=i/4%512,y=Math.floor(i/4/512);left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
+ const extent=Math.max(right-left+1,bottom-top+1)+28,cx=(left+right)/2,cy=(top+bottom)/2;
+ canvas.width=320;canvas.height=320;
+ canvas.getContext('2d')!.drawImage(colored,cx-extent/2,cy-extent/2,extent,extent,0,0,320,320);
+ return canvas;
 }
