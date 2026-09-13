@@ -7,7 +7,7 @@
 .student-table tbody th p{margin:var(--er-space-1) 0 0;color:var(--er-muted-ink);font-size:var(--er-text-xs)}
 .student-row-actions{display:flex;align-items:center;gap:var(--er-space-2);flex-wrap:nowrap}
 .student-pagination,.student-pagination>div{display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-3);flex-wrap:wrap}
-.student-table td:last-child{width:1%;white-space:nowrap}
+@media(min-width:601px){.student-table td:last-child{width:1%;white-space:nowrap}}
 .student-assignment-page{display:grid;gap:var(--er-space-4);width:100%;min-width:0}
 
 .student-table tbody :is(th,td){padding-block:var(--er-space-2)}

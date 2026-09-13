@@ -19,7 +19,28 @@ test("populated coach and student route audit", async ({ page }, info) => {
   const overflowIssues: unknown[] = [];
   const runtimeErrors: string[] = [];
   page.on("pageerror", error => runtimeErrors.push(error.message));
+  // Chromium's full-page screenshot path can reset Playwright's emulated
+  // touch media state. Restore it before measuring phone touch targets.
+  const restoreMobileTouchEmulation = async () => {
+    if (!mobile) return;
+    const client = await page.context().newCDPSession(page);
+    await client.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
+    await client.detach();
+  };
+  const assertDirectoryActions = async () => {
+    const actions = await page.locator(".student-row-actions .ds-button").evaluateAll(controls => controls.map(control => {
+      const bounds = control.getBoundingClientRect();
+      return { label: control.getAttribute("aria-label") ?? control.textContent, width: bounds.width, height: bounds.height, minHeight: getComputedStyle(control).minHeight, coarsePointer: matchMedia("(pointer: coarse)").matches };
+    }));
+    expect(actions.length).toBeGreaterThan(0);
+    for (const action of actions) {
+      expect(action.width, `${action.label} must remain a usable touch target`).toBeGreaterThanOrEqual(44);
+      expect(action.height, `${action.label} target height (min-height ${action.minHeight}; coarse pointer ${action.coarsePointer})`).toBeGreaterThanOrEqual(mobile ? 44 : 32);
+      expect(action.height, `${action.label} must not collapse into vertical text`).toBeLessThanOrEqual(88);
+    }
+  };
   const capture = async (name: string, url: string, state: string, ready?: (page: Page) => Promise<void>) => {
+    const directoryCapture = name === "coach-students" || name === "coach-student-search";
     if (url) await page.goto(url);
     if (ready) await ready(page);
     else await expect(page.locator("main h1,main h2").first()).toBeVisible();
@@ -28,6 +49,7 @@ test("populated coach and student route audit", async ({ page }, info) => {
     await page.evaluate(() => document.fonts.ready);
     if (mobile) for (const width of [320, 430, 390]) {
       await page.setViewportSize({ width, height: 1000 });
+      await restoreMobileTouchEmulation();
       const overflow = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth, elements: [...document.querySelectorAll("main *")].filter(node => node.getBoundingClientRect().right > document.documentElement.clientWidth + 1).slice(0, 12).map(node => ({ tag: node.tagName, className: node.className, right: node.getBoundingClientRect().right, text: node.textContent?.slice(0, 80) })) }));
       if (overflow.scroll > overflow.width + 1) {
         const ancestors = await page.evaluate(() => {
@@ -38,7 +60,23 @@ test("populated coach and student route audit", async ({ page }, info) => {
         overflowIssues.push({ name, ...overflow, ancestors });
         if (name === "coach-assignments") console.log(JSON.stringify({ width, ancestors }));
       }
+      if (directoryCapture) {
+        await assertDirectoryActions();
+        if (width === 320 || width === 390) {
+          await page.screenshot({ path: info.outputPath(`${name}-${width}.png`), fullPage: true });
+          await restoreMobileTouchEmulation();
+        }
+      }
     }
+    if (directoryCapture && mobile) {
+      await page.setViewportSize({ width: 844, height: 390 });
+      await restoreMobileTouchEmulation();
+      await assertNoOverflow(page);
+      await assertDirectoryActions();
+      await page.screenshot({ path: info.outputPath(`${name}-landscape.png`), fullPage: true });
+      await restoreMobileTouchEmulation();
+      await page.setViewportSize({ width: 390, height: 1000 });
+    } else if (directoryCapture) await assertDirectoryActions();
     if (!mobile) await assertNoOverflow(page);
     const screenshot = info.outputPath(`${name}.png`);
     await page.screenshot({ path: screenshot, fullPage: true });
@@ -70,6 +108,13 @@ test("populated coach and student route audit", async ({ page }, info) => {
     expect(runtimeErrors).toEqual([]);
     return;
   }
+  // Keep the assigned learner beyond the first directory page even in isolation.
+  const directoryRun = randomUUID().slice(0, 8);
+  for (let index = 1; index <= 10; index++) await json(page.request, `${org}/students`, {
+    userName: `audit.${directoryRun}.${index}`,
+    displayName: `Audit directory ${String(index).padStart(2, "0")}`,
+    password: process.env.ERUDOZA_E2E_PASSWORD!,
+  });
   await json(page.request, `${org}/practice/enabled`, { enabled: true });
   await json(page.request, `${org}/practice/questions/import`, { seasonId: season.id, questions: Array.from({ length: 12 }, (_, i) => ({ contentPackId: pack.id, sourceUnitId: units[0].id, prompt: `Audit practice question ${i + 1}: name the student.`, kind: "ShortAnswer", parts: [{ acceptedAnswers: ["Daniel"], points: 1 }], ordered: false, evidence: units[0].canonicalText, reference: units[0].citation, version: 1 })) });
   const bank = await json(page.request, `${org}/practice/bootstrap`);
@@ -114,7 +159,18 @@ test("populated coach and student route audit", async ({ page }, info) => {
     const scope = await json(p.request, `${org}/seasons/${draft.id}/scope`);
     expect(scope.packs).toEqual([{ contentPackId: pack.id, includes: [range], excludes: [] }]);
   });
-  await capture("coach-students", "/admin/students", "Student directory", p => expect(p.getByRole("table")).toContainText("Daniel Student"));
+  await capture("coach-students", "/admin/students", "Populated first directory page; assigned learner is on a later page", async p => {
+    const directory = p.getByRole("table");
+    await expect(directory.getByRole("rowheader")).toHaveCount(10);
+    await expect(directory).not.toContainText(student.userName);
+  });
+  await capture("coach-student-search", "", "Directory search locates the assigned learner beyond the first page", async p => {
+    await p.getByRole("searchbox", { name: "Search students", exact: true }).fill(student.userName);
+    const directory = p.getByRole("table");
+    await expect(directory.getByRole("rowheader")).toHaveCount(1);
+    await expect(directory.getByRole("rowheader", { name: `${student.displayName} ${student.userName}`, exact: true })).toBeVisible();
+    await expect(directory).toContainText("Daniel Student");
+  });
   await capture("coach-assignments", `/admin/assignments?seasonId=${season.id}`, "Assignment coverage", p => expect(p.getByRole("table")).toContainText("Daniel Student"));
   await capture("coach-assignment-editor", `/admin/assignments?seasonId=${season.id}&studentId=${student.userId}`, "Individual populated chapter plan", async p => {
     await expect(p.getByRole("heading", { name: student.displayName, exact: true })).toBeVisible();
