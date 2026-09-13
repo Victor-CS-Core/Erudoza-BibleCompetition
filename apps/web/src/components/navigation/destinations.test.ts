@@ -11,3 +11,10 @@ it("keeps Honors in the selected student season and recaps in Study navigation",
   expect(currentDestination(items, "/student/sessions/saved/recap", "")?.id).toBe("study");
   expect(navigation(true).some(item => item.id === "honors")).toBe(false);
 });
+
+it("offers the shared Scripture reader in both modes with season context", () => {
+  expect(navigation(false, "s").find(item => item.id === "library")?.to).toBe("/student/library?seasonId=s");
+  const coach = navigation(true, "s").find(item => item.id === "library")!;
+  expect(coach.to).toBe("/admin/content?seasonId=s");
+  expect(coach.children?.every(item => item.to.includes("?seasonId=s#"))).toBe(true);
+});

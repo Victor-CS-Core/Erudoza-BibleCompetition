@@ -11,6 +11,8 @@ import { BookAssignmentEditor, useSeasonBooks } from "./BookAssignmentEditor";
 import { coordinates, multiScope, segmentRanges } from "./passageRanges";
 export { RangeFields } from "./RangeFields";
 import "../../styles/season-planner.css";
+import "./content-library.css";
+import { BookBrowser } from "../../components/scripture/BookBrowser";
 
 export function SeasonWizardPage() {
   const { seasonId } = useParams();
@@ -60,7 +62,7 @@ function BookDetails({ season, initialPacks = [], onDirtyChange }: { season?: Se
       {library.isPending && <LoadingState label="Loading books…" />}
       {library.isError && <Notice tone="danger">The library could not load. <Button onClick={() => void library.refetch()}>Try again</Button></Notice>}
       {locked && <Notice>Season books are locked. You can still manage assignments in an active season.</Notice>}
-      <div className="planner-book-grid">{library.data?.books.map(book => <label className="ds-choice planner-book-choice" key={book.contentPackId}><Input type="checkbox" disabled={locked} checked={packs.some(pack => pack.contentPackId === book.contentPackId)} onChange={event => setPacks(event.target.checked ? [...packs, { contentPackId: book.contentPackId, includes: segmentRanges(coordinates(book), coordinates(book)), excludes: [] }] : packs.filter(pack => pack.contentPackId !== book.contentPackId))} /><span><strong>{book.name}</strong><small>{initialPacks.some(pack => pack.contentPackId === book.contentPackId) ? "Saved season selection retained" : "Whole book"}</small></span></label>)}</div>
+      <BookBrowser books={library.data?.books ?? []} renderBook={book => <label className="ds-choice planner-book-choice" key={book.contentPackId}><Input type="checkbox" disabled={locked} checked={packs.some(pack => pack.contentPackId === book.contentPackId)} onChange={event => setPacks(event.target.checked ? [...packs, { contentPackId: book.contentPackId, includes: segmentRanges(coordinates(book), coordinates(book)), excludes: [] }] : packs.filter(pack => pack.contentPackId !== book.contentPackId))} /><span><strong>{book.name}</strong><small>{initialPacks.some(pack => pack.contentPackId === book.contentPackId) ? "Saved season selection retained" : "Whole book"}</small></span></label>} />
       {packs.filter(pack => !library.data?.books.some(book => book.contentPackId === pack.contentPackId)).map(pack => <div className="planner-saved-row" key={pack.contentPackId}><span>{pack.includes[0]?.bookKey} · Saved selection retained</span></div>)}
       {!!season && <p className="planner-caption">Existing custom selections are preserved unless you remove and reselect their book.</p>}
     </fieldset></Panel>

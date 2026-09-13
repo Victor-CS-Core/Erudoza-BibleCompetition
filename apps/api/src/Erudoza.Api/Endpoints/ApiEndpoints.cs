@@ -254,10 +254,35 @@ public static class ApiEndpoints
 
         org.MapGet("/library", async (Guid orgId, ICurrentUser current, LibraryReadService library, CancellationToken ct) =>
         {
-            if (ForbidAdmin(orgId, current) is { } forbidden) return forbidden;
+            if (ForbidOrg(orgId, current) is { } forbidden) return forbidden;
             var installed = await library.GetAsync(ct);
             return installed is null ? Results.Problem(statusCode: 503, title: "The built-in NKJV library is not installed.") : Results.Ok(installed);
-        }).RequireAuthorization("CanManageContent");
+        }).RequireAuthorization("CanStudy");
+
+        org.MapGet("/library/books/{contentPackId:guid}/chapters/{chapter}", async (
+            Guid orgId, Guid contentPackId, string chapter, ICurrentUser current,
+            LibraryReadService library, IErudozaDbContext db, CancellationToken ct) =>
+        {
+            if (ForbidOrg(orgId, current) is { } forbidden) return forbidden;
+            if (!int.TryParse(chapter, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var number) || number < 1)
+                return Results.BadRequest(new { title = "Choose a valid chapter." });
+            var installed = await library.GetAsync(ct);
+            if (installed is null) return Results.Problem(statusCode: 503, title: "The built-in NKJV library is not installed.");
+            var book = installed.Books.SingleOrDefault(b => b.ContentPackId == contentPackId);
+            if (book is null) return Results.NotFound();
+            var metadata = book.Chapters.SingleOrDefault(c => c.Number == number);
+            if (metadata is null) return Results.BadRequest(new { title = "Choose a valid chapter." });
+            var verses = await db.SourceUnits.AsNoTracking()
+                .Where(u => u.OrganizationId == BuiltInLibrary.OrganizationId && u.ContentPackId == contentPackId
+                    && u.ContentPack!.OrganizationId == BuiltInLibrary.OrganizationId && u.ContentPack.IsBuiltIn && u.ContentPack.IsActive
+                    && u.BookKey == book.BookKey && u.Chapter == number && u.IsActive && !u.IsRetired)
+                .OrderBy(u => u.Ordinal).ThenBy(u => u.Id)
+                .Select(u => new SourceUnitDto(u.Id, u.CitationLabel, u.BookKey, u.Chapter, u.Verse, u.Ordinal, u.CanonicalText))
+                .Take(metadata.Verses.Count + 1).ToListAsync(ct);
+            if (verses.Count != metadata.Verses.Count || verses.Any(v => !metadata.Verses.Contains(v.Verse)))
+                return Results.Problem(statusCode: 503, title: "The NKJV library chapter is incomplete.");
+            return Results.Ok(verses);
+        }).RequireAuthorization("CanStudy");
 
         foreach (var retired in new[] { "/content-packs/import", "/content-packs/import-from-catalog" })
             org.MapPost(retired, (Guid orgId, ICurrentUser current) =>

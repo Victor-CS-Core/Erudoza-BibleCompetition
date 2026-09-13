@@ -56,6 +56,7 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   library: (orgId: string) => request<import("./types").ScriptureLibrary>(`/api/v1/organizations/${orgId}/library`),
+  libraryChapter: (orgId: string, contentPackId: string, chapter: number) => request<SourceUnit[]>(`/api/v1/organizations/${orgId}/library/books/${encodeURIComponent(contentPackId)}/chapters/${chapter}`),
   login: (identifier: string, password: string) =>
     request<Me>("/api/v1/auth/login", { method: "POST", body: JSON.stringify({ identifier, password }) }),
   logout: () => request<void>("/api/v1/auth/logout", { method: "POST" }),

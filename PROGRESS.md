@@ -1,5 +1,14 @@
 # Erudoza progress log
 
+## Full Bible selector and shared Scripture reader — September 12
+
+- User authorized all agreed changes. Added shared searchable Old/New Testament book browser to the existing two-step season planner and Scripture library. The selector uses the complete installed catalog; a test verifies the repository manifest has 66 choices (39/27). The loopback demo now reads that actual manifest and chapter text, replacing its previous two-book fixture. Preview data and scripts remain ignored.
+- Both coach and student routes use one reader with bounded chapter requests, previous/next controls, readable Scripture text, loading/retry states, and personal assignment markers from existing progress reads. Reading beyond assignments is allowed and performs no activity/progress writes. Command-center menus retain season context. The existing shared coach/student assignment flow remains intact.
+- Added same-organization learner access to installed library metadata and a chapter-only built-in read endpoint in native and canonical runtimes. Generic private content endpoints and assignment/activity authorization remain restricted. Native access tests cover unassigned student reading, invalid chapters, private/other-org denial and anonymous denial.
+- Local verification: frontend regression tests observed failing before implementation, then the final combined frontend/shell/navigation run passed 66 tests across seven files. Native agent ran 13 library/coach-learning/scripture tests, native TypeScript and scoped ESLint successfully. Production native build passed with existing bundle advisory. Browser checks passed at 1440/390/320 for the full season/assignment flow, all 66 choices, reader chapters, personal markers and both command centers without overflow or page errors. Desktop and phone reader captures inspected. Independent scoped review approved.
+- Validation blocker: canonical C# tests are implemented but cannot run because required .NET SDK 10.0.303 is unavailable. Canonical compilation/runtime acceptance is not established. Browser checks use the loopback fixture, supplemented by real native backend tests, not production acceptance. No main merge or deployment performed. Next: checkpoint/push scoped changes, retain the preview, and run canonical tests in an SDK-equipped environment.
+
+
 ## Two-step book planner and shared assignments — September 12
 
 - Git checkpoint: implementation `c1ea776` was committed and normally pushed to `origin/codex/coach-season-flow`; exact remote readback matched the local SHA. Final command-center browser checks also passed at all three widths for season books, personal assignments and student-result season context. The demo was reset for review. Main and production are unchanged by this task.

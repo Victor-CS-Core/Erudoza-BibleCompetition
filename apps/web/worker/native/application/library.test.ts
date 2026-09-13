@@ -76,6 +76,7 @@ it('never exposes another organization private source through built-in fallback'
   await app.db.prepare('INSERT INTO Organizations(id,name,slug) VALUES(?,?,?)').bind(other, 'Other club', 'other-club').run();
   await store.insert('pack', privatePack, other, { id: privatePack, isActive: true, isBuiltIn: false });
   expect((await call(`/content-packs/${privatePack}/source-units`)).status).toBe(404);
+  expect((await call(`/library/books/${privatePack}/chapters/1`)).status).toBe(404);
 });
 
 it('rejects missing verses inside a retained historical pack range',async()=>{
@@ -94,3 +95,27 @@ it('allows retaining historical books but forbids introducing them through the n
   await store.insert('scope',season.id,TEST_ORG,entry,{seasonId:season.id});
   expect((await call(`/seasons/${season.id}/scope`,{packs:[entry]})).status).toBe(204);
 });
+
+
+it('lets learners read unassigned installed chapters without granting writes or private access', async () => {
+  await call('/students', { userName: 'free-reader', displayName: 'Reader', password: 'Testing!123' });
+  const login = await app.fetch('/api/v1/auth/login', { method: 'POST', headers: { Origin: 'https://erudoza.test' }, body: JSON.stringify({ identifier: 'free-reader', password: 'Testing!123' }) });
+  const readerCookie = login.headers.get('set-cookie')!.split(';')[0];
+  const read = (path: string, org = TEST_ORG) => app.fetch(`/api/v1/organizations/${org}${path}`, { headers: { Cookie: readerCookie } });
+  const count = () => app.db.prepare("SELECT count(*) AS n FROM Records WHERE kind IN ('assignment','membership','mastery','session','attempt')").first('n');
+  const before = await count();
+  expect((await read('/library')).status).toBe(200);
+  const response = await read(`/library/books/${eph}/chapters/6`); expect(response.status).toBe(200);
+  const verses = await response.json() as { chapter: number; verse: number }[];
+  expect(verses.map(v => [v.chapter, v.verse])).toEqual([[6, 1], [6, 2]]);
+  expect(Object.keys(verses[0]).sort()).toEqual(['id','citation','bookKey','chapter','verse','ordinal','canonicalText'].sort());
+  for (const chapter of ['0', '7', '1.5', 'all']) expect((await read(`/library/books/${eph}/chapters/${chapter}`)).status).toBe(400);
+  const privatePack = crypto.randomUUID(); await store.insert('pack', privatePack, TEST_ORG, { id: privatePack, isActive: true, isBuiltIn: false });
+  expect((await read(`/library/books/${privatePack}/chapters/1`)).status).toBe(404);
+  expect((await read(`/library/books/${eph}/chapters/1`, libraryOrg)).status).toBe(403);
+  expect((await read(`/content-packs/${eph}/source-units`)).status).toBe(403);
+  expect((await app.fetch(`/api/v1/organizations/${TEST_ORG}/library/books/${eph}/chapters/1`)).status).toBe(401);
+  expect((await app.fetch(`/api/v1/organizations/${TEST_ORG}/library`)).status).toBe(401);
+  expect((await app.fetch(`/api/v1/organizations/${TEST_ORG}/library/books/${eph}/chapters/1`, { method: 'POST', headers: { Cookie: readerCookie, Origin: 'https://erudoza.test' }, body: '{}' })).status).toBe(403);
+  expect(await count()).toBe(before);
+}, 30000);

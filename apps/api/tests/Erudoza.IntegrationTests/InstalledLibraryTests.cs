@@ -40,7 +40,25 @@ public sealed class InstalledLibraryTests(ErudozaApiFactory factory) : IClassFix
         (await second.GetFromJsonAsync<SourceUnitDto[]>($"{Org(SeedIdentifiers.IsolationOrganizationId)}/content-packs/{SeedIdentifiers.ContentPackId}/source-units"))!.Should().BeEmpty();
         (await first.DeleteAsync($"{Org()}/content-packs/{eph.ContentPackId}")).IsSuccessStatusCode.Should().BeFalse();
         using var student = await TestHttp.LoginAsync(factory, "daniel.student", "DevStudent!234");
-        (await student.GetAsync($"{Org()}/library")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        using var readScope = factory.Services.CreateScope();
+        var readDb = readScope.ServiceProvider.GetRequiredService<ErudozaDbContext>();
+        async Task<int[]> ActivityCounts() => [await readDb.Assignments.CountAsync(), await readDb.CompetitionMembers.CountAsync(),
+            await readDb.StudySessions.CountAsync(), await readDb.Attempts.CountAsync(), await readDb.MasteryStates.CountAsync()];
+        var beforeReading = await ActivityCounts();
+        (await student.GetAsync($"{Org()}/library")).StatusCode.Should().Be(HttpStatusCode.OK);
+        var chapterUrl = $"{Org()}/library/books/{eph.ContentPackId}/chapters/6";
+        var chapter = (await student.GetFromJsonAsync<SourceUnitDto[]>(chapterUrl))!;
+        chapter.Should().HaveCount(3);
+        chapter.Should().OnlyContain(v => v.Chapter == 6 && v.BookKey == "EPH");
+        foreach (var invalid in new[] { "0", "7", "1.5", "all" })
+            (await student.GetAsync($"{Org()}/library/books/{eph.ContentPackId}/chapters/{invalid}")).StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        (await student.GetAsync($"{Org()}/library/books/{SeedIdentifiers.ContentPackId}/chapters/1")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        (await student.GetAsync($"{Org(SeedIdentifiers.IsolationOrganizationId)}/library/books/{eph.ContentPackId}/chapters/1")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        (await student.GetAsync($"{Org()}/content-packs/{eph.ContentPackId}/source-units")).StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        using var anonymous = factory.CreateClient();
+        (await anonymous.GetAsync(chapterUrl)).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        (await anonymous.GetAsync($"{Org()}/library")).StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        (await ActivityCounts()).Should().Equal(beforeReading);
     }
 
     [Theory]

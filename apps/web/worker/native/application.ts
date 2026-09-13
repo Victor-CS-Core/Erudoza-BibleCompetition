@@ -30,6 +30,9 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     }
     if (!/^\/(students|seasons|content-packs|scripture-catalog|library)(\/|$)/.test(path))
         return null;
+    const libraryResult = await library(ctx);
+    if (libraryResult)
+        return libraryResult;
     admin(ctx.actor);
     if(seasonMatch&&/^\/pbe-cooperation(?:\/(?:continue|students))?$/.test(seasonMatch[2])){
         const seasonId=seasonMatch[1],suffix=seasonMatch[2];
@@ -81,9 +84,6 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         }
         return noContent();
     }
-    const libraryResult = await library(ctx);
-    if (libraryResult)
-        return libraryResult;
     const contentResult = await content(ctx);
     if (contentResult)
         return contentResult;
