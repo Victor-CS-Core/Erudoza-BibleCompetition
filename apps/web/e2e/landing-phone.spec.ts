@@ -13,9 +13,9 @@ for (const width of phoneWidths) {
     await expect(page.getByTestId("build-a-season")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Rooted in Scripture.");
     await expect(page.getByRole("heading", { name: "Learn your passages" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Review with purpose" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Review missed verses" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Rehearse with your team" })).toBeVisible();
-    await expect(page.getByRole("figure", { name: "A glimpse of Erudoza Honors" })).toContainText("Sample artwork");
+    await expect(page.getByRole("figure", { name: "Erudoza training patches" })).toContainText("Illustrations of study patches, not official Pathfinder Honors.");
     await expect(page.getByTestId("start-studying")).toHaveAttribute("href", "/login");
     await expect(page.getByTestId("build-a-season")).toHaveAttribute("href", "/signup");
 

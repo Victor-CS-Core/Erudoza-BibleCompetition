@@ -116,7 +116,7 @@ describe("ProgressPage recorded evidence", () => {
     expect(screen.getByRole("heading", { name: "Your progress" })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("progress-student")).toHaveTextContent("Daniel 2026"));
     expect(screen.queryByTestId("session-summary")).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Your passage journey" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Your passage progress" })).toBeInTheDocument();
     expect(screen.getByTestId("progress-attempts")).toHaveTextContent("3");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Daniel 1:1");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Exact wording score: 80 / 100");
@@ -152,7 +152,7 @@ describe("ProgressPage recorded evidence", () => {
     vi.mocked(trainingApi.coachCooperation).mockResolvedValue(cooperation);
     vi.mocked(trainingApi.cooperationStudents).mockResolvedValue({ seasonId: 'season-1', snapshotId: 'coop', nextCursor: null, items: [{ studentId: 'student-1', displayName: 'Daniel Student', state: 'Known', reason: null, scripture: { assigned: 3, practiced: { known: 2, possible: 2 }, retained: { known: 1, possible: 1 }, due: { known: 1, possible: 1 } }, introduction: { assigned: 0, practiced: { known: 0, possible: 0 }, retained: { known: 0, possible: 0 }, due: { known: 0, possible: 0 } } }] } as never);
     renderProgress('/student/progress');
-    expect(await screen.findByRole('heading', { name: 'Your PBE chapter journey' })).toBeVisible();
+    expect(await screen.findByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
     expect(trainingApi.cooperation).toHaveBeenCalledWith('season-1');
     renderProgress('/admin/seasons/season-1/students/student-1/progress');
     expect(await screen.findByText('Daniel Student')).toBeVisible();

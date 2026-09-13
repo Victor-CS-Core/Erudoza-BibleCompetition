@@ -51,7 +51,7 @@ const blockedReason: Record<string, string> = {
   PbeDisabled: 'PBE progress is unavailable while new PBE practice is disabled.',
   SeasonClosed: 'This season is closed. Current cooperation progress is unavailable.',
   ScopeTooLarge: 'This season is larger than the current cooperation-progress limit.',
-  InputTooLarge: 'This season has too much progress input for one bounded snapshot.',
+  InputTooLarge: 'This season has more saved progress than can be checked at once.',
   DataGap: 'Some required progress data could not be checked.',
 };
 

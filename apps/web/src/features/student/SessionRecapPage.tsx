@@ -40,7 +40,7 @@ export function SessionRecapPage() {
       <div className="training-recap-layout">
         <Panel className="training-recap-main">
           <Badge tone={data.fullTargetReached ? "success" : "neutral"}>{data.mode} · {data.fullTargetReached ? "Complete" : "Saved"}</Badge>
-          <h2 className="training-recap-title">{data.fullTargetReached ? "Practice complete. Keep growing." : "Your practice is saved."}</h2>
+          <h2 className="training-recap-title">{data.fullTargetReached ? "Practice complete." : "Your practice is saved."}</h2>
           <p>{data.correct} correct from {data.attempted} accepted attempts.</p>
           <div className="training-recap-award">
             {featuredMilestone ? <>
@@ -71,7 +71,7 @@ export function SessionRecapPage() {
                   <dt>{label}</dt><dd>{passage.before && passage.after ? `${passage.before[key]} → ${passage.after[key]}` : `${passage.delta[key] > 0 ? "+" : ""}${passage.delta[key]} contributed`}</dd>
                   {passage.after && <dd className="training-recap-skill-meter"><ProgressMeter label={`${passage.title}: saved ${label.toLowerCase()} score`} value={passage.after[key]} max={100} /></dd>}
                 </div>)}</dl>
-                {(!passage.before || !passage.after) && <details className="ds-disclosure"><summary>View saved answer evidence</summary><p>Other sessions may have interleaved. Each answer’s before and after scores are shown separately.</p>{passage.events.map(event => <div key={event.attemptId}><time dateTime={event.acceptedAtUtc}>{new Date(event.acceptedAtUtc).toLocaleString()}</time><dl className="training-recap-skills">{skillNames.map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{event.before[key]} → {event.after[key]}</dd></div>)}</dl></div>)}</details>}
+                {(!passage.before || !passage.after) && <details className="ds-disclosure"><summary>View saved answer evidence</summary><p>You may have practiced in another session between these answers. Each answer shows its own before and after scores.</p>{passage.events.map(event => <div key={event.attemptId}><time dateTime={event.acceptedAtUtc}>{new Date(event.acceptedAtUtc).toLocaleString()}</time><dl className="training-recap-skills">{skillNames.map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{event.before[key]} → {event.after[key]}</dd></div>)}</dl></div>)}</details>}
                 </details>
               </li>)}</ul>
               <LinkButton variant="secondary" to={link("/student/progress")}>View current progress</LinkButton>
@@ -79,7 +79,7 @@ export function SessionRecapPage() {
             {!!data.missionSteps.length && <Panel><h2>Daily training evidence</h2><ul className="training-mission-steps">{data.missionSteps.map(step => <li key={step.kind}><strong>{step.kind === "Practice" ? "Daily drill" : "Review"}</strong><span>{step.completed} / {step.target}</span><Badge>{step.status}</Badge></li>)}</ul></Panel>}
             {earnedMilestones.length > 1 && <Panel><h2>More milestones recorded in this session</h2><div className="training-honor-preview-items">{earnedMilestones.slice(1).map((honor, index) => <div key={`${honor.key}:${index}`}><HonorArtwork {...honorAsset(honor.key)} /><h3>{honor.title}</h3><p>{honor.scopeLabel}</p><time dateTime={honor.earnedAtUtc!}>{evidenceDate(honor.earnedAtUtc!)}</time></div>)}</div></Panel>}
           </>}
-          <Panel><h2>Steady progress counts.</h2>
+          <Panel><h2>Your weekly practice credit</h2>
             {data.newlyCreditedDay && <p>Practice day credited: {data.creditedLocalDate}.</p>}
             {!data.newlyCreditedDay && data.fullTargetReached && <p>No additional practice day was added by this session. A calendar day counts at most once.</p>}
             {data.missionLocalDate && data.creditedLocalDate && data.missionLocalDate !== data.creditedLocalDate && <p>Mission date: {data.missionLocalDate}. Practice credited on {data.creditedLocalDate}, when the qualifying answer was accepted.</p>}

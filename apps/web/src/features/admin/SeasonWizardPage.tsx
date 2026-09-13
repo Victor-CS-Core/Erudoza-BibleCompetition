@@ -18,7 +18,7 @@ import { ChapterPicker } from "./ChapterPicker";
 const steps = [{ key: "details", title: "Details", note: "Name your season" }, { key: "passages", title: "Passages", note: "Choose what to study" }, { key: "students", title: "Students", note: "Assign a personal plan" }, { key: "review", title: "Review & start", note: "Check you're ready" }] as const;
 type Step = typeof steps[number]["key"];
 const emptyRange: PassageRange = { bookKey: "", startChapter: 0, startVerse: 0, endChapter: 0, endVerse: 0 };
-const levels: { name: TrainingDifficulty; detail: string }[] = [{ name: "Foundation", detail: "More support, smaller steps" }, { name: "Standard", detail: "Balanced recall practice" }, { name: "Advanced", detail: "Fewer clues, deeper recall" }];
+const levels: { name: TrainingDifficulty; detail: string }[] = [{ name: "Foundation", detail: "More support, smaller steps" }, { name: "Standard", detail: "Balanced recall practice" }, { name: "Advanced", detail: "Fewer clues, more recall from memory" }];
 const rangeLabel = (range: PassageRange) => `${range.bookKey} ${range.startChapter}:${range.startVerse}–${range.endChapter}:${range.endVerse}`;
 
 export function SeasonWizardPage() {

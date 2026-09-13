@@ -9,7 +9,7 @@ import "../../styles/training-public.css";
 
 const trainingSteps = [
   { title: "Learn your passages", description: "Read the Scripture your coach assigns, then work through it a few verses at a time." },
-  { title: "Review with purpose", description: "Return to the verses you missed and review them when they’re due." },
+  { title: "Review missed verses", description: "Return to the verses you missed and review them when they’re due." },
   { title: "Rehearse with your team", description: "Try a timed rehearsal or answer questions together in your coach’s practice room." },
 ];
 
@@ -33,15 +33,15 @@ export function LandingPage() {
           width={1855} height={848} fetchPriority="high"
           alt="An open Bible, compass and Pathfinder neckerchief beside a mountain lake" />
         <div className="public-hero-inner">
-          <p className="ds-eyebrow">Bible competition preparation</p>
+          <p className="ds-eyebrow">Pathfinder Bible Experience training</p>
           <PageHeader as="div" titleId="public-title" className="ds-display-header"
-            title={<><span>Rooted in Scripture.</span>{" "}<span>Ready for the journey.</span></>}
-            description="Learn your assigned passages. Practice recalling them for your next Bible competition." />
+            title={<><span>Rooted in Scripture.</span>{" "}<span>Ready for PBE.</span></>}
+            description="Learn your assigned passages. Practice for the Seventh-day Adventist Pathfinder Bible Experience (PBE)." />
           <div className="public-actions">
             <LinkButton to="/login" size="large" data-testid="start-studying">Start studying<AppIcon name="arrow" /></LinkButton>
             <LinkButton to="/signup" size="large" variant="secondary" data-testid="build-a-season">Coach your team</LinkButton>
           </div>
-          <p className="public-access-note ds-caption">Use the account provided by your coach.</p>
+          <p className="public-access-note ds-caption">Students: use the account provided by your coach.</p>
         </div>
       </section>
       <div className="public-content">
@@ -56,8 +56,8 @@ export function LandingPage() {
             </ol>
             <figure className="public-honors" aria-labelledby="public-honors-title">
               <figcaption>
-                <h3 id="public-honors-title">A glimpse of Erudoza Honors</h3>
-                <p className="ds-caption">Sample artwork</p>
+                <h3 id="public-honors-title">Erudoza training patches</h3>
+                <p className="ds-caption">Illustrations of study patches, not official Pathfinder Honors.</p>
               </figcaption>
               <div className="public-honor-art">
                 <PatchArtwork src="/assets/landing/honor-flame-320.webp" srcSet="/assets/landing/honor-flame-160.webp 160w, /assets/landing/honor-flame-320.webp 320w" sizes="(max-width: 760px) 28vw, (max-width: 1200px) 16vw, 216px" size={216} alt="" />
@@ -70,7 +70,7 @@ export function LandingPage() {
         <Panel className="public-coach" aria-labelledby="coach-title">
           <img className="public-coach-art" src="/assets/landing/expedition-coach-960.webp" srcSet="/assets/landing/expedition-coach-640.webp 640w, /assets/landing/expedition-coach-960.webp 960w" sizes="(min-width: 761px) 50vw, 100vw" width={2172} height={724} loading="lazy" alt="" />
           <div className="public-coach-copy">
-            <h2 id="coach-title" className="ds-section-title">Guide your team’s next step.</h2>
+            <h2 id="coach-title" className="ds-section-title">Prepare your PBE team.</h2>
             <p>Assign passages and see where each student needs practice.</p>
             <LinkButton to="/signup" variant="ghost" className="ds-text-action">Create your club<AppIcon name="arrow" /></LinkButton>
           </div>
