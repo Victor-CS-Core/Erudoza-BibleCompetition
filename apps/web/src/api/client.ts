@@ -103,8 +103,8 @@ export const api = {
     seasonId: string,
     body: import("./types").SeasonScope,
   ) => request<void>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/scope`, { method: "POST", body: JSON.stringify(body) }),
-  assignments: (orgId: string, seasonId: string) =>
-    request<import("./types").Assignment[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`),
+  assignments: (orgId: string, seasonId: string, signal?: AbortSignal) =>
+    request<import("./types").Assignment[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { signal }),
   assign: (
     orgId: string,
     seasonId: string,
@@ -115,9 +115,10 @@ export const api = {
       contentPackId: string;
       range: { bookKey: string; startChapter: number; startVerse: number; endChapter: number; endVerse: number };
     },
-  ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body) }),
-  myAssignments: (orgId: string, seasonId: string) => request<import("./types").Assignment[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`),
-  assignMyself: (orgId: string, seasonId: string, body: { difficulty?: TrainingDifficulty; type: string; contentPackId: string; range: import("./types").PassageRange }) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { method: "POST", body: JSON.stringify(body) }),
+    signal?: AbortSignal,
+  ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body), signal }),
+  myAssignments: (orgId: string, seasonId: string, signal?: AbortSignal) => request<import("./types").Assignment[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { signal }),
+  assignMyself: (orgId: string, seasonId: string, body: { difficulty?: TrainingDifficulty; type: string; contentPackId: string; range: import("./types").PassageRange }, signal?: AbortSignal) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { method: "POST", body: JSON.stringify(body), signal }),
   removeMyAssignment: (orgId: string, seasonId: string, assignmentId: string) => request<void>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments/${assignmentId}`, { method: "DELETE" }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
@@ -136,8 +137,8 @@ export const api = {
   ) => request<AttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`, { method: "POST", body: JSON.stringify(body) }),
   completeSession: (sessionId: string) =>
     request<SessionSummary>(`/api/v1/study/sessions/${sessionId}/complete`, { method: "POST" }),
-  setDifficulty: (orgId: string, seasonId: string, studentId: string, difficulty: TrainingDifficulty) =>
-    request<{ difficulty: TrainingDifficulty }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/difficulty`, { method: "PUT", body: JSON.stringify({ difficulty }) }),
+  setDifficulty: (orgId: string, seasonId: string, studentId: string, difficulty: TrainingDifficulty, signal?: AbortSignal) =>
+    request<{ difficulty: TrainingDifficulty }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/difficulty`, { method: "PUT", body: JSON.stringify({ difficulty }), signal }),
   assignedSeasons: () => request<{ id: string; name: string }[]>("/api/v1/progress/me/seasons"),
   progress: (seasonId?: string) => request<Progress>(`/api/v1/progress/me${seasonId ? `?seasonId=${encodeURIComponent(seasonId)}` : ""}`),
   studentProgress: (orgId: string, seasonId: string, studentId: string) =>

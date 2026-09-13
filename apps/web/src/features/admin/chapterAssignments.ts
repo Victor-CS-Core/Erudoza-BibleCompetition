@@ -8,8 +8,9 @@ export type SaveChapterAssignmentsInput = {
   eligible: Coordinate[];
   all: Coordinate[];
   context: ChapterAssignmentContext;
-  readAssignments: () => Promise<Assignment[]>;
-  assign: (range: PassageRange) => Promise<Assignment>;
+  readAssignments: (signal: AbortSignal) => Promise<Assignment[]>;
+  assign: (range: PassageRange, signal: AbortSignal) => Promise<Assignment>;
+  onProgress?: (progress: { completedChapters: number[] }) => void;
 };
 export type SaveChapterAssignmentsResult = {
   assignments?: Assignment[];
@@ -51,6 +52,20 @@ export function chapterRanges(selectedChapters: number[], eligible: Coordinate[]
 const asError = (error: unknown) => error instanceof Error ? error : new Error(typeof error === "string" ? error : "Could not save chapter assignments.");
 const mergeAssignments = (existing: Assignment[], confirmed: Assignment[]) => [...new Map([...existing, ...confirmed].map(item => [item.id, item])).values()];
 
+/** Bound both fetch and response decoding. Aborting does not prove a write was rolled back. */
+export async function withAssignmentTimeout<T>(request: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout>;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error("The assignment request timed out. Check your connection and try again."));
+      controller.abort();
+    }, 30_000);
+  });
+  try { return await Promise.race([request(controller.signal), deadline]); }
+  finally { clearTimeout(timer!); }
+}
+
 /** The write API is non-idempotent: never repeat a failed range without a new user attempt. */
 export async function saveChapterAssignments(input: SaveChapterAssignmentsInput): Promise<SaveChapterAssignmentsResult> {
   const { selectedChapters, eligible, all, context, readAssignments, assign } = input;
@@ -59,7 +74,7 @@ export async function saveChapterAssignments(input: SaveChapterAssignmentsInput)
   let assignments: Assignment[];
   let saved = 0;
   try {
-    assignments = await readAssignments();
+    assignments = await withAssignmentTimeout(readAssignments);
   } catch (error) {
     return { saved, completedChapters: [], remainingChapters: [...selected].sort((a, b) => a - b), error: asError(error) };
   }
@@ -73,13 +88,16 @@ export async function saveChapterAssignments(input: SaveChapterAssignmentsInput)
       ...(error ? { error } : {}),
     };
   };
-  const covered = (range: PassageRange) => !chapterRanges([range.startChapter], eligible.filter(unit => withinRange(unit, range)), all, assignments, context).length;
+  // Keep UI chapter choices granular, but send exact contiguous coverage as one request.
+  const pending = () => chapterOptions(eligible, all, assignments, context).filter(option => selected.has(option.chapter));
+  const covered = (range: PassageRange) => !pending().some(option => option.remaining.some(unit => withinRange(unit, range)));
 
   while (true) {
-    const range = chapterRanges(selectedChapters, eligible, all, assignments, context)[0];
+    input.onProgress?.({ completedChapters: result().completedChapters });
+    const range = segmentRanges(pending().flatMap(option => option.remaining), uniqueCoordinates(all))[0];
     if (!range) return result();
     try {
-      const created = await assign(range);
+      const created = await withAssignmentTimeout(signal => assign(range, signal));
       confirmed.push(created);
       assignments = mergeAssignments(assignments, [created]);
       if (!covered(range)) return result(new Error("The saved assignment did not confirm the requested passage. Review the remaining chapters before trying again."));
@@ -87,7 +105,7 @@ export async function saveChapterAssignments(input: SaveChapterAssignmentsInput)
     } catch (error) {
       const writeError = asError(error);
       try {
-        assignments = mergeAssignments(await readAssignments(), confirmed);
+        assignments = mergeAssignments(await withAssignmentTimeout(readAssignments), confirmed);
       } catch (readError) {
         return result(new Error(`${writeError.message} Could not verify saved assignments: ${asError(readError).message}`, { cause: writeError }));
       }

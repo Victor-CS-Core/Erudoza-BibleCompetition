@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Assignment, PassageRange } from "../../api/types";
 import { chapterOptions, chapterRanges, saveChapterAssignments } from "./chapterAssignments";
 import type { Coordinate } from "./passageRanges";
@@ -167,12 +167,12 @@ describe("saveChapterAssignments", () => {
   });
 
   it("retains successful saves and both errors when reconciliation also fails", async () => {
-    const all = [...chapter(1, [1]), ...chapter(2, [1])];
+    const all = [...chapter(1, [1]), ...chapter(3, [1])];
     const stored: Assignment[] = [];
     const attempted: number[] = [];
     let reads = 0;
     const result = await saveChapterAssignments({
-      selectedChapters: [1, 2], eligible: all, all, context,
+      selectedChapters: [1, 3], eligible: all, all, context,
       readAssignments: async () => {
         if (++reads > 1) throw new Error("Readback offline");
         return [...stored];
@@ -181,15 +181,15 @@ describe("saveChapterAssignments", () => {
         attempted.push(range.startChapter);
         const saved = assignment({ id: `saved-${range.startChapter}`, ...range });
         stored.push(saved);
-        if (range.startChapter === 2) throw new Error("Write response lost");
+        if (range.startChapter === 3) throw new Error("Write response lost");
         return saved;
       },
     });
-    expect(attempted).toEqual([1, 2]);
+    expect(attempted).toEqual([1, 3]);
     expect(result.saved).toBe(1);
     expect(result.assignments).toEqual([stored[0]]);
     expect(result.completedChapters).toEqual([1]);
-    expect(result.remainingChapters).toEqual([2]);
+    expect(result.remainingChapters).toEqual([3]);
     expect(result.error?.message).toContain("Write response lost");
     expect(result.error?.message).toContain("Readback offline");
   });
@@ -222,15 +222,15 @@ describe("saveChapterAssignments", () => {
   });
 
   it("preserves confirmed writes if a later error readback omits them", async () => {
-    const all = [...chapter(1, [1]), ...chapter(2, [1])];
+    const all = [...chapter(1, [1]), ...chapter(3, [1])];
     const first = assignment({ id: "saved-1" });
     const lost = new Error("Response lost");
     const result = await saveChapterAssignments({
-      selectedChapters: [1, 2], eligible: all, all, context,
+      selectedChapters: [1, 3], eligible: all, all, context,
       readAssignments: async () => [],
-      assign: async range => { if (range.startChapter === 2) throw lost; return first; },
+      assign: async range => { if (range.startChapter === 3) throw lost; return first; },
     });
-    expect(result).toEqual({ assignments: [first], saved: 1, completedChapters: [1], remainingChapters: [2], error: lost });
+    expect(result).toEqual({ assignments: [first], saved: 1, completedChapters: [1], remainingChapters: [3], error: lost });
   });
 
   it("stops if a successful response does not cover the requested range", async () => {
@@ -248,25 +248,126 @@ describe("saveChapterAssignments", () => {
   });
 
   it("retains a recovered write when a later readback omits it", async () => {
-    const all = [...chapter(1, [1]), ...chapter(2, [1]), ...chapter(3, [1])];
+    const all = [...chapter(1, [1]), ...chapter(3, [1]), ...chapter(5, [1])];
     const recovered = assignment({ id: "saved-1" });
-    const second = assignment({ id: "saved-2", startChapter: 2, endChapter: 2 });
+    const second = assignment({ id: "saved-2", startChapter: 3, endChapter: 3 });
     const attempted: number[] = [];
     const snapshots = [[], [recovered], [second]];
     let reads = 0;
     const result = await saveChapterAssignments({
-      selectedChapters: [1, 2, 3], eligible: all, all, context,
+      selectedChapters: [1, 3, 5], eligible: all, all, context,
       readAssignments: async () => snapshots[Math.min(reads++, 2)],
       assign: async range => {
         attempted.push(range.startChapter);
-        if (range.startChapter < 3) throw new Error("Response lost");
+        if (range.startChapter < 5) throw new Error("Response lost");
         return assignment({ id: "saved-3", ...range });
       },
     });
-    expect(attempted).toEqual([1, 2, 3]);
+    expect(attempted).toEqual([1, 3, 5]);
     expect(result.saved).toBe(3);
     expect(result.remainingChapters).toEqual([]);
-    expect(result.completedChapters).toEqual([1, 2, 3]);
+    expect(result.completedChapters).toEqual([1, 3, 5]);
     expect(result.assignments?.map(item => item.id).sort()).toEqual(["saved-1", "saved-2", "saved-3"]);
+  });
+});
+
+describe("bulk chapter saving", () => {
+  it("reports confirmed chapter progress across separate ranges", async () => {
+    const all = [...chapter(1, [1]), ...chapter(3, [1])];
+    const progress: number[][] = [];
+    await saveChapterAssignments({ selectedChapters: [1, 3], eligible: all, all, context,
+      readAssignments: async () => [],
+      assign: async range => assignment({ id: String(range.startChapter), ...range }),
+      onProgress: value => progress.push(value.completedChapters),
+    });
+    expect(progress).toEqual([[], [1], [1, 3]]);
+  });
+
+  it("aborts a stalled initial read without making a write", async () => {
+    vi.useFakeTimers();
+    try {
+      const all = chapter(1, [1]);
+      let readSignal: AbortSignal | undefined;
+      const assign = vi.fn();
+      const pending = saveChapterAssignments({ selectedChapters: [1], eligible: all, all, context, assign,
+        readAssignments: signal => { readSignal = signal; return new Promise(() => {}); },
+      });
+      await vi.advanceTimersByTimeAsync(30_000);
+      const result = await pending;
+      expect(readSignal?.aborted).toBe(true);
+      expect(assign).not.toHaveBeenCalled();
+      expect(result.error?.message).toMatch(/timed out/i);
+      expect(result.remainingChapters).toEqual([1]);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("bounds a stalled write and readback while retaining earlier successful chapters", async () => {
+    vi.useFakeTimers();
+    try {
+      const all = [...chapter(1, [1]), ...chapter(3, [1])];
+      const signals: AbortSignal[] = [];
+      let reads = 0;
+      const attempted: number[] = [];
+      const pending = saveChapterAssignments({ selectedChapters: [1, 3], eligible: all, all, context,
+        readAssignments: signal => { signals.push(signal); return ++reads === 1 ? Promise.resolve([]) : new Promise(() => {}); },
+        assign: (range, signal) => {
+          signals.push(signal); attempted.push(range.startChapter);
+          return range.startChapter === 1 ? Promise.resolve(assignment()) : new Promise(() => {});
+        },
+      });
+      await vi.advanceTimersByTimeAsync(60_000);
+      const result = await pending;
+      expect(attempted).toEqual([1, 3]);
+      expect(signals.map(signal => signal.aborted)).toEqual([false, false, true, true]);
+      expect(result.completedChapters).toEqual([1]);
+      expect(result.remainingChapters).toEqual([3]);
+      expect(result.error?.message).toMatch(/timed out.*Could not verify/);
+    } finally { vi.useRealTimers(); }
+  });
+
+  it("saves a contiguous whole book in one request and reports every chapter complete", async () => {
+    const all = Array.from({ length: 40 }, (_, index) => chapter(index + 1, [1, 2, 3])).flat();
+    const writes: PassageRange[] = [];
+    const result = await saveChapterAssignments({
+      selectedChapters: Array.from({ length: 40 }, (_, index) => index + 1), eligible: all, all, context,
+      readAssignments: async () => [],
+      assign: async range => { writes.push(range); return assignment({ id: `saved-${writes.length}`, ...range }); },
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.completedChapters).toHaveLength(40);
+    expect(result.remainingChapters).toEqual([]);
+    expect(writes).toEqual([{ bookKey: "John", startChapter: 1, startVerse: 1, endChapter: 40, endVerse: 3 }]);
+  });
+
+  it("never combines across excluded verses, existing coverage, or unselected chapters", async () => {
+    const all = Array.from({ length: 5 }, (_, index) => chapter(index + 1, [1, 2, 3])).flat();
+    const eligible = all.filter(unit => !(unit.chapter === 2 && unit.verse === 2));
+    const writes: PassageRange[] = [];
+    const result = await saveChapterAssignments({
+      selectedChapters: [1, 2, 3, 5], eligible, all, context,
+      readAssignments: async () => [assignment({ startChapter: 3, endChapter: 3, startVerse: 2, endVerse: 2 })],
+      assign: async range => { writes.push(range); return assignment({ id: `saved-${writes.length}`, ...range }); },
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.completedChapters).toEqual([1, 2, 3, 5]);
+    expect(writes).toEqual([
+      { bookKey: "John", startChapter: 1, startVerse: 1, endChapter: 2, endVerse: 1 },
+      { bookKey: "John", startChapter: 2, startVerse: 3, endChapter: 3, endVerse: 1 },
+      { bookKey: "John", startChapter: 3, startVerse: 3, endChapter: 3, endVerse: 3 },
+      { bookKey: "John", startChapter: 5, startVerse: 1, endChapter: 5, endVerse: 3 },
+    ]);
+  });
+
+  it("does not accept a multi-chapter response that confirms only the first chapter", async () => {
+    const all = [...chapter(1, [1, 2]), ...chapter(2, [1, 2])];
+    let writes = 0;
+    const result = await saveChapterAssignments({
+      selectedChapters: [1, 2], eligible: all, all, context, readAssignments: async () => [],
+      assign: async () => { writes++; return assignment({ endVerse: 2 }); },
+    });
+    expect(writes).toBe(1);
+    expect(result.error).toBeInstanceOf(Error);
+    expect(result.completedChapters).toEqual([1]);
+    expect(result.remainingChapters).toEqual([2]);
   });
 });
