@@ -1,3 +1,4 @@
+import {applyAppearance,paintBackground, Skin, Eyes, Background} from './appearance';
 export const styles = ['curls', 'sweep', 'bob'] as const;
 export type Style = typeof styles[number];
 export type Attire = 'student' | 'coach';
@@ -8,7 +9,7 @@ export const honors = [
   {key: 'team:first-fellowship', title: 'First fellowship', src: '../../../apps/web/public/brand/practice/first-fellowship-512.webp'},
 ] as const;
 export type Slots = [string | null, string | null, string | null];
-export type Configuration = {style: Style; attire: Attire; slots: Slots};
+export type Configuration = {style: Style; attire: Attire; skin: Skin; eyes: Eyes; background: Background; slots: Slots};
 type Point = [number, number];
 type Registration = {shoulder: Point; hip: Point};
 // Individually inspected attachment coordinates in each 1024 × 1536 source.
@@ -59,14 +60,13 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
   // expose a half-composed character. The caller commits only its latest job.
   const buffer = document.createElement('canvas'); buffer.width=1024; buffer.height=1536;
   const ctx = buffer.getContext('2d')!;
-  if (background) {ctx.fillStyle=background; ctx.fillRect(0,0,1024,1536);}
   const reg = registration[name];
   const matrix = transform([[205,190],[795,1280]], [reg.shoulder, reg.hip]);
-  ctx.drawImage(body,0,0,1024,1536);
+  ctx.drawImage(applyAppearance(body,name,config.skin,config.eyes),0,0,1024,1536);
   ctx.save(); ctx.transform(matrix.a,matrix.b,-matrix.b,matrix.a,matrix.x,matrix.y);
   ctx.drawImage(accessory,0,0,1024,1536); ctx.restore();
-  const centers: Point[] = [[302,404],[495,748],[691,1095]];
-  const radius = 118*matrix.scale;
+  const centers: Point[] = [[282,393],[516,720],[741,1048]];
+  const radius = 145*matrix.scale;
   centers.forEach(([px,py],i)=>{
     const x=matrix.a*px-matrix.b*py+matrix.x, y=matrix.b*px+matrix.a*py+matrix.y;
     if (patches[i]) {
@@ -74,7 +74,9 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
       ctx.drawImage(patches[i]!,x-radius,y-radius,radius*2,radius*2); ctx.restore();
     } else dotted(ctx,x,y,radius*.9);
   });
-  canvas.width=1024;canvas.height=1536;canvas.getContext('2d')!.drawImage(buffer,0,0);
+  canvas.width=1536;canvas.height=1536;const output=canvas.getContext('2d')!;
+  if(background)paintBackground(output,config.background,1536,1536);
+  output.drawImage(buffer,256,0);
   return canvas;
 }
 
