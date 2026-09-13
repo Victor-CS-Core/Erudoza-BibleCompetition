@@ -52,3 +52,5 @@ An independent read-only reviewer verified range API compatibility and retry/can
 ## Delivery state
 
 Work is isolated on `codex/season-assignment-save` from main `fa27bea`. See `PROGRESS.md` for exact Git checkpoint and remote review status. This audit does not establish a main merge or production deployment. The user's earlier profile merge/release is separate from this new season bugfix.
+
+Hosted follow-up: PR run `34767900740` passed the 47 assignment-related tests and 1,126 tests overall, but reported 64 failures. The normalized failing test-name set matches main run `34764431742` exactly (zero newly failing cases). Native test report writers assume an ignored `.local` directory exists on a fresh checkout; four unrelated timeout cases also fail. The later whitespace-only checkpoint `bdae7fe` passes hosted API formatting/build, browser-support and infra, with API/web tests still running at the recorded readback. Broad hosted CI is not green and release readiness is not claimed. No test was skipped, weakened or hidden to obtain the local gate.
