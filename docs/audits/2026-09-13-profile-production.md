@@ -32,3 +32,13 @@ Other integration regressions cover stale reads arriving during a successful sav
 Current live source before release is `8c66eb0` and Worker `be956cce-2486-4ca9-b670-1db63d80a534`. Fresh main remains `7e3e0e0`, the task base. No D1 migrations are pending. A restricted, ignored D1 export (24,857,019 bytes) restored in memory with `integrity_check=ok`, 13 tables. This covers D1, not a full Durable Object backup. No schema, feature-flag, binding or secret changes are part of this release.
 
 Physical iPhone/AirDrop or Android recipient delivery is not claimed. Full authenticated acceptance uses isolated local accounts, not production users. Git checkpoint and live deployment are recorded separately below once verified.
+
+## Merged and live
+
+Implementation `7a86a93c79175acc38f8fa30a2273ea57ea2d0f1` was normally pushed to `codex/profile-production`, fast-forwarded into clean main, and normally pushed. Both remote refs were read back at that exact SHA. The merged application tree is the final tested tree; no conflict resolution or additional product edits were required.
+
+Cloudflare deployed that source at `2026-09-13T14:59:27.301Z`. Worker `ac023f3b-b307-46fb-92a6-caae10e8840c` serves 100% at `https://erudoza.com`. All 16 binding metadata entries and runtime configuration match the previous version. No schema, flag or secret changes occurred.
+
+Live verification at `14:59:52 UTC` passed all 75 local/served SHA256 comparisons: HTML, every top-level JS/CSS bundle, the character manifest and all 63 character images. Public `/`, `/login`, `/admin/profile` and `/student/profile` returned 200. Health reports `database=true`; anonymous self/profile reads and the new character PUT return 401. The authenticated production browser then rendered all four profile sections, the actual account defaults/locked collection, six hairstyle previews, background/appearance options and a ready Share card. This was read-only: no production appearance, Honor or share choices were saved, downloaded or sent. The live Profile page is left open for review.
+
+Final responsive refinement preserved whole labels at 320px, then the native build, both real native browser scenarios and production dry run passed again. A focused image capture confirmed the third Honor's actual browser paint before the full-page capture. Local tests cover writes and phone API behavior; physical device recipient delivery and hosted CI success remain unclaimed. Restricted backup/deployment outputs and browser artifacts stay ignored; this audit contains no account data.
