@@ -1,5 +1,11 @@
 # Erudoza progress log
 
+## Live production visual QA and security audit — September 13
+
+- Performed a read-only visual and defensive security audit of `https://erudoza.com` across public, student and coach routes, including public 320/390px checks and coach 390px checks. Major live routes loaded their expected headings with no visible runtime errors, broken images or horizontal overflow. Browser dev-log sampling was clean. The current production coach session did expose a full-screen Buy Me a Coffee popup that blocked the dashboard until dismissed/minimized; this is recorded as a current-session usability finding, not proof of universal first-visit behavior.
+- Anonymous protected API reads returned 401; unsafe cross-origin/missing-origin probes returned 403; a harmless correct-origin fake login returned generic 401 without a cookie; no CORS allow-origin, reflected XSS canary, source-map/source-file disclosure or secret-file contents were found. Production dependency audit reported zero known vulnerabilities and 83 focused native security tests passed. No account/content/session data was changed; one clearly fake `.invalid` login exercised the login path.
+- Confirmed findings: sampled live responses lack HSTS, CSP, framing protection, `nosniff`, Referrer-Policy and Permissions-Policy; the Buy Me a Coffee script runs in page context without CSP/SRI; unauthenticated health exposes database/runtime/timing detail. These are documented with recommended remediation in [the audit](docs/audits/2026-09-13-live-qa-security.md). No application source behavior was changed, no main merge/deployment was performed, and no successful break-in was found. Next: remediate headers/vendor isolation/health detail, then rerun with separate coach/student and unrelated-organization accounts.
+
 ## Season actions and HQ banner — authorized main integration, September 13
 
 - User explicitly requested merge to main for both changes in this task. Fresh origin/main remains `b79330b`, an ancestor of the reviewed task head `63d9401`; main's checkout is clean. No conflict resolution or application edits are needed.
