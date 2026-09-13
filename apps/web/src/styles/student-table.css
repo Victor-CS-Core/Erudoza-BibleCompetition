@@ -8,10 +8,10 @@
 .student-row-actions{display:flex;align-items:center;gap:var(--er-space-2);flex-wrap:nowrap}
 .student-pagination,.student-pagination>div{display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-3);flex-wrap:wrap}
 .student-table td:last-child{width:1%;white-space:nowrap}
-.student-assignment-page{display:grid;gap:var(--er-space-4);max-width:960px;width:100%;margin-inline:auto}
+.student-assignment-page{display:grid;gap:var(--er-space-4);width:100%;min-width:0}
 
 .student-table tbody :is(th,td){padding-block:var(--er-space-2)}
-.assignment-context{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-5)}
+.assignment-context{display:grid;align-items:end;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-5)}
 @media(max-width:600px){.assignment-context{grid-template-columns:1fr}}
 
 .student-table-tools label{display:grid;gap:var(--er-space-2)}
