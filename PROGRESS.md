@@ -1,5 +1,11 @@
 # Erudoza progress log
 
+## Season actions and HQ banner — authorized main integration, September 13
+
+- User explicitly requested merge to main for both changes in this task. Fresh origin/main remains `b79330b`, an ancestor of the reviewed task head `63d9401`; main's checkout is clean. No conflict resolution or application edits are needed.
+- Fresh combined gate passed all 56 tests across planner, chapter helpers, personal assignments, Training HQ and landing. Whitespace passed. The unchanged application tree retains the earlier native build/web-native TypeScript/full ESLint, independent review and responsive browser evidence recorded below. No remote CI or deployment claim.
+- Next: push this integration checkpoint, fast-forward clean main and normally push it, then verify exact remote readback. Preview remains available at http://127.0.0.1:5241/student and the season planner route.
+
 ## Training HQ heading on banner — September 13
 
 - User requested Training HQ copy on the left of the existing banner over a fade, matching the public landing page. Continued in `.worktrees/season-draft-actions` on `codex/season-draft-actions` after the verified season-footer checkpoint. Shared inverse surface and PageHeader provide cream text over a navy fade; existing landscape remains visible to the right. Current-season information sits beneath the description. Phones retain text inside the banner with a vertical fade and artwork below. Updated DESIGN.md records this user direction.
