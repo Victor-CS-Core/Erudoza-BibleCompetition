@@ -53,6 +53,7 @@ fieldset{border:0;padding:0;margin:var(--er-space-5) 0 0}legend{padding:0;margin
 .share-layer-tools .ds-button{white-space:normal}
 .share-backgrounds{margin-top:var(--er-space-4)}
 .share-status:empty{display:none}
+.share-export-actions{display:grid;gap:var(--er-space-3)}
 .share-visibility-options{display:grid;gap:var(--er-space-1);margin-block:var(--er-space-3)}
 .share-profile-name{overflow-wrap:anywhere}
 .share-visibility-toggle.ds-button{width:100%;justify-content:space-between;gap:var(--er-space-4)}

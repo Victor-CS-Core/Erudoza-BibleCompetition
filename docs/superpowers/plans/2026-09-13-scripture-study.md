@@ -66,7 +66,7 @@ Bookmark: source/offsets/color/note null, valid chapter; one bookmark per book/c
 - [x] Use local native Miniflare with installed actual NKJV catalog and synthetic users. Exercise real mouse phrase selection, keyboard whole verse selection, touch controls, saving/reloading highlights/notes/bookmarks, editing/deleting, filters/cross-book navigation, recall/Focus/size, failed network save with preserved draft, and independent user data.
 - [x] Test coach and student routes at 1440/390/320 and inspect screenshots; verify no horizontal overflow or browser errors. Run canonical integration tests for same persistence flows; native is production release target.
 - [x] Run full native/web tests with documented Node26 storage flag, both TS checks, lint, native production build, applicable canonical suite. Request independent branch review; fix important findings and rerun affected checks.
-- [ ] Update log with evidence/limits, explicitly stage scoped source/docs/tests, commit/push task branch and verify remote SHA.
+- [x] Update log with evidence/limits, explicitly stage scoped source/docs/tests, commit/push task branch and verify remote SHA.
 
 ### Task 4: Authorized integration and production
 

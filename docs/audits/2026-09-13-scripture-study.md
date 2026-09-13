@@ -17,7 +17,7 @@ Native Cloudflare and canonical ASP.NET APIs validate source anchors, derive quo
 
 ## Review and fixes
 
-Independent frontend and final backend/spec source reviews approved the result after fixes. Browser testing exposed premature mouse-drag capture; capture now waits for pointer release and safely handles subsequent selection changes. Review fixes make repeated verse jumps work, prevent deleting the note currently being edited, restore focus after closing its editor and reject forged numeric/composite canonical highlight colors. A fresh four-test canonical notebook run follows final formatting.
+Independent frontend and final backend/spec source reviews approved the result after fixes. Browser testing exposed premature mouse-drag capture; capture now waits for pointer release and safely handles subsequent selection changes. Review fixes make repeated verse jumps work, prevent deleting the note currently being edited, restore focus after closing its editor and reject forged numeric/composite canonical highlight colors. All four canonical notebook tests passed again after final formatting.
 
 ## Limits
 
@@ -27,4 +27,4 @@ Local browser coverage is Chromium, including synthetic touch; it does not estab
 
 Authorized target is the existing `erudoza-native` Worker at https://erudoza.com. Configuration, bindings, secrets and Durable Object migrations are unchanged. Previous Worker version: `15c73340-74a2-4934-bfea-5c53de319a06`. No D1 migrations pending; Wrangler dry run passed. A restricted, ignored 24,843,185-byte D1 export restored in memory with integrity_check=ok and 13 tables (SHA256 `fe4707418bf562b7bc189426c44ab349cc11cdd686df9b56404e873581018bee`). This backup covers D1, not Durable Object authority; this release changes neither schema nor that authority. The prior Worker remains compatible with new notebook rows.
 
-Git checkpoint, main integration and deployment are pending at this record's initial commit.
+Implementation checkpoint `d6ff5b0` was normally pushed to `origin/codex/scripture-study`. Main `0248157` adds character-review artifacts only; integration preserves both progress-log additions. Live deployment remains pending.
