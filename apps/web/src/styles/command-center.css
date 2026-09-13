@@ -128,7 +128,6 @@
 .training-learner .command-shortcut:not(.is-current) { border-color:transparent; }
 .training-learner .command-shortcut>a { padding-block:8px; }
 .command-app.training-learner .training-main { padding-block:28px 36px; }
-.training-learner .training-footer { font-size:var(--er-text-xs); text-transform:none; letter-spacing:normal; }
 @media(max-width:760px) {
   .training-learner .command-masthead-inner { padding-inline:12px; }
   .training-learner .command-shortcut-inner { padding-inline:12px; }

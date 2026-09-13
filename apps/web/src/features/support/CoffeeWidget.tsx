@@ -50,10 +50,10 @@ export function CoffeeFooter({ enabled = true }: { enabled?: boolean }) {
   const profile = parseCoffeeProfile(import.meta.env.VITE_BUY_ME_A_COFFEE_URL);
   if (!enabled || !profile || !minimized) return null;
   return <div className="coffee-footer">
-    <ExternalLinkButton variant="ghost" className="coffee-footer-support" href={profile.url} target="_blank" rel="noopener noreferrer" aria-label="Support Erudoza (opens in a new tab)">Support Erudoza ↗</ExternalLinkButton>
-    <Button variant="ghost" onClick={() => {
+    <ExternalLinkButton variant="ghost" className="coffee-footer-support ds-button-quiet" href={profile.url} target="_blank" rel="noopener noreferrer" aria-label="Support Erudoza (opens in a new tab)">Support Erudoza ↗</ExternalLinkButton>
+    <Button variant="ghost" className="ds-button-quiet" onClick={() => {
       flushSync(() => setCoffeeMinimized(false));
       focusSupport(".coffee-minimize");
-    }}>Show floating support button</Button>
+    }}>Show support button</Button>
   </div>;
 }

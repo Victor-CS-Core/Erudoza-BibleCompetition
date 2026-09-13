@@ -5,7 +5,7 @@ import { Button, Notice } from "../../components/ui";
 import { TrainingDialog } from "../../components/ui/TrainingDialog";
 import { installation, installApp, subscribeInstallation } from "./installation";
 
-export function InstallApp({ variant = "secondary", className }: Pick<ComponentProps<typeof Button>, "variant" | "className"> = {}) {
+export function InstallApp({ variant = "ghost", className }: Pick<ComponentProps<typeof Button>, "variant" | "className"> = {}) {
   const state = useSyncExternalStore(subscribeInstallation, installation);
   const [help, setHelp] = useState(false);
   const [pending, setPending] = useState(false);
@@ -19,7 +19,7 @@ export function InstallApp({ variant = "secondary", className }: Pick<ComponentP
     finally { setPending(false); }
   };
   return <>
-    <Button variant={variant} className={className} disabled={pending} onClick={() => void requestInstall()}>Install app</Button>
+    <Button variant={variant} className={`ds-button-quiet ${className ?? ""}`} disabled={pending} onClick={() => void requestInstall()}>Download app</Button>
     {createPortal(<TrainingDialog open={help} title="Install Erudoza" onClose={() => { setHelp(false); setFailed(false); }}>
       <div className="install-help"><p>Add Erudoza to your home screen, then tap its icon to open your training. An internet connection is required.</p>
       {failed && <Notice>The browser could not open the installation prompt. You can use its menu instead.</Notice>}

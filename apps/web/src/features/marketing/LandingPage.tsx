@@ -3,8 +3,8 @@ import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
 import { AppIcon } from "../../components/AppIcon";
 import { LinkButton, PageHeader, Panel } from "../../components/ui";
 import { PatchArtwork } from "../../components/ui/PatchArtwork";
-import { InstallApp } from "../install/InstallApp";
-import { CoffeeFooter, CoffeeWidget } from "../support/CoffeeWidget";
+import { AppFooter } from "../../components/ui/AppFooter";
+import { CoffeeWidget } from "../support/CoffeeWidget";
 import "../../styles/training-public.css";
 
 const trainingSteps = [
@@ -20,7 +20,6 @@ export function LandingPage() {
     <header className="public-header">
       <Link to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
       <div className="public-header-actions">
-        <div className="public-install-desktop"><InstallApp variant="ghost" className="ds-text-action" /></div>
         <LinkButton to="/login" variant="secondary">Sign in</LinkButton>
       </div>
     </header>
@@ -77,12 +76,6 @@ export function LandingPage() {
         </Panel>
       </div>
     </main>
-    <footer className="public-footer">
-      <div className="public-footer-brand"><span className="ds-brand-name">Erudoza</span><span className="ds-caption">Study. Master. Compete.</span></div>
-      <div className="public-footer-actions">
-        <div className="public-install-mobile"><InstallApp variant="ghost" className="ds-text-action" /></div>
-        <CoffeeFooter />
-      </div>
-    </footer>
+    <AppFooter variant="public" supportEnabled />
   </div>;
 }

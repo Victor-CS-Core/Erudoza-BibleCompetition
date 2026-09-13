@@ -1,3 +1,4 @@
+import { AppFooter } from "../../components/ui/AppFooter";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
@@ -62,7 +63,7 @@ export function LoginPage() {
           </form>
           <p className="training-login-help">Coaches: <Link to="/signup">Create a club</Link> or <Link to="/forgot-password">reset your password</Link>.<br />Students: Ask your coach or academy administrator.</p>
         </div>
-        <p className="training-login-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</p>
+        <AppFooter variant="account" />
       </section>
     </main>
   );

@@ -1,3 +1,4 @@
+import { AppFooter } from "../../components/ui/AppFooter";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { onboardingApi, type CodeReceipt, type InvitationDetails } from "../../api/onboarding";
@@ -165,7 +166,7 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
         </>}
         <p className="training-login-help">Students: use the account your coach provided. Ask your coach for help signing in.</p>
       </div>
-      {isSignup && <p className="training-login-footer">SCRIPTURE · DISCIPLESHIP · REAL-WORLD FAITH</p>}
+      <AppFooter variant="account" />
     </section>
   </main>;
 }

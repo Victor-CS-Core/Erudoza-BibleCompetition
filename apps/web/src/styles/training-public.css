@@ -36,10 +36,6 @@
 .public-coach-copy { max-width:64%; }
 .public-coach-copy p { margin:12px 0 8px; max-width:52ch; }
 .public-coach-copy .ds-text-action { justify-content:flex-start; }
-.public-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:24px; width:min(100%,1440px); padding:28px 48px 32px; margin:auto; }
-.public-footer-brand,.public-footer-actions { display:flex; align-items:center; flex-wrap:wrap; gap:28px; }
-.public-footer .coffee-footer { margin:0; }
-.public-install-mobile { display:none; }
 .public-recovery { display:grid; min-height:70dvh; place-content:center; padding:32px 20px; }
 .public-recovery>section { max-width:560px; }
 .public-recovery p { color:var(--er-muted-ink); margin:16px 0 24px; }
@@ -52,7 +48,6 @@
   .public-honor-art { gap:8px; }
   .public-coach-copy { max-width:66%; }
   .public-coach-art { width:52%; }
-  .public-footer { padding-inline:32px; }
 }
 @media(max-width:760px) {
   .public-header { position:relative; padding:20px; gap:12px; background:var(--er-ink-navy); }
@@ -61,8 +56,6 @@
   .public-header .er-wordmark-mark { width:42px; height:42px; }
   .public-header .er-wordmark-tagline { margin-top:4px; }
   .public-header .ds-button { padding-inline:12px; }
-  .public-install-desktop { display:none; }
-  .public-install-mobile { display:block; }
   .public-hero-art { position:relative; z-index:0; height:min(86vw,400px); object-fit:cover; object-position:right center; }
   .public-hero::after { display:none; }
   .public-hero-inner { min-height:0; padding:24px 24px 34px; }
@@ -81,9 +74,6 @@
   .public-coach.ds-panel { display:flex; flex-direction:column-reverse; padding:0; align-items:stretch; }
   .public-coach-copy { max-width:none; padding:24px; }
   .public-coach-art { position:relative; width:100%; height:auto; aspect-ratio:2.5; object-position:right; }
-  .public-footer { padding:24px; gap:16px; }
-  .public-footer-brand { justify-content:space-between; width:100%; gap:12px; }
-  .public-footer-actions { gap:12px; }
 }
 @media(max-width:360px) {
   .public-header { padding:16px; }
@@ -91,7 +81,6 @@
   .public-header .er-wordmark { gap:8px; }
   .public-hero-inner { padding:24px 20px 28px; }
   .public-content { padding-inline:20px; }
-  .public-footer { padding-inline:20px; }
   .public-training-steps>li { grid-template-columns:38px 1fr; gap:12px; }
   .public-coach-copy { padding:20px; }
 }

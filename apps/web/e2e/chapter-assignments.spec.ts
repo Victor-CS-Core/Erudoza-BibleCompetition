@@ -111,7 +111,7 @@ test("whole-book season supports separate chapter selections, overlapping studen
         await expect(page.locator(".coffee-fallback")).toHaveCount(0);
         await expect(page.getByRole("link", { name: "Support Erudoza (opens in a new tab)" })).toBeFocused();
         await page.screenshot({ path: info.outputPath(`chapter-support-minimized-${width}.png`) });
-        await page.getByRole("button", { name: "Show floating support button" }).click();
+        await page.getByRole("button", { name: "Show support button" }).click();
         await expect(minimize).toBeFocused();
         await expect(chapterButton(page, 1)).toHaveAttribute("aria-pressed", "true");
       }
