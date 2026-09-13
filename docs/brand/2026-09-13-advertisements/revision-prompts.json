@@ -1,0 +1,15 @@
+{
+  "mode": "built-in image_gen",
+  "finalLayout": "render.mjs: separate HTML typography, original brand emblem and deterministic SVG QR",
+  "edits": [
+    {
+      "output": "artwork/coach.png",
+      "prompt": "Edit this Erudoza advertisement into TEXT-FREE campaign illustration for a professionally typeset ad. Remove ALL typography, emblem, logo, CTA button, URL, icons and promotional lettering including on the mug. Reconstruct those areas naturally as quiet deep navy #102e47 on the left and scenery on right. Keep the mountain-lodge, open Bible, lake, lantern and stopwatch visual family intact. Left 45% calm navy negative space. Bible has abstract illegible line texture only. Mug plain navy, no words. Premium editorial painted illustration. Landscape 16:9. No text, no letters, no symbols resembling QR codes. This is an artwork layer, not a complete ad; typesetting and a real QR code will be separate layout elements."
+    },
+    {
+      "output": "artwork/study.png",
+      "prompt": "Edit the attached illustration into a TEXT-FREE vertical campaign artwork. Remove all headline, body text, logo, emblem, CTA button and URL completely, replacing their areas with naturally continuous navy sky, lake scenery or rocks. Preserve the open Bible, teal-ribbon notebook, pencil, lantern, compass and alpine scene in its existing elegant illustrated style. Rebalance into a beautiful tall composition with Bible and personal notebook the focal point, visual storytelling for personal Scripture study. No lettering anywhere, only abstract unreadable page texture. No QR, no buttons, no watermarks. Output portrait. A separate design layout will supply precise, much smaller typography and any QR code."
+    }
+  ],
+  "note": "prompts.json records the initial rejected large-title drafts, not final deliverables."
+}

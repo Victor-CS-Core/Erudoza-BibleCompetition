@@ -1,0 +1,101 @@
+{
+  "created": "2026-09-13",
+  "qr": {
+    "url": "https://erudoza.com/",
+    "quietZone": 4,
+    "moduleCount": 33,
+    "errorCorrection": "Q"
+  },
+  "assets": [
+    {
+      "file": "exports/01-pbe-training-qr.png",
+      "width": 1080,
+      "height": 1350,
+      "headlinePx": 48,
+      "qr": "https://erudoza.com/",
+      "copy": [
+        "Your next chapter starts here.",
+        "Bible study and team practice for PBE.",
+        "Explore Erudoza",
+        "Students join through their coach."
+      ],
+      "validation": {
+        "overflow": false,
+        "headlineHeight": 55.1875,
+        "images": true
+      }
+    },
+    {
+      "file": "exports/01-pbe-training.png",
+      "width": 1080,
+      "height": 1350,
+      "headlinePx": 48,
+      "qr": null,
+      "copy": [
+        "Your next chapter starts here.",
+        "Bible study and team practice for PBE.",
+        "Explore Erudoza",
+        "Students join through their coach."
+      ],
+      "validation": {
+        "overflow": false,
+        "headlineHeight": 55.1875,
+        "images": true
+      }
+    },
+    {
+      "file": "exports/02-coach-your-team-qr.png",
+      "width": 1080,
+      "height": 1350,
+      "headlinePx": 48,
+      "qr": "https://erudoza.com/",
+      "copy": [
+        "Give your team a plan.",
+        "Assign passages. Guide their next practice.",
+        "Prepare your PBE team",
+        "Visit Erudoza to create your club."
+      ],
+      "validation": {
+        "overflow": false,
+        "headlineHeight": 55.1875,
+        "images": true
+      }
+    },
+    {
+      "file": "exports/02-coach-your-team.png",
+      "width": 1080,
+      "height": 1350,
+      "headlinePx": 48,
+      "qr": null,
+      "copy": [
+        "Give your team a plan.",
+        "Assign passages. Guide their next practice.",
+        "Prepare your PBE team",
+        "Visit Erudoza to create your club."
+      ],
+      "validation": {
+        "overflow": false,
+        "headlineHeight": 55.1875,
+        "images": true
+      }
+    },
+    {
+      "file": "exports/03-scripture-study.png",
+      "width": 1080,
+      "height": 1350,
+      "headlinePx": 48,
+      "qr": null,
+      "copy": [
+        "Keep your study close.",
+        "Read, highlight and save private notes.",
+        "Make time for Scripture",
+        "Explore erudoza.com"
+      ],
+      "validation": {
+        "overflow": false,
+        "headlineHeight": 55.1875,
+        "images": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "mode": "built-in image_gen",
+  "references": [
+    "docs/brand/2026-09-12-landing-expedition/masters/expedition-hero.png",
+    "docs/brand/2026-09-11-original-assets/masters/pathfinder-v2/erudoza-logo-patch-v2.png"
+  ],
+  "assets": [
+    {
+      "file": "01-pbe-training.png",
+      "prompt": "Use case: ads-marketing. Create a finished premium advertisement for Erudoza, a Pathfinder Bible Experience training web app. Reference image 1 is approved brand landscape style and imagery; reference image 2 is the existing flame-and-Bible emblem: faithfully retain its shape, colors, embroidered texture as a small brand signature beside the word Erudoza. Art directed polished editorial illustration, alpine lake, evergreen trees, open Bible, golden compass, warm light. Deep navy #102e47, ivory #f6f4ee, teal #087d80, restrained golden accents. Erudoza wordmark in elegant Georgia-like serif, ALL other copy clean bold modern sans. High readability, generous margins, clear hierarchy. No invented screenshots, no app-store badges, no QR, no additional logos, no unsupported claims, no official affiliation seals. Bible pages have abstract illegible lines, never fabricated quotations. FORMAT: square 1536x1536 social feed ad. Top half mostly calm navy for text; bottom half magnificent mountain lake with open Bible and compass foreground, integrated not boxed. Small brand emblem and Erudoza at top. Oversized headline broken across 3 lines, ivory. Small concise supporting copy below. Teal rounded CTA above bottom footer. EXACT TEXT ONLY: \"Erudoza\" / \"Rooted in Scripture.\" / \"Ready for PBE.\" / \"Learn your passages. Review missed verses.\" / \"Rehearse with your team.\" / \"Explore Erudoza\" / \"erudoza.com\". Do not print slashes. Premium coherent campaign, not collage."
+    },
+    {
+      "file": "02-coach-your-team.png",
+      "prompt": "undefined FORMAT: landscape 1792x1024 coach recruitment ad. Left 55 percent calm navy with ivory typography; right 45 percent richly illustrated mountain-lodge table, open Bibles, blank answer sheets, pencils, brass stopwatch and warm lantern, lake and mountains beyond. No people. Top-left small faithful emblem beside Erudoza. Large headline left with roomy line spacing. Three concise feature lines, teal CTA, URL footer. EXACT TEXT ONLY: \"Erudoza\" / \"Prepare your\" / \"PBE team.\" / \"Assign passages.\" / \"See where students need practice.\" / \"Run timed team rehearsals.\" / \"Create your club\" / \"erudoza.com/signup\". No slashes except in URL. Beautiful premium advertising ready to share."
+    },
+    {
+      "file": "03-scripture-study.png",
+      "prompt": "Use case: ads-marketing. Create a finished premium advertisement for Erudoza, a Pathfinder Bible Experience training web app. Reference image 1 is approved brand landscape style and imagery; reference image 2 is the existing flame-and-Bible emblem: faithfully retain its shape, colors, embroidered texture as a small brand signature beside the word Erudoza. Art directed polished editorial illustration, alpine lake, evergreen trees, open Bible, golden compass, warm light. Deep navy #102e47, ivory #f6f4ee, teal #087d80, restrained golden accents. Erudoza wordmark in elegant Georgia-like serif, ALL other copy clean bold modern sans. High readability, generous margins, clear hierarchy. No invented screenshots, no app-store badges, no QR, no additional logos, no unsupported claims, no official affiliation seals. Bible pages have abstract illegible lines, never fabricated quotations. FORMAT: tall portrait 1024x1792 story/poster ad. Top 12 percent and bottom 14 percent quiet safe margins. Small faithful emblem with Erudoza at top; dramatic spacious left-aligned headline in upper third, ivory on navy. Lower middle gorgeous close illustrated open Bible and personal notebook with teal ribbon, pencil and soft golden lantern light; alpine lake and pines in distance, same approved painterly expedition aesthetic. NO phone UI, no invented screenshots. Feature copy integrated in quiet navy area. Bottom teal CTA and URL fully legible. EXACT TEXT ONLY: \"Erudoza\" / \"Make time\" / \"for Scripture.\" / \"Read. Highlight. Take notes.\" / \"Keep a private study notebook.\" / \"Explore Erudoza\" / \"erudoza.com\". No printed slashes. Do not add any other words or illegible pseudo-text on notebook."
+    }
+  ]
+}
