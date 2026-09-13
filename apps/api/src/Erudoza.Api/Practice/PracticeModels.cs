@@ -4,13 +4,15 @@ using Erudoza.Domain.Practice;
 namespace Erudoza.Api.Practice;
 
 public sealed record PracticeActor(Guid Id, Guid OrganizationId, string Name, bool Admin, string? CredentialVersion = null);
-public sealed record CreatePracticeRoom(Guid SeasonId, int TeamSize, int QuestionCount, bool Coached = false, string? BookKey = null, string? Format = null, int? TeamCount = null);
+public sealed record CreatePracticeRoom(Guid SeasonId, int TeamSize, int QuestionCount, bool Coached = false, string? BookKey = null, string? Format = null, int? TeamCount = null, SimulationSettings? Simulation = null);
 public sealed record PracticeCommand(Guid CommandId, long Revision, string Action, Guid? TargetUserId = null,
     int? Team = null, string? Text = null, string[]? Answers = null, Guid? ScheduleId = null,
-    Guid? QuestionId = null, int? Points = null, Guid? OtherUserId = null, string? Delivery = null);
+    Guid? QuestionId = null, int? Points = null, Guid? OtherUserId = null, string? Delivery = null, SimulationSettings? Simulation = null, int? TeamSize = null, int? QuestionCount = null);
 public sealed record ImportPracticeQuestions(Guid SeasonId, List<PracticeQuestion> Questions);
 public sealed class PracticeRoom
 {
+    public SimulationSettings? Simulation { get; set; }
+    public bool AudioReadingComplete { get; set; }
     public string? Format { get; set; }
     public int? TeamCount { get; set; }
     public string? SelectionVersion { get; set; }

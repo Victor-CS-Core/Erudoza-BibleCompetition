@@ -36,6 +36,8 @@ public static class PracticeEndpoints
             catch (PracticeForbiddenException) { PracticeMetrics.RejectedCommands.Add(1); return Results.Forbid(); }
             catch (Erudoza.Domain.DomainException) { PracticeMetrics.RejectedCommands.Add(1); throw; }
         });
+        group.MapGet("/simulation/material", (Guid orgId, Guid seasonId, Guid? roomId, ICurrentUser user, PracticeService service, CancellationToken ct) => service.SimulationMaterial(orgId, seasonId, Actor(user), ct, roomId));
+        group.MapPost("/simulation/availability", (Guid orgId, SimulationAvailabilityRequest input, ICurrentUser user, PracticeService service, CancellationToken ct) => service.SimulationAvailability(orgId, Actor(user), input, ct));
         var pbe = group.MapGroup("/pbe/seasons/{seasonId:guid}");
         pbe.AddEndpointFilter(async (context, next) =>
         {

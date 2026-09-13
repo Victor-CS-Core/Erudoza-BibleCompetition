@@ -9,7 +9,7 @@ vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), create
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "player", organizationId: "org", kind: "Student" } }) }));
 const data = { enabled: true, seasons: [{ id: "season", name: "Daniel" }], players: [], rooms: [], invitations: [], achievements: [], questions: [] };
 function mount() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><PracticePage /></MemoryRouter></QueryClientProvider>); }
-beforeEach(() => { vi.clearAllMocks(); vi.mocked(practiceApi.bootstrap).mockResolvedValue(data); });
+beforeEach(() => { HTMLDialogElement.prototype.showModal=function(){this.setAttribute("open","");};HTMLDialogElement.prototype.close=function(){this.removeAttribute("open");};vi.clearAllMocks(); vi.mocked(practiceApi.bootstrap).mockResolvedValue(data); });
 afterEach(cleanup);
 describe("Team Practice entry", () => {
   it("shows evidence-backed empty states and the speed adaptation", async () => {
@@ -20,7 +20,7 @@ describe("Team Practice entry", () => {
   });
   it("creates selected 5v5 room without client timing fields", async () => {
     vi.mocked(practiceApi.create).mockResolvedValue({ id: "room" } as Awaited<ReturnType<typeof practiceApi.create>>);
-    mount(); await screen.findByText("Create a room");
+    mount(); fireEvent.click(await screen.findByRole("button",{name:"Set up PVP"})); await screen.findByText("Create a room");
     fireEvent.change(screen.getByLabelText("Team size"), { target: { value: "5" } });
     fireEvent.click(screen.getByRole("button", { name: "Create room" }));
     await waitFor(() => expect(practiceApi.create).toHaveBeenCalledWith("org", { seasonId: "season", teamSize: 5, questionCount: 10, coached: false, bookKey: undefined }));

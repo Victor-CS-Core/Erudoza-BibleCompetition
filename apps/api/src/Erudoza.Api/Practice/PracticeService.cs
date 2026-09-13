@@ -54,15 +54,19 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         var states = await OverlayRooms(org, records.Select(r => PracticeJson.Read<PracticeRoom>(r.StateJson)).ToList(), ct);
         var visible = states.Where(r => r.OwnerId == actor.Id || r.Members.Any(m => m.UserId == actor.Id) || actor.Admin && r.Submissions.Any(s => s.Appealed)
             || r.Invitations.Any(i => i.UserId == actor.Id && !i.Accepted && i.ExpiresAt > runtime.Now));
+        var simulationSeasons = await db.CompetitionMembers.Where(m => m.OrganizationId == org && m.UserId == actor.Id).Select(m => m.SeasonId).Distinct().ToListAsync(ct);
+        var simulationStates = states.Concat(simulationSeasons.Select(season => new PracticeRoom { Format = "Pbe", TeamCount = 1, SeasonId = season, Simulation = new(1, "FullEvent", [], [], true, true, 1, true, "InPerson") })).ToList();
+        var simulationUnlocks = await db.MasteryHonorUnlocks.AsNoTracking().Where(u => u.OrganizationId == org && u.UserId == actor.Id && u.RuleVersion == "simulation-v1").ToListAsync(ct);
         var questions = actor.Admin && enabled ? await Questions.Where(q => q.OrganizationId == org).ToListAsync(ct) : [];
         return new
         {
             enabled,
             seasons,
             players,
-            rooms = visible.Select(r => new { r.Id, r.SeasonId, format = r.Format ?? "Arcade", teamCount = ActiveTeams(r).Length, r.TeamSize, r.QuestionCount, r.Coached, r.Status, memberCount = r.Members.Count, r.OwnerId }),
+            rooms = visible.Select(r => new { r.Id, r.SeasonId, format = r.Format ?? "Arcade", teamCount = ActiveTeams(r).Length, r.Simulation, r.TeamSize, r.QuestionCount, r.Coached, r.Status, memberCount = r.Members.Count, r.OwnerId }),
             invitations = states.SelectMany(r => r.Invitations.Where(i => i.UserId == actor.Id && !i.Accepted && i.ExpiresAt > runtime.Now).Select(i => new { i.Id, i.RoomId, i.UserId, i.Team, i.InviterName, i.ExpiresAt, i.Accepted, teamCount = ActiveTeams(r).Length })),
             achievements = CalculateAwards(states).Where(a => a.UserId == actor.Id).DistinctBy(a => (a.Key, a.SeasonId)),
+            simulationAchievements = CalculateSimulationAchievements(simulationStates.Where(r => simulationSeasons.Contains(r.SeasonId)), actor.Id).Select(a => a.EarnedAtUtc.HasValue ? a with { EarnedAtUtc = simulationUnlocks.FirstOrDefault(u => u.Key == a.Key)?.EarnedAtUtc ?? a.EarnedAtUtc } : a),
             trends = Trends(states, actor.Id),
             questions = questions.Where(q => IsLegacyQuestion(q.DefinitionJson)).Select(q => new { q.Id, q.SeasonId, q.Published, question = PracticeJson.Read<PracticeQuestion>(q.DefinitionJson) })
         };
@@ -76,6 +80,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
         if (!await db.Seasons.AnyAsync(s => s.Id == request.SeasonId && s.OrganizationId == org && s.Status == SeasonStatus.Active, ct)) throw new DomainException("Choose an active season.");
         var room = new PracticeRoom
         {
+            Simulation = request.Simulation,
             Format = request.Format ?? "Arcade",
             TeamCount = request.TeamCount ?? 2,
             SelectionVersion = request.Format == "Pbe" ? "pbe-team-question-max-v1" : null,
@@ -94,6 +99,7 @@ public sealed partial class PracticeService(ErudozaDbContext db, PracticeRuntime
             if (!await db.Seasons.AnyAsync(s => s.Id == room.SeasonId && s.PbeEnabled, ct)) throw new PracticeForbiddenException();
             if (!actor.Admin && !await db.CompetitionMembers.AnyAsync(m => m.OrganizationId == org && m.SeasonId == room.SeasonId && m.UserId == actor.Id, ct)) throw new PracticeForbiddenException();
         }
+        if (room.Simulation is not null) { room.Simulation = room.Simulation with { AudioPresenterId = room.Simulation.AudioPresenterId ?? actor.Id }; await ValidateSimulation(org, room, ct); }
         var record = new PracticeRoomRecord { Id = room.Id, OrganizationId = org, SeasonId = room.SeasonId };
         db.Add(record);
         if (!request.Coached && (!IsPbe(room) || !actor.Admin)) Join(room, actor, 1);

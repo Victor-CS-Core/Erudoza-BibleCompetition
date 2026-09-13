@@ -76,3 +76,27 @@ describe("shared profile identity", () => {
     expect(view.container.querySelector("[data-profile-honor]")).toBeNull();
   });
 });
+
+describe('profile patch publication refresh',()=>{
+ it('refreshes a newly published simulation patch on a bounded page schedule',async()=>{
+  vi.useFakeTimers();
+  const locked={...catalog,honors:[{key:'simulation:first-rehearsal',title:'First Rehearsal',category:'Simulation' as const,ruleVersion:'simulation-v1' as const,requirement:'Complete one simulation.',earnedAtUtc:null as string|null}]};
+  const read=vi.spyOn(profileApi,'me').mockResolvedValueOnce(locked).mockResolvedValue({...locked,honors:[{...locked.honors[0],earnedAtUtc:'2026-09-13T00:00:00Z'}]});
+  vi.spyOn(profileApi,'identities').mockResolvedValue([{userId:'self',avatarHonorKey:null}]);
+  const client=new QueryClient({defaultOptions:{queries:{retry:false}}});
+  const view=render(<QueryClientProvider client={client}><ProfilePage/></QueryClientProvider>);
+  try{
+   await act(async()=>{await vi.advanceTimersByTimeAsync(1);});
+   expect(screen.getByRole('button',{name:'Use First Rehearsal as profile image'})).toBeDisabled();
+   await act(async()=>{await vi.advanceTimersByTimeAsync(2100);});
+   expect(screen.getByRole('button',{name:'Use First Rehearsal as profile image'})).toBeEnabled();
+   await act(async()=>{await vi.advanceTimersByTimeAsync(21000);});
+   const calls=read.mock.calls.length;
+   await act(async()=>{await vi.advanceTimersByTimeAsync(60000);});
+   expect(read).toHaveBeenCalledTimes(calls);
+   fireEvent.click(screen.getByRole('button',{name:'Refresh patches'}));
+   await act(async()=>{await vi.advanceTimersByTimeAsync(1);});
+   expect(read).toHaveBeenCalledTimes(calls+1);
+  }finally{view.unmount();client.clear();vi.useRealTimers();}
+ });
+});

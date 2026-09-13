@@ -1,3 +1,5 @@
+import {simulationCatalog} from '../practice/simulation-awards';
+export const ruleVersionFor=(key:string)=>key.startsWith('simulation:')?'simulation-v1' as const:'mastery-v1' as const;
 export const RULE_VERSION = 'mastery-v1' as const;
 export const honorCatalog = [
   { key: 'solo:exact-recall', title: 'Exact Recall', category: 'Scripture', requirement: 'Reach 90 in exact wording on 12 distinct assigned passages.' },
@@ -11,9 +13,10 @@ export const honorCatalog = [
   { key: 'team:shared-scribe', title: 'Shared Scribe', category: 'Team Practice', requirement: 'Reach 95% personal accuracy across 30 distinct manual questions from at least 10 passages.' },
   { key: 'team:team-precision', title: 'Team Precision', category: 'Team Practice', requirement: 'Reach 95% team accuracy across 50 distinct questions from 15 passages, plus 90% personal accuracy across 10 distinct manual questions.' },
   { key: 'team:rehearsal-complete', title: 'Rehearsal Complete', category: 'Team Practice', requirement: 'Complete a resolved coached 90-question rehearsal with 90% team accuracy, plus 90% personal accuracy across 10 distinct manual questions.' },
+  ...simulationCatalog,
 ] as const;
 export type HonorKey = typeof honorCatalog[number]['key'];
-export const honorId = (orgId: string, userId: string, key: string) => `${orgId}:${userId}:${RULE_VERSION}:${key}`;
-export interface HonorUnlock { id: string; userId: string; key: HonorKey; ruleVersion: typeof RULE_VERSION; earnedAtUtc: string; seasonId: string; evidence: unknown }
-export interface ProfileSelection { id: string; userId: string; honorKey: HonorKey | null; unlockId: string | null; ruleVersion: typeof RULE_VERSION | null }
+export const honorId = (orgId: string, userId: string, key: string) => `${orgId}:${userId}:${ruleVersionFor(key)}:${key}`;
+export interface HonorUnlock { id: string; userId: string; key: HonorKey; ruleVersion: ReturnType<typeof ruleVersionFor>; earnedAtUtc: string; seasonId: string; evidence: unknown }
+export interface ProfileSelection { id: string; userId: string; honorKey: HonorKey | null; unlockId: string | null; ruleVersion: ReturnType<typeof ruleVersionFor> | null }
 export const isHonorKey = (value: unknown): value is HonorKey => honorCatalog.some(h => h.key === value);

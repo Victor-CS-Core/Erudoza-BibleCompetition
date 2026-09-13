@@ -2,7 +2,7 @@ import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/re
 import { request } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 
-export type MasteryHonorOption = { key: string; title: string; requirement: string; category: "Scripture" | "Team Practice"; ruleVersion: "mastery-v1"; earnedAtUtc: string | null };
+export type MasteryHonorOption = { key: string; title: string; requirement: string; category: "Scripture" | "Team Practice" | "Simulation"; ruleVersion: "mastery-v1" | "simulation-v1"; earnedAtUtc: string | null };
 export type MyProfile = { userId: string; displayName: string; avatarHonorKey: string | null; honors: MasteryHonorOption[] };
 export type ProfileIdentity = { userId: string; avatarHonorKey: string | null };
 export const profileApi = {

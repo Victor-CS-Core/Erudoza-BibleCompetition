@@ -10,7 +10,7 @@ import { useMyProfile } from "../profile/profile";
 vi.mock("../profile/profile", () => ({ useMyProfile: vi.fn() }));
 const account = vi.hoisted(() => ({ userId: "player", organizationId: "org", kind: "Student" }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: account }) }));
-vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), create: vi.fn(), accept: vi.fn(), enabled: vi.fn() } }));
+vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), create: vi.fn(), accept: vi.fn(), enabled: vi.fn(), simulationMaterial:vi.fn(), simulationAvailability:vi.fn() } }));
 vi.mock("../../api/client", () => ({ api: { library: vi.fn(), seasonScope: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn() } }));
 
 const data: PracticeBootstrap = {
@@ -25,6 +25,10 @@ function mount(path = account.kind === "Adult" ? "/admin/practice" : "/student/p
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  HTMLDialogElement.prototype.showModal=function(){this.setAttribute('open','');};
+  HTMLDialogElement.prototype.close=function(){this.removeAttribute('open');};
+  vi.mocked(practiceApi.simulationMaterial).mockResolvedValue({seasonId:'daniel',translation:'NKJV',books:[{key:'DAN',label:'Daniel',chapters:[1,2]}],introductionsAvailable:true});
+  vi.mocked(practiceApi.simulationAvailability).mockResolvedValue({eligibleQuestions:100,requestedQuestions:90,canStart:true,reason:null});
   account.kind = "Student";
   vi.mocked(useMyProfile).mockReturnValue({ data: { userId: "player", displayName: "Player", avatarHonorKey: null, honors: [] }, isPending: false, isError: false, isSuccess: true, refetch: vi.fn() } as unknown as ReturnType<typeof useMyProfile>);
   vi.mocked(practiceApi.bootstrap).mockResolvedValue(data);
@@ -41,13 +45,10 @@ afterEach(cleanup);
 describe("Team Practice hub", () => {
   it("creates an enabled independent six-student rehearsal without inventing an opponent", async () => {
     vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:"daniel",name:"Daniel",pbeEnabled:true}]});
-    mount();await screen.findByRole("button",{name:"Create room"});
-    fireEvent.change(screen.getByLabelText("Practice mode"),{target:{value:"Pbe"}});
-    expect(screen.queryByText("Team 2")).not.toBeInTheDocument();
-    expect(within(screen.getByLabelText("Team size")).getAllByRole("option").map(option=>option.getAttribute("value"))).toEqual(["2","3","4","5","6"]);
-    fireEvent.change(screen.getByLabelText("Match length"),{target:{value:"90"}});
-    fireEvent.click(screen.getByRole("button",{name:"Create room"}));
-    await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith("org",{seasonId:"daniel",format:"Pbe",teamCount:1,teamSize:6,questionCount:90,coached:false,bookKey:undefined}));
+    vi.mocked(practiceApi.simulationAvailability).mockResolvedValue({eligibleQuestions:0,requestedQuestions:90,canStart:false,reason:'Invite your assigned team'});
+    mount();fireEvent.click(await screen.findByRole('button',{name:'Set up simulation'}));
+    fireEvent.click(await screen.findByRole('button',{name:'Save setup'}));
+    await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith("org",expect.objectContaining({seasonId:"daniel",format:"Pbe",teamCount:1,teamSize:6,questionCount:90,coached:false,simulation:expect.objectContaining({version:1,preset:'FullEvent',bookKeys:['DAN']})})));
   });
 
   it("prioritizes a playing room using only returned room evidence", async () => {
@@ -69,13 +70,13 @@ describe("Team Practice hub", () => {
     expect(screen.queryByRole("region", { name: "Current room" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /Open lobby|Return to match|View results/ })).not.toBeInTheDocument();
     expect(screen.queryByText("First Fellowship")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Set up a room" })).toHaveAttribute("href", "/student/practice#create-room");
+    expect(screen.getByRole("button", { name: "Set up PVP" })).toBeEnabled();
   });
 
   it("preserves all create parameters and navigates a Coach to the created room", async () => {
     account.kind = "Adult";
     mount();
-    await screen.findByRole("button", { name: "Create room" });
+    fireEvent.click(await screen.findByRole("button", { name: "Set up PVP" })); await screen.findByRole("button", { name: "Create room" });
     fireEvent.change(screen.getByLabelText("Season", { exact: true }), { target: { value: "luke" } });
     fireEvent.change(screen.getByLabelText("Team size"), { target: { value: "5" } });
     fireEvent.change(screen.getByLabelText("Match length"), { target: { value: "90" } });
@@ -88,7 +89,7 @@ describe("Team Practice hub", () => {
   });
 
   it("limits students to independent play while retaining every supported size and length", async () => {
-    mount(); await screen.findByRole("button", { name: "Create room" });
+    mount(); fireEvent.click(await screen.findByRole("button", { name: "Set up PVP" })); await screen.findByRole("button", { name: "Create room" });
     expect(within(screen.getByLabelText("Format")).getAllByRole("option")).toHaveLength(1);
     expect(screen.queryByRole("option", { name: /Coach-led/ })).not.toBeInTheDocument();
     expect(within(screen.getByLabelText("Team size")).getAllByRole("option").map(option => option.getAttribute("value"))).toEqual(["1", "2", "3", "4", "5"]);
@@ -128,7 +129,7 @@ describe("Team Practice hub", () => {
   it("prevents room creation without an active season", async () => {
     vi.mocked(practiceApi.bootstrap).mockResolvedValue({ ...data, seasons: [] });
     mount();
-    expect(await screen.findByRole("button", { name: "Create room" })).toBeDisabled();
+    fireEvent.click(await screen.findByRole("button", { name: "Set up PVP" })); expect(await screen.findByRole("button", { name: "Create room" })).toBeDisabled();
     expect(screen.getByLabelText("Season", { exact: true })).toBeDisabled();
     expect(practiceApi.create).not.toHaveBeenCalled();
   });
@@ -146,7 +147,7 @@ describe("Team Practice hub", () => {
     vi.mocked(practiceApi.bootstrap).mockResolvedValueOnce({ ...data, enabled: false }).mockResolvedValue(data);
     mount();
     fireEvent.click(await screen.findByRole("button", { name: "Enable Team Practice" }));
-    expect(await screen.findByRole("button", { name: "Create room" })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: "Set up PVP" })).toBeEnabled();
     expect(practiceApi.enabled).toHaveBeenCalledWith("org", true);
   });
 
@@ -156,7 +157,7 @@ describe("Team Practice hub", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Practice is offline.");
     expect(screen.queryByRole("link", { name: "Open room" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
-    expect(await screen.findByRole("button", { name: "Create room" })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: "Set up PVP" })).toBeEnabled();
   });
 
   it("preserves historical milestones and the returned participant-scoped trend", async () => {
@@ -196,12 +197,13 @@ it("shows only mastery-qualified Team Honor profile choices", async () => {
 it("renders player controls for an Adult in Student mode", async () => {
  account.kind = "Adult";
  mount("/student/practice");
- expect(await screen.findByRole("link", { name: "Set up a room" })).toHaveAttribute("href", "/student/practice#create-room");
+ expect(await screen.findByRole("button", { name: "Set up PVP" })).toBeEnabled();
  expect(screen.queryByText("Question bank")).not.toBeInTheDocument();
 });
 it("starts room setup with the season carried from Student mode", async () => {
  account.kind = "Adult";
  mount("/student/practice?seasonId=luke");
+ fireEvent.click(await screen.findByRole("button",{name:"Set up PVP"}));
  expect(await screen.findByLabelText("Season")).toHaveValue("luke");
  fireEvent.click(screen.getByRole("button", { name: "Create room" }));
  await waitFor(() => expect(practiceApi.create).toHaveBeenCalledWith("org", expect.objectContaining({ seasonId: "luke", coached: false })));
@@ -214,4 +216,15 @@ it("shows PBE pending counts beside finalized team accuracy and links the coach 
 
 it("keeps Solo answer reviews reachable when Team Practice is disabled", async () => {
  account.kind = "Adult";vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,enabled:false});mount();expect(await screen.findByRole("link",{name:"Open PBE answer reviews"})).toHaveAttribute("href","/admin/practice/reviews");
+});
+
+it('keeps setup behind explicit mode actions and puts rooms in the hub',async()=>{mount();await screen.findByRole('button',{name:'Set up PVP'});expect(screen.queryByRole('form',{name:'Create room'})).not.toBeInTheDocument();expect(screen.getByRole('heading',{name:'Your rooms'})).toBeInTheDocument();fireEvent.click(screen.getByRole('button',{name:'Set up PVP'}));expect(screen.getByRole('dialog',{name:'PVP setup'})).toBeInTheDocument();});
+
+it('opens setup from existing create-room anchors',async()=>{mount('/student/practice?seasonId=luke#create-room');expect(await screen.findByRole('dialog',{name:'PVP setup'})).toBeInTheDocument();expect(screen.getByLabelText('Season',{exact:true})).toHaveValue('luke');});
+it('creates PBE head-to-head with two teams and the chosen settings',async()=>{vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:'daniel',name:'Daniel',pbeEnabled:true}]});mount();fireEvent.click(await screen.findByRole('button',{name:'Set up PVP'}));fireEvent.change(screen.getByLabelText('Practice mode'),{target:{value:'Pbe'}});fireEvent.change(screen.getByLabelText('Match length'),{target:{value:'30'}});fireEvent.change(screen.getByLabelText('Team size'),{target:{value:'4'}});fireEvent.click(screen.getByRole('button',{name:'Create room'}));await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith('org',expect.objectContaining({format:'Pbe',teamCount:2,teamSize:4,questionCount:30})));expect(screen.queryByRole('dialog',{name:'Simulation menu'})).not.toBeInTheDocument();});
+it('keeps coach practice setup on supported PVP and review routes',async()=>{
+ account.kind='Adult';vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:'daniel',name:'Daniel',pbeEnabled:true}]});
+ mount('/admin/practice');await screen.findByRole('button',{name:'Set up PVP'});
+ expect(screen.queryByRole('button',{name:'Set up simulation'})).not.toBeInTheDocument();
+ expect(screen.getByRole('link',{name:'Open PBE answer reviews'})).toBeInTheDocument();
 });

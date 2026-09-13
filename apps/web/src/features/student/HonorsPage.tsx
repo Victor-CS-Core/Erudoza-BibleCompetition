@@ -41,7 +41,7 @@ export function HonorsPage() {
     <p>Erudoza Honors record Scripture recall and Team Practice achievements. Earn a patch to use it on your profile. These are app achievements, not official Pathfinder Honors.</p>
     <div className="training-collection-summary">
       {profile.isSuccess && <p><strong>{earnedCount} {earnedCount === 1 ? "Honor" : "Honors"} earned</strong> · {profile.data.honors.length} mastery challenges.</p>}
-      <label className="training-honor-category">Honor category<Select value={category} onChange={event => setCategory(event.target.value)}><option value="All">All categories</option><option value="Scripture">Scripture</option><option value="Team Practice">Team Practice</option></Select></label>
+      <label className="training-honor-category">Honor category<Select value={category} onChange={event => setCategory(event.target.value)}><option value="All">All categories</option><option value="Scripture">Scripture</option><option value="Team Practice">Team Practice</option><option value="Simulation">Simulation</option></Select></label>
       <div className="training-collection-filters" aria-label="Filter Honors">{["All", "Earned", "Locked"].map(value => <Button key={value} variant={filter === value ? "secondary" : "ghost"} aria-pressed={filter === value} onClick={() => setFilter(value)}>{value}</Button>)}</div>
     </div>
     {profile.isPending ? <LoadingState label="Loading Honors…" /> : profile.isError ? <Notice tone="danger">Honors could not load. <Button variant="secondary" onClick={() => void profile.refetch()}>Try again</Button></Notice> : <div className="training-honors-grid" aria-label="Mastery Honors">{visible.map(honor => <Panel as="article" key={honor.key} className="training-honor-card">

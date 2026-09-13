@@ -95,3 +95,14 @@ it('keeps an unverifiable scope match distinct from an unavailable current assig
   expect(screen.queryByText(/Current assignment is unavailable/)).not.toBeInTheDocument();
   expect(screen.getByText('Sep 10, 2026')).toBeVisible();
 });
+it('keeps simulation patches separate while preserving the original Honor collection',()=>{
+ vi.mocked(useMyProfile).mockReturnValue(profileResult({data:{...profile,honors:[...profile.honors,{key:'simulation:first-rehearsal',title:'First Rehearsal',category:'Simulation',ruleVersion:'simulation-v1',requirement:'Complete one versioned simulation.',earnedAtUtc:'2026-09-13T00:00:00Z'}]}}));
+ page();fireEvent.change(screen.getByLabelText('Honor category'),{target:{value:'Simulation'}});
+ expect(screen.getByRole('heading',{name:'First Rehearsal'})).toBeInTheDocument();
+ expect(screen.queryByRole('heading',{name:'Exact Recall'})).not.toBeInTheDocument();
+ const card=screen.getByRole('heading',{name:'First Rehearsal'}).closest('article')!;
+ expect(card.querySelector('img')).toHaveAttribute('src','/brand/simulation/first-rehearsal-256.webp');
+ expect(card.querySelector('img')?.getAttribute('srcset')).toContain('/brand/simulation/first-rehearsal-512.webp');
+ fireEvent.change(screen.getByLabelText('Honor category'),{target:{value:'Scripture'}});
+ expect(screen.getByRole('heading',{name:'Exact Recall'})).toBeInTheDocument();
+});

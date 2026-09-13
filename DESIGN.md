@@ -83,3 +83,7 @@ Use `components/ui/AppFooter.tsx` for public, workspace and account page endings
 ## Training HQ banner heading — September 13
 
 The user requested the Training HQ heading and description over the left side of its existing landscape banner, following the public landing page. Use the shared inverse surface and PageHeader, with a navy fade behind live cream text and current-season information below the description. Keep the mountain/Bible artwork visible to the right. On phones, keep the text inside the banner with a vertical fade and artwork visible below it. This supersedes the earlier requirement to place the HQ heading outside the banner. Assignment, season selection and training behavior remain unchanged.
+
+## One-team simulation and matching PVP — September 13
+
+Approved Option C uses compact light entry cards for PBE simulation and head-to-head practice, a shared light lobby with retained team patches, and the existing live question/scoreboard composition. PVP setup opens in a shared workspace dialog; simulation setup has Material, Timers, Team and Review tabs. Workspace dialogs fill the viewport on phones. Keep creator-only lobby configuration, one-team presenter/scribe readiness, in-person discussion, authoritative timers and results filters. Distinguish the new Simulation patch collection from existing Team Honors and preserve every approved bitmap. New simulation patches use the shared artwork primitive and transparent256/512 WebP derivatives.

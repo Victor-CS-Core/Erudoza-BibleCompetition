@@ -7,6 +7,7 @@ import {Store} from "../store";
 import {summarizeRoom} from "./room-history";
 import {RoomCodec,isRoomManifest,ROOM_STAGE_BYTES,ROOM_STAGE_NODES,utf8Bytes} from "./room-storage";
 import {overlayRooms} from "../pbe/result-overlays";
+import {validateSimulation,simulationMaterial} from './simulation';
 import {eligibleQuestions} from './questions';
 import {authorizePbeRoom,selectPbeRoomBank,roomExposureStatements} from './pbe-material';
 import {advance,applyCommand,isTerminatedPbePlay,canCoach,teamAttemptId,reviewedQuestion,join,makeRoom,participant,recover,view} from "./state";
@@ -39,7 +40,7 @@ export class PracticeRoom extends DurableObject<Env> {
  private async project(){
   if(maintenanceOffline(this.env))return;
   const row=this.ctx.storage.sql.exec<{data:string}>("SELECT data FROM outbox WHERE id=1").toArray()[0];if(!row)return;
-  const stored=JSON.parse(row.data),r=isRoomManifest(stored)?await this.codec.decode(stored,this.readNode):stored as Room,summary={id:r.id,seasonId:r.seasonId,ownerId:r.ownerId,coachId:r.coachId,format:r.format??'Arcade',teamCount:r.teamCount??2,teamSize:r.teamSize,questionCount:r.questionCount,coached:r.coached,status:r.status,memberCount:r.members.length,memberIds:r.members.map(m=>m.userId),hasAppeals:r.submissions.some(s=>s.appealed),invitations:r.invitations};
+  const stored=JSON.parse(row.data),r=isRoomManifest(stored)?await this.codec.decode(stored,this.readNode):stored as Room,summary={simulation:r.simulation,id:r.id,seasonId:r.seasonId,ownerId:r.ownerId,coachId:r.coachId,format:r.format??'Arcade',teamCount:r.teamCount??2,teamSize:r.teamSize,questionCount:r.questionCount,coached:r.coached,status:r.status,memberCount:r.members.length,memberIds:r.members.map(m=>m.userId),hasAppeals:r.submissions.some(s=>s.appealed),invitations:r.invitations};
   const projection={...r,messages:[],drafts:{},applied:{}};
   const upsert=(kind:string,data:unknown)=>this.env.DB.prepare("INSERT INTO Records(kind,id,org_id,season_id,data,revision) VALUES(?,?,?,?,?,?) ON CONFLICT(kind,id,org_id) DO UPDATE SET data=excluded.data,revision=excluded.revision WHERE excluded.revision>Records.revision").bind(kind,r.id,r.orgId,r.seasonId,JSON.stringify(data),r.revision);
   const writes=[upsert('room',summary),...(r.format==='Pbe'?roomExposureStatements(this.env.DB,r):[])];
@@ -92,6 +93,11 @@ export class PracticeRoom extends DurableObject<Env> {
      const now=Date.now();let r=await this.load();
      if(!r){if(request.method!=="POST"||match[3]!=="")throw new HttpError(404,"Room not found.");const creation=input as unknown as Parameters<typeof makeRoom>[2];const season=await context.store.require<{status:string}>("season",creation.seasonId,context.orgId);if(season.value.status!=="Active")throw new HttpError(400,"Choose an active season.");r=makeRoom(match[2],actor,creation,this.epoch,now);if(r.format==='Pbe')await authorizePbeRoom(context,r,true);await this.save(r);await this.arm(r);this.ctx.waitUntil(this.projectSafely());return json(await this.publicView(r,actor,now));}
      if(r.orgId!==actor.organizationId||r.id!==match[2])throw new HttpError(403,"Room access denied.");
+     if(match[3]==='/simulation-material'&&request.method==='GET'){
+      if(!r.simulation||!participant(r,actor))throw new HttpError(403,'Simulation room access denied.');
+      if(url.searchParams.get('seasonId')!==r.seasonId)throw new HttpError(400,'The room season cannot change.');
+      const scope=await authorizePbeRoom(context,r,true,true);return json(simulationMaterial(r.seasonId,scope.sources));
+     }
      // Historical review reads the committed authority without advancing or recovering a clock.
      if(match[3]==='/review-attempt'&&request.method==='GET'){
       if(r.format!=='Pbe')throw new HttpError(400,'Choose a saved PBE result.');
@@ -108,8 +114,19 @@ export class PracticeRoom extends DurableObject<Env> {
      if(isCommand&&isTerminatedPbePlay(r,String(input?.action))){applyCommand(r,actor,input as unknown as Command,ingress,now);return json(await this.publicView(r,actor,now));}
      const cleanup=r.format==='Pbe'&&isCommand&&['remove','leave','abandon'].includes(String(input?.action));
      let authorized:Awaited<ReturnType<typeof authorizePbeRoom>>|null=null;
-     if(!cleanup&&r.format==='Pbe'&&['Lobby','Playing'].includes(r.status)&&match[3]!=='/accept'){
+     if(!cleanup&&r.format==='Pbe'&&['Lobby','Playing'].includes(r.status)&&match[3]!=='/accept'&&match[3]!=='/simulation-availability'&&!(isCommand&&input?.action==='configure'&&r.status==='Lobby'&&!r.applied[String(input?.commandId)])){
       try{authorized=await authorizePbeRoom(context,r);}catch(error){if(match[3]===''&&request.method==='GET'&&error instanceof HttpError&&[400,403,404].includes(error.status))return json(await this.publicView(r,actor,now,true));throw error;}
+     }
+     if(match[3]==='/simulation-availability'&&request.method==='POST'){
+      if(!r.simulation||!participant(r,actor))throw new HttpError(403,'Simulation room access denied.');
+      if(input?.seasonId!==r.seasonId)throw new HttpError(400,'The room season cannot change.');
+      const candidate=structuredClone(r),draft=input as unknown as Command;
+      if(r.status!=='Lobby')throw new HttpError(400,'Only lobby settings can be previewed.');
+      if(draft.simulation)candidate.simulation=validateSimulation(draft.simulation,draft.questionCount??r.questionCount,r.members.map(m=>m.userId));
+      candidate.questionCount=draft.questionCount??r.questionCount;candidate.teamSize=draft.teamSize??r.teamSize;
+      if(!Number.isInteger(candidate.teamSize)||candidate.teamSize<Math.max(2,r.members.length)||candidate.teamSize>6)throw new HttpError(400,'Choose enough seats for the current roster.');
+      validateSimulation(candidate.simulation!,candidate.questionCount,r.members.map(m=>m.userId));
+      return json(await selectPbeRoomBank(context,candidate,true));
      }
      const previousRevision=r.revision;
      if(!cleanup&&r.epoch!==this.epoch){recover(r,this.epoch,now,"runtime-replacement",authorized?.eligibleReserveIds);r.revision++;await this.save(r);}
@@ -123,6 +140,7 @@ export class PracticeRoom extends DurableObject<Env> {
       const c=input as unknown as Command;if(!participant(r,actor)&&!(canCoach(r,actor)&&c.action==="judge"))throw new HttpError(403,"Room access denied.");
       const questions=c.action==="start"?(r.format==='Pbe'?await selectPbeRoomBank(context,r):await eligibleQuestions(context,r.seasonId,r.questionCount,r.bookKey)):undefined;
       const invitee=c.action==="invite"?await this.env.DB.prepare("SELECT id,display_name AS displayName FROM Users WHERE id=? AND org_id=? AND active=1 AND ((kind='Student' AND role='Student') OR (kind='Adult' AND role IN ('Owner','Admin')))").bind(c.targetUserId??"",r.orgId).first<{id:string;displayName:string}>():undefined;
+      if(c.action==='configure'&&!r.applied[c.commandId]){const candidate=structuredClone(r);applyCommand(candidate,actor,c,ingress,now);await authorizePbeRoom(context,candidate,true);}
       applyCommand(r,actor,c,ingress,now,{questions,invitee:invitee??undefined,pending:this.pending>(sensitive?1:0)});
      }else if(match[3]===""&&request.method==="GET"){
       if(!participant(r,actor)&&!canCoach(r,actor))throw new HttpError(403,"Room access denied.");if(advance(r,now,this.pending>0))r.revision++;

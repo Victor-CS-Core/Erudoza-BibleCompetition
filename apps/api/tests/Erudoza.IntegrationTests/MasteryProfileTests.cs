@@ -31,7 +31,7 @@ public sealed class MasteryProfileTests(ErudozaApiFactory factory) : IClassFixtu
             await db.SaveChangesAsync(); proofCount = await db.MasteryPassageProofs.CountAsync();
         }
         var before = await student.GetFromJsonAsync<UserHonorProfile>("/api/v1/profile/me");
-        Assert.Equal(11, before!.Honors.Count); Assert.All(before.Honors, h => Assert.Null(h.EarnedAtUtc)); Assert.Null(before.AvatarHonorKey);
+        Assert.Equal(16, before!.Honors.Count); Assert.All(before.Honors, h => Assert.Null(h.EarnedAtUtc)); Assert.Null(before.AvatarHonorKey);
         foreach (var invalid in new[] { key, "exact-recall", "https://example.test/avatar.png", "unknown" })
             Assert.Equal(invalid == key ? HttpStatusCode.Forbidden : HttpStatusCode.BadRequest, (await student.PutAsJsonAsync("/api/v1/profile/me/avatar", new { honorKey = invalid })).StatusCode);
         using (var scope = factory.Services.CreateScope())

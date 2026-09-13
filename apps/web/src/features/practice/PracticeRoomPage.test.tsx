@@ -7,7 +7,7 @@ import { PracticePage } from "./PracticePage";
 
 const auth = vi.hoisted(() => ({ me: { userId: "player", organizationId: "org", kind: "Student" } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => auth }));
-vi.mock("../../api/practice", () => ({ pbeDisputeApi:{flag:vi.fn()},practiceApi: { room: vi.fn(), bootstrap: vi.fn(), command: vi.fn() } }));
+vi.mock("../../api/practice", () => ({ pbeDisputeApi:{flag:vi.fn()},practiceApi: { room: vi.fn(), bootstrap: vi.fn(), command: vi.fn(), create:vi.fn(), simulationMaterial:vi.fn() } }));
 vi.mock("../../api/practiceTransport", () => ({ nativeCloudflare: true, createPracticeConnection: () => ({ state: "Disconnected", on: vi.fn(), onreconnecting: vi.fn(), onreconnected: vi.fn(), onclose: vi.fn(), start: () => new Promise(() => {}), stop: vi.fn() }) }));
 const member = (userId: string, team: number, ready = false) => ({ userId, team, ready, displayName: userId, captain: true, scribe: true });
 const result = (team: number, resolved = true): PracticeRoom["results"][number] => ({ questionId: "q", team, resolved, appealed: false, prompt: "Who answered?", reference: "Daniel 1:8", evidence: "Source evidence", acceptedAnswers: [["Daniel"]], answers: ["Daniel"], accuracyHundredths: 100, speedHundredths: 10, elapsedMs: 8000 });
@@ -82,7 +82,7 @@ describe("Team Practice room presentation", () => {
     mount(room({ status: "Playing", phase: "Response", phaseEndsAt: new Date(Date.now() + 30000).toISOString(), question: { id: "q", prompt: "Name both people.", reference: "Daniel 1:8", kind: "ShortAnswer", partCount: 2, points: 2, durationSeconds: 30 } }));
     fireEvent.change(await screen.findByLabelText("Answer 1"), { target: { value: "Daniel" } });
     fireEvent.change(screen.getByLabelText("Answer 2"), { target: { value: "Hananiah" } });
-    fireEvent.click(screen.getByRole("button", { name: "Lock final answer" }));
+    fireEvent.click(screen.getByRole("button", { name: "Submit team answer" }));
     await waitFor(() => expect(practiceApi.command).toHaveBeenCalledWith("org", "room", expect.objectContaining({ action: "submit", questionId: "q", answers: ["Daniel", "Hananiah"] })));
     expect(vi.mocked(practiceApi.command).mock.calls[0][2]).not.toHaveProperty("responseTimeMs");
   });
@@ -202,7 +202,7 @@ it('requires two coach confirmations and exposes no adult answer controls',async
  expect(practiceApi.command).not.toHaveBeenCalled();
  fireEvent.click(screen.getByRole('button',{name:'Confirm second coach reading'}));
  await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'present',delivery:'Coach',questionId:'q'})));
- expect(screen.queryByRole('button',{name:'Lock final answer'})).not.toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Submit team answer'})).not.toBeInTheDocument();
 });
 it('lets the current coached student scribe confirm readiness without claiming Coach delivery',async()=>{
  mount(room({format:'Pbe',coached:true,coachId:'coach',status:'Playing',phase:'Presentation',question:{id:'q',prompt:'Who answered?',reference:'Daniel 1:8',kind:'ShortAnswer',partCount:1,points:2,durationSeconds:30}}));
@@ -214,7 +214,7 @@ it('lets the current coached student scribe confirm readiness without claiming C
 it('lets the saved owner terminate unavailable active material through confirmation',async()=>{
  mount(room({format:'Pbe',materialUnavailable:true,status:'Playing',phase:'Response',question:null}));
  expect(await screen.findByText(/Room material is unavailable/)).toBeInTheDocument();
- expect(screen.queryByRole('button',{name:'Lock final answer'})).not.toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Submit team answer'})).not.toBeInTheDocument();
  expect(screen.queryByRole('textbox',{name:'Suggestion'})).not.toBeInTheDocument();
  fireEvent.click(screen.getByRole('button',{name:'Abandon room'}));
  fireEvent.click(within(screen.getByRole('dialog',{name:'Abandon this room?'})).getByRole('button',{name:'Abandon room'}));
@@ -226,4 +226,42 @@ it("flags a saved interrupted PBE answer without sending a legacy appeal or stop
  vi.mocked(pbeDisputeApi.flag).mockResolvedValue({id:'dispute',status:'Pending',revision:1} as Awaited<ReturnType<typeof pbeDisputeApi.flag>>);
  fireEvent.click(await screen.findByRole('button',{name:'Flag answer'}));fireEvent.change(screen.getByLabelText('Reason for review'),{target:{value:'Please check the saved rubric'}});fireEvent.click(screen.getByRole('button',{name:'Request coach review'}));
  expect(await screen.findByText('Review pending')).toBeInTheDocument();expect(pbeDisputeApi.flag).toHaveBeenCalledWith({activity:'Team',sessionId:'room',attemptId:'accepted-attempt',reason:'Please check the saved rubric'});expect(practiceApi.command).not.toHaveBeenCalled();expect(screen.getByRole('link',{name:'Back to Team Practice'})).toBeInTheDocument();
+});
+
+describe('Versioned simulation live room',()=>{
+ const simulation={version:1 as const,preset:'FullEvent' as const,bookKeys:['MRK'],chapters:[],includeScripture:true,includeIntroductions:true,timeMultiplier:1 as const,halfTime:true,discussion:'InPerson' as const,audioPresenterId:'other'};
+ it('shows in-person roles and lets a separate scribe acknowledge readiness without claiming audio',async()=>{
+ mount(room({format:'Pbe',teamCount:1,simulation,status:'Playing',phase:'Presentation',members:[member('player',1),{...member('other',1),scribe:false}],question:{id:'q',prompt:'Who answered?',reference:'Mark 1',points:1,durationSeconds:25,kind:'ShortAnswer',partCount:1}}));
+ expect(await screen.findByRole('heading',{name:'Practicing in person'})).toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'I’m ready to hear the question'})).not.toBeInTheDocument();
+ fireEvent.click(screen.getByRole('button',{name:'Scribe ready'}));
+ await waitFor(()=>expect(practiceApi.command).toHaveBeenCalledWith('org','room',expect.objectContaining({action:'present-ready',questionId:'q'})));
+ });
+ it('keeps the key absent during answer lock and prevents submission',async()=>{
+ mount(room({format:'Pbe',teamCount:1,simulation,status:'Playing',phase:'AnswerLocked',submitted:true,question:{id:'q',prompt:'Who answered?',reference:'Mark 1',points:1,durationSeconds:25,kind:'ShortAnswer',partCount:1}}));
+ expect(await screen.findByText('Answer locked. The answer key will appear in the question review.')).toBeInTheDocument();
+ expect(screen.queryByText('Accepted:')).not.toBeInTheDocument();expect(screen.queryByRole('button',{name:'Submit team answer'})).not.toBeInTheDocument();
+ });
+});
+
+it('omits accuracy filters for legacy Arcade results with no saved maximum',async()=>{
+ mount(room({status:'Completed',results:[result(1)]}));
+ await screen.findByRole('heading',{name:'Answer review'});
+ expect(screen.queryByRole('button',{name:'Full points'})).not.toBeInTheDocument();
+ expect(screen.queryByRole('button',{name:'Needs practice'})).not.toBeInTheDocument();
+ expect(screen.getByRole('button',{name:'Flagged'})).toBeInTheDocument();
+});
+
+it('shows a member only the saved team draft with a read-only scribe reminder',async()=>{mount(room({status:'Playing',phase:'Response',members:[{...member('player',1),scribe:false},member('scribe',1)],draft:['Saved answer'],question:{id:'q',prompt:'Who?',reference:'Mark 1',points:1,durationSeconds:25,kind:'ShortAnswer',partCount:1}}));const input=await screen.findByLabelText('Saved team answer 1');expect(input).toHaveValue('Saved answer');expect(input).toHaveAttribute('readonly');expect(screen.queryByRole('button',{name:'Submit team answer'})).not.toBeInTheDocument();});
+
+it('reopens the prior simulation settings for another rehearsal and creates a new room',async()=>{
+ const simulation={version:1 as const,scope:'SelectedChapters' as const,preset:'Custom' as const,bookKeys:['MRK'],chapters:[{bookKey:'MRK',chapter:2}],includeScripture:true,includeIntroductions:false,timeMultiplier:2 as const,halfTime:false,discussion:'Chat' as const,audioPresenterId:'old-presenter'};
+ vi.mocked(practiceApi.simulationMaterial).mockResolvedValue({seasonId:'season',translation:'NKJV',books:[{key:'MRK',label:'Mark',chapters:[1]}],introductionsAvailable:false});
+ vi.mocked(practiceApi.create).mockResolvedValue(room({id:'new-room'}));
+ mount(room({status:'Completed',format:'Pbe',teamCount:1,simulation,teamSize:3,questionCount:30,results:[result(1)]}));
+ fireEvent.click(await screen.findByRole('button',{name:'Practice again'}));
+ await screen.findByRole('button',{name:'Save setup'});expect(practiceApi.simulationMaterial).toHaveBeenCalledWith('org','season',undefined);expect(screen.getByLabelText('Remove unavailable MRK 2')).toBeInTheDocument();expect(screen.getByRole('button',{name:'Save setup'})).toBeDisabled();fireEvent.click(screen.getByRole('button',{name:'Remove unavailable MRK 2'}));expect(screen.getByRole('button',{name:'Save setup'})).toBeDisabled();fireEvent.click(screen.getByLabelText('Mark 1'));fireEvent.click(screen.getByRole('tab',{name:'Timers'}));
+ expect(screen.getByLabelText('Preset')).toHaveValue('Custom');expect(screen.getByLabelText('Response time')).toHaveValue('2');expect(screen.getByLabelText('Number of questions')).toHaveValue('30');
+ fireEvent.click(screen.getByRole('button',{name:'Save setup'}));
+ await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith('org',expect.objectContaining({teamSize:3,questionCount:30,simulation:expect.objectContaining({preset:'Custom',timeMultiplier:2,discussion:'Chat',audioPresenterId:'player',scope:'SelectedChapters',chapters:[{bookKey:'MRK',chapter:1}]})})));
 });

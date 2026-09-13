@@ -23,6 +23,13 @@ public sealed partial class PracticeService
         var books = await db.ScopeEntries.Where(s => s.OrganizationId == org && s.SeasonId == room.SeasonId && s.Kind == ScopeEntryKind.Include).Select(s => s.BookKey).Distinct().ToListAsync(ct);
         var introductions = await db.PbeTrainingRecords.AsNoTracking().Where(r => r.OrganizationId == org && r.SeasonId == room.SeasonId && r.Kind == "pbe-introduction" && r.OwnerId == null).ToListAsync(ct);
         foreach (var row in introductions) { var intro = JsonSerializer.Deserialize<PbeIntroduction>(row.DataJson, PbeQuestionBank.Json)!; if (intro.OrganizationId == org && intro.SeasonId == room.SeasonId && intro.Reviewed && PbeSourceResolver.Licensed(intro.LicensingStatus) && books.Contains(intro.BookKey)) sources.AddRange(intro.Units.Select((u, i) => new PbeSourceUnit(u.Id, intro.Id, PbeSourceKind.Commentary, intro.BookKey, null, null, i + 1, u.Citation, u.CanonicalText))); }
+        if (IsSimulation(room))
+        {
+            var assigned = new HashSet<Guid>();
+            foreach (var participant in participants) assigned.UnionWith((await SimulationSources(org, room.SeasonId, participant, ct, !starting && room.Status == "Playing")).Sources.Select(s => s.Id));
+            sources = sources.Where(s => assigned.Contains(s.Id)).ToList();
+            sources = sources.Where(s => SimulationIncludes(room.Simulation!, s)).ToList();
+        }
         if (!string.IsNullOrEmpty(room.BookKey)) sources = sources.Where(s => s.BookKey == room.BookKey).ToList();
         if (!starting && room.Questions.Count > 0) { var map = sources.ToDictionary(s => s.Id); foreach (var q in room.Questions) { if (q.Rubric is null || q.Rubric.SourceUnitIds.Any(id => !map.ContainsKey(id)) || PbeQuestionBank.SourceProof(q.Rubric, map) != room.SourceProofs.GetValueOrDefault(q.Id)) throw new PracticeForbiddenException(); } }
         return new(sources, JsonSerializer.Serialize(sources, PbeQuestionBank.Json));

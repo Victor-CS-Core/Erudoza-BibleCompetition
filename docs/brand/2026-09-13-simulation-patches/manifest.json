@@ -1,0 +1,117 @@
+[
+  {
+    "id": "first-rehearsal",
+    "sourceSha256": "5082f7ebb61a52e72d14cacea1278ce29b8ba6efb6b9199f30b497bf48e2be6a",
+    "master": "masters/first-rehearsal.png",
+    "bounds": [
+      13,
+      6,
+      1241,
+      1235
+    ],
+    "outputs": [
+      {
+        "file": "first-rehearsal-256.webp",
+        "bytes": 27570,
+        "sha256": "25b01c24e42892540a7378d44456c42a9cf4d0459ff2e29ad0d97e1615681615"
+      },
+      {
+        "file": "first-rehearsal-512.webp",
+        "bytes": 97610,
+        "sha256": "292dccb2e932ed90cb332fc3b3e98a48eb2561bba8f7ef3a387be3e8e9621407"
+      }
+    ]
+  },
+  {
+    "id": "event-ready",
+    "sourceSha256": "1cc1a929d6d90f0e2c32f9d25bd67fdb31a5ae9b47d01d6134545b4d704b6f71",
+    "master": "masters/event-ready.png",
+    "bounds": [
+      12,
+      7,
+      1242,
+      1235
+    ],
+    "outputs": [
+      {
+        "file": "event-ready-256.webp",
+        "bytes": 25164,
+        "sha256": "469f54df096e3c9f6a4904064cf96c820ad59afc4c7647929b9ee52f9052dae1"
+      },
+      {
+        "file": "event-ready-512.webp",
+        "bytes": 92586,
+        "sha256": "b20d49ca2a47e88bc4a6be28bbbf9b9ee9473ee785cd743675951aae57777257"
+      }
+    ]
+  },
+  {
+    "id": "steady-team",
+    "sourceSha256": "221b13ca9f3f11b73069aa594cba918fd272fdb11efe0759af4504641089cf26",
+    "master": "masters/steady-team.png",
+    "bounds": [
+      15,
+      4,
+      1237,
+      1229
+    ],
+    "outputs": [
+      {
+        "file": "steady-team-256.webp",
+        "bytes": 25606,
+        "sha256": "7de92c5aabeebd657059d263119969130c0ca54409485f7ef407d972198fdf9f"
+      },
+      {
+        "file": "steady-team-512.webp",
+        "bytes": 92952,
+        "sha256": "cfa9a8c414dfdeb82e010ce664ae6b1e538f03b27f3ca4dde56ff93175038aec"
+      }
+    ]
+  },
+  {
+    "id": "trusted-scribe",
+    "sourceSha256": "5da0ad5d63891c3c0b3634353ad90dec38574205d866595a3942d42d64348b63",
+    "master": "masters/trusted-scribe.png",
+    "bounds": [
+      14,
+      4,
+      1242,
+      1234
+    ],
+    "outputs": [
+      {
+        "file": "trusted-scribe-256.webp",
+        "bytes": 26844,
+        "sha256": "efe6283d4ce12ce477500a9152ecc01768cc4b196c6976e86e1e2d5d5599bd3b"
+      },
+      {
+        "file": "trusted-scribe-512.webp",
+        "bytes": 97406,
+        "sha256": "c0e5c08f46a437a845078186af678e749b6d9e211d3d50c2b6b885e4e584c6ba"
+      }
+    ]
+  },
+  {
+    "id": "team-precision",
+    "sourceSha256": "690a2801c5b34ebc2c74045544245e7ab57b97e0567a19c5d625cdab64f10998",
+    "master": "masters/team-precision.png",
+    "bounds": [
+      17,
+      8,
+      1238,
+      1232
+    ],
+    "outputs": [
+      {
+        "file": "team-precision-256.webp",
+        "bytes": 28116,
+        "sha256": "6334cc461f156182b1ca6f31af314792ae5ffe9e716127d72a3a76284786f1cb"
+      },
+      {
+        "file": "team-precision-512.webp",
+        "bytes": 93766,
+        "sha256": "9bbd4ff8862aae31b5c5e541432e9ffccfac9971ec219c0360f01cd5dcb17089"
+      }
+    ]
+  }
+]

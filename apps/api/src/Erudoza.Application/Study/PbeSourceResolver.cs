@@ -23,6 +23,7 @@ public sealed class PbeSourceResolver(IErudozaDbContext db, ICurrentUser user, I
         if (scripture.Count + introductions.Count > 10000) throw new PbeChapterLimitException("ScopeTooLarge");
         return new(scripture.Concat(introductions).ToArray(), "");
     }
+    public Task<PbeSourceScope> ResolveRoomSourcesAsync(Guid org, Guid season, Guid student, bool continuation, CancellationToken ct) => ResolveCoreAsync(org, season, student, continuation, ct);
     public Task<PbeSourceScope> ResolveAsync(Guid organizationId, Guid seasonId, Guid? studentId, CancellationToken ct = default) => ResolveCoreAsync(organizationId, seasonId, studentId, false, ct);
     public async Task<PbeSourceScope> ResolveSessionAsync(Guid organizationId, Guid sessionId, CancellationToken ct = default)
     {

@@ -45,7 +45,9 @@ public sealed class PbeRoomTests
     [InlineData(2, 2, 10, false, false, false, true, false, true)]
     [InlineData(1, 2, 10, false, false, false, true, false, false, true)]
     [InlineData(2, 2, 10, false, false, false, true, false, true, true)]
-    public async Task Full_rehearsal_uses_authored_rubrics_active_teams_and_exactly_one_break(int teams, int size, int count, bool recover, bool trustedDraft, bool unarmed = false, bool adultOwner = false, bool invalidReserve = false, bool coached = false, bool cleanupEnd = false)
+    [InlineData(1, 2, 10, false, false, false, false, false, false, false, true)]
+    [InlineData(1, 2, 90, false, false, false, false, false, false, false, true)]
+    public async Task Full_rehearsal_uses_authored_rubrics_active_teams_and_exactly_one_break(int teams, int size, int count, bool recover, bool trustedDraft, bool unarmed = false, bool adultOwner = false, bool invalidReserve = false, bool coached = false, bool cleanupEnd = false, bool simulation = false)
     {
         var time = new TestTime(); using var fixture = await PracticeRoomHttpTests.Setup.Create(true, time);
         var clients = new List<HttpClient> { fixture.Owner }; for (var n = 1; n < teams * size; n++) clients.Add(await fixture.Student("pbe-player"));
@@ -55,7 +57,7 @@ public sealed class PbeRoomTests
             var db = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>(); (await db.Seasons.SingleAsync(s => s.Id == fixture.SeasonId)).PbeEnabled = true;
             foreach (var id in ids) db.CompetitionMembers.Add(new CompetitionMember { OrganizationId = SeedIdentifiers.OrganizationId, SeasonId = fixture.SeasonId, UserId = id, Difficulty = TrainingDifficulty.Advanced });
             var source = await db.SourceUnits.Include(s => s.ContentPack).SingleAsync(s => s.Id == Guid.Parse("77777777-7777-7777-7777-777777777708"));
-            foreach (var id in ids) db.Assignments.Add(new Assignment { Id = Guid.NewGuid(), OrganizationId = SeedIdentifiers.OrganizationId, SeasonId = fixture.SeasonId, StudentUserId = id, Type = AssignmentType.RequiredCoverage, Scopes = [new AssignmentScope { Id = Guid.NewGuid(), ContentPackId = source.ContentPackId, BookKey = "DAN", StartChapter = 1, EndChapter = 1, StartVerse = 1, EndVerse = 1 }] });
+            foreach (var id in ids) db.Assignments.Add(new Assignment { Id = Guid.NewGuid(), OrganizationId = SeedIdentifiers.OrganizationId, SeasonId = fixture.SeasonId, StudentUserId = id, Type = AssignmentType.RequiredCoverage, Scopes = [new AssignmentScope { Id = Guid.NewGuid(), ContentPackId = source.ContentPackId, BookKey = "DAN", StartChapter = 1, EndChapter = 1, StartVerse = 1, EndVerse = simulation ? 30 : 1 }] });
 
             var target = new PbeTarget { Id = Guid.NewGuid(), SourceUnitIds = [source.Id], Skill = RecallSkill.FactualRecall, Label = "Person" };
             db.PbeTrainingRecords.Add(new PbeTrainingRecord { Kind = "pbe-target", Id = target.Id.ToString(), OrganizationId = SeedIdentifiers.OrganizationId, SeasonId = fixture.SeasonId, OwnerId = source.Id, DataJson = JsonSerializer.Serialize(target, PbeQuestionBank.Json) });
@@ -66,7 +68,7 @@ public sealed class PbeRoomTests
             }
             await db.SaveChangesAsync();
         }
-        var response = await (adultOwner ? fixture.Admin : fixture.Owner).PostAsJsonAsync(fixture.Path + "/rooms", new { seasonId = fixture.SeasonId, teamSize = size, teamCount = teams, questionCount = count, format = "Pbe", coached }); response.EnsureSuccessStatusCode(); var room = await response.Content.ReadFromJsonAsync<JsonElement>(); var roomId = room.GetProperty("id").GetGuid(); var path = fixture.Path + "/rooms/" + roomId;
+        var response = await (adultOwner ? fixture.Admin : fixture.Owner).PostAsJsonAsync(fixture.Path + "/rooms", new { seasonId = fixture.SeasonId, teamSize = size, teamCount = teams, questionCount = count, format = "Pbe", coached, simulation = simulation ? new SimulationSettings(1, count == 90 ? "FullEvent" : "Custom", ["DAN"], [new("DAN", 1)], true, true, count == 90 ? 1 : 2, count == 90, "InPerson") : null }); response.EnsureSuccessStatusCode(); var room = await response.Content.ReadFromJsonAsync<JsonElement>(); var roomId = room.GetProperty("id").GetGuid(); var path = fixture.Path + "/rooms/" + roomId;
         Dictionary<string, object?>? finalRetry = null; HttpClient? finalActor = null;
         async Task Command(int player, string action, object? payload = null) { var fields = new Dictionary<string, object?> { { "commandId", Guid.NewGuid() }, { "revision", room.GetProperty("revision").GetInt64() }, { "action", action } }; if (payload is not null) foreach (var p in JsonSerializer.SerializeToElement(payload).EnumerateObject()) fields[p.Name] = p.Value; var r = await (player == -1 || adultOwner && action == "invite" ? fixture.Admin : clients[player]).PostAsJsonAsync(path + "/commands", fields); Assert.True(r.IsSuccessStatusCode, await r.Content.ReadAsStringAsync()); room = await r.Content.ReadFromJsonAsync<JsonElement>(); if (action == "submit") { finalRetry = fields; finalActor = clients[player]; } }
         for (var n = adultOwner ? 0 : 1; n < ids.Count; n++)
@@ -79,6 +81,40 @@ public sealed class PbeRoomTests
             async Task Rejoin() { await Membership(true); await Command(-1, "invite", new { targetUserId = ids[1], team = 1 }); var inbox = await clients[1].GetFromJsonAsync<JsonElement>(fixture.Path + "/bootstrap"); var invite = inbox.GetProperty("invitations")[0].GetProperty("id").GetGuid(); var accepted = await clients[1].PostAsJsonAsync(fixture.Path + $"/invitations/{invite}/accept", new { team = 1 }); accepted.EnsureSuccessStatusCode(); room = await accepted.Content.ReadFromJsonAsync<JsonElement>(); }
             await Membership(false); room = await fixture.Admin.GetFromJsonAsync<JsonElement>(path); Assert.True(room.GetProperty("materialUnavailable").GetBoolean()); await Command(-1, "remove", new { targetUserId = ids[1] }); Assert.Equal(ids.Count - 1, room.GetProperty("members").GetArrayLength()); await Rejoin();
             await Membership(false); var left = await clients[1].PostAsJsonAsync(path + "/commands", new { commandId = Guid.NewGuid(), action = "leave" }); left.EnsureSuccessStatusCode(); Assert.True((await left.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("left").GetBoolean()); room = await fixture.Admin.GetFromJsonAsync<JsonElement>(path); await Rejoin();
+        }
+        if (simulation)
+        {
+            var material = await fixture.Owner.GetFromJsonAsync<JsonElement>(fixture.Path + "/simulation/material?seasonId=" + fixture.SeasonId + "&roomId=" + roomId);
+            Assert.Contains(material.GetProperty("books").EnumerateArray(), b => b.GetProperty("key").GetString() == "DAN");
+            Assert.DoesNotContain("canonicalText", material.GetRawText());
+            var draft = new SimulationSettings(1, "Custom", ["DAN"], [new("DAN", 1)], true, true, 2, false, "InPerson", ids[0]);
+            var availability = await fixture.Owner.PostAsJsonAsync(fixture.Path + "/simulation/availability", new { seasonId = fixture.SeasonId, roomId, teamSize = 2, questionCount = 10, simulation = draft });
+            availability.EnsureSuccessStatusCode(); var estimate = await availability.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.True(estimate.GetProperty("canStart").GetBoolean()); Assert.Equal(10, estimate.GetProperty("requestedQuestions").GetInt32());
+            var unchanged = await fixture.Owner.GetFromJsonAsync<JsonElement>(path); Assert.Equal(room.GetProperty("revision").GetInt64(), unchanged.GetProperty("revision").GetInt64());
+            var emptyScope = await fixture.Owner.PostAsJsonAsync(fixture.Path + "/simulation/availability", new { seasonId = fixture.SeasonId, roomId, teamSize = 2, questionCount = 10, simulation = draft with { Scope = "SelectedChapters", Chapters = [] } });
+            Assert.Equal(HttpStatusCode.BadRequest, emptyScope.StatusCode);
+            var invalid = await fixture.Owner.PostAsJsonAsync(path + "/commands", new { commandId = Guid.NewGuid(), revision = room.GetProperty("revision").GetInt64(), action = "configure", simulation = draft with { Chapters = [new("DAN", 99)] } });
+            Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+            unchanged = await fixture.Owner.GetFromJsonAsync<JsonElement>(path); Assert.Equal(room.GetProperty("revision").GetInt64(), unchanged.GetProperty("revision").GetInt64());
+            foreach (var chapter in new[] { 1, 999 })
+            {
+                var conflicting = draft with { Scope = "AllAssigned", Chapters = [new("DAN", chapter)] };
+                var rejected = await fixture.Owner.PostAsJsonAsync(path + "/commands", new { commandId = Guid.NewGuid(), revision = room.GetProperty("revision").GetInt64(), action = "configure", simulation = conflicting });
+                Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+                unchanged = await fixture.Owner.GetFromJsonAsync<JsonElement>(path);
+                Assert.Equal(room.GetProperty("revision").GetInt64(), unchanged.GetProperty("revision").GetInt64());
+                Assert.Equal(room.GetProperty("simulation").GetRawText(), unchanged.GetProperty("simulation").GetRawText());
+                var rejectedEstimate = await fixture.Owner.PostAsJsonAsync(fixture.Path + "/simulation/availability", new { seasonId = fixture.SeasonId, roomId, teamSize = 2, questionCount = 10, simulation = conflicting });
+                Assert.Equal(HttpStatusCode.BadRequest, rejectedEstimate.StatusCode);
+            }
+            await Command(0, "ready");
+            var configure = new { commandId = Guid.NewGuid(), revision = room.GetProperty("revision").GetInt64(), action = "configure", teamSize = 3 };
+            Assert.Equal(HttpStatusCode.Forbidden, (await clients[1].PostAsJsonAsync(path + "/commands", configure)).StatusCode);
+            var configured = await fixture.Owner.PostAsJsonAsync(path + "/commands", configure); configured.EnsureSuccessStatusCode(); room = await configured.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.All(room.GetProperty("members").EnumerateArray(), m => Assert.False(m.GetProperty("ready").GetBoolean()));
+            var retry = await fixture.Owner.PostAsJsonAsync(path + "/commands", configure); retry.EnsureSuccessStatusCode(); Assert.Equal(room.GetProperty("revision").GetInt64(), (await retry.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("revision").GetInt64());
+            await Command(0, "configure", new { teamSize = 2 });
         }
         for (var n = 0; n < ids.Count; n++) await Command(n, "ready"); await Command(coached ? -1 : 0, "start"); var breaks = 0;
         using (var scope = fixture.Factory.Services.CreateScope())
@@ -113,6 +149,14 @@ public sealed class PbeRoomTests
                 Assert.All(room.GetProperty("presentationDelivery").EnumerateObject(), entry => Assert.Equal("Coach", entry.Value.GetString()));
                 Assert.Equal(questionId, room.GetProperty("coachReading").GetProperty("questionId").GetGuid());
                 foreach (var action in new[] { "draft", "submit" }) Assert.Equal(HttpStatusCode.Forbidden, (await fixture.Admin.PostAsJsonAsync(path + "/commands", new { commandId = Guid.NewGuid(), revision = room.GetProperty("revision").GetInt64(), action, questionId, answers = new[] { "Daniel" } })).StatusCode);
+            }
+            else if (simulation)
+            {
+                await Command(0, "presenter", new { targetUserId = ids[1] });
+                await Command(0, "present-ready", new { questionId });
+                Assert.Equal("Presentation", room.GetProperty("phase").GetString());
+                Assert.False(room.GetProperty("audioReadingComplete").GetBoolean());
+                await Command(1, "present", new { questionId, delivery = "Audio" });
             }
             else for (var team = 0; team < teams; team++) await Command(team * size, "present", new { questionId, delivery = team == 0 ? "Audio" : "TextFallback" });
             Assert.Equal("Scheduled", room.GetProperty("phase").GetString()); var originalStart = room.GetProperty("responseStartsAt").GetString(); var originalSchedule = room.GetProperty("scheduleId").GetGuid(); time.Advance(TimeSpan.FromSeconds(3));
@@ -153,8 +197,9 @@ public sealed class PbeRoomTests
                 }
                 for (var wait = 0; wait < 40 && runtime.HasPending(roomId); wait++) await Task.Delay(10); Assert.False(runtime.HasPending(roomId)); await Command(0, "draft", new { questionId, answers = new[] { "Wrong draft" } });
             }
+            if (simulation && count == 10 && q == 2) time.Advance(TimeSpan.FromSeconds(40));
             if (q == 0) { using var scope = fixture.Factory.Services.CreateScope(); var db = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>(); await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER fail_room_projection BEFORE DELETE ON PbeTrainingRecords WHEN OLD.Kind='pbe-room-service-outbox' BEGIN SELECT RAISE(ABORT,'fixture projection failure'); END"); }
-            if (recover && q == 2) { } else if (q == 1) { time.Advance(TimeSpan.FromSeconds(31)); room = await fixture.Owner.GetFromJsonAsync<JsonElement>(path); } else for (var team = 0; team < teams; team++) await Command(team * size, "submit", new { questionId, answers = new[] { "Daniel" } });
+            if (recover && q == 2) { } else if (q == 1) { time.Advance(TimeSpan.FromSeconds(simulation && count != 90 ? 61 : 31)); room = await fixture.Owner.GetFromJsonAsync<JsonElement>(path); } else for (var team = 0; team < teams; team++) await Command(team * size, "submit", new { questionId, answers = new[] { "Daniel" } });
             if (q == 0) { var lockedResults = room.GetProperty("results").GetRawText(); using (var scope = fixture.Factory.Services.CreateScope()) { var db = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>(); Assert.True(await db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-room-service-outbox" && r.Id == roomId.ToString())); await db.Database.ExecuteSqlRawAsync("DROP TRIGGER fail_room_projection"); } room = await fixture.Owner.GetFromJsonAsync<JsonElement>(path); Assert.Equal(lockedResults, room.GetProperty("results").GetRawText()); using (var scope = fixture.Factory.Services.CreateScope()) { var db = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>(); Assert.False(await db.PbeTrainingRecords.AnyAsync(r => r.Kind == "pbe-room-service-outbox" && r.Id == roomId.ToString())); } }
             if (cleanupEnd && q == 0)
             {
@@ -178,8 +223,26 @@ public sealed class PbeRoomTests
                 using (var scope = fixture.Factory.Services.CreateScope()) { var db = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>(); var saved = PracticeJson.Read<PracticeRoom>((await db.Set<PracticeRoomRecord>().SingleAsync(r => r.Id == roomId)).StateJson); Assert.Equal(finals, PracticeJson.Write(saved.Submissions)); Assert.Equal(timings, PracticeJson.Write(saved.Presentations)); Assert.Null(saved.CompletedAt); }
                 foreach (var client in clients.Skip(1)) client.Dispose(); return;
             }
+            if (simulation)
+            {
+                Assert.Equal("AnswerLocked", room.GetProperty("phase").GetString());
+                Assert.Equal(q, room.GetProperty("results").GetArrayLength());
+                time.Advance(TimeSpan.FromSeconds(3)); room = await fixture.Owner.GetFromJsonAsync<JsonElement>(path);
+            }
             Assert.Equal("Review", room.GetProperty("phase").GetString()); if (coached) await Command(-1, "next"); time.Advance(TimeSpan.FromSeconds(10)); room = await fixture.Owner.GetFromJsonAsync<JsonElement>(path);
-            if (room.GetProperty("phase").GetString() == "Break") { Assert.Equal(JsonValueKind.Null, room.GetProperty("question").ValueKind); breaks++; Assert.Equal(44, q); time.Advance(TimeSpan.FromMinutes(5)); room = await fixture.Owner.GetFromJsonAsync<JsonElement>(path); }
+            if (room.GetProperty("phase").GetString() == "Break")
+            {
+                Assert.Equal(JsonValueKind.Null, room.GetProperty("question").ValueKind); breaks++; Assert.Equal(44, q);
+                if (simulation)
+                {
+                    var originalEnd = room.GetProperty("phaseEndsAt").GetString(); time.Advance(TimeSpan.FromMinutes(2));
+                    using (var scope = fixture.Factory.Services.CreateScope()) { var db = scope.ServiceProvider.GetRequiredService<ErudozaDbContext>(); var record = await db.Set<PracticeRoomRecord>().SingleAsync(r => r.Id == roomId); var saved = PracticeJson.Read<PracticeRoom>(record.StateJson); saved.ProcessId = "restarted-at-halftime"; record.StateJson = PracticeJson.Write(saved); await db.SaveChangesAsync(); }
+                    room = await fixture.Owner.GetFromJsonAsync<JsonElement>(path); Assert.Equal(originalEnd, room.GetProperty("phaseEndsAt").GetString());
+                    time.Advance(TimeSpan.FromMinutes(3));
+                }
+                else time.Advance(TimeSpan.FromMinutes(5));
+                room = await fixture.Owner.GetFromJsonAsync<JsonElement>(path);
+            }
         }
         if (!interrupted)
         {

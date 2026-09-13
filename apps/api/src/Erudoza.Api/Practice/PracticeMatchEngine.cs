@@ -12,10 +12,15 @@ public sealed partial class PracticeService
         room.Phase = phase; room.PhaseTimestamp = runtime.Stamp();
         room.PhaseEndsAt = runtime.Now.AddSeconds(seconds);
     }
+    private void LockAnswers(PracticeRoom room)
+    {
+        Phase(room, IsSimulation(room) ? "AnswerLocked" : "Review", IsSimulation(room) ? 3 : 10);
+        if (room.Coached) room.PhaseEndsAt = null;
+    }
     private void Presentation(PracticeRoom room)
     {
         if (IsPbe(room)) { var q = Current(room).Rubric!; if (!room.Services.Any(s => s.QuestionId == q.Id)) room.Services.Add(new PbeRoomService(Guid.NewGuid(), q.Id, q.Kind.ToString(), q.Parts.Select(p => p.TargetId).Distinct().ToArray(), room.Members.Select(m => m.UserId).ToArray(), runtime.Now.ToUnixTimeMilliseconds())); }
-        room.CoachReading = null; room.CoachReadyScribeIds.Clear(); room.Drafts.Clear(); room.DraftReceivedAt.Clear(); room.PresentationDelivery.Clear(); room.Acknowledged.Clear(); room.ResponseStartsAt = null;
+        room.AudioReadingComplete = false; room.CoachReading = null; room.CoachReadyScribeIds.Clear(); room.Drafts.Clear(); room.DraftReceivedAt.Clear(); room.PresentationDelivery.Clear(); room.Acknowledged.Clear(); room.ResponseStartsAt = null;
         Phase(room, "Presentation", 15);
         if (room.Coached || IsPbe(room)) room.PhaseEndsAt = null;
     }
@@ -26,7 +31,7 @@ public sealed partial class PracticeService
         room.ScheduleId = Guid.NewGuid(); room.Acknowledged.Clear();
         room.ResponseTimestamp = runtime.After(room.PhaseTimestamp, TimeSpan.FromSeconds(3));
         room.ResponseStartsAt = room.PhaseEndsAt;
-        if (IsPbe(room)) room.Presentations[Current(room).Id] = new(room.ScheduleId, room.ResponseStartsAt!.Value, room.ResponseStartsAt.Value.AddSeconds(Duration(Current(room))), new(room.PresentationDelivery), room.CoachReading);
+        if (IsPbe(room)) room.Presentations[Current(room).Id] = new(room.ScheduleId, room.ResponseStartsAt!.Value, room.ResponseStartsAt.Value.AddSeconds(Duration(room, Current(room))), new(room.PresentationDelivery), room.CoachReading);
     }
     private void Next(PracticeRoom room)
     {
@@ -38,7 +43,7 @@ public sealed partial class PracticeService
             room.QuestionIndex = room.QuestionCount - 1; room.Status = "Completed"; room.CompletedAt = runtime.Now;
             room.PhaseEndsAt = null; return;
         }
-        if (room.QuestionCount == 90 && room.QuestionIndex == 45) Phase(room, "Break", 300);
+        if (room.QuestionCount == 90 && room.QuestionIndex == 45 && (!IsSimulation(room) || room.Simulation!.HalfTime)) Phase(room, "Break", 300);
         else Presentation(room);
     }
     private bool Advance(PracticeRoom room, IReadOnlySet<Guid>? eligibleReserveIds = null)
@@ -53,10 +58,10 @@ public sealed partial class PracticeService
             {
                 foreach (var team in ActiveTeams(room)) if (!room.Submissions.Any(s => s.QuestionId == Current(room).Id && s.Team == team))
                 {
-                    if (room.DraftReceivedAt.TryGetValue(team, out var received) && received >= room.ResponseTimestamp && runtime.Elapsed(room.ResponseTimestamp, received) <= TimeSpan.FromSeconds(Duration(Current(room)))) AddSubmission(room, team, room.Members.Single(m => m.Team == team && m.Scribe).UserId, room.Drafts[team], runtime.Elapsed(room.ResponseTimestamp, received), true);
+                    if (room.DraftReceivedAt.TryGetValue(team, out var received) && received >= room.ResponseTimestamp && runtime.Elapsed(room.ResponseTimestamp, received) <= TimeSpan.FromSeconds(Duration(room, Current(room)))) AddSubmission(room, team, room.Members.Single(m => m.Team == team && m.Scribe).UserId, room.Drafts[team], runtime.Elapsed(room.ResponseTimestamp, received), true);
                     else { room.Status = "Interrupted"; room.Phase = "Interrupted"; room.InterruptionReason = "ArmedResponsesUntrusted"; room.PhaseEndsAt = null; return true; }
                 }
-                Phase(room, "Review", 10); if (room.Coached) room.PhaseEndsAt = null; return true;
+                LockAnswers(room); return true;
             }
             if (room.Phase is "Scheduled" or "Response" or "Presentation")
             {
@@ -69,6 +74,7 @@ public sealed partial class PracticeService
                 room.Questions[room.QuestionIndex] = room.Reserves[replacement]; room.Reserves.RemoveAt(replacement);
                 room.Drafts.Clear(); room.Acknowledged.Clear(); room.Phase = "Paused"; room.PhaseEndsAt = null;
             }
+            else if (IsSimulation(room)) { var remaining = room.PhaseEndsAt.HasValue ? Math.Max(0, (room.PhaseEndsAt.Value - runtime.Now).TotalSeconds) : 0; room.PhaseTimestamp = runtime.After(runtime.Stamp(), TimeSpan.FromSeconds(remaining - (room.Phase == "Break" ? 300 : room.Phase == "AnswerLocked" ? 3 : 10))); }
             else { room.PhaseTimestamp = runtime.Stamp(); room.PhaseEndsAt = runtime.Now.AddSeconds(room.Phase == "Break" ? 300 : 10); }
             return true;
         }
@@ -84,26 +90,27 @@ public sealed partial class PracticeService
                     Schedule(room); return true;
                 }
                 room.Phase = "Response"; room.PhaseTimestamp = room.ResponseTimestamp;
-                room.PhaseEndsAt = room.ResponseStartsAt!.Value.AddSeconds(Duration(Current(room))); return true;
+                room.PhaseEndsAt = room.ResponseStartsAt!.Value.AddSeconds(Duration(room, Current(room))); return true;
             case "Response":
                 if (runtime.HasPending(room.Id)) return removed;
                 var question = Current(room);
-                bool expired = IsPbe(room) ? runtime.Elapsed(room.ResponseTimestamp, runtime.Stamp()) > TimeSpan.FromSeconds(Duration(question)) : runtime.Elapsed(room.ResponseTimestamp, runtime.Stamp()) >= TimeSpan.FromSeconds(Duration(question));
+                bool expired = IsPbe(room) ? runtime.Elapsed(room.ResponseTimestamp, runtime.Stamp()) > TimeSpan.FromSeconds(Duration(room, question)) : runtime.Elapsed(room.ResponseTimestamp, runtime.Stamp()) >= TimeSpan.FromSeconds(Duration(room, question));
                 if (expired)
                 {
                     foreach (var team in ActiveTeams(room))
                     {
                         if (room.Submissions.Any(s => s.QuestionId == question.Id && s.Team == team)) continue;
                         var scribe = room.Members.Single(m => m.Team == team && m.Scribe);
-                        AddSubmission(room, team, scribe.UserId, room.Drafts.GetValueOrDefault(team) ?? [], TimeSpan.FromSeconds(Duration(question)), true);
+                        AddSubmission(room, team, scribe.UserId, room.Drafts.GetValueOrDefault(team) ?? [], TimeSpan.FromSeconds(Duration(room, question)), true);
                     }
                 }
                 if (room.Submissions.Count(s => s.QuestionId == question.Id) == ActiveTeams(room).Length)
                 {
-                    Phase(room, "Review", 10); if (room.Coached) room.PhaseEndsAt = null;
+                    LockAnswers(room);
                     return true;
                 }
                 return removed;
+            case "AnswerLocked" when elapsed >= TimeSpan.FromSeconds(3): Phase(room, "Review", 10); return true;
             case "Review" when !room.Coached && elapsed >= TimeSpan.FromSeconds(10) && !runtime.HasPending(room.Id): Next(room); return true;
             case "Break" when elapsed >= TimeSpan.FromSeconds(300): Next(room); return true;
             default: return removed;
@@ -125,7 +132,7 @@ public sealed partial class PracticeService
             Answers = answers,
             ElapsedTicks = elapsed.Ticks,
             DeadlineDraft = deadlineDraft,
-            AccuracyHundredths = IsPbe(room) ? PbePresentationRules.RehearsalPoints(earned, elapsed.TotalMilliseconds, Points(question)) * 100 : score.AccuracyHundredths,
+            AccuracyHundredths = IsPbe(room) ? (elapsed.TotalSeconds <= Duration(room, question) ? earned : 0) * 100 : score.AccuracyHundredths,
             SpeedHundredths = IsPbe(room) ? 0 : score.SpeedHundredths
         });
     }
@@ -144,6 +151,8 @@ public sealed partial class PracticeService
             room.CoachId,
             format = room.Format ?? "Arcade",
             teamCount = ActiveTeams(room).Length,
+            room.Simulation,
+            room.AudioReadingComplete,
             room.TeamSize,
             room.QuestionCount,
             room.Coached,
@@ -163,7 +172,7 @@ public sealed partial class PracticeService
             isCoach = coach,
             room.RuleVersion,
             room.ScoringVersion,
-            question = materialUnavailable || current is null || IsPbe(room) && room.Phase is "Paused" or "Break" ? null : new { current.Id, current.Prompt, current.Reference, current.Kind, partCount = current.Parts.Count, points = Points(current), durationSeconds = Duration(current) },
+            question = materialUnavailable || current is null || IsPbe(room) && room.Phase is "Paused" or "Break" ? null : new { current.Id, current.Prompt, current.Reference, current.Kind, partCount = current.Parts.Count, points = Points(current), durationSeconds = Duration(room, current) },
             draft = materialUnavailable || member is null ? [] : room.Drafts.GetValueOrDefault(member.Team) ?? [],
             submitted = member is not null && current is not null && room.Submissions.Any(s => s.QuestionId == current.Id && s.Team == member.Team),
             messages = room.Messages.Where(m => !materialUnavailable).Where(m => m.CreatedAt >= runtime.Now.AddDays(-30) && (coach || m.Team == member?.Team)),
@@ -233,12 +242,18 @@ public sealed partial class PracticeService
     {
         var all = (await Rooms.Where(r => r.OrganizationId == org && r.SeasonId == room.SeasonId && r.Status == "Completed").AsNoTracking().ToListAsync(ct))
             .Where(r => r.Id != room.Id).Select(r => PracticeJson.Read<PracticeRoom>(r.StateJson)).Append(room).ToList();
-        room.Awards = CalculateAwards(await OverlayRooms(org, all, ct)).ToList();
+        var overlaid = await OverlayRooms(org, all, ct);
+        room.Awards = CalculateAwards(overlaid).ToList();
+        await RecordSimulationHonors(org, overlaid, ct);
         if (issueMastery) await RecordMasteryHonors(org, room, all, ct);
         await StoreAwards(org, room.SeasonId, room.Awards, ct);
     }
     private async Task StoreAwards(Guid org, Guid seasonId, IReadOnlyList<PracticeAward> awards, CancellationToken ct)
     {
+        var eligibility = await db.PbeTrainingRecords.Where(r => r.OrganizationId == org && r.SeasonId == seasonId && r.Kind == "simulation-eligibility").ToListAsync(ct);
+        var simulation = awards.Where(a => a.Key.StartsWith("simulation:")).ToDictionary(a => $"{a.UserId}:{seasonId}:{a.Key}");
+        foreach (var record in eligibility) if (!simulation.Remove(record.Id)) db.PbeTrainingRecords.Remove(record);
+        foreach (var pair in simulation) db.PbeTrainingRecords.Add(new() { OrganizationId = org, SeasonId = seasonId, OwnerId = pair.Value.UserId, Kind = "simulation-eligibility", Id = pair.Key, DataJson = PracticeJson.Write(new { pair.Value.Key }) });
         var stored = await db.Set<PracticeAwardRecord>().Where(a => a.OrganizationId == org && a.SeasonId == seasonId).ToListAsync(ct);
         var desired = awards.ToDictionary(a => (a.UserId, a.Key));
         foreach (var existing in stored)
@@ -271,12 +286,17 @@ public sealed partial class PracticeService
     public async Task ReconcileReviewedAwards(Guid org, Guid season, CancellationToken ct)
     {
         var rooms = (await Rooms.AsNoTracking().Where(r => r.OrganizationId == org && r.SeasonId == season && r.Status == "Completed").ToListAsync(ct)).Select(r => PracticeJson.Read<PracticeRoom>(r.StateJson)).ToList();
-        await StoreAwards(org, season, CalculateAwards(await OverlayRooms(org, rooms, ct)).ToList(), ct);
+        var overlaid = await OverlayRooms(org, rooms, ct);
+        await RecordSimulationHonors(org, overlaid, ct);
+        await StoreAwards(org, season, CalculateAwards(overlaid).ToList(), ct);
         await db.SaveChangesAsync(ct);
     }
     private static IEnumerable<PracticeAward> CalculateAwards(IEnumerable<PracticeRoom> states)
     {
-        var all = states.ToList(); foreach (var award in LegacyAwards(all.Where(r => !IsPbe(r)))) yield return award;
+        var all = states.ToList();
+        foreach (var user in all.Where(IsSimulation).SelectMany(r => r.Members).Select(m => m.UserId).Distinct())
+            foreach (var a in CalculateSimulationAchievements(all, user).Where(a => a.EarnedAtUtc.HasValue)) yield return new(a.Key, a.Title, a.SeasonId, user);
+        foreach (var award in LegacyAwards(all.Where(r => !IsPbe(r)))) yield return award;
         foreach (var season in all.Where(r => IsPbe(r) && r.Status == "Completed").GroupBy(r => r.SeasonId))
             foreach (var user in season.SelectMany(r => r.Members).Select(m => m.UserId).Distinct())
             {

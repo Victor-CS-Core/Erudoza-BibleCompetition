@@ -4,17 +4,17 @@ import type {Room,Submission} from './state';
 import {ROOM_STORAGE_FORMAT,RoomCodec,isRoomManifest,manifestRefs,parseNode,validateManifest,type RoomManifest} from './room-storage';
 
 export type ScoreSubmission=Omit<Submission,'answers'>&{answers?:string[];unanswered?:boolean};
-export type RoomStats=Pick<Room,'id'|'orgId'|'seasonId'|'revision'|'format'|'status'|'teamCount'|'teamSize'|'questionCount'|'coached'|'bookKey'|'rules'|'completedAt'|'members'|'contributions'>&{
+export type RoomStats=Pick<Room,'id'|'orgId'|'seasonId'|'revision'|'format'|'status'|'teamCount'|'teamSize'|'questionCount'|'coached'|'bookKey'|'rules'|'completedAt'|'members'|'contributions'|'simulation'|'services'>&{
  questions:{id:string;version:number;sourceUnitId:string;parts:{points:number}[]}[];submissions:ScoreSubmission[];
 };
 export interface RoomHistorySummary extends RoomStats {summaryVersion:1}
 export interface RoomHistoryEnvelope {format:typeof ROOM_STORAGE_FORMAT;manifest:RoomManifest;summary:RoomHistorySummary}
 export function summarizeRoom(r:Room):RoomHistorySummary{
- const {id,orgId,seasonId,revision,format,status,teamCount,teamSize,questionCount,coached,bookKey,rules,completedAt,members,contributions}=r;
- return {summaryVersion:1,id,orgId,seasonId,revision,format,status,teamCount,teamSize,questionCount,coached,bookKey,rules,completedAt,members,contributions,questions:r.questions.map(q=>({id:q.id,version:q.version,sourceUnitId:q.sourceUnitId,parts:q.parts.map(p=>({points:p.points}))})),submissions:r.submissions.map(({answers,...s})=>({...s,unanswered:answers.every(a=>!a.trim())}))};
+ const {id,orgId,seasonId,revision,format,status,teamCount,teamSize,questionCount,coached,bookKey,rules,completedAt,members,contributions,simulation,services}=r;
+ return {summaryVersion:1,id,orgId,seasonId,revision,format,status,teamCount,teamSize,questionCount,coached,bookKey,rules,completedAt,members,contributions,simulation,services,questions:r.questions.map(q=>({id:q.id,version:q.version,sourceUnitId:q.sourceUnitId,parts:q.parts.map(p=>({points:p.points}))})),submissions:r.submissions.map(({answers,...s})=>({...s,unanswered:answers.every(a=>!a.trim())}))};
 }
 // Project legacy summaries in SQLite too: answer keys and full answers never enter a bootstrap collection.
-const fields=['id','orgId','seasonId','revision','format','status','teamCount','teamSize','questionCount','coached','bookKey','rules','completedAt','members','contributions'];
+const fields=['id','orgId','seasonId','revision','format','status','teamCount','teamSize','questionCount','coached','bookKey','rules','completedAt','members','contributions','simulation','services'];
 const finalFields=['attemptId','responseLockedAtMs','questionId','team','scribeId','elapsedMs','deadlineDraft','accuracyHundredths','speedHundredths','appealed','resolved','appealReason'];
 const objectFields=(names:string[],source:string)=>names.map(name=>`'${name}',json_extract(${source},'$.${name}')`).join(',');
 const legacySummary=`json_patch(json_object('summaryVersion',1,${objectFields(fields,'r.data')}),json_object('questions',json((SELECT json_group_array(json_object('id',json_extract(q.value,'$.id'),'version',json_extract(q.value,'$.version'),'sourceUnitId',json_extract(q.value,'$.sourceUnitId'),'parts',json((SELECT json_group_array(json_object('points',json_extract(p.value,'$.points'))) FROM json_each(q.value,'$.parts') p)))) FROM json_each(r.data,'$.questions') q)),'submissions',json((SELECT json_group_array(json_object(${objectFields(finalFields,'s.value')},'unanswered',NOT EXISTS(SELECT 1 FROM json_each(s.value,'$.answers') a WHERE length(trim(a.value,char(9,10,11,12,13,32,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288,65279)))>0))) FROM json_each(r.data,'$.submissions') s))))`;

@@ -6,6 +6,7 @@ import {body,json} from '../types';
 import {Store} from '../store';
 import type {Room} from './state';
 import {overlayRoom,type PbeResultOverlay} from '../pbe/result-overlays';
+import {simulationHonorStatements} from './simulation-awards';
 import {calculateAwards} from './awards';
 import {listRoomSummaries,summarizeRoom,type RoomHistorySummary,type RoomHistoryEnvelope} from './room-history';
 import {contentHash,manifestRefs,parseNode,validateManifest,ROOM_STAGE_BYTES,ROOM_STAGE_NODES,ROOM_STORAGE_FORMAT,type RoomManifest} from './room-storage';
@@ -66,6 +67,7 @@ export class PracticeReports extends DurableObject<Env>{
    const legacy=await this.env.DB.prepare("SELECT data FROM Records WHERE kind='match' AND org_id=? AND season_id=? AND coalesce(json_extract(data,'$.format'),'Arcade')='Arcade'").bind(r.orgId,r.seasonId).all<{data:string}>();
    const rooms=legacy.results.map(x=>JSON.parse(x.data) as Room).filter(x=>x.id!==r.id);rooms.push(raw as Room);statements.push(...prepareTeamHonors(store,r.orgId,rooms,raw as Room));
   }
+  if(r.simulation)statements.push(...simulationHonorStatements(this.env.DB,r.orgId,r.seasonId,all.map(x=>overlayRoom(x,byId.get(`Team:${x.id}`)))));
   await this.env.DB.batch(statements);return json({projected:true});
  }
  async fetch(request:Request):Promise<Response>{

@@ -109,3 +109,13 @@
 @media (max-width: 359px) { .practice-hub .practice-hub-form-grid { grid-template-columns: minmax(0, 1fr); } .practice-mastery-honors { grid-template-columns: minmax(0, 1fr); } }
 
 .practice-hub .practice-hub-duel[data-team-count="1"] { grid-template-columns: minmax(0, 1fr); }
+
+.practice-mode-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-5); }
+.practice-mode-entry { display:flex;align-items:center;gap:var(--er-space-5); }
+.practice-mode-entry>div { min-width:0; }
+.practice-mode-patches { display:flex;flex-wrap:wrap;max-width:128px;flex-shrink:0; }
+.practice-mode-entry p { margin-block:var(--er-space-2) var(--er-space-4); }
+.practice-current-strip { display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-5); }
+.practice-current-strip h2 { margin-block:var(--er-space-2); }
+.practice-hub-room-list { min-width:0; }
+@media(max-width:760px){.practice-mode-grid{grid-template-columns:minmax(0,1fr)}.practice-mode-entry{gap:var(--er-space-3)}.practice-mode-patches{max-width:64px}.practice-current-strip{align-items:start;flex-direction:column}.practice-mode-entry .ds-button{width:100%}}

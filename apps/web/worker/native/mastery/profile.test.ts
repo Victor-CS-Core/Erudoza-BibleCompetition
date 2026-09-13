@@ -18,10 +18,10 @@ beforeAll(async () => {
   for (const [user, org] of [[otherUser, TEST_ORG], [foreignUser, foreignOrg]]) await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) SELECT ?,?,?,'Fixture','Student','Student',password_hash,'v1' FROM Users WHERE id=?").bind(user, org, user, TEST_USER).run();
 }, 30000);
 afterAll(async () => { await app?.runtime.dispose(); });
-it('returns11 locked definitions read-only and rejects arbitrary, unauthenticated and legacy selections', async () => {
+it('returns16 locked definitions read-only and rejects arbitrary, unauthenticated and legacy selections', async () => {
   const before = await rows(), result = await request('/api/v1/profile/me'); expect(result.status).toBe(200);
   const profile = await result.json() as { honors: { earnedAtUtc: string | null }[]; avatarHonorKey: string | null };
-  expect(profile.honors).toHaveLength(11); expect(profile.honors.every(h => h.earnedAtUtc === null)).toBe(true); expect(profile.avatarHonorKey).toBeNull(); expect(await rows()).toBe(before);
+  expect(profile.honors).toHaveLength(16); expect(profile.honors.every(h => h.earnedAtUtc === null)).toBe(true); expect(profile.avatarHonorKey).toBeNull(); expect(await rows()).toBe(before);
   expect((await app.fetch('/api/v1/profile/me')).status).toBe(401);
   for (const key of ['https://evil.invalid/avatar.png', 'first-fellowship', 'solo:unknown']) expect((await request('/api/v1/profile/me/avatar', 'PUT', { honorKey: key })).status).toBe(400);
   expect((await request('/api/v1/profile/me/avatar', 'PUT', {})).status).toBe(400);
@@ -61,4 +61,13 @@ it('GET cost stays2 indexed queries and zero writes at100 and10000 historical at
     measured = []; await selfProfile(ctx); expect(measured).toHaveLength(2); expect(measured.reduce((n, q) => n + q.writes, 0)).toBe(0); snapshots.push(measured.map(q => ({ sql: q.sql, rows: q.rows })).sort((a, b) => a.sql.localeCompare(b.sql)));
   }
   expect(snapshots[1]).toEqual(snapshots[0]); expect(measured.reduce((n, q) => n + q.rows, 0)).toBeLessThan(50);
+});
+it('preserves simulation unlock evidence while reconciled eligibility gates profile and identities',async()=>{
+ const key='simulation:team-precision',id=honorId(TEST_ORG,TEST_USER,key),unlock={id,userId:TEST_USER,key,ruleVersion:'simulation-v1',earnedAtUtc:'2026-09-13T00:00:00Z',seasonId:'season',evidence:{rooms:['completed']}};
+ const store=new Store(app.db as unknown as Env['DB']);await store.insert('mastery-honor',id,TEST_ORG,unlock,{ownerId:TEST_USER});
+ expect((await request('/api/v1/profile/me/avatar','PUT',{honorKey:key})).status).toBe(403);
+ const eligibility={id:`${id}:season`,unlockId:id,userId:TEST_USER,seasonId:'season',key,ruleVersion:'simulation-v1',eligible:true};await store.insert('simulation-eligibility',eligibility.id,TEST_ORG,eligibility,{seasonId:'season',ownerId:TEST_USER});
+ expect(await (await request('/api/v1/profile/me/avatar','PUT',{honorKey:key})).json()).toMatchObject({avatarHonorKey:key});
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.eligible',json('false')) WHERE kind='simulation-eligibility' AND id=? AND org_id=?").bind(eligibility.id,TEST_ORG).run();
+ expect(await (await request('/api/v1/profile/me')).json()).toMatchObject({avatarHonorKey:null});expect(await (await request(`/api/v1/profile/identities?userId=${TEST_USER}`)).json()).toEqual([{userId:TEST_USER,avatarHonorKey:null}]);expect((await store.get('mastery-honor',id,TEST_ORG))?.value).toEqual(unlock);
 });

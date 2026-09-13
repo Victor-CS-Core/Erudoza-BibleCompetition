@@ -1,12 +1,16 @@
 import { request } from "./client";
 
-export type PracticeCommand = { commandId: string; revision: number; action: string; targetUserId?: string; otherUserId?: string; team?: number; text?: string; answers?: string[]; scheduleId?: string; questionId?: string; points?: number; delivery?: 'Audio' | 'TextFallback' | 'Coach' };
+export type SimulationConfig = {version:1;scope?:'AllAssigned'|'SelectedChapters';preset:'FullEvent'|'ShortPractice'|'Custom';bookKeys:string[];chapters:{bookKey:string;chapter:number}[];includeScripture:boolean;includeIntroductions:boolean;timeMultiplier:1|1.5|2;halfTime:boolean;discussion:'InPerson'|'Chat';audioPresenterId?:string};
+export type SimulationMaterial = {seasonId:string;translation:string;books:{key:string;label:string;chapters:number[]}[];introductionsAvailable:boolean};
+export type SimulationAchievement = {key:string;title:string;requirement:string;seasonId:string;current:number;target:number;earnedAtUtc:string|null};
+export type PracticeCommand = { simulation?:SimulationConfig;teamSize?:number;questionCount?:number; commandId: string; revision: number; action: string; targetUserId?: string; otherUserId?: string; team?: number; text?: string; answers?: string[]; scheduleId?: string; questionId?: string; points?: number; delivery?: 'Audio' | 'TextFallback' | 'Coach' };
 export type PracticeQuestion = { id?: string; contentPackId: string; sourceUnitId: string; prompt: string; kind: string; parts: { acceptedAnswers: string[]; points: number }[]; ordered: boolean; evidence: string; reference: string; version: number };
 export type PracticeAward = { key: string; title: string; seasonId: string };
-export type RoomSummary = { format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; id: string; seasonId: string; teamSize: number; questionCount: number; coached: boolean; status: string; memberCount: number; ownerId: string };
+export type RoomSummary = { simulation?:SimulationConfig; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; id: string; seasonId: string; teamSize: number; questionCount: number; coached: boolean; status: string; memberCount: number; ownerId: string };
 export type PracticeTrend = { pendingCount?: number; provisional?: boolean; scoringVersion?: string; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; seasonId: string; teamSize: number; bookKey: string | null; ruleVersion: string; matches: number; wins: number; draws: number; accuracyHundredths: number; speedHundredths: number; availableHundredths: number; unansweredQuestions: number; averageResponseMs: number; distinctQuestions: number; distinctPassages: number; participatedQuestions: number };
-export type PracticeBootstrap = { trends?: PracticeTrend[]; enabled: boolean; seasons: { id: string; name: string; pbeEnabled?: boolean }[]; players: { id: string; displayName: string }[]; rooms: RoomSummary[]; invitations: { id: string; roomId: string; team?: number; teamCount?:1|2; inviterName: string; expiresAt: string }[]; achievements: PracticeAward[]; questions: { id: string; seasonId: string; published: boolean; question: PracticeQuestion }[] };
+export type PracticeBootstrap = { simulationAchievements?:SimulationAchievement[]; trends?: PracticeTrend[]; enabled: boolean; seasons: { id: string; name: string; pbeEnabled?: boolean }[]; players: { id: string; displayName: string }[]; rooms: RoomSummary[]; invitations: { id: string; roomId: string; team?: number; teamCount?:1|2; inviterName: string; expiresAt: string }[]; achievements: PracticeAward[]; questions: { id: string; seasonId: string; published: boolean; question: PracticeQuestion }[] };
 export type PracticeRoom = {
+  simulation?:SimulationConfig;audioReadingComplete?:boolean;
   coachId?: string | null;
   provisional?:boolean;pendingCount?:number;
   materialUnavailable?: boolean; coachReading?:{questionId:string;coachId:string;completedAtMs:number}|null; coachReadyScribeIds?:string[];
@@ -23,9 +27,11 @@ export type PracticeRoom = {
 const base = (org: string) => `/api/v1/organizations/${encodeURIComponent(org)}/practice`;
 const post = <T>(url: string, body: unknown) => request<T>(url, { method: "POST", body: JSON.stringify(body) });
 export const practiceApi = {
+  simulationMaterial:(org:string,seasonId:string,roomId?:string)=>request<SimulationMaterial>(`${base(org)}/simulation/material?seasonId=${encodeURIComponent(seasonId)}${roomId?`&roomId=${encodeURIComponent(roomId)}`:""}`),
+  simulationAvailability:(org:string,body:{seasonId:string;questionCount:number;teamSize:number;simulation:SimulationConfig;roomId?:string})=>post<{eligibleQuestions:number;requestedQuestions:number;canStart:boolean;reason:string|null}>(`${base(org)}/simulation/availability`,body),
   bootstrap: (org: string) => request<PracticeBootstrap>(`${base(org)}/bootstrap`),
   enabled: (org: string, enabled: boolean) => post<void>(`${base(org)}/enabled`, { enabled }),
-  create: (org: string, body: { format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; seasonId: string; teamSize: number; questionCount: number; coached: boolean; bookKey?: string }) => post<PracticeRoom>(`${base(org)}/rooms`, body),
+  create: (org: string, body: { simulation?:SimulationConfig; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; seasonId: string; teamSize: number; questionCount: number; coached: boolean; bookKey?: string }) => post<PracticeRoom>(`${base(org)}/rooms`, body),
   room: (org: string, id: string) => request<PracticeRoom>(`${base(org)}/rooms/${encodeURIComponent(id)}`),
   command: (org: string, id: string, command: PracticeCommand) => post<PracticeRoom>(`${base(org)}/rooms/${encodeURIComponent(id)}/commands`, command),
   accept: (org: string, id: string, team?: number) => post<PracticeRoom>(`${base(org)}/invitations/${encodeURIComponent(id)}/accept`, { team }),

@@ -34,7 +34,7 @@ public sealed partial class PracticeService
         }
         if (!cleanup && command.Action is not ("submit" or "draft" or "present" or "present-ready" or "ack") && Advance(room)) await Save(row, room, ct);
         // Scheduling and live chat are concurrent streams. Membership-changing commands require revisions.
-        if (command.Action is "move" or "swap" or "remove" or "owner" or "start" or "captain" or "scribe" && command.Revision != room.Revision)
+        if (command.Action is "move" or "swap" or "remove" or "owner" or "start" or "captain" or "scribe" or "configure" or "presenter" && command.Revision != room.Revision)
             throw new DomainException("The room changed. Refresh and try again.");
         var member = room.Members.SingleOrDefault(m => m.UserId == actor.Id);
         var target = room.Members.SingleOrDefault(m => m.UserId == command.TargetUserId);
@@ -45,6 +45,24 @@ public sealed partial class PracticeService
         void RequirePlayer() { if (member is null) throw new PracticeForbiddenException(); }
         switch (command.Action)
         {
+            case "configure":
+                RequireLobby(); RequireOwner();
+                if (!IsSimulation(room)) throw new DomainException("Only versioned simulations can be configured.");
+                var configured = PracticeJson.Read<PracticeRoom>(PracticeJson.Write(room));
+                configured.Simulation = command.Simulation ?? configured.Simulation;
+                configured.TeamSize = command.TeamSize ?? configured.TeamSize;
+                configured.QuestionCount = command.QuestionCount ?? configured.QuestionCount;
+                await ValidateSimulation(org, configured, ct);
+                if (PracticeJson.Write(configured.Simulation) != PracticeJson.Write(room.Simulation) || configured.TeamSize != room.TeamSize || configured.QuestionCount != room.QuestionCount)
+                { room.Simulation = configured.Simulation; room.TeamSize = configured.TeamSize; room.QuestionCount = configured.QuestionCount; ResetReady(room); }
+                break;
+            case "presenter":
+                RequireOwner();
+                if (!IsSimulation(room) || target is null || room.Status != "Lobby" && !(room.Status == "Playing" && room.Phase == "Presentation")) throw new DomainException("Choose a current presenter in the lobby or before readings.");
+                room.Simulation = room.Simulation! with { AudioPresenterId = target.UserId };
+                room.AudioReadingComplete = false; room.PresentationDelivery.Clear(); room.CoachReadyScribeIds.Clear();
+                if (room.Status == "Lobby") ResetReady(room);
+                break;
             case "join":
                 RequireLobby();
                 Join(room, actor, command.Team ?? 1);
@@ -113,6 +131,7 @@ public sealed partial class PracticeService
             case "start":
                 RequireLobby(); if (!owner && !independentCaptain) throw new PracticeForbiddenException();
                 if (room.Members.Count != room.TeamSize * ActiveTeams(room).Length || room.Members.Any(m => !m.Ready)) throw new DomainException("All active teams must be full and ready.");
+                if (IsSimulation(room)) await ValidateSimulation(org, room, ct);
                 if (IsPbe(room)) await SelectPbeRoomQuestions(org, room, ct); else await SelectQuestions(org, room, ct);
                 room.Status = "Playing"; room.ProcessId = runtime.ProcessId;
                 Presentation(room);
@@ -121,7 +140,25 @@ public sealed partial class PracticeService
             case "present-ready":
                 if (!IsPbe(room) || room.Status != "Playing" || room.Phase != "Presentation" || command.QuestionId != Current(room).Id || command.Revision != room.Revision) throw new DomainException("Presentation changed. Refresh and retry.");
                 var scribes = room.Members.Where(m => m.Scribe).Select(m => m.UserId).ToList();
-                if (room.Coached)
+                if (IsSimulation(room) && room.Simulation!.Discussion == "InPerson")
+                {
+                    RequirePlayer();
+                    if (command.Action == "present")
+                    {
+                        if (actor.Id != room.Simulation.AudioPresenterId) throw new PracticeForbiddenException();
+                        if (command.Delivery is not ("Audio" or "TextFallback")) throw new DomainException("Confirm both readings.");
+                        room.AudioReadingComplete = true;
+                        room.PresentationDelivery[actor.Id] = command.Delivery;
+                        if (member!.Scribe && !room.CoachReadyScribeIds.Contains(actor.Id)) room.CoachReadyScribeIds.Add(actor.Id);
+                    }
+                    else
+                    {
+                        if (!member!.Scribe || command.Delivery is not null) throw new PracticeForbiddenException();
+                        if (!room.CoachReadyScribeIds.Contains(actor.Id)) room.CoachReadyScribeIds.Add(actor.Id);
+                    }
+                    if (room.AudioReadingComplete && scribes.All(room.CoachReadyScribeIds.Contains)) { Schedule(room); room.Acknowledged = scribes; }
+                }
+                else if (room.Coached)
                 {
                     if (command.Action == "present")
                     {
@@ -172,10 +209,10 @@ public sealed partial class PracticeService
                 if (room.Acknowledged.Count != ActiveTeams(room).Length || ingress < room.ResponseTimestamp) throw new DomainException("The shared response window has not started.");
                 ValidateAnswers(room, command.Answers);
                 var elapsed = runtime.Elapsed(room.ResponseTimestamp, ingress);
-                if (elapsed > TimeSpan.FromSeconds(Duration(Current(room))))
+                if (elapsed > TimeSpan.FromSeconds(Duration(room, Current(room))))
                 {
                     if (original is null) AddSubmission(room, member.Team, actor.Id, room.Drafts.GetValueOrDefault(member.Team) ?? [],
-                        TimeSpan.FromSeconds(Duration(Current(room))), true);
+                        TimeSpan.FromSeconds(Duration(room, Current(room))), true);
                     break;
                 }
                 if (original is not null)
@@ -184,7 +221,7 @@ public sealed partial class PracticeService
                 }
                 AddSubmission(room, member.Team, actor.Id, command.Answers!, elapsed, false);
                 Contribute(room, actor.Id, true);
-                if (IsPbe(room) && room.Submissions.Count(s => s.QuestionId == Current(room).Id) == ActiveTeams(room).Length) { Phase(room, "Review", 10); if (room.Coached) room.PhaseEndsAt = null; } else Advance(room);
+                if (IsPbe(room) && room.Submissions.Count(s => s.QuestionId == Current(room).Id) == ActiveTeams(room).Length) { LockAnswers(room); } else Advance(room);
                 break;
             case "chat":
                 RequirePlayer();
@@ -254,6 +291,7 @@ public sealed partial class PracticeService
         room.Questions = selected.Take(room.QuestionCount).ToList(); room.Reserves = selected.Skip(room.QuestionCount).ToList();
     }
     private static int Points(PracticeQuestion question) => question.Parts.Sum(p => p.Points);
+    private static double Duration(PracticeRoom room, PracticeQuestion question) => (20 + Points(question) * 5) * (IsSimulation(room) ? room.Simulation!.TimeMultiplier : 1);
     private static int Duration(PracticeQuestion question) => 20 + Points(question) * 5;
     private static PracticeQuestion Current(PracticeRoom room) => room.Questions[room.QuestionIndex];
     private static void ValidateAnswers(PracticeRoom room, string[]? answers)
@@ -263,9 +301,9 @@ public sealed partial class PracticeService
     }
     private void RequireResponse(PracticeRoom room, PracticeMember member, long ingress)
     {
-        if (IsPbe(room) && room.Phase == "Scheduled" && room.Acknowledged.Count == ActiveTeams(room).Length && ingress >= room.ResponseTimestamp) { room.Phase = "Response"; room.PhaseTimestamp = room.ResponseTimestamp; room.PhaseEndsAt = room.ResponseStartsAt!.Value.AddSeconds(Duration(Current(room))); }
+        if (IsPbe(room) && room.Phase == "Scheduled" && room.Acknowledged.Count == ActiveTeams(room).Length && ingress >= room.ResponseTimestamp) { room.Phase = "Response"; room.PhaseTimestamp = room.ResponseTimestamp; room.PhaseEndsAt = room.ResponseStartsAt!.Value.AddSeconds(Duration(room, Current(room))); }
         if (!member.Scribe || room.Phase != "Response" || ingress < room.ResponseTimestamp
-            || runtime.Elapsed(room.ResponseTimestamp, ingress) > TimeSpan.FromSeconds(Duration(Current(room))))
+            || runtime.Elapsed(room.ResponseTimestamp, ingress) > TimeSpan.FromSeconds(Duration(room, Current(room))))
             throw new DomainException("Only the scribe can edit during the response window.");
     }
     private static void Contribute(PracticeRoom room, Guid actor, bool scribe)

@@ -19,9 +19,11 @@ public sealed class MasteryHonorService(IErudozaDbContext db)
     {
         var person = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.Id == user && u.IsActive && db.OrganizationMembers.Any(m => m.OrganizationId == org && m.UserId == user), ct)
             ?? throw new DomainException("Profile was not found.");
-        var unlocks = await db.MasteryHonorUnlocks.AsNoTracking().Where(x => x.OrganizationId == org && x.UserId == user && x.RuleVersion == MasteryHonorRules.Version).ToListAsync(ct);
+        var unlocks = await db.MasteryHonorUnlocks.AsNoTracking().Where(x => x.OrganizationId == org && x.UserId == user && (x.RuleVersion == MasteryHonorRules.Version || x.RuleVersion == SimulationHonorRules.Version)).ToListAsync(ct);
+        var eligible = await SimulationEligibility(org, [user], ct);
+        unlocks.RemoveAll(u => u.RuleVersion == SimulationHonorRules.Version && !eligible.Contains((u.UserId, u.Key)));
         var selected = await db.ProfileAvatarSelections.AsNoTracking().SingleOrDefaultAsync(x => x.OrganizationId == org && x.UserId == user, ct);
-        return new(user, person.DisplayName, Avatar(selected, unlocks), MasteryHonorRules.Catalog.Select(d => new MasteryHonorOption(d.Key, d.Title, d.Requirement, d.Category, MasteryHonorRules.Version, unlocks.SingleOrDefault(x => x.Key == d.Key)?.EarnedAtUtc)).ToArray());
+        return new(user, person.DisplayName, Avatar(selected, unlocks), MasteryHonorRules.Catalog.Concat(SimulationHonorRules.Catalog).Select(d => new MasteryHonorOption(d.Key, d.Title, d.Requirement, d.Category, Version(d.Key), unlocks.SingleOrDefault(x => x.Key == d.Key)?.EarnedAtUtc)).ToArray());
     }
 
     public async Task<UserHonorProfile> SelectAsync(Guid org, Guid user, string? key, CancellationToken ct)
@@ -30,8 +32,10 @@ public sealed class MasteryHonorService(IErudozaDbContext db)
         MasteryHonorUnlock? unlock = null;
         if (key is not null)
         {
-            if (!MasteryHonorRules.Catalog.Any(d => d.Key == key)) throw new DomainException("Choose an available mastery Honor.");
-            unlock = await db.MasteryHonorUnlocks.SingleOrDefaultAsync(x => x.OrganizationId == org && x.UserId == user && x.Key == key && x.RuleVersion == MasteryHonorRules.Version, ct)
+            if (!MasteryHonorRules.Catalog.Concat(SimulationHonorRules.Catalog).Any(d => d.Key == key)) throw new DomainException("Choose an available mastery Honor.");
+            if (Version(key) == SimulationHonorRules.Version && !(await SimulationEligibility(org, [user], ct)).Contains((user, key))) throw new MasteryHonorLockedException("This simulation Honor is not currently qualified.");
+            var version = Version(key);
+            unlock = await db.MasteryHonorUnlocks.SingleOrDefaultAsync(x => x.OrganizationId == org && x.UserId == user && x.Key == key && x.RuleVersion == version, ct)
                 ?? throw new MasteryHonorLockedException("Earn this mastery Honor before using it as your profile image.");
         }
         var selection = await db.ProfileAvatarSelections.SingleOrDefaultAsync(x => x.OrganizationId == org && x.UserId == user, ct);
@@ -55,10 +59,18 @@ public sealed class MasteryHonorService(IErudozaDbContext db)
         var selected = await db.ProfileAvatarSelections.AsNoTracking().Where(x => x.OrganizationId == org && users.Contains(x.UserId)).ToListAsync(ct);
         var proofIds = selected.Where(x => x.UnlockId.HasValue).Select(x => x.UnlockId!.Value).ToArray();
         var unlocks = await db.MasteryHonorUnlocks.AsNoTracking().Where(x => x.OrganizationId == org && proofIds.Contains(x.Id)).ToListAsync(ct);
+        var eligible = await SimulationEligibility(org, users, ct);
+        unlocks.RemoveAll(u => u.RuleVersion == SimulationHonorRules.Version && !eligible.Contains((u.UserId, u.Key)));
         return users.Select(user => new PublicHonorIdentity(user, Avatar(selected.SingleOrDefault(x => x.UserId == user), unlocks))).ToArray();
     }
 
-    private static string? Avatar(ProfileAvatarSelection? selected, IReadOnlyList<MasteryHonorUnlock> unlocks) => selected is not null && selected.RuleVersion == MasteryHonorRules.Version && MasteryHonorRules.Catalog.Any(d => d.Key == selected.HonorKey) && unlocks.Any(u => u.Id == selected.UnlockId && u.OrganizationId == selected.OrganizationId && u.UserId == selected.UserId && u.Key == selected.HonorKey && u.RuleVersion == selected.RuleVersion) ? selected.HonorKey : null;
+    private static string Version(string? key) => key?.StartsWith("simulation:", StringComparison.Ordinal) == true ? SimulationHonorRules.Version : MasteryHonorRules.Version;
+    private async Task<HashSet<(Guid, string)>> SimulationEligibility(Guid org, IReadOnlyList<Guid> users, CancellationToken ct)
+    {
+        var rows = await db.PbeTrainingRecords.AsNoTracking().Where(r => r.OrganizationId == org && r.Kind == "simulation-eligibility" && r.OwnerId.HasValue && users.Contains(r.OwnerId.Value)).ToListAsync(ct);
+        return rows.Select(r => (r.OwnerId!.Value, JsonSerializer.Deserialize<JsonElement>(r.DataJson).GetProperty("key").GetString()!)).ToHashSet();
+    }
+    private static string? Avatar(ProfileAvatarSelection? selected, IReadOnlyList<MasteryHonorUnlock> unlocks) => selected is not null && selected.RuleVersion == Version(selected.HonorKey) && MasteryHonorRules.Catalog.Concat(SimulationHonorRules.Catalog).Any(d => d.Key == selected.HonorKey) && unlocks.Any(u => u.Id == selected.UnlockId && u.OrganizationId == selected.OrganizationId && u.UserId == selected.UserId && u.Key == selected.HonorKey && u.RuleVersion == selected.RuleVersion) ? selected.HonorKey : null;
 
     public async Task RecordAsync(Guid org, Guid user, Guid season, DateTimeOffset at, IEnumerable<MasteryQualification> qualifications, CancellationToken ct)
     {
