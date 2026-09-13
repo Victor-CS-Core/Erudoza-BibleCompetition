@@ -63,6 +63,7 @@ node docs/brand/2026-09-13-profile-characters/verify-refinement.mjs
 node docs/brand/2026-09-13-profile-characters/verify-selector-previews.mjs
 node docs/brand/2026-09-13-profile-characters/verify-backgrounds.mjs
 node docs/brand/2026-09-13-profile-characters/verify-share.mjs
+node docs/brand/2026-09-13-profile-characters/verify-native-share.mjs
 node docs/brand/2026-09-13-profile-characters/verify-attire-scale.mjs
 node docs/brand/2026-09-13-profile-characters/verify-skin-sash.mjs
 python docs/brand/2026-09-13-profile-characters/verify-cutout-edges.py
@@ -114,8 +115,16 @@ The verification script uses existing `sharp` plus the independent jsQR decoder;
 
 Master Guide's inconsistent height came from different source neck-to-sole distances. The male version was 66–74px shorter and the female version 52–53px taller across hairstyles. `bodyFrame` now uniformly scales each garment, sash and all three Honors together to the corresponding Pathfinder neck/ground reference; the same head placement is used for either attire. A shared 32px top inset also prevents the tallest hairstyle from clipping. All twelve pairs now differ by at most one rendered pixel in height. Original art and transparent headshots remain unchanged. Inspect the [male attire pairs](refinement/male-attire-scale.png), [female attire pairs](refinement/female-attire-scale.png) and [24 collar joins](refinement/neckline-review.png).
 
+## Native phone sharing
+
+On secure pages in browsers that support PNG file sharing, **Share image** opens the device's native sharing interface. The phone supplies the destinations, such as AirDrop or installed messaging apps, according to its capabilities and settings. Download remains available; browsers without file-sharing support show Download as the primary action. Canceling leaves the card unchanged and does not trigger a download. A sharing error offers a manual download fallback.
+
+The editor prepares the current 1200×1600 PNG after changes settle, before enabling Share. The tap invokes `navigator.share` immediately with that file, preserving the required user activation. Generation keys discard stale encoding callbacks after edits. Pathfinder and Master Guide use descriptive filenames. Only the composed PNG is sent: hidden usernames, wordmarks and QR codes are not reintroduced as separate share text, titles or URLs. Pending sharing disables duplicate share/download actions. Implementation follows the [W3C Web Share specification](https://www.w3.org/TR/web-share/) and [file capability detection](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/canShare).
+
+The dedicated local Chromium test substitutes only the OS-sharing API boundary and verifies the actual rendered PNG, active tap, cancellation, failures, stale encodings, duplicate-action protection, Master Guide and missing/unsupported/blocked API fallbacks. It checks 390px and 320px layouts with touch input; the existing Share/visibility/export regressions also pass. This does not establish actual iPhone/AirDrop or Android target delivery. Physical-device acceptance remains to be performed on an HTTPS-hosted review; a phone cannot access this computer's loopback URL.
+
 ## Approval and product boundary
 
-This remains an interactive design review with in-memory selections, not production profile functionality. Master Guide is exposed for comparison here; role authorization and earned-only Honor eligibility will use the existing account system during product integration. No account API calls, saves, production avatar propagation or native sharing have been added. Download creates a local 1200×1600 PNG.
+This remains an interactive design review with in-memory selections, not production profile functionality. Master Guide is exposed for comparison here; role authorization and earned-only Honor eligibility will use the existing account system during product integration. No account API calls, saves or production avatar propagation have been added. Download creates a local 1200×1600 PNG; supported devices can share the same file through their native menu.
 
 Head sprites have small generated differences in face geometry; they are not yet interchangeable hair-only layers over one pixel-identical face. The original reference pose and uniform are not recreated exactly. Final art approval, account persistence, eligibility/coach enforcement and live profile integration remain future work. Commit/push verification does not establish a deployment.

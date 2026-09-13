@@ -8,17 +8,22 @@ import {addPlacement,cardSize,constrainPlacement,paintShareCard,recordShare,redo
 const patchTransfer='application/x-erudoza-patch';
 type Props={config:Configuration;profile:ShareProfile;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onBackground:(background:Background)=>void;onEdit:()=>void;onError:(message:string)=>void};
 type Drag={pointerId:number;key:string;startX:number;startY:number;original:Placement;before:Placement[];next:Placement[];handle:HTMLButtonElement};
+type PreparedImage={key:string;file:File;nativeShare:boolean};
 
 export function ShareEditor({config,profile,collection,history,setHistory,options,setOptions,onBackground,onEdit,onError}:Props){
  const canvasRef=useRef<HTMLCanvasElement>(null),stageRef=useRef<HTMLDivElement>(null),drag=useRef<Drag|null>(null);
  const [selected,setSelected]=useState<string|null>(null),[draft,setDraft]=useState<Placement[]|null>(null);
- const [hovering,setHovering]=useState(false),[message,setMessage]=useState(''),[exporting,setExporting]=useState(false);
+ const [hovering,setHovering]=useState(false),[message,setMessage]=useState(''),[sharing,setSharing]=useState(false);
+ const [prepared,setPrepared]=useState<PreparedImage|null>(null),sharePending=useRef(false);
  const [resources,setResources]=useState<{key:string;base:HTMLCanvasElement;art:Map<string,HTMLImageElement>}|null>(null),[drawnKey,setDrawnKey]=useState('');
  const resourceKey=JSON.stringify([config,collection]),patches=draft??history.present;
  const available=unlockedPatches(collection),footer=shareFooter(options),visible=patches.filter(p=>available.some(a=>a.key===p.key)).map(p=>constrainPlacement(p,footer));
  const renderKey=JSON.stringify([resourceKey,visible,options,profile.userName]),ready=resources?.key===resourceKey&&drawnKey===renderKey;
  const selection=visible.find(p=>p.key===selected),selectedArt=available.find(p=>p.key===selected);
  const selectedIndex=visible.findIndex(p=>p.key===selected);
+ const fileReady=ready&&!draft&&prepared?.key===renderKey;
+ const nativeShareAPI=window.isSecureContext&&typeof navigator.share==='function'&&typeof navigator.canShare==='function';
+ const offerNativeShare=nativeShareAPI&&(prepared?.nativeShare??true);
 
  useEffect(()=>{
   let active=true;
@@ -31,6 +36,23 @@ export function ShareEditor({config,profile,collection,history,setHistory,option
   if(resources?.key!==resourceKey||!canvasRef.current)return;
   paintShareCard(canvasRef.current,resources.base,visible,resources.art,profile,options);setDrawnKey(renderKey);
  },[resources,resourceKey,renderKey]);
+ useEffect(()=>{
+  if(!ready||draft)return;
+  let active=true;
+  // Prepare the current PNG before a tap: no asynchronous encoding may delay navigator.share().
+  // Debounce rapid edits and avoid encoding every frame of a patch drag.
+  const timer=window.setTimeout(()=>{
+   try{canvasRef.current?.toBlob(blob=>{
+    if(!active)return;
+    if(!blob){onError('Unable to prepare your image. Please try changing the card again.');return;}
+    const file=new File([blob],config.attire==='coach'?'master-guide.png':'pathfinder.png',{type:'image/png'});
+    let nativeShare=false;
+    try{nativeShare=nativeShareAPI&&navigator.canShare({files:[file]});}catch{/* Download remains available when the browser blocks native sharing. */}
+    setPrepared({key:renderKey,file,nativeShare});
+   },'image/png');}catch{if(active)onError('Unable to prepare your image. Please try changing the card again.');}
+  },100);
+  return()=>{active=false;window.clearTimeout(timer);};
+ },[ready,renderKey,Boolean(draft),config.attire,nativeShareAPI,onError]);
  useEffect(()=>{
   function escape(event:KeyboardEvent){if(event.key==='Escape'&&drag.current){event.preventDefault();cancelDrag();}}
   function blur(){if(drag.current)cancelDrag();}
@@ -58,14 +80,22 @@ export function ShareEditor({config,profile,collection,history,setHistory,option
  }
  function endDrag(event:ReactPointerEvent<HTMLButtonElement>){const active=drag.current;if(!active||active.pointerId!==event.pointerId)return;drag.current=null;commit(active.next);setDraft(null);if(active.handle.hasPointerCapture(active.pointerId))active.handle.releasePointerCapture(active.pointerId);}
  function cancelDrag(){const active=drag.current;drag.current=null;setDraft(null);if(active?.handle.hasPointerCapture(active.pointerId))active.handle.releasePointerCapture(active.pointerId);}
- async function download(){
-  if(!ready||!resources)return;setExporting(true);setMessage('');onError('');
+ function download(){
+  if(!fileReady||!prepared||sharePending.current)return;setMessage('');onError('');
   try{
-   // Snapshot the same scene and placements currently shown; later edits cannot alter this download.
-   const canvas=document.createElement('canvas');paintShareCard(canvas,resources.base,visible,resources.art,profile,options);
-   const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Unable to create image.')),'image/png'));
-   const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`erudoza-${config.style}-sash-review.png`;link.click();setTimeout(()=>URL.revokeObjectURL(url),60000);setMessage('Your card is downloaded and ready to share.');
-  }catch(e){onError(e instanceof Error?e.message:'Unable to download image.');}finally{setExporting(false);}
+   const url=URL.createObjectURL(prepared.file),link=document.createElement('a');link.href=url;link.download=`erudoza-${config.style}-sash-review.png`;link.click();setTimeout(()=>URL.revokeObjectURL(url),60000);setMessage('Your card is downloaded and ready to share.');
+  }catch{onError('Unable to download your image. Please try again.');}
+ }
+ async function shareImage(){
+  if(!fileReady||!prepared?.nativeShare||sharePending.current)return;
+  sharePending.current=true;setSharing(true);setMessage('');onError('');
+  try{
+   // Call directly from the tap, passing only the composed file. Hidden names/QR stay hidden.
+   await navigator.share({files:[prepared.file]});
+   setMessage('Your image was passed to your device’s share menu.');
+  }catch(error){
+   if(!(error instanceof DOMException&&error.name==='AbortError'))setMessage('Couldn’t open sharing. Download the image, then share it from your photos or files.');
+  }finally{sharePending.current=false;setSharing(false);}
  }
 
  return <div className="share-layout">
@@ -91,7 +121,7 @@ export function ShareEditor({config,profile,collection,history,setHistory,option
     </div>
    </div>
    <p id="share-drag-help" className="help share-card-caption">Drag a patch onto your card, or tap a patch to add it.</p>
-   <p className="ds-caption share-card-caption">Portrait PNG · 1200 × 1600 · Ready to share</p>
+   <p className="ds-caption share-card-caption">Portrait PNG · 1200 × 1600 · {fileReady?'Ready to share':'Preparing image…'}</p>
   </Panel>
   <div className="editor-panels share-tools">
    <Panel className="ds-inverse-surface share-intro"><div><span className="ds-eyebrow">Made for your journey</span><h2>Collect. Create. Share.</h2><p className="ds-caption">Give your Pathfinder a card of its own with the patches you’ve earned.</p></div>{available[0]&&<PatchArtwork src={available[0].src} size={76} loading="eager"/>}</Panel>
@@ -113,7 +143,7 @@ export function ShareEditor({config,profile,collection,history,setHistory,option
     <p id="share-keyboard-help" className="ds-caption">Keyboard: use arrow keys to move a selected patch. Hold Shift for bigger steps. Delete removes it.</p>
    </Panel>
    <Panel><h2>Set the scene</h2><div className="background-options share-backgrounds">{backgrounds.map(b=><Button key={b.key} variant={config.background===b.key?'primary':'secondary'} aria-pressed={config.background===b.key} onClick={()=>onBackground(b.key)}><img src={b.thumbnail} alt=""/>{b.name}</Button>)}</div></Panel>
-   <Panel><Button className="wide-action" disabled={exporting||!ready} onClick={download}>{exporting?'Preparing image…':'Download review image'}</Button><Button variant="ghost" className="wide-action" onClick={onEdit}>Edit character</Button><p className="help">Card decorations don’t change your profile image or the three Honors on your sash.</p><p className="share-status help" role="status" aria-live="polite">{message}</p></Panel>
+   <Panel><div className="share-export-actions">{offerNativeShare&&<Button className="wide-action" disabled={sharing||!fileReady} onClick={shareImage}>{sharing?'Sharing…':'Share image'}</Button>}<Button className="wide-action" variant={offerNativeShare?'secondary':'primary'} disabled={sharing||!fileReady} onClick={download}>Download review image</Button></div><p className="help">{offerNativeShare?'Choose an app or nearby device from your device’s sharing menu.':'Download your card to share it from your photos or files.'}</p><Button variant="ghost" className="wide-action" disabled={sharing} onClick={onEdit}>Edit character</Button><p className="help">Card decorations don’t change your profile image or the three Honors on your sash.</p><p className="share-status help" role="status" aria-live="polite">{message}</p></Panel>
   </div>
  </div>;
 }

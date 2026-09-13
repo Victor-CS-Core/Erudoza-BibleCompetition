@@ -1,5 +1,5 @@
 // Intentional deliverables from the real UI. Run against the loopback review server.
-import {chromium} from '@playwright/test';
+import {chromium,expect} from '@playwright/test';
 const root=new URL('.',import.meta.url),browser=await chromium.launch();
 const page=await browser.newPage({viewport:{width:1440,height:1180}});
 const ready=()=>page.waitForFunction(()=>document.querySelector('canvas[data-ready=true]')&&[...document.querySelectorAll('.hair-thumbnail')].every(t=>t.getAttribute('aria-busy')==='false'));
@@ -10,6 +10,7 @@ try{
  await page.screenshot({path:new URL('refinement/low-bun-character.png',root).pathname,fullPage:true});
  await page.getByRole('navigation').getByRole('button',{name:'Share',exact:true}).click();await ready();
  await choose('Add Chapter strong patch');await page.getByRole('slider',{name:'Patch rotation'}).fill('-15');await ready();await choose('Add First fellowship patch');await page.getByRole('slider',{name:'Patch rotation'}).fill('10');await ready();
+ await expect(page.getByRole('button',{name:'Download review image',exact:true})).toBeEnabled();
  await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:new URL('share-customized-review.png',root).pathname,fullPage:true});
  const pending=page.waitForEvent('download');await choose('Download review image');await (await pending).saveAs(new URL('share-customized-export.png',root).pathname);
  await page.setViewportSize({width:390,height:844});await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:new URL('share-mobile-review.png',root).pathname,fullPage:true});

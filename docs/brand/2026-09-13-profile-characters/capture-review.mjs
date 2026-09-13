@@ -1,5 +1,5 @@
 // Capture review artifacts from the actual UI, with the repo served on :5187.
-import {chromium} from '@playwright/test';
+import {chromium,expect} from '@playwright/test';
 import {writeFile} from 'node:fs/promises';
 const root=new URL('.',import.meta.url),browser=await chromium.launch();
 const page=await browser.newPage({viewport:{width:1536,height:1080}});
@@ -9,7 +9,7 @@ const nav=async name=>{await page.getByRole('navigation').getByRole('button',{na
 const choose=async name=>{await page.getByRole('button',{name,exact:true}).click();await ready();};
 await ready();
 for(const section of ['Profile','Character','Honors','Share']){
- await nav(section);await page.screenshot({path:new URL(`${section.toLowerCase()}-review.png`,root).pathname,fullPage:true});
+ await nav(section);if(section==='Share')await expect(page.getByRole('button',{name:'Download review image',exact:true})).toBeEnabled();await page.screenshot({path:new URL(`${section.toLowerCase()}-review.png`,root).pathname,fullPage:true});
 }
 await nav('Character');
 const styles={Male:['Short curls','Side part','Textured quiff','Buzz cut','Swept waves','Short locs'],Female:['Curly bob','Straight bob','High ponytail','Two braids','Natural curls','Low bun']};
