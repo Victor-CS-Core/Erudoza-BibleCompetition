@@ -36,7 +36,7 @@ npm run lint --workspace @erudoza/web
 git diff --check
 ```
 
-The existing bundle-size advisory remains. Canonical .NET source is unchanged; .NET and production-device end-to-end tests were not run for this frontend fix.
+The existing bundle-size advisory remains. Hosted CI exposed a pre-existing one-line lambda-brace formatting violation in `MasteryHonorService.cs`. That whitespace-only correction passes the full `dotnet format apps/api/Erudoza.sln --verify-no-changes --severity warn` command. Canonical API behavior is unchanged; local .NET runtime and production-device end-to-end tests were not run for this frontend fix.
 
 Real native browser acceptance uses the isolated full-library fixture, with no production account writes:
 
