@@ -20,22 +20,35 @@ await choose('Clear all three spots');assert.equal(await page.locator('.empty-ri
 await slot(1).selectOption('solo:chapter-strong');await slot(2).selectOption('solo:exact-recall');await ready();
 await nav('Character');
 const matrix=[];
-for(const attire of ['Pathfinder','Master Guide · coach']){
- await choose(attire);
- for(const hair of ['Short curls','Side sweep','Curly bob']){
-  await choose(hair);
-  for(const skin of ['Light','Medium','Deep']){
-   await choose(skin);
-   const variants=[];
-   for(const eyes of ['Brown','Hazel','Blue']){await choose(eyes);variants.push(await snapshot());matrix.push([attire,hair,skin,eyes]);}
-   assert.equal(new Set(variants).size,3,'Eye modifiers must change rendered pixels');
-   // Final blue-eye samples form the visual skin/hairstyle review grid.
-   await page.locator('canvas').screenshot({path:`${output}/${attire==='Pathfinder'?'student':'coach'}-${hair.replaceAll(' ','-')}-${skin}.png`});
+const chooseIn=async(group,name)=>{await page.getByRole('group',{name:group,exact:true}).getByRole('button',{name,exact:true}).click();await ready();};
+const styleGroups={Male:['Short curls','Side part','Textured quiff','Buzz cut','Swept waves','Short locs'],Female:['Curly bob','Straight bob','High ponytail','Two braids','Natural curls','Low bun']};
+for(const body of ['Male','Female']){
+ await choose(body);
+ assert.equal(await page.getByRole('group',{name:`${body} hairstyles`,exact:true}).getByRole('button').count(),6);
+ for(const attire of ['Pathfinder','Master Guide · coach']){
+  await choose(attire);
+  for(const hair of styleGroups[body]){
+   await choose(hair);const variants=[];
+   for(const color of ['Red','Black','Brown','Blond']){
+    await chooseIn('Hair color',color);variants.push(await snapshot());matrix.push([body,attire,hair,color]);
+   }
+   assert.equal(new Set(variants).size,4,'Hair colors must change rendered pixels');
+   await page.locator('canvas').screenshot({path:`${output}/${body}-${attire==='Pathfinder'?'student':'coach'}-${hair.replaceAll(' ','-')}-Blond.png`});
   }
  }
 }
+// Both body types remember their own last hairstyle; attire preserves it.
+await choose('Male');assert.equal(await page.getByRole('button',{name:'Short locs',exact:true}).getAttribute('aria-pressed'),'true');
+await choose('Female');assert.equal(await page.getByRole('button',{name:'Low bun',exact:true}).getAttribute('aria-pressed'),'true');
+assert.equal(await page.getByRole('button',{name:'Master Guide · coach',exact:true}).getAttribute('aria-pressed'),'true');
+await choose('Male');await choose('Pathfinder');await choose('Short curls');
+for(const group of ['Skin tone','Eye color']){
+ const variants=[];for(const name of group==='Skin tone'?['Light','Medium','Deep']:['Brown','Hazel','Blue']){await chooseIn(group,name);variants.push(await snapshot());}
+ assert.equal(new Set(variants).size,3,`${group} must change rendered pixels`);
+}
+await chooseIn('Hair color','Brown');
 assert.equal(await page.locator('.avatar img').getAttribute('src'),originalAvatar);
-await choose('Pathfinder');await choose('Short curls');await choose('Medium');await choose('Brown');
+await choose('Pathfinder');await choose('Short curls');await choose('Medium');await chooseIn('Eye color','Brown');
 const bg=[];for(const name of ['Warm studio','Soft sage','Morning sky']){await choose(name);bg.push(await snapshot());}
 assert.equal(new Set(bg).size,3);
 await choose('Warm studio');await page.screenshot({path:`${output}/character-v2.png`,fullPage:true});
@@ -48,16 +61,18 @@ await nav('Share');const downloaded=page.waitForEvent('download');await choose('
 const viewports=[];
 for(const width of [1440,390,320]){
  await page.setViewportSize({width,height:980});
+ for(const body of ['Male','Female']){
  for(const attire of ['Pathfinder','Master Guide · coach']){
-  await nav('Character');await choose(attire);
+  await nav('Character');await choose(body);await choose(attire);
   for(const section of ['Profile','Character','Honors','Share']){
    await nav(section);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,`${width} ${attire} ${section} overflow`);
    assert.equal(await page.locator('img').evaluateAll(imgs=>imgs.every(i=>i.complete&&i.naturalWidth>0)),true);
-   await page.screenshot({path:`${output}/${width}-${attire==='Pathfinder'?'student':'coach'}-${section}.png`,fullPage:true});viewports.push([width,attire,section]);
+   await page.screenshot({path:`${output}/${width}-${body}-${attire==='Pathfinder'?'student':'coach'}-${section}.png`,fullPage:true});viewports.push([width,body,attire,section]);
   }
+ }
  }
 }
 await nav('Honors');await slot(3).focus();assert.equal(await slot(3).evaluate(el=>el===document.activeElement),true);
 await page.getByRole('button',{name:'Search',exact:true}).click();await page.getByRole('textbox',{name:'Search profile pages'}).fill('char');await page.locator('.search-results').getByRole('button',{name:'Character',exact:true}).click();assert.equal(await page.getByRole('heading',{name:'Make your Pathfinder'}).count(),1);
 assert.deepEqual(errors,[]);await browser.close();
-console.log(JSON.stringify({appearanceCombinations:matrix.length,pageViewportChecks:viewports.length,checks:['three live eye colors','three live backgrounds','Honor ordering and duplicate prevention','empty and partial sash slots','independent avatar choices and live portrait','PNG download','page navigation and search','keyboard focus','no overflow or missing images'],errors},null,2));
+console.log(JSON.stringify({appearanceCombinations:matrix.length,pageViewportChecks:viewports.length,checks:['six hairstyle choices per body type','four live hair colors','body-specific hairstyle memory','Master Guide preserves body and hair','three live eye colors','three live backgrounds','Honor ordering and duplicate prevention','empty and partial sash slots','independent avatar choices and live portrait','PNG download','page navigation and search','keyboard focus','no overflow or missing images'],errors},null,2));

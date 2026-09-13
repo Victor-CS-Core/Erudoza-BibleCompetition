@@ -1,0 +1,86 @@
+[
+  {
+    "body": "male",
+    "style": "curls",
+    "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
+    "png_sha256": "a5d6eacbb1c7b3185cc47107595fe4fb99815b8d4c8298b3bf1722a0d6830edc",
+    "transparent_fraction": 0.5654640197753906
+  },
+  {
+    "body": "male",
+    "style": "side-part",
+    "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
+    "png_sha256": "f4bf8035a947904c662f66eeca51e79b5685eae1960690341b41187c58263af0",
+    "transparent_fraction": 0.5903282165527344
+  },
+  {
+    "body": "male",
+    "style": "quiff",
+    "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
+    "png_sha256": "3586018a5442f57617cef016f6ab9d2e004457f76784a7d53076af681b1fc110",
+    "transparent_fraction": 0.56915283203125
+  },
+  {
+    "body": "male",
+    "style": "buzz",
+    "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
+    "png_sha256": "85fb48e0a9f7ace977244af1b9ba30d5030da67c60f9576f4a8737d52face276",
+    "transparent_fraction": 0.5995826721191406
+  },
+  {
+    "body": "male",
+    "style": "waves",
+    "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
+    "png_sha256": "2840592340d66f8385f159ed8f44a5b0bec1a936e6c9a679c1377fa066e6613e",
+    "transparent_fraction": 0.5478096008300781
+  },
+  {
+    "body": "male",
+    "style": "locs",
+    "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
+    "png_sha256": "7bdb33cc9a36dc4ed23062d105762472ef0ccc1de86388308a885fa639570165",
+    "transparent_fraction": 0.5401992797851562
+  },
+  {
+    "body": "female",
+    "style": "curly-bob",
+    "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
+    "png_sha256": "8ae5a5081ed712c92cb7d74ba280e59b978c8e2040312b09adfd5f6a2bb88ff0",
+    "transparent_fraction": 0.5240364074707031
+  },
+  {
+    "body": "female",
+    "style": "straight-bob",
+    "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
+    "png_sha256": "c74916ffd636c4e73d518517ff1611e5522500f7fb365ed9d42bea3719672a22",
+    "transparent_fraction": 0.57073974609375
+  },
+  {
+    "body": "female",
+    "style": "ponytail",
+    "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
+    "png_sha256": "a1ae6be00cb662b90613fecedf4ec2fe8c498764160685c5ee238a604b6adfef",
+    "transparent_fraction": 0.5533447265625
+  },
+  {
+    "body": "female",
+    "style": "braids",
+    "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
+    "png_sha256": "ae1382388e1913079a3b9b9acdc05a82fc26378075c7e3091526a2df13298fc5",
+    "transparent_fraction": 0.5899620056152344
+  },
+  {
+    "body": "female",
+    "style": "natural-curls",
+    "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
+    "png_sha256": "fc2a9ee11ad41b66ddf3ccba36243efd43326856fa7bf1d7b2225c8910e311de",
+    "transparent_fraction": 0.56439208984375
+  },
+  {
+    "body": "female",
+    "style": "low-bun",
+    "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
+    "png_sha256": "847e3e13cfe5019b103b27260722c80fc3ee5f3b544281791aa5bf5e8e94072a",
+    "transparent_fraction": 0.6265716552734375
+  }
+]

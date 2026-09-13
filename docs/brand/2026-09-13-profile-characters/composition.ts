@@ -1,15 +1,13 @@
+import {BodyType,HairColor,appearanceHead,headEyes,bodySources,bodyHeadRegistration} from './hair';
 import {applyAppearance,paintBackground, Skin, Eyes, Background} from './appearance';
-export const styles = ['curls', 'sweep', 'bob'] as const;
-export type Style = typeof styles[number];
 export type Attire = 'student' | 'coach';
-export const styleNames = {curls: 'Short curls', sweep: 'Side sweep', bob: 'Curly bob'};
 export const honors = [
   {key: 'solo:exact-recall', title: 'Exact recall', src: '../../../apps/web/public/assets/training/exact-recall-320.webp'},
   {key: 'solo:chapter-strong', title: 'Chapter strong', src: '../../../apps/web/public/assets/training/chapter-strong-320.webp'},
   {key: 'team:first-fellowship', title: 'First fellowship', src: '../../../apps/web/public/brand/practice/first-fellowship-512.webp'},
 ] as const;
 export type Slots = [string | null, string | null, string | null];
-export type Configuration = {style: Style; attire: Attire; skin: Skin; eyes: Eyes; background: Background; slots: Slots};
+export type Configuration = {bodyType: BodyType; style: string; hairColor: HairColor; attire: Attire; skin: Skin; eyes: Eyes; background: Background; slots: Slots};
 type Point = [number, number];
 type Registration = {shoulder: Point; hip: Point};
 // Individually inspected attachment coordinates in each 1024 × 1536 source.
@@ -50,10 +48,11 @@ function dotted(ctx: CanvasRenderingContext2D, x: number, y: number, radius: num
   }
 }
 export async function renderCharacter(canvas: HTMLCanvasElement, config: Configuration, background: string | null = '#fffefa', quality: 'preview' | 'export' = 'preview') {
-  const name = `${config.attire}-${config.style}`;
+  const name = bodySources[config.bodyType][config.attire];
+  const headName=`${config.bodyType}-${config.style}`;
   const extension = quality==='export' ? '.png' : '-512.webp';
-  const [body, accessory, ...patches] = await Promise.all([
-    loadImage(`prepared/${name}${extension}`), loadImage(`prepared/sash${extension}`),
+  const [body, accessory, head, mask, ...patches] = await Promise.all([
+    loadImage(`prepared/${name}${extension}`), loadImage(`prepared/sash${extension}`), loadImage(`heads/${headName}${quality==='export'?'.png':'.webp'}`), loadImage(`heads/${headName}-mask.png`),
     ...config.slots.map(key => {const h=honors.find(h=>h.key===key); return h ? loadImage(h.src) : Promise.resolve(null);}),
   ]);
   // Render to an offscreen buffer so asynchronous selection changes never
@@ -62,7 +61,14 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
   const ctx = buffer.getContext('2d')!;
   const reg = registration[name];
   const matrix = transform([[205,190],[795,1280]], [reg.shoulder, reg.hip]);
-  ctx.drawImage(applyAppearance(body,name,config.skin,config.eyes),0,0,1024,1536);
+  const pose=bodyHeadRegistration[name],eye=headEyes[headName];
+  const headScale=pose.eyes[2]/(eye[1][0]-eye[0][0]);
+  const headX=pose.eyes[0]-(eye[0][0]+eye[1][0])/2*headScale;
+  const headY=pose.eyes[1]-(eye[0][1]+eye[1][1])/2*headScale;
+  ctx.drawImage(appearanceHead(head,mask,headName,config.skin,config.eyes,config.hairColor),headX,headY,512*headScale,512*headScale);
+  const coloredBody=applyAppearance(body,name,config.skin,config.eyes);
+  const scale=coloredBody.width/1024;
+  ctx.drawImage(coloredBody,0,pose.cut*scale,1024*scale,(1536-pose.cut)*scale,0,pose.cut,1024,1536-pose.cut);
   ctx.save(); ctx.transform(matrix.a,matrix.b,-matrix.b,matrix.a,matrix.x,matrix.y);
   ctx.drawImage(accessory,0,0,1024,1536); ctx.restore();
   const centers: Point[] = [[282,393],[516,720],[741,1048]];
