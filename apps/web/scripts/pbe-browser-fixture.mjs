@@ -31,15 +31,16 @@ export function syntheticStamp(body){
 
 export async function startPbeBrowserFixtureServer({port,runId,insert}){
  if(typeof runId!=='string'||runId.length<16)throw new Error('Explicit browser fixture run identity required.');
- let inserted=false;
+ const inserted=new Set();
  const server=createServer(async(request,response)=>{
   try{
    if(request.method!=='POST'||request.url!=='/seed-pbe-history'){response.writeHead(404).end();return;}
    if(request.headers['x-erudoza-fixture-run']!==runId){response.writeHead(403).end();return;}
-   if(inserted){response.writeHead(409).end();return;}
    const body=await readJson(request),stamp=syntheticStamp(body);
-   await insert(body,stamp);
-   inserted=true;
+   const key=`${body.organizationId}:${body.seasonId}`.toLowerCase();
+   if(inserted.has(key)){response.writeHead(409).end();return;}
+   inserted.add(key);
+   try{await insert(body,stamp);}catch(error){inserted.delete(key);throw error;}
    response.writeHead(201,{'content-type':'application/json'}).end(JSON.stringify({stampId:stamp.stampId,fixture:'synthetic-history'}));
   }catch(error){response.writeHead(400,{'content-type':'application/json'}).end(JSON.stringify({error:error instanceof Error?error.message:'Invalid fixture.'}));}
  });

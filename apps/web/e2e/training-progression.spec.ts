@@ -55,7 +55,7 @@ test('daily training persists full and partial recaps, unique day credit, Honors
   const assignment = await json<{ id: string }>(page.request, `${org}/seasons/${season.id}/assignments`, { studentUserId: student!.userId, contentPackId: pack!.id, type: 'PrimarySpecialist', difficulty: 'Standard', range });
   await json(page.request, `${org}/seasons/${season.id}/activate`, {});
   await page.goto(`/admin/seasons/${season.id}?step=review`);
-  await expect(page.getByTestId('season-status')).toHaveText('Active');
+  await expect(page.locator('.season-planner > .ds-page-header .ds-badge')).toHaveText('Active');
   for (const width of [1440, 390, 320]) {
     await page.setViewportSize({ width, height: 900 });
     await assertNoOverflow(page);

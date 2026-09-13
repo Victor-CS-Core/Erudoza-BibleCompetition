@@ -65,7 +65,7 @@ test("coach command search navigates, retains pins, and exposes nested actions",
   await dialog.getByRole("link", { name: "Create season", exact: true }).click();
   await expect(page).toHaveURL(/\/admin\/seasons\/new$/);
   await expect(page.getByTestId("nav-content")).toHaveCount(1);
-  await expect(page.getByTestId("season-name")).toBeVisible();
+  await expect(page.getByLabel("Season name")).toBeVisible();
   await assertNoOverflow(page);
   await page.screenshot({ path: info.outputPath("coach-command-context.png"), fullPage: true });
 
@@ -86,7 +86,8 @@ test("student navigation remains one click away and excludes coach commands afte
   const dialog = page.getByRole("dialog", { name: "Command center" });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByRole("link", { name: "Students", exact: true })).toHaveCount(0);
-  await expect(dialog.getByRole("link", { name: "Scripture library", exact: true })).toHaveCount(0);
+  await expect(dialog.getByRole("link", { name: "Scripture library", exact: true })).toHaveAttribute("href", /^\/student\/library(?:\?|$)/);
+  await expect(dialog.locator('a[href^="/admin"]')).toHaveCount(0);
   await dialog.getByRole("searchbox", { name: "Search navigation" }).fill("progress");
   await dialog.getByRole("link", { name: "Progress", exact: true }).click();
   await expect(page).toHaveURL(/\/student\/progress$/);

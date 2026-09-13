@@ -27,7 +27,7 @@ it("adds a personal assignment using permitted passages and Standard difficulty"
  await waitFor(() => expect(add).toBeEnabled());
  expect(screen.getByLabelText("Training difficulty")).toHaveValue("Standard");
  fireEvent.click(add);
- await waitFor(() => expect(api.assignMyself).toHaveBeenCalledWith("org", "season", { contentPackId: "pack", type: "PrimarySpecialist", difficulty: "Standard", range }));
+ await waitFor(() => expect(api.assignMyself).toHaveBeenCalledWith("org", "season", { contentPackId: "pack", type: "PrimarySpecialist", difficulty: "Standard", range }, expect.any(AbortSignal)));
  expect(await screen.findByText("Assignments saved.")).toBeInTheDocument();
 });
 it("shows an empty organization without offering season creation", async () => {

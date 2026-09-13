@@ -24,6 +24,7 @@ test('real chapter actions and cooperation stay scoped, private and recoverable 
   const isIdentityRequest = (request: import('@playwright/test').Request) => request.method() === 'GET' && ['/api/v1/me', '/api/v1/profile/me'].includes(new URL(request.url()).pathname);
   let expectedIdentityNavigationAbort = false;
   const expectedIdentityNavigationRequests = new Set<import('@playwright/test').Request>();
+  const pendingIdentityRequests = new Set<import('@playwright/test').Request>();
   const trackResponse = (response: import('@playwright/test').Response) => {
     if (response.status() < 400) return;
     const url = new URL(response.url());
@@ -38,25 +39,31 @@ test('real chapter actions and cooperation stay scoped, private and recoverable 
   page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
   page.on('response', trackResponse);
   page.on('request', request => {
+    if (isIdentityRequest(request)) pendingIdentityRequests.add(request);
     if (expectedIdentityNavigationAbort && isIdentityRequest(request)) expectedIdentityNavigationRequests.add(request);
   });
+  page.on('requestfinished', request => pendingIdentityRequests.delete(request));
   page.on('requestfailed', request => {
+    pendingIdentityRequests.delete(request);
     if (expectedLostStart && request.url().endsWith('/api/v1/study/sessions')) return;
     if (request.failure()?.errorText === 'net::ERR_ABORTED' && request.method() === 'POST' && new URL(request.url()).pathname === '/api/v1/auth/logout') return;
     if (request.failure()?.errorText === 'net::ERR_ABORTED' && /chapters|pbe-cooperation/.test(request.url())) return;
     if (expectedIdentityNavigationRequests.has(request) && request.failure()?.errorText === 'net::ERR_ABORTED' && isIdentityRequest(request)) return;
     unexpectedFailures.push(`${request.method()} ${request.url()} ${request.failure()?.errorText ?? ''}`);
   });
-  const withIdentityNavigation = async (navigate: () => Promise<unknown>) => {
+  const withIdentityNavigation = async (navigate: () => Promise<unknown>, loadsProfile = false) => {
+    // Full navigation can also cancel identity reads started by the departing page.
+    for (const request of pendingIdentityRequests) expectedIdentityNavigationRequests.add(request);
     expectedIdentityNavigationAbort = true;
     try {
-      const successfulIdentity = page.waitForResponse(response => response.status() === 200 && isIdentityRequest(response.request()));
+      const successfulIdentity = page.waitForResponse(response => response.status() === 200 && isIdentityRequest(response.request())
+        && (!loadsProfile || new URL(response.url()).pathname === '/api/v1/profile/me'));
       await Promise.all([navigate(), successfulIdentity]);
     } finally {
       expectedIdentityNavigationAbort = false;
     }
   };
-  const reloadWithIdentity = () => withIdentityNavigation(() => page.reload());
+  const reloadWithIdentity = () => withIdentityNavigation(() => page.reload(), new URL(page.url()).pathname === '/student/honors');
 
   await login(page);
   const fixture = await createChapterBrowserFixture(page.request, info.project.name.startsWith('native'));
@@ -104,7 +111,7 @@ test('real chapter actions and cooperation stay scoped, private and recoverable 
   expect(studentSummaryText).not.toContain(fixture.unassigned.displayName);
   expect(studentSummaryText).not.toContain(fixture.unassignedUsername);
 
-  await page.goto(`/student/progress?seasonId=${fixture.seasonId}`);
+  await withIdentityNavigation(() => page.goto(`/student/progress?seasonId=${fixture.seasonId}`));
   await expect(page.getByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
   await expect(page.getByText('Assigned passages retained', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Current work incomplete', { exact: true }).first()).toBeVisible();
@@ -151,14 +158,14 @@ test('real chapter actions and cooperation stay scoped, private and recoverable 
   await peer.close();
   await unassigned.close();
 
-  await page.goto(`/student/progress?seasonId=${fixture.seasonId}`);
+  await withIdentityNavigation(() => page.goto(`/student/progress?seasonId=${fixture.seasonId}`));
   await expect(page.getByText('Checked snapshot', { exact: true })).toBeVisible();
   await expect(page.getByText(fixture.peer.displayName)).toHaveCount(0);
   await expect(page.getByText(fixture.unassigned.displayName)).toHaveCount(0);
   await capture(page, info, 'student-checked-partial');
 
   await page.setViewportSize({ width: 390, height: 900 });
-  await page.goto(`/student/progress?seasonId=${fixture.seasonId}`);
+  await withIdentityNavigation(() => page.goto(`/student/progress?seasonId=${fixture.seasonId}`));
   const chapterCard = page.locator('article.pbe-chapter-card').filter({ hasText: chapter!.label }).first();
   const practice = chapterCard.getByRole('button', { name: chapter!.actions[0].label, exact: true });
   const starts: unknown[] = [];
@@ -261,7 +268,7 @@ test('real chapter actions and cooperation stay scoped, private and recoverable 
   const continuation = page.waitForRequest(request => request.method() === 'POST' && request.url().endsWith('/progress/me/chapters/continue'));
   await returnToProgress.click();
   await continuation;
-  await withIdentityNavigation(() => page.getByRole('link', { name: 'Honors', exact: true }).click());
+  await withIdentityNavigation(() => page.getByRole('link', { name: 'Honors', exact: true }).click(), true);
   await expect(page).toHaveURL(`/student/honors?seasonId=${fixture.seasonId}`);
   await expect(page.getByRole('heading', { name: 'PBE chapter stamps' })).toBeVisible();
   await page.waitForTimeout(250);

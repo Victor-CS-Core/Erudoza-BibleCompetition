@@ -8,7 +8,7 @@ import { Badge, Button, Input, LinkButton, LoadingState, Notice, Select } from "
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { coordinates, scopePacks, withinRange } from "./passageRanges";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
-import { chapterOptions, saveChapterAssignments } from "./chapterAssignments";
+import { chapterOptions, saveChapterAssignments, withAssignmentTimeout } from "./chapterAssignments";
 import "../../styles/season-planner.css";
 
 export function useSeasonBooks(seasonId: string) {
@@ -35,14 +35,16 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
   const org = me!.organizationId, self = studentId === me!.userId;
   const cache = useQueryClient();
   const data = useSeasonBooks(season.id);
-  const read = () => self ? api.myAssignments(org, season.id) : api.assignments(org, season.id);
-  const query = useQuery({ queryKey: self ? ["my-assignments", org, studentId, season.id] : ["assignments", org, season.id], queryFn: read });
+  const read = (signal?: AbortSignal) => self ? api.myAssignments(org, season.id, signal) : api.assignments(org, season.id, signal);
+  const queryKey = self ? ["my-assignments", org, studentId, season.id] : ["assignments", org, season.id];
+  const query = useQuery({ queryKey, queryFn: ({ signal }) => read(signal) });
   const saved = (query.data ?? []).filter(item => item.studentUserId === studentId);
   const [selected, setSelected] = useState<string[]>([]);
   const [role, setRole] = useState("PrimarySpecialist");
   const [difficultyEdit, setDifficulty] = useState<TrainingDifficulty | null>(null);
   const difficulty = difficultyEdit ?? saved[0]?.difficulty ?? "Standard";
   const [message, setMessage] = useState("");
+  const [saveProgress, setSaveProgress] = useState({ completed: 0, total: 0 });
   const [removing, setRemoving] = useState<string | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const closed = ["Completed", "Archived"].includes(season.status);
@@ -53,18 +55,38 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
   const save = useMutation({
     retry: false,
     mutationFn: async () => {
+      setMessage("");
+      setSaveProgress({ completed: 0, total: selected.length });
+      let completed = 0;
       for (const packId of [...new Set(selected.map(key => key.split("/")[0]))]) {
         const book = data.books.find(book => book.contentPackId === packId)!;
+        let confirmedDifficulty: TrainingDifficulty | undefined;
         const result = await saveChapterAssignments({ selectedChapters: selected.filter(key => key.startsWith(`${packId}/`)).map(key => Number(key.split("/")[1])), eligible: book.units, all: book.all,
           context: { studentId, contentPackId: packId, type: role }, readAssignments: read,
-          assign: range => self ? api.assignMyself(org, season.id, { contentPackId: packId, range, type: role, difficulty }) : api.assign(org, season.id, { studentUserId: studentId, contentPackId: packId, range, type: role, difficulty }),
+          assign: async (range, signal) => {
+            const created = await (self ? api.assignMyself(org, season.id, { contentPackId: packId, range, type: role, difficulty }, signal) : api.assign(org, season.id, { studentUserId: studentId, contentPackId: packId, range, type: role, difficulty }, signal));
+            confirmedDifficulty = created.difficulty;
+            return created;
+          },
+          onProgress: progress => setSaveProgress({ completed: completed + progress.completedChapters.length, total: selected.length }),
         });
+        if (result.assignments) {
+          // Publish confirmed coverage before refreshing so a slow read cannot lock season actions.
+          await cache.cancelQueries({ queryKey, exact: true });
+          cache.setQueryData(queryKey, result.assignments.map(item => item.studentUserId === studentId && confirmedDifficulty ? { ...item, difficulty: confirmedDifficulty } : item));
+        }
+        completed += result.completedChapters.length;
+        setSaveProgress({ completed, total: selected.length });
         if (result.error || result.remainingChapters.length) throw result.error ?? new Error("Some chapters could not be saved. Retry to finish this book.");
       }
-      if (!self && saved.length && difficultyEdit) await api.setDifficulty(org, season.id, studentId, difficulty);
+      if (!self && saved.length && difficultyEdit) {
+        const updated = await withAssignmentTimeout(signal => api.setDifficulty(org, season.id, studentId, difficulty, signal));
+        await cache.cancelQueries({ queryKey, exact: true });
+        cache.setQueryData<Assignment[]>(queryKey, current => current?.map(item => item.studentUserId === studentId ? { ...item, difficulty: updated.difficulty } : item));
+      }
     },
-    onSuccess: async (_, advance: boolean) => { setSelected([]); setDifficulty(null); setMessage("Assignments saved."); onDirtyChange?.(false); await refresh(); if (advance) onNext?.(); },
-    onError: async () => { await refresh(); },
+    onSuccess: (_, advance: boolean) => { setSelected([]); setDifficulty(null); setMessage("Assignments saved."); onDirtyChange?.(false); void refresh(); if (advance) onNext?.(); },
+    onError: () => { void refresh(); },
   });
   const remove = useMutation({ retry: false, mutationFn: async (packId: string) => {
     // Read again on every retry so a partial removal never repeats a successful deletion.
@@ -76,10 +98,11 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
   const pending = save.isPending || remove.isPending;
   const complete = (book: typeof data.books[number], assignments: Assignment[], type = role) => book.units.length > 0 && chapterOptions(book.units, book.all, assignments, { studentId, contentPackId: book.contentPackId, type }).every(chapter => !chapter.remaining.length);
   if (data.loading || query.isPending) return <LoadingState label="Loading assignments…" />;
-  if (data.error || query.error) return <Notice tone="danger">Assignments could not load. <Button onClick={() => { data.retry(); void query.refetch(); }}>Try again</Button></Notice>;
+  if (data.error || (query.error && !query.data)) return <Notice tone="danger">Assignments could not load. <Button onClick={() => { data.retry(); void query.refetch(); }}>Try again</Button></Notice>;
   return <div className="book-assignment-editor">
     <div className="planner-section-heading"><div><div className="planner-person-heading"><ProfileAvatar userId={studentId} displayName={self ? me!.displayName : name} size={40} /><h2 ref={heading} tabIndex={-1}>{name}</h2></div><p>{self ? "Your assigned chapters power your activities in Student Mode." : "Choose chapters from the season books for this student."}</p></div><Badge>{saved.length ? "Assigned" : "Not assigned yet"}</Badge></div>
     {message && <Notice tone="success">{message}</Notice>}
+    {save.isPending && <Notice>{saveProgress.total ? `Saving chapters · ${saveProgress.completed} of ${saveProgress.total} confirmed. Keep this page open.` : "Saving plan settings…"}</Notice>}
     {save.isError && <Notice tone="danger">{save.error.message} Saved assignments are preserved. Retry to finish.</Notice>}
     {closed && <Notice>This season is closed. Assignments and progress are preserved.</Notice>}
     {!data.books.length && <Notice>Choose the season books first.</Notice>}
@@ -103,7 +126,7 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
         <label>Assignment role<Select value={role} onChange={event => { setRole(event.target.value); setSelected([]); }}><option value="PrimarySpecialist">Specialist study</option><option value="RequiredCoverage">Required coverage</option>{self && <option value="OptionalReview">Optional review</option>}</Select></label>
         <label>Training difficulty<Select value={difficulty} onChange={event => setDifficulty(event.target.value as TrainingDifficulty)}>{["Foundation", "Standard", "Advanced"].map(value => <option key={value}>{value}</option>)}</Select></label>
       </div><p>Difficulty applies to future sessions. {self && "Save it together with a chapter assignment."}</p></details>
-      <div className="planner-actions"><Button disabled={!selected.length && (self || !saved.length || !difficultyEdit)} onClick={() => save.mutate(false)}>{pending ? "Saving…" : "Save assignments"}</Button>{nextStudent && <Button variant="secondary" disabled={!selected.length && !(!self && saved.length && difficultyEdit)} onClick={() => save.mutate(true)}>Save & next student →</Button>}</div>
+      <div className="planner-actions"><Button disabled={!selected.length && (self || !saved.length || !difficultyEdit)} onClick={() => save.mutate(false)}>{save.isPending && saveProgress.total ? `Saving ${saveProgress.completed} of ${saveProgress.total}…` : pending ? "Saving…" : "Save assignments"}</Button>{nextStudent && <Button variant="secondary" disabled={!selected.length && !(!self && saved.length && difficultyEdit)} onClick={() => save.mutate(true)}>Save & next student →</Button>}</div>
       {nextStudent && <p className="planner-caption">Next: {nextStudent}</p>}
     </fieldset>
     {!!saved.length && <div className="planner-saved"><h3>Saved books</h3>{data.books.filter(book => saved.some(item => item.contentPackId === book.contentPackId || !item.contentPackId && book.includes.some(range => range.bookKey === item.bookKey))).map(book => <div className="planner-saved-row" key={book.contentPackId}><div><strong>{book.name}</strong><small>{complete(book, saved) ? "Assigned" : `Chapters ${[...new Set(saved.filter(item => item.contentPackId === book.contentPackId || !item.contentPackId && book.includes.some(range => range.bookKey === item.bookKey)).flatMap(item => Array.from({ length: item.endChapter - item.startChapter + 1 }, (_, index) => item.startChapter + index)))].sort((a, b) => a - b).join(", ")} · saved assignments`}</small></div>{!closed && <Button size="compact" variant="ghost" disabled={pending} onClick={() => { remove.reset(); setRemoving(book.contentPackId); }}>Remove<span className="sr-only"> {book.name}</span></Button>}</div>)}</div>}

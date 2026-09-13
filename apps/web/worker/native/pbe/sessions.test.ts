@@ -181,6 +181,8 @@ it('short completed sessions credit the same daily effort only once across repla
     }
     expect(await store.list('training-day', TEST_ORG, { ownerId: student })).toHaveLength(1);
 });
+// Seeds 5,101 questions and exercises 35 metered HTTP requests.
+// Allow aggregate fixture time on CI; every request retains the 50-statement ceiling.
 it('keeps complete start/serve/aid/submit/retry/recap requests within the query ceiling for a large in-scope bank', async () => {
     const { send, store } = await setup(1);
     const base = await store.require<{
@@ -208,7 +210,7 @@ it('keeps complete start/serve/aid/submit/retry/recap requests within the query 
         expect((await send(`/study/sessions/${s.id}/attempts`, input)).status).toBe(200);
     }
     expect((await send(`/study/sessions/${s.id}/complete`, {})).status).toBe(200);
-});
+}, 30_000);
 it('makes the PBE daily mission and saved recap available on existing training routes', async () => {
     const { send } = await setup(1);
     const today = await send(`/progress/me/today?seasonId=${season}`);

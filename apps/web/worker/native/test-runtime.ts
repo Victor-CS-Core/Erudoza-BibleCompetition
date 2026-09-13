@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile } from "node:fs/promises";
 import { createHash, pbkdf2Sync } from "node:crypto";
 import { build } from "esbuild";
 import { Miniflare, Response as TestServiceResponse } from "miniflare";
@@ -14,6 +14,8 @@ import { readNativeMigrations } from '../../scripts/native-migrations.mjs';
 export const TEST_ORG="11111111-1111-4111-8111-111111111111";
 export const TEST_USER="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 export async function createNativeTestApp(options:{d1Persist?:string;durableObjectsPersist?:string;measureD1?:boolean;onD1Meter?:(meter:{bindingCalls:number;statements:number;methods:Record<string,number>})=>void;beforeD1Statement?:(sql:string)=>Promise<void>;delayAuthentication?:boolean;replaceSoloAuthority?:boolean;replaceRoomAuthority?:boolean;roomTestClock?:boolean;roomStorageDiagnostics?:boolean;beforePasswordHash?:()=>Promise<void>;bindings?:Record<string,string>;outboundService?:(request:TestRequest)=>Promise<TestResponse>}={}) {
+  // Meter reports must also work in a fresh checkout without local artifacts.
+  await mkdir(new URL("../../../../.local/", import.meta.url), { recursive: true });
   // Test-only compilation hook: exercise ingress ordering while authentication waits.
   // No delay header or equivalent bypass is included in the deployed bundle.
   const plugins=options.delayAuthentication||options.beforePasswordHash?[{name:"test-auth-delay",setup(builder:import("esbuild").PluginBuild){builder.onLoad({filter:/native[/\\]auth\.ts$/},async args=>{

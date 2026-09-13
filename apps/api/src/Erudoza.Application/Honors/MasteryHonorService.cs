@@ -77,7 +77,8 @@ public sealed partial class MasteryHonorService(IErudozaDbContext db)
         unlocks.RemoveAll(u => u.RuleVersion == SimulationHonorRules.Version && !eligible.Contains((u.UserId, u.Key)));
         var characterIds = users.Select(u => u.ToString()).ToArray();
         var characters = await db.PbeTrainingRecords.AsNoTracking().Where(r => r.OrganizationId == org && r.Kind == CharacterProfiles.Kind && characterIds.Contains(r.Id)).ToListAsync(ct);
-        return users.Select(user => {
+        return users.Select(user =>
+        {
             var avatarHonorKey = Avatar(selected.SingleOrDefault(x => x.UserId == user), unlocks);
             var portrait = CharacterProfiles.Portrait(CharacterProfiles.Read(characters.SingleOrDefault(r => r.Id == user.ToString()), user), avatarHonorKey);
             return new PublicHonorIdentity(user, avatarHonorKey, portrait.Kind, portrait.Head);

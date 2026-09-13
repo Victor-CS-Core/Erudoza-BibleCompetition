@@ -68,7 +68,7 @@ describe("Two-step season planner", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save & next student →" }));
     expect(await screen.findByRole("heading", { name: "Sarah Student" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Daniel Student/ })).toBeInTheDocument();
-    expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-1" }));
+    expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-1" }), expect.any(AbortSignal));
     expect(screen.getByRole("checkbox", { name: /DAN/ })).not.toBeChecked();
   });
   it("keeps selection and student on a failed save", async () => {
@@ -85,7 +85,7 @@ describe("Two-step season planner", () => {
     fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
     fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
     expect(await screen.findByText("Assignments saved.")).toBeInTheDocument();
-    expect(api.assignMyself).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ contentPackId: "pack-1" }));
+    expect(api.assignMyself).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ contentPackId: "pack-1" }), expect.any(AbortSignal));
     expect(api.assign).not.toHaveBeenCalled();
     expect(screen.getByRole("link", { name: "Open Student Mode" })).toHaveAttribute("href", "/student?seasonId=season-1");
   });
@@ -170,4 +170,65 @@ it("retains lifecycle actions for an active season without offering draft save",
   expect(await screen.findByRole("button", { name: "Close season" })).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Archive season" })).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Save as a draft" })).not.toBeInTheDocument();
+});
+
+it("unlocks draft and start after confirmed saves even when background refresh stalls", async () => {
+  renderWizard();
+  fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
+  vi.mocked(api.assign).mockImplementationOnce(async (_org, _season, input) => {
+    vi.mocked(api.assignments).mockImplementation(() => new Promise(() => {}));
+    vi.mocked(api.season).mockImplementation(() => new Promise(() => {}));
+    return { ...assignment, ...input.range, contentPackId: input.contentPackId };
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
+  expect(await screen.findByText("Assignments saved.")).toBeInTheDocument();
+  await waitFor(() => expect(screen.getByRole("button", { name: "Save as a draft" })).toBeEnabled());
+  expect(screen.getByRole("button", { name: "Start season" })).toBeEnabled();
+  expect(screen.getByRole("checkbox", { name: "Chapter 2" })).toBeChecked();
+  expect(screen.getByRole("checkbox", { name: "Chapter 2" })).toBeDisabled();
+});
+
+it("keeps a failed save retryable when reconciliation and background refresh also fail", async () => {
+  renderWizard();
+  fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
+  vi.mocked(api.assign).mockImplementationOnce(async () => {
+    vi.mocked(api.assignments).mockRejectedValue(new Error("Readback offline"));
+    vi.mocked(api.season).mockRejectedValue(new Error("Season refresh offline"));
+    throw new Error("Write response lost");
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Write response lost");
+  await waitFor(() => expect(screen.getByRole("button", { name: "Save assignments" })).toBeEnabled());
+  expect(screen.getByRole("checkbox", { name: /DAN/ })).toBeChecked();
+  expect(screen.getByRole("button", { name: "Start season" })).toBeDisabled();
+});
+
+it("retains confirmed difficulty for subsequent saves while refresh stalls", async () => {
+  vi.mocked(api.assignments).mockResolvedValue([assignment]);
+  renderWizard();
+  await screen.findByRole("heading", { name: "Daniel Student" });
+  fireEvent.change(screen.getByLabelText("Training difficulty"), { target: { value: "Advanced" } });
+  vi.mocked(api.setDifficulty).mockImplementationOnce(async () => {
+    vi.mocked(api.assignments).mockImplementation(() => new Promise(() => {}));
+    return { difficulty: "Advanced" };
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
+  await screen.findByText("Assignments saved.");
+  expect(screen.getByLabelText("Training difficulty")).toHaveValue("Advanced");
+});
+
+it("keeps coach difficulty confirmed by a new chapter when refresh stalls", async () => {
+  const existing = { ...assignment, ...{ bookKey: "EPH", startChapter: 1, endChapter: 1, startVerse: 1, endVerse: 3 }, studentUserId: "coach", contentPackId: "eph" };
+  vi.mocked(api.myAssignments).mockResolvedValue([existing]);
+  vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 3 }], excludes: [] });
+  renderWizard("/admin/seasons/season-1?step=students&studentId=coach");
+  fireEvent.click(await screen.findByRole("checkbox", { name: "Chapter 2" }));
+  fireEvent.change(screen.getByLabelText("Training difficulty"), { target: { value: "Advanced" } });
+  vi.mocked(api.assignMyself).mockImplementationOnce(async (_org, _season, input) => {
+    vi.mocked(api.myAssignments).mockImplementation(() => new Promise(() => {}));
+    return { ...existing, id: "new-chapter", ...input.range, difficulty: "Advanced" };
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
+  await screen.findByText("Assignments saved.");
+  expect(screen.getByLabelText("Training difficulty")).toHaveValue("Advanced");
 });
