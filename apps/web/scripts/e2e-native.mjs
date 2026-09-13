@@ -8,6 +8,7 @@ import {Miniflare} from 'miniflare';
 import {createServer} from 'node:http';
 import {loadLibrary,seedStatements} from './nkjv-library.mjs';
 import {readNativeMigrations} from './native-migrations.mjs';
+import {seedProfileBrowserUnlocks} from './profile-browser-fixture.mjs';
 import {startPbeBrowserFixtureServer} from './pbe-browser-fixture.mjs';
 const root=new URL('../',import.meta.url),origin='http://localhost:8789';
 const password=process.env.ERUDOZA_E2E_PASSWORD;if(!password)throw new Error('Explicit E2E password required.');
@@ -21,6 +22,7 @@ for(const statement of seedStatements(await loadLibrary()))await db.prepare(stat
 const org=randomUUID(),salt=Buffer.alloc(16,7),hash=`pbkdf2:${salt.toString('base64')}:${pbkdf2Sync(password,salt,100000,32,'sha256').toString('base64')}`;
 await db.prepare('INSERT INTO Organizations(id,name,slug) VALUES(?,?,?)').bind(org,'Native browser fixture','native-fixture').run();
 for(const [user,kind,role] of [['admin@erudoza.local','Adult','Owner'],['student.fixture','Student','Student']])await db.prepare('INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)').bind(randomUUID(),org,user,user,kind,role,hash,randomUUID()).run();
+if(process.env.ERUDOZA_PROFILE_FIXTURE==='1')await seedProfileBrowserUnlocks(db,org);
 const pack=randomUUID();
 async function record(kind,id,data,owner=null){await db.prepare('INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES(?,?,?,?,?)').bind(kind,id,org,owner,JSON.stringify(data)).run();}
 await record('pack',pack,{id:pack,packKey:'dev-daniel',version:1,locale:'en',sourceType:'Scripture',licensingStatus:'development-sample',isActive:true,unitCount:12,createdAtUtc:new Date().toISOString()});

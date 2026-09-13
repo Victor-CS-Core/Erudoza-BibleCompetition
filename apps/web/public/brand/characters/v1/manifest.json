@@ -1,0 +1,257 @@
+{
+  "source": "docs/brand/2026-09-13-profile-characters",
+  "files": [
+    {
+      "path": "prepared/student-curls.png",
+      "sha256": "3ae159b71882ae0f4f155cc66c4fc1d5477966c47234de8242678d8f11d33937"
+    },
+    {
+      "path": "prepared/student-curls-512.webp",
+      "sha256": "8ccfd2a0609de29bf1889cc788ee22db7a228709d9f93e09fb9f07b228942143"
+    },
+    {
+      "path": "prepared/student-bob.png",
+      "sha256": "665f2a6c78de24630f984733f9939c484fd95220778cd032abfe6855ed900dc2"
+    },
+    {
+      "path": "prepared/student-bob-512.webp",
+      "sha256": "e836ec26038fb820082e25b5d0d1f95a3468174f08a8cb71d40b1daedfc96a01"
+    },
+    {
+      "path": "prepared/coach-curls.png",
+      "sha256": "2bfe5980b11cb286d4d6f65b235cdfc2dedec794ba6472ef15a4613a2eb40483"
+    },
+    {
+      "path": "prepared/coach-curls-512.webp",
+      "sha256": "e7b29d2cf3de7687efda271551daa32b079206aae9a8469e57988b1f02688e80"
+    },
+    {
+      "path": "prepared/coach-bob.png",
+      "sha256": "420efa20417c86d85e684fa0bdf7b8e4bd7f576decb00b6e8594cab8feb40555"
+    },
+    {
+      "path": "prepared/coach-bob-512.webp",
+      "sha256": "26193f7a03bb126f1cb6d54a25b217d964d0eb5bb6012502e1ae882e2590f565"
+    },
+    {
+      "path": "prepared/sash.png",
+      "sha256": "a0850bd7daaa7012e4d1a417eec137c8c3adb19d181f84ad09058c9f6ed70652"
+    },
+    {
+      "path": "prepared/sash-512.webp",
+      "sha256": "a9e381fd662c54ae6d20f3888a8fe0f20559aff74c6cdf94bf72620fb3245bf0"
+    },
+    {
+      "path": "body-layers/student-curls.png",
+      "sha256": "a91f743070f9393f05cfe44c2cc5847e8be8f83bf60959f098ba7e39200da0f8"
+    },
+    {
+      "path": "body-layers/student-curls.webp",
+      "sha256": "df27b33db879b9775d7b6107eef2e41b7221ce2cc0c45c38e42010c75f9a9fba"
+    },
+    {
+      "path": "body-layers/student-bob.png",
+      "sha256": "c7ba0381748c9e26ae778fdb8af190cb16dde31cf2bd21fc386d79a9f118a34a"
+    },
+    {
+      "path": "body-layers/student-bob.webp",
+      "sha256": "ff39ef7681a37e20a7b6cd275b622982cc6caf18779be62f70ac00a1b31f159d"
+    },
+    {
+      "path": "body-layers/coach-curls.png",
+      "sha256": "c7d22f8cecb69657e400a0c4711058c7f4d2fa8024d4dde1f93431208280116e"
+    },
+    {
+      "path": "body-layers/coach-curls.webp",
+      "sha256": "a0cd2c86a5d6a108b67149d752b7b980740577475aee2c3656e360ce07dbb19b"
+    },
+    {
+      "path": "body-layers/coach-bob.png",
+      "sha256": "221039abf2192ca53249937195eed8c9544a2f00ac8334a475ca5bebfa67a542"
+    },
+    {
+      "path": "body-layers/coach-bob.webp",
+      "sha256": "4f85c0a325cfef812006acb90cc461374baa80dd2960392b530e39df84005e42"
+    },
+    {
+      "path": "heads/female-braids-mask.png",
+      "sha256": "5f14d69dfa72095fa4d372afaf438ef41d78db35a5e1e0788156b1eb4d14f4ac"
+    },
+    {
+      "path": "heads/female-braids.png",
+      "sha256": "aa9f7c4f546ece3dd142294446f6f94e30c65bf52177b859ecd68e911ec9d1f2"
+    },
+    {
+      "path": "heads/female-braids.webp",
+      "sha256": "c0994ffee2aa76dfd344d7c121cc773401e1d2f3b91356a2791934be6c678f53"
+    },
+    {
+      "path": "heads/female-curly-bob-mask.png",
+      "sha256": "a1cbcaef1260df0edf3b931420c327052ef0a621b1f4b28418f7c0484f5c392b"
+    },
+    {
+      "path": "heads/female-curly-bob.png",
+      "sha256": "c06f0868470729998baf472a924a85f7e4393c0da6f6df4e2fb52abcd1a59046"
+    },
+    {
+      "path": "heads/female-curly-bob.webp",
+      "sha256": "9aecf6846cadf57b83101860cd973ee8b826e38742cb1447bed30cd37ff5a2b7"
+    },
+    {
+      "path": "heads/female-low-bun-mask.png",
+      "sha256": "2864d4d0432629d034a04c5fefc3e8e2c88edf10611cadfac47b977b226704af"
+    },
+    {
+      "path": "heads/female-low-bun.png",
+      "sha256": "af49ea2084aa3f718103bb65f8da7fc465a6d9b87bde804c18a051e735fe719e"
+    },
+    {
+      "path": "heads/female-low-bun.webp",
+      "sha256": "a1d387fa7fa406cc12c7af51b1566a98ea2a86025a60a699c95e009d1d3c0d02"
+    },
+    {
+      "path": "heads/female-natural-curls-mask.png",
+      "sha256": "6f9871a3214aeac776c4f4b1c8d1ab2cdd7e171b773a292564486e14219b630a"
+    },
+    {
+      "path": "heads/female-natural-curls.png",
+      "sha256": "dfe58581389f45afd72c3ebd6bb277dcc169a661f9181cbf1e866ec3778c86e5"
+    },
+    {
+      "path": "heads/female-natural-curls.webp",
+      "sha256": "7a646e71ebc32281a954ce19e993514d346defd0f2a5585eb3f927e9277480b1"
+    },
+    {
+      "path": "heads/female-ponytail-mask.png",
+      "sha256": "074290f050751d19df89c2e9d1b5166f7dde4567835ae4dec7abfdc6675bfa79"
+    },
+    {
+      "path": "heads/female-ponytail.png",
+      "sha256": "553479b255ea87f42c9db6db955d207489f79b9e39e85da35441b60fb28ec7ef"
+    },
+    {
+      "path": "heads/female-ponytail.webp",
+      "sha256": "dffa730fc89dcffe16926123fb74c42a910225d23bba90ab669d5d3ab9dd1c1d"
+    },
+    {
+      "path": "heads/female-straight-bob-mask.png",
+      "sha256": "bc29a3ddc014e18ea78e8be377bbb1b945f5d22a3945d4c26b3784ff2183fe42"
+    },
+    {
+      "path": "heads/female-straight-bob.png",
+      "sha256": "f571139fda84dc802b965531469c9f2e9d5c85fc18700b3cc94045016080f847"
+    },
+    {
+      "path": "heads/female-straight-bob.webp",
+      "sha256": "9e289a1c83482ca20b20c8944742080bdb0eb2114b651f153b96d464654b3c12"
+    },
+    {
+      "path": "heads/male-buzz-mask.png",
+      "sha256": "c13c1e8ddf851dfde0301d25ffbddc66392269ba3b0254eb0759e437ed9a845f"
+    },
+    {
+      "path": "heads/male-buzz.png",
+      "sha256": "10347408d84f4c11056238cfeb6cff2550c059e42b97b08141fa9bd2e45bd4c4"
+    },
+    {
+      "path": "heads/male-buzz.webp",
+      "sha256": "9ca4f07227caa3b2829453493018c612cdfa05d30f2fee5324bd481abb7f124f"
+    },
+    {
+      "path": "heads/male-curls-mask.png",
+      "sha256": "407364878cda2cd4516be9df039a0ebd44ca38f5976212fe29f161fef1792218"
+    },
+    {
+      "path": "heads/male-curls.png",
+      "sha256": "af5c34c6dc3252ef60396b6806b0932d961f0d17476aa92998b2032fee228415"
+    },
+    {
+      "path": "heads/male-curls.webp",
+      "sha256": "4836f45d6105610152ed5efb705267287c64c33423219ea8969a32c20f2650a7"
+    },
+    {
+      "path": "heads/male-locs-mask.png",
+      "sha256": "62cec4af827f5d3aa4d693a8d69ce6e23f85520b26d02d4e108d2247d7275931"
+    },
+    {
+      "path": "heads/male-locs.png",
+      "sha256": "39b085cfe41d93bf288c54a08aaaa44d3a2fe73712361ca5e0fca8573185bf1d"
+    },
+    {
+      "path": "heads/male-locs.webp",
+      "sha256": "dc1de87328584dd3b3186eadc31f58ff9f008a5167e4210989b4bea0b0d57fd0"
+    },
+    {
+      "path": "heads/male-quiff-mask.png",
+      "sha256": "f6a51cd1c7d0ae606f6f218ef036cff3f201ad4c3f142e695614cb84d4299bda"
+    },
+    {
+      "path": "heads/male-quiff.png",
+      "sha256": "69d62e662f9a94f31fb8652ec7abaeefd877c599eacfe4986e9dfbc7b9bd064a"
+    },
+    {
+      "path": "heads/male-quiff.webp",
+      "sha256": "b4ca7de5c2fe7fc7581a48377a31664c053d00a6e589314d0448c5e8e732c40c"
+    },
+    {
+      "path": "heads/male-side-part-mask.png",
+      "sha256": "2cf81c99bf57138bfd8e7fb35b8fc604d6a8aaf2449bb488012463ec0644e953"
+    },
+    {
+      "path": "heads/male-side-part.png",
+      "sha256": "90e0ecde5dbef283a696a58371ff7c255b0543a6bd3f38bbbae53bd5cbdbcec2"
+    },
+    {
+      "path": "heads/male-side-part.webp",
+      "sha256": "82628b32808079379e47fc26b944dcb0118c054d8b93a66615214fd174c4cf40"
+    },
+    {
+      "path": "heads/male-waves-mask.png",
+      "sha256": "d5ac0abda29dbe5d695a75ddcf805a74f1ddd414227d787f487a490b404d56c1"
+    },
+    {
+      "path": "heads/male-waves.png",
+      "sha256": "c15156880cc6b4e7da4154387430fe4015b2ad0f7e50f5674b312a26e3f69d7e"
+    },
+    {
+      "path": "heads/male-waves.webp",
+      "sha256": "dde9dc2c47c569a252a70831fbb1e0134c6e30300acea1f628896f19fe5f7f70"
+    },
+    {
+      "path": "backgrounds/sunrise.webp",
+      "sha256": "59d52dba7ed9da5ae19c270e2f94b07792993df99b796b494e6c847d1ecbb799"
+    },
+    {
+      "path": "backgrounds/sunrise-320.webp",
+      "sha256": "30922516df0072c67e41a158ffe661c2faac2bca45fd8583499ff6e307a06bf5"
+    },
+    {
+      "path": "backgrounds/sources/sunrise.png",
+      "sha256": "ad795e8397c5becfbe1f2c119d8e43a688e4c7a53924a122e54cd73c806399e0"
+    },
+    {
+      "path": "backgrounds/basecamp.webp",
+      "sha256": "c919156ee6202bfd0b2eb1b0fcd79cbd7339927397e46c09343ec7c24a09f4b3"
+    },
+    {
+      "path": "backgrounds/basecamp-320.webp",
+      "sha256": "9cb457e027c6ff86f106e87e736131887cda2be92a11b447e83e3a4f2e3d076f"
+    },
+    {
+      "path": "backgrounds/sources/basecamp.png",
+      "sha256": "4cc7739150253e37c177f45f196658e2298853688b84158652434fe73d1d430b"
+    },
+    {
+      "path": "backgrounds/starlight.webp",
+      "sha256": "a186e4e9c8994d8a87312d7f9edad5b22c7d25ae94e7bed83b525b48e495861d"
+    },
+    {
+      "path": "backgrounds/starlight-320.webp",
+      "sha256": "c20ca2dc251d9c26437391aece4dbc5ce3370ceef6d45e11f5145ea1c08d8fab"
+    },
+    {
+      "path": "backgrounds/sources/starlight.png",
+      "sha256": "674abf6049fad0dde42309b45cc03b964a14399a96c69d3c340e4d2863f4de53"
+    }
+  ]
+}

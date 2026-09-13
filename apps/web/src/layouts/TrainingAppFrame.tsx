@@ -125,7 +125,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
     <header className="command-masthead"><div className="command-masthead-inner">
       <Button variant="inverse" className="command-trigger ds-button-mobile-icon" aria-label={searchLabel} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="search" /><span className="command-trigger-copy">{coach ? `${searchLabel}…` : "Find a section or season"}</span><kbd>Ctrl K</kbd></Button>
       <Link to={home} className="command-brand" aria-label="Erudoza home"><ErudozaWordmark compact inverted /></Link>
-      <NavigationMenu key={`account:${route}`} name="Account" label={<><ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? ""} /><span className="command-account-name">{me?.displayName}</span></>}>
+      <NavigationMenu key={`account:${route}`} name="Account" label={<><ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? ""} size={48} /><span className="command-account-name">{me?.displayName}</span></>}>
         <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach mode" : "Student mode"}</small></div>
         <Link to={coach ? "/admin/profile" : `/student/profile${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`}><AppIcon name="users" />Your profile</Link>
         {canSwitch && <Link data-testid="switch-workspace" to={`${coach ? "/student" : "/admin"}${switchSeason ? `?seasonId=${encodeURIComponent(switchSeason)}` : ""}`}><AppIcon name="arrow" />Switch to {coach ? "Student" : "Coach"} mode</Link>}

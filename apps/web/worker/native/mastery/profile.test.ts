@@ -39,7 +39,7 @@ it('rolls back failed batches, preserves immutable unlocks and reloads the saved
   expect(await (await request('/api/v1/profile/me')).json()).toMatchObject({ avatarHonorKey: 'solo:exact-recall' });
 });
 it('resolves same-org identities only, deduplicates up to50 and resets to initials', async () => {
-  expect(await (await request(`/api/v1/profile/identities?userId=${TEST_USER}&userId=${TEST_USER}&userId=${otherUser}&userId=${foreignUser}`)).json()).toEqual([{ userId: TEST_USER, avatarHonorKey: 'solo:exact-recall' }, { userId: otherUser, avatarHonorKey: null }]);
+  expect(await (await request(`/api/v1/profile/identities?userId=${TEST_USER}&userId=${TEST_USER}&userId=${otherUser}&userId=${foreignUser}`)).json()).toEqual([{ userId: TEST_USER, avatarHonorKey: 'solo:exact-recall', avatarKind: 'honor', character: null }, { userId: otherUser, avatarHonorKey: null, avatarKind: 'initials', character: null }]);
   expect((await request('/api/v1/profile/identities?userId=bad')).status).toBe(400);
   const ids = Array.from({ length: 51 }, (_, i) => `dddddddd-dddd-4ddd-8ddd-${String(i).padStart(12, '0')}`);
   expect((await request(`/api/v1/profile/identities?${ids.slice(0, 50).map(id => `userId=${id}`).join('&')}`)).status).toBe(200);
@@ -69,5 +69,5 @@ it('preserves simulation unlock evidence while reconciled eligibility gates prof
  const eligibility={id:`${id}:season`,unlockId:id,userId:TEST_USER,seasonId:'season',key,ruleVersion:'simulation-v1',eligible:true};await store.insert('simulation-eligibility',eligibility.id,TEST_ORG,eligibility,{seasonId:'season',ownerId:TEST_USER});
  expect(await (await request('/api/v1/profile/me/avatar','PUT',{honorKey:key})).json()).toMatchObject({avatarHonorKey:key});
  await app.db.prepare("UPDATE Records SET data=json_set(data,'$.eligible',json('false')) WHERE kind='simulation-eligibility' AND id=? AND org_id=?").bind(eligibility.id,TEST_ORG).run();
- expect(await (await request('/api/v1/profile/me')).json()).toMatchObject({avatarHonorKey:null});expect(await (await request(`/api/v1/profile/identities?userId=${TEST_USER}`)).json()).toEqual([{userId:TEST_USER,avatarHonorKey:null}]);expect((await store.get('mastery-honor',id,TEST_ORG))?.value).toEqual(unlock);
+ expect(await (await request('/api/v1/profile/me')).json()).toMatchObject({avatarHonorKey:null});expect(await (await request(`/api/v1/profile/identities?userId=${TEST_USER}`)).json()).toEqual([{userId:TEST_USER,avatarHonorKey:null,avatarKind:'initials',character:null}]);expect((await store.get('mastery-honor',id,TEST_ORG))?.value).toEqual(unlock);
 });

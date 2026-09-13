@@ -1,13 +1,32 @@
 import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
+import type { AvatarKind, CharacterAppearance, CharacterProfileFields, SaveCharacterProfile } from "../../../shared/profileCharacter";
 
 export type MasteryHonorOption = { key: string; title: string; requirement: string; category: "Scripture" | "Team Practice" | "Simulation"; ruleVersion: "mastery-v1" | "simulation-v1"; earnedAtUtc: string | null };
-export type MyProfile = { userId: string; displayName: string; avatarHonorKey: string | null; honors: MasteryHonorOption[] };
-export type ProfileIdentity = { userId: string; avatarHonorKey: string | null };
+// Optional additions preserve older profile/identity responses during a rolling release.
+export type MyProfile = { userId: string; displayName: string; avatarHonorKey: string | null; honors: MasteryHonorOption[] } & Partial<CharacterProfileFields>;
+export type ProfileIdentity = { userId: string; avatarHonorKey: string | null; avatarKind?: AvatarKind; character?: CharacterAppearance | null };
+export function completeProfile(profile: MyProfile): MyProfile & CharacterProfileFields {
+  return {
+    ...profile,
+    avatarKind: profile.avatarKind ?? (profile.avatarHonorKey ? "honor" : "initials"),
+    character: profile.character ?? { bodyType: "male", style: "curls", hairColor: "brown", skin: "medium", eyes: "brown", attire: "student", background: "sunrise", slots: [null, null, null] },
+    characterVersion: profile.characterVersion ?? 0,
+    shareOptions: profile.shareOptions ?? { showName: true, showBrand: true, showQR: true },
+    sharePatches: profile.sharePatches ?? [],
+    canUseMasterGuide: profile.canUseMasterGuide ?? false,
+  };
+}
+function identityFromProfile(profile: MyProfile): ProfileIdentity {
+  const { avatarKind, character } = completeProfile(profile);
+  return { userId: profile.userId, avatarHonorKey: profile.avatarHonorKey, avatarKind,
+    character: avatarKind === "character" ? { bodyType: character.bodyType, style: character.style, hairColor: character.hairColor, skin: character.skin, eyes: character.eyes } : null };
+}
 export const profileApi = {
   me: (signal?: AbortSignal) => request<MyProfile>("/api/v1/profile/me", { signal }),
   avatar: (honorKey: string | null) => request<MyProfile>("/api/v1/profile/me/avatar", { method: "PUT", body: JSON.stringify({ honorKey }) }),
+  character: (profile: SaveCharacterProfile) => request<MyProfile>("/api/v1/profile/me/character", { method: "PUT", body: JSON.stringify(profile) }),
   identities: async (ids: string[]) => request<ProfileIdentity[]>(`/api/v1/profile/identities?${new URLSearchParams(ids.map(id => ["userId", id]))}`),
 };
 type Pending = { userId: string; signal: AbortSignal; resolve: (identity: ProfileIdentity) => void; reject: (reason: unknown) => void };
@@ -56,16 +75,23 @@ export function useProfileIdentity(userId: string) {
     enabled: !!me && !!userId, staleTime: 30_000, refetchInterval: 60_000, retry: false,
   });
 }
-export function useSetProfileAvatar() {
+function useProfileMutation<T>(mutationFn: (value: T) => Promise<MyProfile>) {
   const { me } = useAuth();
   const client = useQueryClient();
   return useMutation({
-    mutationFn: profileApi.avatar,
+    mutationFn,
     onMutate: async () => { const query = client.getQueryCache().find({ queryKey: ["profile", me?.organizationId, me?.userId], exact: true }); await Promise.all([client.cancelQueries({ queryKey: ["profile", me?.organizationId, me?.userId] }), client.cancelQueries({ queryKey: ["profile-identity", me?.organizationId, me?.userId, me?.userId] })]); return { query }; },
-    onSuccess: (profile, _variables, context) => {
-      if (profile.userId !== me?.userId || !context?.query || client.getQueryCache().find({ queryKey: ["profile", me?.organizationId, me?.userId], exact: true }) !== context.query) return;
+    onSuccess: async (profile, _variables, context) => {
+      const ownsQuery = () => profile.userId === me?.userId && !!context?.query && client.getQueryCache().find({ queryKey: ["profile", me?.organizationId, me?.userId], exact: true }) === context.query;
+      if (!ownsQuery()) return;
+      // A refresh can begin while the mutation is pending. Cancel that read
+      // before publishing the save so an older response cannot revert it.
+      await Promise.all([client.cancelQueries({ queryKey: ["profile", me?.organizationId, me?.userId] }), client.cancelQueries({ queryKey: ["profile-identity", me?.organizationId, me?.userId, me?.userId] })]);
+      if (!ownsQuery()) return;
       client.setQueryData(["profile", me?.organizationId, me?.userId], profile);
-      client.setQueryData(["profile-identity", me?.organizationId, me?.userId, profile.userId], { userId: profile.userId, avatarHonorKey: profile.avatarHonorKey });
+      client.setQueryData(["profile-identity", me?.organizationId, me?.userId, profile.userId], identityFromProfile(profile));
     },
   });
 }
+export function useSetProfileAvatar() { return useProfileMutation(profileApi.avatar); }
+export function useSaveCharacterProfile() { return useProfileMutation(profileApi.character); }
