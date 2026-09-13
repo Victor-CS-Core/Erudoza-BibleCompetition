@@ -47,7 +47,7 @@
 .planner-chapter-choice{display:flex;align-items:center;gap:var(--er-space-2)}
 .planner-chapter-choice small{display:block}
 .planner-person-heading{display:flex;align-items:center;gap:var(--er-space-3)}
-.planner-person-heading h2{margin:0}
+.planner-person-heading h2{margin:0;min-width:0;overflow-wrap:anywhere}
 
 .planner-finish{display:grid;gap:var(--er-space-4)}
 .planner-finish-help{display:grid;gap:var(--er-space-2)}

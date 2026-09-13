@@ -51,6 +51,8 @@ it('rejects untrusted JSON and casing duplicates and requires current licensed a
  const p=await store.require<Record<string,unknown>>('pack',pack,TEST_ORG);await store.put('pack',pack,TEST_ORG,{...p.value,licensingStatus:'pending'},p.revision);expect((await loadPbeBank(ctx,{...scope,studentId:undefined})).questions).toHaveLength(0);
  const s=await store.require<Record<string,unknown>>('season',season,TEST_ORG);await store.put('season',season,TEST_ORG,{...s.value,status:'Archived'},s.revision);await expect(loadPbeBank(ctx,scope)).rejects.toThrow();
 });
+// This fixture seeds thousands of rows and loads the complete bank four times.
+// Its assertions bound D1 cost; five seconds also included setup on slower CI hosts.
 it('paginates 5,101 questions and targets with reads independent of unrelated student history',async()=>{
  const {ctx,scope,send}=await setup(true);
  const proof=await sourceProof({...question,sourceUnitIds:[a],reference:'GEN 1:1'} as never,new Map([[a,{id:a,canonicalText:'Alpha and Beta',citation:'GEN 1:1'} as never]]));
@@ -71,7 +73,7 @@ it('paginates 5,101 questions and targets with reads independent of unrelated st
  const studentResponse=await app.fetch(`/api/v1/organizations/${TEST_ORG}/practice/pbe/seasons/${season}/bank`,{headers:{Cookie:cookie}});expect(studentResponse.status).toBe(200);const metadata=await studentResponse.json() as Record<string,unknown>;expect(metadata).toEqual({questionCount:5101,targetCount:5101,sourceUnitCount:1,missingSourceUnitIds:[]});
  const budgets=[coachResponse,studentResponse].map(response=>JSON.parse(response.headers.get('x-test-d1-meter')!) as {bindingCalls:number;statements:number});process.stdout.write('PBE 5101 public HTTP budget '+JSON.stringify({coach:budgets[0],student:budgets[1]})+'\n');for(const budget of budgets)expect(budget.statements).toBeLessThanOrEqual(50);
 
-});
+},30000);
 it('rejects scope changes between pages and rechecks active students and season opt-in',async()=>{
  const {ctx,scope,store}=await setup();const original=store.require.bind(store);let calls=0;
  const spy=vi.spyOn(store,'require').mockImplementation(async(kind,id,org)=>{if(kind==='season'&&++calls===2){const sc=await original('scope',season,TEST_ORG);await store.put('scope',season,TEST_ORG,{...(sc.value as object),excludes:[{bookKey:'GEN',startChapter:1,startVerse:1,endChapter:1,endVerse:1}]},sc.revision);}return await original(kind,id,org) as never;});

@@ -180,6 +180,8 @@ it('stages more than 128 witness candidates across immutable bounded proof pages
  process.stdout.write('D1 130target maxima '+JSON.stringify(Object.fromEntries(['statements','knownRowsRead','returnedBytes','maxReturnedPayloadBytes','maxBoundUtf8Bytes','firstQueriesWithoutRowsRead','elapsedMs'].map(k=>[k,Math.max(...meters.map(m=>Number(m[k]??0)))])))+'\n');
 },30000);
 
+// The maximum shape needs hundreds of HTTP continuations (726 in the recorded run).
+// Keep the continuation/query/payload limits below; allow their full run on slower CI hosts.
 it('completes the accepted 10000-target untouched shape with bounded ordinary continuations',async()=>{
  const {send,store,meters}=await setup(0),targets=Array.from({length:9998},(_,n)=>({id:tid(1000+n),sourceUnitIds:[source],skill:'FactualRecall',label:'Untouched target'}));
  await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data,revision) SELECT 'pbe-target',json_extract(value,'$.id'),?,?,?,value,1 FROM json_each(?)").bind(TEST_ORG,season,source,JSON.stringify(targets)).run();
@@ -188,7 +190,7 @@ it('completes the accepted 10000-target untouched shape with bounded ordinary co
  for(const [index,meter] of requests.entries())if(index!==publication)expect(Number(meter.maxReturnedPayloadBytes??0)).toBeLessThanOrEqual(65536);
  expect(await store.list('pbe-chapter-stamp',TEST_ORG,{seasonId:season,ownerId:student})).toEqual([]);
  process.stdout.write('D1 10000target cost '+JSON.stringify({requests:requests.length,knownRowsRead:requests.reduce((n,m)=>n+Number(m.knownRowsRead??0),0),returnedBytes:requests.reduce((n,m)=>n+Number(m.returnedBytes??0),0),elapsedMs:requests.reduce((n,m)=>n+Number(m.elapsedMs??0),0),maxStatements:Math.max(...requests.map(m=>Number(m.statements))),maxOrdinaryReturnedPayloadBytes:Math.max(...requests.filter((_,i)=>i!==publication).map(m=>Number(m.maxReturnedPayloadBytes??0))),publication:requests[publication]})+'\n');
-},60000);
+},120000);
 
 it('scans manifest metadata once when counting a bounded target variant page',async()=>{
  const {store}=await setup(0),generation='diagnostic-generation';

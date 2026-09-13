@@ -3,7 +3,10 @@ import replay from './replay-fixtures.json';
 import { selectPbeQuestions, repairEligible } from './selection';
 const id = (i: number) => `00000000-0000-0000-0000-${String(i).padStart(12, '0')}`;
 const candidate = (i: number) => ({ questionId: id(i), targetIds: [id(i + 1000)], sourceUnitIds: [id(i + 2000)], sourceKind: 'Scripture' as const, kind: 'ShortAnswer', servedCount: 0, lastServedAtMs: null as number | null, due: false, repairEligible: false });
-it.each([1, 2, 8, 16, 21, 24, 100])('eventually covers every variant in %i uneven assigned passages even when all due', size => {
+// The 100-passage case replays 199 variants across 68 sessions; its deadline covers
+// that exhaustive simulation, not a single selection's latency on the CI host.
+for (const size of [1, 2, 8, 16, 21, 24, 100]) {
+  it(`eventually covers every variant in ${size} uneven assigned passages even when all due`, () => {
     const candidates = Array.from({ length: size }, (_, i) => Array.from({ length: i % 3 + 1 }, (_, j) => ({ ...candidate(i * 3 + j + 1), targetIds: [id(i + 1000), id(i + 4000)], sourceUnitIds: [id(i + 2000)] }))).flat();
     const seen = new Set<string>();
     for (let n = 0; n < Math.ceil(candidates.length / 3) + 1; n++) {
@@ -22,7 +25,8 @@ it.each([1, 2, 8, 16, 21, 24, 100])('eventually covers every variant in %i uneve
             q.due = true;
     }
     expect(seen.size).toBe(candidates.length);
-});
+  }, size === 100 ? 30_000 : undefined);
+}
 it('enforces simulation quotas on actual shortened set but permits focused commentary', () => {
     const candidates = Array.from({ length: 10 }, (_, i) => ({ ...candidate(i + 1), sourceKind: i < 2 ? 'Scripture' as const : 'Commentary' as const }));
     const input = { sessionId: id(7000), count: 90, mode: 'Simulation' as const, candidates, usedQuestionIds: [], usedTargetIds: [], trueFalseMaxRatio: .1 };
