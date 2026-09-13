@@ -4,7 +4,7 @@ import {writeFile} from 'node:fs/promises';
 const root=new URL('.',import.meta.url),browser=await chromium.launch();
 const page=await browser.newPage({viewport:{width:1536,height:1080}});
 await page.goto('http://127.0.0.1:5187/docs/brand/2026-09-13-profile-characters/review.html');
-const ready=()=>page.waitForFunction(()=>document.querySelector('canvas[data-ready=true]'));
+const ready=()=>page.waitForFunction(()=>document.querySelector('canvas[data-ready=true]')&&[...document.querySelectorAll('.hair-thumbnail')].every(t=>t.getAttribute('aria-busy')==='false'&&t.querySelector('img')?.complete));
 const nav=async name=>{await page.getByRole('navigation').getByRole('button',{name,exact:true}).click();await ready();};
 const choose=async name=>{await page.getByRole('button',{name,exact:true}).click();await ready();};
 await ready();

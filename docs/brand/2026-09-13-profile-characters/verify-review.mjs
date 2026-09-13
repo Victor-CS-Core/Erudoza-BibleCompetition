@@ -5,7 +5,7 @@ import {mkdir,writeFile} from 'node:fs/promises';
 const output='/tmp/erudoza-profile-art';await mkdir(output,{recursive:true});
 const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:1536,height:1080}});
 const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`);});
-const ready=()=>page.waitForFunction(()=>document.querySelector('canvas[data-ready="true"]'));
+const ready=()=>page.waitForFunction(()=>document.querySelector('canvas[data-ready="true"]')&&[...document.querySelectorAll('.hair-thumbnail')].every(t=>t.getAttribute('aria-busy')==='false'&&t.querySelector('img')?.complete));
 const nav=async name=>{await page.getByRole('navigation').getByRole('button',{name,exact:true}).click();await ready();};
 const choose=async name=>{await page.getByRole('button',{name,exact:true}).click();await ready();};
 const snapshot=()=>page.locator('canvas').evaluate(c=>c.toDataURL());

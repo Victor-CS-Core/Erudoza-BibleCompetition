@@ -6,6 +6,8 @@ Latest refinement: [before/after](refinement/before-after.png) · [neck joins](r
 
 Pages: [Profile](profile-review.png) · [Character](character-review.png) · [Honors](honors-review.png) · [Share](share-review.png) · [Female Master Guide creator](female-master-guide-review.png). The user's [design reference](profile-design-reference.png) guides the profile composition and four-page navigation.
 
+[Live selector color example](selector-colors-review.png): blond hair, deep skin and blue eyes appear in every hairstyle preview and the selected character.
+
 ## Current direction
 
 The user approved the dimensional anime chibi direction as a starting point. Rendering stays 2D. The latest request supersedes the initial three-option ceiling for hairstyles and hair color:
@@ -15,6 +17,7 @@ The user approved the dimensional anime chibi direction as a starting point. Ren
 - Four hair colors: red, black, brown, blond.
 - Three skin tones, three eye colors, three soft gradient backgrounds.
 - Body changes update the hairstyle grid and remember the last hairstyle for each body type. Attire changes retain body type, hairstyle, hair color, skin, eyes, background and Honors.
+- All six hairstyle thumbnails use the selected hair color, skin tone and eye color through the same transparent portrait renderer as the Profile head-shot. Outdated thumbnails are hidden while the latest appearance renders.
 - A fixed sash with three ordered Honor positions. Null positions remain dotted; duplicate Honors are unavailable.
 - Independent Honor, character portrait or initials profile image. Character portraits use the current head appearance with true transparency and no stage background, clothing or shadow. The downloaded full-character PNG retains the chosen studio background.
 
@@ -52,6 +55,7 @@ With the server running:
 ```sh
 node docs/brand/2026-09-13-profile-characters/verify-review.mjs
 node docs/brand/2026-09-13-profile-characters/verify-refinement.mjs
+node docs/brand/2026-09-13-profile-characters/verify-selector-previews.mjs
 python docs/brand/2026-09-13-profile-characters/verify-placement.py
 node docs/brand/2026-09-13-profile-characters/capture-review.mjs
 ./node_modules/.bin/tsc --noEmit --jsx react-jsx --target es2022 --module esnext --moduleResolution bundler --lib ES2022,DOM --allowSyntheticDefaultImports --skipLibCheck --types vite/client --resolveJsonModule docs/brand/2026-09-13-profile-characters/review.tsx
@@ -62,6 +66,8 @@ The review imports actual shared React UI primitives and semantic CSS. Its check
 Local validation: bundle/scoped TypeScript and whitespace passed. Chromium checked all **96 body/hairstyle/attire/hair-color combinations**, distinct rendered colors, body-specific hairstyle memory, Master Guide preservation, skin/eye/background controls, Honor ordering/duplicates/empty states, independent avatars and live portraits, image download, search/navigation and keyboard focus. All four pages passed at 1440/390/320 for both bodies and both attires (**48 page/viewport checks**), with no overflow, missing images or page errors. The sash containment check passed.
 
 The dedicated refinement check covers **144 hairstyle/skin/hair-color combinations**, **678,444 protected inner-ear sample comparisons**, transparent borders on **144 portraits**, and **24 neck attachment registrations**. It also verifies identical portrait output when attire/background/Honors change. Enlarged neck joins across all twelve styles and both attires, both 24-portrait color sheets, refreshed profile screenshots and a matched before/after were visually inspected. Tests establish the stated pixel/interaction properties, not universal art quality; see the notes for limits. QA-only images remain outside Git; intentional review screenshots and comparison sheets are in this package.
+
+The selector regression check reproduced the original static-thumbnail defect, then passed **120 individual thumbnail color updates** across both bodies, **four selected-thumbnail/Profile-portrait matches**, rapid changes, attire/background independence and 1440/390/320 layouts. Creator capture/verification now waits for all six rendered thumbnails as well as the main character.
 
 ## Approval and product boundary
 
