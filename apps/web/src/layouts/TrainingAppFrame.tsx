@@ -32,7 +32,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const pathSeason = coach ? location.pathname.match(/^\/admin\/seasons\/([^/]+)/)?.[1] : undefined;
   const switchSeason = (pathSeason && pathSeason !== "new" ? pathSeason : null) ?? selectedSeason ?? rememberedSeason;
   useEffect(() => { if (selectedSeason) { try { sessionStorage.setItem(seasonStorageKey, selectedSeason); } catch { /* Storage is optional. */ } } }, [seasonStorageKey, selectedSeason]);
-  const items = navigation(coach, selectedSeason, canSwitch);
+  const items = navigation(coach, coach ? switchSeason : selectedSeason, canSwitch);
   const active = currentDestination(items, location.pathname, location.search);
   const route = location.pathname + location.search + location.hash;
   const [commandRoute, setCommandRoute] = useState<string | null>(null);
@@ -106,14 +106,12 @@ function CommandFrame({ coach }: { coach: boolean }) {
   };
   const home = coach ? "/admin" : `/student${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`;
   const seasonItems: Destination[] = seasonId && seasonId !== "new" ? [
-    { id: "details", label: "Overview", to: `/admin/seasons/${seasonId}?step=details`, icon: "home" },
-    { id: "passages", label: "Passages", to: `/admin/seasons/${seasonId}?step=passages`, icon: "book" },
-    { id: "students", label: "Students", to: `/admin/seasons/${seasonId}?step=students`, icon: "users" },
-    { id: "review", label: "Readiness", to: `/admin/seasons/${seasonId}?step=review`, icon: "flag" },
+    { id: "details", label: "Season & books", to: `/admin/seasons/${seasonId}?step=details`, icon: "book" },
+    { id: "students", label: "Assignments", to: `/admin/seasons/${seasonId}?step=students`, icon: "users" },
   ] : [];
   const contextItems = seasonItems.length ? seasonItems : active?.children ?? [];
   const sectionLabel = seasonItems.length ? season.data?.name ?? "Season" : active?.label ?? (coach ? "Coach workspace" : "Training");
-  const currentStep = params.get("step") ?? ((season.data?.scopeUnitCount ?? 0) > 0 ? "students" : "passages");
+  const currentStep = ["details", "passages"].includes(params.get("step") ?? "") ? "details" : "students";
   const contextCurrent = (item: Destination) => {
     if (seasonItems.length) return item.id === currentStep && !location.pathname.endsWith("progress");
     const target = new URL(item.to, "https://erudoza.local");
@@ -157,6 +155,6 @@ function CommandFrame({ coach }: { coach: boolean }) {
       {mobileItems.map(item => <Link key={item.id} to={item.to} aria-current={mobileActive === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.id === "home" ? "HQ" : item.label}</span></Link>)}
       <Button variant="ghost" aria-label="More" aria-current={!mobileIds.includes(mobileActive ?? "") ? "page" : undefined} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>More</span></Button>
     </nav>
-    {commandOpen && <CommandCenter items={items} coach={coach} pinned={pinned} togglePin={togglePin} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
+    {commandOpen && <CommandCenter items={items} coach={coach} selectedSeason={coach ? switchSeason : selectedSeason} pinned={pinned} togglePin={togglePin} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
   </div>;
 }

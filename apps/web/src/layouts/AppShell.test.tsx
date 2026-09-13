@@ -203,3 +203,18 @@ it("uses the open Coach season when switching to Student mode", () => {
  fireEvent.click(screen.getByRole("button", { name: "Account" }));
  expect(screen.getByRole("link", { name: "Switch to Student mode" })).toHaveAttribute("href", "/student?seasonId=open-season");
 });
+
+it("keeps season context in planner commands and student assignment search", async () => {
+ account.kind = "Adult";
+ vi.mocked(api.students).mockResolvedValue([{ userId: "sam", userName: "sam", displayName: "Sam Student", email: null }]);
+ shell("/admin/seasons/current?step=students", "admin");
+ fireEvent.keyDown(window, { key: "k", ctrlKey: true });
+ const dialog = screen.getByRole("dialog", { name: "Command center" });
+ const input = within(dialog).getByRole("searchbox", { name: "Search navigation" });
+ fireEvent.change(input, { target: { value: "Season & books" } });
+ expect(within(dialog).getByRole("link", { name: /Season & books/ })).toHaveAttribute("href", "/admin/seasons/current?step=details");
+ fireEvent.change(input, { target: { value: "My assignments" } });
+ expect(within(dialog).getByRole("link", { name: /My assignments/ })).toHaveAttribute("href", "/student/assignments?seasonId=current");
+ fireEvent.change(input, { target: { value: "sam" } });
+ expect(await within(dialog).findByRole("link", { name: /Sam Student/ })).toHaveAttribute("href", "/admin/assignments?studentId=sam&seasonId=current");
+});

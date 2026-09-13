@@ -1,0 +1,43 @@
+/* Composition only: shared primitives provide all color, typography and controls. */
+.season-planner{max-width:1120px;margin:0 auto;display:grid;gap:var(--er-space-6);min-width:0}
+.season-planner>.ds-button{justify-self:start}
+.season-planner>.ds-page-header{margin-bottom:0}
+.planner-columns{display:grid;grid-template-columns:minmax(0,2.4fr) minmax(240px,1fr);gap:var(--er-space-6);align-items:start}
+.planner-fields{border:0;padding:0;margin:0;min-width:0}
+.planner-fields legend{margin-bottom:var(--er-space-3)}
+.planner-detail-fields{display:grid;grid-template-columns:minmax(0,2fr) minmax(80px,.7fr) minmax(110px,1fr);gap:var(--er-space-4);align-items:end}
+.planner-detail-fields label,.planner-pair label{display:grid;gap:var(--er-space-2);min-width:0}
+.planner-divider{border-top:1px solid var(--er-border);margin-block:var(--er-space-7)}
+.planner-section-heading{display:flex;justify-content:space-between;align-items:start;gap:var(--er-space-4);margin-bottom:var(--er-space-5);flex-wrap:wrap}
+.planner-section-heading h2 span{margin-left:var(--er-space-3)}
+.planner-book-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-3)}
+.planner-book-list{display:grid;gap:var(--er-space-3)}
+.planner-book-choice{display:flex;align-items:center;gap:var(--er-space-3);min-width:0}
+.planner-book-choice small,.planner-roster small,.planner-saved-row small{display:block;margin-top:var(--er-space-1)}
+.planner-summary{display:grid;gap:var(--er-space-4);position:sticky;top:var(--er-space-6)}
+.planner-summary .planner-divider{margin-block:var(--er-space-2)}
+.planner-summary ul{padding-left:var(--er-space-5);margin:0}
+.planner-steps,.planner-actions{display:flex;gap:var(--er-space-3);flex-wrap:wrap}
+.planner-season-strip,.planner-finish,.planner-saved-row{display:flex;justify-content:space-between;align-items:center;gap:var(--er-space-4)}
+.planner-roster-layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:var(--er-space-6)}
+.planner-roster{display:flex;flex-direction:column;gap:var(--er-space-2);min-width:0}
+.planner-roster>.ds-button{justify-content:flex-start;text-align:left;white-space:normal}
+.planner-roster-search{display:grid;gap:var(--er-space-2);margin-block:var(--er-space-3)}
+.planner-editor{min-width:0;border-left:1px solid var(--er-border);padding-left:var(--er-space-6)}
+.book-assignment-editor{display:grid;gap:var(--er-space-4);min-width:0}
+.book-assignment-editor .planner-section-heading{margin-bottom:0}
+.book-assignment-editor h2:focus{outline:none}
+.planner-settings{margin-block:var(--er-space-5)}
+.planner-settings summary{cursor:pointer;min-height:44px;align-content:center}
+.planner-pair{display:grid;grid-template-columns:1fr 1fr;gap:var(--er-space-4);margin-block:var(--er-space-3)}
+.planner-saved{display:grid;gap:var(--er-space-3)}
+.planner-saved-row{padding-block:var(--er-space-2)}
+.planner-caption{margin-top:var(--er-space-3)}
+.season-planner p,.season-planner strong,.book-assignment-editor strong{overflow-wrap:anywhere}
+@media(max-width:760px){.planner-columns{grid-template-columns:1fr}.planner-summary{position:static}.planner-roster-layout{grid-template-columns:1fr}.planner-editor{border-left:0;padding-left:0}.planner-roster{max-height:260px;overflow:auto}.planner-detail-fields{grid-template-columns:1fr 1fr}.planner-detail-fields>label:first-child{grid-column:1/-1}.planner-finish{align-items:stretch;flex-direction:column}.planner-actions>.ds-button{flex:1;white-space:normal}.planner-steps>.ds-button{flex:1}.planner-book-grid{grid-template-columns:1fr}.planner-pair{grid-template-columns:1fr}}
+
+.planner-mobile-student{display:none}
+@media(max-width:760px){.planner-roster{display:none}.planner-mobile-student{display:grid;gap:var(--er-space-2)}}
+
+.planner-book-choice.ds-choice{flex-direction:row;justify-content:flex-start;text-align:left}
+@media(max-width:430px){.planner-actions>.ds-button{flex-basis:100%}}

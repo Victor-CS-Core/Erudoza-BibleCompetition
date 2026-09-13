@@ -105,6 +105,10 @@ const assignmentLabels: Record<string, string> = { PrimarySpecialist: "Specialis
 export function AssignmentsPage() {
   const { me } = useAuth();
   const [params, setParams] = useSearchParams();
+  const [dirty, setDirty] = useState(false);
+  const [pendingContext, setPendingContext] = useState<{ key: string; value: string } | null>(null);
+  const applyContext = (key: string, value: string) => { setDirty(false); setParams(previous => { const next = new URLSearchParams(previous); next.set(key, value); return next; }); };
+  const changeContext = (key: string, value: string) => { if (dirty) setPendingContext({ key, value }); else applyContext(key, value); };
   const seasons = useQuery({ queryKey: ["seasons", me?.organizationId], queryFn: () => api.seasons(me!.organizationId), enabled: !!me });
   const requestedId = params.get("seasonId");
   const studentId = params.get("studentId");
@@ -115,21 +119,21 @@ export function AssignmentsPage() {
   useEffect(() => { if (!requestedId && season) setParams(previous => { const next = new URLSearchParams(previous); next.set("seasonId", season.id); return next; }, { replace: true }); }, [requestedId, season, setParams]);
   const coverage = useQuery({ queryKey: ["coverage", me?.organizationId, season?.id], queryFn: () => api.coverage(me!.organizationId, season!.id), enabled: !!me && !!season && !studentId });
   return <div className="training-page assignment-overview">
-    <PageHeader title={selectedStudent ? `${selectedStudent.displayName}’s assignments` : "Assignments"} description="Choose a student, season and book, then select the chapters they will study." action={<LinkButton size="compact" variant="secondary" to="/admin/students">Back to students</LinkButton>} />
+    <PageHeader title={selectedStudent ? `${selectedStudent.displayName}’s assignments` : "Assignments"} description="Choose a student and season, then assign their books." action={<LinkButton size="compact" variant="secondary" to="/admin/students">Back to students</LinkButton>} />
     {students.isPending && <p role="status">Loading students…</p>}
     {students.isError && <QueryError retry={() => void students.refetch()}>Unable to load students.</QueryError>}
     <div className="assignment-context">
-      {students.data && <label>Student<Select disabled={saving} value={selectedStudent?.userId ?? ""} onChange={event => setParams(previous => { const next = new URLSearchParams(previous); next.set("studentId", event.target.value); return next; })}><option value="">Choose a student</option>{students.data.map(student => <option key={student.userId} value={student.userId}>{student.displayName} ({student.userName})</option>)}</Select></label>}
+      {students.data && <label>Student<Select disabled={saving} value={selectedStudent?.userId ?? ""} onChange={event => changeContext("studentId", event.target.value)}><option value="">Choose a student</option>{students.data.map(student => <option key={student.userId} value={student.userId}>{student.displayName} ({student.userName})</option>)}</Select></label>}
     {seasons.isPending && <p role="status">Loading seasons…</p>}
     {seasons.isError && <QueryError retry={() => void seasons.refetch()}>Unable to load seasons.</QueryError>}
-    {!!seasons.data?.length && <label>Season <Select disabled={saving} value={season?.id ?? ""} onChange={event => setParams(previous => { const next = new URLSearchParams(previous); next.set("seasonId", event.target.value); return next; })}>
+    {!!seasons.data?.length && <label>Season <Select disabled={saving} value={season?.id ?? ""} onChange={event => changeContext("seasonId", event.target.value)}>
       {!season && <option value="" disabled>Choose a season</option>}{seasons.data.map(item => <option value={item.id} key={item.id}>{item.name}{item.status === "Completed" || item.status === "Archived" ? " · Read-only" : ""}</option>)}</Select></label>}
     </div>
     {studentId && students.isSuccess && !selectedStudent && <Notice tone="danger">This student is unavailable. Choose another student.</Notice>}
     {students.data?.length === 0 && <Panel><p>No students yet.</p><LinkButton to="/admin/students">Add a student</LinkButton></Panel>}
     {requestedId && seasons.isSuccess && !season && <Notice tone="danger">This season is unavailable. Choose another season.</Notice>}
     {seasons.data?.length === 0 && <Panel><p>No seasons yet.</p><LinkButton to="/admin/seasons/new">Create season</LinkButton></Panel>}
-    {season && selectedStudent && <SeasonAssignmentEditor seasonId={season.id} studentId={selectedStudent.userId} />}
+    {season && selectedStudent && <SeasonAssignmentEditor seasonId={season.id} studentId={selectedStudent.userId} onDirtyChange={setDirty} />}
     {season && !studentId && <Panel><h2>Assigned passages · {season.name}</h2>
       {coverage.isPending && <p role="status">Loading assignments…</p>}
       {coverage.isError && <QueryError retry={() => void coverage.refetch()}>Unable to load assignments.</QueryError>}
@@ -142,5 +146,6 @@ export function AssignmentsPage() {
         </tr>)}
       </tbody></table></div>}
     </Panel>}
+    {pendingContext && <ConfirmationDialog title="Discard unsaved assignments?" description="Saved assignments are preserved. Unsaved book choices will be cleared." confirmLabel="Discard changes" onCancel={() => setPendingContext(null)} onConfirm={() => { applyContext(pendingContext.key, pendingContext.value); setPendingContext(null); }} />}
   </div>;
 }
