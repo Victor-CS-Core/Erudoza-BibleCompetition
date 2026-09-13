@@ -1,4 +1,4 @@
-import {BodyType,HairColor,appearanceHead,headEyes,bodySources,bodyHeadRegistration} from './hair';
+import {BodyType,HairColor,appearanceHead,headPlacement,bodySources} from './hair';
 import {applyAppearance,paintBackground, Skin, Eyes, Background} from './appearance';
 export type Attire = 'student' | 'coach';
 export const honors = [
@@ -51,8 +51,8 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
   const name = bodySources[config.bodyType][config.attire];
   const headName=`${config.bodyType}-${config.style}`;
   const extension = quality==='export' ? '.png' : '-512.webp';
-  const [body, accessory, head, mask, ...patches] = await Promise.all([
-    loadImage(`prepared/${name}${extension}`), loadImage(`prepared/sash${extension}`), loadImage(`heads/${headName}${quality==='export'?'.png':'.webp'}`), loadImage(`heads/${headName}-mask.png`),
+  const [body, garment, accessory, head, mask, ...patches] = await Promise.all([
+    loadImage(`prepared/${name}${extension}`), loadImage(`body-layers/${name}${quality==='export'?'.png':'.webp'}`), loadImage(`prepared/sash${extension}`), loadImage(`heads/${headName}${quality==='export'?'.png':'.webp'}`), loadImage(`heads/${headName}-mask.png`),
     ...config.slots.map(key => {const h=honors.find(h=>h.key===key); return h ? loadImage(h.src) : Promise.resolve(null);}),
   ]);
   // Render to an offscreen buffer so asynchronous selection changes never
@@ -61,14 +61,12 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
   const ctx = buffer.getContext('2d')!;
   const reg = registration[name];
   const matrix = transform([[205,190],[795,1280]], [reg.shoulder, reg.hip]);
-  const pose=bodyHeadRegistration[name],eye=headEyes[headName];
-  const headScale=pose.eyes[2]/(eye[1][0]-eye[0][0]);
-  const headX=pose.eyes[0]-(eye[0][0]+eye[1][0])/2*headScale;
-  const headY=pose.eyes[1]-(eye[0][1]+eye[1][1])/2*headScale;
-  ctx.drawImage(appearanceHead(head,mask,headName,config.skin,config.eyes,config.hairColor),headX,headY,512*headScale,512*headScale);
+  const placement=headPlacement(headName,name);
+  ctx.drawImage(appearanceHead(head,mask,headName,config.skin,config.eyes,config.hairColor),placement.x,placement.y,512*placement.scale,512*placement.scale);
   const coloredBody=applyAppearance(body,name,config.skin,config.eyes);
-  const scale=coloredBody.width/1024;
-  ctx.drawImage(coloredBody,0,pose.cut*scale,1024*scale,(1536-pose.cut)*scale,0,pose.cut,1024,1536-pose.cut);
+  const bodyContext=coloredBody.getContext('2d')!;bodyContext.globalCompositeOperation='destination-in';
+  bodyContext.drawImage(garment,0,0,coloredBody.width,coloredBody.height);
+  bodyContext.globalCompositeOperation='source-over';ctx.drawImage(coloredBody,0,0,1024,1536);
   ctx.save(); ctx.transform(matrix.a,matrix.b,-matrix.b,matrix.a,matrix.x,matrix.y);
   ctx.drawImage(accessory,0,0,1024,1536); ctx.restore();
   const centers: Point[] = [[282,393],[516,720],[741,1048]];
@@ -91,4 +89,19 @@ export function setSlot(slots: Slots, index: number, value: string | null): Slot
   if (value && !honors.some(h=>h.key===value)) throw new Error('Unknown review Honor');
   if (value && slots.some((s,i)=>i!==index && s===value)) throw new Error('That Honor is already displayed');
   const next: Slots=[...slots]; next[index]=value; return next;
+}
+
+// The avatar is drawn directly from the head layer. It never samples the
+// character stage, garment, background, or ground shadow.
+export async function renderPortrait(canvas:HTMLCanvasElement,config:Configuration){
+ const name=`${config.bodyType}-${config.style}`;
+ const [head,mask]=await Promise.all([loadImage(`heads/${name}.png`),loadImage(`heads/${name}-mask.png`)]);
+ const colored=appearanceHead(head,mask,name,config.skin,config.eyes,config.hairColor);
+ const pixels=colored.getContext('2d')!.getImageData(0,0,512,512).data;
+ let left=512,top=512,right=0,bottom=0;
+ for(let i=0;i<pixels.length;i+=4)if(pixels[i+3]>8){const x=i/4%512,y=Math.floor(i/4/512);left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
+ const extent=Math.max(right-left+1,bottom-top+1)+28,cx=(left+right)/2,cy=(top+bottom)/2;
+ canvas.width=320;canvas.height=320;
+ canvas.getContext('2d')!.drawImage(colored,cx-extent/2,cy-extent/2,extent,extent,0,0,320,320);
+ return canvas;
 }

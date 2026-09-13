@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Button, Panel, PageHeader, Badge, Notice, Select, Input } from '../../../apps/web/src/components/ui/index';
-import { Configuration, honors, renderCharacter, setSlot } from './composition';
+import { Configuration, honors, renderCharacter, renderPortrait, setSlot } from './composition';
 import {hairStyles,hairColors,BodyType} from './hair';
 import { skinTones, eyeColors, backgrounds, paintBackground } from './appearance';
 const pages=['Profile','Character','Honors','Share'] as const;
@@ -25,7 +25,7 @@ function App(){
  function selectBody(bodyType:BodyType){rememberedHair.current[config.bodyType]=config.style;setConfig(c=>({...c,bodyType,style:rememberedHair.current[bodyType]}));}
  function update<K extends keyof Configuration>(key:K,value:Configuration[K]){setConfig(c=>({...c,[key]:value}));}
  function chooseSlot(index:number,value:string|null){try{update('slots',setSlot(config.slots,index,value));setError('');}catch(e){setError((e as Error).message);}}
- useEffect(()=>{let active=true;const full=document.createElement('canvas');renderCharacter(full,{...config,slots:[null,null,null]}).then(()=>{if(!active)return;const c=document.createElement('canvas');c.width=240;c.height=240;c.getContext('2d')!.drawImage(full,481,40,570,550,0,0,240,240);setPortrait(c.toDataURL());}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[config.bodyType,config.style,config.hairColor,config.attire,config.skin,config.eyes,config.background]);
+ useEffect(()=>{let active=true;const portraitCanvas=document.createElement('canvas');renderPortrait(portraitCanvas,config).then(()=>{if(active)setPortrait(portraitCanvas.toDataURL());}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[config.bodyType,config.style,config.hairColor,config.skin,config.eyes]);
  async function download(){setExporting(true);setError('');setMessage('');try{
   const character=document.createElement('canvas');await renderCharacter(character,config,null,'export');
   const c=document.createElement('canvas');c.width=1200;c.height=1600;const ctx=c.getContext('2d')!;paintBackground(ctx,config.background,1200,1600);

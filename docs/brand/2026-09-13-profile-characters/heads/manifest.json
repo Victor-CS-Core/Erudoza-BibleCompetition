@@ -3,84 +3,84 @@
     "body": "male",
     "style": "curls",
     "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
-    "png_sha256": "a5d6eacbb1c7b3185cc47107595fe4fb99815b8d4c8298b3bf1722a0d6830edc",
+    "png_sha256": "79bcc01f0963d6a4de9a11172491a705b86393749c6eb0f75c542de5860b2da5",
     "transparent_fraction": 0.5654640197753906
   },
   {
     "body": "male",
     "style": "side-part",
     "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
-    "png_sha256": "f4bf8035a947904c662f66eeca51e79b5685eae1960690341b41187c58263af0",
+    "png_sha256": "1d287f5d7451502e783982025db35fc312a6bb4b2c03cb34d7fe0ff32a24dd58",
     "transparent_fraction": 0.5903282165527344
   },
   {
     "body": "male",
     "style": "quiff",
     "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
-    "png_sha256": "3586018a5442f57617cef016f6ab9d2e004457f76784a7d53076af681b1fc110",
+    "png_sha256": "a60209d5e0a4c379bb38c75c326d68c0e9d1d94ef77dd56c4de0ed78bd67833a",
     "transparent_fraction": 0.56915283203125
   },
   {
     "body": "male",
     "style": "buzz",
     "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
-    "png_sha256": "85fb48e0a9f7ace977244af1b9ba30d5030da67c60f9576f4a8737d52face276",
+    "png_sha256": "5f32f281ff0ff15576e1a6ec76a2f3adecf9925c8782e50c0f21b84afe4a6d04",
     "transparent_fraction": 0.5995826721191406
   },
   {
     "body": "male",
     "style": "waves",
     "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
-    "png_sha256": "2840592340d66f8385f159ed8f44a5b0bec1a936e6c9a679c1377fa066e6613e",
+    "png_sha256": "0aa755ca2299c743ebea6ffe86ff195fab459c5788e9f8845f06f5b88937c460",
     "transparent_fraction": 0.5478096008300781
   },
   {
     "body": "male",
     "style": "locs",
     "source_sha256": "5b76fe229f66a04421518337efbfb2af8849ec27c8ae581b01b41e0d36f1cb05",
-    "png_sha256": "7bdb33cc9a36dc4ed23062d105762472ef0ccc1de86388308a885fa639570165",
+    "png_sha256": "187dc2bb4af318fd3f6be8240c1d32083d729ea3b6f9fdca2aa3bd75f192626e",
     "transparent_fraction": 0.5401992797851562
   },
   {
     "body": "female",
     "style": "curly-bob",
     "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
-    "png_sha256": "8ae5a5081ed712c92cb7d74ba280e59b978c8e2040312b09adfd5f6a2bb88ff0",
+    "png_sha256": "d19299af8ebd730ac59b2b1bc256fabc67a27fa2d27dbbc5e6fc0a8457fce355",
     "transparent_fraction": 0.5240364074707031
   },
   {
     "body": "female",
     "style": "straight-bob",
     "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
-    "png_sha256": "c74916ffd636c4e73d518517ff1611e5522500f7fb365ed9d42bea3719672a22",
+    "png_sha256": "b20bea76432d8a13101154b1ba1e88ff9a09f512c2bbe431bcff53e9334f11dc",
     "transparent_fraction": 0.57073974609375
   },
   {
     "body": "female",
     "style": "ponytail",
     "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
-    "png_sha256": "a1ae6be00cb662b90613fecedf4ec2fe8c498764160685c5ee238a604b6adfef",
+    "png_sha256": "c8b1aae0e59933621b6ede55cb1987be2e5031d746f43016f6f6293aaa2095b4",
     "transparent_fraction": 0.5533447265625
   },
   {
     "body": "female",
     "style": "braids",
     "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
-    "png_sha256": "ae1382388e1913079a3b9b9acdc05a82fc26378075c7e3091526a2df13298fc5",
+    "png_sha256": "1cddc3b14699d1a2ef7b6a08384a3e19af7ed2077618f6963fccfdd0ea013e51",
     "transparent_fraction": 0.5899620056152344
   },
   {
     "body": "female",
     "style": "natural-curls",
     "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
-    "png_sha256": "fc2a9ee11ad41b66ddf3ccba36243efd43326856fa7bf1d7b2225c8910e311de",
+    "png_sha256": "b5ca63bbecfbf280d46abb8d28978c5fd244be7c3892cc07a820cb41a4062a32",
     "transparent_fraction": 0.56439208984375
   },
   {
     "body": "female",
     "style": "low-bun",
     "source_sha256": "673b509dcc43e59d4f16c374df87caeb15135b4694a27cea13f78a7ca7653c6e",
-    "png_sha256": "847e3e13cfe5019b103b27260722c80fc3ee5f3b544281791aa5bf5e8e94072a",
+    "png_sha256": "010d9e5d392ce72ebc9f591efbe242f335653ebc77efe33699fc2a61d15a9322",
     "transparent_fraction": 0.6265716552734375
   }
 ]

@@ -1,10 +1,28 @@
+import headLandmarks from './head-landmarks.json';
 import {skinTones,Skin,Eyes} from './appearance';
 export type BodyType='male'|'female';
 export const hairStyles={
  male:[{key:'curls',name:'Short curls'},{key:'side-part',name:'Side part'},{key:'quiff',name:'Textured quiff'},{key:'buzz',name:'Buzz cut'},{key:'waves',name:'Swept waves'},{key:'locs',name:'Short locs'}],
  female:[{key:'curly-bob',name:'Curly bob'},{key:'straight-bob',name:'Straight bob'},{key:'ponytail',name:'High ponytail'},{key:'braids',name:'Two braids'},{key:'natural-curls',name:'Natural curls'},{key:'low-bun',name:'Low bun'}],
 } as const;
-export const hairColors=[{key:'red',name:'Red',color:'#a94e2e',rgb:[158,66,34]},{key:'black',name:'Black',color:'#242223',rgb:[32,30,31]},{key:'brown',name:'Brown',color:'#72462f',rgb:[103,59,35]},{key:'blond',name:'Blond',color:'#d7b77a',rgb:[201,166,101]}] as const;
+export const hairColors=[{key:'red',name:'Red',color:'#944d32'},{key:'black',name:'Black',color:'#292321'},{key:'brown',name:'Brown',color:'#633d28'},{key:'blond',name:'Blond',color:'#b08a54'}] as const;
+const hairPalettes={
+ red:[[34,18,15],[113,52,32],[181,108,72],[224,164,124]],
+ black:[[10,9,10],[34,29,28],[73,62,57],[116,102,92]],
+ brown:[[19,12,9],[78,46,28],[137,93,61],[187,143,106]],
+ blond:[[48,31,20],[151,112,65],[216,179,119],[242,218,172]],
+};
+export const headAnchors: Record<string,{neck:number[];ears:number[][]}>=headLandmarks;
+export function headPlacement(name:string,body:string){
+ const pose=bodyHeadRegistration[body],eyes=headEyes[name],anchor=headAnchors[name].neck;
+ const scale=pose.eyeDistance/(eyes[1][0]-eyes[0][0]);
+ return {x:pose.neck[0]-anchor[0]*scale,y:pose.neck[1]-anchor[1]*scale,scale};
+}
+function hairTone(t:number,palette:number[][]){
+ const knots=[0,.48,.84,1];let index=0;while(index<2&&t>knots[index+1])index++;
+ const amount=Math.max(0,Math.min(1,(t-knots[index])/(knots[index+1]-knots[index])));
+ return palette[index].map((c,k)=>c+(palette[index+1][k]-c)*amount);
+}
 export type HairColor=typeof hairColors[number]['key'];
 // Measured centers/radii of the two irises, in each 512px sprite cell.
 export const headEyes: Record<string,number[][]>={
@@ -29,7 +47,9 @@ export function appearanceHead(image:HTMLImageElement,maskImage:HTMLImageElement
  const pixels=ctx.getImageData(0,0,512,512),d=pixels.data,iris=headEyes[name],cx=(iris[0][0]+iris[1][0])/2,cy=(iris[0][1]+iris[1][1])/2,unit=(iris[1][0]-iris[0][0])/120;
  const at=(Math.round(cy+40*unit)*512+Math.round(cx-24*unit))*4;
  const reference=[d[at],d[at+1],d[at+2]],referenceLuma=.2126*reference[0]+.7152*reference[1]+.0722*reference[2];
- const skinRgb=skinTones.find(t=>t.key===skin)!.rgb,hairRgb=hairColors.find(c=>c.key===hair)!.rgb;
+ const skinRgb=skinTones.find(t=>t.key===skin)!.rgb;
+ const shades=[];for(let i=0;i<d.length;i+=4)if(mask[i+1]>240&&d[i+3]>240)shades.push(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2]);
+ shades.sort((a,b)=>a-b);const low=shades[Math.floor(shades.length*.015)]??0,high=shades[Math.floor(shades.length*.99)]??180;
  for(let i=0;i<d.length;i+=4){
   if(!d[i+3])continue;const x=i/4%512,y=Math.floor(i/4/512),r=d[i],g=d[i+1],b=d[i+2],luma=.2126*r+.7152*g+.0722*b;
   const eye=iris.find(e=>ellipse(x,y,e)<1);
@@ -37,16 +57,17 @@ export function appearanceHead(image:HTMLImageElement,maskImage:HTMLImageElement
   const warm=smooth(25,48,r-g)*smooth(10,25,g-b)*smooth(95,155,r);
   const skinWeight=mask[i]/255*warm;
   const hairWeight=mask[i+1]/255;
+  const hairRgb=hairTone(Math.max(0,Math.min(1,(luma-low)/Math.max(1,high-low))),hairPalettes[hair]);
   for(let k=0;k<3;k++){
    const skinRatio=luma/referenceLuma,skinMapped=skinRgb[k]*skinRatio+.12*(d[i+k]-reference[k]*skinRatio);
-   const hairMapped=hairRgb[k]*Math.pow(luma/68,.85);
+   const hairMapped=hairRgb[k];
    d[i+k]=d[i+k]*(1-skinWeight-hairWeight)+skinMapped*skinWeight+hairMapped*hairWeight;
   }
  }
  ctx.putImageData(pixels,0,0);return canvas;
 }
 export const bodySources={male:{student:'student-curls',coach:'coach-curls'},female:{student:'student-bob',coach:'coach-bob'}} as const;
-export const bodyHeadRegistration:Record<string,{eyes:number[];cut:number}>={
- 'student-curls':{eyes:[510,374,166],cut:540},'coach-curls':{eyes:[517,404,162],cut:590},
- 'student-bob':{eyes:[508,411,152],cut:567},'coach-bob':{eyes:[509,386,150],cut:545},
+export const bodyHeadRegistration:Record<string,{neck:number[];eyeDistance:number}>={
+ 'student-curls':{neck:[511,595],eyeDistance:166},'coach-curls':{neck:[511,650],eyeDistance:162},
+ 'student-bob':{neck:[507,622],eyeDistance:152},'coach-bob':{neck:[509,618],eyeDistance:150},
 };

@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image,ImageDraw,ImageFilter
 root=Path(__file__).resolve().parent
 source=(root/'hair.ts').read_text()
+landmarks=json.loads((root/'head-landmarks.json').read_text())
 items=re.findall(r"'((?:male|female)-[^']+)':\[\[(\d+),(\d+),\d+,\d+\],\[(\d+),(\d+),",source)
 for name,x1,y1,x2,y2 in items:
  im=Image.open(root/'heads'/f'{name}.png').convert('RGBA');rgb=np.array(im).astype(float);r,g,b=rgb[:,:,0],rgb[:,:,1],rgb[:,:,2]
@@ -18,7 +19,13 @@ for name,x1,y1,x2,y2 in items:
  # Fill enclosed eye/brow/mouth holes to protect those from hair color.
  outside=skin.copy();ImageDraw.floodfill(outside,(0,0),128)
  filled=Image.fromarray(np.uint8(np.array(outside)!=128)*255)
- filled=filled.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(1))
+ # Protect the manually reviewed ear extents, including dark inner-ear pixels
+ # rejected by the color flood. A narrow inward feather prevents tint spill.
+ protection=Image.new('L',(512,512));pen=ImageDraw.Draw(protection)
+ for x,y,rx,ry in landmarks[name]['ears']:
+  pen.ellipse((x-rx,y-ry,x+rx,y+ry),fill=255)
+ filled=Image.fromarray(np.maximum(np.array(filled),np.array(protection)))
+ filled=filled.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(.65))
  # Channels encode skin membership and hair membership, no source recoloring.
  sk=np.array(filled).astype(float)/255;alpha=rgb[:,:,3]/255
  result=np.zeros((512,512,3),dtype='uint8');result[:,:,0]=(sk*255).astype('uint8');result[:,:,1]=((1-sk)*alpha*255).astype('uint8')

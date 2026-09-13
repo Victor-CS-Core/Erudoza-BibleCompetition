@@ -2,7 +2,7 @@
 from pathlib import Path
 import hashlib,json
 import numpy as np
-from PIL import Image
+from PIL import Image,ImageFilter
 root=Path(__file__).resolve().parent
 names={'male':['curls','side-part','quiff','buzz','waves','locs'],'female':['curly-bob','straight-bob','ponytail','braids','natural-curls','low-bun']}
 manifest=[]
@@ -14,9 +14,15 @@ for body,styles in names.items():
   rgb=np.array(cell).astype(float)
   cyan=np.minimum(rgb[:,:,1],rgb[:,:,2])-rgb[:,:,0]
   alpha=np.clip((105-cyan)/75,0,1)
-  # Suppress cyan spill only at partially transparent edge pixels.
+  # Recover edge color from nearby opaque foreground, rather than clamping
+  # green/blue to red (which created colored fringes on thin strands).
+  reliable=(alpha>=.999).astype(float)
+  weight=np.array(Image.fromarray((reliable*255).astype('uint8')).filter(ImageFilter.BoxBlur(3))).astype(float)/255
   edge=(alpha>0)&(alpha<1)
-  for ch in (1,2):rgb[:,:,ch][edge]=np.minimum(rgb[:,:,ch][edge],rgb[:,:,0][edge])
+  for ch in range(3):
+   summed=np.array(Image.fromarray((rgb[:,:,ch]*reliable).astype('uint8')).filter(ImageFilter.BoxBlur(3))).astype(float)
+   recovered=summed/np.maximum(weight,.001)
+   rgb[:,:,ch][edge]=recovered[edge]
   rgba=np.dstack((rgb,alpha*255)).astype('uint8');rgba[rgba[:,:,3]==0,:3]=0
   out=Image.fromarray(rgba);out.save(root/'heads'/f'{body}-{name}.png')
   out.save(root/'heads'/f'{body}-{name}.webp',quality=94,method=6)
