@@ -61,7 +61,7 @@ export function PracticeHub() {
   }
 
   return <div className="practice-page practice-hub">
-    <PageHeader title="Team Practice" description="Practice answering questions about your assigned Scripture as a team." action={<PracticePatch kind="team-practice" size={72} className="practice-hub-heading-art" />} />
+    <section className="practice-hub-banner ds-inverse-surface" aria-label="Team Practice"><img src="/brand/team-practice-banner.png" width={2172} height={724} alt="" fetchPriority="high" /><div className="practice-hub-banner-copy"><PageHeader title="Team Practice" description="Practice answering questions about your assigned Scripture as a team." /></div></section>
     {coach&&<Panel><h2>PBE answer reviews</h2><p>Review saved Solo and Team answers without holding up independent practice.</p><LinkButton variant="secondary" to="/admin/practice/reviews">Open PBE answer reviews</LinkButton></Panel>}
     {error && <Notice tone="danger">{error}</Notice>}
     {bootstrap.isPending && <Panel aria-busy="true"><LoadingState label="Loading Team Practice…" /></Panel>}

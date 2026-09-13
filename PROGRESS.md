@@ -1274,3 +1274,9 @@ Ten of fourteen tasks are now independently reviewed. B4 integration follows thi
 - This is a local gate using synthetic accounts/questions and ignored TLS/browser artifacts, not live deployment or physical-device speech validation. No schema migration, main merge or deployment is claimed. Next: explicitly stage/review scoped files, commit and normally push codex/pbe-simulation-c, then verify the remote checkpoint.
 
 - Git checkpoint: scoped implementation `bc2fb51df1371f839c5d04bc2b25779e963f07a6` was committed and normally pushed to `origin/codex/pbe-simulation-c`; exact remote readback matched. All84 staged files were reviewed; ignored fixtures, TLS keys, screenshots and the task dependency symlink were excluded. This documentation follow-up records the pushed gate. User review/integration is next; no main merge or deployment occurred.
+
+### Team Practice banner correction
+
+- User rejected the floating upper-right header patch and requested a more appropriate banner. Generated a painterly shared study table with Bibles, stopwatch and answer sheets in the established mountain/navy/ivory theme. Replaced the header patch with the full-width image and live accessible PageHeader; phone crop keeps copy above the study scene. Existing mode and Honor patches remain unchanged.
+- Preserved the original generated PNG in public assets and exact built-in prompt/provenance in `docs/brand/2026-09-13-team-practice-banner/`. No local image processing was used. Local checks passed22 hub tests plus six Chromium student/coach viewport cases at1440/390/320 with no overflow, page or image errors. Desktop and phone captures inspected; native build, both TypeScript checks, ESLint and whitespace passed. Existing chunk advisory remains.
+- Next: scoped commit/push on codex/pbe-simulation-c and user review. This does not merge main or deploy; temporary browser fixtures/screenshots remain ignored.

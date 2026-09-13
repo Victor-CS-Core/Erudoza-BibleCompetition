@@ -87,3 +87,7 @@ The user requested the Training HQ heading and description over the left side of
 ## One-team simulation and matching PVP — September 13
 
 Approved Option C uses compact light entry cards for PBE simulation and head-to-head practice, a shared light lobby with retained team patches, and the existing live question/scoreboard composition. PVP setup opens in a shared workspace dialog; simulation setup has Material, Timers, Team and Review tabs. Workspace dialogs fill the viewport on phones. Keep creator-only lobby configuration, one-team presenter/scribe readiness, in-person discussion, authoritative timers and results filters. Distinguish the new Simulation patch collection from existing Team Honors and preserve every approved bitmap. New simulation patches use the shared artwork primitive and transparent256/512 WebP derivatives.
+
+## Team Practice banner — September 13
+
+The user replaced the isolated top-right Team Practice patch with an illustrated banner. Use the mountain-lodge study table with Bibles, stopwatch and answer sheets, live PageHeader text on a navy left area, and a vertical text/art composition on phones. The banner uses the shared inverse surface; existing mode emblems and earned Honor patches remain in their relevant cards.
