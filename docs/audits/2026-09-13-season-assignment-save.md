@@ -64,3 +64,24 @@ The production change is confined to that shared CSS rule: use `auto`, with an e
 The focused browser command is `NODE_OPTIONS=--no-experimental-webstorage npx playwright test --config playwright.book-scroll.config.ts` from `apps/web`. It uses actual local native accounts/library data, Chromium touch events at 390/320, and successive desktop wheel ticks at 1440. Assertions check inner scrolling while content remains, actual page movement at both boundaries, a non-overflowing one-book search result, expanded search results retaining selection, coach/student book browsers, and 150-chapter selection preserving the chosen checkbox. Programmatic positioning only prepares boundaries; touch/wheel input must produce the measured handoff. Desktop setup reserves room for the page to move and waits for compositor frames.
 
 An attempted WebKit run could not retain the fixture's Secure session cookie on its plain-HTTP local server and returned to sign-in before rendering a book list. That is an uncompleted browser test, not production Safari acceptance. No production authentication was changed to accommodate it. The committed focused matrix covers Chromium; physical iPhone/Safari remains unverified. See `PROGRESS.md` for the final test and pushed checkpoint outcomes.
+
+
+## Phone landscape follow-up
+
+The supplied landscape screenshot showed a wide empty roster column beside the assignment editor. The planner only switched to the compact selector at widths of 760px or less, so rotating a phone restored the desktop columns even when very little vertical space remained. The new real native rotation regression first failed when the season summary remained beside the books at 844×390.
+
+The planner now also uses its existing compact composition on landscape screens with a coarse primary pointer and at most 500px of height. This keeps the student/coach selector above the editor, removes the left separator/roster column, stacks plan settings and season actions, and places the season summary below book selection. On those short screens the book and chapter scrollports are capped at half the small viewport height. Desktop mouse windows and taller tablets retain their existing layout. Selection and save logic are unchanged.
+
+Visual inspection also identified support controls overlapping the right edge of Save. A second regression failed with the save edge at x=783 and the support controls starting at x=718. A narrow reserved area beside the season form now keeps both the loaded provider launcher and the blocked-provider fallback clear of fields/buttons. It includes right safe-area space and returns to the form when support is minimized. Existing support eligibility, links and minimization preferences remain intact.
+
+From `apps/web`:
+
+```sh
+VITE_BUY_ME_A_COFFEE_URL=https://buymeacoffee.com/erudoza npm run build:native
+npx playwright test --config playwright.season-layout.config.ts
+npm run lint
+```
+
+Native build, web/native TypeScript and full lint pass. The four browser projects pass: phone with the existing local support contract fixture, phone with blocked provider/fallback, desktop and tablet. Each uses real isolated authentication/library/season APIs. Phone checks cover 390×844 → 844×390 → 932×430 → 667×375 → portrait, preserved 40-chapter selection/person/role/Advanced difficulty, reachable save controls, support clearance/minimization, and student/coach saves surviving reload. Desktop 1440×900 and short 932×430 mouse windows, plus touch tablets at 768×1024 and 1024×768, retain their roster. Landscape and restored portrait screenshots were inspected. No physical iPhone, Safari, notch geometry or OS rotation acceptance is claimed.
+
+A rerun of the existing scroll matrix exposed an intermittent synthetic-touch timing issue (one failure, five passes; then one failure and two passes on repeated phone runs). Its helper returned immediately after touch release and repositioned the next boundary before momentum settled. It now waits for six stable animation frames of both inner and page scroll offsets, bounded at three seconds, before continuing. All page-movement and selection assertions remain unchanged; no production gesture handler was added. Three repeated phone book-scroll runs then passed. The final full-matrix outcome and Git checkpoint are recorded in `PROGRESS.md`.

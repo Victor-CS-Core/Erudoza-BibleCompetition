@@ -34,10 +34,10 @@
 .planner-saved-row{padding-block:var(--er-space-2)}
 .planner-caption{margin-top:var(--er-space-3)}
 .season-planner p,.season-planner strong,.book-assignment-editor strong{overflow-wrap:anywhere}
-@media(max-width:760px){.planner-columns{grid-template-columns:1fr}.planner-summary{position:static}.planner-roster-layout{grid-template-columns:1fr}.planner-editor{border-left:0;padding-left:0}.planner-roster{max-height:260px;overflow:auto}.planner-detail-fields{grid-template-columns:1fr 1fr}.planner-detail-fields>label:first-child{grid-column:1/-1}.planner-actions>.ds-button{flex:1;white-space:normal}.planner-steps>.ds-button{flex:1}.planner-book-grid{grid-template-columns:1fr}.planner-pair{grid-template-columns:1fr}}
+@media(max-width:760px), (orientation:landscape) and (max-height:500px) and (pointer:coarse){.planner-columns{grid-template-columns:1fr}.planner-summary{position:static}.planner-roster-layout{grid-template-columns:1fr}.planner-editor{border-left:0;padding-left:0}.planner-roster{max-height:260px;overflow:auto}.planner-detail-fields{grid-template-columns:1fr 1fr}.planner-detail-fields>label:first-child{grid-column:1/-1}.planner-actions>.ds-button{flex:1;white-space:normal}.planner-steps>.ds-button{flex:1}.planner-book-grid{grid-template-columns:1fr}.planner-pair{grid-template-columns:1fr}}
 
 .planner-mobile-student{display:none}
-@media(max-width:760px){.planner-roster{display:none}.planner-mobile-student{display:grid;gap:var(--er-space-2)}}
+@media(max-width:760px), (orientation:landscape) and (max-height:500px) and (pointer:coarse){.planner-roster{display:none}.planner-mobile-student{display:grid;gap:var(--er-space-2)}}
 
 .planner-book-choice.ds-choice{flex-direction:row;justify-content:flex-start;text-align:left}
 @media(max-width:430px){.planner-actions>.ds-button{flex-basis:100%}}
@@ -52,4 +52,14 @@
 .planner-finish{display:grid;gap:var(--er-space-4)}
 .planner-finish-help{display:grid;gap:var(--er-space-2)}
 .planner-finish-actions{justify-content:flex-end}
-@media(max-width:760px){.planner-finish-actions{flex-direction:column;flex-wrap:nowrap}.planner-finish-actions>.ds-button{width:100%;flex:0 0 auto}}
+@media(max-width:760px), (orientation:landscape) and (max-height:500px) and (pointer:coarse){.planner-finish-actions{flex-direction:column;flex-wrap:nowrap}.planner-finish-actions>.ds-button{width:100%;flex:0 0 auto}}
+
+/* A phone remains a single-column editor when rotated past the width breakpoint.
+   Keep the scrollable choices shorter than the viewport so settings stay reachable. */
+@media (orientation:landscape) and (max-height:500px) and (pointer:coarse) {
+  .season-planner .bible-book-groups,.book-assignment-editor .planner-chapter-grid { max-height:50svh; }
+  /* Leave a narrow rail for the support launcher and its minimize control. */
+  .command-app:has(.coffee-floating) .training-main:has(.season-planner) { padding-right:calc(144px + env(safe-area-inset-right,0px)); }
+  html:not([data-erudoza-coffee-ready="true"]) .command-app:has(.season-planner) .coffee-floating { flex-direction:column; align-items:flex-end; }
+  .command-app:has(.season-planner) .coffee-fallback { max-width:112px; white-space:normal; }
+}

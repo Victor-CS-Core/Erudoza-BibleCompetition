@@ -21,6 +21,18 @@ async function scrollOver(page: Page, list: Locator, delta: number, touch: boole
     }
     await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await session.detach();
+    // Finish this gesture's momentum before the next programmatic boundary setup.
+    await list.evaluate(async element => {
+      let top = element.scrollTop, pageTop = scrollY, stableFrames = 0;
+      const started = performance.now();
+      while (stableFrames < 6) {
+        await new Promise(requestAnimationFrame);
+        stableFrames = element.scrollTop === top && scrollY === pageTop ? stableFrames + 1 : 0;
+        top = element.scrollTop;
+        pageTop = scrollY;
+        if (performance.now() - started > 3000) throw new Error('Touch scrolling did not settle');
+      }
+    });
   } else {
     await page.mouse.move(x, y);
     // Two successive wheel ticks model continuing to scroll across a boundary.
