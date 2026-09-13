@@ -5,7 +5,7 @@
 - User explicitly requested merge to main. Integrated main cd75aa9 and its assignment-layout history; the approved two-step planner supersedes the older assignment panels while student-directory alignment and audit history remain. Main advanced to 82ab8c0 during checks; incorporated its shared footer, preserving the PBE copy corrections and new quiet-action example.
 - Verification: initial broad web/native run had 1109 passing, two skipped and five failures (three resource-contention timeouts; two missing ignored local meter-output directory errors). Created the local output directory and reran the five affected suites with one worker: all 121 tests passed without changing assertions or timeouts. Final footer integration passed 90 UI tests, native build/web-native types/full ESLint/whitespace and chapter/profile browser checks at 1440/390/320. Existing bundle advisory remains.
 - Found the retained task-local .NET 10.0.303 SDK: canonical backend compiled and all six InstalledLibraryTests passed, clearing the earlier library-test SDK blocker. No full canonical suite or remote CI acceptance claimed.
-- Next: push the verified integration branch, fast-forward clean main under a fresh ancestry check and push normally. No deployment requested or performed.
+- Main integration completed: verified integration `54df57f9b94af7149374e18d8552d4066223d54b` pushed to the task branch, clean main fast-forwarded from 82ab8c0, and normal push plus exact remote readback confirmed main at 54df57f. No deployment requested or performed.
 
 ## Assignment chapters and current profile images — September 12
 
