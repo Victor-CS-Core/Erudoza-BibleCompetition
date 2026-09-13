@@ -1,5 +1,10 @@
 # Erudoza progress log
 
+## Consolidated art-assets folder — September 13
+
+- Created `/home/ktr0nn/Erudoza-Art-Assets` as a machine-local copy of the app’s artwork. It preserves production-served files under `app-public/`, all source/review brand artwork under `brand-source/`, and the five current advertisement exports under `advertisements/`. `README.md`, `ASSET-LIST.txt` and advertisement SHA256 checksums document the handoff.
+- Inventory contains 145 production image/vector assets, 180 brand-source image/vector assets and 5 advertisement PNGs plus the reusable QR SVG. The folder is approximately 285 MB. A production sample and advertisement sample compare byte-for-byte with the workspace; both QR copies decode to `https://erudoza.com/`. This copy does not change app source, deployment or the source repository’s asset authority.
+
 ## Season actions and HQ banner — authorized main integration, September 13
 
 - User explicitly requested merge to main for both changes in this task. Fresh origin/main remains `b79330b`, an ancestor of the reviewed task head `63d9401`; main's checkout is clean. No conflict resolution or application edits are needed.
