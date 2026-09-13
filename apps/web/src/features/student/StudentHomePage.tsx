@@ -42,8 +42,13 @@ export function StudentHomePage() {
     return link(`/student/study?${search}`);
   };
   return <div className="training-dashboard student-home">
-    <PageHeader title="Training HQ" description="Review your assigned Scripture and prepare for team practice." action={data && <div className="training-season" data-testid="current-season"><small>Current season</small><strong>{data.seasonName || "Not assigned"}</strong><Badge tone={data.seasonStatus === "Active" ? "success" : "neutral"}>{data.seasonStatus === "None" ? "Awaiting assignment" : data.seasonStatus}</Badge></div>} />
-    <LandscapeBanner className="training-hq-banner" priority />
+    <section className="training-hq-hero ds-inverse-surface" aria-labelledby="training-hq-title">
+      <LandscapeBanner className="training-hq-banner" priority />
+      <div className="training-hq-hero-copy">
+        <PageHeader as="div" titleId="training-hq-title" title="Training HQ" description="Review your assigned Scripture and prepare for team practice." />
+        {data && <div className="training-hq-season" data-testid="current-season"><small className="ds-caption">Current season</small><strong>{data.seasonName || "Not assigned"}</strong><Badge tone={data.seasonStatus === "Active" ? "success" : "neutral"}>{data.seasonStatus === "None" ? "Awaiting assignment" : data.seasonStatus}</Badge></div>}
+      </div>
+    </section>
     {data?.format === "Pbe" && <div className="flex flex-wrap gap-3"><Badge>PBE questions</Badge><LinkButton variant="secondary" to={link("/student/study?mode=Practice&format=Memory")}>Choose Memory</LinkButton><p>Shortened timed practice is available.</p></div>}
     {(seasons.data?.length ?? 0) > 1 && <label className="training-season-select">Assigned season<Select value={seasonId ?? ""} onChange={event => { setGoalOpen(false); setParams({ seasonId: event.target.value }); }}>{seasons.data?.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}
     {seasons.isError && <Notice tone="danger">Assigned seasons could not load. <Button variant="secondary" onClick={() => void seasons.refetch()}>Retry seasons</Button></Notice>}

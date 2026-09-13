@@ -79,3 +79,7 @@ The assignment roster and selected-person heading use `ProfileAvatar` to show th
 ## Shared footer — September 12
 
 Use `components/ui/AppFooter.tsx` for public, workspace and account page endings. Public and workspace footers pair the text brand and concise PBE description with a subtle divider and grouped actions; accounts use the compact description-only brand area. “Download app” is a quiet footer action on all screen sizes, superseding the desktop landing header installation action. It retains browser installation and help, and disappears in installed mode. Shared `ds-button-quiet` uses muted semantic text, no resting fill and 44px targets. Preserve adult/coach-only workspace support, minimization/focus behavior, floating-widget clearance and the phone navigation dock.
+
+## Training HQ banner heading — September 13
+
+The user requested the Training HQ heading and description over the left side of its existing landscape banner, following the public landing page. Use the shared inverse surface and PageHeader, with a navy fade behind live cream text and current-season information below the description. Keep the mountain/Bible artwork visible to the right. On phones, keep the text inside the banner with a vertical fade and artwork visible below it. This supersedes the earlier requirement to place the HQ heading outside the banner. Assignment, season selection and training behavior remain unchanged.

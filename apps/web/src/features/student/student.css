@@ -147,3 +147,19 @@
   .training-controls > .ds-button { width: 100%; }
   .training-step-state { max-width: 58px; }
 }
+
+/* Training HQ follows the public hero's navy fade and live text over artwork. */
+.training-hq-hero { position:relative; isolation:isolate; overflow:hidden; border-radius:var(--er-radius-card); min-height:320px; aspect-ratio:3 / 1; display:flex; align-items:center; }
+.training-hq-hero .training-hq-banner { position:absolute; z-index:-2; inset:0; height:100%; object-fit:cover; object-position:right center; }
+.training-hq-hero::after { content:""; position:absolute; z-index:-1; inset:0; pointer-events:none; background:linear-gradient(90deg,var(--er-ink-navy) 0%,var(--er-ink-navy) 30%,transparent 78%); }
+.training-hq-hero-copy { padding:var(--er-space-8); width:48%; min-width:0; display:grid; gap:var(--er-space-6); }
+.training-hq-hero-copy .ds-page-header { margin:0; }
+.training-hq-season { display:flex; flex-wrap:wrap; align-items:center; gap:var(--er-space-2) var(--er-space-3); }
+.training-hq-season small { flex-basis:100%; }
+.training-hq-season strong { overflow-wrap:anywhere; min-width:0; }
+@media(max-width:760px) {
+  .training-hq-hero { aspect-ratio:auto; min-height:360px; align-items:flex-start; }
+  .training-hq-hero-copy { width:100%; padding:var(--er-space-6); padding-bottom:144px; }
+  .training-hq-hero::after { background:linear-gradient(180deg,var(--er-ink-navy) 0%,var(--er-ink-navy) 40%,transparent 100%); }
+}
+@media(forced-colors:active) { .training-hq-hero .training-hq-banner,.training-hq-hero::after { display:none; } }

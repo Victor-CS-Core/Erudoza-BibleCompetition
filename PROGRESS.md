@@ -1,5 +1,11 @@
 # Erudoza progress log
 
+## Training HQ heading on banner — September 13
+
+- User requested Training HQ copy on the left of the existing banner over a fade, matching the public landing page. Continued in `.worktrees/season-draft-actions` on `codex/season-draft-actions` after the verified season-footer checkpoint. Shared inverse surface and PageHeader provide cream text over a navy fade; existing landscape remains visible to the right. Current-season information sits beneath the description. Phones retain text inside the banner with a vertical fade and artwork below. Updated DESIGN.md records this user direction.
+- Local gate: all 19 existing HQ/landing tests passed; native production build, web/native TypeScript, full ESLint and whitespace passed. Existing bundle advisory remains. Synthetic built-app browser checks at 1440/390/320 confirmed heading/status inside the banner, loaded art, no page overflow or runtime errors, and long active-season names fitting. Forced-colors heading visibility passed. Desktop/phone captures were inspected; independent source/capture review found no actionable issues.
+- Preview is http://127.0.0.1:5241/student using synthetic local training data. Ignored scripts/captures are under `apps/web/test-results/season-draft`. The earlier season footer remains in this preview. This is a presentation-only change; no training writes/backend behavior or shared primitive styles changed. No authenticated production or deployment acceptance is claimed. Next: commit/push the scoped follow-up, then user review.
+
 ## Season creation draft actions — September 13
 
 - User requested better placement of the season-assignment footer buttons and “Save as a draft” in place of Archive. Isolated in `.worktrees/season-draft-actions` on `codex/season-draft-actions`, based on current remote main `b79330b`; concurrent profile artwork edits remain separate.
