@@ -1,7 +1,6 @@
 export const styles = ['curls', 'sweep', 'bob'] as const;
 export type Style = typeof styles[number];
 export type Attire = 'student' | 'coach';
-export type Accessory = 'sash' | 'satchel';
 export const styleNames = {curls: 'Short curls', sweep: 'Side sweep', bob: 'Curly bob'};
 export const honors = [
   {key: 'solo:exact-recall', title: 'Exact recall', src: '../../../apps/web/public/assets/training/exact-recall-320.webp'},
@@ -9,17 +8,17 @@ export const honors = [
   {key: 'team:first-fellowship', title: 'First fellowship', src: '../../../apps/web/public/brand/practice/first-fellowship-512.webp'},
 ] as const;
 export type Slots = [string | null, string | null, string | null];
-export type Configuration = {style: Style; attire: Attire; accessory: Accessory; slots: Slots};
+export type Configuration = {style: Style; attire: Attire; slots: Slots};
 type Point = [number, number];
-type Registration = {shoulder: Point; hip: Point; bag: Point};
+type Registration = {shoulder: Point; hip: Point};
 // Individually inspected attachment coordinates in each 1024 × 1536 source.
 export const registration: Record<string, Registration> = {
-  'student-curls': {shoulder: [352, 572], hip: [628, 900], bag: [652, 1025]},
-  'student-sweep': {shoulder: [363, 595], hip: [625, 913], bag: [650, 1025]},
-  'student-bob': {shoulder: [364, 606], hip: [625, 920], bag: [650, 1030]},
-  'coach-curls': {shoulder: [353, 637], hip: [637, 964], bag: [661, 1082]},
-  'coach-sweep': {shoulder: [355, 604], hip: [635, 926], bag: [658, 1040]},
-  'coach-bob': {shoulder: [355, 609], hip: [630, 930], bag: [658, 1046]},
+  'student-curls': {shoulder: [352, 572], hip: [628, 900]},
+  'student-sweep': {shoulder: [363, 595], hip: [625, 913]},
+  'student-bob': {shoulder: [364, 606], hip: [625, 920]},
+  'coach-curls': {shoulder: [353, 637], hip: [637, 964]},
+  'coach-sweep': {shoulder: [355, 604], hip: [635, 926]},
+  'coach-bob': {shoulder: [355, 609], hip: [630, 930]},
 };
 const images = new Map<string, Promise<HTMLImageElement>>();
 export function loadImage(src: string) {
@@ -53,7 +52,7 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
   const name = `${config.attire}-${config.style}`;
   const extension = quality==='export' ? '.png' : '-512.webp';
   const [body, accessory, ...patches] = await Promise.all([
-    loadImage(`prepared/${name}${extension}`), loadImage(`prepared/${config.accessory}${extension}`),
+    loadImage(`prepared/${name}${extension}`), loadImage(`prepared/sash${extension}`),
     ...config.slots.map(key => {const h=honors.find(h=>h.key===key); return h ? loadImage(h.src) : Promise.resolve(null);}),
   ]);
   // Render to an offscreen buffer so asynchronous selection changes never
@@ -62,23 +61,12 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
   const ctx = buffer.getContext('2d')!;
   if (background) {ctx.fillStyle=background; ctx.fillRect(0,0,1024,1536);}
   const reg = registration[name];
-  const from: [Point, Point] = config.accessory==='sash' ? [[205,190],[795,1280]] : [[130,125],[535,1125]];
-  const matrix = transform(from, [reg.shoulder, config.accessory==='sash' ? reg.hip : reg.bag]);
-  function accessoryLayer(frontOnly: boolean) {
-    ctx.save(); ctx.transform(matrix.a,matrix.b,-matrix.b,matrix.a,matrix.x,matrix.y);
-    if (frontOnly && config.accessory==='satchel') {
-      // The rear strap passes behind the body; only the diagonal front strap
-      // and bag flap are redrawn in front. Preserve the original full asset.
-      const clip = new Path2D();
-      clip.moveTo(65,50); clip.lineTo(170,50); clip.lineTo(920,900); clip.lineTo(910,980); clip.lineTo(790,930); clip.lineTo(85,260); clip.closePath();
-      clip.rect(150,882,790,530); ctx.clip(clip);
-    }
-    ctx.drawImage(accessory,0,0,1024,1536); ctx.restore();
-  }
-  if (config.accessory==='satchel') accessoryLayer(false);
-  ctx.drawImage(body,0,0,1024,1536); accessoryLayer(true);
-  const centers: Point[] = config.accessory==='sash' ? [[302,404],[495,748],[691,1095]] : [[352,1030],[548,1030],[744,1030]];
-  const radius = (config.accessory==='sash' ? 118 : 88)*matrix.scale;
+  const matrix = transform([[205,190],[795,1280]], [reg.shoulder, reg.hip]);
+  ctx.drawImage(body,0,0,1024,1536);
+  ctx.save(); ctx.transform(matrix.a,matrix.b,-matrix.b,matrix.a,matrix.x,matrix.y);
+  ctx.drawImage(accessory,0,0,1024,1536); ctx.restore();
+  const centers: Point[] = [[302,404],[495,748],[691,1095]];
+  const radius = 118*matrix.scale;
   centers.forEach(([px,py],i)=>{
     const x=matrix.a*px-matrix.b*py+matrix.x, y=matrix.b*px+matrix.a*py+matrix.y;
     if (patches[i]) {

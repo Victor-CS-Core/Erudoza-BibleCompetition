@@ -12,6 +12,8 @@ page.on('response',r=>{if(r.status()>=400)errors.push(`${r.status()} ${r.url()}`
 const waitReady=()=>page.waitForFunction(()=>document.querySelectorAll('canvas[data-ready="true"]').length===4);
 await page.goto('http://127.0.0.1:5187/docs/brand/2026-09-13-profile-characters/review.html');
 await waitReady();
+assert.equal(await page.getByRole('button',{name:/satchel|sash/i}).count(),0);
+assert.equal(await page.locator('body').innerText().then(text=>/satchel/i.test(text)),false);
 const slot=i=>page.getByRole('combobox',{name:`Honor in spot ${i}`});
 const initialAvatar=await page.locator('.avatar img').getAttribute('src');
 const selections=['solo:exact-recall','solo:chapter-strong','team:first-fellowship'];
@@ -22,8 +24,6 @@ assert.equal(await slot(2).locator('option[value="solo:exact-recall"]').evaluate
 let combinations=0;
 for(const attire of ['Pathfinder','Master Guide · coach']){
   await page.getByRole('button',{name:attire,exact:true}).click();
-  for(const accessory of ['Sash','Satchel']){
-    await page.getByRole('button',{name:accessory,exact:true}).click();
     for(const style of ['Short curls','Side sweep','Curly bob']){
       await page.getByRole('button',{name:style,exact:true}).click();
       await waitReady();
@@ -32,15 +32,13 @@ for(const attire of ['Pathfinder','Master Guide · coach']){
       assert.equal(await page.locator('.character-panel canvas').getAttribute('aria-busy'),'false');
       combinations++;
     }
-    await page.locator('.lineup').screenshot({path:`${output}/${attire==='Pathfinder'?'student':'coach'}-${accessory.toLowerCase()}-lineup.png`});
-  }
+    await page.locator('.lineup').screenshot({path:`${output}/${attire==='Pathfinder'?'student':'coach'}-sash-lineup.png`});
 }
 await page.getByRole('button',{name:'Clear all three spots'}).click();await waitReady();
 assert.equal(await page.locator('.empty-ring').count(),3);
 for(let i=1;i<=3;i++)assert.equal(await slot(i).inputValue(),'');
 await slot(2).selectOption(selections[1]);await waitReady();
 assert.equal(await page.locator('.empty-ring').count(),2);
-await page.getByRole('button',{name:'Sash',exact:true}).click();await waitReady();
 assert.equal(await slot(2).inputValue(),selections[1]);
 await page.getByRole('button',{name:'Character',exact:true}).click();
 await page.waitForFunction(()=>document.querySelector('.avatar img')?.getAttribute('src')?.startsWith('data:image/png'));
@@ -75,4 +73,4 @@ for(const width of [1440,390,320]){
 await slot(3).focus();assert.equal(await slot(3).evaluate(el=>el===document.activeElement),true);
 assert.deepEqual(errors,[]);
 await browser.close();
-console.log(JSON.stringify({combinations,viewportChecks,checks:['slot selections survive style/attire/accessory changes','duplicate choices disabled','three empty slots and partial slots','profile avatar independent','character/initials/Honor avatar modes','PNG download','no page overflow','all artwork loads','keyboard control focus'],errors},null,2));
+console.log(JSON.stringify({combinations,viewportChecks,checks:['slot selections survive style/attire changes','duplicate choices disabled','three empty slots and partial slots','profile avatar independent','character/initials/Honor avatar modes','PNG download','no page overflow','all artwork loads','keyboard control focus'],errors},null,2));
