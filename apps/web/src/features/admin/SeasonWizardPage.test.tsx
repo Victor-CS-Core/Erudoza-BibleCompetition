@@ -77,7 +77,7 @@ describe("Guided season setup", () => {
     expect(screen.getByText("11–12 of 12 students")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
     fireEvent.click(screen.getByRole("link", { name: "Manage assignments for Student 11" }));
-    expect(screen.getByRole("heading", { name: "Student 11" })).toBeInTheDocument();
+    expect(screen.getByText("Student 11", { exact: true })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Specific verses" }));
     fireEvent.click(screen.getByRole("button", { name: "Add passage assignment" }));
     await waitFor(() => expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-11" })));
@@ -96,7 +96,7 @@ describe("Guided season setup", () => {
   });
   it("opens a standalone assignment editor without season setup navigation", async () => {
     render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={["/admin/assignments?seasonId=season-1&studentId=student-2"]}><SeasonAssignmentEditor seasonId="season-1" studentId="student-2" /></MemoryRouter></QueryClientProvider>);
-    await screen.findByRole("heading", { name: "Sarah Student" });
+    await screen.findByRole("region", { name: "Assign passages" });
     expect(screen.queryByRole("navigation", { name: "Season setup steps" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Back to students" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Review season →" })).not.toBeInTheDocument();
@@ -149,7 +149,7 @@ describe("Guided season setup", () => {
   });
   it("keeps assignment edits separate from the saved season passages", async () => {
     renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
-    await screen.findByRole("heading", { name: "Daniel Student" });
+    await screen.findByText("Daniel Student", { exact: true });
     fireEvent.click(screen.getByRole("button", { name: "Specific verses" }));
     fireEvent.change(screen.getByLabelText("Passage to assign"), { target: { value: "custom" } });
     fireEvent.change(screen.getByTestId("assignment-end"), { target: { value: "4" } });
@@ -199,7 +199,7 @@ describe("Guided season setup", () => {
     vi.mocked(api.season).mockResolvedValue({ ...season, status: "Archived" });
     vi.mocked(api.assignments).mockResolvedValue([assignment]);
     renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
-    await screen.findByRole("heading", { name: "Daniel Student" });
+    await screen.findByText("Daniel Student", { exact: true });
     expect(screen.getByTestId("season-status")).toHaveTextContent("Archived");
     expect(screen.getByRole("button", { name: "Assign chapters" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Save difficulty for future sessions" })).toBeDisabled();
@@ -209,7 +209,7 @@ describe("Guided season setup", () => {
   it("prevents duplicate passage assignments while retaining difficulty adjustment", async () => {
     vi.mocked(api.assignments).mockResolvedValue([assignment]);
     renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
-    await screen.findByRole("heading", { name: "Daniel Student" });
+    await screen.findByText("Daniel Student", { exact: true });
     expect(screen.getByRole("button", { name: "Assign chapters" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Save difficulty for future sessions" })).toBeEnabled();
   });
@@ -318,7 +318,7 @@ it("retains unsaved chapters after a partial failure and retries only the remain
 
 it("uses the standalone student prop even without a matching URL student parameter", async () => {
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><SeasonAssignmentEditor seasonId="season-1" studentId="student-2" /></MemoryRouter></QueryClientProvider>);
-  await screen.findByRole("heading", { name: "Sarah Student" });
+  await screen.findByRole("region", { name: "Assign passages" });
   fireEvent.click(screen.getByRole("button", { name: "Chapter 2" }));
   fireEvent.click(screen.getByRole("button", { name: "Assign chapters" }));
   await waitFor(() => expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-2" })));

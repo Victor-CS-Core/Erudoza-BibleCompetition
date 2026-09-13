@@ -95,3 +95,21 @@
   .season-steps.ds-section-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-2)}
   .season-steps.ds-section-tabs .ds-button{padding:var(--er-space-3);white-space:normal}
 }
+
+/* The same assignment workspace is used from Assignments and season setup. */
+.season-setup-assignments{max-width:none}
+.season-assignment-layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);align-items:start;gap:var(--er-space-6);min-width:0}
+.season-assignment-sidebar{display:grid;gap:var(--er-space-6);min-width:0}
+.season-assignment-layout .ds-panel{min-width:0}
+.season-assignment-sidebar .season-saved-assignments{margin:0}
+.season-assignment-sidebar .season-saved-assignments li{display:grid;justify-content:stretch;gap:var(--er-space-2);overflow-wrap:anywhere}
+.season-assignment-sidebar .season-saved-assignments .season-actions{gap:var(--er-space-2);margin-top:var(--er-space-2)}
+.season-assignment-sidebar .season-difficulty-options{grid-template-columns:1fr}
+.season-assignment-sidebar .season-difficulty-options label{grid-template-columns:auto minmax(0,1fr);align-items:center;gap:var(--er-space-1) var(--er-space-3)}
+.season-assignment-sidebar .season-difficulty-options input{grid-row:1/3}
+.season-assignment-sidebar .season-difficulty-options small{grid-column:2}
+.season-assignment-sidebar .season-preview dl{grid-template-columns:1fr}
+.season-assignment-sidebar .season-actions{margin-top:var(--er-space-3)}
+.season-assignment-layout .season-assignment-save{margin-top:var(--er-space-6)}
+.season-assignment-layout .season-assignment-save .ds-button{flex:1}
+@media(max-width:900px){.season-assignment-layout{grid-template-columns:minmax(0,1fr)}}
