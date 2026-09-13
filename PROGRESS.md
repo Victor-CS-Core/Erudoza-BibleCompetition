@@ -2,6 +2,8 @@
 
 ## Full Bible selector and shared Scripture reader — September 12
 
+- Git checkpoint: implementation `def1a3ca3eb0fd1fbcc91a80925ca9f754227409` committed and normally pushed to `origin/codex/coach-season-flow`; exact remote readback matched. Local checks above passed; canonical SDK blocker remains. Main and production unchanged.
+
 - User authorized all agreed changes. Added shared searchable Old/New Testament book browser to the existing two-step season planner and Scripture library. The selector uses the complete installed catalog; a test verifies the repository manifest has 66 choices (39/27). The loopback demo now reads that actual manifest and chapter text, replacing its previous two-book fixture. Preview data and scripts remain ignored.
 - Both coach and student routes use one reader with bounded chapter requests, previous/next controls, readable Scripture text, loading/retry states, and personal assignment markers from existing progress reads. Reading beyond assignments is allowed and performs no activity/progress writes. Command-center menus retain season context. The existing shared coach/student assignment flow remains intact.
 - Added same-organization learner access to installed library metadata and a chapter-only built-in read endpoint in native and canonical runtimes. Generic private content endpoints and assignment/activity authorization remain restricted. Native access tests cover unassigned student reading, invalid chapters, private/other-org denial and anonymous denial.
