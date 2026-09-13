@@ -76,7 +76,7 @@ function BookDetails({ season, initialPacks = [], onDirtyChange }: { season?: Se
 }
 function SavedPlanner({ seasonId }: { seasonId: string }) {
   const { me } = useAuth();
-  const org = me!.organizationId, cache = useQueryClient();
+  const org = me!.organizationId, cache = useQueryClient(), navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const season = useQuery({ queryKey: ["season", org, seasonId], queryFn: () => api.season(org, seasonId) });
   const data = useSeasonBooks(seasonId);
@@ -110,9 +110,20 @@ function SavedPlanner({ seasonId }: { seasonId: string }) {
           <div className="planner-editor">{selectedId !== me!.userId && !selected ? <Notice tone="danger">This student is unavailable. Choose another student.</Notice> : selected?.isActive === false ? <Notice>This student is inactive. Reactivate them in Students to edit assignments.</Notice> : <BookAssignmentEditor key={`${seasonId}-${selectedId}`} season={season.data!} studentId={selectedId} name={selectedId === me!.userId ? "My assignments" : selected!.displayName} nextStudent={nextStudent?.displayName} onNext={() => nextStudent && select(nextStudent.userId)} onDirtyChange={setDirty} />}</div>
         </div>
       </Panel>
-      <div className="planner-finish"><div>{!dirty && !busy && <LinkButton variant="ghost" to="/admin/seasons">{active || closed ? "All seasons" : "Skip for now"}</LinkButton>}{dirty && <p>Save assignments before leaving, or choose another student to discard your edits.</p>}<p>{!active && !closed ? "Skipping keeps the season as a draft." : "Saved progress stays with this season."}</p></div>{!active && !closed && <div><Button disabled={busy || dirty || !data.books.length || !assignedCount} onClick={() => setConfirmStart(true)}>Start season</Button>{!assignedCount && <p>Assign at least one student before starting.</p>}</div>}</div>
+      <footer className="planner-finish" aria-label="Season actions">
+        <div className="planner-finish-help" id="season-finish-help">
+          {dirty ? <p>{active || closed ? "Save assignments above before leaving this season." : "Save assignments above before saving your draft or starting the season."}</p> : <p>{!active && !closed ? "Your season is saved as a draft. You can finish assigning students later." : "Saved progress stays with this season."}</p>}
+          {!active && !closed && !assignedCount && <p>Assign at least one student before starting.</p>}
+        </div>
+        <div className="planner-actions planner-finish-actions">
+          {active || closed ? <Button variant="secondary" disabled={busy || dirty} onClick={() => navigate("/admin/seasons")}>All seasons</Button> : <>
+            <Button variant="secondary" disabled={busy || dirty} aria-describedby="season-finish-help" onClick={() => navigate("/admin/seasons")}>Save as a draft</Button>
+            <Button disabled={busy || dirty || !data.books.length || !assignedCount} aria-describedby="season-finish-help" onClick={() => setConfirmStart(true)}>Start season</Button>
+          </>}
+        </div>
+      </footer>
     </>}
-    {season.data!.status !== "Archived" && <div className="planner-actions">{active && <Button variant="ghost" disabled={busy || dirty} onClick={() => setLifecycle("close")}>Close season</Button>}<Button variant="ghost" disabled={busy || dirty} onClick={() => setLifecycle("archive")}>Archive season</Button></div>}
+    {(active || season.data!.status === "Completed") && <div className="planner-actions">{active && <Button variant="ghost" disabled={busy || dirty} onClick={() => setLifecycle("close")}>Close season</Button>}<Button variant="ghost" disabled={busy || dirty} onClick={() => setLifecycle("archive")}>Archive season</Button></div>}
     {switchTo && <ConfirmationDialog title="Discard unsaved assignments?" description="Saved assignments are preserved. Your current unsaved choices will be cleared." confirmLabel="Discard changes" onCancel={() => setSwitchTo(null)} onConfirm={() => { select(switchTo); setSwitchTo(null); }} />}
     {confirmStart && <ConfirmationDialog title={`Start ${season.data!.name}?`} description={`${assignedCount} students have assignments. Starting opens training and locks the season books. Student plans can still be updated.`} confirmLabel="Start season" pending={activate.isPending} error={activate.error?.message} onCancel={() => setConfirmStart(false)} onConfirm={() => activate.mutate()} />}
     {lifecycle && <ConfirmationDialog title={`${lifecycle === "close" ? "Close" : "Archive"} season?`} description="Training will stop for this season. Assignments and progress are preserved. This cannot be reopened." confirmLabel={lifecycle === "close" ? "Close season" : "Archive season"} pending={changeLifecycle.isPending} error={changeLifecycle.error?.message} onCancel={() => setLifecycle(null)} onConfirm={() => changeLifecycle.mutate()} />}

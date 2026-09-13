@@ -18,7 +18,7 @@
 .planner-summary .planner-divider{margin-block:var(--er-space-2)}
 .planner-summary ul{padding-left:var(--er-space-5);margin:0}
 .planner-steps,.planner-actions{display:flex;gap:var(--er-space-3);flex-wrap:wrap}
-.planner-season-strip,.planner-finish,.planner-saved-row{display:flex;justify-content:space-between;align-items:center;gap:var(--er-space-4)}
+.planner-season-strip,.planner-saved-row{display:flex;justify-content:space-between;align-items:center;gap:var(--er-space-4)}
 .planner-roster-layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:var(--er-space-6)}
 .planner-roster{display:flex;flex-direction:column;gap:var(--er-space-2);min-width:0}
 .planner-roster>.ds-button{justify-content:flex-start;text-align:left;white-space:normal}
@@ -34,7 +34,7 @@
 .planner-saved-row{padding-block:var(--er-space-2)}
 .planner-caption{margin-top:var(--er-space-3)}
 .season-planner p,.season-planner strong,.book-assignment-editor strong{overflow-wrap:anywhere}
-@media(max-width:760px){.planner-columns{grid-template-columns:1fr}.planner-summary{position:static}.planner-roster-layout{grid-template-columns:1fr}.planner-editor{border-left:0;padding-left:0}.planner-roster{max-height:260px;overflow:auto}.planner-detail-fields{grid-template-columns:1fr 1fr}.planner-detail-fields>label:first-child{grid-column:1/-1}.planner-finish{align-items:stretch;flex-direction:column}.planner-actions>.ds-button{flex:1;white-space:normal}.planner-steps>.ds-button{flex:1}.planner-book-grid{grid-template-columns:1fr}.planner-pair{grid-template-columns:1fr}}
+@media(max-width:760px){.planner-columns{grid-template-columns:1fr}.planner-summary{position:static}.planner-roster-layout{grid-template-columns:1fr}.planner-editor{border-left:0;padding-left:0}.planner-roster{max-height:260px;overflow:auto}.planner-detail-fields{grid-template-columns:1fr 1fr}.planner-detail-fields>label:first-child{grid-column:1/-1}.planner-actions>.ds-button{flex:1;white-space:normal}.planner-steps>.ds-button{flex:1}.planner-book-grid{grid-template-columns:1fr}.planner-pair{grid-template-columns:1fr}}
 
 .planner-mobile-student{display:none}
 @media(max-width:760px){.planner-roster{display:none}.planner-mobile-student{display:grid;gap:var(--er-space-2)}}
@@ -48,3 +48,8 @@
 .planner-chapter-choice small{display:block}
 .planner-person-heading{display:flex;align-items:center;gap:var(--er-space-3)}
 .planner-person-heading h2{margin:0}
+
+.planner-finish{display:grid;gap:var(--er-space-4)}
+.planner-finish-help{display:grid;gap:var(--er-space-2)}
+.planner-finish-actions{justify-content:flex-end}
+@media(max-width:760px){.planner-finish-actions{flex-direction:column;flex-wrap:nowrap}.planner-finish-actions>.ds-button{width:100%;flex:0 0 auto}}

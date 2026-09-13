@@ -1,5 +1,13 @@
 # Erudoza progress log
 
+## Season creation draft actions — September 13
+
+- User requested better placement of the season-assignment footer buttons and “Save as a draft” in place of Archive. Isolated in `.worktrees/season-draft-actions` on `codex/season-draft-actions`, based on current remote main `b79330b`; concurrent profile artwork edits remain separate.
+- Draft exit and Start season now share a right-aligned action row, stacked at phone widths, with help above. Draft exit returns to the seasons list using the existing saved draft and never calls archive/activation. Unsaved assignment edits and pending mutations disable both actions; the help directs the user to Save assignments first. Active/completed lifecycle actions remain available.
+- Local validation: baseline 14 planner tests passed; two new/updated regressions failed before implementation. Final 37 planner, chapter-helper and personal-assignment tests passed; native production build, web/native TypeScript, full ESLint and whitespace passed. Existing bundle-size advisory remains. Independent source review found no actionable issues.
+- Built-app synthetic browser checks passed at 1440/390/320: assignment save, draft exit preserving chapter 2 and pre-activation status, disabled dirty actions, desktop alignment, phone stacking and no horizontal overflow or page errors. Desktop and phone screenshots inspected. Initial phone flex-basis conflict was caught and fixed before the final build/browser pass. Evidence is ignored under `apps/web/test-results/season-draft`; no authenticated production or backend acceptance is claimed.
+- Local preview runs as temporary loopback service `erudoza-season-draft-preview` at http://127.0.0.1:5241/admin/seasons/demo?step=students with synthetic data. Next: scoped commit/push and review. This change has not been merged to main or deployed.
+
 ## Current-work production release — September 13
 
 - User authorized committing/merging all pending work and deploying. Fresh inventory found every worktree clean. Consolidated profile-character review assets and the older assignment/footer branch histories into codex/release-current; retained the approved current planner/footer application behavior. All local and remote branch tips are ancestors of the consolidated revision. Character artwork stays in docs as review material; it does not replace the live initials/Honor selector.

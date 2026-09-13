@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { profileApi } from "../profile/profile";
 import { api } from "../../api/client";
+import { lifecycleApi } from "../../api/lifecycle";
 vi.mock("../../api/lifecycle", () => ({ lifecycleApi: { removeAssignment: vi.fn(), correctAssignment: vi.fn(), transitionSeason: vi.fn() } }));
 import { SeasonAssignmentEditor, SeasonWizardPage } from "./SeasonWizardPage";
 
@@ -13,7 +14,7 @@ const range = { bookKey: "DAN", startChapter: 2, startVerse: 1, endChapter: 2, e
 const season = { id: "season-1", organizationId: "org-1", name: "Daniel 2026", yearLabel: "2026", status: "ContentReady", ruleProfileKey: "PBE_STYLE_V1", ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, scopeUnitCount: 8, assignmentCount: 0 };
 const assignment = { id: "a1", studentUserId: "student-1", type: "PrimarySpecialist", ...range, difficulty: "Foundation" as const, studentDisplayName: "Daniel Student" };
 function renderWizard(path = "/admin/seasons/season-1") {
-  return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}><MemoryRouter initialEntries={[path]}><Routes><Route path="/admin/seasons/new" element={<SeasonWizardPage />} /><Route path="/admin/seasons/:seasonId" element={<SeasonWizardPage />} /></Routes></MemoryRouter></QueryClientProvider>);
+  return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}><MemoryRouter initialEntries={[path]}><Routes><Route path="/admin/seasons" element={<h1>All seasons list</h1>} /><Route path="/admin/seasons/new" element={<SeasonWizardPage />} /><Route path="/admin/seasons/:seasonId" element={<SeasonWizardPage />} /></Routes></MemoryRouter></QueryClientProvider>);
 }
 beforeEach(() => {
   vi.clearAllMocks();
@@ -45,7 +46,9 @@ describe("Two-step season planner", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save & assign students →" }));
     expect(await screen.findByRole("heading", { name: "Student assignments" })).toBeInTheDocument();
     expect(api.defineScope).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ packs: [expect.objectContaining({ contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 3 }] })] }));
-    expect(screen.getByRole("link", { name: "Skip for now" })).toHaveAttribute("href", "/admin/seasons");
+    fireEvent.click(screen.getByRole("button", { name: "Save as a draft" }));
+    expect(await screen.findByRole("heading", { name: "All seasons list" })).toBeInTheDocument();
+    expect(lifecycleApi.transitionSeason).not.toHaveBeenCalled();
     expect(api.activate).not.toHaveBeenCalled();
   });
   it("retains a created draft after scope save failure and retries without another season", async () => {
@@ -144,4 +147,27 @@ it("shows current Honor or initials in the roster and selected assignment identi
   await screen.findByRole("heading", { name: "Daniel Student" });
   await waitFor(() => expect(view.container.querySelectorAll('[data-profile-user="student-1"][data-profile-honor="solo:exact-recall"]')).toHaveLength(2));
   expect(view.container.querySelector('[data-profile-user="student-2"]')).toHaveTextContent("SS");
+});
+
+it("keeps draft and start actions visible but locked until assignment edits are saved", async () => {
+  renderWizard();
+  fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
+  expect(screen.getByRole("button", { name: "Save as a draft" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Start season" })).toBeDisabled();
+  expect(screen.queryByRole("button", { name: "Archive season" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Save as a draft" })).toBeEnabled());
+  fireEvent.click(screen.getByRole("button", { name: "Save as a draft" }));
+  expect(await screen.findByRole("heading", { name: "All seasons list" })).toBeInTheDocument();
+  expect(api.assign).toHaveBeenCalled();
+  expect(api.activate).not.toHaveBeenCalled();
+  expect(lifecycleApi.transitionSeason).not.toHaveBeenCalled();
+});
+
+it("retains lifecycle actions for an active season without offering draft save", async () => {
+  vi.mocked(api.season).mockResolvedValue({ ...season, status: "Active" });
+  renderWizard();
+  expect(await screen.findByRole("button", { name: "Close season" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Archive season" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Save as a draft" })).not.toBeInTheDocument();
 });
