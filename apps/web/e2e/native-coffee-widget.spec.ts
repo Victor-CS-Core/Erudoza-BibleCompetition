@@ -293,9 +293,17 @@ for (const width of [1440, 390, 320]) {
       if (role !== "public") {
         if (role === "coach") await page.getByRole("link", { name: "Sign in", exact: true }).click();
         else await signOut(page);
+        await expect(page).toHaveURL(/\/login$/);
+        await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
+        await page.getByRole("button", { name: "Download app", exact: true }).scrollIntoViewIfNeeded();
+        await assertNoOverflow(page);
+        await page.screenshot({ path: info.outputPath(`footer-login-${role}-${width}.png`) });
         await signIn(page, role);
       }
-      const install = page.getByRole("button", { name: "Install app", exact: true });
+      const install = page.getByRole("button", { name: "Download app", exact: true });
+      await install.scrollIntoViewIfNeeded();
+      await assertNoOverflow(page);
+      await page.screenshot({ path: info.outputPath(`footer-${role}-${width}.png`) });
       await install.click();
       const dialog = page.getByRole("dialog", { name: "Install Erudoza" });
       await expect(dialog).toBeVisible();
@@ -329,7 +337,7 @@ for (const result of ["accepted", "dismissed", "error"]) {
     // A saved browser event must survive navigation and account transitions.
     await page.getByRole("link", { name: "Sign in", exact: true }).click();
     await signIn(page, "coach");
-    const install = page.getByRole("button", { name: "Install app", exact: true });
+    const install = page.getByRole("button", { name: "Download app", exact: true });
     await install.click();
     await expect(page.locator("html")).toHaveAttribute("data-install-calls", "1");
     if (result === "accepted") await expect(install).toBeHidden();
@@ -346,7 +354,7 @@ test("home-screen app mode suppresses redundant installation controls", async ({
   await installFixtures(page);
   await page.goto("/");
   await expect(page.getByTestId("landing-phone-column")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Install app" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Download app" })).toHaveCount(0);
 });
 
 test("browser installation also supports the separate userChoice result", async ({ page }) => {
@@ -357,12 +365,12 @@ test("browser installation also supports the separate userChoice result", async 
     Object.assign(event, { prompt: async () => undefined, userChoice: Promise.resolve({ outcome: "accepted" }) });
     window.dispatchEvent(event);
   });
-  await page.getByRole("button", { name: "Install app", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Install app", exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Download app", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Download app", exact: true })).toHaveCount(0);
 });
 
 const minimizeSupport = (page: Page) => page.getByRole("button", { name: "Minimize support widget" });
-const restoreSupport = (page: Page) => page.getByRole("button", { name: "Show floating support button" });
+const restoreSupport = (page: Page) => page.getByRole("button", { name: "Show support button" });
 const footerSupport = (page: Page) => page.getByRole("link", { name: "Support Erudoza (opens in a new tab)" });
 
 for (const width of [1440, 390, 320]) {

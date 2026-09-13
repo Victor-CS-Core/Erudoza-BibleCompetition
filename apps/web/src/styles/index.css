@@ -42,5 +42,3 @@ button,
 [role="button"] {
   cursor: pointer;
 }
-
-.training-install { margin-bottom: var(--er-space-4, 16px); }

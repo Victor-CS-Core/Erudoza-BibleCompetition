@@ -82,7 +82,7 @@ describe("LandingPage", () => {
     expect(mark).toHaveAttribute("alt", "");
     expect(screen.getByRole("img", { name: /An open Bible, compass and Pathfinder neckerchief/ }))
       .toBeInTheDocument();
-    expect(screen.getByRole("contentinfo")).toHaveTextContent("Study. Master. Compete.");
+    expect(screen.getByRole("contentinfo")).toHaveTextContent("Pathfinder Bible Experience training");
   });
 
   it("labels decorative Honors as examples without presenting earned progress", () => {
@@ -97,5 +97,5 @@ describe("LandingPage", () => {
 
 it("offers phone installation help without relying on a browser install prompt", () => {
   renderLanding();
-  expect(screen.getAllByRole("button", { name: "Install app" })[0]).toBeVisible();
+  expect(within(screen.getByRole("contentinfo")).getByRole("button", { name: "Download app" })).toBeVisible();
 });

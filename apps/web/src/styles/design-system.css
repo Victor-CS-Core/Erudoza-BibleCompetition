@@ -35,6 +35,7 @@
 .ds-button-primary { color: var(--er-on-navy); background: var(--er-action-blue); }
 .ds-button-secondary { color: var(--er-ink-navy); background: var(--er-card); border-color: var(--er-border-strong); }
 .ds-button-ghost { color: var(--er-action-blue); background: transparent; }
+.ds-button-quiet { padding-inline:var(--er-space-2); color:var(--er-muted-ink); background:transparent; font-size:var(--er-text-xs); font-weight:500; }
 .ds-button-danger { color: var(--er-stamp-red); background: var(--er-danger-surface); }
 .ds-button-inverse { color:var(--er-on-navy-muted); background:color-mix(in srgb,var(--er-on-navy) 6%,var(--er-ink-navy)); border-color:color-mix(in srgb,var(--er-on-navy-muted) 35%,transparent); }
 .ds-button-inverse:hover:not(:disabled) { background:color-mix(in srgb,var(--er-on-navy) 12%,var(--er-ink-navy)); }

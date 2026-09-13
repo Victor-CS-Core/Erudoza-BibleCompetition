@@ -66,3 +66,7 @@ The user restored the original faded, full-height landscape on the left side of 
 ## Signup alignment — September 12
 
 The user requested that signup match sign-in. Signup now shares the full-height landscape, Camp essentials at the bottom right, 390px form width, heading spacing, arrow actions, back-link treatment and footer. Keep signup's own coach copy and email-verification steps. At narrow phone widths, keep sign-in's 20px form inset and let only the security check extend to its required 300px width, including when the longer second step creates a scrollbar. This supersedes signup's separate coach illustration and Campcraft assignment; recovery, invitation and workspace artwork remain unchanged.
+
+## Shared footer — September 12
+
+Use `components/ui/AppFooter.tsx` for public, workspace and account page endings. Public and workspace footers pair the text brand and concise PBE description with a subtle divider and grouped actions; accounts use the compact description-only brand area. “Download app” is a quiet footer action on all screen sizes, superseding the desktop landing header installation action. It retains browser installation and help, and disappears in installed mode. Shared `ds-button-quiet` uses muted semantic text, no resting fill and 44px targets. Preserve adult/coach-only workspace support, minimization/focus behavior, floating-widget clearance and the phone navigation dock.
