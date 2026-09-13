@@ -1,15 +1,16 @@
 import {backgrounds,paintBackground} from './appearance';
 import {type Configuration,loadImage,renderCharacter} from './composition';
 import landingQR from './landing-qr.json';
+import type {Me} from '../../../apps/web/src/api/types';
 
 export const cardSize={width:1200,height:1600} as const;
 export type SharePatch={key:string;title:string;src:string;earnedAtUtc:string|null};
 export type Placement={key:string;x:number;y:number;size:number;rotation:number};
 export type ShareHistory={past:Placement[][];present:Placement[];future:Placement[][]};
 export const emptyShareHistory:ShareHistory={past:[],present:[],future:[]};
-export type ShareOptions={showName:boolean;showBrand:boolean;showQR:boolean;displayName:string};
-// Explicit example identity for this design review, not an authenticated user.
-export const defaultShareOptions:ShareOptions={showName:true,showBrand:true,showQR:true,displayName:'Alex Brooks'};
+export type ShareOptions={showName:boolean;showBrand:boolean;showQR:boolean};
+export type ShareProfile=Readonly<Pick<Me,'userName'>>;
+export const defaultShareOptions:ShareOptions={showName:true,showBrand:true,showQR:true};
 export const publicLandingURL=landingQR.url;
 type Rect={x:number;y:number;width:number;height:number};
 export function shareFooter(options:ShareOptions):Rect|undefined{
@@ -65,7 +66,7 @@ export async function renderShareBase(config:Configuration):Promise<HTMLCanvasEl
 }
 
 /** Shared by the live card and PNG. Editing handles never enter this canvas. */
-export function paintShareCard(canvas:HTMLCanvasElement,base:HTMLCanvasElement,patches:Placement[],art:Map<string,HTMLImageElement>,config:Configuration,options:ShareOptions){
+export function paintShareCard(canvas:HTMLCanvasElement,base:HTMLCanvasElement,patches:Placement[],art:Map<string,HTMLImageElement>,profile:ShareProfile,options:ShareOptions){
  if(canvas.width!==cardSize.width)canvas.width=cardSize.width;
  if(canvas.height!==cardSize.height)canvas.height=cardSize.height;
  const ctx=canvas.getContext('2d')!;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(base,0,0);
@@ -77,11 +78,13 @@ export function paintShareCard(canvas:HTMLCanvasElement,base:HTMLCanvasElement,p
   const scale=patch.size/Math.max(image.naturalWidth,image.naturalHeight),w=image.naturalWidth*scale,h=image.naturalHeight*scale;
   ctx.shadowColor='#102e4738';ctx.shadowBlur=8;ctx.shadowOffsetY=4;ctx.drawImage(image,-w/2,-h/2,w,h);ctx.restore();
  }
- const name=options.displayName.replace(/\s+/g,' ').trim().slice(0,40);
+ const name=profile.userName.trim();
  if(options.showName&&name){
-  ctx.save();ctx.fillStyle=backgrounds.find(b=>b.key===config.background)!.textColor;ctx.textAlign='center';let fontSize=42;ctx.font=`600 ${fontSize}px system-ui`;
-  while(ctx.measureText(name).width>1080&&fontSize>24){fontSize--;ctx.font=`600 ${fontSize}px system-ui`;}
-  ctx.fillText(name,600,85);ctx.restore();
+  ctx.save();ctx.fillStyle='#102e47';ctx.strokeStyle='#ffffff';ctx.lineWidth=12;ctx.lineJoin='round';ctx.textAlign='center';let fontSize=64;ctx.font=`800 ${fontSize}px system-ui`;
+  while(ctx.measureText(name).width>1060&&fontSize>20){fontSize--;ctx.font=`800 ${fontSize}px system-ui`;}
+  // Paint the white sticker edge beneath the lettering in both preview and export.
+  ctx.shadowColor='#102e4740';ctx.shadowBlur=4;ctx.shadowOffsetY=3;ctx.strokeText(name,600,85,1060);
+  ctx.shadowColor='transparent';ctx.fillText(name,600,85,1060);ctx.restore();
  }
  const footer=shareFooter(options);
  if(footer){

@@ -13,3 +13,5 @@
 - [x] Explicitly commit/push and verify the task-branch checkpoint: `db427f3c4faba7954150f87cf8488fd44f2c91e7`; remote readback matched.
 
 Implementation is authorized by the user's request and runs inline in the current task branch.
+
+Follow-up: the user removed editable names. The current renderer takes the existing profile `userName` as read-only input, retains only the visibility switches, and adds white-outlined sticker lettering. The earlier editable-name tasks above record the initial checkpoint; see README.md and PROGRESS.md for the current behavior and validation.

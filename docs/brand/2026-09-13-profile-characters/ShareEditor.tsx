@@ -3,20 +3,20 @@ import {Button,Panel,Badge,Input} from '../../../apps/web/src/components/ui/inde
 import {PatchArtwork} from '../../../apps/web/src/components/ui/PatchArtwork';
 import {backgrounds,type Background} from './appearance';
 import {type Configuration,loadImage} from './composition';
-import {addPlacement,cardSize,constrainPlacement,paintShareCard,recordShare,redoShare,renderShareBase,undoShare,unlockedPatches,shareFooter,publicLandingURL,type Placement,type ShareHistory,type SharePatch,type ShareOptions} from './share';
+import {addPlacement,cardSize,constrainPlacement,paintShareCard,recordShare,redoShare,renderShareBase,undoShare,unlockedPatches,shareFooter,publicLandingURL,type Placement,type ShareHistory,type SharePatch,type ShareOptions,type ShareProfile} from './share';
 
 const patchTransfer='application/x-erudoza-patch';
-type Props={config:Configuration;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onBackground:(background:Background)=>void;onEdit:()=>void;onError:(message:string)=>void};
+type Props={config:Configuration;profile:ShareProfile;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onBackground:(background:Background)=>void;onEdit:()=>void;onError:(message:string)=>void};
 type Drag={pointerId:number;key:string;startX:number;startY:number;original:Placement;before:Placement[];next:Placement[];handle:HTMLButtonElement};
 
-export function ShareEditor({config,collection,history,setHistory,options,setOptions,onBackground,onEdit,onError}:Props){
+export function ShareEditor({config,profile,collection,history,setHistory,options,setOptions,onBackground,onEdit,onError}:Props){
  const canvasRef=useRef<HTMLCanvasElement>(null),stageRef=useRef<HTMLDivElement>(null),drag=useRef<Drag|null>(null);
  const [selected,setSelected]=useState<string|null>(null),[draft,setDraft]=useState<Placement[]|null>(null);
  const [hovering,setHovering]=useState(false),[message,setMessage]=useState(''),[exporting,setExporting]=useState(false);
  const [resources,setResources]=useState<{key:string;base:HTMLCanvasElement;art:Map<string,HTMLImageElement>}|null>(null),[drawnKey,setDrawnKey]=useState('');
  const resourceKey=JSON.stringify([config,collection]),patches=draft??history.present;
  const available=unlockedPatches(collection),footer=shareFooter(options),visible=patches.filter(p=>available.some(a=>a.key===p.key)).map(p=>constrainPlacement(p,footer));
- const renderKey=JSON.stringify([resourceKey,visible,options]),ready=resources?.key===resourceKey&&drawnKey===renderKey;
+ const renderKey=JSON.stringify([resourceKey,visible,options,profile.userName]),ready=resources?.key===resourceKey&&drawnKey===renderKey;
  const selection=visible.find(p=>p.key===selected),selectedArt=available.find(p=>p.key===selected);
  const selectedIndex=visible.findIndex(p=>p.key===selected);
 
@@ -29,7 +29,7 @@ export function ShareEditor({config,collection,history,setHistory,options,setOpt
  },[resourceKey,onError]);
  useLayoutEffect(()=>{
   if(resources?.key!==resourceKey||!canvasRef.current)return;
-  paintShareCard(canvasRef.current,resources.base,visible,resources.art,config,options);setDrawnKey(renderKey);
+  paintShareCard(canvasRef.current,resources.base,visible,resources.art,profile,options);setDrawnKey(renderKey);
  },[resources,resourceKey,renderKey]);
  useEffect(()=>{
   function escape(event:KeyboardEvent){if(event.key==='Escape'&&drag.current){event.preventDefault();cancelDrag();}}
@@ -62,7 +62,7 @@ export function ShareEditor({config,collection,history,setHistory,options,setOpt
   if(!ready||!resources)return;setExporting(true);setMessage('');onError('');
   try{
    // Snapshot the same scene and placements currently shown; later edits cannot alter this download.
-   const canvas=document.createElement('canvas');paintShareCard(canvas,resources.base,visible,resources.art,config,options);
+   const canvas=document.createElement('canvas');paintShareCard(canvas,resources.base,visible,resources.art,profile,options);
    const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Unable to create image.')),'image/png'));
    const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`erudoza-${config.style}-sash-review.png`;link.click();setTimeout(()=>URL.revokeObjectURL(url),60000);setMessage('Your card is downloaded and ready to share.');
   }catch(e){onError(e instanceof Error?e.message:'Unable to download image.');}finally{setExporting(false);}
@@ -96,8 +96,8 @@ export function ShareEditor({config,collection,history,setHistory,options,setOpt
   <div className="editor-panels share-tools">
    <Panel className="ds-inverse-surface share-intro"><div><span className="ds-eyebrow">Made for your journey</span><h2>Collect. Create. Share.</h2><p className="ds-caption">Give your Pathfinder a card of its own with the patches you’ve earned.</p></div>{available[0]&&<PatchArtwork src={available[0].src} size={76} loading="eager"/>}</Panel>
    <Panel><h2>On your image</h2><p className="help">Choose what you share along with your Pathfinder.</p>
-    <div className="share-visibility-options">{([['showName','Your name'],['showBrand','Erudoza name'],['showQR','Landing-page QR code']] as const).map(([key,label])=><Button key={key} variant="ghost" className="share-visibility-toggle" role="switch" aria-checked={options[key]} onClick={()=>setOptions(current=>({...current,[key]:!current[key]}))}><span>{label}</span><span className="share-switch-track" aria-hidden="true"/></Button>)}</div>
-    <label className="share-name-field">Name on card<Input maxLength={40} value={options.displayName} onChange={e=>setOptions(current=>({...current,displayName:e.target.value}))} placeholder="Enter a name" autoComplete="off"/></label><p className="ds-caption">Example name for this preview. You can change it here.</p>
+    <div className="share-visibility-options">{([['showName','Your username'],['showBrand','Erudoza name'],['showQR','Landing-page QR code']] as const).map(([key,label])=><Button key={key} variant="ghost" className="share-visibility-toggle" role="switch" aria-checked={options[key]} onClick={()=>setOptions(current=>({...current,[key]:!current[key]}))}><span>{label}</span><span className="share-switch-track" aria-hidden="true"/></Button>)}</div>
+    <p className="ds-caption share-profile-name">Uses your profile username: <strong>{profile.userName}</strong>.</p>
     <p className="ds-caption">The QR opens <a href={publicLandingURL} target="_blank" rel="noreferrer">erudoza.com</a>. Patches stay clear of its space.</p>
    </Panel>
    <Panel><div className="share-section-heading"><h2 id="share-patch-tray-title" tabIndex={-1}>Unlocked patches</h2><Badge tone="success">{available.length} unlocked</Badge></div><p className="help">Your collection, ready for a new adventure.</p>
