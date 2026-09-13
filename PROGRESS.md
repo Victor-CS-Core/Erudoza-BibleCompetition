@@ -1,5 +1,11 @@
 # Erudoza progress log
 
+## Current-work production release — September 13
+
+- User authorized committing/merging all pending work and deploying. Fresh inventory found every worktree clean. Consolidated profile-character review assets and the older assignment/footer branch histories into codex/release-current; retained the approved current planner/footer application behavior. All local and remote branch tips are ancestors of the consolidated revision. Character artwork stays in docs as review material; it does not replace the live initials/Honor selector.
+- Application source is identical to tested main 203fff9. Fresh native production build/types, full ESLint, 65 focused UI/native tests and production Wrangler dry-run passed. Prior combined main validation and six canonical InstalledLibraryTests remain applicable. Production reports no pending D1 migrations. Prior Worker c2b2a690-5129-46a7-a8e9-7f82df5628e2 recorded; private D1 export captured under ignored .local/current-release. This is a D1 backup, not a complete Durable Object backup; this release makes no schema or authority migration.
+- Next: verify backup restoration, push consolidated main, publish the exact source to existing erudoza-native/erudoza.com and verify the deployed version/public routes. No feature flags or production assignments are changed by the release procedure.
+
 ## Season planner — authorized main integration, September 12
 
 - User explicitly requested merge to main. Integrated main cd75aa9 and its assignment-layout history; the approved two-step planner supersedes the older assignment panels while student-directory alignment and audit history remain. Main advanced to 82ab8c0 during checks; incorporated its shared footer, preserving the PBE copy corrections and new quiet-action example.
