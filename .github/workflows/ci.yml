@@ -21,7 +21,8 @@ jobs:
         working-directory: .
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm run test
+      # Native Miniflare fixtures compete for the runner CPU when run in parallel.
+      - run: npm run test -- --maxWorkers=1
       - run: npm run build
 
   browser-support:
