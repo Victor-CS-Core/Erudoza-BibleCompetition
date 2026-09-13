@@ -55,4 +55,10 @@
   --er-patch-shadow-contact: color-mix(in srgb, var(--er-ink-navy) 22%, transparent);
   --er-patch-shadow-soft: color-mix(in srgb, var(--er-ink-navy) 24%, transparent);
   --er-duration: 180ms;
+  --er-highlight-promises: #fae3a0;
+  --er-highlight-people: #bfe5d9;
+  --er-highlight-review: #d9cef4;
+  --er-reading-standard: 1.25rem;
+  --er-reading-large: 1.5rem;
+  --er-reading-larger: 1.75rem;
 }

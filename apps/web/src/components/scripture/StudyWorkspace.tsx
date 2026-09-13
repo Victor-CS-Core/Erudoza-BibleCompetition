@@ -1,0 +1,39 @@
+import { useState, useRef, type ReactNode } from 'react';
+import type { LibraryBook, NotebookEntry, NotebookEntryInput, NotebookKind, SourceUnit } from '../../api/types';
+import { Button, Notice, Panel, Select } from '../ui';
+import { ConfirmationDialog } from '../ui/ConfirmationDialog';
+import { StudyReader, type SelectedPassage } from './StudyReader';
+import { StudyNotebook, type NoteDraft } from './StudyNotebook';
+import { useStudyNotebook } from './useStudyNotebook';
+
+export function StudyWorkspace({ orgId, userId, book, chapter, units, navigation, onNavigate, loading, loadError, retry }: {
+  orgId: string; userId: string; book: LibraryBook; chapter: number; units: SourceUnit[]; navigation: ReactNode;
+  onNavigate: (bookId: string, chapter: number, sourceId?: string | null) => void;
+  loading?: boolean; loadError?: boolean; retry?: () => void;
+}) {
+  const notebook = useStudyNotebook(orgId, userId), entries = notebook.query.data?.entries ?? [];
+  const [focus, setFocus] = useState(false), [size, setSize] = useState('standard'), [filter, setFilter] = useState<NotebookKind | 'all'>('all');
+  const [draft, setDraft] = useState<NoteDraft | null>(null), [remove, setRemove] = useState<NotebookEntry | null>(null), [sourceFilter, setSourceFilter] = useState<string | null>(null), [target, setTarget] = useState<{ id: string | null; visit: number }>({ id: null, visit: 0 });
+  const workspace = useRef<HTMLDivElement>(null), noteTrigger = useRef<HTMLElement | null>(null);
+  const [draftMessage, setDraftMessage] = useState('');
+  const bookmark = entries.find(e => e.kind === 'bookmark' && e.contentPackId === book.contentPackId && e.chapter === chapter);
+  function entryFor(selection: SelectedPassage): NotebookEntryInput { return { kind: 'note', contentPackId: book.contentPackId, chapter, sourceUnitId: selection.sourceUnitId, startOffset: selection.startOffset, endOffset: selection.endOffset, color: null, note: '' }; }
+  function edit(next: NoteDraft) { setFocus(false); if (draft) { setDraftMessage('Save or cancel your current note before starting another.'); return; } setDraftMessage(''); noteTrigger.current = document.activeElement instanceof HTMLElement ? document.activeElement : null; setDraft(next); }
+  function navigate(entry: NotebookEntry) { setTarget(current => ({ id: entry.sourceUnitId, visit: current.visit + 1 })); onNavigate(entry.contentPackId, entry.chapter, entry.sourceUnitId); }
+  function closeDraft() { setDraft(null); setDraftMessage(''); requestAnimationFrame(() => { const trigger = noteTrigger.current; if (trigger?.isConnected) trigger.focus(); else workspace.current?.querySelector<HTMLButtonElement>('[data-select-source]')?.focus(); }); }
+  return <div ref={workspace} className={`study-workspace ${focus ? 'study-workspace-focus' : ''}`}>
+    <div className="study-workspace-actions"><Button variant="secondary" aria-pressed={!focus} onClick={() => setFocus(!focus)}>{focus ? 'Show notebook' : 'Notebook'}</Button></div>
+    <div className="study-workspace-grid"><Panel id="library-preview" className={`content-verses ds-reading-${size}`}>
+      <div className="study-reader-controls">{navigation}<label className="study-verse-jump">Verse<Select value={units.some(unit => unit.id === target.id) ? target.id! : ""} disabled={loading || loadError || !units.length} onChange={e => setTarget(current => ({ id: e.target.value || null, visit: current.visit + 1 }))}><option value="">Go to verse</option>{units.map(unit => <option key={unit.id} value={unit.id}>{unit.verse}</option>)}</Select></label><Button variant="secondary" aria-label="Go to verse" disabled={!units.some(unit => unit.id === target.id)} onClick={() => setTarget(current => ({ ...current, visit: current.visit + 1 }))}>Go</Button><div className="study-tools-row"><label className="study-text-size">Text size<Select aria-label="Scripture text size" value={size} onChange={e => setSize(e.target.value)}><option value="standard">Aa · Standard</option><option value="large">Aa · Large</option><option value="larger">Aa · Larger</option></Select></label><Button variant="secondary" aria-pressed={focus} onClick={() => setFocus(!focus)}>{focus ? 'Exit focus' : 'Focus'}</Button></div></div>
+      <div className="study-reader-heading"><h2>{book.name} {chapter}</h2><Button variant="ghost" disabled={!notebook.ready} aria-label={bookmark ? 'Remove chapter bookmark' : 'Bookmark chapter'} aria-pressed={!!bookmark} onClick={() => bookmark ? setRemove(bookmark) : void notebook.mutate(crypto.randomUUID(), { kind: 'bookmark', contentPackId: book.contentPackId, chapter, sourceUnitId: null, startOffset: null, endOffset: null, color: null, note: null })}>{bookmark ? 'Bookmarked' : 'Bookmark'}</Button></div>
+      {loading ? <Notice>Loading verses…</Notice> : loadError ? <Notice tone="danger">Scripture could not load. <Button variant="secondary" onClick={retry}>Retry verses</Button></Notice> : <StudyReader key={`${book.contentPackId}:${chapter}`} units={units} entries={entries} ready={notebook.ready} targetSourceId={target.id} targetVisit={target.visit} onHighlight={(selection, color) => {
+        const existing = entries.find(e => e.kind === 'highlight' && e.sourceUnitId === selection.sourceUnitId && e.startOffset === selection.startOffset && e.endOffset === selection.endOffset);
+        void notebook.mutate(existing?.id ?? crypto.randomUUID(), { ...entryFor(selection), kind: 'highlight', color, note: null });
+      }} onNote={selection => edit({ id: crypto.randomUUID(), entry: entryFor(selection), citation: selection.unit.citation, quote: selection.unit.canonicalText.slice(selection.startOffset, selection.endOffset) })} onOpenNotes={source => { setSourceFilter(source); setFilter('note'); setFocus(false); }} />}
+    </Panel>
+    {!focus && <StudyNotebook entries={entries} filter={filter} onFilter={next => { setFilter(next); setSourceFilter(null); }} sourceFilter={sourceFilter} onClearSource={() => setSourceFilter(null)} onNavigate={navigate} onEdit={entry => edit({ id: entry.id, entry, citation: entry.citation, quote: entry.quote })} onDelete={setRemove} ready={notebook.ready} loading={notebook.query.isPending || notebook.query.isError} draft={draft} onDraft={note => setDraft(current => current ? { ...current, entry: { ...current.entry, note } } : null)} onSave={() => { if (draft) void notebook.mutate(draft.id, draft.entry).then(saved => { if (saved) { closeDraft(); setFilter('all'); setSourceFilter(null); } }); }} onCancel={closeDraft} pending={notebook.pending} />}
+    </div>
+    <div className="study-notebook-status">{notebook.query.isPending && <Notice>Loading your notebook…</Notice>}{notebook.query.isError && <Notice tone="danger">Your notebook could not load. Reading is still available. <Button variant="secondary" disabled={notebook.query.isFetching} onClick={() => void notebook.reload()}>Retry notebook</Button></Notice>}{notebook.error && <Notice tone="danger">{notebook.error}{notebook.conflict && <><p>Your draft is kept. Reload the notebook before saving again.</p><Button variant="secondary" disabled={notebook.query.isFetching} onClick={() => void notebook.reload()}>Reload notebook</Button></>}</Notice>}{draftMessage && <Notice>{draftMessage}</Notice>}<p role="status" className="ds-study-caption">{notebook.pending ? 'Saving your notebook…' : notebook.message}</p></div>
+    {remove && <ConfirmationDialog title={`Remove ${remove.kind}?`} description={`Remove your ${remove.kind} for ${remove.citation} from your private notebook?`} confirmLabel="Remove entry" pendingLabel="Removing…" variant="danger" pending={notebook.pending} disabled={!notebook.ready} error={notebook.error || null} onCancel={() => setRemove(null)} onConfirm={() => { void notebook.mutate(remove.id).then(saved => { if (saved) setRemove(null); }); }} />}
+  </div>;
+}

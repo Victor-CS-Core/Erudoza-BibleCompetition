@@ -222,3 +222,12 @@ export type PackScope = { contentPackId: string; includes: PassageRange[]; exclu
 export type SeasonScope = { contentPackId: string | null; includes: PassageRange[]; excludes: PassageRange[]; packs?: PackScope[] };
 export type LibraryBook = { contentPackId: string; bookKey: string; name: string; verseCount: number; chapters: { number: number; verses: number[] }[] };
 export type ScriptureLibrary = { translationId: "nkjv"; translationName: string; version: number; books: LibraryBook[] };
+export type NotebookKind = 'highlight' | 'note' | 'bookmark';
+export type HighlightColor = 'Promises' | 'People' | 'Review';
+export type NotebookEntryInput = {
+  kind: NotebookKind; contentPackId: string; chapter: number;
+  sourceUnitId: string | null; startOffset: number | null; endOffset: number | null;
+  color: HighlightColor | null; note: string | null;
+};
+export type NotebookEntry = NotebookEntryInput & { id: string; bookName: string; citation: string; quote: string; updatedAtUtc: string };
+export type StudyNotebook = { version: number; entries: NotebookEntry[] };

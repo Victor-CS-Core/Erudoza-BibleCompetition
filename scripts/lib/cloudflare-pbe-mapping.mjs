@@ -19,6 +19,7 @@ const shape=(required,optional={})=>(v,p)=>{
 };
 const fields=(names,f=str)=>Object.fromEntries(names.split(' ').filter(Boolean).map(k=>[k,f]));
 const timestamp=(v,p)=>{str(v,p);if(!Number.isFinite(Date.parse(v)))fail(`${p}: invalid timestamp`);};
+const uuid=(v,p)=>{str(v,p);if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)||v.toLowerCase()==='00000000-0000-0000-0000-000000000000')fail(`${p}: invalid UUID`);};
 const strings=array(str),integers=array(integer),timeOrNull=nullable(timestamp),intOrNull=nullable(integer),stringOrNull=nullable(str);
 class OriginalInt64 { constructor(raw){this.raw=raw;} }
 export function parseCanonicalJson(text,label,rootIntegerStrings=new Set(),rootIntegerDictionaries=new Set()){
@@ -58,6 +59,20 @@ const attemptOptional={responseLockedAtUtc:timeOrNull,originalTimedAnswers:nulla
 const attempt=shape(attemptFields,attemptOptional);
 const card=shape({id:str,question,targets:array(target),servedAtMs:intOrNull,assistedAtMs:intOrNull});
 const versions={format:lit('Pbe'),ruleVersion:lit('nad-pbe-2023-24-v2'),scoringVersion:lit('pbe-rubric-v2'),selectionVersion:lit('pbe-selection-v1')};
+const notebookEntry=shape({id:uuid,kind:lit('highlight','note','bookmark'),contentPackId:uuid,chapter:positive,sourceUnitId:nullable(uuid),startOffset:intOrNull,endOffset:intOrNull,color:lit(null,'Promises','People','Review'),note:stringOrNull,...fields('bookName citation quote'),updatedAtUtc:timestamp});
+const notebook=shape({entries:(v,p)=>{
+ array(notebookEntry)(v,p);if(v.length>200)fail(`${p}: notebook exceeds 200 entries`);
+ const ids=new Set();
+ for(const entry of v){
+  if(ids.has(entry.id.toLowerCase()))fail(`${p}: duplicate notebook entry UUID`);ids.add(entry.id.toLowerCase());
+  if(entry.kind==='bookmark'){
+   if(entry.sourceUnitId!==null||entry.startOffset!==null||entry.endOffset!==null||entry.color!==null||entry.note!==null||entry.quote!=='')fail(`${p}: invalid bookmark entry`);
+  }else{
+   if(entry.sourceUnitId===null||entry.startOffset===null||entry.startOffset<0||entry.endOffset===null||entry.endOffset<=entry.startOffset||!entry.quote.trim())fail(`${p}: invalid anchored notebook entry`);
+   if(entry.kind==='note'?(entry.color!==null||entry.note===null||entry.note!==entry.note.trim()||entry.note.length<1||entry.note.length>2000):(entry.note!==null||entry.color===null))fail(`${p}: invalid ${entry.kind} entry`);
+  }
+ }
+}});
 const session=shape({...fields('id studentUserId seasonId scopeVersion startPayload'),...versions,mode:lit('Practice','Review'),status:lit('Created','Active','Completed'),questionIds:strings,cards:array(card),attempts:array(attempt),createdAtUtc:timestamp,missionLocalDate:stringOrNull,creditedLocalDate:stringOrNull,newlyCreditedDay:bool},{completedAtUtc:timeOrNull,clientStartId:stringOrNull,timingStatus:lit(null),timingQuestionId:lit(null),timing:lit(null)});
 const serviceProjection=shape({...fields('id subjectId lastQuestionId lastQuestionKind'),...fields('servedCount lastServedAtMs',integer)});
 const serviceEvent=shape({...fields('serviceId questionId questionKind'),targetIds:strings,atMs:integer});
@@ -139,6 +154,12 @@ export async function mapCanonicalPbe({snapshot,nativeCore}) {
   shape({...fields('OrganizationId Kind Id DataJson'),SeasonId:stringOrNull,OwnerId:stringOrNull,Revision:()=>{}})(row,'PbeTrainingRecords');
   const revision=safeRevision(row.Revision,'PbeTrainingRecords.revision');
   const native={kind:row.Kind,id:row.Id,org_id:row.OrganizationId.toLowerCase(),season_id:row.SeasonId?.toLowerCase()??null,owner_id:row.OwnerId?.toLowerCase()??null,revision};
+  if(row.Kind==='scripture-notebook'){
+   if(row.SeasonId?.toLowerCase()!=='00000000-0000-0000-0000-000000000000'||row.OwnerId===null||row.Id.toLowerCase()!==row.OwnerId.toLowerCase())fail('invalid account-private notebook identity');
+   uuid(row.OwnerId,'scripture-notebook owner');
+   const value=parseCanonicalJson(row.DataJson,row.Kind);notebook(value,row.Kind);
+   add({...native,season_id:null,data:row.DataJson});continue;
+  }
   if(row.Kind.startsWith('pbe-chapter-')){chapterRows.push({...native,data:row.DataJson});continue;}
   const schema=schemas[row.Kind];if(!schema)fail(`unsupported operational kind ${row.Kind}`);
   const value=parseCanonicalJson(row.DataJson,row.Kind);schema(value,row.Kind);

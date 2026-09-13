@@ -1,13 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Erudoza.Application.Study;
 using Erudoza.Application.Abstractions;
+using Erudoza.Application.Study;
 using Erudoza.Domain;
 using Erudoza.Domain.Study;
 using Erudoza.Infrastructure.Persistence;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 namespace Erudoza.IntegrationTests;
 
 [Collection("Pbe chapter resource isolation")]

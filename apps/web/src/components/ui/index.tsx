@@ -18,7 +18,7 @@ export function ExternalLinkButton({ variant = "secondary", size = "default", cl
 }
 export function Input({ className = "", ...props }: InputHTMLAttributes<HTMLInputElement>) { return <input className={`ds-input ${className}`} {...props} />; }
 export function Select({ className = "", ...props }: SelectHTMLAttributes<HTMLSelectElement>) { return <select className={`ds-input ds-select ${className}`} {...props} />; }
-export function Textarea({ className = "", ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) { return <textarea className={`ds-input ds-textarea ${className}`} {...props} />; }
+export function Textarea({ className = "", ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { ref?: Ref<HTMLTextAreaElement> }) { return <textarea className={`ds-input ds-textarea ${className}`} {...props} />; }
 export function Panel({ as: Tag = "section", className = "", ...props }: HTMLAttributes<HTMLElement> & { as?: "section" | "article" | "div" | "aside" }) { return <Tag className={`ds-panel ${className}`} {...props} />; }
 export function PageHeader({ as: Tag = "header", titleId, title, description, action, children, className = "" }: { as?: "header" | "div"; titleId?: string; title: ReactNode; description?: ReactNode; action?: ReactNode; children?: ReactNode; className?: string }) {
   return <Tag className={`ds-page-header ${className}`}><div><h1 id={titleId}>{title}</h1>{description && <p>{description}</p>}{children}</div>{action && <div className="ds-page-action">{action}</div>}</Tag>;

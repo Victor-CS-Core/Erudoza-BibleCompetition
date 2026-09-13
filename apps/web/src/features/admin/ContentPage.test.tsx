@@ -4,8 +4,8 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import { ContentPage } from "./ContentPage";
-vi.mock("../../api/client", () => ({ api: { library: vi.fn(), libraryChapter: vi.fn(), progress: vi.fn(), contentPacks: vi.fn(), scriptureCatalog: vi.fn(), scriptureBooks: vi.fn(), scriptureChapters: vi.fn() } }));
-vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org-1" } }) }));
+vi.mock("../../api/client", () => ({ api: { notebook: vi.fn().mockResolvedValue({ version: 0, entries: [] }), library: vi.fn(), libraryChapter: vi.fn(), progress: vi.fn(), contentPacks: vi.fn(), scriptureCatalog: vi.fn(), scriptureBooks: vi.fn(), scriptureChapters: vi.fn() } }));
+vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org-1", userId: "user-1" } }) }));
 const library = { translationId: "nkjv" as const, translationName: "New King James Version", version: 1, books: [
   { contentPackId: "eph", bookKey: "EPH", name: "Ephesians", verseCount: 12, chapters: [1,2,3,4,5,6].map(number => ({ number, verses: [1,2] })) },
   { contentPackId: "jude", bookKey: "JUD", name: "Jude", verseCount: 2, chapters: [{ number: 1, verses: [1,2] }] },
@@ -27,6 +27,7 @@ it("limits preview chapters to server metadata and resets for a shorter book", a
   const chapter = screen.getByRole("combobox", { name: "Chapter" });
   expect(chapter.querySelector('option[value="7"]')).toBeNull();
   fireEvent.change(chapter, { target: { value: "6" } });
+  fireEvent.click(screen.getByRole("button", { name: "Choose book" }));
   fireEvent.click(screen.getByRole("button", { name: /Jude/ }));
   expect(chapter).toHaveValue("1"); expect(chapter.querySelectorAll("option")).toHaveLength(1);
 });

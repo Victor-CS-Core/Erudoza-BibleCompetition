@@ -1,5 +1,5 @@
-using Erudoza.Domain.Practice;
 using Erudoza.Application.Study;
+using Erudoza.Domain.Practice;
 
 namespace Erudoza.UnitTests;
 

@@ -15,6 +15,14 @@ public sealed class ExceptionMappingMiddleware(RequestDelegate next, IHostEnviro
         {
             await WriteProblem(context, StatusCodes.Status409Conflict, exception.Message, exception);
         }
+        catch (Erudoza.Application.Study.ScriptureNotebookConflictException exception)
+        {
+            await WriteProblem(context, StatusCodes.Status409Conflict, exception.Message, exception);
+        }
+        catch (Erudoza.Application.Study.ScriptureNotebookEntryNotFoundException exception)
+        {
+            await WriteProblem(context, StatusCodes.Status404NotFound, exception.Message, exception);
+        }
         catch (DomainException exception)
         {
             await WriteProblem(context, StatusCodes.Status400BadRequest, exception.Message, exception);

@@ -6,6 +6,7 @@ import { hashUserPassword } from './auth';
 import { administrationBudget, assertStorageCapacity, storageCapacityGuard } from './admin-limits';
 import { content } from './application/content';
 import { library } from './application/library';
+import { notebook } from './application/notebook';
 import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeDto, scopePacks, scopeSources, seasonSummaries, student, students, learner, requireLearner, studentAssignments, validatePackRanges } from './application/model';
 import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
 export { effectiveSources } from './application/model';
@@ -30,6 +31,9 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     }
     if (!/^\/(students|seasons|content-packs|scripture-catalog|library)(\/|$)/.test(path))
         return null;
+    const notebookResult = await notebook(ctx);
+    if (notebookResult)
+        return notebookResult;
     const libraryResult = await library(ctx);
     if (libraryResult)
         return libraryResult;

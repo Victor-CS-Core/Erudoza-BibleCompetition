@@ -1,3 +1,4 @@
+using System.Data;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -5,9 +6,8 @@ using Erudoza.Application.Abstractions;
 using Erudoza.Application.Study;
 using Erudoza.Domain;
 using Erudoza.Domain.Practice;
-using System.Data;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 namespace Erudoza.Infrastructure.Persistence;
 
 /// <summary>Provider-owned compact set capture. JSON scans stay in the provider; every ordinary result has a SQL byte prefix.</summary>

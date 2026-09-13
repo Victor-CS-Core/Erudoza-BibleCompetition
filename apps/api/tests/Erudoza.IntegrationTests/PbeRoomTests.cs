@@ -1,15 +1,15 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Erudoza.Domain;
-using Erudoza.Domain.Practice;
+using Erudoza.Api.Practice;
 using Erudoza.Application.Abstractions;
 using Erudoza.Application.Study;
+using Erudoza.Domain;
+using Erudoza.Domain.Practice;
 using Erudoza.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Erudoza.Api.Practice;
-using Microsoft.AspNetCore.Http;
 namespace Erudoza.IntegrationTests;
 
 public sealed class PbeRoomTests

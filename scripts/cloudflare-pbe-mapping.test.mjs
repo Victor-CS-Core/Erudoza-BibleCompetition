@@ -12,6 +12,13 @@ test('preserves target JSON bytes, compound identity and actual revision',async(
  assert.deepEqual(result.records,[{kind:source.Kind,id:source.Id,org_id:org,season_id:season,owner_id:owner,data:source.DataJson,revision:7}]);
  assert.ok(result.consumedTables.includes('PbeTrainingRecords'));
 });
+test('maps account-private notebook aggregates without treating them as PBE activity',async()=>{
+ const value={entries:[{id:'40000000-0000-7000-8000-000000000001',kind:'note',contentPackId:'50000000-0000-5000-8000-000000000001',chapter:1,sourceUnitId:'60000000-0000-5000-8000-000000000001',startOffset:0,endOffset:5,color:null,note:'Private',bookName:'Ephesians',citation:'Ephesians 1:1',quote:'Grace',updatedAtUtc:at}]};
+ const source={...row('scripture-notebook',value,owner,3),SeasonId:'00000000-0000-0000-0000-000000000000'};
+ const result=await map([source]);
+ assert.deepEqual(result.records,[{kind:'scripture-notebook',id:owner,org_id:org,season_id:null,owner_id:owner,data:source.DataJson,revision:3}]);
+ await assert.rejects(map([{...source,DataJson:JSON.stringify({entries:[...value.entries,{...value.entries[0],id:'invalid'}]})}]),/notebook|UUID|entry/);
+});
 test('preserves dictionary keys in attempt review and result overlay',async()=>{
  const value={id:'review',questionId:'Question',status:'Resolved',pointsByTarget:{TargetA:1,targetA:0,'__proto__':2}};
  const result=await map([row('pbe-attempt-review',value)]);

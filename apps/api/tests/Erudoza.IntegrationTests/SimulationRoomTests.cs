@@ -1,11 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Erudoza.Domain;
 using Erudoza.Application.Honors;
+using Erudoza.Domain;
 using Erudoza.Infrastructure.Persistence;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 namespace Erudoza.IntegrationTests;
 
 public sealed class SimulationRoomTests

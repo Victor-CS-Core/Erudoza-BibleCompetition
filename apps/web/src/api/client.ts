@@ -55,6 +55,9 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  notebook: (orgId: string) => request<import('./types').StudyNotebook>(`/api/v1/organizations/${orgId}/library/notebook`),
+  saveNotebookEntry: (orgId: string, id: string, version: number, entry: import('./types').NotebookEntryInput) => request<import('./types').StudyNotebook>(`/api/v1/organizations/${orgId}/library/notebook/entries/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ version, entry }) }),
+  deleteNotebookEntry: (orgId: string, id: string, version: number) => request<import('./types').StudyNotebook>(`/api/v1/organizations/${orgId}/library/notebook/entries/${encodeURIComponent(id)}?version=${version}`, { method: 'DELETE' }),
   library: (orgId: string) => request<import("./types").ScriptureLibrary>(`/api/v1/organizations/${orgId}/library`),
   libraryChapter: (orgId: string, contentPackId: string, chapter: number) => request<SourceUnit[]>(`/api/v1/organizations/${orgId}/library/books/${encodeURIComponent(contentPackId)}/chapters/${chapter}`),
   login: (identifier: string, password: string) =>

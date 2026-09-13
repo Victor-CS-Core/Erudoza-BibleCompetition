@@ -91,3 +91,12 @@ Approved Option C uses compact light entry cards for PBE simulation and head-to-
 ## Team Practice banner — September 13
 
 The user replaced the isolated top-right Team Practice patch with an illustrated banner. Use the mountain-lodge study table with Bibles, stopwatch and answer sheets, live PageHeader text on a navy left area, and a vertical text/art composition on phones. The banner uses the shared inverse surface; existing mode emblems and earned Honor patches remain in their relevant cards.
+
+
+## Scripture study notebook — September 13
+
+The user approved a reader with inline phrase/verse highlighting, personal notes, chapter bookmarks, a private notebook, hide/reveal, text size and Focus. Keep the existing account-specific header and navigation. After book selection, the book browser collapses behind Choose book; Search books remains available there. Chapter controls and a metadata-backed Verse selector/Go action stay inside the reader and remain available in Focus. A chosen verse receives keyboard focus; repeated Go and notebook passage links repeat navigation.
+
+Use ivory shared panels, teal actions, sans interface text and serif Scripture. Add semantic Promises/People/Review highlight tokens with visible category labels. The reading pane and notebook sit side by side above 900px; below this width the notebook follows the chapter. Selection actions appear beneath the selected verse after a completed selection, without modifying immutable Scripture. Verse-number buttons provide keyboard/touch selection. Do not capture partial mouse drags or selections spanning different verses. Hide/reveal is personal recall practice and awards no progress.
+
+Annotations persist privately by authenticated user and organization, with version conflicts surfaced and drafts retained. Notebook tabs filter All, Highlights, Notes and Bookmarks across the library. Passage links return to their saved source. Notes support editing and confirmed deletion; removal of the currently edited note stays disabled. Closing the editor restores its initiating control or a current verse fallback. Expose loading, save errors, empty states and the 200-entry capacity plainly. Use the shared ConfirmationDialog for deletion; saved account data replaces the concept's sample content. Coach/student privacy and season assignment markers remain intact.

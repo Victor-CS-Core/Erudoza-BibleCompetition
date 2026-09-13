@@ -135,6 +135,7 @@ app.MapPbeCooperationEndpoints();
 app.MapProfileEndpoints();
 app.MapLifecycleEndpoints();
 app.MapScriptureReaderEndpoints();
+app.MapScriptureNotebookEndpoints();
 Erudoza.Api.Practice.PracticeEndpoints.MapPractice(app);
 app.Run();
 

@@ -56,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<IStudentStudyScopeService, StudentStudyScopeService>();
         services.AddScoped<ContentImportService>();
         services.AddScoped<LibraryReadService>();
+        services.AddScoped<ScriptureNotebookService>();
         services.AddScoped<BuiltInLibraryInstaller>();
         services.AddScoped<SeasonWorkflowService>();
         services.AddScoped<SeasonCoverageService>();

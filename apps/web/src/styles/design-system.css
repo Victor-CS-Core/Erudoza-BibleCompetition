@@ -1,4 +1,19 @@
 /* bm-design-system:start — shared product primitives and type */
+.ds-study-caption { color:var(--er-muted-ink); font:400 var(--er-text-xs)/1.5 var(--er-font-ui); }
+.ds-scripture-text { font:400 var(--er-reading-size,var(--er-reading-standard))/1.95 var(--er-font-reading); white-space:pre-wrap; overflow-wrap:anywhere; }
+.ds-reading-large { --er-reading-size:var(--er-reading-large); }
+.ds-reading-larger { --er-reading-size:var(--er-reading-larger); }
+.ds-scripture-highlight { color:var(--er-ink-navy); background:var(--er-study-highlight,var(--er-selected)); border-radius:3px; box-decoration-break:clone; -webkit-box-decoration-break:clone; }
+.ds-highlight-promises { --er-study-highlight:var(--er-highlight-promises); }
+.ds-highlight-people { --er-study-highlight:var(--er-highlight-people); }
+.ds-highlight-review { --er-study-highlight:var(--er-highlight-review); }
+.ds-scripture-selected { text-decoration:underline; text-decoration-color:var(--er-teal); text-underline-offset:4px; }
+.ds-scripture-concealed { color:var(--er-muted-ink); background:var(--er-surface-soft); border-radius:3px; letter-spacing:.05em; }
+.ds-highlight-swatch { display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--er-study-highlight); border:1px solid var(--er-border-strong); flex-shrink:0; }
+.ds-study-quote { color:var(--er-ink-navy); font:400 var(--er-text-base)/1.7 var(--er-font-reading); border-left:3px solid var(--er-kraft); margin:var(--er-space-3) 0; padding-left:var(--er-space-3); white-space:pre-wrap; overflow-wrap:anywhere; }
+.ds-study-entry { border-top:1px solid var(--er-border); padding-top:var(--er-space-4); margin-top:var(--er-space-4); }
+.ds-verse-number { align-self:start; font-variant-numeric:tabular-nums; }
+@media(forced-colors:active){.ds-scripture-highlight{outline:1px solid Mark; background:Mark; color:MarkText}.ds-scripture-selected{outline:2px solid Highlight}}
 .ds-progress-meter { display:flex; align-items:center; gap:var(--er-space-3); }
 .ds-progress-meter progress { flex:1; width:100%; min-width:0; height:6px; appearance:none; border:0; background:var(--er-surface-soft); border-radius:3px; overflow:hidden; accent-color:var(--er-teal); }
 .ds-progress-meter progress::-webkit-progress-bar { background:var(--er-surface-soft); }
