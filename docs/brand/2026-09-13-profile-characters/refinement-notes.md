@@ -43,3 +43,15 @@ The previous checks exercised UI behavior and image loading. They were insuffici
 The masks and garment traces are tailored to these source images. New poses or source sheets require new reviewed landmarks and masks. Conservative ear protection may retain original dark strands near an ear; the generated heads also retain subtle face differences. They are head-and-hair swaps rather than identical-face hair-only layers. The source uniform and pose still differ from the user's exact reference.
 
 This remains a local interactive design review awaiting visual approval. It does not save account preferences, enforce coach eligibility, publish profiles or deploy production changes.
+
+## Follow-up: complexion category consistency
+
+The reported low-bun face exposed a separate brightness problem. The original recoloring used one cheek pixel as its exposure reference; that coordinate landed in a shadow in the low-bun source. The central forehead in Medium consequently had luminance 189.7 instead of the category's 132.2, and the Light version contained 1,536 near-white forehead pixels under the documented threshold.
+
+The renderer now samples the median of a broad skin-masked forehead region, avoiding eyes, brows and cheek blush. A bounded highlight curve prevents channel clipping and retains separate Light/Medium/Deep shade families. Head, transparent portrait, live selectors, full character and share-card output use the same mapping; bodies use the same bounded curve. Original head and body PNGs/masks remain unchanged.
+
+[Low-bun categories](refinement/low-bun-skin-tones.png) · [All female categories](refinement/female-skin-tones.png) · [All male categories](refinement/male-skin-tones.png) · [Reported hairstyle in the editor](refinement/low-bun-character.png)
+
+`verify-skin-sash.mjs` first reproduced washed-out pixels/category drift, then passed 36 head/skin combinations with no sampled forehead pixels above R245/G230/B200 simultaneously, and median forehead luminance within 28 of its category. The test covers this measured region, not every skin pixel or universal color accuracy. Enlarged 36-portrait sheets were visually inspected. Existing ear, alpha, hairstyle-selector, neck-registration and UI regression checks were rerun successfully.
+
+The sash is defined in screen coordinates: upper left to lower right. All 24 hairstyle/attire attachment checks retain that direction; the existing correct sash geometry and patch artwork were not mirrored. This orientation description is explicit because anatomical left/right reverses when facing the character.

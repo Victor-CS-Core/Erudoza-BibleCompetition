@@ -62,9 +62,12 @@ node docs/brand/2026-09-13-profile-characters/verify-review.mjs
 node docs/brand/2026-09-13-profile-characters/verify-refinement.mjs
 node docs/brand/2026-09-13-profile-characters/verify-selector-previews.mjs
 node docs/brand/2026-09-13-profile-characters/verify-backgrounds.mjs
+node docs/brand/2026-09-13-profile-characters/verify-share.mjs
+node docs/brand/2026-09-13-profile-characters/verify-skin-sash.mjs
 python docs/brand/2026-09-13-profile-characters/verify-cutout-edges.py
 python docs/brand/2026-09-13-profile-characters/verify-placement.py
 node docs/brand/2026-09-13-profile-characters/capture-review.mjs
+node docs/brand/2026-09-13-profile-characters/capture-share.mjs
 ./node_modules/.bin/tsc --noEmit --jsx react-jsx --target es2022 --module esnext --moduleResolution bundler --lib ES2022,DOM --allowSyntheticDefaultImports --skipLibCheck --types vite/client --resolveJsonModule docs/brand/2026-09-13-profile-characters/review.tsx
 ```
 
@@ -75,6 +78,18 @@ Local validation: bundle/scoped TypeScript and whitespace passed. Chromium check
 The dedicated refinement check covers **144 hairstyle/skin/hair-color combinations**, **678,444 protected inner-ear sample comparisons**, transparent borders on **144 portraits**, and **24 neck attachment registrations**. It also verifies identical portrait output when attire/background/Honors change. Enlarged neck joins across all twelve styles and both attires, both 24-portrait color sheets, refreshed profile screenshots and a matched before/after were visually inspected. Tests establish the stated pixel/interaction properties, not universal art quality; see the notes for limits. QA-only images remain outside Git; intentional review screenshots and comparison sheets are in this package.
 
 The selector regression check reproduced the original static-thumbnail defect, then passed **120 individual thumbnail color updates** across both bodies, **four selected-thumbnail/Profile-portrait matches**, rapid changes, attire/background independence and 1440/390/320 layouts. Creator capture/verification now waits for all six rendered thumbnails as well as the main character.
+
+## Share editor and complexion tuning — September 13
+
+[Open Share](review.html?share=1&page=share) · [Customized desktop](share-customized-review.png) · [Phone](share-mobile-review.png) · [Downloaded card](share-customized-export.png) · [Low-bun skin comparison](refinement/low-bun-skin-tones.png)
+
+Share now has a Chibi adventure-card editor: drag unlocked patches from the tray, tap to add, drag to move, resize, rotate, change stacking order, remove or clear, and undo/redo. Arrow keys move a focused patch; Shift takes larger steps and Delete removes it. Escape cancels an active drag. Touch supports tap addition and direct patch movement. Full rotated bounds stay inside the 1200 × 1600 image, including the soft patch shadow. Download uses the exact preview canvas composition; selection outlines are editor-only and never appear on the character or exported PNG. The card title also follows Pathfinder/Master Guide attire.
+
+Decorations are separate from the three sash Honors and Honor/character/initials profile image. They survive page navigation and appearance/background changes within this preview. The tray accepts the profile's `earnedAtUtc` convention, filters locked entries and rejects unknown/duplicate/locked drop keys. The three shown unlocks are explicitly labeled sample data; no authenticated account collection is fetched or claimed. One copy of each available patch can decorate the card, independently of its sash placement. Forty edits are retained for undo; the preview clears on reload.
+
+The low-bun face was overexposed because a single cheek sample landed in a source shadow. A masked forehead median and bounded highlight curve now keep all twelve hairstyles closer to their Light/Medium/Deep category while retaining shading. The body uses the same bounded tone curve. Sash direction was already upper-left shoulder to lower-right hip in screen coordinates; added checks lock that direction across all 24 head/attire combinations without mirroring art. See [refinement notes](refinement-notes.md).
+
+Fresh local verification passed the Share interaction suite (including real Chromium native drag/drop and touch input, keyboard movement, cancellation, bounds, layering, removal, clear, history, state independence and byte-identical PNG output), 36 skin/category combinations, all prior 96 appearance and 48 page/layout cases, 12 scene/body/attire combinations and three scene downloads, 144 portrait/refinement combinations, 120 thumbnail changes, four portrait matches, 678,444 protected ear comparisons, sash containment and cutout edge checks. Desktop and 390/320px captures were inspected. Bundle/scoped TypeScript and whitespace passed. These are local Chromium/code/art checks, not Safari/Firefox, a physical-device gate, production eligibility enforcement or deployment.
 
 ## Approval and product boundary
 

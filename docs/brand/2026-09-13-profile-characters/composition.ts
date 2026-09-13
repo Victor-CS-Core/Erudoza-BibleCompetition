@@ -11,6 +11,8 @@ export type Configuration = {bodyType: BodyType; style: string; hairColor: HairC
 type Point = [number, number];
 type Registration = {shoulder: Point; hip: Point};
 // Individually inspected attachment coordinates in each 1024 × 1536 source.
+// Screen coordinates: upper-left shoulder to lower-right hip, for both bodies
+// and both attires. Never mirror the character or Honor artwork to change fit.
 export const registration: Record<string, Registration> = {
   'student-curls': {shoulder: [352, 572], hip: [628, 900]},
   'student-sweep': {shoulder: [363, 595], hip: [625, 913]},

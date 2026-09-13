@@ -1,5 +1,5 @@
 import headLandmarks from './head-landmarks.json';
-import {skinTones,Skin,Eyes} from './appearance';
+import {mapSkinTone,Skin,Eyes} from './appearance';
 export type BodyType='male'|'female';
 export const hairStyles={
  male:[{key:'curls',name:'Short curls'},{key:'side-part',name:'Side part'},{key:'quiff',name:'Textured quiff'},{key:'buzz',name:'Buzz cut'},{key:'waves',name:'Swept waves'},{key:'locs',name:'Short locs'}],
@@ -45,9 +45,14 @@ export function appearanceHead(image:HTMLImageElement,maskImage:HTMLImageElement
  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=512;const ctx=canvas.getContext('2d',{willReadFrequently:true})!;ctx.drawImage(image,0,0,512,512);
  const maskCanvas=document.createElement('canvas');maskCanvas.width=512;maskCanvas.height=512;const maskCtx=maskCanvas.getContext('2d')!;maskCtx.drawImage(maskImage,0,0);const mask=maskCtx.getImageData(0,0,512,512).data;
  const pixels=ctx.getImageData(0,0,512,512),d=pixels.data,iris=headEyes[name],cx=(iris[0][0]+iris[1][0])/2,cy=(iris[0][1]+iris[1][1])/2,unit=(iris[1][0]-iris[0][0])/120;
- const at=(Math.round(cy+40*unit)*512+Math.round(cx-24*unit))*4;
- const reference=[d[at],d[at+1],d[at+2]],referenceLuma=.2126*reference[0]+.7152*reference[1]+.0722*reference[2];
- const skinRgb=skinTones.find(t=>t.key===skin)!.rgb;
+ // Median of a broad, masked forehead area avoids a single cheek sample
+ // landing on blush, a nose shadow or a highlight in a different hairstyle.
+ const skinSamples:number[][]=[];
+ for(let y=Math.round(cy-92*unit);y<cy-55*unit;y++)for(let x=Math.round(cx-30*unit);x<cx+30*unit;x++){
+  const i=(y*512+x)*4;if(mask[i]>250&&d[i+3]>250)skinSamples.push([d[i],d[i+1],d[i+2]]);
+ }
+ skinSamples.sort((a,b)=>(.2126*a[0]+.7152*a[1]+.0722*a[2])-(.2126*b[0]+.7152*b[1]+.0722*b[2]));
+ const reference=skinSamples[Math.floor(skinSamples.length/2)]??[220,145,92];
  const shades=[];for(let i=0;i<d.length;i+=4)if(mask[i+1]>240&&d[i+3]>240)shades.push(.2126*d[i]+.7152*d[i+1]+.0722*d[i+2]);
  shades.sort((a,b)=>a-b);const low=shades[Math.floor(shades.length*.015)]??0,high=shades[Math.floor(shades.length*.99)]??180;
  for(let i=0;i<d.length;i+=4){
@@ -56,12 +61,12 @@ export function appearanceHead(image:HTMLImageElement,maskImage:HTMLImageElement
   if(eye){if(eyes!=='brown'){const w=smooth(12,40,r-b)*(1-smooth(.84,1,ellipse(x,y,eye)));const color=eyes==='blue'?[luma*.65,luma*1.12,luma*1.5]:[luma*.97,luma*1.14,luma*.55];for(let k=0;k<3;k++)d[i+k]=d[i+k]*(1-w)+color[k]*w;}continue;}
   const warm=smooth(25,48,r-g)*smooth(10,25,g-b)*smooth(95,155,r);
   const skinWeight=mask[i]/255*warm;
+  const skinMapped=mapSkinTone([r,g,b],reference,skin);
   const hairWeight=mask[i+1]/255;
   const hairRgb=hairTone(Math.max(0,Math.min(1,(luma-low)/Math.max(1,high-low))),hairPalettes[hair]);
   for(let k=0;k<3;k++){
-   const skinRatio=luma/referenceLuma,skinMapped=skinRgb[k]*skinRatio+.12*(d[i+k]-reference[k]*skinRatio);
    const hairMapped=hairRgb[k];
-   d[i+k]=d[i+k]*(1-skinWeight-hairWeight)+skinMapped*skinWeight+hairMapped*hairWeight;
+   d[i+k]=d[i+k]*(1-skinWeight-hairWeight)+skinMapped[k]*skinWeight+hairMapped*hairWeight;
   }
  }
  ctx.putImageData(pixels,0,0);return canvas;

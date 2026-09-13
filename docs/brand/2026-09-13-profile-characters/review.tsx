@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Button, Panel, PageHeader, Badge, Notice, Select, Input } from '../../../apps/web/src/components/ui/index';
-import { Configuration, honors, renderCharacter, renderPortrait, loadImage, setSlot } from './composition';
+import { Configuration, honors, renderCharacter, renderPortrait, setSlot } from './composition';
 import {hairStyles,hairColors,BodyType} from './hair';
-import { skinTones, eyeColors, backgrounds, paintBackground } from './appearance';
+import { skinTones, eyeColors, backgrounds } from './appearance';
+import {ShareEditor} from './ShareEditor';
+import {emptyShareHistory,type ShareHistory,type SharePatch} from './share';
+// Explicit review fixture, not an account entitlement or an authenticated profile.
+const sampleShareCollection:readonly SharePatch[]=honors.map(h=>({...h,earnedAtUtc:'2026-09-13T00:00:00Z'}));
 const pages=['Profile','Character','Honors','Share'] as const;
 type Page=typeof pages[number];
 function HairThumbnail({config,onError}:{config:Configuration;onError:(message:string)=>void}){
@@ -28,24 +32,18 @@ function Character({config,onError}: {config:Configuration;onError:(message:stri
 }
 function App(){
  const rememberedHair=useRef<Record<BodyType,string>>({male:'curls',female:'curly-bob'});
- const [page,setPage]=useState<Page>('Profile');
+ const [page,setPage]=useState<Page>(()=>pages.find(p=>p.toLowerCase()===new URLSearchParams(location.search).get('page')?.toLowerCase())??'Profile');
  const [config,setConfig]=useState<Configuration>({bodyType:'male',style:'curls',hairColor:'brown',attire:'student',skin:'medium',eyes:'brown',background:'sunrise',slots:[honors[0].key,honors[1].key,null]});
  const [avatar,setAvatar]=useState('honor'),[avatarHonor,setAvatarHonor]=useState<string>(honors[0].key),[portrait,setPortrait]=useState('');
- const [error,setError]=useState(''),[exporting,setExporting]=useState(false),[message,setMessage]=useState('');
+ const [error,setError]=useState('');
+ const [shareHistory,setShareHistory]=useState<ShareHistory>(emptyShareHistory);
  const [searchOpen,setSearchOpen]=useState(false),[search,setSearch]=useState('');
  const titleRef=useRef<HTMLDivElement>(null);
- function navigate(next:Page){setPage(next);setSearchOpen(false);setMessage('');requestAnimationFrame(()=>titleRef.current?.focus());}
+ function navigate(next:Page){setPage(next);setSearchOpen(false);requestAnimationFrame(()=>titleRef.current?.focus());}
  function selectBody(bodyType:BodyType){rememberedHair.current[config.bodyType]=config.style;setConfig(c=>({...c,bodyType,style:rememberedHair.current[bodyType]}));}
  function update<K extends keyof Configuration>(key:K,value:Configuration[K]){setConfig(c=>({...c,[key]:value}));}
  function chooseSlot(index:number,value:string|null){try{update('slots',setSlot(config.slots,index,value));setError('');}catch(e){setError((e as Error).message);}}
  useEffect(()=>{let active=true;const portraitCanvas=document.createElement('canvas');renderPortrait(portraitCanvas,config).then(()=>{if(active)setPortrait(portraitCanvas.toDataURL());}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[config.bodyType,config.style,config.hairColor,config.skin,config.eyes]);
- async function download(){setExporting(true);setError('');setMessage('');try{
-  const character=document.createElement('canvas');await renderCharacter(character,config,null,'export');
-  const c=document.createElement('canvas');c.width=1200;c.height=1600;const ctx=c.getContext('2d')!;const backdrop=backgrounds.find(b=>b.key===config.background)!;paintBackground(ctx,await loadImage(backdrop.fullSrc),1200,1600);
-  ctx.fillStyle=backdrop.textColor;ctx.font='600 42px system-ui';ctx.textAlign='center';ctx.fillText('My Pathfinder',600,85);ctx.drawImage(character,256,0,1024,1536,130,105,940,1410);ctx.font='42px Georgia';ctx.fillText('Erudoza',600,1550);
-  const blob=await new Promise<Blob>((resolve,reject)=>c.toBlob(b=>b?resolve(b):reject(new Error('Unable to create image.')),'image/png'));
-  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`erudoza-${config.style}-sash-review.png`;link.click();setTimeout(()=>URL.revokeObjectURL(url),60000);setMessage('Image downloaded. Your account has not been changed.');
- }catch(e){setError(e instanceof Error?e.message:'Unable to download image.');}finally{setExporting(false);}}
  const avatarSrc=avatar==='character'?portrait:honors.find(h=>h.key===avatarHonor)!.src;
  const honorSlots=<div className="slot-grid">{config.slots.map((key,i)=><div className="slot-option" key={i}><span>Slot {i+1}</span><span className="patch-preview">{key?<img src={honors.find(h=>h.key===key)!.src} alt={honors.find(h=>h.key===key)!.title}/>:<span className="empty-ring" aria-label="Empty Honor spot"/>}</span>{page==='Honors'?<Select aria-label={`Honor in spot ${i+1}`} value={key??''} onChange={e=>chooseSlot(i,e.target.value||null)}><option value="">Empty · dotted</option>{honors.map(h=><option key={h.key} value={h.key} disabled={config.slots.some((v,j)=>j!==i&&v===h.key)}>{h.title}</option>)}</Select>:key?<Button variant="secondary" size="compact" aria-label={`Remove Honor from slot ${i+1}`} onClick={()=>chooseSlot(i,null)}>Remove</Button>:<Button variant="secondary" size="compact" onClick={()=>navigate('Honors')}>Choose Honor</Button>}</div>)}</div>;
  return <>
@@ -53,15 +51,15 @@ function App(){
   <main><div className="profile-navigation"><span className="breadcrumb">Account <span aria-hidden="true">/</span> {page}</span><nav aria-label="Profile pages">{pages.map(p=><Button key={p} variant="ghost" aria-current={page===p?'page':undefined} onClick={()=>navigate(p)}>{p}</Button>)}</nav></div>
    <div ref={titleRef} tabIndex={-1}><PageHeader title={page==='Profile'?'Your profile':page==='Character'?'Make your Pathfinder':page==='Honors'?'Your displayed Honors':'Share your character'}/></div>
    {error&&<Notice tone="danger">{error}</Notice>}
-   <div className="creator-layout">
+   {page==='Share'?<ShareEditor config={config} collection={sampleShareCollection} history={shareHistory} setHistory={setShareHistory} onBackground={background=>update('background',background)} onEdit={()=>navigate('Character')} onError={setError}/>:<div className="creator-layout">
     <Panel className="character-panel"><Character config={config} onError={setError}/><p className="figure-caption">Sash · {config.slots.filter(Boolean).length} of 3 Honors selected</p><div className="figure-actions"><Button onClick={()=>navigate(page==='Character'?'Profile':'Character')}>{page==='Character'?'Back to profile':'Edit character'}</Button><Button variant="secondary" onClick={()=>navigate('Share')}>Share character</Button></div></Panel>
     <div className="editor-panels">
      {page==='Profile'&&<><Panel><h2>Profile image</h2><p className="help">Choose how you appear across Erudoza.</p><div className="avatar-options">{[['honor','Honor'],['character','Character'],['initials','Initials']].map(([key,label])=><Button key={key} variant={avatar===key?'primary':'secondary'} aria-label={label} aria-pressed={avatar===key} onClick={()=>setAvatar(key)}>{key==='initials'?<span className="initials-preview">AB</span>:<img src={key==='honor'?honors.find(h=>h.key===avatarHonor)!.src:portrait} alt=""/>}<span>{label}</span></Button>)}</div>{avatar==='honor'&&<label className="avatar-select">Honor profile image<Select value={avatarHonor} onChange={e=>setAvatarHonor(e.target.value)}>{honors.map(h=><option key={h.key} value={h.key}>{h.title}</option>)}</Select></label>}</Panel><Panel><h2>Displayed Honors</h2>{honorSlots}<Button className="wide-action" variant="secondary" onClick={()=>navigate('Honors')}>Manage Honors</Button><p className="help">Your profile image and displayed Honors are separate.</p></Panel></>}
      {page==='Character'&&<><Panel><h2>Appearance</h2><fieldset><legend>Body type</legend><div className="choice-row">{(['male','female'] as const).map(body=><Button key={body} variant={config.bodyType===body?'primary':'secondary'} aria-pressed={config.bodyType===body} onClick={()=>selectBody(body)}>{body==='male'?'Male':'Female'}</Button>)}</div></fieldset><fieldset><legend>Skin tone</legend><div className="choice-row">{skinTones.map(t=><Button key={t.key} variant={config.skin===t.key?'primary':'secondary'} aria-pressed={config.skin===t.key} onClick={()=>update('skin',t.key)}><span className="color-swatch" style={{background:t.color}}/>{t.name}</Button>)}</div></fieldset><fieldset><legend>{config.bodyType==='male'?'Male hairstyles':'Female hairstyles'}</legend><div className="style-options">{hairStyles[config.bodyType].map(h=><Button key={h.key} variant={config.style===h.key?'primary':'secondary'} aria-pressed={config.style===h.key} onClick={()=>update('style',h.key)}><HairThumbnail config={{...config,style:h.key}} onError={setError}/>{h.name}</Button>)}</div></fieldset><fieldset><legend>Hair color</legend><div className="choice-row hair-colors">{hairColors.map(h=><Button key={h.key} variant={config.hairColor===h.key?'primary':'secondary'} aria-pressed={config.hairColor===h.key} onClick={()=>update('hairColor',h.key)}><span className="color-swatch" style={{background:h.color}}/>{h.name}</Button>)}</div></fieldset><fieldset><legend>Eye color</legend><div className="choice-row">{eyeColors.map(e=><Button key={e.key} variant={config.eyes===e.key?'primary':'secondary'} aria-pressed={config.eyes===e.key} onClick={()=>update('eyes',e.key)}><span className="color-swatch" style={{background:e.color}}/>{e.name}</Button>)}</div></fieldset></Panel><Panel><h2>Attire</h2><div className="choice-row"><Button variant={config.attire==='student'?'primary':'secondary'} aria-pressed={config.attire==='student'} onClick={()=>update('attire','student')}>Pathfinder</Button><Button variant={config.attire==='coach'?'primary':'secondary'} aria-pressed={config.attire==='coach'} onClick={()=>update('attire','coach')}>Master Guide · coach</Button></div></Panel><Panel><h2>Background</h2><div className="background-options">{backgrounds.map(b=><Button key={b.key} variant={config.background===b.key?'primary':'secondary'} aria-pressed={config.background===b.key} onClick={()=>update('background',b.key)}><img src={b.thumbnail} alt=""/>{b.name}</Button>)}</div></Panel></>}
      {page==='Honors'&&<><Panel><h2>Three spots on your sash</h2><p className="help">Slots run from shoulder to waist. Choose an Honor for each spot, or leave it dotted.</p>{honorSlots}<Button variant="ghost" onClick={()=>update('slots',[null,null,null])}>Clear all three spots</Button></Panel><Panel><h2>Honor collection</h2><p className="help">Sample artwork for this review. The finished profile will show your earned Honors.</p><div className="honor-collection">{honors.map(h=><div key={h.key}><img src={h.src} alt=""/><span>{h.title}</span>{config.slots.includes(h.key)&&<Badge>On sash</Badge>}</div>)}</div></Panel></>}
-     {page==='Share'&&<Panel><h2>Your character, ready to share</h2><p className="help">Download a portrait with your chosen appearance, background, and three sash positions. Empty spots stay dotted.</p><Button disabled={exporting} onClick={download}>{exporting?'Preparing image…':'Download review image'}</Button>{message&&<p role="status" className="help">{message}</p>}<p className="help">PNG · 1200 × 1600</p></Panel>}
+
     </div>
-   </div><p className="review-note">Design preview · Illustrative Honors · Choices stay in this preview only.</p>
+   </div>}<p className="review-note">Design preview · Illustrative Honors · Choices stay in this preview only.</p>
   </main>
  </>;
 }

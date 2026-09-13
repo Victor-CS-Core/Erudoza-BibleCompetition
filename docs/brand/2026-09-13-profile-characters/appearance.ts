@@ -17,6 +17,18 @@ export const backgrounds = [
 export type Skin = typeof skinTones[number]['key'];
 export type Eyes = typeof eyeColors[number]['key'];
 export type Background = typeof backgrounds[number]['key'];
+// Keep category colors stable under source lighting. Multiplying every channel
+// by an unbounded brightness ratio turns a light complexion almost white.
+export function mapSkinTone(original:number[],reference:number[],skin:Skin){
+ const target=skinTones.find(t=>t.key===skin)!.rgb;
+ const highlights={light:[255,218,187],medium:[235,181,137],deep:[180,128,98]}[skin];
+ const luma=(rgb:number[])=>.2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];
+ const ratio=luma(original)/Math.max(1,luma(reference));
+ return target.map((channel,k)=>{
+  const shade=ratio<=1?channel*Math.pow(ratio,.85):channel+(highlights[k]-channel)*(1-Math.exp(-(ratio-1)*2.8));
+  return Math.max(0,Math.min(255,shade+.08*(original[k]-reference[k]*ratio)));
+ });
+}
 // Coordinates use the common 512 × 768 artwork frame. Iris bounds avoid
 // sclera, eyelashes, pupils and catchlights; skin excludes both eye regions.
 const anatomy: Record<string,{eyes:number[][]; face:number[]; neck:number[]; armY:number; cheek:number[]}> = {
@@ -44,7 +56,6 @@ export function applyAppearance(image: HTMLImageElement,name:string,skin:Skin,ey
  const pixels=ctx.getImageData(0,0,c.width,c.height),d=pixels.data,a=anatomy[name],scale=c.width/512;
  const ci=(Math.round(a.cheek[1]*scale)*c.width+Math.round(a.cheek[0]*scale))*4;
  const reference=[d[ci],d[ci+1],d[ci+2]];
- const target=skinTones.find(t=>t.key===skin)!.rgb;
  for(let i=0;i<d.length;i+=4){
   if(!d[i+3])continue;
   const x=(i/4%c.width)/scale,y=Math.floor(i/4/c.width)/scale;
@@ -63,13 +74,10 @@ export function applyAppearance(image: HTMLImageElement,name:string,skin:Skin,ey
   // Warm skin chroma rejects neutral clothes; the value ramp preserves dark
   // eyebrows/beard. Source-specific regions keep hair and uniform isolated.
   const armWeight=smooth(30,55,r-g)*smooth(12,27,g-b)*smooth(65,110,r);
+  const mapped=mapSkinTone([r,g,b],reference,skin);
   for(let k=0;k<3;k++){
    const original=d[i+k];
-   const luminance=.2126*r+.7152*g+.0722*b;
-   const referenceLuminance=.2126*reference[0]+.7152*reference[1]+.0722*reference[2];
-   const ratio=luminance/referenceLuminance;
-   const mapped=target[k]*ratio+.12*(original-reference[k]*ratio);
-   d[i+k]=original*(1-armWeight)+mapped*armWeight;
+   d[i+k]=original*(1-armWeight)+mapped[k]*armWeight;
   }
  }
  ctx.putImageData(pixels,0,0);return c;
