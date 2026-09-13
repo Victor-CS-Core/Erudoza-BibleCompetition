@@ -41,6 +41,6 @@ UI implementer: apps/web/src/** and frontend tests all screens/contracts/profile
 [x] whole-tree tests/build/lint
 [x] browser multi-client1440/390/320 + role/timing/review/legacy regression
 [x] independent review fixes
-[ ] scoped commit/push and preview handoff
+[x] scoped commit/push and screenshot handoff
 
 Use meaningful failing behavioral tests before changes. Preserve existing source proofs, quotas, reserve, pending ingress, event idempotency, storage restore and privacy fences. No new task/thread creation or deployments. Root may revise contracts with messages to both implementers; do not silently invent divergent APIs.
