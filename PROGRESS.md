@@ -4,7 +4,7 @@
 
 - User explicitly requested merge to main for both changes in this task. Fresh origin/main remains `b79330b`, an ancestor of the reviewed task head `63d9401`; main's checkout is clean. No conflict resolution or application edits are needed.
 - Fresh combined gate passed all 56 tests across planner, chapter helpers, personal assignments, Training HQ and landing. Whitespace passed. The unchanged application tree retains the earlier native build/web-native TypeScript/full ESLint, independent review and responsive browser evidence recorded below. No remote CI or deployment claim.
-- Next: push this integration checkpoint, fast-forward clean main and normally push it, then verify exact remote readback. Preview remains available at http://127.0.0.1:5241/student and the season planner route.
+- Main integration completed: clean main fast-forwarded from `b79330b` to `d24c62fe319991c2255a7ad2b77b7e9395c79615`; normal push and exact remote readback confirmed that revision on origin/main. Both requested changes are now in main. No deployment was requested or performed. Preview remains available at http://127.0.0.1:5241/student and the season planner route. This documentation-only follow-up records completion.
 
 ## Training HQ heading on banner — September 13
 
