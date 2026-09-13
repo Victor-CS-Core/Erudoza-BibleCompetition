@@ -10,6 +10,6 @@
 - [x] Generate a reproducible QR matrix for the verified public landing origin, with a four-module quiet zone and error correction. No runtime network image service or production dependency is needed.
 - [x] Store the three visibility choices and example name in App so navigation preserves them. Paint names/QR in the same export path as the preview. Keep patches clear of the active QR footer and permit a fully text-free image when all three switches are off.
 - [x] Run scoped build/TypeScript, Share and existing rendering/selector/background checks; inspect desktop/phone and matching Pathfinder/Master Guide comparisons. Refresh intentional captures, document evidence and limits, update PROGRESS.md.
-- [ ] Explicitly commit/push and verify the task-branch checkpoint.
+- [x] Explicitly commit/push and verify the task-branch checkpoint: `db427f3c4faba7954150f87cf8488fd44f2c91e7`; remote readback matched.
 
 Implementation is authorized by the user's request and runs inline in the current task branch.
