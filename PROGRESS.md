@@ -1,5 +1,12 @@
 # Erudoza progress log
 
+## Assignment chapters and current profile images — September 12
+
+- Corrected the earlier whole-book assignment interpretation: season setup still chooses whole books; the shared assignment editor now chooses individual chapters within the saved season scope, with Select all chapters and no verse fields. Student management, season assignments and personal coach assignments reuse this correction. Saved/partial chapter coverage and retry-safe writes use the existing chapter helper. Existing saved assignments are preserved.
+- Added existing `ProfileAvatar` to the roster (students and coach) and selected-person heading, including phone layouts. Current Honor selection or initials come from the shared identity query/cache; no upload system or new profile storage.
+- Verification: chapter-only student/coach regression tests failed before implementation, then 41 planner, personal assignment, chapter helper and profile tests passed. Native build/web and native types/scoped ESLint/whitespace passed with the existing bundle advisory. Built-app fixture at 1440/390/320 verified only chapters 2 and 4 saved for the student, only chapter 3 for the coach and visible in Student Mode, saved checkboxes, current Honor image and no horizontal overflow/runtime errors. Mobile capture inspected. Fixture evidence is local, not production acceptance; no backend change or new canonical validation claim.
+- Next: checkpoint and push current task branch; preserve preview. No main merge or deployment.
+
 ## Full Bible selector and shared Scripture reader — September 12
 
 - Git checkpoint: implementation `def1a3ca3eb0fd1fbcc91a80925ca9f754227409` committed and normally pushed to `origin/codex/coach-season-flow`; exact remote readback matched. Local checks above passed; canonical SDK blocker remains. Main and production unchanged.

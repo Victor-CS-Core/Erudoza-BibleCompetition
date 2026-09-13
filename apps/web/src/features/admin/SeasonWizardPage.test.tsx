@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { profileApi } from "../profile/profile";
 import { api } from "../../api/client";
 vi.mock("../../api/lifecycle", () => ({ lifecycleApi: { removeAssignment: vi.fn(), correctAssignment: vi.fn(), transitionSeason: vi.fn() } }));
 import { SeasonAssignmentEditor, SeasonWizardPage } from "./SeasonWizardPage";
@@ -16,6 +17,7 @@ function renderWizard(path = "/admin/seasons/season-1") {
 }
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.spyOn(profileApi, "identities").mockImplementation(async ids => ids.map(userId => ({ userId, avatarHonorKey: userId === "student-1" ? "solo:exact-recall" : null })));
   vi.mocked(api.library).mockResolvedValue({ translationId: "nkjv", translationName: "New King James Version", version: 1, books: [{ contentPackId: "eph", bookKey: "EPH", name: "Ephesians", verseCount: 18, chapters: [1,2,3,4,5,6].map(number => ({ number, verses: [1,2,3] })) }, { contentPackId: "jude", bookKey: "JUD", name: "Jude", verseCount: 3, chapters: [{ number: 1, verses: [1,2,3] }] }] });
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
   HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
@@ -27,7 +29,7 @@ beforeEach(() => {
   vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "pack-1", includes: [range], excludes: [] });
   vi.mocked(api.assignments).mockResolvedValue([]);
   vi.mocked(api.myAssignments).mockResolvedValue([]);
-  vi.mocked(api.assignMyself).mockImplementation(async (_org, _season, input) => ({ ...assignment, ...input.range, contentPackId: input.contentPackId, studentUserId: "coach", type: input.type, difficulty: input.difficulty ?? "Standard" }));
+  vi.mocked(api.assignMyself).mockImplementation(async (_org, _season, input) => ({ ...assignment, id: `self-${input.range.startChapter}-${input.range.startVerse}`, ...input.range, contentPackId: input.contentPackId, studentUserId: "coach", type: input.type, difficulty: input.difficulty ?? "Standard" }));
   vi.mocked(api.defineScope).mockResolvedValue(undefined);
   vi.mocked(api.assign).mockImplementation(async (_org, _season, input) => ({ ...assignment, id: `a-${input.range.startChapter}-${input.range.startVerse}`, ...input.range, contentPackId: input.contentPackId, studentUserId: input.studentUserId, type: input.type, difficulty: input.difficulty ?? "Standard" }));
   vi.mocked(api.setDifficulty).mockResolvedValue({ difficulty: "Advanced" });
@@ -123,4 +125,23 @@ it("allows archiving a completed season", async () => {
   renderWizard();
   fireEvent.click(await screen.findByRole("button", { name: "Archive season" }));
   expect(screen.getByRole("dialog")).toHaveTextContent("Archive season");
+});
+
+it.each(["student-1", "coach"])("assigns only selected season chapters for %s", async studentId => {
+  vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 3 }], excludes: [] });
+  renderWizard(`/admin/seasons/season-1?step=students&studentId=${studentId}`);
+  fireEvent.click(await screen.findByRole("checkbox", { name: "Chapter 2" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: "Chapter 4" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
+  await screen.findByText("Assignments saved.");
+  const calls = vi.mocked(studentId === "coach" ? api.assignMyself : api.assign).mock.calls;
+  expect(calls.map(call => call[2].range)).toEqual([2, 4].map(chapter => ({ bookKey: "EPH", startChapter: chapter, startVerse: 1, endChapter: chapter, endVerse: 3 })));
+  expect(screen.queryByLabelText(/start verse|end verse/i)).not.toBeInTheDocument();
+});
+
+it("shows current Honor or initials in the roster and selected assignment identity", async () => {
+  const view = renderWizard();
+  await screen.findByRole("heading", { name: "Daniel Student" });
+  await waitFor(() => expect(view.container.querySelectorAll('[data-profile-user="student-1"][data-profile-honor="solo:exact-recall"]')).toHaveLength(2));
+  expect(view.container.querySelector('[data-profile-user="student-2"]')).toHaveTextContent("SS");
 });

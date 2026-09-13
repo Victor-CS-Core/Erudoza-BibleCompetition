@@ -7,6 +7,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, Input, LinkButton, LoadingState, Notice, Select } from "../../components/ui";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { coordinates, scopePacks, withinRange } from "./passageRanges";
+import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { chapterOptions, saveChapterAssignments } from "./chapterAssignments";
 import "../../styles/season-planner.css";
 
@@ -52,9 +53,9 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
   const save = useMutation({
     retry: false,
     mutationFn: async () => {
-      for (const packId of selected) {
+      for (const packId of [...new Set(selected.map(key => key.split("/")[0]))]) {
         const book = data.books.find(book => book.contentPackId === packId)!;
-        const result = await saveChapterAssignments({ selectedChapters: [...new Set(book.units.map(unit => unit.chapter))], eligible: book.units, all: book.all,
+        const result = await saveChapterAssignments({ selectedChapters: selected.filter(key => key.startsWith(`${packId}/`)).map(key => Number(key.split("/")[1])), eligible: book.units, all: book.all,
           context: { studentId, contentPackId: packId, type: role }, readAssignments: read,
           assign: range => self ? api.assignMyself(org, season.id, { contentPackId: packId, range, type: role, difficulty }) : api.assign(org, season.id, { studentUserId: studentId, contentPackId: packId, range, type: role, difficulty }),
         });
@@ -77,25 +78,35 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
   if (data.loading || query.isPending) return <LoadingState label="Loading assignments…" />;
   if (data.error || query.error) return <Notice tone="danger">Assignments could not load. <Button onClick={() => { data.retry(); void query.refetch(); }}>Try again</Button></Notice>;
   return <div className="book-assignment-editor">
-    <div className="planner-section-heading"><div><h2 ref={heading} tabIndex={-1}>{name}</h2><p>{self ? "Your books power your activities in Student Mode." : "Choose the books this student will study."}</p></div><Badge>{saved.length ? "Assigned" : "Not assigned yet"}</Badge></div>
+    <div className="planner-section-heading"><div><div className="planner-person-heading"><ProfileAvatar userId={studentId} displayName={self ? me!.displayName : name} size={40} /><h2 ref={heading} tabIndex={-1}>{name}</h2></div><p>{self ? "Your assigned chapters power your activities in Student Mode." : "Choose chapters from the season books for this student."}</p></div><Badge>{saved.length ? "Assigned" : "Not assigned yet"}</Badge></div>
     {message && <Notice tone="success">{message}</Notice>}
     {save.isError && <Notice tone="danger">{save.error.message} Saved assignments are preserved. Retry to finish.</Notice>}
     {closed && <Notice>This season is closed. Assignments and progress are preserved.</Notice>}
     {!data.books.length && <Notice>Choose the season books first.</Notice>}
     <fieldset className="planner-fields" disabled={closed || pending}>
-      <legend>Books to assign</legend>
-      <div className="planner-book-list">{data.books.map(book => <label className="ds-choice planner-book-choice" key={book.contentPackId}>
-        <Input type="checkbox" checked={selected.includes(book.contentPackId)} disabled={!book.units.length || complete(book, saved)} onChange={event => { save.reset(); setMessage(""); setSelected(event.target.checked ? [...selected, book.contentPackId] : selected.filter(id => id !== book.contentPackId)); }} />
-        <span><strong>{book.name}</strong><small>{complete(book, saved) ? "Assigned" : book.restricted ? "Saved season selection · partial book" : "Whole book"}</small></span>
-      </label>)}</div>
+      <legend>Chapters to assign</legend>
+      <div className="planner-book-list">{data.books.map(book => {
+        const options = chapterOptions(book.units, book.all, saved, { studentId, contentPackId: book.contentPackId, type: role });
+        const available = options.filter(option => option.remaining.length).map(option => `${book.contentPackId}/${option.chapter}`);
+        const allSelected = options.length > 0 && available.every(key => selected.includes(key));
+        const change = (keys: string[], checked: boolean) => { save.reset(); setMessage(""); setSelected(current => checked ? [...new Set([...current, ...keys])] : current.filter(key => !keys.includes(key))); };
+        return <fieldset className="planner-chapter-book" key={book.contentPackId}><legend>{book.name}</legend>
+          <label className="ds-choice planner-book-choice"><Input type="checkbox" checked={allSelected} disabled={!available.length} onChange={event => change(available, event.target.checked)} /><span>Select all chapters in {book.name}</span></label>
+          {book.restricted && <p className="planner-caption">Only the saved season selection is available.</p>}
+          <div className="planner-chapter-grid">{options.map(option => {
+            const key = `${book.contentPackId}/${option.chapter}`, assigned = !option.remaining.length;
+            return <label className="ds-choice planner-chapter-choice" key={key}><Input type="checkbox" aria-label={`Chapter ${option.chapter}`} checked={assigned || selected.includes(key)} disabled={assigned} onChange={event => change([key], event.target.checked)} /><span>Chapter {option.chapter}<small>{assigned ? "Assigned" : option.partial ? "Season selection" : option.remaining.length < option.available.length ? "Partly assigned" : ""}</small></span></label>;
+          })}</div>
+        </fieldset>;
+      })}</div>
       <details className="planner-settings"><summary>Plan settings · {difficulty}</summary><div className="planner-pair">
         <label>Assignment role<Select value={role} onChange={event => { setRole(event.target.value); setSelected([]); }}><option value="PrimarySpecialist">Specialist study</option><option value="RequiredCoverage">Required coverage</option>{self && <option value="OptionalReview">Optional review</option>}</Select></label>
         <label>Training difficulty<Select value={difficulty} onChange={event => setDifficulty(event.target.value as TrainingDifficulty)}>{["Foundation", "Standard", "Advanced"].map(value => <option key={value}>{value}</option>)}</Select></label>
-      </div><p>Difficulty applies to future sessions. {self && "Save it together with a book assignment."}</p></details>
+      </div><p>Difficulty applies to future sessions. {self && "Save it together with a chapter assignment."}</p></details>
       <div className="planner-actions"><Button disabled={!selected.length && (self || !saved.length || !difficultyEdit)} onClick={() => save.mutate(false)}>{pending ? "Saving…" : "Save assignments"}</Button>{nextStudent && <Button variant="secondary" disabled={!selected.length && !(!self && saved.length && difficultyEdit)} onClick={() => save.mutate(true)}>Save & next student →</Button>}</div>
       {nextStudent && <p className="planner-caption">Next: {nextStudent}</p>}
     </fieldset>
-    {!!saved.length && <div className="planner-saved"><h3>Saved books</h3>{data.books.filter(book => saved.some(item => item.contentPackId === book.contentPackId || !item.contentPackId && book.includes.some(range => range.bookKey === item.bookKey))).map(book => <div className="planner-saved-row" key={book.contentPackId}><div><strong>{book.name}</strong><small>{complete(book, saved) ? "Assigned" : "Saved assignments · partial book or another role"}</small></div>{!closed && <Button size="compact" variant="ghost" disabled={pending} onClick={() => { remove.reset(); setRemoving(book.contentPackId); }}>Remove<span className="sr-only"> {book.name}</span></Button>}</div>)}</div>}
+    {!!saved.length && <div className="planner-saved"><h3>Saved books</h3>{data.books.filter(book => saved.some(item => item.contentPackId === book.contentPackId || !item.contentPackId && book.includes.some(range => range.bookKey === item.bookKey))).map(book => <div className="planner-saved-row" key={book.contentPackId}><div><strong>{book.name}</strong><small>{complete(book, saved) ? "Assigned" : `Chapters ${[...new Set(saved.filter(item => item.contentPackId === book.contentPackId || !item.contentPackId && book.includes.some(range => range.bookKey === item.bookKey)).flatMap(item => Array.from({ length: item.endChapter - item.startChapter + 1 }, (_, index) => item.startChapter + index)))].sort((a, b) => a - b).join(", ")} · saved assignments`}</small></div>{!closed && <Button size="compact" variant="ghost" disabled={pending} onClick={() => { remove.reset(); setRemoving(book.contentPackId); }}>Remove<span className="sr-only"> {book.name}</span></Button>}</div>)}</div>}
     {self && showTrainingLink && !dirty && !pending && <LinkButton variant="secondary" to={`/student?seasonId=${encodeURIComponent(season.id)}`}>Open Student Mode</LinkButton>}
     {removing && <ConfirmationDialog title="Remove book assignments?" description="Remove this book from this person's plan. Previous attempts and progress are preserved." confirmLabel="Remove assignments" pending={remove.isPending} error={remove.error?.message} onCancel={() => setRemoving(null)} onConfirm={() => remove.mutate(removing)} />}
   </div>;

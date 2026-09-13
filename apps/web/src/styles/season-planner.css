@@ -41,3 +41,10 @@
 
 .planner-book-choice.ds-choice{flex-direction:row;justify-content:flex-start;text-align:left}
 @media(max-width:430px){.planner-actions>.ds-button{flex-basis:100%}}
+
+.planner-chapter-book{border:0;padding:0;margin:0;min-width:0}
+.planner-chapter-grid{max-height:24rem;overflow:auto;padding:var(--er-space-1);display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:var(--er-space-2);margin-top:var(--er-space-3)}
+.planner-chapter-choice{display:flex;align-items:center;gap:var(--er-space-2)}
+.planner-chapter-choice small{display:block}
+.planner-person-heading{display:flex;align-items:center;gap:var(--er-space-3)}
+.planner-person-heading h2{margin:0}

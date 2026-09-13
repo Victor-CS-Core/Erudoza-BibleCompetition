@@ -2,13 +2,15 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
+import { profileApi } from "../profile/profile";
 import { api } from "../../api/client";
 import { MyAssignmentsPage } from "./MyAssignmentsPage";
-vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "coach", organizationId: "org", kind: "Adult", role: "Owner" } }) }));
+vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "coach", displayName: "Demo Coach", organizationId: "org", kind: "Adult", role: "Owner" } }) }));
 vi.mock("../../api/client", () => ({ api: { library: vi.fn(), seasons: vi.fn(), seasonScope: vi.fn(), sourceUnits: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
 const range = { bookKey: "Daniel", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 };
 beforeEach(() => {
  vi.clearAllMocks();
+ vi.spyOn(profileApi, "identities").mockResolvedValue([]);
  vi.mocked(api.library).mockResolvedValue({ books: [] } as never);
  vi.mocked(api.seasons).mockResolvedValue([{ id: "season", name: "Daniel", status: "Active" }] as never);
  vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "pack", includes: [range], excludes: [] });
