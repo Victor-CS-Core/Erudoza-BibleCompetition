@@ -154,3 +154,42 @@ describe('production character profile', () => {
     expect(screen.getByRole('button', { name: 'Pathfinder' })).toHaveAttribute('aria-pressed', 'true');
   });
 });
+
+describe('character preview motion example', () => {
+  function stubMotionMedia({ reduce = false, coarse = false } = {}) {
+    vi.stubGlobal('matchMedia', (query: string) => ({
+      matches: query.includes('reduced-motion') ? reduce : query.includes('pointer: coarse') ? coarse : false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+  }
+
+  it('enables the idle example on the full character preview', async () => {
+    stubMotionMedia();
+    mount();
+    await page('Character');
+    expect(screen.getByTestId('character-preview-stage')).toHaveAttribute('data-idle-motion', 'active');
+  });
+
+  it.each([
+    ['reduced motion', { reduce: true }],
+    ['coarse pointer', { coarse: true }],
+  ])('keeps the character still for %s', async (_reason, options) => {
+    stubMotionMedia(options);
+    mount();
+    await page('Character');
+    expect(screen.getByTestId('character-preview-stage')).not.toHaveAttribute('data-idle-motion');
+  });
+
+  it('pauses and resumes the idle example with window focus', async () => {
+    stubMotionMedia();
+    mount();
+    await page('Character');
+    const stage = screen.getByTestId('character-preview-stage');
+    expect(stage).toHaveAttribute('data-idle-motion', 'active');
+    fireEvent(window, new Event('blur'));
+    expect(stage).not.toHaveAttribute('data-idle-motion');
+    fireEvent(window, new Event('focus'));
+    expect(stage).toHaveAttribute('data-idle-motion', 'active');
+  });
+});

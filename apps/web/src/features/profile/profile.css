@@ -21,6 +21,7 @@
 .profile-page .editor-panels, .profile-page .editor-panels > .ds-panel { min-width: 0; }
 .profile-page .editor-panels h2 { margin: 0; }
 .profile-page .character-panel { min-width: 0; }
+.profile-page .character-preview-stage { display: block; }
 .profile-page .character-canvas { aspect-ratio: 1; }
 .profile-page .share-canvas.character-canvas { aspect-ratio: 3 / 4; }
 .profile-page .style-options .ds-button, .profile-page .avatar-options .ds-button, .profile-page .background-options .ds-button { min-width: 0; white-space: normal; }
@@ -48,6 +49,16 @@
 .profile-page .profile-save-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--er-space-3); }
 .profile-page .profile-save-actions p { flex: 1; margin: 0; min-width: 180px; color: var(--er-muted-ink); }
 .profile-page .ds-notice p { margin-block: var(--er-space-2); }
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes character-idle-example {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+    50% { transform: translate3d(0, -6px, 0) rotate(-.45deg) scale(1.008, .996); }
+  }
+  .profile-page .character-preview-stage[data-idle-motion="active"] .character-canvas[data-ready="true"] {
+    transform-origin: 50% 92%;
+    animation: character-idle-example 2.4s ease-in-out infinite;
+  }
+}
 @media (max-width: 1050px) and (min-width: 761px) {
   .profile-page .creator-layout { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: var(--er-space-4); }
   .profile-page .editor-panels > .ds-panel { padding: var(--er-space-4); }

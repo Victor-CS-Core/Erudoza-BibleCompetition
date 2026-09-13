@@ -1460,3 +1460,9 @@ Ten of fourteen tasks are now independently reviewed. B4 integration follows thi
 - Coordinated with the concurrent profile release: retained its docs-only fa27bea ancestor on codex/advertisement-materials and left main unchanged. Local deliverable gate complete; next: explicit scoped commit/push and remote readback.
 
 - Git checkpoint `6d1badde50cf9eb9de23f9bdcd2fc200278af33f` was normally pushed to `origin/codex/advertisement-materials`; exact remote readback matched. Final images and research are ready for user review. Main integration, deployment and campaign publication were not requested or performed.
+
+## Profile character idle example — September 13
+
+- User asked to see an example of the approved chibi character animated. Added a bounded full-profile idle treatment: a subtle 2.4-second bob/tilt on the existing raster canvas, enabled only for the desktop full-character preview. Reduced-motion users, coarse/touch pointers, hidden documents and unfocused windows remain still; portrait, sharing and exported PNG behavior are unchanged. This is a presentation probe, not a Spine/Rive rig.
+- Local gate passed: new behavior tests were observed failing before implementation and now pass (13 profile-character tests); scoped TypeScript, ESLint, whitespace and native production build pass. A real desktop browser fixture confirmed the CSS animation name and changing transform, no page errors, and no horizontal overflow at 320, 390 or 1440px. The visible example is backed by synthetic in-memory profile/API data; no authenticated account or production data was changed.
+- Preview artifact: `/tmp/erudoza-character-idle-example.gif`. Work is isolated in `.worktrees/character-idle-example` on `codex/character-idle-example`; no main integration or deployment has occurred. Next: user review of the feel, then decide whether to commission separated character layers for a richer Spine/Rive rig.
