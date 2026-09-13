@@ -31,7 +31,9 @@
 :where(.training-app, .training-login, .training-public) :where(input,textarea) { caret-color: var(--er-teal); }
 :where(.training-app, .training-login, .training-public) ::selection { color: var(--er-ink-navy); background: var(--er-selected); }
 :where(.training-app, .training-login, .training-public) :where(input,select,textarea,button):disabled { cursor: not-allowed; }
-.ds-button { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--er-space-2); min-height: var(--er-control-height); padding: 10px var(--er-space-5); border: 1px solid transparent; border-radius: var(--er-radius-control); font: 600 var(--er-text-sm)/1.4 var(--er-font-ui); text-decoration: none; text-align: center; cursor: pointer; flex-shrink: 0; }
+.ds-button { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: var(--er-space-2); min-height: var(--er-control-height); padding: 10px var(--er-space-5); border: 1px solid transparent; border-radius: var(--er-radius-control); font: 600 var(--er-text-sm)/1.4 var(--er-font-ui); text-decoration: none; text-align: center; cursor: pointer; flex-shrink: 0; min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.ds-button > :not(svg), .ds-badge > :not(svg) { min-width: 0; }
+.ds-button > svg, .ds-badge > svg { flex-shrink: 0; }
 .ds-button-primary { color: var(--er-on-navy); background: var(--er-action-blue); }
 .ds-button-secondary { color: var(--er-ink-navy); background: var(--er-card); border-color: var(--er-border-strong); }
 .ds-button-ghost { color: var(--er-action-blue); background: transparent; }
@@ -63,7 +65,7 @@
 .ds-page-header { display: flex; justify-content: space-between; align-items: center; gap: var(--er-space-6); margin-bottom: var(--er-space-6); }
 .ds-page-header p { margin: var(--er-space-2) 0 0; color: var(--er-muted-ink); max-width: 70ch; overflow-wrap: anywhere; }
 .ds-page-action { display: flex; align-items: center; gap: var(--er-space-3); flex-shrink: 0; }
-.ds-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 7px; font: 600 var(--er-text-xs)/1.5 var(--er-font-ui); white-space: nowrap; }
+.ds-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 7px; font: 600 var(--er-text-xs)/1.5 var(--er-font-ui); min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .ds-badge-neutral { background: var(--er-surface-soft); color: var(--er-graphite); }
 .ds-badge-info { background: var(--er-selected); color: var(--er-action-blue); }
 .ds-badge-success { background: var(--er-success-surface); color: var(--er-success-ink); }
@@ -105,6 +107,7 @@
 /* Consistent content surfaces for the command workspace. */
 :where(.training-app, .training-login, .training-public) { scrollbar-color: var(--er-border-strong) var(--er-paper); }
 :where(.training-app) [id] { scroll-margin-block-start: 160px; }
+.ds-panel > p + .ds-button { margin-top: var(--er-space-4); }
 .ds-panel > p:last-child { margin-bottom: 0; }
 .ds-page-header > div:first-child { min-width: 0; }
 .ds-page-header h1 { overflow-wrap: anywhere; }

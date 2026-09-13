@@ -284,3 +284,16 @@
  .practice-question-meta [role=timer] { flex-basis:100%;text-align:center; }
  .simulation-editor-footer .ds-button { width:100%; }
 }
+
+/* Keep bank setup, authoring and review readable as the workspace narrows. */
+.coach-question-bank, .pbe-bank-editor { display:grid; gap:var(--er-space-5); }
+.coach-question-bank > header > p { margin-top:var(--er-space-2); }
+.coach-question-bank > .practice-form > .ds-notice { flex:1 1 240px; min-width:0; }
+.coach-question-bank .ds-notice p { margin-block:var(--er-space-2) var(--er-space-4); }
+.coach-question-bank .ds-notice p:last-child { margin-bottom:0; }
+.coach-question-bank label { display:grid; gap:var(--er-space-2); min-width:0; }
+.coach-question-bank .ds-disclosure > :not(summary) { margin-top:var(--er-space-4); }
+.coach-question-bank .ds-disclosure > summary { overflow-wrap:anywhere; }
+.coach-question-bank .practice-actions { gap:var(--er-space-3); }
+.pbe-bank-editor > .ds-button { justify-self:start; }
+.pbe-bank-editor fieldset { display:grid; gap:var(--er-space-4); }

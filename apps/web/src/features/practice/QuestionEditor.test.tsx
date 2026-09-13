@@ -35,7 +35,9 @@ describe("Coach question discovery", () => {
     mount({ ...data, seasons: [] });
     expect(screen.getByLabelText("Question season")).toBeDisabled();
     expect(screen.getByRole("option", { name: "No active seasons" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Preview question" })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Preview question" })).not.toBeInTheDocument();
+    expect(screen.getByText("Set up a season before adding questions")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Manage seasons" })).toHaveAttribute("href", "/admin/seasons");
   });
   it("offers recovery when source content cannot load", async () => {
     vi.mocked(api.seasonScope).mockRejectedValueOnce(new Error("offline"));
