@@ -76,3 +76,13 @@ export const bodyHeadRegistration:Record<string,{neck:number[];eyeDistance:numbe
  'student-curls':{neck:[511,595],eyeDistance:166},'coach-curls':{neck:[511,650],eyeDistance:162},
  'student-bob':{neck:[507,622],eyeDistance:152},'coach-bob':{neck:[509,618],eyeDistance:150},
 };
+export const characterTopInset=32;
+const bodyGroundY:Record<string,number>={'student-curls':1467,'student-bob':1383,'coach-curls':1463,'coach-bob':1439};
+const bodyReferences:Record<string,string>={'student-curls':'student-curls','coach-curls':'student-curls','student-bob':'student-bob','coach-bob':'student-bob'};
+/** Keep the same person's head scale, neckline and floor when only attire changes. */
+export function bodyFrame(name:string){
+ const reference=bodyReferences[name];if(!reference)throw new Error('Unknown character body');
+ const source=bodyHeadRegistration[name],target=bodyHeadRegistration[reference];
+ const scale=(bodyGroundY[reference]-target.neck[1])/(bodyGroundY[name]-source.neck[1]);
+ return {reference,scale,x:target.neck[0]-source.neck[0]*scale,y:target.neck[1]+characterTopInset-source.neck[1]*scale,groundY:bodyGroundY[reference]+characterTopInset};
+}

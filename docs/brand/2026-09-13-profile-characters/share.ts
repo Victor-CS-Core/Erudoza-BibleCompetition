@@ -1,20 +1,38 @@
 import {backgrounds,paintBackground} from './appearance';
 import {type Configuration,loadImage,renderCharacter} from './composition';
+import landingQR from './landing-qr.json';
 
 export const cardSize={width:1200,height:1600} as const;
 export type SharePatch={key:string;title:string;src:string;earnedAtUtc:string|null};
 export type Placement={key:string;x:number;y:number;size:number;rotation:number};
 export type ShareHistory={past:Placement[][];present:Placement[];future:Placement[][]};
 export const emptyShareHistory:ShareHistory={past:[],present:[],future:[]};
+export type ShareOptions={showName:boolean;showBrand:boolean;showQR:boolean;displayName:string};
+// Explicit example identity for this design review, not an authenticated user.
+export const defaultShareOptions:ShareOptions={showName:true,showBrand:true,showQR:true,displayName:'Alex Brooks'};
+export const publicLandingURL=landingQR.url;
+type Rect={x:number;y:number;width:number;height:number};
+export function shareFooter(options:ShareOptions):Rect|undefined{
+ if(!options.showQR&&!options.showBrand)return;
+ const height=options.showQR?(options.showBrand?284:240):72;
+ return {x:916,y:1560-height,width:244,height};
+}
 export const unlockedPatches=(collection:readonly SharePatch[])=>collection.filter(p=>Boolean(p.earnedAtUtc));
 const clamp=(value:number,min:number,max:number)=>Math.max(min,Math.min(max,value));
 
 /** Image coordinates, independent of display size. Keep the entire rotated patch inside the card. */
-export function constrainPlacement(patch:Placement):Placement{
+export function constrainPlacement(patch:Placement,reserved?:Rect):Placement{
  const size=clamp(Number.isFinite(patch.size)?patch.size:216,144,336);
  const rotation=clamp(Number.isFinite(patch.rotation)?patch.rotation:0,-180,180);
  const radians=rotation*Math.PI/180,extent=size/2*(Math.abs(Math.cos(radians))+Math.abs(Math.sin(radians)))+20;
- return {...patch,size,rotation,x:clamp(Number.isFinite(patch.x)?patch.x:600,extent,1200-extent),y:clamp(Number.isFinite(patch.y)?patch.y:800,extent,1600-extent)};
+ const fitted={...patch,size,rotation,x:clamp(Number.isFinite(patch.x)?patch.x:600,extent,1200-extent),y:clamp(Number.isFinite(patch.y)?patch.y:800,extent,1600-extent)};
+ if(reserved&&fitted.x+extent>reserved.x&&fitted.x-extent<reserved.x+reserved.width&&fitted.y+extent>reserved.y&&fitted.y-extent<reserved.y+reserved.height){
+  const candidates=[{x:reserved.x-extent,y:fitted.y},{x:reserved.x+reserved.width+extent,y:fitted.y},{x:fitted.x,y:reserved.y-extent},{x:fitted.x,y:reserved.y+reserved.height+extent}]
+   .filter(p=>p.x>=extent&&p.x<=1200-extent&&p.y>=extent&&p.y<=1600-extent)
+   .sort((a,b)=>Math.hypot(a.x-fitted.x,a.y-fitted.y)-Math.hypot(b.x-fitted.x,b.y-fitted.y));
+  if(candidates[0])return {...fitted,...candidates[0]};
+ }
+ return fitted;
 }
 
 /** One decoration per unlocked patch; sash Honors are a separate configuration. */
@@ -42,24 +60,38 @@ export async function renderShareBase(config:Configuration):Promise<HTMLCanvasEl
  const [,scene]=await Promise.all([renderCharacter(character,config,null,'export'),loadImage(backdrop.fullSrc)]);
  const canvas=document.createElement('canvas');canvas.width=cardSize.width;canvas.height=cardSize.height;const ctx=canvas.getContext('2d')!;
  paintBackground(ctx,scene,canvas.width,canvas.height);
- ctx.fillStyle=backdrop.textColor;ctx.font='600 42px system-ui';ctx.textAlign='center';
- ctx.fillText(config.attire==='coach'?'My Master Guide':'My Pathfinder',600,85);
  ctx.drawImage(character,256,0,1024,1536,130,105,940,1410);
- ctx.font='42px Georgia';ctx.fillText('Erudoza',600,1550);
  return canvas;
 }
 
 /** Shared by the live card and PNG. Editing handles never enter this canvas. */
-export function paintShareCard(canvas:HTMLCanvasElement,base:HTMLCanvasElement,patches:Placement[],art:Map<string,HTMLImageElement>){
+export function paintShareCard(canvas:HTMLCanvasElement,base:HTMLCanvasElement,patches:Placement[],art:Map<string,HTMLImageElement>,config:Configuration,options:ShareOptions){
  if(canvas.width!==cardSize.width)canvas.width=cardSize.width;
  if(canvas.height!==cardSize.height)canvas.height=cardSize.height;
  const ctx=canvas.getContext('2d')!;ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(base,0,0);
  for(const raw of patches){
   const image=art.get(raw.key);if(!image)continue;
-  const patch=constrainPlacement(raw);
+  const patch=constrainPlacement(raw,shareFooter(options));
   ctx.save();ctx.translate(patch.x,patch.y);ctx.rotate(patch.rotation*Math.PI/180);
   // Preserve each complete patch's aspect ratio, including its transparent border.
   const scale=patch.size/Math.max(image.naturalWidth,image.naturalHeight),w=image.naturalWidth*scale,h=image.naturalHeight*scale;
   ctx.shadowColor='#102e4738';ctx.shadowBlur=8;ctx.shadowOffsetY=4;ctx.drawImage(image,-w/2,-h/2,w,h);ctx.restore();
+ }
+ const name=options.displayName.replace(/\s+/g,' ').trim().slice(0,40);
+ if(options.showName&&name){
+  ctx.save();ctx.fillStyle=backgrounds.find(b=>b.key===config.background)!.textColor;ctx.textAlign='center';let fontSize=42;ctx.font=`600 ${fontSize}px system-ui`;
+  while(ctx.measureText(name).width>1080&&fontSize>24){fontSize--;ctx.font=`600 ${fontSize}px system-ui`;}
+  ctx.fillText(name,600,85);ctx.restore();
+ }
+ const footer=shareFooter(options);
+ if(footer){
+  // An opaque, high-contrast plate protects the QR quiet zone on every scene.
+  ctx.save();ctx.fillStyle='#fffefa';ctx.beginPath();ctx.roundRect(footer.x,footer.y,footer.width,footer.height,20);ctx.fill();ctx.fillStyle='#102e47';
+  if(options.showQR){
+   const moduleSize=6,x=footer.x+(footer.width-landingQR.modules.length*moduleSize)/2,y=footer.y+20;
+   landingQR.modules.forEach((row,dy)=>row.forEach((dark,dx)=>{if(dark)ctx.fillRect(x+dx*moduleSize,y+dy*moduleSize,moduleSize,moduleSize);}));
+  }
+  if(options.showBrand){ctx.font='36px Georgia';ctx.textAlign='center';ctx.fillText('Erudoza',footer.x+footer.width/2,footer.y+footer.height-24);}
+  ctx.restore();
  }
 }

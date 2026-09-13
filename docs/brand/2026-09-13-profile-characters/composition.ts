@@ -1,4 +1,4 @@
-import {BodyType,HairColor,appearanceHead,headPlacement,bodySources} from './hair';
+import {BodyType,HairColor,appearanceHead,headPlacement,bodySources,bodyFrame,characterTopInset} from './hair';
 import {applyAppearance,paintBackground,paintGroundShadow,backgrounds, Skin, Eyes, Background} from './appearance';
 export type Attire = 'student' | 'coach';
 export const honors = [
@@ -65,8 +65,10 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
   const ctx = buffer.getContext('2d')!;
   const reg = registration[name];
   const matrix = transform([[205,190],[795,1280]], [reg.shoulder, reg.hip]);
-  const placement=headPlacement(headName,name);
-  ctx.drawImage(appearanceHead(head,mask,headName,config.skin,config.eyes,config.hairColor),placement.x,placement.y,512*placement.scale,512*placement.scale);
+  const frame=bodyFrame(name),placement=headPlacement(headName,frame.reference);
+  ctx.drawImage(appearanceHead(head,mask,headName,config.skin,config.eyes,config.hairColor),placement.x,placement.y+characterTopInset,512*placement.scale,512*placement.scale);
+  // Normalize the garment, sash and its Honors together without stretching.
+  ctx.save();ctx.transform(frame.scale,0,0,frame.scale,frame.x,frame.y);
   const coloredBody=applyAppearance(body,name,config.skin,config.eyes);
   const bodyContext=coloredBody.getContext('2d')!;bodyContext.globalCompositeOperation='destination-in';
   bodyContext.drawImage(garment,0,0,coloredBody.width,coloredBody.height);
@@ -82,11 +84,11 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
       ctx.drawImage(patches[i]!,x-radius,y-radius,radius*2,radius*2); ctx.restore();
     } else dotted(ctx,x,y,radius*.9);
   });
+  ctx.restore();
   canvas.width=1536;canvas.height=1536;const output=canvas.getContext('2d')!;
   if(scene)paintBackground(output,scene,1536,1536);
   // Ground contact follows the measured boot bottoms in each body source.
-  const groundY:Record<string,number>={'student-curls':1467,'student-bob':1383,'coach-curls':1463,'coach-bob':1439};
-  paintGroundShadow(output,768,groundY[name]-2,225);
+  paintGroundShadow(output,768,frame.groundY-2,225);
   output.drawImage(buffer,256,0);
   return canvas;
 }

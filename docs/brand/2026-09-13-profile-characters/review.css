@@ -53,5 +53,13 @@ fieldset{border:0;padding:0;margin:var(--er-space-5) 0 0}legend{padding:0;margin
 .share-layer-tools .ds-button{white-space:normal}
 .share-backgrounds{margin-top:var(--er-space-4)}
 .share-status:empty{display:none}
+.share-visibility-options{display:grid;gap:var(--er-space-1);margin-block:var(--er-space-3)}
+.share-visibility-toggle.ds-button{width:100%;justify-content:space-between;gap:var(--er-space-4)}
+.share-switch-track{position:relative;display:block;width:38px;height:22px;flex-shrink:0;border:1px solid var(--er-border-strong);border-radius:22px;background:var(--er-surface-soft)}
+.share-switch-track::after{content:'';position:absolute;left:3px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--er-muted-ink)}
+.share-visibility-toggle[aria-checked=true] .share-switch-track{background:var(--er-teal);border-color:var(--er-teal)}
+.share-visibility-toggle[aria-checked=true] .share-switch-track::after{transform:translateX(16px);background:var(--er-card)}
+.share-name-field{display:grid;gap:var(--er-space-2);margin-top:var(--er-space-4)}
+@media(prefers-reduced-motion:no-preference){.share-switch-track::after{transition:transform var(--er-duration)}}
 @media(max-width:1000px) and (min-width:761px){.share-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.share-workspace{padding:var(--er-space-4)}.share-stage-wrap{padding:var(--er-space-2)}.share-patch-tray .ds-button{font-size:var(--er-text-sm)}.share-intro .ds-patch-art{display:none}}
 @media(max-width:760px){.share-layout{grid-template-columns:1fr}.share-workspace{position:static;padding:var(--er-space-4)}.share-stage-wrap{padding:var(--er-space-2)}.share-stage{max-width:390px}.share-toolbar .ds-button{flex:1;min-height:44px}.share-toolbar .ds-button:last-child{margin-left:0}.share-workspace-heading{flex-wrap:wrap}.share-layer-tools .ds-button{min-height:44px}.share-patch-tray .ds-button{font-size:var(--er-text-sm)}.share-intro{gap:var(--er-space-3)}.share-intro .ds-patch-art{width:56px;height:56px}.share-intro .ds-patch-art img{width:56px;height:56px}}

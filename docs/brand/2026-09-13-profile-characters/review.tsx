@@ -5,7 +5,7 @@ import { Configuration, honors, renderCharacter, renderPortrait, setSlot } from 
 import {hairStyles,hairColors,BodyType} from './hair';
 import { skinTones, eyeColors, backgrounds } from './appearance';
 import {ShareEditor} from './ShareEditor';
-import {emptyShareHistory,type ShareHistory,type SharePatch} from './share';
+import {emptyShareHistory,defaultShareOptions,type ShareHistory,type SharePatch,type ShareOptions} from './share';
 // Explicit review fixture, not an account entitlement or an authenticated profile.
 const sampleShareCollection:readonly SharePatch[]=honors.map(h=>({...h,earnedAtUtc:'2026-09-13T00:00:00Z'}));
 const pages=['Profile','Character','Honors','Share'] as const;
@@ -37,6 +37,7 @@ function App(){
  const [avatar,setAvatar]=useState('honor'),[avatarHonor,setAvatarHonor]=useState<string>(honors[0].key),[portrait,setPortrait]=useState('');
  const [error,setError]=useState('');
  const [shareHistory,setShareHistory]=useState<ShareHistory>(emptyShareHistory);
+ const [shareOptions,setShareOptions]=useState<ShareOptions>(defaultShareOptions);
  const [searchOpen,setSearchOpen]=useState(false),[search,setSearch]=useState('');
  const titleRef=useRef<HTMLDivElement>(null);
  function navigate(next:Page){setPage(next);setSearchOpen(false);requestAnimationFrame(()=>titleRef.current?.focus());}
@@ -51,7 +52,7 @@ function App(){
   <main><div className="profile-navigation"><span className="breadcrumb">Account <span aria-hidden="true">/</span> {page}</span><nav aria-label="Profile pages">{pages.map(p=><Button key={p} variant="ghost" aria-current={page===p?'page':undefined} onClick={()=>navigate(p)}>{p}</Button>)}</nav></div>
    <div ref={titleRef} tabIndex={-1}><PageHeader title={page==='Profile'?'Your profile':page==='Character'?'Make your Pathfinder':page==='Honors'?'Your displayed Honors':'Share your character'}/></div>
    {error&&<Notice tone="danger">{error}</Notice>}
-   {page==='Share'?<ShareEditor config={config} collection={sampleShareCollection} history={shareHistory} setHistory={setShareHistory} onBackground={background=>update('background',background)} onEdit={()=>navigate('Character')} onError={setError}/>:<div className="creator-layout">
+   {page==='Share'?<ShareEditor config={config} collection={sampleShareCollection} history={shareHistory} setHistory={setShareHistory} options={shareOptions} setOptions={setShareOptions} onBackground={background=>update('background',background)} onEdit={()=>navigate('Character')} onError={setError}/>:<div className="creator-layout">
     <Panel className="character-panel"><Character config={config} onError={setError}/><p className="figure-caption">Sash · {config.slots.filter(Boolean).length} of 3 Honors selected</p><div className="figure-actions"><Button onClick={()=>navigate(page==='Character'?'Profile':'Character')}>{page==='Character'?'Back to profile':'Edit character'}</Button><Button variant="secondary" onClick={()=>navigate('Share')}>Share character</Button></div></Panel>
     <div className="editor-panels">
      {page==='Profile'&&<><Panel><h2>Profile image</h2><p className="help">Choose how you appear across Erudoza.</p><div className="avatar-options">{[['honor','Honor'],['character','Character'],['initials','Initials']].map(([key,label])=><Button key={key} variant={avatar===key?'primary':'secondary'} aria-label={label} aria-pressed={avatar===key} onClick={()=>setAvatar(key)}>{key==='initials'?<span className="initials-preview">AB</span>:<img src={key==='honor'?honors.find(h=>h.key===avatarHonor)!.src:portrait} alt=""/>}<span>{label}</span></Button>)}</div>{avatar==='honor'&&<label className="avatar-select">Honor profile image<Select value={avatarHonor} onChange={e=>setAvatarHonor(e.target.value)}>{honors.map(h=><option key={h.key} value={h.key}>{h.title}</option>)}</Select></label>}</Panel><Panel><h2>Displayed Honors</h2>{honorSlots}<Button className="wide-action" variant="secondary" onClick={()=>navigate('Honors')}>Manage Honors</Button><p className="help">Your profile image and displayed Honors are separate.</p></Panel></>}

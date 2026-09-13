@@ -18,7 +18,7 @@ The user approved the dimensional anime chibi direction as a starting point. Ren
 - Six hairstyles per body type. Male: short curls, side part, textured quiff, buzz cut, swept waves, short locs. Female: curly bob, straight bob, high ponytail, two braids, natural curls, low bun.
 - Four hair colors: red, black, brown, blond.
 - Three skin tones, three eye colors, and three illustrated backgrounds: Mountain Sunrise, Woodland Basecamp and Starlight Camp.
-- Body changes update the hairstyle grid and remember the last hairstyle for each body type. Attire changes retain body type, hairstyle, hair color, skin, eyes, background and Honors.
+- Body changes update the hairstyle grid and remember the last hairstyle for each body type. Attire changes retain body type, hairstyle, hair color, skin, eyes, background and Honors, with the same head scale, neckline and ground reference.
 - All six hairstyle thumbnails use the selected hair color, skin tone and eye color through the same transparent portrait renderer as the Profile head-shot. Outdated thumbnails are hidden while the latest appearance renders.
 - A fixed sash with three ordered Honor positions. Null positions remain dotted; duplicate Honors are unavailable.
 - Independent Honor, character portrait or initials profile image. Character portraits use the current head appearance with true transparency and no stage background, clothing or shadow. The downloaded full-character PNG retains the chosen illustrated background.
@@ -63,6 +63,7 @@ node docs/brand/2026-09-13-profile-characters/verify-refinement.mjs
 node docs/brand/2026-09-13-profile-characters/verify-selector-previews.mjs
 node docs/brand/2026-09-13-profile-characters/verify-backgrounds.mjs
 node docs/brand/2026-09-13-profile-characters/verify-share.mjs
+node docs/brand/2026-09-13-profile-characters/verify-attire-scale.mjs
 node docs/brand/2026-09-13-profile-characters/verify-skin-sash.mjs
 python docs/brand/2026-09-13-profile-characters/verify-cutout-edges.py
 python docs/brand/2026-09-13-profile-characters/verify-placement.py
@@ -83,13 +84,33 @@ The selector regression check reproduced the original static-thumbnail defect, t
 
 [Open Share](review.html?share=1&page=share) · [Customized desktop](share-customized-review.png) · [Phone](share-mobile-review.png) · [Downloaded card](share-customized-export.png) · [Low-bun skin comparison](refinement/low-bun-skin-tones.png)
 
-Share now has a Chibi adventure-card editor: drag unlocked patches from the tray, tap to add, drag to move, resize, rotate, change stacking order, remove or clear, and undo/redo. Arrow keys move a focused patch; Shift takes larger steps and Delete removes it. Escape cancels an active drag. Touch supports tap addition and direct patch movement. Full rotated bounds stay inside the 1200 × 1600 image, including the soft patch shadow. Download uses the exact preview canvas composition; selection outlines are editor-only and never appear on the character or exported PNG. The card title also follows Pathfinder/Master Guide attire.
+Share has an adventure-card editor in the approved chibi art style: drag unlocked patches from the tray, tap to add, drag to move, resize, rotate, change stacking order, remove or clear, and undo/redo. Arrow keys move a focused patch; Shift takes larger steps and Delete removes it. Escape cancels an active drag. Touch supports tap addition and direct patch movement. Full rotated bounds stay inside the 1200 × 1600 image, including the soft patch shadow. Download uses the exact preview canvas composition; selection outlines are editor-only and never appear on the character or exported PNG. Interface copy calls the character a Pathfinder.
 
 Decorations are separate from the three sash Honors and Honor/character/initials profile image. They survive page navigation and appearance/background changes within this preview. The tray accepts the profile's `earnedAtUtc` convention, filters locked entries and rejects unknown/duplicate/locked drop keys. The three shown unlocks are explicitly labeled sample data; no authenticated account collection is fetched or claimed. One copy of each available patch can decorate the card, independently of its sash placement. Forty edits are retained for undo; the preview clears on reload.
 
 The low-bun face was overexposed because a single cheek sample landed in a source shadow. A masked forehead median and bounded highlight curve now keep all twelve hairstyles closer to their Light/Medium/Deep category while retaining shading. The body uses the same bounded tone curve. Sash direction was already upper-left shoulder to lower-right hip in screen coordinates; added checks lock that direction across all 24 head/attire combinations without mirroring art. See [refinement notes](refinement-notes.md).
 
 Fresh local verification passed the Share interaction suite (including real Chromium native drag/drop and touch input, keyboard movement, cancellation, bounds, layering, removal, clear, history, state independence and byte-identical PNG output), 36 skin/category combinations, all prior 96 appearance and 48 page/layout cases, 12 scene/body/attire combinations and three scene downloads, 144 portrait/refinement combinations, 120 thumbnail changes, four portrait matches, 678,444 protected ear comparisons, sash containment and cutout edge checks. Desktop and 390/320px captures were inspected. Bundle/scoped TypeScript and whitespace passed. These are local Chromium/code/art checks, not Safari/Firefox, a physical-device gate, production eligibility enforcement or deployment.
+
+## Share visibility, public QR and consistent attire height
+
+Three independent switches show or hide the display name, Erudoza wordmark and landing-page QR. All three start enabled; turning all off leaves the card without text or a QR. The editable name is explicitly sample data, initially Alex Brooks, matching the preview's AB initials. Names are trimmed and fitted to the card width. These choices survive page and attire changes in memory; they do not alter the separate profile image or sash Honors.
+
+The bottom-right footer pairs the QR with the Erudoza wordmark when both are enabled. An opaque plate preserves contrast on all three backgrounds; movable patches stay outside the active footer, including their rotated bounds and shadow margin. The preview and downloaded PNG use the same painter. The QR encodes only [the public Erudoza landing page](https://erudoza.com/), confirmed against the repository's documented production origin and an HTTP 200 readback on September 13. It contains no account identifier or local preview address.
+
+`landing-qr.json` stores a version 2 QR with Q error correction and a four-module quiet zone. The checked-in matrix is rendered directly; no runtime QR dependency or network image service was added. Optional test-only dependencies can be installed outside the project:
+
+```sh
+python3 -m venv /tmp/erudoza-qr-tools
+/tmp/erudoza-qr-tools/bin/pip install qrcode==8.2
+/tmp/erudoza-qr-tools/bin/python docs/brand/2026-09-13-profile-characters/prepare-landing-qr.py
+npm install --prefix /tmp/erudoza-qr-tools-js --no-package-lock --ignore-scripts --no-audit --no-fund jsqr@1.4.0
+node docs/brand/2026-09-13-profile-characters/verify-share-labels.mjs
+```
+
+The verification script uses existing `sharp` plus the independent jsQR decoder; set `ERUDOZA_QR_DECODER` to its module path when installed elsewhere. It checks independent switches, live/blank/long names, retained options/decorations, keyboard operation at 1440/390/320, patch exclusion and identical preview/download bytes. Day and night cards decode to the public URL at both 1200px and 600px widths. This is software decoding, not a physical-camera or print test.
+
+Master Guide's inconsistent height came from different source neck-to-sole distances. The male version was 66–74px shorter and the female version 52–53px taller across hairstyles. `bodyFrame` now uniformly scales each garment, sash and all three Honors together to the corresponding Pathfinder neck/ground reference; the same head placement is used for either attire. A shared 32px top inset also prevents the tallest hairstyle from clipping. All twelve pairs now differ by at most one rendered pixel in height. Original art and transparent headshots remain unchanged. Inspect the [male attire pairs](refinement/male-attire-scale.png), [female attire pairs](refinement/female-attire-scale.png) and [24 collar joins](refinement/neckline-review.png).
 
 ## Approval and product boundary
 

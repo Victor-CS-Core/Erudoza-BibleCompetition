@@ -3,20 +3,20 @@ import {Button,Panel,Badge,Input} from '../../../apps/web/src/components/ui/inde
 import {PatchArtwork} from '../../../apps/web/src/components/ui/PatchArtwork';
 import {backgrounds,type Background} from './appearance';
 import {type Configuration,loadImage} from './composition';
-import {addPlacement,cardSize,constrainPlacement,paintShareCard,recordShare,redoShare,renderShareBase,undoShare,unlockedPatches,type Placement,type ShareHistory,type SharePatch} from './share';
+import {addPlacement,cardSize,constrainPlacement,paintShareCard,recordShare,redoShare,renderShareBase,undoShare,unlockedPatches,shareFooter,publicLandingURL,type Placement,type ShareHistory,type SharePatch,type ShareOptions} from './share';
 
 const patchTransfer='application/x-erudoza-patch';
-type Props={config:Configuration;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;onBackground:(background:Background)=>void;onEdit:()=>void;onError:(message:string)=>void};
+type Props={config:Configuration;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onBackground:(background:Background)=>void;onEdit:()=>void;onError:(message:string)=>void};
 type Drag={pointerId:number;key:string;startX:number;startY:number;original:Placement;before:Placement[];next:Placement[];handle:HTMLButtonElement};
 
-export function ShareEditor({config,collection,history,setHistory,onBackground,onEdit,onError}:Props){
+export function ShareEditor({config,collection,history,setHistory,options,setOptions,onBackground,onEdit,onError}:Props){
  const canvasRef=useRef<HTMLCanvasElement>(null),stageRef=useRef<HTMLDivElement>(null),drag=useRef<Drag|null>(null);
  const [selected,setSelected]=useState<string|null>(null),[draft,setDraft]=useState<Placement[]|null>(null);
  const [hovering,setHovering]=useState(false),[message,setMessage]=useState(''),[exporting,setExporting]=useState(false);
  const [resources,setResources]=useState<{key:string;base:HTMLCanvasElement;art:Map<string,HTMLImageElement>}|null>(null),[drawnKey,setDrawnKey]=useState('');
  const resourceKey=JSON.stringify([config,collection]),patches=draft??history.present;
- const available=unlockedPatches(collection),visible=patches.filter(p=>available.some(a=>a.key===p.key));
- const renderKey=JSON.stringify([resourceKey,visible]),ready=resources?.key===resourceKey&&drawnKey===renderKey;
+ const available=unlockedPatches(collection),footer=shareFooter(options),visible=patches.filter(p=>available.some(a=>a.key===p.key)).map(p=>constrainPlacement(p,footer));
+ const renderKey=JSON.stringify([resourceKey,visible,options]),ready=resources?.key===resourceKey&&drawnKey===renderKey;
  const selection=visible.find(p=>p.key===selected),selectedArt=available.find(p=>p.key===selected);
  const selectedIndex=visible.findIndex(p=>p.key===selected);
 
@@ -29,7 +29,7 @@ export function ShareEditor({config,collection,history,setHistory,onBackground,o
  },[resourceKey,onError]);
  useLayoutEffect(()=>{
   if(resources?.key!==resourceKey||!canvasRef.current)return;
-  paintShareCard(canvasRef.current,resources.base,visible,resources.art);setDrawnKey(renderKey);
+  paintShareCard(canvasRef.current,resources.base,visible,resources.art,config,options);setDrawnKey(renderKey);
  },[resources,resourceKey,renderKey]);
  useEffect(()=>{
   function escape(event:KeyboardEvent){if(event.key==='Escape'&&drag.current){event.preventDefault();cancelDrag();}}
@@ -42,9 +42,9 @@ export function ShareEditor({config,collection,history,setHistory,onBackground,o
  function focusPatch(key:string){requestAnimationFrame(()=>stageRef.current?.querySelector<HTMLButtonElement>(`[data-patch-key="${key}"]`)?.focus());}
  function add(key:string,point?:{x:number;y:number}){
   const next=addPlacement(history.present,collection,key,point);if(next===history.present)return;
-  commit(next);setSelected(key);setMessage(`${available.find(p=>p.key===key)!.title} added to your card.`);focusPatch(key);
+  commit(next.map(p=>constrainPlacement(p,footer)));setSelected(key);setMessage(`${available.find(p=>p.key===key)!.title} added to your card.`);focusPatch(key);
  }
- function change(changes:Partial<Placement>){if(!selection)return;commit(history.present.map(p=>p.key===selected?constrainPlacement({...p,...changes}):p));}
+ function change(changes:Partial<Placement>){if(!selection)return;commit(history.present.map(p=>p.key===selected?constrainPlacement({...selection,...changes},footer):p));}
  function remove(){if(!selection)return;commit(history.present.filter(p=>p.key!==selected));setSelected(null);setMessage('Patch removed. You can add it again from your collection.');requestAnimationFrame(()=>document.getElementById('share-patch-tray-title')?.focus());}
  function layer(direction:number){const next=[...history.present],index=next.findIndex(p=>p.key===selected),to=index+direction;if(index<0||to<0||to>=next.length)return;[next[index],next[to]]=[next[to],next[index]];commit(next);}
  function startDrag(event:ReactPointerEvent<HTMLButtonElement>,patch:Placement){
@@ -53,7 +53,7 @@ export function ShareEditor({config,collection,history,setHistory,onBackground,o
  }
  function moveDrag(event:ReactPointerEvent<HTMLButtonElement>){
   const active=drag.current,rect=stageRef.current?.getBoundingClientRect();if(!active||active.pointerId!==event.pointerId||!rect)return;
-  const moved=constrainPlacement({...active.original,x:active.original.x+(event.clientX-active.startX)/rect.width*cardSize.width,y:active.original.y+(event.clientY-active.startY)/rect.height*cardSize.height});
+  const moved=constrainPlacement({...active.original,x:active.original.x+(event.clientX-active.startX)/rect.width*cardSize.width,y:active.original.y+(event.clientY-active.startY)/rect.height*cardSize.height},footer);
   active.next=active.before.map(p=>p.key===active.key?moved:p);setDraft(active.next);
  }
  function endDrag(event:ReactPointerEvent<HTMLButtonElement>){const active=drag.current;if(!active||active.pointerId!==event.pointerId)return;drag.current=null;commit(active.next);setDraft(null);if(active.handle.hasPointerCapture(active.pointerId))active.handle.releasePointerCapture(active.pointerId);}
@@ -62,7 +62,7 @@ export function ShareEditor({config,collection,history,setHistory,onBackground,o
   if(!ready||!resources)return;setExporting(true);setMessage('');onError('');
   try{
    // Snapshot the same scene and placements currently shown; later edits cannot alter this download.
-   const canvas=document.createElement('canvas');paintShareCard(canvas,resources.base,visible,resources.art);
+   const canvas=document.createElement('canvas');paintShareCard(canvas,resources.base,visible,resources.art,config,options);
    const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Unable to create image.')),'image/png'));
    const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`erudoza-${config.style}-sash-review.png`;link.click();setTimeout(()=>URL.revokeObjectURL(url),60000);setMessage('Your card is downloaded and ready to share.');
   }catch(e){onError(e instanceof Error?e.message:'Unable to download image.');}finally{setExporting(false);}
@@ -94,7 +94,12 @@ export function ShareEditor({config,collection,history,setHistory,onBackground,o
    <p className="ds-caption share-card-caption">Portrait PNG · 1200 × 1600 · Ready to share</p>
   </Panel>
   <div className="editor-panels share-tools">
-   <Panel className="ds-inverse-surface share-intro"><div><span className="ds-eyebrow">Made for your journey</span><h2>Collect. Create. Share.</h2><p className="ds-caption">Give your Chibi a card of its own with the patches you’ve earned.</p></div>{available[0]&&<PatchArtwork src={available[0].src} size={76} loading="eager"/>}</Panel>
+   <Panel className="ds-inverse-surface share-intro"><div><span className="ds-eyebrow">Made for your journey</span><h2>Collect. Create. Share.</h2><p className="ds-caption">Give your Pathfinder a card of its own with the patches you’ve earned.</p></div>{available[0]&&<PatchArtwork src={available[0].src} size={76} loading="eager"/>}</Panel>
+   <Panel><h2>On your image</h2><p className="help">Choose what you share along with your Pathfinder.</p>
+    <div className="share-visibility-options">{([['showName','Your name'],['showBrand','Erudoza name'],['showQR','Landing-page QR code']] as const).map(([key,label])=><Button key={key} variant="ghost" className="share-visibility-toggle" role="switch" aria-checked={options[key]} onClick={()=>setOptions(current=>({...current,[key]:!current[key]}))}><span>{label}</span><span className="share-switch-track" aria-hidden="true"/></Button>)}</div>
+    <label className="share-name-field">Name on card<Input maxLength={40} value={options.displayName} onChange={e=>setOptions(current=>({...current,displayName:e.target.value}))} placeholder="Enter a name" autoComplete="off"/></label><p className="ds-caption">Example name for this preview. You can change it here.</p>
+    <p className="ds-caption">The QR opens <a href={publicLandingURL} target="_blank" rel="noreferrer">erudoza.com</a>. Patches stay clear of its space.</p>
+   </Panel>
    <Panel><div className="share-section-heading"><h2 id="share-patch-tray-title" tabIndex={-1}>Unlocked patches</h2><Badge tone="success">{available.length} unlocked</Badge></div><p className="help">Your collection, ready for a new adventure.</p>
     <div className="share-patch-tray">{available.map(patch=>{const placed=visible.some(p=>p.key===patch.key);return <Button key={patch.key} variant="secondary" disabled={placed} draggable={!placed} aria-label={`Add ${patch.title} patch`} onDragStart={e=>{e.dataTransfer.setData(patchTransfer,patch.key);e.dataTransfer.effectAllowed='copy';const image=e.currentTarget.querySelector('img');if(image)e.dataTransfer.setDragImage(image,image.clientWidth/2,image.clientHeight/2);}} onDragEnd={()=>setHovering(false)} onClick={()=>add(patch.key)}><PatchArtwork src={patch.src} size={88} loading="eager"/><span>{patch.title}</span><span className="ds-caption">{placed?'On your card':'+ Add to card'}</span></Button>;})}</div>
     {!available.length&&<p className="help">Your unlocked patches will appear here as you earn them.</p>}

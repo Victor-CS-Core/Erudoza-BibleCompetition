@@ -38,8 +38,9 @@ const result=await page.evaluate(async()=>{
    }
    const config={bodyType,style:style.key,hairColor:'brown',skin:'medium',eyes:'brown',background:'sunrise',slots:['solo:exact-recall',null,null]};
    for(const [attireIndex,attire] of ['student','coach'].entries()){
-    const body=art.bodySources[bodyType][attire],p=art.headPlacement(name,body),target=art.bodyHeadRegistration[body].neck,anchor=art.headAnchors[name].neck;
-    assert(Math.abs(p.x+anchor[0]*p.scale-target[0])<.001&&Math.abs(p.y+anchor[1]*p.scale-target[1])<.001,`${name} ${body} neck registration`);registrationChecks++;
+    const body=art.bodySources[bodyType][attire],frame=art.bodyFrame(body),p=art.headPlacement(name,frame.reference),source=art.bodyHeadRegistration[body].neck,anchor=art.headAnchors[name].neck;
+    const target=[source[0]*frame.scale+frame.x,source[1]*frame.scale+frame.y];
+    assert(Math.abs(p.x+anchor[0]*p.scale-target[0])<.001&&Math.abs(p.y+art.characterTopInset+anchor[1]*p.scale-target[1])<.001,`${name} ${body} normalized neck registration`);registrationChecks++;
     const c=document.createElement('canvas');await art.renderCharacter(c,{...config,attire},null,'export');
     // Crop precisely around the neckline and face; use ivory behind true alpha.
     const row=bodyIndex*2+attireIndex;jc.drawImage(c,530,210,480,500,styleIndex*300,row*320,290,290);jc.fillStyle='#102e47';jc.font='15px system-ui';jc.fillText(`${bodyType} ${style.name} · ${attire}`,styleIndex*300+3,row*320+309);

@@ -55,3 +55,13 @@ The renderer now samples the median of a broad skin-masked forehead region, avoi
 `verify-skin-sash.mjs` first reproduced washed-out pixels/category drift, then passed 36 head/skin combinations with no sampled forehead pixels above R245/G230/B200 simultaneously, and median forehead luminance within 28 of its category. The test covers this measured region, not every skin pixel or universal color accuracy. Enlarged 36-portrait sheets were visually inspected. Existing ear, alpha, hairstyle-selector, neck-registration and UI regression checks were rerun successfully.
 
 The sash is defined in screen coordinates: upper left to lower right. All 24 hairstyle/attire attachment checks retain that direction; the existing correct sash geometry and patch artwork were not mirrored. This orientation description is explicit because anatomical left/right reverses when facing the character.
+
+## Follow-up: attire height and framing
+
+The source bodies used different proportions: male Pathfinder neck-to-sole distance was 872px versus 813px for Master Guide; female Pathfinder was 761px versus 821px for Master Guide. Attire-specific iris distances also slightly changed head scale. The actual rendered male Master Guide was 66–74px shorter and female Master Guide 52–53px taller, depending on hairstyle.
+
+`bodyFrame` in `hair.ts` uses each body's Pathfinder neck and sole as shared references. It uniformly scales and translates the garment, sash and Honors as a group, while the head uses the same reference placement for either attire. Neither the source art nor its aspect ratio is modified. A 32px common top inset keeps the previously clipped quiff inside the square stage; ground shadows follow the normalized boot position.
+
+`verify-attire-scale.mjs` reproduced all twelve mismatches before the correction. The corrected opaque silhouette heights differ by at most one pixel; head tops and boot bottoms remain within two pixels between attires, with at least 16px of headroom. Fresh checks also passed all 24 normalized neck registrations. These bounds exclude the soft ground shadow. All twelve paired silhouettes and 24 enlarged collar joins were inspected; this preserves the approved source uniform differences and does not claim new final artwork approval.
+
+[Male attire comparison](refinement/male-attire-scale.png) · [Female attire comparison](refinement/female-attire-scale.png). QR and text visibility details are documented in [README.md](README.md).
