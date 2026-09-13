@@ -70,7 +70,7 @@ Bookmark: source/offsets/color/note null, valid chapter; one bookmark per book/c
 
 ### Task 4: Authorized integration and production
 
-- [ ] Fetch/reconcile latest main, preserve concurrent changes, verify combined tree and normally fast-forward/push main (no force push).
-- [ ] Inspect production bindings and existing release commands; record previous Worker, migration status, private D1 export and restore integrity check. Native storage uses existing Records so no schema migration is planned.
-- [ ] Build/dry-run the exact integrated source, deploy with existing wrangler.production.jsonc, verify active version, public health/auth behavior and served artifact hashes. Log authenticated-production acceptance limits honestly; never use real user notebooks for smoke tests.
-- [ ] Commit/push final release record and report deployed result with local test evidence.
+- [x] Fetch/reconcile latest main, preserve concurrent changes, verify combined tree and normally fast-forward/push main (no force push).
+- [x] Inspect production bindings and existing release commands; record previous Worker, migration status, private D1 export and restore integrity check. Native storage uses existing Records so no schema migration is planned.
+- [x] Build/dry-run the exact integrated source, deploy with existing wrangler.production.jsonc, verify active version, public health/auth behavior and served artifact hashes. Log authenticated-production acceptance limits honestly; never use real user notebooks for smoke tests.
+- [x] Commit/push final release record and report deployed result with local test evidence.

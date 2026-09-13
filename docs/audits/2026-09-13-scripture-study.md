@@ -28,3 +28,11 @@ Local browser coverage is Chromium, including synthetic touch; it does not estab
 Authorized target is the existing `erudoza-native` Worker at https://erudoza.com. Configuration, bindings, secrets and Durable Object migrations are unchanged. Previous Worker version: `15c73340-74a2-4934-bfea-5c53de319a06`. No D1 migrations pending; Wrangler dry run passed. A restricted, ignored 24,843,185-byte D1 export restored in memory with integrity_check=ok and 13 tables (SHA256 `fe4707418bf562b7bc189426c44ab349cc11cdd686df9b56404e873581018bee`). This backup covers D1, not Durable Object authority; this release changes neither schema nor that authority. The prior Worker remains compatible with new notebook rows.
 
 Implementation checkpoint `d6ff5b0` was normally pushed to `origin/codex/scripture-study`. Main `0248157` adds character-review artifacts only; integration preserves both progress-log additions. Live deployment remains pending.
+
+## Live release
+
+Integrated commit `8c66eb0aba7565c7cc2a8a397304f04292469813` was normally pushed to main and the task branch, with both remote SHAs verified. The integrated native build and Wrangler dry run passed. Deployment used unchanged production configuration and the message identifying that commit.
+
+Cloudflare confirms Worker `be956cce-2486-4ca9-b670-1db63d80a534` serving 100% from `2026-09-13T06:51:22.888Z`. All 16 binding metadata entries equal the prior version. Public /, /login and /student/practice returned 200; health reported database=true; anonymous identity and notebook requests returned 401. Seven served HTML/top-level JavaScript/CSS files matched local SHA256. Public landing/sign-in browser checks at 1440/390px passed without page errors, overflow or broken images; phone sign-in visually inspected. No authenticated production records were written.
+
+Hosted CI run https://github.com/Victor-CS-Core/Erudoza-BibleCompetition/actions/runs/34743768141 was in progress during live verification (infra passed). This record claims the completed local and production smoke gates, not a completed hosted CI run. Subsequent documentation-only commits do not change the deployed application tree.
