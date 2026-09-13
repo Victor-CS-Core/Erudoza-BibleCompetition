@@ -37,10 +37,10 @@ it("offers eligible footer support and restores the floating controls with focus
   view.rerender(<MemoryRouter><CoffeeWidget enabled={false} /><CoffeeFooter enabled={false} /></MemoryRouter>);
   expect(screen.queryByRole("link")).toBeNull();
   view.rerender(<MemoryRouter><CoffeeWidget /><CoffeeFooter /></MemoryRouter>);
-  fireEvent.click(screen.getByRole("button", { name: "Show floating support button" }));
+  fireEvent.click(screen.getByRole("button", { name: "Show support button" }));
   expect(screen.getByRole("button", { name: "Minimize support widget" })).toHaveFocus();
   expect(localStorage.getItem("erudoza:coffee-minimized:v1")).toBe("0");
-  expect(screen.queryByRole("button", { name: "Show floating support button" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Show support button" })).toBeNull();
 });
 
 it("updates from another tab and clearing storage, but ignores unrelated preferences", () => {
@@ -52,7 +52,7 @@ it("updates from another tab and clearing storage, but ignores unrelated prefere
   });
   expect(screen.getByRole("button", { name: "Minimize support widget" })).toBeVisible();
   act(() => window.dispatchEvent(new StorageEvent("storage", { key: "erudoza:coffee-minimized:v1", storageArea: localStorage })));
-  expect(screen.getByRole("button", { name: "Show floating support button" })).toBeVisible();
+  expect(screen.getByRole("button", { name: "Show support button" })).toBeVisible();
   act(() => { localStorage.clear(); window.dispatchEvent(new StorageEvent("storage", { key: null, storageArea: localStorage })); });
   expect(screen.getByRole("button", { name: "Minimize support widget" })).toBeVisible();
 });
@@ -64,7 +64,7 @@ it("keeps an in-memory choice through remounts when storage writes fail", () => 
   fireEvent.click(screen.getByRole("button", { name: "Minimize support widget" }));
   view.unmount();
   render(<MemoryRouter><CoffeeWidget /><CoffeeFooter /></MemoryRouter>);
-  expect(screen.getByRole("button", { name: "Show floating support button" })).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Show floating support button" }));
+  expect(screen.getByRole("button", { name: "Show support button" })).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Show support button" }));
   expect(screen.getByRole("button", { name: "Minimize support widget" })).toBeVisible();
 });

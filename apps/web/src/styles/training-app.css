@@ -26,7 +26,6 @@
 .training-org { margin-left:auto;color:var(--er-muted-ink);font-size:var(--er-text-xs); }
 .training-menu { display:none; }.training-back { display:inline-flex;align-items:center;color:var(--er-action-blue);font-size:var(--er-text-sm); }
 .training-main { flex:1;width:100%;max-width:1280px;margin:0 auto;padding:40px 32px;min-width:0; }
-.training-footer { color:var(--er-muted-ink);font-size:var(--er-text-xs);text-align:center;padding:24px 16px; }.training-footer span { margin:0 8px; }
 .training-page { display:grid;gap:24px; }.training-page>.ds-page-header { margin-bottom:0; }
 .training-season { text-align:right;min-width:140px; }.training-season small { display:block;color:var(--er-muted-ink); }.training-season strong { display:block;margin:4px 0 8px; }
 .training-banner { min-height:208px;display:grid;place-items:center;background:var(--er-parchment) url('/brand/training-landscape.webp') center 60%/cover;border-radius:var(--er-radius-card);overflow:hidden;text-align:center;margin-bottom:24px; }
@@ -92,7 +91,6 @@
   .coach-navigation>div { padding:0 20px;gap:24px; }.coach-navigation a { min-height:52px; }.coach-navigation svg { display:none; }
   .student-progress-metrics { grid-template-columns:repeat(2,minmax(0,1fr));gap:24px; }.student-progress-records>li { gap:12px;flex-wrap:wrap; }
   .student-challenge [data-testid=challenge-prompt] { font-size:1.375rem; }
-  .training-footer { font-size:.6875rem;padding:24px 12px; }
 }
 @media(max-width:600px) {
   .training-progress-table,.training-progress-table tbody { display:block; }.training-progress-table thead { position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%); }
