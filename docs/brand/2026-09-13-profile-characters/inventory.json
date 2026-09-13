@@ -1,0 +1,69 @@
+{
+  "sources": [
+    {
+      "path": "sources/coach-bob.png",
+      "sha256": "412f3d90d6c997783f12f642931a12b44aef31bc952e973dc28c83c6c8ec606d",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "path": "sources/coach-curls.png",
+      "sha256": "fefbd705f0e3ec7d5db1d1c910bf23c210234114231c7211bbfc6fd832686fb5",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "path": "sources/coach-sweep.png",
+      "sha256": "512a37a70b898d6c760767a3bc2933f1d44548a1cf8ea256aa1350feffde7dbc",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "path": "sources/sash.png",
+      "sha256": "e438ad70cdcbdea7394e06ed69a027271d378b1a40fa6bd5c00a55cda36537a0",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "path": "sources/satchel.png",
+      "sha256": "bde0534316972de0621de0c7885e2022f70e1b1c2b1efa5975a6fa11d16f46ed",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "path": "sources/student-bob.png",
+      "sha256": "2b324d6fbed776ee875847977dc8537f8c0f78a32aa0f80c81a4f5374db9e3f4",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "path": "sources/student-curls.png",
+      "sha256": "bb305524b06ffe4a403d030e94e33d025bcf7a8ea7b6efb51fc0dc8e74086bb6",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    {
+      "path": "sources/student-sweep.png",
+      "sha256": "9c92c0d4afebdeac008e5f9b68c68455d067e45838af17647f7335d2f1c51220",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "has_alpha": false
+    }
+  ],
+  "validation": "Source integrity verified; transparency FAILED for every source. Assembly not attempted."
+}
