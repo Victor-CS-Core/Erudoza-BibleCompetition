@@ -1,0 +1,117 @@
+{
+  "method": "neutral-checkerboard-connected-background-v1",
+  "assets": [
+    {
+      "name": "coach-bob",
+      "sourceSha256": "412f3d90d6c997783f12f642931a12b44aef31bc952e973dc28c83c6c8ec606d",
+      "alphaBounds": [
+        202,
+        61,
+        803,
+        1440
+      ],
+      "transparentFraction": 0.6565,
+      "width": 1024,
+      "height": 1536,
+      "pngSha256": "649516d6f6466f903535d0d44f2a2d45073c17d48376e6829875b50911276955"
+    },
+    {
+      "name": "coach-curls",
+      "sourceSha256": "fefbd705f0e3ec7d5db1d1c910bf23c210234114231c7211bbfc6fd832686fb5",
+      "alphaBounds": [
+        193,
+        80,
+        826,
+        1464
+      ],
+      "transparentFraction": 0.6654,
+      "width": 1024,
+      "height": 1536,
+      "pngSha256": "0618e4898780d425d2e577a86ef792a61c3bc80283013f290a9586db640d7b83"
+    },
+    {
+      "name": "coach-sweep",
+      "sourceSha256": "512a37a70b898d6c760767a3bc2933f1d44548a1cf8ea256aa1350feffde7dbc",
+      "alphaBounds": [
+        209,
+        62,
+        806,
+        1421
+      ],
+      "transparentFraction": 0.6985,
+      "width": 1024,
+      "height": 1536,
+      "pngSha256": "004f4a459f2a9fe9024e1b36add13eec4d0d26aa2febb6f8ab85cc7a21b2d5f7"
+    },
+    {
+      "name": "sash",
+      "sourceSha256": "e438ad70cdcbdea7394e06ed69a027271d378b1a40fa6bd5c00a55cda36537a0",
+      "alphaBounds": [
+        39,
+        161,
+        1001,
+        1333
+      ],
+      "transparentFraction": 0.7161,
+      "width": 1024,
+      "height": 1536,
+      "pngSha256": "99334b4db9abb80bc954e77fa068c35ae9d483f8a09e7e7153580df318636ce5"
+    },
+    {
+      "name": "satchel",
+      "sourceSha256": "bde0534316972de0621de0c7885e2022f70e1b1c2b1efa5975a6fa11d16f46ed",
+      "alphaBounds": [
+        75,
+        61,
+        906,
+        1379
+      ],
+      "transparentFraction": 0.722,
+      "width": 1024,
+      "height": 1536,
+      "pngSha256": "44f1132c6a49999a4591637fc19dd0af40bd54b83cdbbc0a860592e2da0c06c2"
+    },
+    {
+      "name": "student-bob",
+      "sourceSha256": "2b324d6fbed776ee875847977dc8537f8c0f78a32aa0f80c81a4f5374db9e3f4",
+      "alphaBounds": [
+        190,
+        91,
+        814,
+        1384
+      ],
+      "transparentFraction": 0.6852,
+      "width": 1024,
+      "height": 1536,
+      "pngSha256": "bdd23902d4aec5eaf8daf7fc157d9502312e37ef28be5de4738b0739083981e0"
+    },
+    {
+      "name": "student-curls",
+      "sourceSha256": "bb305524b06ffe4a403d030e94e33d025bcf7a8ea7b6efb51fc0dc8e74086bb6",
+      "alphaBounds": [
+        210,
+        22,
+        803,
+        1468
+      ],
+      "transparentFraction": 0.6623,
+      "width": 1024,
+      "height": 1536,
+      "pngSha256": "e37012c6aee727c2b038b5f019063047408db0f4fe6f6bd7ea9e797ca3ec3d67"
+    },
+    {
+      "name": "student-sweep",
+      "sourceSha256": "9c92c0d4afebdeac008e5f9b68c68455d067e45838af17647f7335d2f1c51220",
+      "alphaBounds": [
+        228,
+        66,
+        786,
+        1386
+      ],
+      "transparentFraction": 0.7059,
+      "width": 1024,
+      "height": 1536,
+      "pngSha256": "578ea95f69525ae0c5197de383d3d9dd4f369b72bcf2c19219d19340cd47d2e4"
+    }
+  ]
+}
