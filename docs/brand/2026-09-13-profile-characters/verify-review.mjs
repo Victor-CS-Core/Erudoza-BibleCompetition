@@ -49,9 +49,9 @@ for(const group of ['Skin tone','Eye color']){
 await chooseIn('Hair color','Brown');
 assert.equal(await page.locator('.avatar img').getAttribute('src'),originalAvatar);
 await choose('Pathfinder');await choose('Short curls');await choose('Medium');await chooseIn('Eye color','Brown');
-const bg=[];for(const name of ['Warm studio','Soft sage','Morning sky']){await choose(name);bg.push(await snapshot());}
+const bg=[];for(const name of ['Mountain Sunrise','Woodland Basecamp','Starlight Camp']){await choose(name);bg.push(await snapshot());}
 assert.equal(new Set(bg).size,3);
-await choose('Warm studio');await page.screenshot({path:`${output}/character-v2.png`,fullPage:true});
+await choose('Mountain Sunrise');await page.screenshot({path:`${output}/character-v2.png`,fullPage:true});
 await nav('Honors');assert.equal(await slot(1).inputValue(),'solo:chapter-strong');assert.equal(await slot(2).inputValue(),'solo:exact-recall');assert.equal(await slot(3).inputValue(),'');
 await nav('Profile');await page.locator('.avatar-options').getByRole('button',{name:'Character',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.avatar img')?.src.startsWith('data:'));const portrait=await page.locator('.avatar img').getAttribute('src');
 await nav('Character');await choose('Blue');await nav('Profile');await page.waitForFunction(old=>document.querySelector('.avatar img')?.src!==old,portrait);

@@ -8,6 +8,8 @@ Pages: [Profile](profile-review.png) · [Character](character-review.png) · [Ho
 
 [Live selector color example](selector-colors-review.png): blond hair, deep skin and blue eyes appear in every hairstyle preview and the selected character.
 
+[Backgrounds with both body types and attires](backgrounds/scene-lineup.png) · [Dark-edge inspection](backgrounds/dark-edge-review.png) · [Background artwork and preparation notes](backgrounds/README.md).
+
 ## Current direction
 
 The user approved the dimensional anime chibi direction as a starting point. Rendering stays 2D. The latest request supersedes the initial three-option ceiling for hairstyles and hair color:
@@ -15,11 +17,11 @@ The user approved the dimensional anime chibi direction as a starting point. Ren
 - Male and Female body types, each mapped to its own body artwork for Pathfinder and Master Guide attire.
 - Six hairstyles per body type. Male: short curls, side part, textured quiff, buzz cut, swept waves, short locs. Female: curly bob, straight bob, high ponytail, two braids, natural curls, low bun.
 - Four hair colors: red, black, brown, blond.
-- Three skin tones, three eye colors, three soft gradient backgrounds.
+- Three skin tones, three eye colors, and three illustrated backgrounds: Mountain Sunrise, Woodland Basecamp and Starlight Camp.
 - Body changes update the hairstyle grid and remember the last hairstyle for each body type. Attire changes retain body type, hairstyle, hair color, skin, eyes, background and Honors.
 - All six hairstyle thumbnails use the selected hair color, skin tone and eye color through the same transparent portrait renderer as the Profile head-shot. Outdated thumbnails are hidden while the latest appearance renders.
 - A fixed sash with three ordered Honor positions. Null positions remain dotted; duplicate Honors are unavailable.
-- Independent Honor, character portrait or initials profile image. Character portraits use the current head appearance with true transparency and no stage background, clothing or shadow. The downloaded full-character PNG retains the chosen studio background.
+- Independent Honor, character portrait or initials profile image. Character portraits use the current head appearance with true transparency and no stage background, clothing or shadow. The downloaded full-character PNG retains the chosen illustrated background.
 
 There is no satchel in the active renderer. Its source files remain only as design history. The review uses sample choices from the actual existing Honor artwork; it does not award Honors or claim official Pathfinder certification.
 
@@ -31,7 +33,9 @@ The twelve new hairstyles are independent **head-and-hair** layers over four fix
 
 `prepare-heads.py` splits the six-cell sheets, removes the deliberately cyan background, recovers fringe RGB from nearby opaque pixels and writes twelve PNG/WebP pairs under `heads/`, with source/output hashes. `prepare-head-masks.py` combines connected skin-color regions, filled interior holes and reviewed ear-protection regions to create the twelve skin/hair masks. This corrects the previous hair tint leaking into ear shadows. These scripts are specific to these reviewed source sheets, not general segmentation tools.
 
-`head-landmarks.json` records each head's measured neck attachment and protected ear regions. `hair.ts` scales by iris distance, aligns the neck attachment to its body anchor, and maps source luminance through four-stop hair palettes for controlled shadows and highlights. `prepare-body-layers.py` traces each garment collar instead of retaining the old horizontal body cut; `body-layers/` contains four front garment PNG/WebP pairs and their neckline coordinates. `appearance.ts` handles body skin tones and studio gradients.
+`head-landmarks.json` records each head's measured neck attachment and protected ear regions. `hair.ts` scales by iris distance, aligns the neck attachment to its body anchor, and maps source luminance through four-stop hair palettes for controlled shadows and highlights. `prepare-body-layers.py` traces each garment collar instead of retaining the old horizontal body cut; `body-layers/` contains four front garment PNG/WebP pairs and their neckline coordinates. `appearance.ts` handles body skin tones, background image fitting and ground contact shadows.
+
+The three new full-bleed scene sources and prompts are preserved under `backgrounds/`. `prepare-backgrounds.py` creates 1024px preview WebPs and 320px selector thumbnails. Export loads the original image; square preview and portrait export use centered cover fitting. `cutout_edges.py` decontaminates active sprite edges using interior colors and a fractional inset. Hair membership is independent of sprite opacity, so the renderer applies alpha once. No character stroke, glow or silhouette shadow is added. Ground shadows follow each body's measured boot position and are carried into export.
 
 `composition.ts` draws the head behind the front garment, then the sash and existing Honor images, using an offscreen buffer; the UI commits only its latest render. Full-resolution body/head PNG layers are used for export. Its separate `renderPortrait` draws a centered, padded 320×320 transparent head-shot directly from the colored head layer. Attire, background and Honors cannot enter that portrait path.
 
@@ -46,6 +50,7 @@ python docs/brand/2026-09-13-profile-characters/prepare.py
 python docs/brand/2026-09-13-profile-characters/prepare-heads.py
 python docs/brand/2026-09-13-profile-characters/prepare-head-masks.py
 python docs/brand/2026-09-13-profile-characters/prepare-body-layers.py
+python docs/brand/2026-09-13-profile-characters/prepare-backgrounds.py
 node docs/brand/2026-09-13-profile-characters/build-review.mjs
 python -m http.server 5187 --bind 127.0.0.1
 ```
@@ -56,6 +61,8 @@ With the server running:
 node docs/brand/2026-09-13-profile-characters/verify-review.mjs
 node docs/brand/2026-09-13-profile-characters/verify-refinement.mjs
 node docs/brand/2026-09-13-profile-characters/verify-selector-previews.mjs
+node docs/brand/2026-09-13-profile-characters/verify-backgrounds.mjs
+python docs/brand/2026-09-13-profile-characters/verify-cutout-edges.py
 python docs/brand/2026-09-13-profile-characters/verify-placement.py
 node docs/brand/2026-09-13-profile-characters/capture-review.mjs
 ./node_modules/.bin/tsc --noEmit --jsx react-jsx --target es2022 --module esnext --moduleResolution bundler --lib ES2022,DOM --allowSyntheticDefaultImports --skipLibCheck --types vite/client --resolveJsonModule docs/brand/2026-09-13-profile-characters/review.tsx

@@ -9,6 +9,7 @@ import json
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
+from cutout_edges import clean_edges
 
 ROOT = Path(__file__).resolve().parent
 # Interior background openings that are enclosed by a hand or shoulder strap.
@@ -47,6 +48,9 @@ def prepare():
         alpha = alpha.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.GaussianBlur(.35))
         output = rgb.convert("RGBA")
         output.putalpha(alpha)
+        if path.stem in {'student-curls', 'student-bob', 'coach-curls', 'coach-bob', 'sash'}:
+            output = clean_edges(output, inset=.35)
+            alpha = output.getchannel('A')
         # Transparent pixels must carry no background RGB into derivatives.
         rgba = np.array(output)
         fraction = float((rgba[:, :, 3] == 0).mean())
@@ -60,7 +64,7 @@ def prepare():
                         "transparentFraction": round(fraction, 4),
                         "width": output.width, "height": output.height,
                         "pngSha256": hashlib.sha256((target / f"{path.stem}.png").read_bytes()).hexdigest()})
-    (ROOT / "preparation.json").write_text(json.dumps({"method": "neutral-checkerboard-connected-background-v1", "assets": records}, indent=2) + "\n")
+    (ROOT / "preparation.json").write_text(json.dumps({"method": "neutral-checkerboard-connected-background-v2-active-edge-decontamination", "assets": records}, indent=2) + "\n")
     print(json.dumps(records, indent=2))
 
 

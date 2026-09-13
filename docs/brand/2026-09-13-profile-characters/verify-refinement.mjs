@@ -17,7 +17,7 @@ const result=await page.evaluate(async()=>{
    for(const skin of ['light','medium','deep']){
     let base=null;
     for(const [colorIndex,hairColor] of ['red','black','brown','blond'].entries()){
-     const config={bodyType,style:style.key,hairColor,skin,eyes:'brown',attire:'student',background:'studio',slots:['solo:exact-recall',null,null]};
+     const config={bodyType,style:style.key,hairColor,skin,eyes:'brown',attire:'student',background:'sunrise',slots:['solo:exact-recall',null,null]};
      const headCanvas=art.appearanceHead(head,mask,name,skin,'brown',hairColor),pixels=headCanvas.getContext('2d').getImageData(0,0,512,512).data;
      if(!base)base=pixels;
      for(const [cx,cy,rx,ry] of art.headAnchors[name].ears){
@@ -36,7 +36,7 @@ const result=await page.evaluate(async()=>{
      }
     }
    }
-   const config={bodyType,style:style.key,hairColor:'brown',skin:'medium',eyes:'brown',background:'studio',slots:['solo:exact-recall',null,null]};
+   const config={bodyType,style:style.key,hairColor:'brown',skin:'medium',eyes:'brown',background:'sunrise',slots:['solo:exact-recall',null,null]};
    for(const [attireIndex,attire] of ['student','coach'].entries()){
     const body=art.bodySources[bodyType][attire],p=art.headPlacement(name,body),target=art.bodyHeadRegistration[body].neck,anchor=art.headAnchors[name].neck;
     assert(Math.abs(p.x+anchor[0]*p.scale-target[0])<.001&&Math.abs(p.y+anchor[1]*p.scale-target[1])<.001,`${name} ${body} neck registration`);registrationChecks++;
@@ -48,8 +48,8 @@ const result=await page.evaluate(async()=>{
   sheets[bodyType]=sheet.toDataURL().split(',')[1];
  }
  // Portrait output must be independent of attire/background/Honor selections.
- const config={bodyType:'female',style:'ponytail',hairColor:'red',skin:'medium',eyes:'blue',background:'studio',attire:'student',slots:[null,null,null]};
- const a=document.createElement('canvas'),b=document.createElement('canvas');await art.renderPortrait(a,config);await art.renderPortrait(b,{...config,attire:'coach',background:'sky',slots:['solo:exact-recall',null,null]});assert(a.toDataURL()===b.toDataURL(),'Portrait inherited body/background/Honors');
+ const config={bodyType:'female',style:'ponytail',hairColor:'red',skin:'medium',eyes:'blue',background:'sunrise',attire:'student',slots:[null,null,null]};
+ const a=document.createElement('canvas'),b=document.createElement('canvas');await art.renderPortrait(a,config);await art.renderPortrait(b,{...config,attire:'coach',background:'starlight',slots:['solo:exact-recall',null,null]});assert(a.toDataURL()===b.toDataURL(),'Portrait inherited body/background/Honors');
  return {comparisons,portraits,registrationChecks,earSamples,sheets,joins:joins.toDataURL().split(',')[1]};
 });
 for(const [name,data] of Object.entries(result.sheets))await writeFile(`${output}/${name}-palette.png`,Buffer.from(data,'base64'));

@@ -28,6 +28,8 @@ for name,x1,y1,x2,y2 in items:
  filled=filled.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(.65))
  # Channels encode skin membership and hair membership, no source recoloring.
  sk=np.array(filled).astype(float)/255;alpha=rgb[:,:,3]/255
- result=np.zeros((512,512,3),dtype='uint8');result[:,:,0]=(sk*255).astype('uint8');result[:,:,1]=((1-sk)*alpha*255).astype('uint8')
+ # Membership is independent of opacity: Canvas applies the sprite alpha once.
+ # Multiplying it here as well left uncolored cyan in translucent hair strands.
+ result=np.zeros((512,512,3),dtype='uint8');result[:,:,0]=(sk*255).astype('uint8');result[:,:,1]=((1-sk)*255).astype('uint8')
  Image.fromarray(result).save(root/'heads'/f'{name}-mask.png')
 print('Prepared 12 skin/hair region masks.')

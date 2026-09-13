@@ -3,6 +3,7 @@ from pathlib import Path
 import hashlib,json
 import numpy as np
 from PIL import Image,ImageFilter
+from cutout_edges import clean_edges
 root=Path(__file__).resolve().parent
 names={'male':['curls','side-part','quiff','buzz','waves','locs'],'female':['curly-bob','straight-bob','ponytail','braids','natural-curls','low-bun']}
 manifest=[]
@@ -24,9 +25,14 @@ for body,styles in names.items():
    recovered=summed/np.maximum(weight,.001)
    rgb[:,:,ch][edge]=recovered[edge]
   rgba=np.dstack((rgb,alpha*255)).astype('uint8');rgba[rgba[:,:,3]==0,:3]=0
-  out=Image.fromarray(rgba);out.save(root/'heads'/f'{body}-{name}.png')
+  out=clean_edges(Image.fromarray(rgba),inset=.65)
+  # Isolated wisps can have no opaque neighbor. Remove residual cyan there;
+  # this brown-hair source set contains no cyan foreground material.
+  clean=np.array(out);spill=(np.minimum(clean[:,:,1].astype(float),clean[:,:,2])-clean[:,:,0]>8)&(clean[:,:,3]>0)
+  for channel in (1,2):clean[:,:,channel][spill]=np.minimum(clean[:,:,channel][spill],clean[:,:,0][spill])
+  out=Image.fromarray(clean);out.save(root/'heads'/f'{body}-{name}.png')
   out.save(root/'heads'/f'{body}-{name}.webp',quality=94,method=6)
   assert out.getchannel('A').getextrema()==(0,255)
-  manifest.append({'body':body,'style':name,'source_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'png_sha256':hashlib.sha256((root/'heads'/f'{body}-{name}.png').read_bytes()).hexdigest(),'transparent_fraction':float((alpha==0).mean())})
+  manifest.append({'body':body,'style':name,'source_sha256':hashlib.sha256(path.read_bytes()).hexdigest(),'png_sha256':hashlib.sha256((root/'heads'/f'{body}-{name}.png').read_bytes()).hexdigest(),'transparent_fraction':float((np.array(out.getchannel('A'))==0).mean())})
 (root/'heads/manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 print('Prepared 12 full-color head layers with real alpha and WebP derivatives.')

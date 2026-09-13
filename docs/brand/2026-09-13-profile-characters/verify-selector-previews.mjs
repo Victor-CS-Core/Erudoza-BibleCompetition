@@ -27,7 +27,7 @@ try{
    }
   }
   const appearance=await pixels();
-  for(const name of ['Master Guide · coach','Morning sky','Pathfinder','Warm studio']){await choose(name);assert.deepEqual(await pixels(),appearance,`${name} changed head-only thumbnails`);}
+  for(const name of ['Master Guide · coach','Starlight Camp','Pathfinder','Mountain Sunrise']){await choose(name);assert.deepEqual(await pixels(),appearance,`${name} changed head-only thumbnails`);}
   for(const name of body==='Male'?['Short curls','Short locs']:['Curly bob','Low bun']){
    await choose(name);assert.deepEqual(await pixels(),appearance,'Selecting a hairstyle changed other hairstyle previews');
    const expected=await page.getByRole('button',{name,exact:true}).locator('img').getAttribute('src');

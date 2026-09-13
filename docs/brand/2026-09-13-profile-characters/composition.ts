@@ -1,5 +1,5 @@
 import {BodyType,HairColor,appearanceHead,headPlacement,bodySources} from './hair';
-import {applyAppearance,paintBackground, Skin, Eyes, Background} from './appearance';
+import {applyAppearance,paintBackground,paintGroundShadow,backgrounds, Skin, Eyes, Background} from './appearance';
 export type Attire = 'student' | 'coach';
 export const honors = [
   {key: 'solo:exact-recall', title: 'Exact recall', src: '../../../apps/web/public/assets/training/exact-recall-320.webp'},
@@ -51,8 +51,10 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
   const name = bodySources[config.bodyType][config.attire];
   const headName=`${config.bodyType}-${config.style}`;
   const extension = quality==='export' ? '.png' : '-512.webp';
-  const [body, garment, accessory, head, mask, ...patches] = await Promise.all([
+  const backdrop=backgrounds.find(b=>b.key===config.background)!;
+  const [body, garment, accessory, head, mask, scene, ...patches] = await Promise.all([
     loadImage(`prepared/${name}${extension}`), loadImage(`body-layers/${name}${quality==='export'?'.png':'.webp'}`), loadImage(`prepared/sash${extension}`), loadImage(`heads/${headName}${quality==='export'?'.png':'.webp'}`), loadImage(`heads/${headName}-mask.png`),
+    background?loadImage(quality==='export'?backdrop.fullSrc:backdrop.src):Promise.resolve(null),
     ...config.slots.map(key => {const h=honors.find(h=>h.key===key); return h ? loadImage(h.src) : Promise.resolve(null);}),
   ]);
   // Render to an offscreen buffer so asynchronous selection changes never
@@ -79,7 +81,10 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
     } else dotted(ctx,x,y,radius*.9);
   });
   canvas.width=1536;canvas.height=1536;const output=canvas.getContext('2d')!;
-  if(background)paintBackground(output,config.background,1536,1536);
+  if(scene)paintBackground(output,scene,1536,1536);
+  // Ground contact follows the measured boot bottoms in each body source.
+  const groundY:Record<string,number>={'student-curls':1467,'student-bob':1383,'coach-curls':1463,'coach-bob':1439};
+  paintGroundShadow(output,768,groundY[name]-2,225);
   output.drawImage(buffer,256,0);
   return canvas;
 }
