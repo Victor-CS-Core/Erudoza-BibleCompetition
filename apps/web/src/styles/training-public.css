@@ -92,3 +92,24 @@
   .public-hero-inner { min-height:0; padding:24px; }
   .public-hero-art,.public-coach-art { display:none; }
 }
+
+/* Legal pages (/privacy, /terms). Layout only; type, surfaces and controls use the design system. */
+.public-legal { display:flex; flex-direction:column; }
+.public-legal .public-header { position:static; background:var(--er-ink-navy); }
+.public-legal-body { width:min(100%,1200px); margin:0 auto; padding:56px 48px 64px; }
+.public-legal-disclaimer { margin:24px 0; }
+.public-legal-meta { margin:0 0 8px; }
+.public-legal-meta dl { display:grid; grid-template-columns:160px 1fr; gap:10px 20px; margin:0; }
+.public-legal-meta dt { font-weight:600; }
+.public-legal-meta dd { margin:0; }
+.public-legal-intro { max-width:76ch; }
+.public-legal-article { max-width:76ch; }
+.public-legal-article h2.ds-section-title { margin:44px 0 12px; }
+.public-legal-article h3 { margin:28px 0 8px; font-size:1.06rem; line-height:1.4; }
+.public-legal-article p { margin:0 0 14px; line-height:1.65; }
+.public-legal-article a { color:inherit; }
+@media(max-width:760px) {
+  .public-legal-body { padding:32px 20px 48px; }
+  .public-legal-meta dl { grid-template-columns:1fr; gap:2px 0; }
+  .public-legal-meta dd { margin-bottom:10px; }
+}

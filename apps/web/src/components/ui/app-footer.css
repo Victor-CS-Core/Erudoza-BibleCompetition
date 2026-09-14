@@ -21,3 +21,6 @@
   .app-footer-account { padding:0; }
   .app-footer-account .app-footer-inner { align-items:center; gap:4px; padding-top:16px; }
 }
+.app-footer-legal { display:flex; align-items:center; flex-wrap:wrap; gap:4px 20px; }
+.app-footer-legal a { color:var(--er-muted-ink); text-decoration:none; padding:10px 4px; }
+.app-footer-legal a:hover { color:var(--er-ink-navy); text-decoration:underline; }
