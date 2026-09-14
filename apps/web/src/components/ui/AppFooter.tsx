@@ -19,7 +19,9 @@ export function AppFooter({ variant = "workspace", supportEnabled = false }: Pro
       <nav className="app-footer-legal" aria-label="Legal">
         <Link to="/privacy">Privacy</Link>
         <Link to="/terms">Terms</Link>
-        <Link to="/wiki">Wiki / Help</Link>
+        {variant === "workspace"
+          ? <Link to="/help">Help</Link>
+          : <Link to="/wiki">Wiki / Help</Link>}
       </nav>
       <div className="app-footer-actions">
         <InstallApp />

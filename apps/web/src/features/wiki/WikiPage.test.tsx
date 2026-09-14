@@ -21,7 +21,7 @@ const student: Me = {
 
 const coach: Me = { ...student, userId: "coach-1", displayName: "Coach", userName: "coach", kind: "Adult", role: "Admin" };
 
-function renderWiki(me: Me | null, entry = "/wiki") {
+function renderWiki(me: Me | null, entry: string) {
   vi.mocked(useAuth).mockReturnValue({
     me,
     loading: false,
@@ -32,7 +32,8 @@ function renderWiki(me: Me | null, entry = "/wiki") {
     acceptSession: vi.fn(),
   });
   const router = createMemoryRouter([
-    { path: "/wiki", element: <WikiPage /> },
+    { path: "/wiki", element: <WikiPage scope="public" /> },
+    { path: "/help", element: <WikiPage scope="app" /> },
     { path: "/login", element: <h1>Sign in</h1> },
     { path: "/student", element: <h1>Training HQ</h1> },
     { path: "/admin", element: <h1>Season overview</h1> },
@@ -41,48 +42,70 @@ function renderWiki(me: Me | null, entry = "/wiki") {
   return router;
 }
 
-describe("authenticated platform wiki", () => {
+describe("public wiki", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("renders without sign-in and offers entry points", async () => {
+    renderWiki(null, "/wiki");
+    expect(await screen.findByRole("heading", { name: "Erudoza wiki" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login");
+    expect(screen.getAllByRole("link", { name: "Create a club" }).some(link => link.getAttribute("href") === "/signup")).toBe(true);
+    // Public concept articles are present; operational how-tos are not.
+    expect(screen.getAllByText(/PBE, Arcade, and team scoring/).length).toBeGreaterThan(0);
+    expect(screen.queryByText("Training HQ", { exact: true })).not.toBeInTheDocument();
+  });
+
+  it("searches public articles", () => {
+    renderWiki(null, "/wiki?q=club");
+    expect(screen.getByRole("searchbox", { name: "Search the wiki" })).toHaveValue("club");
+    expect(screen.getAllByText(/Create a club/).length).toBeGreaterThan(0);
+  });
+});
+
+describe("in-app help", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("redirects signed-out visitors to sign in", async () => {
-    const router = renderWiki(null);
+    const router = renderWiki(null, "/help");
     expect(await screen.findByRole("heading", { name: "Sign in" })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/login");
   });
 
   it("keeps search in the URL and finds explanations in article details", () => {
-    const router = renderWiki(student, "/wiki?q=assignment");
-    expect(screen.getByRole("heading", { name: "Erudoza wiki" })).toBeInTheDocument();
-    expect(screen.getByRole("searchbox", { name: "Search the wiki" })).toHaveValue("assignment");
+    const router = renderWiki(student, "/help?q=assignment");
+    expect(screen.getByRole("heading", { name: "Help" })).toBeInTheDocument();
+    expect(screen.getByRole("searchbox", { name: "Search help" })).toHaveValue("assignment");
     expect(screen.getAllByText(/Save assignments/).length).toBeGreaterThan(0);
 
-    fireEvent.change(screen.getByRole("searchbox", { name: "Search the wiki" }), { target: { value: "team practice" } });
+    fireEvent.change(screen.getByRole("searchbox", { name: "Search help" }), { target: { value: "review" } });
 
-    expect(router.state.location.search).toBe("?q=team+practice");
-    expect(screen.getAllByText(/practice together/).length).toBeGreaterThan(0);
+    expect(router.state.location.search).toBe("?q=review");
+    expect(screen.getAllByText(/due for review/).length).toBeGreaterThan(0);
   });
 
-  it("shows all role content while identifying the current workspace", () => {
-    renderWiki(coach);
+  it("shows app guides while identifying the current workspace", () => {
+    renderWiki(coach, "/help");
     expect(screen.getByText("Coach workspace", { selector: "small" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Student" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Coach" })).toBeInTheDocument();
     expect(screen.getAllByText(/Season setup/).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Training HQ").length).toBeGreaterThan(0);
+    // Public concept articles stay out of the logged-in help.
+    expect(screen.queryByText("PBE, Arcade, and team scoring", { exact: true })).not.toBeInTheDocument();
   });
 
   it("narrows the contents and articles with an audience filter", () => {
-    renderWiki(student);
+    renderWiki(student, "/help");
     expect(screen.getAllByRole("link", { name: "Assignments and chapter plans" }).every(link => link.getAttribute("href") === "#wiki-assignments")).toBe(true);
     expect(screen.getByAltText(/Sanitized Training HQ/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Student" }));
-    expect(screen.getByRole("heading", { name: "Study Scripture, build evidence, and practice with your team." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Study Scripture, build evidence, and manage your profile." })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Build seasons, support students, and run the club workspace." })).not.toBeInTheDocument();
     expect(screen.queryByText("Create a club, recover access, or join as a coach", { exact: true })).not.toBeInTheDocument();
   });
 
   it("explains empty searches and returns to the complete guide list", () => {
-    const router = renderWiki(student, "/wiki?q=not-a-real-feature");
+    const router = renderWiki(student, "/help?q=not-a-real-feature");
     expect(screen.getByRole("heading", { name: "No matching guides" })).toBeInTheDocument();
     expect(screen.getByText(/button label, status, or troubleshooting phrase/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Show all guides" }));

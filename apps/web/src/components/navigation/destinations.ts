@@ -12,7 +12,7 @@ export function navigation(coach: boolean, selectedSeason?: string | null, perso
     { id: "practice", label: "Team Practice", to: "/admin/practice", icon: "users", testId: "nav-team-practice", children: [child("rooms", "Your rooms", "/admin/practice#rooms"), child("create-room", "Create a room", "/admin/practice#create-room", "plus"), child("invitations", "Invitations", "/admin/practice#invitations"), child("questions", "Question bank", "/admin/practice#question-bank", "book"), child("achievements", "Team honors", "/admin/practice#achievements", "flag"), child("practice-progress", "Team practice progress", "/admin/practice#practice-progress", "chart")] },
     { id: "profile", label: "Your profile", to: "/admin/profile", icon: "users" },
     { id: "library", label: "Scripture library", to: student("/admin/content"), icon: "book", testId: "nav-content", children: [child("books", "Books of the Bible", student("/admin/content") + "#library-books"), child("preview", "Read Scripture", student("/admin/content") + "#library-preview", "book")] },
-    { id: "wiki", label: "Wiki / Help", to: "/wiki", icon: "book" },
+    { id: "wiki", label: "Help", to: "/help", icon: "book" },
   ] : [
     { id: "home", label: "Training HQ", to: student("/student"), icon: "home", testId: "learner-tab-home" },
     { id: "study", label: "Study", to: student("/student/study"), icon: "book", testId: "nav-academy-learner" },

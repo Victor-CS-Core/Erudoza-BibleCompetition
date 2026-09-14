@@ -22,10 +22,13 @@ export type WikiFaq = {
   answer: string;
 };
 
+export type WikiScope = "public" | "app";
+
 export type WikiArticle = {
   id: string;
   title: string;
   audience: WikiAudience;
+  scope: WikiScope;
   summary: string;
   purpose?: string;
   prerequisites?: string[];
@@ -63,6 +66,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "account-access",
     title: "Account access and sign-in",
     audience: "Shared",
+    scope: "public",
     summary: "Sign in, understand account types, recover coach access, and keep your workspace private.",
     purpose: "Get the right person into the right Erudoza workspace and recover access without exposing account details.",
     prerequisites: ["Have the email or username and current password for the account.", "Students need credentials supplied by a coach; coaches need a verified email for signup or recovery."],
@@ -90,6 +94,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "coach-onboarding",
     title: "Create a club, recover access, or join as a coach",
     audience: "Coach",
+    scope: "public",
     summary: "Set up a coach account, verify an email, recover a password, or accept an invitation to an existing club.",
     featureIds: ["signup"],
     keywords: ["signup", "create club", "verification code", "recovery", "join coach", "invitation"],
@@ -107,10 +112,11 @@ export const wikiArticles: WikiArticle[] = [
     id: "workspace-navigation",
     title: "Navigate the workspace",
     audience: "Shared",
+    scope: "app",
     summary: "Use the header, shortcuts, breadcrumbs, account menu, pinned sections, and mode switch without losing season context.",
     featureIds: ["overview", "home", "wiki"],
     keywords: ["navigation", "command center", "search", "Ctrl K", "pins", "shortcuts", "breadcrumb", "mode switch", "season context"],
-    links: [{ label: "Open the wiki", to: "/wiki" }],
+    links: [{ label: "Open help", to: "/help" }],
     sections: [
       { heading: "The compact header", paragraphs: ["The navy header identifies Erudoza and provides the command-center search and Account menu. The current mode is reflected by the workspace you are in, while your selected season remains part of student links when a page supports season context."] },
       { heading: "Shortcuts and pins", paragraphs: ["The shortcut row contains the sections you use most. Choose Search or press Ctrl K on Windows/Linux, or Command K on macOS, to find sections, seasons, coach-accessible students, and actions. Pin a root section for one-click access; pins are local to your account, club, and role.", "On phones, the bottom dock keeps the stable destinations visible. More opens the complete command center without changing your saved desktop pins."] },
@@ -124,6 +130,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "student-training-hq",
     title: "Training HQ",
     audience: "Student",
+    scope: "app",
     summary: "Start today's assigned training, see your weekly goal, review the next milestone, and choose another practice path.",
     purpose: "Give students one clear starting point for the active season and the next eligible training action.",
     prerequisites: ["Be signed in as a student or in an eligible adult Student mode.", "Have an active season and assigned Scripture when training credit is expected."],
@@ -147,6 +154,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "study-and-practice",
     title: "Study and individual practice",
     audience: "Student",
+    scope: "app",
     summary: "Read assigned passages, answer recall prompts, and receive immediate source-based feedback.",
     featureIds: ["study"],
     keywords: ["study", "practice", "recall", "answer", "feedback", "assigned Scripture", "activity", "difficulty"],
@@ -165,6 +173,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "review-and-recap",
     title: "Reviews and session recaps",
     audience: "Student",
+    scope: "app",
     summary: "Return to missed material when it is due and use the recap to understand evidence from a completed session.",
     featureIds: ["review"],
     keywords: ["review", "due", "missed", "recap", "session result", "evidence", "feedback", "attempt"],
@@ -181,6 +190,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "simulation",
     title: "PBE simulation",
     audience: "Student",
+    scope: "public",
     summary: "Run a shortened one-team PBE rehearsal using assigned material, two readings, and rubric points.",
     featureIds: ["simulation"],
     keywords: ["simulation", "PBE", "rehearsal", "one team", "two readings", "rubric", "timed", "presenter", "scribe"],
@@ -198,6 +208,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "scripture-library",
     title: "Scripture Library",
     audience: "Shared",
+    scope: "public",
     summary: "Browse the installed NKJV catalog, open a chapter, choose a verse, and read the stored source text.",
     featureIds: ["library", "books", "preview"],
     keywords: ["Scripture library", "NKJV", "Bible", "book", "chapter", "verse", "read", "source text", "translation"],
@@ -216,6 +227,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "assignments",
     title: "Assignments and chapter plans",
     audience: "Shared",
+    scope: "app",
     summary: "Understand season scope, assign chapters, save partial plans, retry safely, and preserve student progress.",
     purpose: "Explain how coach season scope becomes each student's saved chapter plan and future activity eligibility.",
     prerequisites: ["Coaches need an editable season or permitted student assignment workflow.", "The season must contain whole books before chapters can be selected."],
@@ -245,6 +257,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "seasons",
     title: "Season setup and lifecycle",
     audience: "Coach",
+    scope: "app",
     summary: "Create a season, choose whole books, assign chapters, save drafts, start training, and close completed seasons.",
     purpose: "Set the club's competition season scope and lifecycle before student training begins.",
     prerequisites: ["Be signed in as an authorized coach.", "Have the intended season name, year, and installed Scripture books ready."],
@@ -271,6 +284,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "student-directory",
     title: "Student directory and student access",
     audience: "Coach",
+    scope: "app",
     summary: "Add students, find their accounts, manage active state, open plans, and inspect individual progress.",
     featureIds: ["students", "directory", "add-student"],
     keywords: ["students", "student directory", "add student", "username", "password", "active", "progress", "roster"],
@@ -288,6 +302,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "coaches",
     title: "Coach directory, roles, and invitations",
     audience: "Coach",
+    scope: "app",
     summary: "Invite another adult, understand club roles, resend or revoke invitations, and keep access limited to your club.",
     featureIds: ["coaches", "coach-directory", "invite-coach"],
     keywords: ["coach", "coaches", "invite", "invitation", "resend", "revoke", "owner", "administrator", "role"],
@@ -304,6 +319,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "progress",
     title: "Progress and mastery evidence",
     audience: "Shared",
+    scope: "public",
     summary: "Read stored attempts, mastery percentages, review counts, chapter progress, and coach summaries without confusing them with awards.",
     purpose: "Turn saved activity evidence into an honest view of coverage, mastery, and what to practice next.",
     prerequisites: ["Select the season whose evidence you want to understand.", "Interpret percentages only when the page shows an eligible assignment scope."],
@@ -328,6 +344,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "honors",
     title: "Honors, milestones, and profile patches",
     audience: "Student",
+    scope: "public",
     summary: "Understand mastery Honors, historical practice milestones, eligibility requirements, and how unlocked patches become profile art.",
     featureIds: ["honors", "achievements"],
     keywords: ["Honors", "Honor", "mastery", "milestone", "patch", "earned", "locked", "requirement", "profile image", "team honor"],
@@ -347,6 +364,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "profile-character",
     title: "Profile, character, and sharing",
     audience: "Shared",
+    scope: "app",
     summary: "Customize your character, choose earned Honors, manage share-card privacy, and understand where your profile appears.",
     purpose: "Let each account choose profile identity art and explicitly control what is included in a share card.",
     prerequisites: ["Be signed in to the account whose profile you want to edit.", "Only earned Honors and options allowed for the current role can be selected."],
@@ -373,6 +391,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "team-practice",
     title: "Team Practice",
     audience: "Shared",
+    scope: "public",
     summary: "Enable team practice, create rooms, invite players, run Arcade or PBE matches, and review results together.",
     purpose: "Coordinate live group rehearsal while keeping room state, scoring rules, and individual mastery evidence distinct.",
     prerequisites: ["Team Practice must be enabled for the club and the season must have eligible material.", "Players need authorized club accounts and an invitation or room access."],
@@ -402,6 +421,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "pbe-reviews",
     title: "PBE question bank and answer reviews",
     audience: "Coach",
+    scope: "app",
     summary: "Prepare source-backed PBE questions, publish reviewed versions, and resolve saved answer reviews without hiding provisional results.",
     featureIds: ["questions"],
     keywords: ["PBE", "question bank", "question", "source", "publish", "answer review", "appeal", "rubric", "coach review"],
@@ -418,6 +438,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "coach-overview",
     title: "Coach overview and student coverage",
     audience: "Coach",
+    scope: "app",
     summary: "Use the overview to select a season, see assignment coverage, and identify students who need review.",
     featureIds: ["overview"],
     keywords: ["coach overview", "season overview", "coverage", "need review", "assigned students", "mastery", "dashboard"],
@@ -433,6 +454,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "coach-content",
     title: "Coach Scripture content and reading",
     audience: "Coach",
+    scope: "app",
     summary: "Review the installed Scripture catalog and read source chapters without changing the season or student plans.",
     featureIds: ["library", "books", "preview"],
     keywords: ["coach content", "library", "Scripture", "catalog", "read", "chapter", "source", "NKJV"],
@@ -448,6 +470,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "account-privacy",
     title: "Privacy, permissions, and saved data",
     audience: "Shared",
+    scope: "public",
     summary: "Understand who can see or change club data, how profiles are shared, and what happens when a request fails.",
     featureIds: ["permissions"],
     keywords: ["privacy", "permissions", "organization", "club", "access", "saved data", "server", "profile privacy", "security"],
@@ -464,6 +487,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "accessibility-and-install",
     title: "Accessibility, mobile use, and installing Erudoza",
     audience: "Shared",
+    scope: "public",
     summary: "Use keyboard navigation, touch-friendly controls, reduced motion, and the optional installed web app.",
     featureIds: ["install", "support"],
     keywords: ["accessibility", "keyboard", "focus", "screen reader", "mobile", "phone", "install", "download app", "PWA", "reduced motion"],
@@ -479,6 +503,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "troubleshooting",
     title: "Troubleshooting and recovery",
     audience: "Shared",
+    scope: "app",
     summary: "Recover from loading errors, interrupted saves, stale pages, missing assignments, and live-room connection problems.",
     featureIds: ["troubleshooting"],
     keywords: ["troubleshooting", "error", "retry", "offline", "loading", "timeout", "connection", "stale", "refresh", "recovery"],
@@ -497,6 +522,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "pbe-rules",
     title: "PBE, Arcade, and team scoring",
     audience: "Shared",
+    scope: "public",
     summary: "Understand the difference between individual practice, Arcade speed scoring, and rubric-based PBE rehearsal.",
     featureIds: ["practice"],
     keywords: ["PBE", "Arcade", "scoring", "speed bonus", "accuracy", "rubric", "official placing", "team score"],
@@ -513,6 +539,7 @@ export const wikiArticles: WikiArticle[] = [
     id: "content-and-scope",
     title: "How Scripture scope and eligibility work",
     audience: "Shared",
+    scope: "public",
     summary: "Follow the path from installed source catalog to season books, student chapters, eligible activities, and stored evidence.",
     featureIds: ["library", "season-books"],
     keywords: ["scope", "eligibility", "catalog", "season books", "assigned chapters", "source units", "activity", "reading"],
@@ -527,26 +554,57 @@ export const wikiArticles: WikiArticle[] = [
     id: "wiki-search",
     title: "Search the wiki and find an explanation",
     audience: "Shared",
-    summary: "Search any guide by feature name, control label, status, requirement, or troubleshooting phrase.",
+    scope: "public",
+    summary: "Search any guide by feature name, PBE term, Honor requirement, or scoring question.",
     featureIds: ["wiki"],
     keywords: ["wiki", "help", "search", "explanation", "guide", "article", "FAQ", "keyword"],
     links: [{ label: "Open the wiki", to: "/wiki" }],
     sections: [
-      { heading: "Search is intentionally broad", paragraphs: ["The wiki search indexes article titles, summaries, section headings, step instructions, FAQ answers, control labels, route names, and keywords. Search for what you see on screen—such as Save assignments, Review, PBE, or retry—rather than only the page title."] },
-      { heading: "Use role filters", paragraphs: ["All shows every explanation. Student, Coach, and Shared narrow the list without hiding content from the other role. Role labels identify who can use the linked workflow; existing application permissions still decide whether a route opens."] },
-      { heading: "Share a useful result", paragraphs: ["Search terms are stored in the URL, so you can copy a link such as `/wiki?q=assignment` to return to the same explanation. Article headings have stable anchors for direct links from release notes and coach instructions."] },
+      { heading: "Search is intentionally broad", paragraphs: ["The wiki search indexes article titles, summaries, section headings, FAQ answers, and keywords. Search for what you want to understand—such as PBE, Honors, scoring, or creating a club—rather than only the page title."] },
+      { heading: "Use role filters", paragraphs: ["All shows every explanation. Student, Coach, and Shared narrow the list without hiding content from the other role. Role labels identify who each guide is written for."] },
+      { heading: "Share a useful result", paragraphs: ["Search terms are stored in the URL, so you can copy a link such as `/wiki?q=PBE` to return to the same explanation. Article headings have stable anchors for direct links."] },
     ],
-    steps: ["Open Wiki / Help from Search, Account, or the workspace navigation.", "Enter a feature, control, status, or question in Search the wiki.", "Choose a role filter if the result list is too broad.", "Open the matching guide, then use Open feature to return to the product workflow."],
+    steps: ["Open the wiki from the site footer.", "Enter a feature, PBE term, or question in Search the wiki.", "Choose a role filter if the result list is too broad.", "Open the matching guide to learn how Erudoza works."],
+    related: ["account-access", "coach-onboarding", "pbe-rules"],
+  },
+  {
+    id: "help-search",
+    title: "Search help and find an explanation",
+    audience: "Shared",
+    scope: "app",
+    summary: "Search any help guide by feature name, control label, status, requirement, or troubleshooting phrase.",
+    featureIds: ["wiki"],
+    keywords: ["help", "search", "explanation", "guide", "article", "FAQ", "keyword"],
+    links: [{ label: "Open help", to: "/help" }],
+    sections: [
+      { heading: "Search is intentionally broad", paragraphs: ["Help search indexes article titles, summaries, section headings, step instructions, FAQ answers, control labels, route names, and keywords. Search for what you see on screen—such as Save assignments, Review, PBE, or retry—rather than only the page title."] },
+      { heading: "Use role filters", paragraphs: ["All shows every explanation. Student, Coach, and Shared narrow the list without hiding content from the other role. Role labels identify who can use the linked workflow; existing application permissions still decide whether a route opens."] },
+      { heading: "Share a useful result", paragraphs: ["Search terms are stored in the URL, so you can copy a link such as `/help?q=assignment` to return to the same explanation. Article headings have stable anchors for direct links from release notes and coach instructions."] },
+    ],
+    steps: ["Open Help from Search, Account, or the workspace navigation.", "Enter a feature, control, status, or question in Search help.", "Choose a role filter if the result list is too broad.", "Open the matching guide, then use Open feature to return to the product workflow."],
     related: ["workspace-navigation", "troubleshooting", "account-access"],
   },
 ];
 
-export const wikiGroups: WikiGroup[] = [
-  { id: "start", title: "Start here", description: "Access, navigation, and getting unstuck.", articleIds: ["account-access", "coach-onboarding", "workspace-navigation", "wiki-search", "accessibility-and-install", "troubleshooting"] },
-  { id: "student", title: "Student guides", description: "Study Scripture, build evidence, and practice with your team.", articleIds: ["student-training-hq", "study-and-practice", "review-and-recap", "simulation", "scripture-library", "assignments", "progress", "honors", "profile-character", "team-practice"] },
-  { id: "coach", title: "Coach guides", description: "Build seasons, support students, and run the club workspace.", articleIds: ["coach-overview", "seasons", "student-directory", "coaches", "coach-content", "pbe-reviews"] },
-  { id: "reference", title: "Rules and reference", description: "Scope, scoring, privacy, and the meaning of saved evidence.", articleIds: ["content-and-scope", "pbe-rules", "account-privacy"] },
+export const publicWikiGroups: WikiGroup[] = [
+  { id: "start", title: "Start here", description: "Accounts, creating a club, and finding answers.", articleIds: ["account-access", "coach-onboarding", "wiki-search", "accessibility-and-install"] },
+  { id: "features", title: "Features", description: "What students and coaches can do with Erudoza.", articleIds: ["scripture-library", "team-practice", "simulation", "honors", "progress"] },
+  { id: "reference", title: "Rules and reference", description: "Scoring, Scripture scope, and privacy.", articleIds: ["pbe-rules", "content-and-scope", "account-privacy"] },
 ];
+
+export const appWikiGroups: WikiGroup[] = [
+  { id: "start", title: "Start here", description: "Navigation, search, and getting unstuck.", articleIds: ["workspace-navigation", "help-search", "troubleshooting"] },
+  { id: "student", title: "Student guides", description: "Study Scripture, build evidence, and manage your profile.", articleIds: ["student-training-hq", "study-and-practice", "review-and-recap", "assignments", "profile-character"] },
+  { id: "coach", title: "Coach guides", description: "Build seasons, support students, and run the club workspace.", articleIds: ["coach-overview", "seasons", "student-directory", "coaches", "coach-content", "pbe-reviews"] },
+];
+
+export function wikiGroups(scope: WikiScope): WikiGroup[] {
+  return scope === "public" ? publicWikiGroups : appWikiGroups;
+}
+
+export function wikiArticlesByScope(scope: WikiScope): WikiArticle[] {
+  return wikiArticles.filter(article => article.scope === scope);
+}
 
 const searchableText = (article: WikiArticle) => [
   article.title,
