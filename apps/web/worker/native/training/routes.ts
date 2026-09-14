@@ -7,6 +7,7 @@ import { body, HttpError, json } from '../types';
 import { atomic } from '../application/model';
 import type { Session } from '../study/routes';
 import { validateZone, resolveTrainingCalendar } from './calendar';
+import { trainingNow } from './clock';
 import { preference, resolvePreference, write, makeRecap } from './store';
 import type { Writes } from './store';
 import { today, honors, journey } from './query';
@@ -49,7 +50,7 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
         validateZone(input.timeZone);
         for (let i = 0;; i++) {
             try {
-                const old = await preference(ctx), now = new Date().toISOString(), p = resolvePreference(ctx, old, now, input.timeZone);
+                const old = await preference(ctx), now = trainingNow(), p = resolvePreference(ctx, old, now, input.timeZone);
                 if (!old) {
                     p.weeklyTarget = input.weeklyTarget;
                 }

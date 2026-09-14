@@ -150,6 +150,9 @@ it('credits the qualifying Monday event while preserving the Sunday mission date
     const ctx: RequestContext = { env: { DB: db } as Env, store: new Store(db), orgId: TEST_ORG, actor: { userId: TEST_USER, organizationId: TEST_ORG, displayName: 'Student', userName: 'coach', email: null, kind: 'Student', role: 'Student', credentialVersion: 'v1' }, path: '', request: new Request('https://erudoza.test') };
     const call = async (path: string, method = 'GET', value?: unknown) => handleStudy({ ...ctx, path, request: new Request('https://erudoza.test' + path, { method, ...(value === undefined ? {} : { body: JSON.stringify(value) }) }) });
     try {
+        // Earlier tests share this database and credit the real current day in real time.
+        // Clear the mocked Monday's rows so this test does not depend on what today is.
+        await app.db.prepare("DELETE FROM Records WHERE kind IN ('training-day','training-week') AND id=?").bind(`${TEST_ORG}:${TEST_USER}:2026-09-14`).run();
         await app.db.prepare("UPDATE Records SET data=json_set(data,'$.timeZone','America/New_York','$.pending',null) WHERE kind='training-preferences'").run();
         const response = await call('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Practice', training: { clientStartId: 'sunday', timeZone: 'America/New_York', step: 'Practice' } });
         const { id } = await response!.json() as {
