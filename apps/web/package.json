@@ -15,7 +15,8 @@
     "build:native": "tsc --noEmit && tsc -p tsconfig.native.json && vite build --config vite.native.config.ts",
     "dev:native": "wrangler dev --config wrangler.native.jsonc",
     "typecheck:native": "tsc -p tsconfig.native.json",
-    "test:native": "vitest run worker/native"
+    "test:native": "vitest run worker/native",
+    "deploy:production": "npm run build:native && wrangler deploy --config wrangler.production.jsonc"
   },
   "dependencies": {
     "@microsoft/signalr": "^10.0.11",
