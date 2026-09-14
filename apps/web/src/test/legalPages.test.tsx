@@ -34,7 +34,7 @@ describe("PrivacyPage", () => {
     const mailLinks = within(main).getAllByRole("link", { name: "Ktr0nn@icloud.com" });
     expect(mailLinks.length).toBeGreaterThan(0);
     for (const link of mailLinks) expect(link).toHaveAttribute("href", "mailto:Ktr0nn@icloud.com");
-    expect(within(main).getByText(/Erudoza has not obtained a license for this text/)).toBeInTheDocument();
+    expect(within(main).getByText(/Scripture text used for training and study purposes/)).toBeInTheDocument();
   });
 });
 
@@ -53,7 +53,7 @@ describe("TermsPage", () => {
     renderAt("/terms", <TermsPage />);
     const main = screen.getByRole("main");
     expect(within(main).getAllByText(/\[GOVERNING JURISDICTION\]/).length).toBeGreaterThan(0);
-    expect(within(main).getByText(/LEGAL REVIEW REQUIRED: OBTAIN PERMISSION/)).toBeInTheDocument();
+    expect(within(main).getByText(/New King James Version \(NKJV\), copyright/)).toBeInTheDocument();
   });
 });
 
