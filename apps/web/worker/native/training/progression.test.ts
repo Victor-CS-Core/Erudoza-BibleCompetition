@@ -1,4 +1,5 @@
 import { handleStudy } from '../study/routes';
+import { handleTraining } from './routes';
 import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
 import * as clock from './clock';
@@ -255,3 +256,56 @@ it('suggests retained due reviews after a mission scope changes without writing 
     expect(replacement.status).toBe(200);
     expect(await replacement.json()).toMatchObject({ targetCardCount: 1 });
 });
+it('follows the device timezone for the displayed calendar and heals a default UTC zone on session start', async () => {
+    // 2026-09-14T03:55Z is Sunday 23:55 in New York but Monday 03:55 in UTC.
+    const mock = vi.spyOn(clock, 'trainingNow').mockReturnValue('2026-09-14T03:55:00.000Z');
+    const db = app.db as unknown as Env['DB'];
+    const actor = { userId: TEST_USER, organizationId: TEST_ORG, displayName: 'Student', userName: 'coach', email: null, kind: 'Student', role: 'Student', credentialVersion: 'v1' } as const;
+    const base = { env: { DB: db } as Env, store: new Store(db), orgId: TEST_ORG, actor } as unknown as RequestContext;
+    const callTraining = async (fullPath: string, method = 'GET', value?: unknown) => handleTraining({ ...base, path: fullPath.split('?')[0], request: new Request('https://erudoza.test' + fullPath, { method, headers: { 'Content-Type': 'application/json' }, ...(value === undefined ? {} : { body: JSON.stringify(value) }) }) });
+    const callStudy = async (fullPath: string, method = 'GET', value?: unknown) => handleStudy({ ...base, path: fullPath.split('?')[0], request: new Request('https://erudoza.test' + fullPath, { method, headers: { 'Content-Type': 'application/json' }, ...(value === undefined ? {} : { body: JSON.stringify(value) }) }) });
+    try {
+        await app.db.prepare("DELETE FROM Records WHERE kind='training-preferences'").run();
+        const before = await (await callTraining('/api/v1/progress/me/today?deviceTimeZone=America%2FNew_York'))!.json() as {
+            localDate: string;
+            preferences: { timeZone: string };
+        };
+        expect(before.localDate).toBe('2026-09-13');
+        expect(before.preferences.timeZone).toBe('America/New_York');
+        // The display read stays side-effect free; nothing is persisted yet.
+        expect(await count('training-preferences')).toBe(0);
+        const started = await (await callStudy('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Practice', training: { clientStartId: 'heal', timeZone: 'America/New_York', step: 'Practice' } }))!.json() as {
+            id: string;
+        };
+        const stored = JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='training-preferences'").first<{
+            data: string;
+        }>())!.data);
+        expect(stored.timeZone).toBe('America/New_York');
+        expect(stored.timeZoneSource).toBe('device');
+        expect((await saved(started.id)).training.timeZone).toBe('America/New_York');
+    }
+    finally {
+        mock.mockRestore();
+    }
+}, 30000);
+it('does not let the device zone override an explicitly chosen calendar zone', async () => {
+    // 2026-09-14T23:30Z is Tuesday in London but still Monday in New York.
+    const mock = vi.spyOn(clock, 'trainingNow').mockReturnValue('2026-09-14T23:30:00.000Z');
+    const db = app.db as unknown as Env['DB'];
+    const actor = { userId: TEST_USER, organizationId: TEST_ORG, displayName: 'Student', userName: 'coach', email: null, kind: 'Student', role: 'Student', credentialVersion: 'v1' } as const;
+    const base = { env: { DB: db } as Env, store: new Store(db), orgId: TEST_ORG, actor } as unknown as RequestContext;
+    const callTraining = async (fullPath: string, method = 'GET', value?: unknown) => handleTraining({ ...base, path: fullPath.split('?')[0], request: new Request('https://erudoza.test' + fullPath, { method, headers: { 'Content-Type': 'application/json' }, ...(value === undefined ? {} : { body: JSON.stringify(value) }) }) });
+    try {
+        await app.db.prepare("DELETE FROM Records WHERE kind='training-preferences'").run();
+        expect((await callTraining('/api/v1/progress/me/preferences', 'PUT', { weeklyTarget: 5, timeZone: 'Europe/London' }))!.status).toBe(200);
+        const res = await (await callTraining('/api/v1/progress/me/today?deviceTimeZone=America%2FNew_York'))!.json() as {
+            localDate: string;
+            preferences: { timeZone: string };
+        };
+        expect(res.preferences.timeZone).toBe('Europe/London');
+        expect(res.localDate).toBe('2026-09-15');
+    }
+    finally {
+        mock.mockRestore();
+    }
+}, 30000);

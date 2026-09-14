@@ -34,7 +34,7 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
     if (method === 'GET') {
         if(path.endsWith('/chapters'))return json(await chapters(ctx,url));
         if (path.endsWith('/today'))
-            return json(await today(ctx, seasonId));
+            return json(await today(ctx, seasonId, undefined, url.searchParams.get('deviceTimeZone') ?? undefined));
         if (path.endsWith('/honors'))
             return json(await honors(ctx, seasonId));
         if (path.endsWith('/journey'))
@@ -50,7 +50,7 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
         validateZone(input.timeZone);
         for (let i = 0;; i++) {
             try {
-                const old = await preference(ctx), now = trainingNow(), p = resolvePreference(ctx, old, now, input.timeZone);
+                const old = await preference(ctx), now = trainingNow(), p = resolvePreference(ctx, old, now, input.timeZone, 'manual');
                 if (!old) {
                     p.weeklyTarget = input.weeklyTarget;
                 }

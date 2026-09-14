@@ -13,6 +13,8 @@ export interface PreferenceRecord extends TrainingPreferences {
     id: string;
     lastEventAtUtc: string;
     qualifyingWeekStarts: string[];
+    /** How timeZone was chosen: 'default' (initial UTC), 'device' (learner's system), 'manual' (explicitly picked). Absent on older rows means 'default'. */
+    timeZoneSource?: 'default' | 'device' | 'manual';
 }
 export interface DayRecord {
     id: string;
@@ -107,7 +109,27 @@ export function write<T>(ctx: RequestContext, w: Writes, kind: string, id: strin
     if (previous)
         w.guards.push({ kind, id, revision: previous.revision });
 }
-export function resolvePreference(ctx: RequestContext, stored: Stored<PreferenceRecord> | null, at: string, zone?: string): PreferenceRecord { const p = stored?.value ?? { ...defaultPreferences(), id: identity(ctx), timeZone: zone ? validateZone(zone) : 'UTC', lastEventAtUtc: at, qualifyingWeekStarts: [] }; return { ...p, ...effectivePreferences(at, p) }; }
+export function resolvePreference(ctx: RequestContext, stored: Stored<PreferenceRecord> | null, at: string, zone?: string, zoneKind: 'device' | 'manual' = 'device'): PreferenceRecord {
+    const p: PreferenceRecord = stored?.value ?? { ...defaultPreferences(), id: identity(ctx), timeZone: 'UTC', timeZoneSource: 'default', lastEventAtUtc: at, qualifyingWeekStarts: [] };
+    if (zone) {
+        const z = validateZone(zone);
+        if (!stored) {
+            // First save adopts the provided zone immediately.
+            p.timeZone = z;
+            p.timeZoneSource = zoneKind;
+        }
+        else if (zoneKind === 'device' && z !== p.timeZone && (p.timeZoneSource ?? 'default') !== 'manual' && !p.pending) {
+            // Follow the learner's system clock: adopt the device zone unless they
+            // explicitly chose a calendar zone (manual choices still take effect next week).
+            p.timeZone = z;
+            p.timeZoneSource = 'device';
+        }
+    }
+    const hadPending = !!p.pending, out = { ...p, ...effectivePreferences(at, p) };
+    if (hadPending && !out.pending)
+        out.timeZoneSource = 'manual';
+    return out;
+}
 export function missionSteps(m: MissionRecord): TrainingStep[] { return [{ kind: 'Review', target: m.reviewKnowledgeUnitIds.length, completed: m.acceptedReviewKnowledgeUnitIds.length, status: m.invalidated ? 'Invalidated' : !m.reviewKnowledgeUnitIds.length ? 'NotNeeded' : m.acceptedReviewKnowledgeUnitIds.length >= m.reviewKnowledgeUnitIds.length ? 'Complete' : m.reviewSessionId ? 'Active' : 'Pending', sessionId: m.reviewSessionId }, { kind: 'Practice', target: 8, completed: m.practiceCompleted, status: m.invalidated ? 'Invalidated' : m.practiceCompleted >= 8 ? 'Complete' : m.practiceSessionId ? 'Active' : 'Pending', sessionId: m.practiceSessionId }]; }
 export function missionComplete(m: MissionRecord) { return !m.invalidated && m.practiceCompleted >= 8 && (!m.reviewKnowledgeUnitIds.length || m.acceptedReviewKnowledgeUnitIds.length >= m.reviewKnowledgeUnitIds.length); }
 export async function prepareStart(ctx: RequestContext, session: Session, sources: Source[], training: StartTrainingContext | undefined): Promise<Writes> {

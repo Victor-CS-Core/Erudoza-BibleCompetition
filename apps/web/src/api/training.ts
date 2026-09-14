@@ -18,7 +18,16 @@ export const trainingApi = {
         return request<ChapterPage>(`/api/v1/progress/me/chapters?${query}`);
     },
     continueChapters: (input:ContinueChaptersRequest) => request<ContinueChaptersResponse>('/api/v1/progress/me/chapters/continue',{method:'POST',body:JSON.stringify(input)}),
-    today: (seasonId?: string) => request<TrainingToday>(`/api/v1/progress/me/today${seasonId ? `?seasonId=${encodeURIComponent(seasonId)}` : ''}`),
+    today: (seasonId?: string) => {
+        const query = new URLSearchParams();
+        if (seasonId)
+            query.set('seasonId', seasonId);
+        try {
+            query.set('deviceTimeZone', Intl.DateTimeFormat().resolvedOptions().timeZone);
+        }
+        catch { /* non-browser context: the server falls back to the saved zone */ }
+        return request<TrainingToday>(`/api/v1/progress/me/today?${query}`);
+    },
     savePreferences: (input: {
         weeklyTarget: WeeklyTarget;
         timeZone: string;

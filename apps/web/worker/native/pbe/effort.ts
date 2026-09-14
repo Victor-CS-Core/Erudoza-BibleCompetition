@@ -57,9 +57,9 @@ export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: s
     return w;
 }
 export const pbeMissionSteps = (s: PbeSession) => [{ kind: s.mode, target: s.cards.length, completed: s.attempts.length, status: s.attempts.length === s.cards.length ? 'Complete' : 'Active', sessionId: s.id }];
-export async function pbeToday(ctx: RequestContext, season: import('../application/model').Season, now: string): Promise<import('../../../src/api/trainingTypes').TrainingToday> {
+export async function pbeToday(ctx: RequestContext, season: import('../application/model').Season, now: string, deviceTimeZone?: string): Promise<import('../../../src/api/trainingTypes').TrainingToday> {
     const { resolvePbeSources, resolvePbeSessionSources } = await import('./sources'), { loadFromResolvedSources } = await import('./bank');
-    const old = await preference(ctx), p = resolvePreference(ctx, old, now), c = resolveTrainingCalendar(now, p), week = (await ctx.store.get<WeekRecord>('training-week', identity(ctx, c.weekStartLocalDate), ctx.orgId))?.value;
+    const old = await preference(ctx), p = resolvePreference(ctx, old, now, deviceTimeZone), c = resolveTrainingCalendar(now, p), week = (await ctx.store.get<WeekRecord>('training-week', identity(ctx, c.weekStartLocalDate), ctx.orgId))?.value;
     const head = await ctx.store.get<{
         missionId: string;
     }>('pbe-daily-mission-head', identity(ctx, season.id, c.localDate), ctx.orgId), saved = head ? await ctx.store.get<PbeSession>('pbe-session', head.value.missionId, ctx.orgId) : null, s = saved?.value;
