@@ -1,5 +1,12 @@
 # Erudoza progress log
 
+## Authenticated platform wiki — production release preparation, September 13
+
+- The user authorized production deployment of the reviewed wiki. The clean release branch `codex/authenticated-wiki` is at `2c4280dedb306f4a679811cac92ff1f972367ea9`, a direct descendant of current `origin/main` `e197b2b4e3cc35cd4d560ca23d11ffbae6009cff`; no unrelated worktree changes are included.
+- Production target preflight is read-back verified: existing Worker `erudoza-native` at `https://erudoza.com`, current active version `621643ff-da59-42ec-8a2e-4379b18d536b`, D1 migration state reports no pending migrations, and the production Wrangler dry-run reads 184 native assets with the expected production bindings. This wiki changes frontend assets/routes only; no API, schema, migration, secret, or data changes are planned.
+- Exact release checks pass: wiki suite 8/8, web TypeScript, ESLint, native production build, production Wrangler dry-run, and whitespace. Full web Vitest remains limited by the documented 39 pre-existing `localStorage` failures in `AppShell.test.tsx` and `CoffeeWidget.test.tsx`; no wiki test failed. Authenticated production browser credentials are not available to this task, so live acceptance will cover public delivery and anonymous route protection, with authenticated validation explicitly handed off.
+- Next: add this checkpoint, fast-forward and push `main`, deploy the matched native artifact, read back the Worker/version and live `/wiki` assets, then record the exact deployment and verification limits.
+
 ## Authenticated platform wiki — implementation checkpoint, September 13
 
 - Implemented on isolated branch `codex/authenticated-wiki` from fresh `origin/main`; main and the user's existing checkout remain untouched. Added guarded `/wiki`, searchable structured content, Student/Coach/Shared filters, URL-persisted `q` searches, stable article anchors, contents navigation, related guides, live-route links, role labels, responsive layout, reduced-motion/forced-colors handling, and account/navigation entry points for both workspaces.
