@@ -1,5 +1,12 @@
 # Erudoza progress log
 
+## Season deletion — implementation gate, September 13
+
+- User approved deleting a season with warnings. The admin season planner now exposes Delete season for every saved status, uses the shared danger confirmation dialog with status-aware consequences, locks the action while pending, reports failures without closing, and returns to the season list after success. Active-season warnings explicitly call out permanent removal of assignments, progress, study history and competition records.
+- The native administrator endpoint accepts `DELETE /api/v1/organizations/:orgId/seasons/:seasonId`. One guarded transaction removes the season's practice-room components, season-scoped records and season row/audit entry; shared content packs and other seasons remain intact. The existing administrator and mutation-budget guards apply.
+- Local verification passed: 19 planner tests, 9 native application tests, web/native TypeScript, full ESLint, both production builds and Git whitespace checks. The native regression covers an active season, another season, shared books, competition records and practice-room components. The full web/native test run was not clean: 1,143 passed and 3 skipped, with 41 unrelated failures from `localStorage` setup in AppShell/CoffeeWidget and two 5-second native pagination timeouts under the parallel run; the same storage failures reproduce in isolation. No production deployment or authenticated live acceptance was performed.
+- Files in scope: `apps/web/src/api/client.ts`, `apps/web/src/features/admin/SeasonWizardPage.tsx`, `apps/web/src/features/admin/SeasonWizardPage.test.tsx`, `apps/web/worker/native/application.ts`, `apps/web/worker/native/application.test.ts`. Next: create the scoped Git checkpoint and push the current task branch.
+
 ## Season actions and HQ banner — authorized main integration, September 13
 
 - User explicitly requested merge to main for both changes in this task. Fresh origin/main remains `b79330b`, an ancestor of the reviewed task head `63d9401`; main's checkout is clean. No conflict resolution or application edits are needed.

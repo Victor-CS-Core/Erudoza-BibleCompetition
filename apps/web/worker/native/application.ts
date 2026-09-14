@@ -112,6 +112,14 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     if (!seasonMatch)
         return null;
     const seasonId = seasonMatch[1], suffix = seasonMatch[2], saved = await store.require<Season>('season', seasonId, orgId), s = saved.value, guard = { kind: 'season', id: seasonId, revision: saved.revision };
+    if (suffix === '' && method === 'DELETE') {
+        await atomic(ctx, 'season.delete', [
+            ctx.env.DB.prepare('DELETE FROM PracticeRoomComponents WHERE org_id=? AND season_id=?').bind(orgId, seasonId),
+            ctx.env.DB.prepare('DELETE FROM Records WHERE org_id=? AND season_id=?').bind(orgId, seasonId),
+            deletion(ctx, 'season', seasonId),
+        ], [guard]);
+        return noContent();
+    }
     const updateSeason = () => store.update('season', seasonId, orgId, s, saved.revision);
     if (suffix === '/scope' && method === 'GET')
         return json(scopeDto((await store.get<Scope>('scope', seasonId, orgId))?.value ?? { contentPackId: null, includes: [], excludes: [] }));

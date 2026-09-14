@@ -67,6 +67,7 @@ export const api = {
   organization: (orgId: string) => request<Organization>(`/api/v1/organizations/${orgId}`),
   seasons: (orgId: string) => request<Season[]>(`/api/v1/organizations/${orgId}/seasons`),
   season: (orgId: string, seasonId: string) => request<Season>(`/api/v1/organizations/${orgId}/seasons/${seasonId}`),
+  deleteSeason: (orgId: string, seasonId: string) => request<void>(`/api/v1/organizations/${orgId}/seasons/${seasonId}`, { method: "DELETE" }),
   createSeason: (orgId: string, body: { name: string; yearLabel: string; ruleProfileKey: string }) =>
     request<Season>(`/api/v1/organizations/${orgId}/seasons`, { method: "POST", body: JSON.stringify(body) }),
   students: (orgId: string) => request<Student[]>(`/api/v1/organizations/${orgId}/students`),

@@ -86,6 +86,7 @@ function SavedPlanner({ seasonId }: { seasonId: string }) {
   const [dirty, setDirty] = useState(false);
   const [switchTo, setSwitchTo] = useState<string | null>(null);
   const [confirmStart, setConfirmStart] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [lifecycle, setLifecycle] = useState<"close" | "archive" | null>(null);
   const busy = useIsMutating() > 0;
   const step = ["details", "passages"].includes(params.get("step") ?? "") ? 1 : 2;
@@ -97,8 +98,14 @@ function SavedPlanner({ seasonId }: { seasonId: string }) {
   const requestSelect = (id: string) => { if (id === selectedId) return; if (dirty) setSwitchTo(id); else select(id); };
   const assignedCount = students.data?.filter(student => assignments.data?.some(item => item.studentUserId === student.userId)).length ?? 0;
   const active = season.data?.status === "Active", closed = ["Completed", "Archived"].includes(season.data?.status ?? "");
+  const deleteDescription = active
+    ? "Students may be using this active season now. Deleting it will permanently delete its assignments, progress, study history, and competition records. This cannot be undone."
+    : closed
+      ? `This ${season.data?.status.toLowerCase()} season's saved history will be permanently deleted, along with its assignments and competition records. This cannot be undone.`
+      : "This saved season will be permanently deleted, along with its assignments and competition records. This cannot be undone.";
   const activate = useMutation({ mutationFn: async () => { const result = await api.activate(org, seasonId); if (!result.activated) throw new Error(result.blockingProblems.join(" ")); }, onSuccess: async () => { setConfirmStart(false); await Promise.all(["season", "seasons", "assigned-seasons", "progress", "training-today", "training-journey"].map(key => cache.invalidateQueries({ queryKey: [key] }))); } });
   const changeLifecycle = useMutation({ mutationFn: () => lifecycleApi.transitionSeason(org, seasonId, lifecycle!), onSuccess: async () => { setLifecycle(null); await cache.invalidateQueries({ queryKey: ["season", org, seasonId] }); await cache.invalidateQueries({ queryKey: ["seasons"] }); } });
+  const removeSeason = useMutation({ mutationFn: () => api.deleteSeason(org, seasonId), onSuccess: async () => { setConfirmDelete(false); cache.removeQueries({ queryKey: ["season", org, seasonId] }); await Promise.all(["seasons", "assigned-seasons", "assignments", "my-assignments", "season-scope", "coverage", "progress", "training-today", "training-honors", "training-journey"].map(key => cache.invalidateQueries({ queryKey: [key] }))); navigate("/admin/seasons"); } });
   if (season.isPending || students.isPending || assignments.isPending || data.loading) return <LoadingState label="Loading season…" />;
   if (season.error || students.error || assignments.error || data.error) return <Notice tone="danger">Season information could not load. <Button onClick={() => { void season.refetch(); void students.refetch(); void assignments.refetch(); data.retry(); }}>Try again</Button></Notice>;
   return <div className="season-planner"><LinkButton variant="ghost" size="compact" to="/admin/seasons">← All seasons</LinkButton><PageHeader title={season.data!.name} description="Your season books and assignments, in one place." action={<Badge tone={active ? "success" : "neutral"}>{season.data!.status === "ContentReady" ? "Books ready" : season.data!.status === "AssignmentsReady" ? "Plans ready" : season.data!.status}</Badge>} />
@@ -123,9 +130,10 @@ function SavedPlanner({ seasonId }: { seasonId: string }) {
         </div>
       </footer>
     </>}
-    {(active || season.data!.status === "Completed") && <div className="planner-actions">{active && <Button variant="ghost" disabled={busy || dirty} onClick={() => setLifecycle("close")}>Close season</Button>}<Button variant="ghost" disabled={busy || dirty} onClick={() => setLifecycle("archive")}>Archive season</Button></div>}
+    <div className="planner-actions">{active && <Button variant="ghost" disabled={busy || dirty} onClick={() => setLifecycle("close")}>Close season</Button>}{(active || season.data!.status === "Completed") && <Button variant="ghost" disabled={busy || dirty} onClick={() => setLifecycle("archive")}>Archive season</Button>}<Button variant="danger" disabled={busy || dirty} onClick={() => setConfirmDelete(true)}>Delete season</Button></div>
     {switchTo && <ConfirmationDialog title="Discard unsaved assignments?" description="Saved assignments are preserved. Your current unsaved choices will be cleared." confirmLabel="Discard changes" onCancel={() => setSwitchTo(null)} onConfirm={() => { select(switchTo); setSwitchTo(null); }} />}
     {confirmStart && <ConfirmationDialog title={`Start ${season.data!.name}?`} description={`${assignedCount} students have assignments. Starting opens training and locks the season books. Student plans can still be updated.`} confirmLabel="Start season" pending={activate.isPending} error={activate.error?.message} onCancel={() => setConfirmStart(false)} onConfirm={() => activate.mutate()} />}
     {lifecycle && <ConfirmationDialog title={`${lifecycle === "close" ? "Close" : "Archive"} season?`} description="Training will stop for this season. Assignments and progress are preserved. This cannot be reopened." confirmLabel={lifecycle === "close" ? "Close season" : "Archive season"} pending={changeLifecycle.isPending} error={changeLifecycle.error?.message} onCancel={() => setLifecycle(null)} onConfirm={() => changeLifecycle.mutate()} />}
+    {confirmDelete && <ConfirmationDialog title={`Delete ${season.data!.name}?`} description={deleteDescription} confirmLabel="Delete season" pendingLabel="Deleting…" variant="danger" pending={removeSeason.isPending} error={removeSeason.error?.message} onCancel={() => setConfirmDelete(false)} onConfirm={() => removeSeason.mutate()} />}
   </div>;
 }
