@@ -20,3 +20,15 @@ Buttons, fields, panels, page headers, badges and notices must use these primiti
 Preserve the Erudoza brand, existing workflow semantics, routes, accessibility, and deterministic activity behavior. Use the system sans for interface text and serif only for Scripture and branding.
 New UI patterns should extend the shared system when reused. Verify coach and student screens together on desktop and mobile after shared styling changes.
 <!-- bm-design-system:end -->
+
+## Wiki release gate
+
+Before merging any user-facing feature, behavior, or visual change to `main`, review the authenticated wiki at `/wiki`:
+
+- Update the relevant article, search keywords, route links, control explanations, and screenshot when the workflow or UI changes.
+- If no wiki update is needed, record the reason in the task handoff and `PROGRESS.md`.
+- Keep screenshots sanitized and sourced from seeded local/demo data only; never capture production accounts, credentials, or private student data.
+- Run the focused wiki coverage check: `npm --workspace apps/web run test:wiki`.
+- Include wiki search, article links, responsive layout, and screenshot review in release/deployment acceptance.
+
+The authoring workflow and article field guide live in [`docs/wiki/README.md`](docs/wiki/README.md).

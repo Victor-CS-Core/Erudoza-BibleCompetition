@@ -1,5 +1,15 @@
 # Erudoza progress log
 
+## Authenticated platform wiki — implementation checkpoint, September 13
+
+- Implemented on isolated branch `codex/authenticated-wiki` from fresh `origin/main`; main and the user's existing checkout remain untouched. Added guarded `/wiki`, searchable structured content, Student/Coach/Shared filters, URL-persisted `q` searches, stable article anchors, contents navigation, related guides, live-route links, role labels, responsive layout, reduced-motion/forced-colors handling, and account/navigation entry points for both workspaces.
+- Added 25 curated guides covering account access, onboarding, workspace navigation, Training HQ, Study, Review/recaps, Simulation, Scripture Library, assignments, seasons, student and coach directories, progress, Honors, profile/character/share, Team Practice, PBE reviews, privacy, accessibility/install, troubleshooting, scope, scoring, and wiki search. Article data remains version-controlled in `apps/web/src/features/wiki/wikiContent.ts`; the authoring guide is `docs/wiki/README.md`.
+- Added seven sanitized 1440×900 screenshots under `apps/web/public/wiki/` for Training HQ, Study feedback, season planning, assignments, Scripture reading, Team Practice, and profile/character. Source captures came from isolated seeded local/demo browser runs; no production accounts, credentials, or private data were used. The wiki renders descriptive alt text and captions and keeps screenshots readable on phone widths.
+- Added navigation coverage tests for all current student/coach destinations, including personal assignment variants, plus focused search, redirect, filter, no-result, anchor, and image-loading browser coverage. New focused script: `npm --workspace apps/web run test:wiki`.
+- Local validation: focused wiki suite 8/8 passed; web TypeScript, ESLint, whitespace, production build, and Playwright wiki browser QA passed. Browser QA covered authenticated coach and student flows at desktop, 390px, and 320px; URL search, role filtering, route links, no-overflow, screenshot loading, sign-out, and page-error checks passed. Build retains the existing large-client-chunk advisory.
+- Full web Vitest run: 1,160 passed, 3 skipped, 39 pre-existing failures in `AppShell.test.tsx` and `CoffeeWidget.test.tsx` because this environment exposes no `localStorage` object (`Cannot read properties of undefined (reading 'clear')`); no wiki test failed. This task does not change the shared test harness.
+- Release maintenance gate: `AGENTS.md` now requires wiki review and the focused coverage check before a user-facing change merges to `main`; no merge, remote CI, or deployment was performed. Next action is to review and checkpoint the scoped changes, then push `codex/authenticated-wiki` for integration review.
+
 ## Season actions and HQ banner — authorized main integration, September 13
 
 - User explicitly requested merge to main for both changes in this task. Fresh origin/main remains `b79330b`, an ancestor of the reviewed task head `63d9401`; main's checkout is clean. No conflict resolution or application edits are needed.

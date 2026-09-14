@@ -24,6 +24,7 @@ import { StudyPage } from "../features/student/StudyPage";
 import { AppShell } from "../layouts/AppShell";
 import { RouteProblemPage } from "./RouteProblemPage";
 import { DesignSystemPage } from "../components/design-system/DesignSystemPage";
+import { WikiPage } from "../features/wiki/WikiPage";
 const DisputeQueue = lazy(() => import("../features/practice/DisputeQueue").then(module=>({default:module.DisputeQueue})));
 const PracticePage = lazy(() => import("../features/practice/PracticePage").then(module => ({ default: module.PracticePage })));
 function PracticeRoute() {
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
   { path: "/signup", element: <CoachOnboardingPage key="signup" mode="signup" />, errorElement: <RouteProblemPage /> },
   { path: "/forgot-password", element: <CoachOnboardingPage key="recovery" mode="recovery" />, errorElement: <RouteProblemPage /> },
   { path: "/join-coach", element: <CoachOnboardingPage key="invitation" mode="invitation" />, errorElement: <RouteProblemPage /> },
+  { path: "/wiki", element: <WikiPage />, errorElement: <RouteProblemPage /> },
   { path: "*", element: <RouteProblemPage notFound /> },
   {
     path: "/admin",
