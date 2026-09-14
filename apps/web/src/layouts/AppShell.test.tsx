@@ -74,8 +74,8 @@ it("preserves the stable mobile dock when Coach pins change", () => {
  const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
  expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["Overview", "Seasons", "Students"]);
  expect(within(mobile).getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
- expect(within(nav).getAllByRole("link")).toHaveLength(7);
- expect(JSON.parse(localStorage.getItem("erudoza:pins:org:user:coach")!)).toEqual(["seasons", "students", "coaches", "assignments", "practice", "library"]);
+ expect(within(nav).getAllByRole("link")).toHaveLength(8);
+ expect(JSON.parse(localStorage.getItem("erudoza:pins:org:user:coach")!)).toEqual(["seasons", "students", "coaches", "assignments", "practice", "library", "wiki"]);
  expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Pin Overview" })).toBeInTheDocument();
  fireEvent.click(within(screen.getByRole("dialog")).getByRole("link", { name: "Team Practice" }));
  expect(within(mobile).getByRole("button", { name: "More" })).toHaveAttribute("aria-current", "page");
