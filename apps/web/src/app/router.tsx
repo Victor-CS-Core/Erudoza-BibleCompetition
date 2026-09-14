@@ -14,6 +14,8 @@ import { LoginPage } from "../features/auth/LoginPage";
 import { CoachOnboardingPage } from "../features/auth/CoachOnboardingPage";
 import { CoachesPage } from "../features/admin/CoachesPage";
 import { LandingPage } from "../features/marketing/LandingPage";
+import { PrivacyPage } from "../features/legal/PrivacyPage";
+import { TermsPage } from "../features/legal/TermsPage";
 import { ProgressPage } from "../features/student/ProgressPage";
 import { MyAssignmentsPage } from "../features/student/MyAssignmentsPage";
 import { StudentHomePage } from "../features/student/StudentHomePage";
@@ -56,6 +58,8 @@ export const router = createBrowserRouter([
   { path: "/forgot-password", element: <CoachOnboardingPage key="recovery" mode="recovery" />, errorElement: <RouteProblemPage /> },
   { path: "/join-coach", element: <CoachOnboardingPage key="invitation" mode="invitation" />, errorElement: <RouteProblemPage /> },
   { path: "/wiki", element: <WikiPage />, errorElement: <RouteProblemPage /> },
+  { path: "/privacy", element: <PrivacyPage />, errorElement: <RouteProblemPage /> },
+  { path: "/terms", element: <TermsPage />, errorElement: <RouteProblemPage /> },
   { path: "*", element: <RouteProblemPage notFound /> },
   {
     path: "/admin",

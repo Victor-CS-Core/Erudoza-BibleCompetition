@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { InstallApp } from "../../features/install/InstallApp";
 import { CoffeeFooter } from "../../features/support/CoffeeWidget";
 import "./app-footer.css";
@@ -15,6 +16,10 @@ export function AppFooter({ variant = "workspace", supportEnabled = false }: Pro
         {variant !== "account" && <span className="ds-brand-name">Erudoza</span>}
         <p className="ds-caption">Pathfinder Bible Experience training</p>
       </div>
+      <nav className="app-footer-legal" aria-label="Legal">
+        <Link to="/privacy">Privacy</Link>
+        <Link to="/terms">Terms</Link>
+      </nav>
       <div className="app-footer-actions">
         <InstallApp />
         <CoffeeFooter enabled={supportEnabled} />
