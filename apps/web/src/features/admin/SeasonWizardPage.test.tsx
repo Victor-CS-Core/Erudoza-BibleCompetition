@@ -8,7 +8,7 @@ import { lifecycleApi } from "../../api/lifecycle";
 vi.mock("../../api/lifecycle", () => ({ lifecycleApi: { removeAssignment: vi.fn(), correctAssignment: vi.fn(), transitionSeason: vi.fn() } }));
 import { SeasonAssignmentEditor, SeasonWizardPage } from "./SeasonWizardPage";
 
-vi.mock("../../api/client", () => ({ api: { library: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn(), scriptureCatalog: vi.fn(), students: vi.fn(), season: vi.fn(), seasonScope: vi.fn(), assignments: vi.fn(), defineScope: vi.fn(), assign: vi.fn(), setDifficulty: vi.fn(), createSeason: vi.fn(), activate: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
+vi.mock("../../api/client", () => ({ api: { library: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn(), scriptureCatalog: vi.fn(), students: vi.fn(), season: vi.fn(), seasonScope: vi.fn(), assignments: vi.fn(), defineScope: vi.fn(), assign: vi.fn(), setDifficulty: vi.fn(), createSeason: vi.fn(), activate: vi.fn(), deleteSeason: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org-1", userId: "coach", displayName: "Coach", kind: "Adult", role: "Owner" } }) }));
 const range = { bookKey: "DAN", startChapter: 2, startVerse: 1, endChapter: 2, endVerse: 8 };
 const season = { id: "season-1", organizationId: "org-1", name: "Daniel 2026", yearLabel: "2026", status: "ContentReady", ruleProfileKey: "PBE_STYLE_V1", ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, scopeUnitCount: 8, assignmentCount: 0 };
@@ -36,6 +36,7 @@ beforeEach(() => {
   vi.mocked(api.setDifficulty).mockResolvedValue({ difficulty: "Advanced" });
   vi.mocked(api.createSeason).mockResolvedValue(season);
   vi.mocked(api.activate).mockResolvedValue({ activated: true, blockingProblems: [] });
+  vi.mocked(api.deleteSeason).mockResolvedValue(undefined);
 });
 
 describe("Two-step season planner", () => {
@@ -128,6 +129,52 @@ it("allows archiving a completed season", async () => {
   renderWizard();
   fireEvent.click(await screen.findByRole("button", { name: "Archive season" }));
   expect(screen.getByRole("dialog")).toHaveTextContent("Archive season");
+});
+
+it("warns before deleting an active season and returns to the season list after confirmation", async () => {
+  vi.mocked(api.season).mockResolvedValue({ ...season, status: "Active" });
+  renderWizard();
+  fireEvent.click(await screen.findByRole("button", { name: "Delete season" }));
+  expect(api.deleteSeason).not.toHaveBeenCalled();
+  expect(screen.getByRole("dialog")).toHaveTextContent("permanently delete");
+  expect(screen.getByRole("dialog")).toHaveTextContent("assignments, progress, study history, and competition records");
+  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete season" }));
+  await waitFor(() => expect(api.deleteSeason).toHaveBeenCalledWith("org-1", "season-1"));
+  expect(await screen.findByRole("heading", { name: "All seasons list" })).toBeInTheDocument();
+});
+
+it("keeps the deletion warning open and reports a failed delete", async () => {
+  vi.mocked(api.deleteSeason).mockRejectedValue(new Error("Offline"));
+  renderWizard();
+  fireEvent.click(await screen.findByRole("button", { name: "Delete season" }));
+  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete season" }));
+  expect(await within(screen.getByRole("dialog")).findByRole("alert")).toHaveTextContent("Offline");
+  expect(screen.getByRole("dialog")).toBeInTheDocument();
+  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Delete season" }));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
+it("locks the deletion warning while the request is pending", async () => {
+  let resolveDelete!: () => void;
+  vi.mocked(api.deleteSeason).mockImplementation(() => new Promise<void>(resolve => { resolveDelete = resolve; }));
+  renderWizard();
+  fireEvent.click(await screen.findByRole("button", { name: "Delete season" }));
+  const dialog = screen.getByRole("dialog");
+  fireEvent.click(within(dialog).getByRole("button", { name: "Delete season" }));
+  expect(await within(dialog).findByRole("button", { name: "Deleting…" })).toBeDisabled();
+  expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();
+  expect(api.deleteSeason).toHaveBeenCalledTimes(1);
+  resolveDelete();
+  expect(await screen.findByRole("heading", { name: "All seasons list" })).toBeInTheDocument();
+});
+
+it("cancels deletion without calling the API", async () => {
+  renderWizard();
+  fireEvent.click(await screen.findByRole("button", { name: "Delete season" }));
+  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" }));
+  expect(api.deleteSeason).not.toHaveBeenCalled();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
 it.each(["student-1", "coach"])("assigns only selected season chapters for %s", async studentId => {

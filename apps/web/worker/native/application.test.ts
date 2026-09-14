@@ -79,6 +79,50 @@ it('replays coach setup with exclusion-aware scope, assignments, difficulty, cov
     expect((await call(`${prefix}/archive`, 'POST')).status).toBe(204);
     expect((await call(`${prefix}/close`, 'POST')).status).toBe(400);
 }, 30000);
+it('rolls back every season deletion statement when scoped cleanup fails', async () => {
+    const { pack, season, student } = await setup('delete-season-rollback');
+    const prefix = `/seasons/${season.id}`;
+    expect((await call(`${prefix}/assignments`, 'POST', { studentUserId: student.userId, contentPackId: pack.id, type: 'PrimarySpecialist', range: passage })).status).toBe(200);
+    expect((await call(`${prefix}/activate`, 'POST')).status).toBe(200);
+    await app.db.prepare("INSERT INTO PracticeRoomComponents(org_id,season_id,room_id,hash,data) VALUES(?,?,?,?,?)").bind(TEST_ORG, season.id, 'room-delete-rollback', 'hash-delete-rollback', '{}').run();
+    await app.db.prepare("CREATE TRIGGER RejectSeasonComponentDelete BEFORE DELETE ON PracticeRoomComponents BEGIN SELECT RAISE(ABORT,'test season delete rejection'); END").run();
+    try {
+        expect((await call(prefix, 'DELETE')).status).toBe(503);
+    }
+    finally {
+        await app.db.prepare('DROP TRIGGER RejectSeasonComponentDelete').run();
+    }
+    expect((await call(prefix)).status).toBe(200);
+    expect(await app.db.prepare('SELECT count(*) AS count FROM Records WHERE org_id=? AND season_id=?').bind(TEST_ORG, season.id).first('count')).toBeGreaterThan(0);
+    expect(await app.db.prepare('SELECT count(*) AS count FROM PracticeRoomComponents WHERE org_id=? AND season_id=?').bind(TEST_ORG, season.id).first('count')).toBe(1);
+}, 30000);
+it('deletes a prepared but non-active season', async () => {
+    const { season } = await setup('delete-season-prepared');
+    const prefix = `/seasons/${season.id}`;
+    expect((await call(prefix, 'DELETE')).status).toBe(204);
+    expect((await call(prefix)).status).toBe(404);
+}, 30000);
+it('deletes an active season and its scoped records without touching another season or shared books', async () => {
+    const { pack, season, student } = await setup('delete-season');
+    const prefix = `/seasons/${season.id}`;
+    expect((await call(`${prefix}/assignments`, 'POST', { studentUserId: student.userId, contentPackId: pack.id, type: 'PrimarySpecialist', range: passage })).status).toBe(200);
+    expect((await call(`${prefix}/activate`, 'POST')).status).toBe(200);
+    const otherResponse = await call('/seasons', 'POST', { name: 'other-season', yearLabel: '2026', ruleProfileKey: 'PBE_STYLE_V1' });
+    const other = await otherResponse.json() as { id: string };
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) VALUES('attempt','delete-season-history',?,?,?,'{}'),('attempt','other-season-history',?,?,?,'{}')")
+        .bind(TEST_ORG, season.id, student.userId, TEST_ORG, other.id, student.userId).run();
+    await app.db.prepare("INSERT INTO PracticeRoomComponents(org_id,season_id,room_id,hash,data) VALUES(?,?,?,?,?)")
+        .bind(TEST_ORG, season.id, 'room-delete-season', 'hash-delete-season', '{}').run();
+    expect((await call(prefix, 'DELETE')).status).toBe(204);
+    expect((await call(prefix)).status).toBe(404);
+    expect(await app.db.prepare('SELECT count(*) AS count FROM Records WHERE org_id=? AND season_id=?').bind(TEST_ORG, season.id).first('count')).toBe(0);
+    expect(await app.db.prepare('SELECT count(*) AS count FROM PracticeRoomComponents WHERE org_id=? AND season_id=?').bind(TEST_ORG, season.id).first('count')).toBe(0);
+    expect(await app.db.prepare("SELECT count(*) AS count FROM Records WHERE kind='attempt' AND id='other-season-history' AND season_id=?").bind(other.id).first('count')).toBe(1);
+    const remainingPacks = await call('/content-packs');
+    expect(remainingPacks.status).toBe(200);
+    expect((await remainingPacks.json() as { id: string }[]).some(item => item.id === pack.id)).toBe(true);
+    expect((await call(`/seasons/${other.id}`)).status).toBe(200);
+}, 30000);
 it('validates entire import before writes and requires a new version for changed text', async () => {
     const input = payload('rollback');
     input.documents[0].units[2].text = '';
