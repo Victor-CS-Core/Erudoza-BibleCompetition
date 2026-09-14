@@ -24,8 +24,9 @@ describe("wiki content", () => {
     expect(searchWiki(wikiArticles, "credential verification").map(result => result.article.id)).toContain("account-access");
   });
 
-  it("exposes the wiki in both workspace navigation modes", () => {
-    expect(navigation(false).find(item => item.id === "wiki")).toMatchObject({ label: "Wiki / Help", to: "/wiki" });
+  it("exposes the wiki in coach navigation and the shared footer", () => {
     expect(navigation(true).find(item => item.id === "wiki")).toMatchObject({ label: "Wiki / Help", to: "/wiki" });
+    // Students reach the wiki from the footer (next to Privacy/Terms), not the five-item nav.
+    expect(navigation(false).some(item => item.id === "wiki")).toBe(false);
   });
 });

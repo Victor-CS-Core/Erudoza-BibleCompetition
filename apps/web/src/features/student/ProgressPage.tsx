@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from "../../components/ui";
 import { academyActivityName, academyRecentExactPercent, canStartAcademyTrack } from "./academyTracks";
+import { HonorsPage } from "./HonorsPage";
 import { PassageJourney } from "./PassageJourney";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
 import "./student.css";
@@ -14,13 +15,27 @@ export function ProgressPage() {
   const [params] = useSearchParams();
   const selectedSeasonId = params.get("seasonId") || undefined;
   const coachView = !!seasonId && !!studentId;
+  // Honors lives as a tab inside Progress for students; coaches keep the plain progress view.
+  const tab = !coachView && params.get("tab") === "honors" ? "honors" : "overview";
+  const tabHref = (target: "overview" | "honors") => {
+    const next = new URLSearchParams();
+    if (target !== "overview") next.set("tab", target);
+    if (selectedSeasonId) next.set("seasonId", selectedSeasonId);
+    const query = next.toString();
+    return `/student/progress${query ? `?${query}` : ""}`;
+  };
   const progress = useQuery({ queryKey: ["progress", seasonId ?? selectedSeasonId, studentId, me?.organizationId, me?.userId],
-    queryFn: () => coachView ? api.studentProgress(me!.organizationId, seasonId!, studentId!) : api.progress(selectedSeasonId), enabled: !coachView || !!me });
+    queryFn: () => coachView ? api.studentProgress(me!.organizationId, seasonId!, studentId!) : api.progress(selectedSeasonId), enabled: (!coachView || !!me) && tab !== "honors" });
   const data = progress.data;
   const recent = data?.recentAttempts ?? [];
   return <div className="training-dashboard student-progress">
     <PageHeader title={coachView ? "Student progress" : "Your progress"} description={<span data-testid="progress-student">{data?.studentDisplayName ? `${data.studentDisplayName} · ` : ""}{data?.seasonName || "Recorded practice and passage progress"}</span>}
       action={<LinkButton variant="secondary" to={coachView ? `/admin/assignments?studentId=${encodeURIComponent(studentId!)}&seasonId=${encodeURIComponent(seasonId!)}` : `/student${selectedSeasonId ? `?seasonId=${encodeURIComponent(selectedSeasonId)}` : ""}`}>{coachView ? "Back to assignments" : "Back to training"}</LinkButton>} />
+    {!coachView && <nav className="study-mode-tabs" aria-label="Progress views">
+      <Link to={tabHref("overview")} data-testid="progress-tab-overview" aria-current={tab === "overview" ? "page" : undefined} className={tab === "overview" ? "is-active" : undefined}>Overview</Link>
+      <Link to={tabHref("honors")} data-testid="progress-tab-honors" aria-current={tab === "honors" ? "page" : undefined} className={tab === "honors" ? "is-active" : undefined}>Honors</Link>
+    </nav>}
+    {tab === "honors" ? <HonorsPage hideHeader /> : <>
     {progress.isPending && <Panel aria-busy="true"><LoadingState label="Loading progress…" /></Panel>}
     {progress.isError && <Notice tone="danger">Progress could not load. <Button variant="secondary" onClick={() => void progress.refetch()}>Try again</Button></Notice>}
     {data && <>
@@ -45,6 +60,7 @@ export function ProgressPage() {
         <div><h3>{item.title}</h3><p>{academyActivityName(item.activityType)} · <time dateTime={item.createdAtUtc}>{new Date(item.createdAtUtc).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</time></p><p className="er-scripture">{item.submittedAnswer || "—"}</p></div>
         <Badge tone={item.isCorrect ? "success" : "warning"}>{item.isCorrect ? "Correct" : "Keep practicing"}</Badge>
       </li>) : <li><div><p>No attempts yet.</p>{!coachView && canStartAcademyTrack("learner", data) && data.assignments.length > 0 && <LinkButton size="compact" to={`/student/study?seasonId=${encodeURIComponent(data.seasonId)}`}>Start your first study session</LinkButton>}</div></li>}</ul></Panel>
+    </>}
     </>}
   </div>;
 }

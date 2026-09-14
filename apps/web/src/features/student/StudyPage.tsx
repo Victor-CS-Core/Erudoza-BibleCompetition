@@ -1,7 +1,7 @@
 import { useAuth } from "../../auth/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
 import type { ChallengeCard, AttemptResult, Session } from "../../api/types";
 import type { StartTrainingContext } from "../../api/trainingTypes";
@@ -20,29 +20,66 @@ import { ScriptureReader } from "./ScriptureReader";
 import { PbeStudyPage } from './PbeStudyPage';
 import { trainingApi } from '../../api/training';
 import { LoadingState } from '../../components/ui';
+import { ContentPage } from "../admin/ContentPage";
 import type { PbeResumedSession } from '../../api/pbeTypes';
 import type { ResumedSession } from '../../api/types';
+
+export type StudyMode = "Practice" | "Review" | "Simulation" | "Library";
+export function parseStudyMode(value: string | null): StudyMode {
+  return value === "Review" || value === "Simulation" || value === "Library" ? value : "Practice";
+}
+
+const STUDY_MODE_TABS: { mode: StudyMode; label: string; testId: string }[] = [
+  { mode: "Practice", label: "Practice", testId: "study-tab-practice" },
+  { mode: "Review", label: "Review", testId: "study-tab-review" },
+  { mode: "Simulation", label: "Simulation", testId: "study-tab-simulation" },
+  { mode: "Library", label: "Library", testId: "study-tab-library" },
+];
+
+/** In-page mode switcher: Practice / Review / Simulation / Library live under one Study destination. */
+function StudyModeTabs({ mode }: { mode: StudyMode }) {
+  const [params] = useSearchParams();
+  const seasonId = params.get("seasonId");
+  const format = params.get("format");
+  const href = (target: StudyMode) => {
+    const next = new URLSearchParams();
+    next.set("mode", target);
+    if (seasonId) next.set("seasonId", seasonId);
+    if (format) next.set("format", format);
+    return `/student/study?${next}`;
+  };
+  return <nav className="study-mode-tabs" aria-label="Study modes">
+    {STUDY_MODE_TABS.map(tab => <Link key={tab.mode} to={href(tab.mode)} data-testid={tab.testId} aria-current={tab.mode === mode ? "page" : undefined} className={tab.mode === mode ? "is-active" : undefined}>{tab.label}</Link>)}
+  </nav>;
+}
 
 export function StudyPage() {
   const { me } = useAuth();
   const [params, setParams] = useSearchParams();
+  const mode = parseStudyMode(params.get("mode"));
+  const libraryMode = mode === "Library";
   const sessionId = params.get('sessionId'), seasonId = params.get('seasonId') || undefined;
   const saved = useQuery({queryKey:['study-resume-format',sessionId,me?.organizationId,me?.userId],queryFn:()=>api.resumeSession(sessionId!),enabled:!!sessionId,retry:false,staleTime:Infinity,gcTime:0});
-  const progress = useQuery({queryKey:['progress',seasonId,me?.organizationId,me?.userId],queryFn:()=>api.progress(seasonId),enabled:!sessionId&&params.get('format')!=='Memory'});
-  const candidate = !sessionId && (params.get('format')==='Pbe'||params.get('format')!=='Memory'&&progress.data?.pbeEnabled);
+  const progress = useQuery({queryKey:['progress',seasonId,me?.organizationId,me?.userId],queryFn:()=>api.progress(seasonId),enabled:!sessionId&&params.get('format')!=='Memory'&&!libraryMode});
+  const candidate = !libraryMode && !sessionId && (params.get('format')==='Pbe'||params.get('format')!=='Memory'&&progress.data?.pbeEnabled);
   const today = useQuery({queryKey:['training-today',seasonId,me?.organizationId,me?.userId],queryFn:()=>trainingApi.today(seasonId),enabled:!!candidate,retry:false});
-  if(sessionId){
-    if(saved.isPending)return <LoadingState label="Loading your saved session…"/>;
-    if(saved.isError)return <Notice tone="danger">Your saved session is unavailable. <Button onClick={()=>void saved.refetch()}>Retry saved session</Button><Button variant="secondary" onClick={()=>setParams(seasonId?{seasonId}:{})}>Start a new session</Button></Notice>;
-    return saved.data.session.format==='Pbe'?<PbeStudyPage key={sessionId} saved={saved.data as unknown as PbeResumedSession} seasonId={saved.data.session.seasonId} seasonName="Saved PBE session"/>:<MemoryStudyPage initialSaved={saved.data}/>;
+  const tabs = <StudyModeTabs mode={mode} />;
+  let body: ReactNode;
+  if (libraryMode) {
+    body = <ContentPage />;
+  } else if(sessionId){
+    if(saved.isPending)body=<LoadingState label="Loading your saved session…"/>;
+    else if(saved.isError)body=<Notice tone="danger">Your saved session is unavailable. <Button onClick={()=>void saved.refetch()}>Retry saved session</Button><Button variant="secondary" onClick={()=>setParams(seasonId?{seasonId}:{})}>Start a new session</Button></Notice>;
+    else body=saved.data.session.format==='Pbe'?<PbeStudyPage key={sessionId} saved={saved.data as unknown as PbeResumedSession} seasonId={saved.data.session.seasonId} seasonName="Saved PBE session"/>:<MemoryStudyPage initialSaved={saved.data}/>;
   }
-  if(candidate){
-    if(today.isPending)return <LoadingState label="Loading your PBE assignment…"/>;
-    if(today.isError)return <Notice tone="danger">Your PBE assignment could not load. <Button onClick={()=>void today.refetch()}>Try again</Button><LinkButton to={`/student/study?seasonId=${encodeURIComponent(seasonId??'')}&format=Memory`}>Choose Memory</LinkButton></Notice>;
-    return <PbeStudyPage key={`${today.data.seasonId}:${params.get('mode')??'Practice'}:Pbe`} seasonId={today.data.seasonId??seasonId??''} seasonName={today.data.seasonName} unavailable={today.data.mission.status==='Unavailable'?today.data.mission.explanation??'No eligible published questions are available.':undefined}/>;
+  else if(candidate){
+    if(today.isPending)body=<LoadingState label="Loading your PBE assignment…"/>;
+    else if(today.isError)body=<Notice tone="danger">Your PBE assignment could not load. <Button onClick={()=>void today.refetch()}>Try again</Button><LinkButton to={`/student/study?seasonId=${encodeURIComponent(seasonId??'')}&format=Memory`}>Choose Memory</LinkButton></Notice>;
+    else body=<PbeStudyPage key={`${today.data.seasonId}:${params.get('mode')??'Practice'}:Pbe`} seasonId={today.data.seasonId??seasonId??''} seasonName={today.data.seasonName} unavailable={today.data.mission.status==='Unavailable'?today.data.mission.explanation??'No eligible published questions are available.':undefined}/>;
   }
-  if(params.get('format')!=='Memory'&&progress.isPending)return <LoadingState label="Loading your season…"/>;
-  return <MemoryStudyPage/>;
+  else if(params.get('format')!=='Memory'&&progress.isPending)body=<LoadingState label="Loading your season…"/>;
+  else body=<MemoryStudyPage/>;
+  return <>{tabs}{body}</>;
 }
 function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const { me } = useAuth();

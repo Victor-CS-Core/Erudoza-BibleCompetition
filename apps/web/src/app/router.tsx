@@ -1,5 +1,5 @@
 import { Button, LoadingState, Notice, Panel } from "../components/ui";
-import { Navigate, createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { lazy, Suspense, type ReactNode } from "react";
 import { AdminHomePage } from "../features/admin/AdminHomePage";
@@ -20,7 +20,6 @@ import { ProgressPage } from "../features/student/ProgressPage";
 import { MyAssignmentsPage } from "../features/student/MyAssignmentsPage";
 import { StudentHomePage } from "../features/student/StudentHomePage";
 import { ProfilePage } from "../features/profile/ProfilePage";
-import { HonorsPage } from "../features/student/HonorsPage";
 import { SessionRecapPage } from "../features/student/SessionRecapPage";
 import { StudyPage } from "../features/student/StudyPage";
 import { AppShell } from "../layouts/AppShell";
@@ -49,6 +48,20 @@ function Guard({ role, children }: { role: "admin" | "student"; children: ReactN
     return <Navigate to="/admin" replace />;
   }
   return children;
+}
+
+/** Legacy /student/library now lives as the Library tab inside Study. */
+function LibraryRedirect() {
+  const [params] = useSearchParams();
+  const seasonId = params.get("seasonId");
+  return <Navigate to={`/student/study?mode=Library${seasonId ? `&seasonId=${encodeURIComponent(seasonId)}` : ""}`} replace />;
+}
+
+/** Legacy /student/honors now lives as a tab inside Progress. */
+function HonorsRedirect() {
+  const [params] = useSearchParams();
+  const seasonId = params.get("seasonId");
+  return <Navigate to={`/student/progress?tab=honors${seasonId ? `&seasonId=${encodeURIComponent(seasonId)}` : ""}`} replace />;
 }
 
 export const router = createBrowserRouter([
@@ -97,10 +110,10 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <StudentHomePage /> },
       { path: "assignments", element: <MyAssignmentsPage /> },
-      { path: "library", element: <ContentPage /> },
+      { path: "library", element: <LibraryRedirect /> },
       { path: "study", element: <StudyPage /> },
       { path: "sessions/:sessionId/recap", element: <SessionRecapPage /> },
-      { path: "honors", element: <HonorsPage /> },
+      { path: "honors", element: <HonorsRedirect /> },
       { path: "progress", element: <ProgressPage /> },
       { path: "profile", element: <ProfilePage /> },
       { path: "practice", element: <PracticeRoute /> },

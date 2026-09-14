@@ -15,6 +15,10 @@ vi.mock("../../api/client", () => ({
   },
 }));
 
+vi.mock("./HonorsPage", () => ({
+  HonorsPage: ({ hideHeader }: { hideHeader?: boolean }) => <div data-testid="honors-embed" data-hide-header={hideHeader ? "true" : "false"}>Honors embed</div>,
+}));
+
 vi.mock("../../auth/AuthContext", () => ({
   useAuth: () => ({
     me: {
@@ -86,7 +90,7 @@ function renderProgress(path: string, state?: SessionSummary | null) {
       { path: "/admin/seasons/:seasonId/students/:studentId/progress", element: <ProgressPage /> },
     ],
     {
-      initialEntries: [{ pathname: path, state: state ?? null }],
+      initialEntries: [{ pathname: path.split("?")[0], search: path.includes("?") ? `?${path.split("?")[1]}` : undefined, state: state ?? null }],
     },
   );
   render(
@@ -182,5 +186,34 @@ describe("ProgressPage recorded evidence", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Progress could not load");
     expect(screen.getByRole("button", { name: "Try again" })).toBeInTheDocument();
     expect(screen.queryByTestId("progress-attempts")).not.toBeInTheDocument();
+  });
+});
+
+describe("ProgressPage tabs", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.progress).mockResolvedValue(progress());
+    vi.mocked(trainingApi.journey).mockResolvedValue({ seasonId: "season-1", scopeVersion: "scope-1", after: null, chapters: [] });
+  });
+  it("shows Overview and Honors tabs with Overview active by default", async () => {
+    renderProgress("/student/progress?seasonId=season-1");
+    expect(screen.getByTestId("progress-tab-overview")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("progress-tab-honors")).toHaveAttribute("href", "/student/progress?tab=honors&seasonId=season-1");
+    expect(await screen.findByTestId("progress-attempts")).toBeInTheDocument();
+    expect(screen.queryByTestId("honors-embed")).not.toBeInTheDocument();
+  });
+  it("embeds Honors without its standalone header when the honors tab is active", async () => {
+    renderProgress("/student/progress?tab=honors&seasonId=season-1");
+    expect(screen.getByTestId("progress-tab-honors")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("progress-tab-overview")).toHaveAttribute("href", "/student/progress?seasonId=season-1");
+    expect(screen.getByTestId("honors-embed")).toHaveAttribute("data-hide-header", "true");
+    expect(screen.queryByTestId("progress-attempts")).not.toBeInTheDocument();
+    expect(api.progress).not.toHaveBeenCalled();
+  });
+  it("keeps the coach progress view free of student tabs", async () => {
+    renderProgress("/admin/seasons/season-1/students/student-1/progress");
+    expect(screen.queryByTestId("progress-tab-honors")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("progress-tab-overview")).not.toBeInTheDocument();
+    expect(await screen.findByTestId("progress-attempts")).toBeInTheDocument();
   });
 });

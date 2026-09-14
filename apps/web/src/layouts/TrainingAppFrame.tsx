@@ -10,7 +10,7 @@ import { AppIcon } from "../components/AppIcon";
 import { Button, Notice } from "../components/ui";
 import { CommandCenter } from "../components/navigation/CommandCenter";
 import { NavigationMenu } from "../components/navigation/NavigationMenu";
-import { currentDestination, navigation, type Destination } from "../components/navigation/destinations";
+import { currentDestination, navigation, studentSearchExtras, type Destination } from "../components/navigation/destinations";
 import { AppFooter } from "../components/ui/AppFooter";
 import { CoffeeWidget } from "../features/support/CoffeeWidget";
 import "../styles/command-center.css";
@@ -33,7 +33,8 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const switchSeason = (pathSeason && pathSeason !== "new" ? pathSeason : null) ?? selectedSeason ?? rememberedSeason;
   useEffect(() => { if (selectedSeason) { try { sessionStorage.setItem(seasonStorageKey, selectedSeason); } catch { /* Storage is optional. */ } } }, [seasonStorageKey, selectedSeason]);
   const items = navigation(coach, coach ? switchSeason : selectedSeason, canSwitch);
-  const active = currentDestination(items, location.pathname, location.search);
+  const searchItems = coach ? items : [...items, ...studentSearchExtras(canSwitch, selectedSeason)];
+  const active = currentDestination(items, location.pathname);
   const route = location.pathname + location.search + location.hash;
   const [commandRoute, setCommandRoute] = useState<string | null>(null);
   const commandOpen = commandRoute === route;
@@ -48,11 +49,11 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const storageKey = `erudoza:pins:${me?.organizationId}:${me?.userId}:${coach ? "coach" : "student"}`;
   const [pinned, setPinned] = useState<string[]>(() => {
     try { const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "null"); if (Array.isArray(saved)) return [...new Set(saved.filter((id): id is string => typeof id === "string" && items.some(item => item.id === id)))]; } catch { /* Browser storage can be unavailable. */ }
-    return coach ? items.filter(item => item.id !== "profile").map(item => item.id) : ["home", "study", "honors"];
+    return coach ? items.filter(item => item.id !== "profile").map(item => item.id) : ["home", "study", "progress"];
   });
   const visibleShortcuts = active && !pinned.includes(active.id) ? [...pinned, active.id] : pinned;
-  const mobileIds = coach ? ["overview", "seasons", "students"] : ["home", "study", "honors"];
-  const mobileActive = !coach && ["review", "simulation"].includes(active?.id ?? "") ? "study" : active?.id;
+  const mobileIds = coach ? ["overview", "seasons", "students"] : ["home", "study", "progress"];
+  const mobileActive = active?.id;
   const mobileItems = mobileIds.map(id => items.find(item => item.id === id)!);
   useEffect(() => {
     const nav = shortcuts.current;
@@ -156,6 +157,6 @@ function CommandFrame({ coach }: { coach: boolean }) {
       {mobileItems.map(item => <Link key={item.id} to={item.to} aria-current={mobileActive === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.id === "home" ? "HQ" : item.label}</span></Link>)}
       <Button variant="ghost" aria-label="More" aria-current={!mobileIds.includes(mobileActive ?? "") ? "page" : undefined} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>More</span></Button>
     </nav>
-    {commandOpen && <CommandCenter items={items} coach={coach} selectedSeason={coach ? switchSeason : selectedSeason} pinned={pinned} togglePin={togglePin} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
+    {commandOpen && <CommandCenter items={searchItems} coach={coach} selectedSeason={coach ? switchSeason : selectedSeason} pinned={pinned} togglePin={togglePin} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
   </div>;
 }

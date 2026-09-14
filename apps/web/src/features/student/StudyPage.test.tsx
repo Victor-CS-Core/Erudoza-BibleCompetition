@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api, ApiError } from "../../api/client";
@@ -21,6 +21,8 @@ vi.mock("../../api/client", async importOriginal => ({
 
 const studyClients = new Set<QueryClient>();
 const studyRouters = new Set<ReturnType<typeof createMemoryRouter>>();
+
+vi.mock("../admin/ContentPage", () => ({ ContentPage: () => <div data-testid="library-embed">Scripture library</div> }));
 
 beforeEach(() => {
   vi.mocked(api.resumeSession).mockImplementation(async (id) => ({session:{id,seasonId:"season-1",status:"Created",mode:"Practice",targetCardCount:8},card:null,attempt:null,summary:null}));
@@ -622,5 +624,38 @@ describe("StudyPage assigned Scripture reading", () => {
     await screen.findByRole("textbox",{name:"Blank 1 of 1"});
     expect(screen.queryByRole("button", { name: "Read passage" })).not.toBeInTheDocument();
     expect(scriptureApi.assigned).not.toHaveBeenCalled();
+  });
+});
+
+describe("StudyPage mode tabs", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", pbeEnabled: false }));
+  });
+  it("shows Practice, Review, Simulation and Library tabs with the season preserved", () => {
+    renderStudy("/student/study?seasonId=season-1&format=Memory");
+    const nav = screen.getByRole("navigation", { name: "Study modes" });
+    expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual(["Practice", "Review", "Simulation", "Library"]);
+    expect(screen.getByTestId("study-tab-practice")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("study-tab-review")).toHaveAttribute("href", "/student/study?mode=Review&seasonId=season-1&format=Memory");
+    expect(screen.getByTestId("study-tab-simulation")).toHaveAttribute("href", "/student/study?mode=Simulation&seasonId=season-1&format=Memory");
+    expect(screen.getByTestId("study-tab-library")).toHaveAttribute("href", "/student/study?mode=Library&seasonId=season-1&format=Memory");
+  });
+  it("marks the active tab for Review and Simulation modes", () => {
+    renderStudy("/student/study?mode=Review&seasonId=season-1&format=Memory");
+    expect(screen.getByTestId("study-tab-review")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("study-tab-practice")).not.toHaveAttribute("aria-current", "page");
+    cleanup();
+    for (const router of studyRouters) router.dispose();
+    studyRouters.clear();
+    renderStudy("/student/study?mode=Simulation&seasonId=season-1&format=Memory");
+    expect(screen.getByTestId("study-tab-simulation")).toHaveAttribute("aria-current", "page");
+  });
+  it("renders the Scripture library without starting a training session", () => {
+    renderStudy("/student/study?mode=Library&seasonId=season-1");
+    expect(screen.getByTestId("study-tab-library")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByTestId("library-embed")).toBeInTheDocument();
+    expect(api.progress).not.toHaveBeenCalled();
+    expect(api.startSession).not.toHaveBeenCalled();
   });
 });

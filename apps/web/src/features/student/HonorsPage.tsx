@@ -20,7 +20,7 @@ const milestoneSummaries: Record<BadgeProgress["key"], string> = {
   "steady-study": "Meet your weekly goal in 4 recorded weeks.",
   "review-complete": "Complete one full set of due reviews.",
 };
-export function HonorsPage() {
+export function HonorsPage({ hideHeader = false }: { hideHeader?: boolean }) {
   const { me } = useAuth();
   const [params, setParams] = useSearchParams();
   const [filter, setFilter] = useState("All");
@@ -37,7 +37,7 @@ export function HonorsPage() {
   const datedStamps = stamps.data?.pages.flatMap(page => page.view === 'Stamps' ? page.items : []) ?? [];
   const visible = profile.data?.honors.filter(honor => (category === "All" || honor.category === category) && (filter === "All" || (filter === "Earned" ? !!honor.earnedAtUtc : !honor.earnedAtUtc))) ?? [];
   const earnedCount = profile.data?.honors.filter(honor => honor.earnedAtUtc).length ?? 0;
-  return <div className="training-dashboard training-collection"><PageHeader title="Honors" description="See your Scripture recall achievements and their requirements." action={<LinkButton variant="secondary" to={trainingLink("/student", seasonId)}>Back to training</LinkButton>} />
+  return <div className="training-dashboard training-collection">{!hideHeader && <PageHeader title="Honors" description="See your Scripture recall achievements and their requirements." action={<LinkButton variant="secondary" to={trainingLink("/student", seasonId)}>Back to training</LinkButton>} />}
     <p>Erudoza Honors record Scripture recall and Team Practice achievements. Earn a patch to use it on your profile. These are app achievements, not official Pathfinder Honors.</p>
     <div className="training-collection-summary">
       {profile.isSuccess && <p><strong>{earnedCount} {earnedCount === 1 ? "Honor" : "Honors"} earned</strong> · {profile.data.honors.length} mastery challenges.</p>}

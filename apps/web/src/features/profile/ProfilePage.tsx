@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type SetStateAction } from
 import type { AvatarKind, CharacterConfig, SaveCharacterProfile, ShareOptions } from '../../../shared/profileCharacter';
 import { useAuth } from '../../auth/AuthContext';
 import { ApiError } from '../../api/client';
-import { Badge, Button, LoadingState, Notice, PageHeader, Panel, Select } from '../../components/ui';
+import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel, Select } from '../../components/ui';
 import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';
 import { MasteryHonorArtwork } from './MasteryHonorArtwork';
 import { completeProfile, useMyProfile, useSaveCharacterProfile, type MyProfile } from './profile';
@@ -142,7 +142,8 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
                 <Button variant={draft.avatarKind === 'character' ? 'primary' : 'secondary'} aria-label="Character" aria-pressed={draft.avatarKind === 'character'} onClick={() => chooseAvatar('character')}><CharacterPortrait appearance={config} onError={setRenderError}/><span>Character</span></Button>
                 <Button variant={draft.avatarKind === 'initials' ? 'primary' : 'secondary'} aria-label="Use initials" aria-pressed={draft.avatarKind === 'initials'} onClick={() => chooseAvatar('initials')}><span className="initials-preview">{initials}</span><span>Initials</span></Button>
               </div>{draft.avatarKind === 'honor' && <label className="avatar-select">Honor profile image<Select value={draft.avatarHonorKey ?? ''} onChange={event => chooseAvatar('honor', event.target.value)}>{profile.honors.map(honor => <option key={honor.key} value={honor.key} disabled={!honor.earnedAtUtc}>{honor.title}{honor.earnedAtUtc ? '' : ' · Locked'}</option>)}</Select></label>}{!earned.length && <p className="help">Earn an Honor to use its patch as your profile image.</p>}</Panel>
-                <Panel><h2>Displayed Honors</h2>{honorSlots}<Button className="wide-action" variant="secondary" onClick={() => navigate('Honors')}>Manage Honors</Button><p className="help">Your profile image and displayed Honors are separate.</p></Panel></>}
+                <Panel><h2>Displayed Honors</h2>{honorSlots}<Button className="wide-action" variant="secondary" onClick={() => navigate('Honors')}>Manage Honors</Button><p className="help">Your profile image and displayed Honors are separate.</p></Panel>
+                {me?.kind === "Adult" && (me?.role === "Owner" || me?.role === "Admin") && <Panel><h2>My study books</h2><p className="help">Choose the passages you study as a participant.</p><LinkButton variant="secondary" to="/student/assignments">Choose study books</LinkButton></Panel>}</>}
               {page === 'Character' && <><Panel><h2>Appearance</h2>
                 <fieldset><legend>Body type</legend><div className="choice-row">{(['male', 'female'] as const).map(body => <Button key={body} variant={config.bodyType === body ? 'primary' : 'secondary'} aria-pressed={config.bodyType === body} onClick={() => selectBody(body)}>{body === 'male' ? 'Male' : 'Female'}</Button>)}</div></fieldset>
                 <fieldset><legend>Skin tone</legend><div className="choice-row">{skinTones.map(tone => <Button key={tone.key} variant={config.skin === tone.key ? 'primary' : 'secondary'} aria-pressed={config.skin === tone.key} onClick={() => update('skin', tone.key)}><span className="color-swatch" style={{ background: tone.color }}/>{tone.name}</Button>)}</div></fieldset>

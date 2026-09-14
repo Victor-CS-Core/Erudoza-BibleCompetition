@@ -19,10 +19,10 @@ beforeEach(() => {
 it("keeps the selected season when switching student activities", () => {
  shell("/student/study?seasonId=season-two");
  fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
- expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Review" })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=season-two");
+ expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Team Practice" })).toHaveAttribute("href", "/student/practice?seasonId=season-two");
  expect(screen.getByTestId("study-back")).toHaveAttribute("href", "/student?seasonId=season-two");
 });
-it.each([["/student", "Training HQ"], ["/student/study", "Study"], ["/student/study?mode=Review", "Review"], ["/student/study?mode=Simulation", "Simulation"], ["/student/progress", "Progress"]])("marks only the correct navigation entry active for %s", (path, name) => {
+it.each([["/student", "Training HQ"], ["/student/study", "Study"], ["/student/study?mode=Review", "Study"], ["/student/study?mode=Simulation", "Study"], ["/student/study?mode=Library", "Study"], ["/student/library", "Study"], ["/student/progress", "Progress"], ["/student/progress?tab=honors", "Progress"], ["/student/honors", "Progress"]])("marks only the correct navigation entry active for %s", (path, name) => {
  shell(path); const nav = screen.getByRole("navigation", { name: "Learner" });
  expect(within(nav).getByRole("link", { name })).toHaveAttribute("aria-current", "page");
  expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
@@ -37,12 +37,12 @@ it("offers student navigation during focused study without hiding it in a mobile
 it("starts with the approved three student shortcuts and preserves saved pin choices", () => {
  const view = shell();
  const nav = screen.getByRole("navigation", { name: "Learner" });
- expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Study", "Honors"]);
+ expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Study", "Progress"]);
  expect(screen.queryByRole("navigation", { name: "Breadcrumb" })).not.toBeInTheDocument();
  view.unmount();
- localStorage.setItem("erudoza:pins:org:user:student", JSON.stringify(["home", "review", "practice"]));
+ localStorage.setItem("erudoza:pins:org:user:student", JSON.stringify(["home", "practice", "honors"]));
  shell("/student/progress");
- expect(within(screen.getByRole("navigation", { name: "Learner" })).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Review", "Team Practice", "Progress"]);
+ expect(within(screen.getByRole("navigation", { name: "Learner" })).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Team Practice", "Progress"]);
 });
 it("keeps all coach tools directly navigable", () => {
  shell("/admin/assignments", "admin"); const nav = screen.getByRole("navigation", { name: "Coach" });
@@ -87,13 +87,13 @@ it.each([
  ["/student/study?mode=Review&seasonId=season-two", "Study"],
  ["/student/study?mode=Simulation&seasonId=season-two", "Study"],
  ["/student/sessions/session-one/recap?seasonId=season-two", "Study"],
- ["/student/honors?seasonId=season-two", "Honors"],
+ ["/student/honors?seasonId=season-two", "Progress"],
  ["/student/practice/room-one?seasonId=season-two", "More"],
 ] as const)("keeps student mobile navigation and season context at %s", (path, selected) => {
- localStorage.setItem("erudoza:pins:org:user:student", JSON.stringify(["practice", "simulation"]));
+ localStorage.setItem("erudoza:pins:org:user:student", JSON.stringify(["practice", "progress"]));
  shell(path);
  const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
- expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["HQ", "Study", "Honors"]);
+ expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["HQ", "Study", "Progress"]);
  for (const link of within(mobile).getAllByRole("link")) expect(link.getAttribute("href")).toContain("seasonId=season-two");
  expect(mobile.querySelector('[aria-current="page"]')).toHaveTextContent(selected);
  expect(mobile.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
