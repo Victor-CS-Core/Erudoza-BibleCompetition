@@ -34,6 +34,7 @@ function completeFields() {
  if (screen.queryByLabelText("Your name")) fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "New coach" } });
  if (screen.queryByLabelText("Club name")) fireEvent.change(screen.getByLabelText("Club name"), { target: { value: "New club" } });
  fireEvent.change(screen.getByLabelText("New password"), { target: { value: "Long secure password!42" } });
+ if (screen.queryByLabelText("I confirm that I am 18 years old or older.")) fireEvent.click(screen.getByLabelText("I confirm that I am 18 years old or older."));
 }
 beforeEach(() => {
  vi.clearAllMocks(); acceptSession.mockResolvedValue(undefined);
@@ -59,7 +60,7 @@ describe("Coach onboarding", () => {
   expect(widget.action).toBe("coach_signup"); expect(widget.size).toBe("flexible");
   completeFields(); fireEvent.click(screen.getByRole("button", { name: "Create club and coach account" }));
   await screen.findByText("Coach workspace"); expect(router.state.location.pathname).toBe("/admin");
-  expect(onboardingApi.signupComplete).toHaveBeenCalledWith({ challengeId: "challenge-1", code: "123456", displayName: "New coach", organizationName: "New club", password: "Long secure password!42" });
+  expect(onboardingApi.signupComplete).toHaveBeenCalledWith({ challengeId: "challenge-1", code: "123456", displayName: "New coach", organizationName: "New club", password: "Long secure password!42", ageConfirmed: true });
   expect(acceptSession).toHaveBeenCalledWith(owner); expect(resetWidget).toHaveBeenCalled();
  });
  it("keeps an invalid code visible and focused without accepting a session", async () => {
@@ -68,6 +69,20 @@ describe("Coach onboarding", () => {
   expect(await screen.findByRole("alert")).toHaveTextContent("invalid or expired");
   await waitFor(() => expect(screen.getByLabelText("Verification code")).toHaveFocus());
   expect(acceptSession).not.toHaveBeenCalled();
+ });
+ it("requires the 18+ confirmation before creating a coach account", async () => {
+  setup(); await sendCode();
+  fireEvent.change(screen.getByLabelText("Verification code"), { target: { value: "123456" } });
+  fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "New coach" } });
+  fireEvent.change(screen.getByLabelText("Club name"), { target: { value: "New club" } });
+  fireEvent.change(screen.getByLabelText("New password"), { target: { value: "Long secure password!42" } });
+  fireEvent.click(screen.getByRole("button", { name: "Create club and coach account" }));
+  expect(onboardingApi.signupComplete).not.toHaveBeenCalled();
+  expect(screen.getByLabelText("I confirm that I am 18 years old or older.")).toBeRequired();
+  fireEvent.click(screen.getByLabelText("I confirm that I am 18 years old or older."));
+  fireEvent.click(screen.getByRole("button", { name: "Create club and coach account" }));
+  await screen.findByText("Coach workspace");
+  expect(onboardingApi.signupComplete).toHaveBeenCalledWith(expect.objectContaining({ ageConfirmed: true }));
  });
  it("shows cooldown and requires a new bot check before resending", async () => {
   setup(); await sendCode();

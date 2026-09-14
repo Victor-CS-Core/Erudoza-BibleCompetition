@@ -19,3 +19,6 @@
   .coach-signup .training-login-main { padding-inline: 20px; }
   .coach-signup .coach-security-check { width: max(100%, 300px); margin-inline: min(0px, calc((100% - 300px) / 2)); }
 }
+
+.coach-age-confirm { display: flex; gap: 0.6rem; align-items: flex-start; margin: 0.75rem 0 0; font-size: 0.95rem; cursor: pointer; }
+.coach-age-confirm input[type="checkbox"] { width: 1.1rem; height: 1.1rem; margin-top: 0.15rem; flex: none; accent-color: currentColor; }

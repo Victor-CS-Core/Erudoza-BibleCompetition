@@ -36,7 +36,7 @@ const requestCode=async(purpose="signup",email="new@example.com")=>{
   expect(response.status).toBe(202);
   return await response.json() as {challengeId:string;expiresAt:string;resendAfterSeconds:number};
 };
-const complete=(challengeId:string,value=code())=>post("/auth/signup/complete",{challengeId,code:value,displayName:"New Coach",organizationName:"New Club",password:"Testing!567890"});
+const complete=(challengeId:string,value=code())=>post("/auth/signup/complete",{challengeId,code:value,displayName:"New Coach",organizationName:"New Club",password:"Testing!567890",ageConfirmed:true});
 const ownerCookie=async()=>(await app.login()).headers.get("set-cookie")!.split(";")[0];
 const invite=async(cookie:string,email="invitee@example.com")=>{
   const response=await post(`/organizations/${TEST_ORG}/coach-invitations`,{email},cookie);
@@ -52,18 +52,26 @@ const inviteCode=async(token:string,email="invitee@example.com")=>{
   expect(response.status).toBe(202);
   return await response.json() as {challengeId:string};
 };
-const accept=(challengeId:string,value=code())=>post("/auth/invitation/complete",{challengeId,code:value,displayName:"Invited Coach",password:"Testing!567890"});
+const accept=(challengeId:string,value=code())=>post("/auth/invitation/complete",{challengeId,code:value,displayName:"Invited Coach",password:"Testing!567890",ageConfirmed:true});
 
 it("creates one verified Adult Owner and a secure session, never trusting submitted roles",async()=>{
   expect(await (await app.fetch("/api/v1/auth/coach-options")).json()).toEqual({available:true,turnstileSiteKey:"test-only-site"});
   const receipt=await requestCode();
   expect(receipt.resendAfterSeconds).toBe(60);
-  const response=await post("/auth/signup/complete",{challengeId:receipt.challengeId,code:code(),displayName:"New Coach",organizationName:"New Club",password:"Testing!567890",role:"Student",organizationId:TEST_ORG});
+  const response=await post("/auth/signup/complete",{challengeId:receipt.challengeId,code:code(),displayName:"New Coach",organizationName:"New Club",password:"Testing!567890",ageConfirmed:true,role:"Student",organizationId:TEST_ORG});
   expect(response.status).toBe(200);
   expect(await response.json()).toMatchObject({kind:"Adult",role:"Owner",organizationName:"New Club",email:"new@example.com"});
   expect(response.headers.get("set-cookie")).toContain("HttpOnly; Secure; SameSite=Lax");
   expect((await complete(receipt.challengeId)).status).toBe(400);
   expect((await app.db.prepare("SELECT COUNT(*) AS count FROM Organizations").first<{count:number}>())!.count).toBe(2);
+});
+it("requires 18+ confirmation to create a coach account",async()=>{
+  const fresh=await requestCode("signup","adult18@example.com");
+  const without=await post("/auth/signup/complete",{challengeId:fresh.challengeId,code:code(),displayName:"New Coach",organizationName:"New Club",password:"Testing!567890"});
+  expect(without.status).toBe(400);
+  const denied=await post("/auth/signup/complete",{challengeId:fresh.challengeId,code:code(),displayName:"New Coach",organizationName:"New Club",password:"Testing!567890",ageConfirmed:false});
+  expect(denied.status).toBe(400);
+  expect(await denied.text()).toMatch(/18 years old or older/);
 });
 it("limits a code to five guesses and rejects expiry without partial provisioning",async()=>{
   const receipt=await requestCode();const actual=code();

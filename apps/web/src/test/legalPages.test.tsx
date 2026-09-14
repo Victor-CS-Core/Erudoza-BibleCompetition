@@ -25,12 +25,12 @@ describe("PrivacyPage", () => {
     expect(within(main).getByRole("heading", { level: 2, name: "16. Contact us" })).toBeInTheDocument();
   });
 
-  it("keeps bracketed placeholders verbatim and shows the real contact details", () => {
+  it("shows the real contact details with no unresolved placeholders", () => {
     renderAt("/privacy", <PrivacyPage />);
     const main = screen.getByRole("main");
-    expect(within(main).getAllByText(/\[EFFECTIVE DATE\]/).length).toBeGreaterThan(0);
-    expect(within(main).getAllByText(/\[LEGAL ENTITY NAME\]/).length).toBeGreaterThan(0);
-    expect(within(main).getByText(/941 Southridge Trail, Altamonte Springs, Florida \[ZIP\]/)).toBeInTheDocument();
+    expect(within(main).getAllByText(/September 14, 2026/).length).toBeGreaterThan(0);
+    expect(within(main).queryByText(/\[[A-Z][^\]]*\]/)).not.toBeInTheDocument();
+    expect(within(main).getByText(/941 Southridge Trail, Altamonte Springs, Florida 32714/)).toBeInTheDocument();
     const mailLinks = within(main).getAllByRole("link", { name: "Ktr0nn@icloud.com" });
     expect(mailLinks.length).toBeGreaterThan(0);
     for (const link of mailLinks) expect(link).toHaveAttribute("href", "mailto:Ktr0nn@icloud.com");
@@ -49,10 +49,10 @@ describe("TermsPage", () => {
     expect(within(main).getByRole("link", { name: "nadpbe.org" })).toHaveAttribute("href", "https://nadpbe.org/");
   });
 
-  it("keeps bracketed placeholders verbatim", () => {
+  it("has no unresolved placeholders", () => {
     renderAt("/terms", <TermsPage />);
     const main = screen.getByRole("main");
-    expect(within(main).getAllByText(/\[GOVERNING JURISDICTION\]/).length).toBeGreaterThan(0);
+    expect(within(main).queryByText(/\[[A-Z][^\]]*\]/)).not.toBeInTheDocument();
     expect(within(main).getByText(/New King James Version \(NKJV\), copyright/)).toBeInTheDocument();
   });
 });

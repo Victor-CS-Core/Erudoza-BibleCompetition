@@ -1,5 +1,5 @@
 import type { Actor, Env } from "../types";
-import { json, noContent, requiredString } from "../types";
+import { HttpError, json, noContent, requiredString } from "../types";
 import { COOKIE, hashUserPassword, me, sha256 } from "../auth";
 import { budget } from "./limits";
 import { codeDigest, identifier, invalidCode, passwordValue, randomSecret } from "./shared";
@@ -15,6 +15,7 @@ const claimed=`SELECT 1 FROM AuthChallenges WHERE id=? AND claim_nonce=?`;
 export async function completeCode(env:Env,purpose:Purpose,data:Record<string,unknown>):Promise<Response> {
   const id=identifier(data.challengeId),password=passwordValue(data.password);
   if(typeof data.code!=="string"||!/^\d{6}$/.test(data.code))throw invalidCode();
+  if(purpose!=="password"&&data.ageConfirmed!==true)throw new HttpError(400,"You must confirm that you are 18 years old or older to create a coach account.");
   const displayName=purpose==="password"?"":requiredString(data.displayName,"Name",100);
   const organizationName=purpose==="signup"?requiredString(data.organizationName,"Club name",100):"";
   const candidate=await env.DB.prepare("SELECT * FROM AuthChallenges WHERE id=? AND purpose=? AND consumed_at IS NULL AND delivered=1 AND expires_at>? AND attempts<5").bind(id,purpose,Date.now()).first<ChallengeRow>();

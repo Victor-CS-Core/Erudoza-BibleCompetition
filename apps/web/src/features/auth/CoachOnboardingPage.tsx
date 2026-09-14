@@ -42,6 +42,7 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
   const [organizationName, setOrganizationName] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [pending, setPending] = useState(false);
@@ -96,12 +97,13 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
     event.preventDefault();
     if (submitting.current || !receipt || expired || auth.me || auth.loading || auth.error) return;
     submitting.current = true; setPending(true); setError("");
+    if (mode !== "recovery" && !ageConfirmed) { submitting.current = false; setPending(false); setError("You must confirm that you are 18 years old or older to create a coach account."); return; }
     try {
       const body = { challengeId: receipt.challengeId, code, password };
       if (mode === "recovery") { await onboardingApi.recoveryComplete(body); setPassword(""); setCode(""); setReceipt(null); setComplete(true); }
       else {
-        const next = mode === "signup" ? await onboardingApi.signupComplete({ ...body, displayName: displayName.trim(), organizationName: organizationName.trim() })
-          : await onboardingApi.invitationComplete({ ...body, displayName: displayName.trim() });
+        const next = mode === "signup" ? await onboardingApi.signupComplete({ ...body, displayName: displayName.trim(), organizationName: organizationName.trim(), ageConfirmed })
+          : await onboardingApi.invitationComplete({ ...body, displayName: displayName.trim(), ageConfirmed });
         await auth.acceptSession(next); setInvitationToken(""); setPassword(""); setCode("");
         void navigate("/admin", { replace: true });
       }
@@ -153,10 +155,11 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
               <label htmlFor="coach-password">New password</label>
               <div className="training-login-password"><Input id="coach-password" type={showPassword ? "text" : "password"} value={password} onChange={event => setPassword(event.target.value)} autoComplete="new-password" minLength={12} maxLength={128} required disabled={pending} aria-describedby="coach-password-help" /><Button variant="ghost" size="compact" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} disabled={pending} onClick={() => setShowPassword(value => !value)}>{showPassword ? "Hide" : "Show"}</Button></div>
               <p id="coach-password-help">Use 12–128 characters. A long, unique phrase works well.</p>
+              {mode !== "recovery" && <label htmlFor="coach-age-confirm" className="coach-age-confirm"><Input id="coach-age-confirm" type="checkbox" checked={ageConfirmed} onChange={event => setAgeConfirmed(event.target.checked)} required disabled={pending} /><span>I confirm that I am 18 years old or older.</span></label>}
               {error && <Notice id="coach-error" tone="danger">{error}</Notice>}
               <Button className={isSignup ? "training-login-submit" : undefined} type="submit" disabled={pending || expired}>{pending ? "Verifying…" : mode === "signup" ? "Create club and coach account" : mode === "recovery" ? "Reset password" : "Join club as a coach"}{isSignup && <AppIcon name="arrow" />}</Button>
             </form>
-            <div className="coach-code-resend"><p>Need another code? Complete the security check again.</p><TurnstileChallenge siteKey={options.turnstileSiteKey!} action={actions[mode]} resetKey={resetKey} onToken={setTurnstileToken} /><div className="coach-form-actions"><Button variant="secondary" disabled={pending || cooldown > 0 || !turnstileToken} onClick={() => void sendCode()}>{cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}</Button><Button variant="ghost" disabled={pending} onClick={() => { setReceipt(null); setCode(""); setPassword(""); setError(""); setTurnstileToken(null); }}>Change email</Button></div></div>
+            <div className="coach-code-resend"><p>Need another code? Complete the security check again.</p><TurnstileChallenge siteKey={options.turnstileSiteKey!} action={actions[mode]} resetKey={resetKey} onToken={setTurnstileToken} /><div className="coach-form-actions"><Button variant="secondary" disabled={pending || cooldown > 0 || !turnstileToken} onClick={() => void sendCode()}>{cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend code"}</Button><Button variant="ghost" disabled={pending} onClick={() => { setReceipt(null); setCode(""); setPassword(""); setAgeConfirmed(false); setError(""); setTurnstileToken(null); }}>Change email</Button></div></div>
           </> : <form ref={form} onSubmit={event => void sendCode(event)} aria-busy={pending}>
             <label htmlFor="coach-email">Email address</label><Input id="coach-email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} maxLength={254} required value={email} onChange={event => setEmail(event.target.value)} disabled={pending} aria-invalid={!!error} aria-describedby={error ? "coach-error" : undefined} />
             {error && <Notice id="coach-error" tone="danger">{error}</Notice>}
