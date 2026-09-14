@@ -1,5 +1,13 @@
 # Erudoza progress log
 
+## Authenticated platform wiki — production deployment, September 13
+
+- Production rollout completed from main source `5ec0cb4` (the wiki implementation plus its release checkpoint), fast-forwarded from `e197b2b` and pushed without force. The existing `erudoza-native` Worker is serving the release at 100% on the managed `https://erudoza.com` custom domain.
+- Cloudflare deployment readback: Worker version `589f0bec-eb8b-41fc-ac82-9daac1496d9a`, tag `wiki-5ec0cb4`, message `Authenticated platform wiki; source 5ec0cb4`. The upload read 184 native assets and added the seven sanitized wiki screenshots; no D1 migration, API, secret, or production data change occurred.
+- Live checks passed: `/`, `/login`, `/wiki`, and `/wiki/training-hq.png` returned 200; `/api/v1/health` returned 200 with `database:true` and `runtime:"cloudflare"`; anonymous `/api/v1/me` returned 401; the live wiki HTML referenced the same hashed JavaScript bundle as the release artifact; and a fresh anonymous browser visit to `/wiki` redirected to `/login`.
+- Authenticated production student/coach browser QA was not claimed because this task has no provisioned production credentials/session. The local authenticated coach/student matrix and focused wiki checks remain the evidence for role-specific behavior; an operator should complete one sanitized signed-in smoke per role after release.
+- Release gate is complete for deployment. The deployed Worker version and source revision are recorded here; no rollback or database operation was needed.
+
 ## Authenticated platform wiki — production release preparation, September 13
 
 - The user authorized production deployment of the reviewed wiki. The clean release branch `codex/authenticated-wiki` is at `2c4280dedb306f4a679811cac92ff1f972367ea9`, a direct descendant of current `origin/main` `e197b2b4e3cc35cd4d560ca23d11ffbae6009cff`; no unrelated worktree changes are included.
