@@ -150,6 +150,23 @@ it("keeps the deletion warning open and reports a failed delete", async () => {
   fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Delete season" }));
   expect(await within(screen.getByRole("dialog")).findByRole("alert")).toHaveTextContent("Offline");
   expect(screen.getByRole("dialog")).toBeInTheDocument();
+  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Cancel" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Delete season" }));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+});
+
+it("locks the deletion warning while the request is pending", async () => {
+  let resolveDelete!: () => void;
+  vi.mocked(api.deleteSeason).mockImplementation(() => new Promise<void>(resolve => { resolveDelete = resolve; }));
+  renderWizard();
+  fireEvent.click(await screen.findByRole("button", { name: "Delete season" }));
+  const dialog = screen.getByRole("dialog");
+  fireEvent.click(within(dialog).getByRole("button", { name: "Delete season" }));
+  expect(await within(dialog).findByRole("button", { name: "Deleting…" })).toBeDisabled();
+  expect(within(dialog).getByRole("button", { name: "Cancel" })).toBeDisabled();
+  expect(api.deleteSeason).toHaveBeenCalledTimes(1);
+  resolveDelete();
+  expect(await screen.findByRole("heading", { name: "All seasons list" })).toBeInTheDocument();
 });
 
 it("cancels deletion without calling the API", async () => {
