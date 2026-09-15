@@ -53,7 +53,33 @@ it('keeps student-only guards strict and atomically rejects inactive or ineligib
  await app.db.prepare("UPDATE Users SET active=1,role='Student' WHERE id=?").bind(TEST_USER).run();
  await expect(guard('@active-learner')).rejects.toMatchObject({status:409});
  await app.db.prepare("UPDATE Users SET kind='Student' WHERE id=?").bind(TEST_USER).run();
- expect((await req(`${base}/my-assignments`)).status).toBe(403);
+ // A fully eligible active student is admitted through the learner-scoped routes (no blanket admin gate).
+ expect((await req(`${base}/my-assignments`)).status).toBe(200);
  await expect(guard('@active-user')).resolves.toBeUndefined();
  await app.db.prepare("UPDATE Users SET kind='Adult',role='Owner' WHERE id=?").bind(TEST_USER).run();
+});
+
+it('lets a signed-in student read and self-assign through my-assignments',async()=>{
+ const orgBase=`/api/v1/organizations/${TEST_ORG}`;
+ const learnerSeason='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+ await record('season',learnerSeason,{id:learnerSeason,name:'Learner season',status:'Active',ruleProfileKey:'PBE_STYLE_V1'});
+ await record('scope',learnerSeason,{contentPackId:pack,includes:[range],excludes:[]});
+ const created=await(await req(`${orgBase}/students`,'POST',{userName:'learner1',displayName:'Learner One',password:'Learner!123'})).json() as {userId:string};
+ expect((await req(`${base.replace(season,learnerSeason)}/assignments`,'POST',{studentUserId:created.userId,contentPackId:pack,range,type:'PrimarySpecialist'})).status).toBe(200);
+ const login=await app.fetch('/api/v1/auth/login',{method:'POST',headers:{Origin:'https://erudoza.test','Content-Type':'application/json'},body:JSON.stringify({identifier:'learner1',password:'Learner!123'})});
+ expect(login.status).toBe(200);
+ const studentCookie=login.headers.get('set-cookie')!.split(';')[0];
+ const sreq=(path:string,method='GET',data?:unknown)=>app.fetch(path,{method,headers:{Cookie:studentCookie,Origin:'https://erudoza.test','Content-Type':'application/json'},...(data===undefined?{}:{body:JSON.stringify(data)})});
+ const learnerBase=`${orgBase}/seasons/${learnerSeason}`;
+ // Regression: a signed-in student could not load their assignments (403 from the blanket admin gate).
+ const list=await sreq(`${learnerBase}/my-assignments`);
+ expect(list.status).toBe(200);
+ expect(await list.json()).toMatchObject([{studentUserId:created.userId,studentDisplayName:'Learner One'}]);
+ const selfAssigned=await sreq(`${learnerBase}/my-assignments`,'POST',{contentPackId:pack,range,type:'OptionalReview'});
+ expect(selfAssigned.status).toBe(200);
+ const selfId=(await selfAssigned.json() as {id:string}).id;
+ expect((await sreq(`${learnerBase}/my-assignments/${selfId}`,'DELETE')).status).toBe(204);
+ // The admin gate still applies to every other application route for students.
+ expect((await sreq(`${orgBase}/students`)).status).toBe(403);
+ expect((await sreq(`${learnerBase}/activate`,'POST')).status).toBe(403);
 });

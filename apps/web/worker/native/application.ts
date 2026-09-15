@@ -39,7 +39,10 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     const libraryResult = await library(ctx);
     if (libraryResult)
         return libraryResult;
-    admin(ctx.actor);
+    // Learner-scoped personal assignment routes authorize themselves with requireLearner;
+    // they must run before the blanket admin gate so students are not rejected outright.
+    const personalSeason = !!seasonMatch && (seasonMatch[2] === '/my-assignments' || /^\/my-assignments\/[^/]+$/.test(seasonMatch[2]));
+    if (!personalSeason) admin(ctx.actor);
     if(seasonMatch&&/^\/pbe-cooperation(?:\/(?:continue|students))?$/.test(seasonMatch[2])){
         const seasonId=seasonMatch[1],suffix=seasonMatch[2];
         if(method==='GET')return json(suffix.endsWith('/students')?await cooperationStudents(ctx,seasonId,new URL(request.url)):await cooperation(ctx,seasonId,'CoachSummary'));
@@ -48,7 +51,7 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     }
     if (path.startsWith('/scripture-catalog') || path === '/content-packs/import' || path === '/content-packs/import-from-catalog')
         throw new HttpError(410, 'Manual imports have been retired. Choose books from the built-in NKJV library.');
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method))
+    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !personalSeason)
         await administrationBudget(ctx);
     if (path === '/students' && method === 'GET')
         return json(await students(ctx));
