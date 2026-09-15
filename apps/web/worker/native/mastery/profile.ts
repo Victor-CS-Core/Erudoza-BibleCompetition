@@ -3,6 +3,8 @@ import { body, HttpError, json } from '../types';
 import { honorCatalog, honorId, isHonorKey, ruleVersionFor } from './catalog';
 import type { HonorUnlock, ProfileSelection } from './catalog';
 import { characterFields, defaultCharacter, defaultShareOptions, portraitIdentity, validateCharacterSave } from './character';
+import type { AssignmentNotification } from '../application/notifications';
+import { notificationSummary } from '../application/notifications';
 const guid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function validUnlock(award: HonorUnlock | undefined, orgId: string, userId: string, key: string, eligible=false) {
   return !!award && isHonorKey(key) && award.userId === userId && award.key === key && award.ruleVersion === ruleVersionFor(key) && (!key.startsWith('simulation:') || eligible) && award.id === honorId(orgId, userId, key) && Number.isFinite(Date.parse(award.earnedAtUtc));
@@ -29,6 +31,19 @@ function selection(ctx: RequestContext, key: ProfileSelection['honorKey']): Prof
 
 export async function handleProfile(ctx: RequestContext): Promise<Response | null> {
   if (ctx.path === '/api/v1/profile/me' && ctx.request.method === 'GET') return json(await selfProfile(ctx));
+  if (ctx.path === '/api/v1/profile/me/notifications' && ctx.request.method === 'GET') {
+    const rows = await ctx.env.DB.prepare("SELECT data FROM Records WHERE kind='notification' AND org_id=? AND owner_id=? ORDER BY json_extract(data,'$.createdAtUtc') DESC LIMIT 50").bind(ctx.orgId, ctx.actor.userId).all<{ data: string }>();
+    const notifications = rows.results.map(row => {
+      const notification = JSON.parse(row.data) as AssignmentNotification;
+      return { ...notification, summary: notificationSummary(notification) };
+    });
+    return json({ notifications, unreadCount: notifications.filter(n => !n.readAtUtc).length });
+  }
+  if (ctx.path === '/api/v1/profile/me/notifications/read' && ctx.request.method === 'POST') {
+    const readAtUtc = new Date().toISOString();
+    await ctx.env.DB.prepare("UPDATE Records SET data=json_set(data,'$.readAtUtc',?) WHERE kind='notification' AND org_id=? AND owner_id=? AND json_extract(data,'$.readAtUtc') IS NULL").bind(readAtUtc, ctx.orgId, ctx.actor.userId).run();
+    return json({ unreadCount: 0 });
+  }
   if (ctx.path === '/api/v1/profile/me/character' && ctx.request.method === 'PUT') {
     const raw = await body<unknown>(ctx.request, 16384), current = await selfProfile(ctx);
     const input = validateCharacterSave(raw, new Set(current.honors.filter(h => h.earnedAtUtc).map(h => h.key)), current.canUseMasterGuide);

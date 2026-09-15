@@ -88,6 +88,26 @@ export type Assignment = {
   studentUserName?: string | null;
 };
 
+/** Short student-facing note about a coach's assignment change. */
+export type UserNotification = {
+  id: string;
+  seasonId: string;
+  seasonName: string;
+  studentUserId: string;
+  actorUserId: string;
+  actorDisplayName: string;
+  action: "added" | "removed" | "updated";
+  citation: string;
+  summary: string;
+  readAtUtc: string | null;
+  createdAtUtc: string;
+};
+
+export type NotificationList = {
+  notifications: UserNotification[];
+  unreadCount: number;
+};
+
 export type ChallengeCard = {
   generatorVersion?: string | null;
   evidenceProfile?: "memory-cued-v3" | "memory-honor-v2" | null;

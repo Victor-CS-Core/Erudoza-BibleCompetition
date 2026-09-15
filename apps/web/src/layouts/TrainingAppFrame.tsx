@@ -1,4 +1,5 @@
 import { ProfileAvatar } from "../features/profile/ProfileAvatar";
+import { NotificationBell } from "../features/profile/NotificationBell";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -126,6 +127,8 @@ function CommandFrame({ coach }: { coach: boolean }) {
     <header className="command-masthead"><div className="command-masthead-inner">
       <Button variant="inverse" className="command-trigger ds-button-mobile-icon" aria-label={searchLabel} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="search" /><span className="command-trigger-copy">{coach ? `${searchLabel}…` : "Find a section or season"}</span><kbd>Ctrl K</kbd></Button>
       <Link to={home} className="command-brand" aria-label="Erudoza home"><ErudozaWordmark compact inverted /></Link>
+      <div className="command-account-cluster">
+      <NotificationBell />
       <NavigationMenu key={`account:${route}`} name="Account" label={<><ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? ""} size={48} /><span className="command-account-name">{me?.displayName}</span></>}>
         <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach mode" : "Student mode"}</small></div>
         <Link to={coach ? "/admin/profile" : `/student/profile${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`}><AppIcon name="users" />Your profile</Link>
@@ -133,6 +136,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
         {canSwitch && <Link data-testid="switch-workspace" to={`${coach ? "/student" : "/admin"}${switchSeason ? `?seasonId=${encodeURIComponent(switchSeason)}` : ""}`}><AppIcon name="arrow" />Switch to {coach ? "Student" : "Coach"} mode</Link>}
         <Button variant="ghost" onClick={() => void signOut()} disabled={signingOut} data-testid="logout"><AppIcon name="logout" />{signingOut ? "Signing out…" : "Sign out"}</Button>
       </NavigationMenu>
+      </div>
     </div></header>
     {error && <Notice tone="danger">{error}</Notice>}
     <div className="command-shortcut-bar"><div className="command-shortcut-inner">

@@ -9,6 +9,7 @@ import { library } from './application/library';
 import { notebook } from './application/notebook';
 import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeDto, scopePacks, scopeSources, seasonSummaries, student, students, learner, requireLearner, studentAssignments, validatePackRanges } from './application/model';
 import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
+import { buildAssignmentNotification } from './application/notifications';
 export { effectiveSources } from './application/model';
 async function mapSeason(ctx: RequestContext, s: Season) { return { ...s, scopeUnitCount: (await effectiveSources(ctx, s.id)).length, assignmentCount: (await studentAssignments(ctx,s.id)).length }; }
 export async function handleApplication(ctx: RequestContext): Promise<Response | null> {
@@ -210,7 +211,8 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         const a: Assignment = { id: id(), seasonId, studentUserId: user.userId, contentPackId: p.value.id, type: input.type, ...r, createdAtUtc: new Date().toISOString() };
         if (!personal && ['Draft', 'ContentReady'].includes(s.status))
             s.status = 'AssignmentsReady';
-        await atomic(ctx, 'season.assign', [store.insertion('assignment', a.id, orgId, a, { seasonId, ownerId: user.userId }), old ? store.update('membership', mid, orgId, membership, old.revision) : store.insertion('membership', mid, orgId, membership, { seasonId, ownerId: user.userId }), ...(personal ? [] : [updateSeason()])], [guard, { kind: 'pack', id: p.value.id, revision: p.revision }, { kind: personal ? '@active-learner' : '@active-user', id: user.userId, revision: 0 }]);
+        const assignmentNotice = personal ? null : buildAssignmentNotification({ seasonId, seasonName: s.name, studentUserId: user.userId, actorUserId: ctx.actor.userId, actorDisplayName: ctx.actor.displayName, action: 'added', range: r });
+        await atomic(ctx, 'season.assign', [store.insertion('assignment', a.id, orgId, a, { seasonId, ownerId: user.userId }), old ? store.update('membership', mid, orgId, membership, old.revision) : store.insertion('membership', mid, orgId, membership, { seasonId, ownerId: user.userId }), ...(personal ? [] : [updateSeason()]), ...(assignmentNotice ? [store.insertion('notification', assignmentNotice.id, orgId, assignmentNotice, { seasonId, ownerId: user.userId })] : [])], [guard, { kind: 'pack', id: p.value.id, revision: p.revision }, { kind: personal ? '@active-learner' : '@active-user', id: user.userId, revision: 0 }]);
         return json({ ...a, difficulty: d });
     }
     const diff = suffix.match(/^\/students\/([^/]+)\/difficulty$/);
@@ -236,14 +238,16 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         if (method === 'DELETE') {
             if (s.status === 'AssignmentsReady' && (await studentAssignments(ctx,seasonId)).length === 1)
                 s.status = 'ContentReady';
-            await atomic(ctx, 'season.assignment.remove', [deletion(ctx, 'assignment', a.value.id), updateSeason()], [guard, { kind: 'assignment', id: a.value.id, revision: a.revision }]);
+            const removedNotice = buildAssignmentNotification({ seasonId, seasonName: s.name, studentUserId: a.value.studentUserId, actorUserId: ctx.actor.userId, actorDisplayName: ctx.actor.displayName, action: 'removed', range: a.value });
+            await atomic(ctx, 'season.assignment.remove', [deletion(ctx, 'assignment', a.value.id), updateSeason(), store.insertion('notification', removedNotice.id, orgId, removedNotice, { seasonId, ownerId: a.value.studentUserId })], [guard, { kind: 'assignment', id: a.value.id, revision: a.revision }]);
         }
         else {
             const r = range(await body(request, 4096));
             await validatePackRanges(ctx, [{contentPackId:a.value.contentPackId,includes:[r],excludes:[]}]);
             if (!(await effectiveSources(ctx, seasonId)).some(u => u.contentPackId === a.value.contentPackId && contains(r, u)))
                 return fail('This assignment has no available passages inside the season scope.');
-            await atomic(ctx, 'season.assignment.correct', [store.update('assignment', a.value.id, orgId, { ...a.value, ...r }, a.revision), updateSeason()], [guard, { kind: 'assignment', id: a.value.id, revision: a.revision }]);
+            const updatedNotice = buildAssignmentNotification({ seasonId, seasonName: s.name, studentUserId: a.value.studentUserId, actorUserId: ctx.actor.userId, actorDisplayName: ctx.actor.displayName, action: 'updated', range: r });
+            await atomic(ctx, 'season.assignment.correct', [store.update('assignment', a.value.id, orgId, { ...a.value, ...r }, a.revision), updateSeason(), store.insertion('notification', updatedNotice.id, orgId, updatedNotice, { seasonId, ownerId: a.value.studentUserId })], [guard, { kind: 'assignment', id: a.value.id, revision: a.revision }]);
         }
         return noContent();
     }

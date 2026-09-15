@@ -119,7 +119,8 @@ export const api = {
     signal?: AbortSignal,
   ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body), signal }),
   myAssignments: (orgId: string, seasonId: string, signal?: AbortSignal) => request<import("./types").Assignment[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { signal }),
-  assignMyself: (orgId: string, seasonId: string, body: { difficulty?: TrainingDifficulty; type: string; contentPackId: string; range: import("./types").PassageRange }, signal?: AbortSignal) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { method: "POST", body: JSON.stringify(body), signal }),
+  notifications: () => request<import("./types").NotificationList>("/api/v1/profile/me/notifications"),
+  markNotificationsRead: () => request<{ unreadCount: number }>("/api/v1/profile/me/notifications/read", { method: "POST" }),  assignMyself: (orgId: string, seasonId: string, body: { difficulty?: TrainingDifficulty; type: string; contentPackId: string; range: import("./types").PassageRange }, signal?: AbortSignal) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { method: "POST", body: JSON.stringify(body), signal }),
   removeMyAssignment: (orgId: string, seasonId: string, assignmentId: string) => request<void>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments/${assignmentId}`, { method: "DELETE" }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),

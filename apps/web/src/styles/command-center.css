@@ -13,8 +13,20 @@
 .command-trigger svg { flex-shrink:0; }
 .command-trigger kbd { margin-left:auto; flex-shrink:0; }
 .command-menu-wrap { position:relative; min-width:0; }
-.command-masthead .command-menu-wrap { grid-area:account; }
-.command-masthead .command-menu-wrap>.ds-button { color:var(--er-on-navy); }
+.command-account-cluster { grid-area:account; display:flex; align-items:center; gap:4px; min-width:0; }
+.command-bell-wrap { position:relative; flex-shrink:0; }
+.command-bell { position:relative; color:var(--er-on-navy); }
+.command-bell:hover,.command-bell[aria-expanded=true] { background:color-mix(in srgb,var(--er-on-navy) 12%,transparent); }
+.command-bell-badge { position:absolute; top:4px; right:4px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:var(--er-coral); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1; }
+.command-bell-panel { position:absolute; top:calc(100% + 8px); right:0; z-index:45; width:320px; max-width:calc(100vw - 32px); background:var(--er-card); color:var(--er-ink-navy); box-shadow:var(--er-shadow-overlay); border-radius:var(--er-radius-card,12px); overflow:hidden; }
+.command-bell-header { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 12px 8px; border-bottom:1px solid var(--er-border); }
+.command-bell-header strong { font-size:var(--er-text-sm); }
+.command-bell-list { list-style:none; margin:0; padding:8px; max-height:340px; overflow:auto; display:grid; gap:4px; }
+.command-bell-list li { padding:10px 12px; border-radius:var(--er-radius-control); }
+.command-bell-list li.is-unread { background:var(--er-selected); }
+.command-bell-list p { margin:0 0 4px; font-size:var(--er-text-sm); }
+.command-bell-list small { color:var(--er-muted-ink); font-size:var(--er-text-xs); }
+.command-bell-empty { margin:0; padding:20px 16px; text-align:center; color:var(--er-muted-ink); font-size:var(--er-text-sm); display:grid; gap:8px; justify-items:center; }.command-masthead .command-menu-wrap>.ds-button { color:var(--er-on-navy); }
 .command-masthead .command-menu-wrap>.ds-button:hover,.command-masthead .command-menu-wrap>.ds-button[aria-expanded=true] { background:color-mix(in srgb,var(--er-on-navy) 12%,transparent); }
 .command-masthead .training-avatar { width:36px; height:36px; flex-shrink:0; }
 .command-account-name { max-width:140px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
