@@ -24,3 +24,9 @@ export function storedRange(range: PassageRange, units: Coordinate[], all: Coord
 }
 export const firstRange = (units: Coordinate[]): PassageRange | undefined => { const first=orderCoordinates(units)[0]; return first ? { bookKey:first.bookKey,startChapter:first.chapter,startVerse:first.verse,endChapter:first.chapter,endVerse:first.verse } : undefined; };
 export const segmentRanges = (allowed: Coordinate[], all: Coordinate[]): PassageRange[] => passageSegments(allowed,all).map(segment => ({ bookKey:segment[0].bookKey,startChapter:segment[0].chapter,startVerse:segment[0].verse,endChapter:segment.at(-1)!.chapter,endVerse:segment.at(-1)!.verse }));
+/** Verse-aware citation: "John 3:16", "John 3:16–18", or "John 3:16–4:3". */
+export function formatPassageCitation(range: PassageRange): string {
+  const { bookKey, startChapter, startVerse, endChapter, endVerse } = range;
+  if (startChapter === endChapter) return startVerse === endVerse ? `${bookKey} ${startChapter}:${startVerse}` : `${bookKey} ${startChapter}:${startVerse}–${endVerse}`;
+  return `${bookKey} ${startChapter}:${startVerse}–${endChapter}:${endVerse}`;
+}

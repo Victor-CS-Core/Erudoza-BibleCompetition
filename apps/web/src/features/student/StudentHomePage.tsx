@@ -8,6 +8,7 @@ import { AppIcon } from "../../components/AppIcon";
 import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
 import { Badge, Button, HonorArtwork, LinkButton, LoadingState, Notice, PageHeader, Panel, ProgressMeter, Select, WeeklyProgressStrip } from "../../components/ui";
 import { PassageJourney } from "./PassageJourney";
+import { AssignedPassages } from "./AssignedPassages";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
 import { WeeklyGoalDialog } from "./WeeklyGoalDialog";
 import { honorAsset, trainingLink } from "./trainingAssets";
@@ -77,6 +78,7 @@ export function StudentHomePage() {
             })}</ol>}
           </Panel>
           <p className="training-mission-note">Practice follows the passages assigned for this season.</p>
+          {seasonId && <AssignedPassages seasonId={seasonId} />}
         </div>
         <aside className="training-hq-aside">
           <Panel className="training-week-panel">

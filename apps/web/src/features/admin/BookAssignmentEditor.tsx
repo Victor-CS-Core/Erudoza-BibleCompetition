@@ -8,7 +8,8 @@ import { Badge, Button, Input, LinkButton, LoadingState, Notice, Select } from "
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { coordinates, scopePacks, withinRange } from "./passageRanges";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
-import { chapterOptions, saveChapterAssignments, withAssignmentTimeout } from "./chapterAssignments";
+import { chapterOptions, describeAssignmentRanges, mergeVerseRanges, saveChapterAssignments, withAssignmentTimeout, type VerseSelection } from "./chapterAssignments";
+import { VerseRefine } from "./VerseRefine";
 import "../../styles/season-planner.css";
 
 export function useSeasonBooks(seasonId: string) {
@@ -40,6 +41,7 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
   const query = useQuery({ queryKey, queryFn: ({ signal }) => read(signal) });
   const saved = (query.data ?? []).filter(item => item.studentUserId === studentId);
   const [selected, setSelected] = useState<string[]>([]);
+  const [verseRanges, setVerseRanges] = useState<({ packId: string } & VerseSelection)[]>([]);
   const [role, setRole] = useState("PrimarySpecialist");
   const [difficultyEdit, setDifficulty] = useState<TrainingDifficulty | null>(null);
   const difficulty = difficultyEdit ?? saved[0]?.difficulty ?? "Standard";
@@ -48,9 +50,19 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
   const [removing, setRemoving] = useState<string | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const closed = ["Completed", "Archived"].includes(season.status);
-  const dirty = selected.length > 0 || !!difficultyEdit && difficultyEdit !== saved[0]?.difficulty;
+  const dirty = selected.length > 0 || verseRanges.length > 0 || !!difficultyEdit && difficultyEdit !== saved[0]?.difficulty;
   useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
   useEffect(() => { heading.current?.focus({ preventScroll: true }); }, []);
+  const addVerseRange = (packId: string, range: VerseSelection) => {
+    setVerseRanges(current => {
+      const others = current.filter(item => item.packId !== packId);
+      const merged = mergeVerseRanges([...current.filter(item => item.packId === packId), range]);
+      return [...others, ...merged.map(item => ({ ...item, packId }))];
+    });
+  };
+  const removeVerseRange = (packId: string, range: VerseSelection) => {
+    setVerseRanges(current => current.filter(item => !(item.packId === packId && item.chapter === range.chapter && item.startVerse === range.startVerse && item.endVerse === range.endVerse)));
+  };
   const refresh = async () => { await Promise.all(["assignments", "my-assignments", "season", "seasons", "coverage", "assigned-seasons", "progress", "training-today", "training-honors", "training-journey"].map(key => cache.invalidateQueries({ queryKey: [key] }))); };
   const save = useMutation({
     retry: false,
@@ -61,7 +73,7 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
       for (const packId of [...new Set(selected.map(key => key.split("/")[0]))]) {
         const book = data.books.find(book => book.contentPackId === packId)!;
         let confirmedDifficulty: TrainingDifficulty | undefined;
-        const result = await saveChapterAssignments({ selectedChapters: selected.filter(key => key.startsWith(`${packId}/`)).map(key => Number(key.split("/")[1])), eligible: book.units, all: book.all,
+        const result = await saveChapterAssignments({ selectedChapters: selected.filter(key => key.startsWith(`${packId}/`)).map(key => Number(key.split("/")[1])), verseSelections: verseRanges.filter(item => item.packId === packId), eligible: book.units, all: book.all,
           context: { studentId, contentPackId: packId, type: role }, readAssignments: read,
           assign: async (range, signal) => {
             const created = await (self ? api.assignMyself(org, season.id, { contentPackId: packId, range, type: role, difficulty }, signal) : api.assign(org, season.id, { studentUserId: studentId, contentPackId: packId, range, type: role, difficulty }, signal));
@@ -85,7 +97,7 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
         cache.setQueryData<Assignment[]>(queryKey, current => current?.map(item => item.studentUserId === studentId ? { ...item, difficulty: updated.difficulty } : item));
       }
     },
-    onSuccess: (_, advance: boolean) => { setSelected([]); setDifficulty(null); setMessage("Assignments saved."); onDirtyChange?.(false); void refresh(); if (advance) onNext?.(); },
+    onSuccess: (_, advance: boolean) => { setSelected([]); setVerseRanges([]); setDifficulty(null); setMessage("Assignments saved."); onDirtyChange?.(false); void refresh(); if (advance) onNext?.(); },
     onError: () => { void refresh(); },
   });
   const remove = useMutation({ retry: false, mutationFn: async (packId: string) => {
@@ -112,7 +124,8 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
         const options = chapterOptions(book.units, book.all, saved, { studentId, contentPackId: book.contentPackId, type: role });
         const available = options.filter(option => option.remaining.length).map(option => `${book.contentPackId}/${option.chapter}`);
         const allSelected = options.length > 0 && available.every(key => selected.includes(key));
-        const change = (keys: string[], checked: boolean) => { save.reset(); setMessage(""); setSelected(current => checked ? [...new Set([...current, ...keys])] : current.filter(key => !keys.includes(key))); };
+        const change = (keys: string[], checked: boolean) => { save.reset(); setMessage(""); setSelected(current => checked ? [...new Set([...current, ...keys])] : current.filter(key => !keys.includes(key))); if (!checked) setVerseRanges(current => current.filter(item => !keys.includes(`${item.packId}/${item.chapter}`))); };
+        const refinedChapters = options.filter(option => selected.includes(`${book.contentPackId}/${option.chapter}`));
         return <fieldset className="planner-chapter-book" key={book.contentPackId}><legend>{book.name}</legend>
           <label className="ds-choice planner-book-choice"><Input type="checkbox" checked={allSelected} disabled={!available.length} onChange={event => change(available, event.target.checked)} /><span>Select all chapters in {book.name}</span></label>
           {book.restricted && <p className="planner-caption">Only the saved season selection is available.</p>}
@@ -120,16 +133,27 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
             const key = `${book.contentPackId}/${option.chapter}`, assigned = !option.remaining.length;
             return <label className="ds-choice planner-chapter-choice" key={key}><Input type="checkbox" aria-label={`Chapter ${option.chapter}`} checked={assigned || selected.includes(key)} disabled={assigned} onChange={event => change([key], event.target.checked)} /><span>Chapter {option.chapter}<small>{assigned ? "Assigned" : option.partial ? "Season selection" : option.remaining.length < option.available.length ? "Partly assigned" : ""}</small></span></label>;
           })}</div>
+          {!!refinedChapters.length && <div className="planner-verse-refine">
+            <h4>Refine verses <span className="planner-caption">optional</span></h4>
+            {refinedChapters.map(option => <VerseRefine key={option.chapter} option={option}
+              ranges={verseRanges.filter(item => item.packId === book.contentPackId && item.chapter === option.chapter)}
+              onAdd={range => addVerseRange(book.contentPackId, range)}
+              onRemove={range => removeVerseRange(book.contentPackId, range)} />)}
+          </div>}
         </fieldset>;
       })}</div>
       <details className="planner-settings"><summary>Plan settings · {difficulty}</summary><div className="planner-pair">
-        <label>Assignment role<Select value={role} onChange={event => { setRole(event.target.value); setSelected([]); }}><option value="PrimarySpecialist">Specialist study</option><option value="RequiredCoverage">Required coverage</option>{self && <option value="OptionalReview">Optional review</option>}</Select></label>
+        <label>Assignment role<Select value={role} onChange={event => { setRole(event.target.value); setSelected([]); setVerseRanges([]); }}><option value="PrimarySpecialist">Specialist study</option><option value="RequiredCoverage">Required coverage</option>{self && <option value="OptionalReview">Optional review</option>}</Select></label>
         <label>Training difficulty<Select value={difficulty} onChange={event => setDifficulty(event.target.value as TrainingDifficulty)}>{["Foundation", "Standard", "Advanced"].map(value => <option key={value}>{value}</option>)}</Select></label>
       </div><p>Difficulty applies to future sessions. {self && "Save it together with a chapter assignment."}</p></details>
       <div className="planner-actions"><Button disabled={!selected.length && (self || !saved.length || !difficultyEdit)} onClick={() => save.mutate(false)}>{save.isPending && saveProgress.total ? `Saving ${saveProgress.completed} of ${saveProgress.total}…` : pending ? "Saving…" : "Save assignments"}</Button>{nextStudent && <Button variant="secondary" disabled={!selected.length && !(!self && saved.length && difficultyEdit)} onClick={() => save.mutate(true)}>Save & next student →</Button>}</div>
       {nextStudent && <p className="planner-caption">Next: {nextStudent}</p>}
     </fieldset>
-    {!!saved.length && <div className="planner-saved"><h3>Saved books</h3>{data.books.filter(book => saved.some(item => item.contentPackId === book.contentPackId || !item.contentPackId && book.includes.some(range => range.bookKey === item.bookKey))).map(book => <div className="planner-saved-row" key={book.contentPackId}><div><strong>{book.name}</strong><small>{complete(book, saved) ? "Assigned" : `Chapters ${[...new Set(saved.filter(item => item.contentPackId === book.contentPackId || !item.contentPackId && book.includes.some(range => range.bookKey === item.bookKey)).flatMap(item => Array.from({ length: item.endChapter - item.startChapter + 1 }, (_, index) => item.startChapter + index)))].sort((a, b) => a - b).join(", ")} · saved assignments`}</small></div>{!closed && <Button size="compact" variant="ghost" disabled={pending} onClick={() => { remove.reset(); setRemoving(book.contentPackId); }}>Remove<span className="sr-only"> {book.name}</span></Button>}</div>)}</div>}
+    {!!saved.length && <div className="planner-saved"><h3>Saved books</h3>{data.books.filter(book => saved.some(item => item.contentPackId === book.contentPackId || !item.contentPackId && book.includes.some(range => range.bookKey === item.bookKey))).map(book => {
+      const items = saved.filter(item => item.contentPackId === book.contentPackId || !item.contentPackId && book.includes.some(range => range.bookKey === item.bookKey));
+      const citation = describeAssignmentRanges(items, book.all);
+      return <div className="planner-saved-row" key={book.contentPackId}><div><strong>{book.name}</strong><small>{complete(book, saved) ? "Assigned" : citation ? `${citation} · saved assignments` : "saved assignments"}</small></div>{!closed && <Button size="compact" variant="ghost" disabled={pending} onClick={() => { remove.reset(); setRemoving(book.contentPackId); }}>Remove<span className="sr-only"> {book.name}</span></Button>}</div>;
+    })}</div>}
     {self && showTrainingLink && !dirty && !pending && <LinkButton variant="secondary" to={`/student?seasonId=${encodeURIComponent(season.id)}`}>Open Student Mode</LinkButton>}
     {removing && <ConfirmationDialog title="Remove book assignments?" description="Remove this book from this person's plan. Previous attempts and progress are preserved." confirmLabel="Remove assignments" pending={remove.isPending} error={remove.error?.message} onCancel={() => setRemoving(null)} onConfirm={() => remove.mutate(removing)} />}
   </div>;

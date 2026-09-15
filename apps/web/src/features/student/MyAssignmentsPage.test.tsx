@@ -50,3 +50,20 @@ it("removes only the selected personal assignment after confirmation", async () 
  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Remove assignments" }));
  await waitFor(() => expect(api.removeMyAssignment).toHaveBeenCalledWith("org", "season", "mine"));
 });
+
+it("refines a checked chapter to specific verses before saving", async () => {
+ mount();
+ fireEvent.click(await screen.findByRole("checkbox", { name: /Daniel/ }));
+ fireEvent.click(await screen.findByRole("button", { name: "Refine" }));
+ fireEvent.change(screen.getByLabelText("From verse in chapter 1"), { target: { value: "1" } });
+ fireEvent.change(screen.getByLabelText("To verse in chapter 1"), { target: { value: "2" } });
+ fireEvent.click(screen.getByRole("button", { name: "Add verses" }));
+ expect(within(screen.getByRole("list", { name: "Selected verse ranges for chapter 1" })).getByText("vv. 1–2", { exact: false })).toBeInTheDocument();
+ // The season scope only includes verses 1-2, so verse 3 is never offered.
+ expect([...(screen.getByLabelText("To verse in chapter 1") as HTMLSelectElement).options].map(item => item.value)).toEqual(["1", "2"]);
+ fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
+ await waitFor(() => expect(api.assignMyself).toHaveBeenCalledWith("org", "season",
+   { contentPackId: "pack", type: "PrimarySpecialist", difficulty: "Standard", range: { bookKey: "Daniel", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 } },
+   expect.any(AbortSignal)));
+ expect(await screen.findByText("Assignments saved.")).toBeInTheDocument();
+});

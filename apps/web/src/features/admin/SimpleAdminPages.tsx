@@ -11,6 +11,7 @@ import { SeasonAssignmentEditor } from "./SeasonWizardPage";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { StudentTable } from "./StudentTable";
 import { SeasonStatusBadge } from "./SeasonStatusBadge";
+import { formatPassageCitation } from "./passageRanges";
 
 function QueryError({ retry, children }: { retry: () => void; children: string }) {
   return <Notice tone="danger">{children} <Button variant="secondary" onClick={retry}>Try again</Button></Notice>;
@@ -141,7 +142,7 @@ export function AssignmentsPage() {
       {!!coverage.data?.students.length && <div className="training-table-scroll assignment-coverage-scroll" role="region" aria-label="Assigned passage coverage" tabIndex={0}><table className="training-table" data-testid="coverage-table"><thead><tr><th>Student</th><th>Assignment</th><th>Passages</th><th>Mastered</th><th>Due</th><th>Attempts</th><th>Actions</th></tr></thead><tbody>
         {coverage.data.students.filter(student => !studentId || student.studentUserId === studentId).map((student, index) => <tr key={`${student.studentUserId}-${student.assignmentType}-${student.bookKey}-${student.startChapter}-${student.startVerse}-${student.endChapter}-${student.endVerse}-${index}`}>
           <td><span className="profile-person"><ProfileAvatar userId={student.studentUserId} displayName={student.displayName} /><span><Link to={`/admin/seasons/${season.id}/students/${student.studentUserId}/progress`}>{student.displayName}</Link><p>{student.userName}</p></span></span></td>
-          <td>{assignmentLabels[student.assignmentType] ?? "Assigned study"}</td><td>{student.bookKey} {student.startChapter}:{student.startVerse}–{student.endChapter}:{student.endVerse}<p>{student.eligibleUnitCount} verses</p></td>
+          <td>{assignmentLabels[student.assignmentType] ?? "Assigned study"}</td><td>{formatPassageCitation(student)}<p>{student.eligibleUnitCount} verses</p></td>
           <td>{student.masteredCount}</td><td>{student.reviewDueCount}</td><td>{student.attemptCount}</td><td><LinkButton size="compact" variant="secondary" to={`?seasonId=${encodeURIComponent(season.id)}&studentId=${encodeURIComponent(student.studentUserId)}`}>Manage assignments<span className="sr-only"> for {student.displayName}</span></LinkButton></td>
         </tr>)}
       </tbody></table></div>}

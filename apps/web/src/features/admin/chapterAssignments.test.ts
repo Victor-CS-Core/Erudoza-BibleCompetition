@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Assignment, PassageRange } from "../../api/types";
-import { chapterOptions, chapterRanges, saveChapterAssignments } from "./chapterAssignments";
+import { chapterOptions, chapterRanges, describeAssignmentRanges, mergeVerseRanges, saveChapterAssignments, selectedUnits } from "./chapterAssignments";
 import type { Coordinate } from "./passageRanges";
 
 const context = { studentId: "student-a", contentPackId: "pack-a", type: "PrimarySpecialist" };
@@ -369,5 +369,126 @@ describe("bulk chapter saving", () => {
     expect(result.error).toBeInstanceOf(Error);
     expect(result.completedChapters).toEqual([1]);
     expect(result.remainingChapters).toEqual([2]);
+  });
+});
+
+describe("mergeVerseRanges", () => {
+  it("merges overlapping and adjacent spans within each chapter", () => {
+    expect(mergeVerseRanges([
+      { chapter: 3, startVerse: 5, endVerse: 16 },
+      { chapter: 3, startVerse: 1, endVerse: 5 },
+      { chapter: 3, startVerse: 6, endVerse: 10 },
+      { chapter: 5, startVerse: 2, endVerse: 2 },
+    ])).toEqual([
+      { chapter: 3, startVerse: 1, endVerse: 16 },
+      { chapter: 5, startVerse: 2, endVerse: 2 },
+    ]);
+  });
+
+  it("normalizes reversed spans and keeps disjoint spans separate", () => {
+    expect(mergeVerseRanges([
+      { chapter: 3, startVerse: 18, endVerse: 16 },
+      { chapter: 3, startVerse: 36, endVerse: 36 },
+    ])).toEqual([
+      { chapter: 3, startVerse: 16, endVerse: 18 },
+      { chapter: 3, startVerse: 36, endVerse: 36 },
+    ]);
+    expect(mergeVerseRanges([])).toEqual([]);
+  });
+});
+
+describe("selectedUnits", () => {
+  it("returns whole-chapter remaining when no verse selections exist", () => {
+    const option = { chapter: 3, available: chapter(3, [16, 17, 18]), remaining: chapter(3, [16, 18]), partial: false };
+    expect(selectedUnits(option, [])).toEqual(chapter(3, [16, 18]));
+    expect(selectedUnits(option, [{ chapter: 5, startVerse: 1, endVerse: 9 }])).toEqual(chapter(3, [16, 18]));
+  });
+
+  it("narrows to the selected spans intersected with remaining", () => {
+    const option = { chapter: 3, available: chapter(3, [16, 17, 18]), remaining: chapter(3, [16, 17, 18]), partial: false };
+    expect(selectedUnits(option, [{ chapter: 3, startVerse: 16, endVerse: 17 }, { chapter: 3, startVerse: 36, endVerse: 36 }])).toEqual(chapter(3, [16, 17]));
+    expect(selectedUnits({ ...option, remaining: chapter(3, [18]) }, [{ chapter: 3, startVerse: 16, endVerse: 17 }])).toEqual([]);
+  });
+});
+
+describe("describeAssignmentRanges", () => {
+  it("collapses whole chapters and cites partial chapters by verse", () => {
+    const all = [...chapter(1, [1, 2]), ...chapter(3, [15, 16, 17, 18, 19]), ...chapter(5, [1])];
+    const ranges = [
+      { bookKey: "John", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 },
+      { bookKey: "John", startChapter: 3, startVerse: 16, endChapter: 3, endVerse: 18 },
+      { bookKey: "John", startChapter: 5, startVerse: 1, endChapter: 5, endVerse: 1 },
+    ];
+    expect(describeAssignmentRanges(ranges, all)).toBe("1, 3:16–18, 5");
+  });
+
+  it("splits non-contiguous coverage within a chapter", () => {
+    const all = chapter(3, [16, 17, 18, 36]);
+    const ranges = [
+      { bookKey: "John", startChapter: 3, startVerse: 16, endChapter: 3, endVerse: 16 },
+      { bookKey: "John", startChapter: 3, startVerse: 36, endChapter: 3, endVerse: 36 },
+    ];
+    expect(describeAssignmentRanges(ranges, all)).toBe("3:16, 36");
+    expect(describeAssignmentRanges([], all)).toBe("");
+  });
+});
+
+describe("saveChapterAssignments with verseSelections", () => {
+  it("saves only the selected verses and mixes refined with whole chapters", async () => {
+    const all = [...chapter(1, [1, 2, 3]), ...chapter(3, [1, 2])];
+    const stored: Assignment[] = [];
+    const written: PassageRange[] = [];
+    const result = await saveChapterAssignments({
+      selectedChapters: [1, 3],
+      verseSelections: [{ chapter: 1, startVerse: 2, endVerse: 2 }],
+      eligible: all, all, context,
+      readAssignments: async () => [...stored],
+      assign: async range => { written.push(range); const saved = assignment({ id: `saved-${stored.length}`, ...range }); stored.push(saved); return saved; },
+    });
+    expect(written.map(range => [range.startChapter, range.startVerse, range.endVerse])).toEqual([[1, 2, 2], [3, 1, 2]]);
+    expect(result).toEqual({ assignments: stored, saved: 2, completedChapters: [1, 3], remainingChapters: [] });
+  });
+
+  it("ignores verse selections for unselected chapters", async () => {
+    const all = chapter(1, [1, 2]);
+    const stored: Assignment[] = [];
+    const written: PassageRange[] = [];
+    const result = await saveChapterAssignments({
+      selectedChapters: [1],
+      verseSelections: [{ chapter: 9, startVerse: 1, endVerse: 5 }],
+      eligible: all, all, context,
+      readAssignments: async () => [...stored],
+      assign: async range => { written.push(range); const saved = assignment({ id: "saved", ...range }); stored.push(saved); return saved; },
+    });
+    expect(written).toEqual([{ bookKey: "John", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 }]);
+    expect(result.completedChapters).toEqual([1]);
+  });
+
+  it("retries only the missing refined verses after a failure", async () => {
+    const all = chapter(1, [1, 2, 3, 4]);
+    const stored: Assignment[] = [];
+    const attempted: PassageRange[] = [];
+    let fail = true;
+    const input = {
+      selectedChapters: [1],
+      verseSelections: [{ chapter: 1, startVerse: 1, endVerse: 2 }, { chapter: 1, startVerse: 4, endVerse: 4 }],
+      eligible: all, all, context,
+      readAssignments: async () => [...stored],
+      assign: async (range: PassageRange) => {
+        attempted.push(range);
+        if (fail && range.startVerse === 1) throw new Error("offline");
+        const saved = assignment({ id: `saved-${stored.length}`, ...range });
+        stored.push(saved);
+        return saved;
+      },
+    };
+    const first = await saveChapterAssignments(input);
+    expect(first.error?.message).toBe("offline");
+    expect(first.remainingChapters).toEqual([1]);
+    fail = false;
+    const second = await saveChapterAssignments({ ...input, selectedChapters: first.remainingChapters });
+    expect(second.error).toBeUndefined();
+    expect(stored.map(item => [item.startVerse, item.endVerse])).toEqual([[1, 2], [4, 4]]);
+    expect(second.completedChapters).toEqual([1]);
   });
 });

@@ -46,6 +46,22 @@
 .planner-chapter-grid{max-height:24rem;overflow:auto;padding:var(--er-space-1);display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:var(--er-space-2);margin-top:var(--er-space-3)}
 .planner-chapter-choice{display:flex;align-items:center;gap:var(--er-space-2)}
 .planner-chapter-choice small{display:block}
+
+/* Verse refinement: per-chapter From/To/Add rows shown only for checked chapters. */
+.planner-verse-refine{margin-top:var(--er-space-4);border-top:1px solid var(--er-border);padding-top:var(--er-space-3);display:grid;gap:var(--er-space-2)}
+.planner-verse-refine h4{margin:0;display:flex;align-items:baseline;gap:var(--er-space-2);font-size:var(--er-text-base)}
+.planner-verse-refine h4 .planner-caption{margin-top:0}
+.planner-refine-row{border:1px solid var(--er-border);border-radius:var(--er-radius-control);background:var(--er-card);padding:var(--er-space-2) var(--er-space-3);display:grid;gap:var(--er-space-2);min-width:0}
+.planner-refine-head{display:flex;align-items:center;gap:var(--er-space-3);min-width:0}
+.planner-refine-head strong{white-space:nowrap;font-size:var(--er-text-sm)}
+.planner-refine-status{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--er-muted-ink);font-size:var(--er-text-sm)}
+.planner-refine-body{display:grid;gap:var(--er-space-2)}
+.planner-range-tokens{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--er-space-2)}
+.planner-range-token{display:inline-flex;align-items:center;gap:var(--er-space-1);padding:2px 4px 2px 10px;border-radius:7px;background:var(--er-selected);color:var(--er-action-blue);font:600 var(--er-text-xs)/1.5 var(--er-font-ui)}
+.planner-range-token .ds-button{color:inherit}
+.planner-range-fields{display:flex;align-items:end;gap:var(--er-space-2);flex-wrap:wrap}
+.planner-range-fields label{display:grid;gap:var(--er-space-1);font-size:var(--er-text-xs);color:var(--er-muted-ink);min-width:5.5rem;flex:1}
+@media(max-width:430px){.planner-range-fields .ds-button{flex-basis:100%}}
 .planner-person-heading{display:flex;align-items:center;gap:var(--er-space-3)}
 .planner-person-heading h2{margin:0;min-width:0;overflow-wrap:anywhere}
 
