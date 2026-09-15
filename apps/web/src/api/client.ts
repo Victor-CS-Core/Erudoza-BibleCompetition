@@ -14,6 +14,7 @@ import type {
   SessionSummary,
   SourceUnit,
   Student,
+  StudentDashboard,
 } from "./types";
 import { apiUrl } from "./url";
 import type { StartTrainingContext } from "./trainingTypes";
@@ -71,6 +72,8 @@ export const api = {
   createSeason: (orgId: string, body: { name: string; yearLabel: string; ruleProfileKey: string }) =>
     request<Season>(`/api/v1/organizations/${orgId}/seasons`, { method: "POST", body: JSON.stringify(body) }),
   students: (orgId: string) => request<Student[]>(`/api/v1/organizations/${orgId}/students`),
+  studentDashboard: (orgId: string, studentId: string, signal?: AbortSignal) =>
+    request<StudentDashboard>(`/api/v1/organizations/${orgId}/students/${encodeURIComponent(studentId)}/dashboard`, { signal }),
   createStudent: (orgId: string, body: { userName: string; displayName: string; password: string }) =>
     request<Student>(`/api/v1/organizations/${orgId}/students`, { method: "POST", body: JSON.stringify(body) }),
   resetStudentPassword: (orgId: string, studentId: string, password: string) =>

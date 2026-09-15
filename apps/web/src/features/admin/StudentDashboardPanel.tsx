@@ -1,0 +1,123 @@
+import { useEffect, useId, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../../api/client";
+import type { Student } from "../../api/types";
+import { useAuth } from "../../auth/AuthContext";
+import { Badge, Button, LoadingState, Notice, Panel, ProgressMeter, WeeklyProgressStrip } from "../../components/ui";
+import { ProfileAvatar } from "../profile/ProfileAvatar";
+import { formatPassageCitation } from "./passageRanges";
+import "../../styles/student-dashboard.css";
+
+const assignmentTypeLabels: Record<string, string> = {
+  PrimarySpecialist: "Specialist",
+  RequiredCoverage: "Required coverage",
+  OptionalReview: "Optional review",
+};
+
+function formatDateTime(value: string | null): string {
+  if (!value) return "No activity yet";
+  return new Date(value).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+function formatDate(value: string): string {
+  return new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+/** Coach slide-over with one student's effort, progress, mastery, assignments and recent activity. */
+export function StudentDashboardPanel({ student, onClose }: { student: Student; onClose(): void }) {
+  const { me } = useAuth();
+  const titleId = useId();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const dashboard = useQuery({
+    queryKey: ["student-dashboard", me?.organizationId, student.userId],
+    queryFn: ({ signal }) => api.studentDashboard(me!.organizationId, student.userId, signal),
+    enabled: !!me,
+    staleTime: 30_000,
+  });
+  useEffect(() => {
+    const element = dialog.current!;
+    const trigger = document.activeElement as HTMLElement | null;
+    element.showModal();
+    element.querySelector<HTMLElement>("button, select, input, [tabindex]")?.focus();
+    return () => { element.close(); if (trigger?.isConnected) trigger.focus({ preventScroll: true }); };
+  }, []);
+  const data = dashboard.data;
+  const progressPercent = data && data.progress.eligibleCount > 0
+    ? Math.round((data.progress.seenCount / data.progress.eligibleCount) * 100) : null;
+  return <dialog
+    ref={dialog}
+    className="ds-dialog ds-student-dashboard"
+    aria-labelledby={titleId}
+    onCancel={event => { event.preventDefault(); onClose(); }}
+    onClick={event => { if (event.target === dialog.current) onClose(); }}
+    data-testid="student-dashboard-panel"
+  >
+    <header className="ds-student-dashboard-header">
+      <ProfileAvatar userId={student.userId} displayName={student.displayName} />
+      <div className="ds-student-dashboard-identity">
+        <h2 id={titleId}>{student.displayName}</h2>
+        <p>@{student.userName}</p>
+      </div>
+      <Badge tone={student.isActive === false ? "neutral" : "success"}>{student.isActive === false ? "Inactive" : "Active"}</Badge>
+      <Button variant="ghost" aria-label={`Close ${student.displayName} dashboard`} onClick={onClose}>Close</Button>
+    </header>
+    <div className="ds-student-dashboard-body">
+      {dashboard.isPending && <Panel aria-busy="true"><LoadingState label={`Loading ${student.displayName}'s dashboard…`} /></Panel>}
+      {dashboard.isError && <Notice tone="danger">The dashboard could not load. <Button variant="secondary" size="compact" onClick={() => void dashboard.refetch()}>Try again</Button></Notice>}
+      {data && <>
+        <Panel data-testid="student-dashboard-effort">
+          <h2>Effort this week</h2>
+          <p>{data.season ? `${data.season.name} · ` : ""}{data.effort.completedDays} of {data.effort.weeklyTarget} study days</p>
+          <WeeklyProgressStrip week={{ weekStartLocalDate: data.effort.weekStartLocalDate, timeZone: data.effort.timeZone, target: data.effort.weeklyTarget as 3 | 4 | 5, completedDays: data.effort.completedDays, days: data.effort.days }} />
+          <dl className="ds-student-dashboard-metrics">
+            <div><dt>Current streak</dt><dd>{data.effort.streakDays} {data.effort.streakDays === 1 ? "day" : "days"}</dd></div>
+            <div><dt>Sessions, last 7 days</dt><dd>{data.effort.sessionsLast7Days}</dd></div>
+            <div><dt>Last activity</dt><dd>{formatDateTime(data.effort.lastActivityAtUtc)}</dd></div>
+          </dl>
+        </Panel>
+        <Panel data-testid="student-dashboard-progress">
+          <h2>Progress</h2>
+          <dl className="ds-student-dashboard-metrics">
+            <div><dt>Passages seen</dt><dd>{data.progress.seenCount} / {data.progress.eligibleCount}</dd></div>
+            <div><dt>Strong or mastered</dt><dd>{data.progress.strongCount}</dd></div>
+            <div><dt>Mastered</dt><dd>{data.progress.masteredCount}</dd></div>
+            <div><dt>Reviews due</dt><dd>{data.progress.reviewDueCount}</dd></div>
+            <div><dt>Attempts</dt><dd>{data.progress.attemptCount}</dd></div>
+          </dl>
+          {progressPercent !== null && <div className="ds-student-dashboard-overall"><ProgressMeter label="Assigned passages seen" value={progressPercent} max={100} /><span>{progressPercent}% seen</span></div>}
+          <ul className="ds-student-dashboard-chapters">{data.progress.chapters.map(chapter => {
+            const percent = chapter.eligibleCount ? Math.round((chapter.seenCount / chapter.eligibleCount) * 100) : 0;
+            return <li key={`${chapter.bookKey}-${chapter.chapter}`}>
+              <div><strong>{chapter.bookKey} {chapter.chapter}</strong><small>{chapter.masteredCount} mastered · {chapter.strongCount} strong</small></div>
+              <ProgressMeter label={`${chapter.bookKey} chapter ${chapter.chapter} progress`} value={percent} max={100} />
+            </li>;
+          })}</ul>
+        </Panel>
+        <Panel data-testid="student-dashboard-mastery">
+          <h2>Mastery</h2>
+          <h3>Badges earned</h3>
+          {data.mastery.badges.length ? <ul className="ds-student-dashboard-list">{data.mastery.badges.map(badge =>
+            <li key={badge.key}><div><strong>{badge.title}</strong><small>Earned {formatDate(badge.earnedAtUtc!)}</small></div><Badge tone="success">Earned</Badge></li>)}
+          </ul> : <p>No badges earned yet.</p>}
+          <h3>Passage levels</h3>
+          <ul className="ds-student-dashboard-list">{data.mastery.levelCounts.map(({ level, count }) =>
+            <li key={level}><strong>{level}</strong><span>{count}</span></li>)}
+          </ul>
+        </Panel>
+        <Panel data-testid="student-dashboard-assignments">
+          <h2>Assignments</h2>
+          {data.assignments.length ? <ul className="ds-student-dashboard-list">{data.assignments.map(assignment =>
+            <li key={assignment.id}><div><strong>{formatPassageCitation(assignment)}</strong><small>{assignmentTypeLabels[assignment.type] ?? "Assigned study"} · {assignment.difficulty ?? "Standard"} difficulty</small></div></li>)}
+          </ul> : <p>No assignments yet.</p>}
+        </Panel>
+        <Panel data-testid="student-dashboard-activity">
+          <h2>Recent activity</h2>
+          {data.recentActivity.length ? <ul className="ds-student-dashboard-list">{data.recentActivity.map(session =>
+            <li key={session.sessionId}><div><strong>{session.mode} · {session.format}</strong><small><time dateTime={session.createdAtUtc}>{formatDateTime(session.createdAtUtc)}</time></small></div>
+              <span>{session.correct === null ? `${session.attempted} attempted` : `${session.correct} / ${session.attempted} correct`}</span></li>)}
+          </ul> : <p>No completed sessions yet.</p>}
+        </Panel>
+      </>}
+    </div>
+  </dialog>;
+}

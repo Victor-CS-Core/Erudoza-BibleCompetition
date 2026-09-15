@@ -251,3 +251,49 @@ export type NotebookEntryInput = {
 };
 export type NotebookEntry = NotebookEntryInput & { id: string; bookName: string; citation: string; quote: string; updatedAtUtc: string };
 export type StudyNotebook = { version: number; entries: NotebookEntry[] };
+
+export type StudentDashboard = {
+  student: { userId: string; displayName: string; userName: string; isActive: boolean };
+  season: { id: string; name: string; status: string } | null;
+  effort: {
+    weeklyTarget: number;
+    completedDays: number;
+    weekStartLocalDate: string;
+    timeZone: string;
+    days: { localDate: string; credited: boolean; isToday: boolean }[];
+    streakDays: number;
+    sessionsLast7Days: number;
+    lastActivityAtUtc: string | null;
+  };
+  progress: {
+    eligibleCount: number;
+    seenCount: number;
+    strongCount: number;
+    masteredCount: number;
+    reviewDueCount: number;
+    attemptCount: number;
+    chapters: {
+      bookKey: string;
+      chapter: number;
+      eligibleCount: number;
+      seenCount: number;
+      strongCount: number;
+      masteredCount: number;
+    }[];
+  };
+  mastery: {
+    badges: import("./trainingTypes").BadgeProgress[];
+    levelCounts: { level: string; count: number }[];
+  };
+  assignments: Assignment[];
+  recentActivity: {
+    sessionId: string;
+    mode: string;
+    format: string | null;
+    createdAtUtc: string;
+    completedAtUtc: string | null;
+    attempted: number;
+    correct: number;
+    fullTargetReached: boolean;
+  }[];
+};

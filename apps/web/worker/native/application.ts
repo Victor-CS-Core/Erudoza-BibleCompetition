@@ -10,6 +10,7 @@ import { notebook } from './application/notebook';
 import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeDto, scopePacks, scopeSources, seasonSummaries, student, students, learner, requireLearner, studentAssignments, validatePackRanges } from './application/model';
 import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
 import { buildAssignmentNotification } from './application/notifications';
+import { studentDashboard } from './application/student-dashboard';
 export { effectiveSources } from './application/model';
 async function mapSeason(ctx: RequestContext, s: Season) { return { ...s, scopeUnitCount: (await effectiveSources(ctx, s.id)).length, assignmentCount: (await studentAssignments(ctx,s.id)).length }; }
 export async function handleApplication(ctx: RequestContext): Promise<Response | null> {
@@ -70,6 +71,9 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         return json({ userId, userName, displayName, email: null, isActive: true }, 201);
     }
     const studentMatch = path.match(/^\/students\/([^/]+)\/(password|state)$/);
+    const dashboardMatch = path.match(/^\/students\/([^/]+)\/dashboard$/);
+    if (dashboardMatch && method === 'GET')
+        return json(await studentDashboard(ctx, dashboardMatch[1]));
     if (studentMatch && (studentMatch[2] === 'password' && method === 'POST' || studentMatch[2] === 'state' && method === 'PUT')) {
         await student(ctx, studentMatch[1]);
         const input = await body<{

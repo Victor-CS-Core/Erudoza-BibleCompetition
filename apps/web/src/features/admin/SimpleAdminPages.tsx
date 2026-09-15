@@ -10,6 +10,7 @@ import { Button, Input, LinkButton, Notice, PageHeader, Panel, Select } from "..
 import { SeasonAssignmentEditor } from "./SeasonWizardPage";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { StudentTable } from "./StudentTable";
+import { StudentDashboardPanel } from "./StudentDashboardPanel";
 import { SeasonStatusBadge } from "./SeasonStatusBadge";
 import { formatPassageCitation } from "./passageRanges";
 
@@ -42,6 +43,7 @@ export function StudentsPage() {
   const [resetStudentId, setResetStudentId] = useState<string | null>(null);
   const [resetPassword, setResetPassword] = useState("");
   const [stateStudent, setStateStudent] = useState<Student | null>(null);
+  const [dashboardStudent, setDashboardStudent] = useState<Student | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const students = useQuery({ queryKey: ["students", me?.organizationId], queryFn: () => api.students(me!.organizationId), enabled: !!me });
@@ -72,6 +74,7 @@ export function StudentsPage() {
       {students.isError && <QueryError retry={() => void students.refetch()}>Unable to load students.</QueryError>}
       {students.data && <StudentTable students={students.data} renderActions={student => <>
 
+        <Button size="compact" variant="secondary" onClick={() => setDashboardStudent(student)}>Dashboard<span className="sr-only"> for {student.displayName}</span></Button>
         <LinkButton size="compact" variant="secondary" to={`/admin/assignments?studentId=${encodeURIComponent(student.userId)}`}>Manage assignments<span className="sr-only"> for {student.displayName}</span></LinkButton>
         <Button size="compact" variant="ghost" disabled={changeState.isPending} onClick={() => { changeState.reset(); setStateStudent(student); setStatus(null); }}>{student.isActive === false ? "Reactivate" : "Deactivate"}<span className="sr-only"> {student.displayName}</span></Button>
         <Button size="compact" type="button" data-testid={`reset-password-${student.userName}`} variant="ghost" disabled={reset.isPending}
@@ -89,6 +92,7 @@ export function StudentsPage() {
         <label className="mt-3 block">New password for {students.data?.find(student => student.userId === resetStudentId)?.displayName}
           <Input data-testid="reset-password-input" type="password" autoComplete="new-password" required minLength={8} value={resetPassword} onChange={e => setResetPassword(e.target.value)} disabled={reset.isPending} /></label>
       </ConfirmationDialog>}
+      {dashboardStudent && <StudentDashboardPanel student={dashboardStudent} onClose={() => setDashboardStudent(null)} />}
     </Panel>
     <Panel id="add-student"><h2>Add a student</h2><p>Students sign in with a username. Passwords need at least 8 characters.</p>
       <form className="training-directory-form" onSubmit={onSubmit}>
