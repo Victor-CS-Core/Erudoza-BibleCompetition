@@ -17,6 +17,17 @@ it("keeps five student destinations with study modes consolidated under Study", 
   expect(navigation(true).some(item => item.id === "honors")).toBe(false);
 });
 
+it("keeps eight focused coach destinations with five default shortcuts", () => {
+  const items = navigation(true, "s");
+  expect(items.map(item => item.id)).toEqual(["overview", "seasons", "students", "coaches", "assignments", "practice", "profile", "library"]);
+  // Help moved out of primary navigation; it stays in the account menu and workspace footer.
+  expect(items.some(item => item.id === "wiki")).toBe(false);
+  // Students no longer duplicates the Assignments destination as a child link.
+  expect(items.find(item => item.id === "students")?.children?.map(child => child.id)).toEqual(["directory", "add-student"]);
+  // Team Practice keeps room and invitation actions; bank, honors and progress are page sections.
+  expect(items.find(item => item.id === "practice")?.children?.map(child => child.id)).toEqual(["rooms", "create-room", "invitations"]);
+});
+
 it("offers the shared Scripture reader in both modes with season context", () => {
   // Students reach the library through the Study destination's Library tab now.
   expect(navigation(false, "s").find(item => item.id === "study")?.to).toBe("/student/study?seasonId=s");

@@ -44,10 +44,14 @@ it("starts with the approved three student shortcuts and preserves saved pin cho
  shell("/student/progress");
  expect(within(screen.getByRole("navigation", { name: "Learner" })).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Team Practice", "Progress"]);
 });
-it("keeps all coach tools directly navigable", () => {
+it("shows five focused coach shortcuts by default with the rest pin-able from Search", () => {
  shell("/admin/assignments", "admin"); const nav = screen.getByRole("navigation", { name: "Coach" });
- for (const name of ["Overview", "Seasons", "Students", "Assignments", "Scripture library"]) expect(within(nav).getByRole("link", { name })).toBeInTheDocument();
+ expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual(["Overview", "Seasons", "Students", "Assignments", "Team Practice"]);
  expect(within(nav).getByRole("link", { name: "Assignments" })).toHaveAttribute("aria-current", "page");
+ fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
+ const dialog = screen.getByRole("dialog");
+ for (const name of ["Coaches", "Scripture library", "Your profile"]) expect(within(dialog).getByRole("button", { name: `Pin ${name}` })).toBeInTheDocument();
+ expect(within(dialog).queryByRole("button", { name: /^Pin Help$/ })).not.toBeInTheDocument();
 });
 it.each([
  ["/admin", ["overview", "seasons", "students"], "Overview", 3],
@@ -74,8 +78,8 @@ it("preserves the stable mobile dock when Coach pins change", () => {
  const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
  expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["Overview", "Seasons", "Students"]);
  expect(within(mobile).getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
- expect(within(nav).getAllByRole("link")).toHaveLength(8);
- expect(JSON.parse(localStorage.getItem("erudoza:pins:org:user:coach")!)).toEqual(["seasons", "students", "coaches", "assignments", "practice", "library", "wiki"]);
+ expect(within(nav).getAllByRole("link")).toHaveLength(5);
+ expect(JSON.parse(localStorage.getItem("erudoza:pins:org:user:coach")!)).toEqual(["seasons", "students", "assignments", "practice"]);
  expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Pin Overview" })).toBeInTheDocument();
  fireEvent.click(within(screen.getByRole("dialog")).getByRole("link", { name: "Team Practice" }));
  expect(within(mobile).getByRole("button", { name: "More" })).toHaveAttribute("aria-current", "page");
@@ -161,9 +165,9 @@ it("searches real students and opens their assignments; keyboard navigation move
 it("keeps expanded groups between visits and persists pins without exposing coach actions to students", async () => {
  const view = shell("/admin", "admin"); fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  fireEvent.click(screen.getByRole("button", { name: "Show Seasons options" })); expect(screen.getByRole("link", { name: "Create season" })).toHaveAttribute("href", "/admin/seasons/new");
- fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Unpin Scripture library" }));
+ fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Unpin Team Practice" }));
  fireEvent.click(screen.getByRole("button", { name: "Close command center" }));
- expect(within(screen.getByRole("navigation", { name: "Coach" })).queryByRole("link", { name: "Scripture library" })).not.toBeInTheDocument();
+ expect(within(screen.getByRole("navigation", { name: "Coach" })).queryByRole("link", { name: "Team Practice" })).not.toBeInTheDocument();
  fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ })); expect(screen.getByRole("link", { name: "Create season" })).toBeInTheDocument();
  view.unmount(); shell(); fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  expect(screen.queryByRole("link", { name: "Create season" })).not.toBeInTheDocument(); expect(screen.queryByRole("button", { name: "Students" })).not.toBeInTheDocument();

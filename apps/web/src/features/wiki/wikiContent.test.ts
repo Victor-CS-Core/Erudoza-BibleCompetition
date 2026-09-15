@@ -24,8 +24,9 @@ describe("wiki content", () => {
     expect(searchWiki(wikiArticles, "credential verification").map(result => result.article.id)).toContain("account-access");
   });
 
-  it("exposes in-app help in coach navigation and the public wiki in the shared footer", () => {
-    expect(navigation(true).find(item => item.id === "wiki")).toMatchObject({ label: "Help", to: "/help" });
+  it("keeps help out of primary navigation while exposing it from the account menu and footer", () => {
+    // Coaches reach help from the account menu and workspace footer, mirroring the student side.
+    expect(navigation(true).some(item => item.id === "wiki")).toBe(false);
     // Students reach help from the footer (next to Privacy/Terms), not the five-item nav.
     expect(navigation(false).some(item => item.id === "wiki")).toBe(false);
   });
