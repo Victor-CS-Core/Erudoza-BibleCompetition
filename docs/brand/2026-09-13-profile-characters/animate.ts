@@ -3,6 +3,9 @@ import {renderCharacterLayers,portraitHead,type CharacterLayers,type Configurati
 
 export type AnimationOptions = {onError?: (message: string) => void};
 
+/** Maximum horizontal iris travel, 512px head-space px. Shared by pose and mask sizing. */
+const GAZE_MAX = 6;
+
 /** Idle pose offsets as a pure function of seconds since the loop started. */
 export function poseAt(t: number) {
   const TAU = Math.PI*2;
@@ -14,7 +17,7 @@ export function poseAt(t: number) {
     /** Sash sway around the shoulder attachment, radians. */
     sway: (1.6*Math.PI/180)*Math.sin(TAU*t/3.1+2.3),
     /** Simple eye movement: the irises shift side to side, 512px head-space px. */
-    gaze: 6*Math.sin(TAU*t/5.3),
+    gaze: GAZE_MAX*Math.sin(TAU*t/5.3),
   };
 }
 export type Pose = ReturnType<typeof poseAt>;
@@ -69,7 +72,7 @@ function drawBlink(ctx: CanvasRenderingContext2D, irises: number[][], color: str
 /** Draw one animated character frame. Exported for regression tests. */
 export function drawFrame(
   ctx: CanvasRenderingContext2D, layers: CharacterLayers,
-  sprites: IrisSprite[], irises: number[][], skin: string, pose: Pose, open: number,
+  eyes: EyeRegion[], irises: number[][], skin: string, pose: Pose, open: number,
 ) {
   ctx.clearRect(0, 0, 1536, 1536);
   // The figure stays planted: the idle loop is in-place motion only
@@ -86,15 +89,11 @@ export function drawFrame(
   ctx.translate(-layers.neck[0], -layers.neck[1]);
   ctx.drawImage(layers.head, hs.x, hs.y, 512*hs.scale, 512*hs.scale);
   ctx.translate(hs.x, hs.y); ctx.scale(hs.scale, hs.scale);
-  // The glance repaints each iris from its wide sprite at the shifted
-  // position. The sprite's sclera margin covers the iris's old spot, and the
-  // head underneath was repainted fresh this frame, so the shift is seamless.
-  for (const sprite of sprites) {
-    ctx.drawImage(sprite.image, sprite.x-sprite.rx-sprite.pad+pose.gaze, sprite.y-sprite.ry-sprite.pad);
-  }
-  // Blink lids follow the glance.
-  ctx.translate(pose.gaze, 0);
-  drawBlink(ctx, irises, skin, open);
+  // The glance repaints each eye through its feathered eye-white mask at the
+  // shifted position. The sprite's sclera margin covers the iris's old spot,
+  // the head underneath was repainted fresh this frame, and the mask — never
+  // the sprite rectangle — defines the visible edge, so the shift is seamless.
+  eyes.forEach((eye, i) => drawEye(ctx, eye, irises[i], pose.gaze, skin, open));
   ctx.restore();
   // Body breathes around the boot line; the sash rides the same motion and
   // sways on its shoulder attachment.
@@ -132,7 +131,7 @@ export async function playCharacterAnimation(
   canvas.width = 1536; canvas.height = 1536;
   const irises = headEyes[`${config.bodyType}-${config.style}`];
   const skin = lidColor(layers.head, irises);
-  const sprites = irisSprites(layers.head, irises);
+  const sprites = eyeRegions(layers.head, irises);
   const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) {
     drawFrame(ctx, layers, sprites, irises, skin, stillPose, 1);
@@ -157,25 +156,127 @@ export function portraitPoseAt(t: number) {
     /** Head vertical drift, 512px head-space px. The head never translates sideways. */
     bob: 2.4*Math.sin(TAU*t/2.6),
     /** Simple eye movement: the irises shift side to side, 512px head-space px. */
-    gaze: 6*Math.sin(TAU*t/5.3),
+    gaze: GAZE_MAX*Math.sin(TAU*t/5.3),
   };
 }
 export type PortraitPose = ReturnType<typeof portraitPoseAt>;
 const stillPortraitPose: PortraitPose = {bob: 0, gaze: 0};
 
-type IrisSprite = {image: HTMLCanvasElement; x: number; y: number; rx: number; ry: number; pad: number};
+export type EyeRegion = {
+  /** Snipped iris + wide sclera margin; drawn at (spriteX+gaze, spriteY). */
+  sprite: HTMLCanvasElement; spriteX: number; spriteY: number;
+  /** Feathered eye-white mask (alpha only); defines the visible edge. */
+  mask: HTMLCanvasElement;
+  /** Reusable per-frame composition canvas, sized to the mask. */
+  region: HTMLCanvasElement;
+  /** Region origin in head space. */
+  ox: number; oy: number;
+};
+
+/**
+ * Measure the eye-white extent from the artwork: march outward from just past
+ * the iris edge along each axis until the dark lid outline is hit. Falls back
+ * to the historical ~10px sclera margin when no outline is found. Exported
+ * for the visual harness.
+ */
+export function eyeWhiteExtent(
+  lum: (x: number, y: number) => number,
+  x: number, y: number, rx: number, ry: number,
+): {ex: number; ey: number} {
+  const march = (dx: number, dy: number, r: number): number => {
+    for (let d = r+3; d <= r+24; d += 1) {
+      if (lum(x+dx*d, y+dy*d) < 100) return Math.max(r+4, d-1);
+    }
+    return r+10;
+  };
+  return {
+    ex: Math.min(march(1, 0, rx), march(-1, 0, rx)),
+    ey: Math.min(march(0, 1, ry), march(0, -1, ry)),
+  };
+}
+
+/**
+ * Size the mask's opaque ellipse + feather band so the iris stays fully
+ * opaque at maximum gaze while the feather never crosses the lid outline.
+ * Exported for regression tests.
+ */
+export function sizeEyeMask(rx: number, ry: number, exWhite: number, eyWhite: number) {
+  const opaqueX = Math.max(rx+1, Math.min(rx+GAZE_MAX, exWhite-4));
+  const opaqueY = Math.max(ry+1, Math.min(ry+GAZE_MAX, eyWhite-4));
+  const feather = Math.max(1, Math.min(4, exWhite-opaqueX-0.5, eyWhite-opaqueY-0.5));
+  return {opaqueX, opaqueY, feather};
+}
+
+// Elliptical alpha mask: fully opaque over the iris travel zone, feathered to
+// transparent before the lid outline. Only alpha matters (destination-in).
+function featheredEyeMask(opaqueX: number, opaqueY: number, feather: number): HTMLCanvasElement {
+  const w = Math.ceil(2*(opaqueX+feather)), h = Math.ceil(2*(opaqueY+feather));
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const m = canvas.getContext('2d')!;
+  m.translate(w/2, h/2);
+  m.scale(opaqueX+feather, opaqueY+feather);
+  const inner = Math.min(opaqueX/(opaqueX+feather), opaqueY/(opaqueY+feather));
+  const g = m.createRadialGradient(0, 0, 0, 0, 0, 1);
+  g.addColorStop(0, 'rgba(0,0,0,1)');
+  g.addColorStop(inner, 'rgba(0,0,0,1)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  m.fillStyle = g;
+  m.fillRect(-1, -1, 2, 2);
+  return canvas;
+}
 
 // Snip each iris out of the recolored head so the glance can move the irises
 // inside the eye whites. The sprite carries a wide sclera margin (past the
-// maximum glance in either direction) so the shifted sprite covers the iris's
-// old position and its edge lands on identical pristine pixels.
-function irisSprites(head: HTMLCanvasElement, irises: number[][]): IrisSprite[] {
+// maximum glance in either direction, and past the mask's feather band) so the
+// shifted sprite covers the iris's old position while its own rectangle edge
+// always lands outside the feathered eye mask — the mask, not the rectangle,
+// defines the visible edge. Exported for the visual harness.
+export function eyeRegions(head: HTMLCanvasElement, irises: number[][]): EyeRegion[] {
+  const hctx = head.getContext('2d')!;
   return irises.map(([x, y, rx, ry]) => {
-    const pad = 12, w = Math.ceil(rx*2+pad*2), h = Math.ceil(ry*2+pad*2);
-    const image = document.createElement('canvas'); image.width = w; image.height = h;
-    image.getContext('2d')!.drawImage(head, x-rx-pad, y-ry-pad, w, h, 0, 0, w, h);
-    return {image, x, y, rx, ry, pad};
+    const pad = 18, w = Math.ceil(rx*2+pad*2), h = Math.ceil(ry*2+pad*2);
+    const sprite = document.createElement('canvas');
+    sprite.width = w; sprite.height = h;
+    const spriteX = x-rx-pad, spriteY = y-ry-pad;
+    sprite.getContext('2d')!.drawImage(head, spriteX, spriteY, w, h, 0, 0, w, h);
+    // Sample the eye neighborhood once, then measure the real eye-white shape.
+    const bx0 = Math.max(0, Math.floor(x-rx-26)), by0 = Math.max(0, Math.floor(y-ry-26));
+    const bw = Math.ceil(rx*2+52), bh = Math.ceil(ry*2+52);
+    const data = hctx.getImageData(bx0, by0, bw, bh).data;
+    const lum = (px: number, py: number): number => {
+      const ix = Math.max(0, Math.min(bw-1, Math.round(px-bx0)));
+      const iy = Math.max(0, Math.min(bh-1, Math.round(py-by0)));
+      const i = (iy*bw+ix)*4;
+      return 0.299*data[i]+0.587*data[i+1]+0.114*data[i+2];
+    };
+    const {ex, ey} = eyeWhiteExtent(lum, x, y, rx, ry);
+    const {opaqueX, opaqueY, feather} = sizeEyeMask(rx, ry, ex, ey);
+    const mask = featheredEyeMask(opaqueX, opaqueY, feather);
+    const region = document.createElement('canvas');
+    region.width = mask.width; region.height = mask.height;
+    return {sprite, spriteX, spriteY, mask, region, ox: x-opaqueX-feather, oy: y-opaqueY-feather};
   });
+}
+
+// Repaint one eye's shifted iris plus its blink lid through the feathered
+// eye-white mask, so the moving content can never show a rectangular seam.
+function drawEye(
+  ctx: CanvasRenderingContext2D, eye: EyeRegion, iris: number[],
+  gaze: number, skin: string, open: number,
+) {
+  const r = eye.region.getContext('2d')!;
+  r.clearRect(0, 0, eye.region.width, eye.region.height);
+  r.drawImage(eye.sprite, eye.spriteX-eye.ox+gaze, eye.spriteY-eye.oy);
+  // Blink lids follow the glance; positioned in head space via the region offset.
+  r.save();
+  r.translate(-eye.ox+gaze, -eye.oy);
+  drawBlink(r, [iris], skin, open);
+  r.restore();
+  r.globalCompositeOperation = 'destination-in';
+  r.drawImage(eye.mask, 0, 0);
+  r.globalCompositeOperation = 'source-over';
+  ctx.drawImage(eye.region, eye.ox, eye.oy);
 }
 
 const PORTRAIT_PX = 320;
@@ -184,7 +285,7 @@ const PORTRAIT_PX = 320;
 export function drawPortraitFrame(
   ctx: CanvasRenderingContext2D, head: HTMLCanvasElement,
   crop: {extent: number; cx: number; cy: number},
-  sprites: IrisSprite[], irises: number[][], skin: string,
+  eyes: EyeRegion[], irises: number[][], skin: string,
   pose: PortraitPose, open: number,
 ) {
   ctx.clearRect(0, 0, PORTRAIT_PX, PORTRAIT_PX);
@@ -198,14 +299,9 @@ export function drawPortraitFrame(
   ctx.scale(s, s);
   ctx.translate(-crop.cx, -crop.cy);
   ctx.drawImage(head, 0, 0);
-  // The glance repaints each iris from its wide sprite at the shifted
-  // position; the sprite's sclera margin covers the old spot seamlessly.
-  for (const sprite of sprites) {
-    ctx.drawImage(sprite.image, sprite.x-sprite.rx-sprite.pad+pose.gaze, sprite.y-sprite.ry-sprite.pad);
-  }
-  // Blink lids follow the glance.
-  ctx.translate(pose.gaze, 0);
-  drawBlink(ctx, irises, skin, open);
+  // The glance repaints each eye through its feathered eye-white mask; see
+  // drawFrame for why the mask — never the sprite rectangle — is the edge.
+  eyes.forEach((eye, i) => drawEye(ctx, eye, irises[i], pose.gaze, skin, open));
   ctx.restore();
 }
 
@@ -233,7 +329,7 @@ export async function playPortraitAnimation(
   canvas.width = PORTRAIT_PX; canvas.height = PORTRAIT_PX;
   const irises = headEyes[`${appearance.bodyType}-${appearance.style}`] ?? [];
   const skin = irises.length ? lidColor(prep.head, irises) : '#e8b98f';
-  const sprites = irisSprites(prep.head, irises);
+  const sprites = eyeRegions(prep.head, irises);
   const crop = {extent: prep.extent, cx: prep.cx, cy: prep.cy};
   const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) {

@@ -1783,3 +1783,22 @@ Completed:
 - Files: `apps/web/src/features/profile/character/animate.ts` (poseAt keys now bob/breath/gaze/sway; portraitPoseAt keys bob/gaze; drawFrame/drawPortraitFrame drop rotate/transform), twin `docs/brand/2026-09-13-profile-characters/animate.ts` mirrored byte-identical (`verify-twins.mjs` 6/6, review bundle rebuilt locally, git-ignored).
 - Tests: `animate.test.ts` 14/14 — new motion vocabulary asserts no tilt/yaw keys, gaze is a plain sine hitting ±6 at the quarter periods, bob vertical-only, head/figure planted and centered; the dwell test and yaw-pivot test from the reverted change are removed.
 - Profile suite 38/38; web `tsc --noEmit` clean; ESLint clean on both files; `test:wiki` 12/12. Wiki gate: no article change — the motion is subtler than documented but the article describes the animation in general terms.
+
+## Glance revert — deployed to staging, September 16
+
+- Merged to GitHub main: local `fc5ac01` → main `6343e013` via merge_branch_to_main.py (fast-forward; `profile/animated-preview-toggle` synced to same). Only the 4 in-scope files staged; unrelated working-tree changes untouched.
+- Deployed to staging via the Cloudflare skill (build:native + worker bundle first): version `e66f3e23-f6aa-421c-b3dc-9469d06d4255`, deployment `6281a898-8230-4d14-9b4e-2dcac80deaba`.
+- Verified: https://staging.erudoza.com/ 200, /api/v1/health healthy (database:true), served bundle `assets/index-BUDfGqty.js` contains zero `glanceWave` references and the plain `6*Math.sin` gaze.
+- Production untouched — no deploy approval given.
+
+## Eye-seam fix: feathered eye-white mask for the animated gaze — September 16
+
+- User bug report from staging (zoomed screenshot): when the iris shifts side to side, a rectangular "cut square" boundary showed around each eye — the repainted iris sprite's rectangle edges against the face skin.
+- Root cause: `animate.ts` repainted each iris from a rectangular snipped sprite; at gaze ±6 the rectangle's edge pixels (skin/shading from 6px away) landed on different shading, drawing a visible square. The old comment claimed the edge "lands on identical pristine pixels" — false once shifted.
+- Fix (`apps/web/src/features/profile/character/animate.ts`, twin mirrored byte-identical, `verify-twins.mjs` 6/6, review bundle rebuilt):
+  - New `eyeRegions()` replaces `irisSprites()`: each eye gets a snipped sprite (wider pad=18px), a per-frame composition canvas, and a **feathered elliptical alpha mask** sized from the artwork itself.
+  - New `eyeWhiteExtent()` measures the real eye-white shape per style by ray-marching from the iris edge to the dark lid outline (falls back to ~10px sclera margin); new exported `sizeEyeMask()` keeps the opaque zone over the iris at full ±6 gaze while the feather band never crosses the lid outline.
+  - New `drawEye()` composes shifted sprite + blink lids (lids follow the gaze) inside the region, applies `destination-in` with the mask, then composites the region — the mask, never the sprite rectangle, defines the visible edge. The lid outline stays pristine from the fresh head repaint underneath: no ghosting.
+  - Shared by `drawFrame` (full 3D view) and `drawPortraitFrame` (avatar). Kept: bob, breathing, sash sway, blinking, plain-sine ±6 gaze (now via shared `GAZE_MAX`), planted/no-slide, centered head, no tilt, no yaw, prefers-reduced-motion still frame.
+- Visual verification (acceptance criterion): headless Chromium renders with real artwork (male-curls blond + female-curly-bob) at gaze -6/0/+6 and a half-blink frame — 2.7x eye zooms show no rectangle/seam at any position, no ghosting, outline intact.
+- Tests: `animate.test.ts` 16/16 (updated geometry tests for the masked composition: sprite shift inside region, destination-in mask order, region composited at fixed origin; new: mask sizing stays inside measured eye white, extent measurement from synthetic outline + fallback); profile suite 40/40; `test:wiki` 12/12; `tsc --noEmit` clean; ESLint clean. Wiki gate: no article change — pure bug fix, the article describes the animation in general terms.
