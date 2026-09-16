@@ -153,4 +153,24 @@ describe('production character profile', () => {
     expect(screen.getByRole('button', { name: 'Female' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByRole('button', { name: 'Pathfinder' })).toHaveAttribute('aria-pressed', 'true');
   });
+
+  it('swaps the character preview between the 2D render and the animated 3D view in place', async () => {
+    mount();
+    await page('Character');
+    const toggle = screen.getByRole('group', { name: 'Preview style' });
+    expect(within(toggle).getByRole('button', { name: '2D' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(toggle).getByRole('button', { name: '3D' })).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(within(toggle).getByRole('button', { name: '3D' }));
+    // The 3D view lazy-loads, so the panel remounts once it resolves; re-query.
+    const reloaded = await screen.findByRole('group', { name: 'Preview style' });
+    expect(within(reloaded).getByRole('button', { name: '3D' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(reloaded).getByRole('button', { name: '2D' })).toHaveAttribute('aria-pressed', 'false');
+    // The animated canvas takes the same spot in the character panel.
+    const panel = reloaded.closest('.character-panel') as HTMLElement;
+    expect(within(panel).getByRole('img', { name: /^Animated preview/ })).toBeInTheDocument();
+    fireEvent.click(within(reloaded).getByRole('button', { name: '2D' }));
+    const back = await screen.findByRole('group', { name: 'Preview style' });
+    expect(within(back).getByRole('button', { name: '2D' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(back.closest('.character-panel') as HTMLElement).queryByRole('img', { name: /^Animated preview/ })).not.toBeInTheDocument();
+  });
 });
