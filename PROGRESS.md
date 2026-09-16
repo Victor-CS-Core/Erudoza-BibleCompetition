@@ -1802,3 +1802,10 @@ Completed:
   - Shared by `drawFrame` (full 3D view) and `drawPortraitFrame` (avatar). Kept: bob, breathing, sash sway, blinking, plain-sine ±6 gaze (now via shared `GAZE_MAX`), planted/no-slide, centered head, no tilt, no yaw, prefers-reduced-motion still frame.
 - Visual verification (acceptance criterion): headless Chromium renders with real artwork (male-curls blond + female-curly-bob) at gaze -6/0/+6 and a half-blink frame — 2.7x eye zooms show no rectangle/seam at any position, no ghosting, outline intact.
 - Tests: `animate.test.ts` 16/16 (updated geometry tests for the masked composition: sprite shift inside region, destination-in mask order, region composited at fixed origin; new: mask sizing stays inside measured eye white, extent measurement from synthetic outline + fallback); profile suite 40/40; `test:wiki` 12/12; `tsc --noEmit` clean; ESLint clean. Wiki gate: no article change — pure bug fix, the article describes the animation in general terms.
+
+## Eye-seam fix — deployed to staging, September 16
+
+- Merged to GitHub main: local `2563a06f` → main `df2ebd06` via merge_branch_to_main.py (fast-forward; `profile/animated-preview-toggle` synced). Only the 4 in-scope files staged; unrelated working-tree changes untouched.
+- Deployed to staging via the Cloudflare skill (build:native + worker bundle first): version `6abe5ae0-95cc-4f8e-b360-17d7842f83d0`, deployment `0dcf2c37-4d56-4511-adf7-08afe6836dfd`.
+- Verified: https://staging.erudoza.com/ 200, /api/v1/health healthy (database:true), served `assets/animate-9-hSJbiC.js` contains `destination-in` + `createRadialGradient` (new mask code) and zero `irisSprites`/`glanceWave` references.
+- Production untouched — no deploy approval given.
