@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {blinkOpen, drawPortraitFrame, playCharacterAnimation, playPortraitAnimation, portraitPoseAt, poseAt} from './animate';
-import type {Configuration} from './composition';
+import {blinkOpen, drawFrame, drawPortraitFrame, playCharacterAnimation, playPortraitAnimation, portraitPoseAt, poseAt} from './animate';
+import type {CharacterLayers, Configuration} from './composition';
 
 const config: Configuration = {
   bodyType: 'male', style: 'curls', hairColor: 'brown', attire: 'student',
@@ -11,25 +11,30 @@ describe('character idle animation', () => {
   it('starts the head at rest and loops each motion on its own period', () => {
     const start = poseAt(0);
     expect(start.bob).toBe(0);
-    expect(start.tilt).toBeCloseTo((1.4*Math.PI/180)*Math.sin(1.1), 10);
+    expect(start.tilt).toBeCloseTo((0.4*Math.PI/180)*Math.sin(1.1), 10);
+    expect(start.gaze).toBe(0);
+    expect(start.yaw).toBe(0);
     for (const t of [0.7, 2.1, 5.3]) {
       expect(poseAt(t).bob).toBeCloseTo(poseAt(t+2.6).bob, 10);
     }
+    expect(poseAt(1.1).gaze).toBeCloseTo(poseAt(1.1+5.3).gaze, 10);
   });
 
   it('keeps the figure planted with no horizontal translation', () => {
     for (let t = 0; t < 30; t += 0.13) {
-      expect(Object.keys(poseAt(t)).sort()).toEqual(['bob', 'breath', 'sway', 'tilt']);
+      expect(Object.keys(poseAt(t)).sort()).toEqual(['bob', 'breath', 'gaze', 'sway', 'tilt', 'yaw']);
     }
   });
 
-  it('keeps every motion subtle', () => {
+  it('keeps every motion subtle and the tilt barely perceptible', () => {
     for (let t = 0; t < 30; t += 0.13) {
       const pose = poseAt(t);
       expect(Math.abs(pose.bob)).toBeLessThanOrEqual(7);
-      expect(Math.abs(pose.tilt)).toBeLessThanOrEqual(1.5*Math.PI/180);
+      expect(Math.abs(pose.tilt)).toBeLessThanOrEqual(0.5*Math.PI/180);
       expect(Math.abs(pose.breath)).toBeLessThanOrEqual(0.007);
       expect(Math.abs(pose.sway)).toBeLessThanOrEqual(1.7*Math.PI/180);
+      expect(Math.abs(pose.gaze)).toBeLessThanOrEqual(8);
+      expect(Math.abs(pose.yaw)).toBeLessThanOrEqual(0.045);
     }
   });
 
@@ -62,25 +67,40 @@ describe('animated profile portrait', () => {
   it('starts at rest and loops each motion on its own period', () => {
     const start = portraitPoseAt(0);
     expect(start.bob).toBe(0);
-    expect(start.gaze).toBeCloseTo(0, 10);
-    expect(start.tilt).toBeCloseTo((1.2*Math.PI/180)*Math.sin(1.1), 10);
+    expect(start.gaze).toBe(0);
+    expect(start.yaw).toBe(0);
     expect(portraitPoseAt(1.3).bob).toBeCloseTo(portraitPoseAt(1.3+2.6).bob, 10);
     expect(portraitPoseAt(2.1).gaze).toBeCloseTo(portraitPoseAt(2.1+5.3).gaze, 10);
   });
 
-  it('keeps the head planted: only bob, tilt, and the iris glance exist', () => {
+  it('looks left and right with no roll: only bob, gaze, and yaw exist', () => {
     for (let t = 0; t < 30; t += 0.17) {
-      expect(Object.keys(portraitPoseAt(t)).sort()).toEqual(['bob', 'gaze', 'tilt']);
+      expect(Object.keys(portraitPoseAt(t)).sort()).toEqual(['bob', 'gaze', 'yaw']);
     }
   });
 
-  it('keeps the glance subtle and the head motion small', () => {
+  it('keeps the glance clearly visible but the head motion small', () => {
     for (let t = 0; t < 30; t += 0.17) {
       const pose = portraitPoseAt(t);
       expect(Math.abs(pose.bob)).toBeLessThanOrEqual(2.4);
-      expect(Math.abs(pose.tilt)).toBeLessThanOrEqual(1.3*Math.PI/180);
-      expect(Math.abs(pose.gaze)).toBeLessThanOrEqual(6);
+      expect(Math.abs(pose.gaze)).toBeLessThanOrEqual(8);
+      expect(Math.abs(pose.yaw)).toBeLessThanOrEqual(0.05);
     }
+  });
+
+  it('dwells at each side of the glance instead of sweeping through', () => {
+    let max = 0;
+    const samples: number[] = [];
+    for (let t = 0; t < 5.3; t += 0.01) {
+      const g = Math.abs(portraitPoseAt(t).gaze);
+      samples.push(g);
+      if (g > max) max = g;
+    }
+    // A look-hold-look rhythm spends most of the cycle near the extremes;
+    // a plain sine sweep would sit under half.
+    const dwell = samples.filter(g => g >= 0.8*max).length/samples.length;
+    expect(max).toBeGreaterThan(6);
+    expect(dwell).toBeGreaterThan(0.5);
   });
 
   it('reports a friendly error when canvas 2d is unavailable', async () => {
@@ -92,9 +112,9 @@ describe('animated profile portrait', () => {
   });
 
   // Minimal 2d-context stand-in that composes transforms exactly like canvas
-  // (each call post-multiplies the current transform) and records where the
-  // head image lands. Lets the tests pin the portrait geometry without a
-  // real canvas or artwork.
+  // (each call post-multiplies the current transform) and records where each
+  // image lands. Lets the tests pin the portrait geometry without a real
+  // canvas or artwork.
   function mockPortraitCtx() {
     // DOMMatrix-style {a,b,c,d,e,f}: point (x,y) -> (a*x+c*y+e, b*x+d*y+f).
     let m = {a: 1, b: 0, c: 0, d: 1, e: 0, f: 0};
@@ -111,7 +131,10 @@ describe('animated profile portrait', () => {
         const cos = Math.cos(t), sin = Math.sin(t);
         m = {a: m.a*cos+m.c*sin, b: m.b*cos+m.d*sin, c: m.c*cos-m.a*sin, d: m.d*cos-m.b*sin, e: m.e, f: m.f};
       },
-      drawImage(image: unknown, x: number, y: number) { draws.push({image, x, y, at: {...m}}); },
+      transform(a: number, b: number, c: number, d: number, e: number, f: number) {
+        m = {a: m.a*a+m.c*b, b: m.b*a+m.d*b, c: m.a*c+m.c*d, d: m.b*c+m.d*d, e: m.e+m.a*e+m.c*f, f: m.f+m.b*e+m.d*f};
+      },
+      drawImage(image: unknown, ...args: number[]) { draws.push({image, x: args[0], y: args[1], at: {...m}}); },
       beginPath() {}, ellipse() {}, fill() {}, stroke() {},
       map(at: typeof m, x: number, y: number): [number, number] {
         return [at.a*x+at.c*y+at.e, at.b*x+at.d*y+at.f];
@@ -121,9 +144,10 @@ describe('animated profile portrait', () => {
     return ctx;
   }
 
-  const still = {bob: 0, tilt: 0, gaze: 0};
+  const still = {bob: 0, gaze: 0, yaw: 0};
   const headCanvas = {} as HTMLCanvasElement;
   const crop = {extent: 423, cx: 247, cy: 260};
+  const sprite = (x: number) => ({image: {} as HTMLCanvasElement, x, y: 301, rx: 24, ry: 27, pad: 12});
 
   it('centers the head crop on the portrait canvas', () => {
     const ctx = mockPortraitCtx();
@@ -137,7 +161,7 @@ describe('animated profile portrait', () => {
 
   it('bobs vertically without any sideways drift', () => {
     const ctx = mockPortraitCtx();
-    const pose = {bob: 2.4, tilt: 0, gaze: 0};
+    const pose = {bob: 2.4, gaze: 0, yaw: 0};
     drawPortraitFrame(ctx as unknown as CanvasRenderingContext2D, headCanvas, crop, [], [], '#e8b98f', pose, 1);
     const [x, y] = ctx.map(ctx.draws[0].at, crop.cx, crop.cy);
     const s = 320/crop.extent;
@@ -145,19 +169,62 @@ describe('animated profile portrait', () => {
     expect(y).toBeCloseTo(160+pose.bob*s, 8);
   });
 
-  it('tilts around the head center, not around a corner', () => {
+  it('yaws around the head center without translating it', () => {
     const ctx = mockPortraitCtx();
-    const pose = {bob: 0, tilt: 0.2, gaze: 0};
+    const pose = {bob: 0, gaze: 0, yaw: 0.045};
     drawPortraitFrame(ctx as unknown as CanvasRenderingContext2D, headCanvas, crop, [], [], '#e8b98f', pose, 1);
     const at = ctx.draws[0].at;
+    // The head center stays exactly planted under the shear.
+    const [x, y] = ctx.map(at, crop.cx, crop.cy);
+    expect(x).toBeCloseTo(160, 8);
+    expect(y).toBeCloseTo(160, 8);
+    // Points symmetric about the head center stay symmetric about the canvas
+    // center: the shear pivots on the head center.
     const s = 320/crop.extent;
-    // Two points symmetric about the head center stay symmetric about the
-    // canvas center after the tilt: the rotation pivots on the head center.
     const [lx, ly] = ctx.map(at, crop.cx-50, crop.cy);
     const [rx, ry] = ctx.map(at, crop.cx+50, crop.cy);
     expect((lx+rx)/2).toBeCloseTo(160, 8);
     expect((ly+ry)/2).toBeCloseTo(160, 8);
     expect(Math.hypot(lx-160, ly-160)).toBeCloseTo(50*s, 8);
     expect(Math.hypot(rx-160, ry-160)).toBeCloseTo(50*s, 8);
+  });
+
+  it('moves only the iris sprites sideways, never the head', () => {
+    const ctx = mockPortraitCtx();
+    const sprites = [sprite(213), sprite(334)];
+    const pose = {bob: 0, gaze: 8, yaw: 0};
+    drawPortraitFrame(ctx as unknown as CanvasRenderingContext2D, headCanvas, crop, sprites, [], '#e8b98f', pose, 1);
+    // The head image itself does not move sideways...
+    const [hx, hy] = ctx.map(ctx.draws[0].at, crop.cx, crop.cy);
+    expect(hx).toBeCloseTo(160, 8);
+    expect(hy).toBeCloseTo(160, 8);
+    // ...while each iris sprite shifts by exactly the gaze.
+    expect(ctx.draws).toHaveLength(3);
+    expect(ctx.draws[1].x).toBeCloseTo(213-24-12+8, 8);
+    expect(ctx.draws[2].x).toBeCloseTo(334-24-12+8, 8);
+  });
+
+  it('keeps the full-figure neck pivot planted while it glances', () => {
+    const ctx = mockPortraitCtx();
+    const neck: [number, number] = [260.5, 422];
+    const layers = {
+      stage: {}, head: headCanvas, body: {}, overlay: {},
+      headSprite: {x: 100, y: 200, scale: 1.5},
+      neck, shoulder: [512, 600] as [number, number], groundY: 1400,
+    } as unknown as CharacterLayers;
+    const pose = {...poseAt(1.7), bob: 0};
+    expect(Math.abs(pose.yaw)).toBeGreaterThan(0.01);
+    const sprites = [sprite(213), sprite(334)];
+    drawFrame(ctx as unknown as CanvasRenderingContext2D, layers, sprites, [], '#e8b98f', pose, 1);
+    // The neck pivot maps to itself (plus the outer 256px stage offset):
+    // yaw and tilt never translate the planted figure sideways.
+    const headDraw = ctx.draws.find(d => d.image === headCanvas)!;
+    const [x, y] = ctx.map(headDraw.at, neck[0], neck[1]);
+    expect(x).toBeCloseTo(256+neck[0], 8);
+    expect(y).toBeCloseTo(neck[1], 8);
+    // Both iris sprites are repainted at the glanced position.
+    const spriteDraws = ctx.draws.filter(d => d.image === sprites[0].image || d.image === sprites[1].image);
+    expect(spriteDraws).toHaveLength(2);
+    expect(spriteDraws[0].x).toBeCloseTo(213-24-12+pose.gaze, 8);
   });
 });

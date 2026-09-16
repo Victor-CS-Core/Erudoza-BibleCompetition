@@ -1755,3 +1755,15 @@ Completed:
 - Deployed to staging: worker version `5923ad1e-9a00-4b2b-9a2e-6d40c507c1c3`, deployment `a3787ff9-2f13-4b7c-958d-97a6c3f2fc20` (`build:native` + `build-worker-bundle.sh` + `deploy-staging-worker.py deploy`).
 - Staging verified: `https://staging.erudoza.com/` 200, `/api/v1/health` ok (database:true), serving the new bundle `assets/index-KSItqT5m.js` containing the fixed portrait transform.
 - Production untouched — no deploy approval given.
+
+## Head animation: look left/right instead of roll — September 16
+
+- User feedback from staging: the idle animation's head tilt read as clockwise/counterclockwise rotation; they wanted the head to look left and right.
+- Change (`apps/web/.../character/animate.ts`, twin mirrored byte-identical, `verify-twins.mjs` 6/6, review bundle rebuilt):
+  - Portrait avatar: periodic `tilt` removed entirely (no more roll). Full 3D view: tilt cut from ±1.4° to a barely-perceptible ±0.4°.
+  - The sideways glance is now the star: iris shift up from ±6 to ±8 head-space px with a look-hold-look rhythm (tanh-softened sine dwells ~66% of the cycle near the extremes), plus a subtle head yaw (shear ±0.04–0.045 rad around the neck anchor / head center — pivots stay exactly planted, zero sideways translation).
+  - The full 3D view now glances too (previously only the avatar did): both eyes repaint from wide sclera-margin sprites each frame, seamless against the freshly painted head — no white-box cover needed.
+  - Kept: vertical bob, breathing, sash sway, blinking (lids follow the glance), prefers-reduced-motion still frame.
+- Eye-geometry safety: measured the actual sclera in the artwork (iris rx=24 nearly fills the eye; ~10px outer sclera) — ±8 shift kisses the eye corner like a natural side-eye; verified artifact-free in headless Chromium renders at both extremes (iris sprites + yaw shear, head centered).
+- Tests: `animate.test.ts` 15/15 (new: no-roll pose vocabulary, glance dwell fraction, yaw-pivot planted, gaze-moves-only-sprites, full-view neck-pivot planted + full-view glance sprites); profile suite 39/39; `tsc --noEmit` clean; ESLint clean. Wiki gate: no article change — the `profile-character` article already documents "glances side to side".
+- Also fixed during this task: the review twin had drifted (off-center fix from earlier today was never mirrored) — twin is byte-identical again and the review bundle rebuilt.

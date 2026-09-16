@@ -3,22 +3,36 @@ import {renderCharacterLayers,portraitHead,type CharacterLayers,type Configurati
 
 export type AnimationOptions = {onError?: (message: string) => void};
 
+/**
+ * Sideways-glance shaping: a softened sine that dwells at the extremes, so
+ * the head reads as *looking* left and right (hold at each side) rather than
+ * sweeping. Still exactly periodic in `period`, and zero at t = 0.
+ */
+function glanceWave(t: number, period: number) {
+  return Math.tanh(2*Math.sin(Math.PI*2*t/period));
+}
+
 /** Idle pose offsets as a pure function of seconds since the loop started. */
 export function poseAt(t: number) {
   const TAU = Math.PI*2;
+  const glance = glanceWave(t, 5.3);
   return {
     /** Head vertical drift, buffer-space px. */
     bob: 7*Math.sin(TAU*t/2.6),
-    /** Head tilt around the neck anchor, radians. */
-    tilt: (1.4*Math.PI/180)*Math.sin(TAU*t/3.4+1.1),
+    /** Residual head tilt around the neck anchor, radians — barely perceptible. */
+    tilt: (0.4*Math.PI/180)*Math.sin(TAU*t/3.4+1.1),
     /** Body scale delta around the boot line. */
     breath: 0.007*Math.sin(TAU*t/2.6+0.5),
     /** Sash sway around the shoulder attachment, radians. */
     sway: (1.6*Math.PI/180)*Math.sin(TAU*t/3.1+2.3),
+    /** Sideways glance: the irises shift inside the eye whites, 512px head-space px. */
+    gaze: 8*glance,
+    /** Head yaw: a slight shear around the neck anchor, radians. Zero sideways translation. */
+    yaw: 0.04*glance,
   };
 }
 export type Pose = ReturnType<typeof poseAt>;
-const stillPose: Pose = {bob: 0, tilt: 0, breath: 0, sway: 0};
+const stillPose: Pose = {bob: 0, tilt: 0, breath: 0, sway: 0, gaze: 0, yaw: 0};
 
 /** Blink openness 0..1 as a pure function of seconds. Blinks every ~4.2s. */
 export function blinkOpen(t: number): number {
@@ -66,20 +80,36 @@ function drawBlink(ctx: CanvasRenderingContext2D, irises: number[][], color: str
   ctx.restore();
 }
 
-function drawFrame(ctx: CanvasRenderingContext2D, layers: CharacterLayers, irises: number[][], skin: string, pose: Pose, open: number) {
+/** Draw one animated character frame. Exported for regression tests. */
+export function drawFrame(
+  ctx: CanvasRenderingContext2D, layers: CharacterLayers,
+  sprites: IrisSprite[], irises: number[][], skin: string, pose: Pose, open: number,
+) {
   ctx.clearRect(0, 0, 1536, 1536);
   // The figure stays planted: the idle loop is in-place motion only
-  // (head bob/tilt, breathing, sash sway, blinking) with no translation.
+  // (head bob/glance/yaw, breathing, sash sway, blinking) with no translation.
   ctx.drawImage(layers.stage, 0, 0, 1536, 1536);
   ctx.save();
   ctx.translate(256, 0);
   // Head first, so the collar covers the neck exactly like the still render.
   const hs = layers.headSprite;
   ctx.save();
-  ctx.translate(layers.neck[0], layers.neck[1]+pose.bob); ctx.rotate(pose.tilt);
+  // The head turns on the neck anchor: residual tilt plus a yaw shear around
+  // the anchor, so the pivot never translates sideways; the bob stays vertical.
+  ctx.translate(layers.neck[0], layers.neck[1]+pose.bob);
+  ctx.rotate(pose.tilt);
+  ctx.transform(1, 0, Math.tan(pose.yaw), 1, 0, 0);
   ctx.translate(-layers.neck[0], -layers.neck[1]);
   ctx.drawImage(layers.head, hs.x, hs.y, 512*hs.scale, 512*hs.scale);
   ctx.translate(hs.x, hs.y); ctx.scale(hs.scale, hs.scale);
+  // The glance repaints each iris from its wide sprite at the shifted
+  // position. The sprite's sclera margin covers the iris's old spot, and the
+  // head underneath was repainted fresh this frame, so the shift is seamless.
+  for (const sprite of sprites) {
+    ctx.drawImage(sprite.image, sprite.x-sprite.rx-sprite.pad+pose.gaze, sprite.y-sprite.ry-sprite.pad);
+  }
+  // Blink lids follow the glance.
+  ctx.translate(pose.gaze, 0);
   drawBlink(ctx, irises, skin, open);
   ctx.restore();
   // Body breathes around the boot line; the sash rides the same motion and
@@ -118,9 +148,10 @@ export async function playCharacterAnimation(
   canvas.width = 1536; canvas.height = 1536;
   const irises = headEyes[`${config.bodyType}-${config.style}`];
   const skin = lidColor(layers.head, irises);
+  const sprites = irisSprites(layers.head, irises);
   const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) {
-    drawFrame(ctx, layers, irises, skin, stillPose, 1);
+    drawFrame(ctx, layers, sprites, irises, skin, stillPose, 1);
     return () => {};
   }
   let raf = 0, stopped = false;
@@ -128,7 +159,7 @@ export async function playCharacterAnimation(
   const frame = (now: number) => {
     if (stopped) return;
     const t = (now-start)/1000;
-    drawFrame(ctx, layers, irises, skin, poseAt(t), blinkOpen(t));
+    drawFrame(ctx, layers, sprites, irises, skin, poseAt(t), blinkOpen(t));
     raf = requestAnimationFrame(frame);
   };
   raf = requestAnimationFrame(frame);
@@ -138,26 +169,28 @@ export async function playCharacterAnimation(
 /** Idle portrait pose as a pure function of seconds since the loop started. */
 export function portraitPoseAt(t: number) {
   const TAU = Math.PI*2;
+  const glance = glanceWave(t, 5.3);
   return {
     /** Head vertical drift, 512px head-space px. The head never translates sideways. */
     bob: 2.4*Math.sin(TAU*t/2.6),
-    /** Head tilt around the head center, radians. */
-    tilt: (1.2*Math.PI/180)*Math.sin(TAU*t/3.4+1.1),
-    /** Sideways glance: only the irises shift inside the eye whites, 512px head-space px. */
-    gaze: 6*Math.sin(TAU*t/5.3+Math.PI),
+    /** Sideways glance: the irises shift inside the eye whites, 512px head-space px. */
+    gaze: 8*glance,
+    /** Head yaw: a slight shear around the head center, radians. Zero sideways translation. */
+    yaw: 0.045*glance,
   };
 }
 export type PortraitPose = ReturnType<typeof portraitPoseAt>;
-const stillPortraitPose: PortraitPose = {bob: 0, tilt: 0, gaze: 0};
+const stillPortraitPose: PortraitPose = {bob: 0, gaze: 0, yaw: 0};
 
 type IrisSprite = {image: HTMLCanvasElement; x: number; y: number; rx: number; ry: number; pad: number};
 
 // Snip each iris out of the recolored head so the glance can move the irises
-// inside the eye whites. The sprite carries a small white margin so the shift
-// stays seamless against the sclera.
+// inside the eye whites. The sprite carries a wide sclera margin (past the
+// maximum glance in either direction) so the shifted sprite covers the iris's
+// old position and its edge lands on identical pristine pixels.
 function irisSprites(head: HTMLCanvasElement, irises: number[][]): IrisSprite[] {
   return irises.map(([x, y, rx, ry]) => {
-    const pad = 4, w = Math.ceil(rx*2+pad*2), h = Math.ceil(ry*2+pad*2);
+    const pad = 12, w = Math.ceil(rx*2+pad*2), h = Math.ceil(ry*2+pad*2);
     const image = document.createElement('canvas'); image.width = w; image.height = h;
     image.getContext('2d')!.drawImage(head, x-rx-pad, y-ry-pad, w, h, 0, 0, w, h);
     return {image, x, y, rx, ry, pad};
@@ -177,21 +210,18 @@ export function drawPortraitFrame(
   const s = PORTRAIT_PX/crop.extent;
   ctx.save();
   // Center the head crop on the canvas, then apply in-place motion only: a
-  // vertical bob and a tilt around the head center. The bob is measured in
-  // head-space px, so scale it into canvas px here. (Translating by the crop
-  // center before the scale would shove the head off the canvas.)
+  // vertical bob and a yaw shear around the head center, so the center never
+  // translates sideways. The bob is measured in head-space px, so scale it
+  // into canvas px here. (Translating by the crop center before the scale
+  // would shove the head off the canvas.)
   ctx.translate(PORTRAIT_PX/2, PORTRAIT_PX/2+pose.bob*s);
-  ctx.rotate(pose.tilt);
+  ctx.transform(1, 0, Math.tan(pose.yaw), 1, 0, 0);
   ctx.scale(s, s);
   ctx.translate(-crop.cx, -crop.cy);
   ctx.drawImage(head, 0, 0);
-  // The glance moves only the irises: cover each painted iris with the eye
-  // white, then paint its sprite at the shifted position.
-  ctx.fillStyle = '#ffffff';
+  // The glance repaints each iris from its wide sprite at the shifted
+  // position; the sprite's sclera margin covers the old spot seamlessly.
   for (const sprite of sprites) {
-    ctx.beginPath();
-    ctx.ellipse(sprite.x, sprite.y, sprite.rx+2.5, sprite.ry+2.5, 0, 0, Math.PI*2);
-    ctx.fill();
     ctx.drawImage(sprite.image, sprite.x-sprite.rx-sprite.pad+pose.gaze, sprite.y-sprite.ry-sprite.pad);
   }
   // Blink lids follow the glance.
@@ -202,8 +232,8 @@ export function drawPortraitFrame(
 
 /**
  * Play the idle portrait animation for a character appearance on a canvas.
- * The head bobs, tilts, blinks, and glances side to side while staying
- * planted: only the irises move horizontally, never the head itself.
+ * The head bobs, glances side to side (the eyes shift and the head yaws to
+ * follow), and blinks while staying planted: nothing translates sideways.
  * Resolves to a stop function; the loop ends when it is called or the canvas
  * is gone. Honors prefers-reduced-motion with a single still frame.
  */
