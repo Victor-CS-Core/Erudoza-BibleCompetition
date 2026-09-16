@@ -1716,3 +1716,10 @@ Verification:
 - Pre-existing working-tree artwork/gauntlet changes (docs/brand webp/png/manifest/appearance.ts/ShareEditor.tsx/README.md, `apps/web/.coach-shots/`, `verify-*.mjs` scripts) left untouched and uncommitted.
 
 Not yet done: commit + push to main, staging deploy + health check.
+
+## (completed same day)
+
+- Committed as `89abb9f5` on the working branch; merged to GitHub main as `9aa07ee9` via `merge_branch_to_main.py`. Only the 17 in-scope files were staged — pre-existing artwork/gauntlet changes (docs/brand webp/png/manifest/appearance.ts/ShareEditor.tsx/README.md, `apps/web/.coach-shots/`, verify scripts, `apps/web/src/features/profile/character/appearance.ts`) remain untouched in the working tree.
+- Staging deployed: worker version `a16964fc-26f1-4784-9f18-b244c991d8fb` (deployment `b69b3de1-83ea-4ebe-ae75-35083105cf9a`), `npm run build:native` + `build-worker-bundle.sh` + `deploy-staging-worker.py deploy`.
+- Staging health: `https://staging.erudoza.com/` 200, `/api/v1/health` ok. Served bundle confirmed: CSS contains `command-bell-label`, `assets/animate-BB2OvKkR.js` contains `prefers-reduced-motion`, `assets/AnimatedPortrait-BhRpbpjI.js` contains `data-character-portrait`. (One transient edge-cache miss served index.html for the lazy chunk immediately after deploy; repopulated within a minute.)
+- Production untouched — no deploy approval given.
