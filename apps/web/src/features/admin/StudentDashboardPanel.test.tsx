@@ -30,7 +30,7 @@ const dashboard: StudentDashboard = {
     chapters: [{ bookKey: "JHN", chapter: 3, eligibleCount: 10, seenCount: 6, strongCount: 3, masteredCount: 1 }],
   },
   mastery: {
-    badges: [{ key: "first-steps", ruleVersion: "training-v1", title: "First Steps", completed: 1, target: 1, earnedAtUtc: "2026-09-10T00:00:00Z", scopeLabel: "Assigned scope", evidenceSessionId: null }],
+    badges: [{ key: "steady-study", ruleVersion: "training-v1", title: "Steady Study", completed: 1, target: 1, earnedAtUtc: "2026-09-10T00:00:00Z", scopeLabel: "Assigned scope", evidenceSessionId: null }],
     levelCounts: [{ level: "Mastered", count: 1 }, { level: "Strong", count: 2 }, { level: "Unseen", count: 4 }],
   },
   assignments: [{ id: "a1", studentUserId: "student-1", type: "PrimarySpecialist", bookKey: "JHN", startChapter: 3, startVerse: 16, endChapter: 3, endVerse: 18, difficulty: "Standard" }],

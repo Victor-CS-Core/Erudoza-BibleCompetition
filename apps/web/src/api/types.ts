@@ -293,7 +293,7 @@ export type StudentDashboard = {
     createdAtUtc: string;
     completedAtUtc: string | null;
     attempted: number;
-    correct: number;
-    fullTargetReached: boolean;
+    correct: number | null;
+    fullTargetReached: boolean | null;
   }[];
 };

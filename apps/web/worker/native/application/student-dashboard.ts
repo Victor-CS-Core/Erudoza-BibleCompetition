@@ -6,7 +6,7 @@ import { addDays, resolveTrainingCalendar } from '../training/calendar';
 import { trainingNow } from '../training/clock';
 import type { Mastery, Session } from '../study/routes';
 import type { PbeSession } from '../pbe/sessions';
-import type { StudentDashboard } from '../../../src/api/types';
+import type { StudentDashboard, TrainingDifficulty } from '../../../src/api/types';
 
 async function listAll<T extends { id: string }>(ctx: RequestContext, kind: string, scope: { seasonId?: string; ownerId?: string } = {}) {
   const result: T[] = []; let after: string | undefined;
@@ -69,7 +69,7 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
   // --- Assignments for the active season (with coach-set difficulty like the progress view). ---
   const assignments = await listAll<Assignment>(learner, 'assignment', { ownerId: s.userId });
   const member = season ? (await learner.store.get<Membership>('membership', memberId(season.id, s.userId), learner.orgId))?.value ?? null : null;
-  const seasonAssignments = (season ? assignments.filter(a => a.seasonId === season.id) : []).map(a => ({ ...a, difficulty: member?.difficulty ?? 'Standard' }));
+  const seasonAssignments = (season ? assignments.filter(a => a.seasonId === season.id) : []).map(a => ({ ...a, difficulty: (member?.difficulty ?? 'Standard') as TrainingDifficulty }));
 
   // --- Recent activity: last 8 completed sessions, newest first, with inline summaries. ---
   const activity = [
