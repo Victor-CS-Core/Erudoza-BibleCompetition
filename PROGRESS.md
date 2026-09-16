@@ -1682,3 +1682,10 @@ Ten of fourteen tasks are now independently reviewed. B4 integration follows thi
 - The second `--all` re-run passed every browser/code check (including the fixed verify-share mobile section, cutout-edges, placement) but failed at the scoped tsc step with `TS2688: Cannot find type definition file for 'vite/client'`. Same command passed by hand from the repo root.
 - Root cause: the runner is documented "run from anywhere", but tsc resolves `--types vite/client` via typeRoots walked up from the caller's cwd — launching from `$HOME` finds no vite types. Not a code issue.
 - Fix: the runner now `cd "$REPO"` after resolving REPO, so the tsc step (and everything else) is cwd-independent. Re-running the complete `--all` gauntlet for the final clean pass.
+
+## Animated preview — removed idle slide, September 16
+
+- User tested the 3D preview on staging and reported the character slides; idle should not translate. Root cause: `poseAt` had a whole-figure horizontal `drift` (±12px, 7.5s period) with a parallax stage counter-shift.
+- Fix (`apps/web/src/features/profile/character/animate.ts` + byte-identical review twin): removed `drift` from the pose; the figure is drawn at a fixed horizontal position and the stage renders static. Idle is now in-place motion only — head bob/tilt, breathing, sash sway, blinking. `prefers-reduced-motion` still frame unchanged.
+- Tests: `animate.test.ts` updated — dropped drift assertions, added "keeps the figure planted with no horizontal translation" (pose keys exactly bob/breath/sway/tilt). 5/5 pass; profile suites 27/27; `verify-twins.mjs` 6/6; `tsc --noEmit` clean; ESLint clean on touched files.
+- Merged to GitHub main as `d3575f60` via `merge_branch_to_main.py` (script fixed: stale hardcoded COMMITS removed, now takes SHAs as argv). Staging redeployed via the Cloudflare skill for immediate retest. Not on prod — no deploy approval.
