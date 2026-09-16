@@ -1826,3 +1826,14 @@ Completed:
 - Deployed to staging via the Cloudflare skill (build:native + worker bundle first): version `7ade640c-c495-4195-989a-4875595952b1`, deployment `5e5aae71-39c6-434a-9934-0aa6222d170e`.
 - Verified: https://staging.erudoza.com/ 200, /api/v1/health healthy (database:true), served `assets/index-DApermKM.js`.
 - Production untouched — no deploy approval given.
+
+## Tilt fix: auto permission on open tap + stronger parallax, September 16
+
+- User report from iPhone testing: "I don't notice the tilt doing much. The background still looks static." Diagnosis, two real causes:
+  1. iOS motion permission was only requested from a separate "Enable tilt" button inside fullscreen — the tap that opens fullscreen (the valid iOS gesture) never asked, so tilt usually never armed at all. The code's own docstring said to call it from the open tap; it never was.
+  2. Even armed, ±10px background / ±4px character drift is swallowed by the heavy background blur — visually static.
+- Fix (`stageParallax.ts`): new `requestTiltOnOpen()` called from the fullscreen-open tap — no gate (Android/desktop): silent no-op resolving true; iOS: asks once, grant remembered in localStorage, denial remembered in `erudoza:tilt-denied` so later opens never nag. `enableTiltMotion()` (manual button path) bypasses the denial memory and clears it on a later grant; grants dispatch `erudoza:tilt-granted` on window. Amplitudes raised to background ±28px / character ±12px (casual ±15° tilt still reads ~9px/4px; full tilt goes dramatic).
+- `CharacterFullscreen.tsx`: TiltOptIn button now also hides once tilt is live (listens for the grant event); stays as the fallback/retry where the iOS gate exists. `ProfilePage.tsx`: `openFullscreen` fires `void requestTiltOnOpen()` in the same gesture.
+- Wiki article updated: tapping the preview asks iPhone for motion access the first time; "Enable tilt" button is the retry; dropped "subtle".
+- Tests: parallax 21/21 (4 new: auto no-op without gate, iOS ask-once + grant remembered, denial silence + manual retry bypass, reset forgets denial; expected transforms recomputed for 28/12), fullscreen 14/14 (added `_resetTiltMotion` to the TiltOptIn afterEach — the grant test's module-level opt-in flag was leaking into the denial test). Profile suite 75/75; `test:wiki` 12/12; twins 6/6; `tsc --noEmit` clean; ESLint clean.
+- Production untouched — no deploy approval given.

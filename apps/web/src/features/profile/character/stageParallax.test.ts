@@ -2,9 +2,9 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {renderHook} from '@testing-library/react';
 import {
   PARALLAX_BG_MAX, PARALLAX_CHAR_MAX,
-  _resetTiltMotion, enableTiltMotion, isParallaxSettled, needsMotionPermission,
+  _resetTiltMotion, enableTiltMotion, isParallaxSettled, isTiltOptedIn, needsMotionPermission,
   orientationNormal, parallaxOffsets, pointerNormal, prefersReducedMotion,
-  requestMotionPermission, stepParallax, useStageParallax,
+  requestMotionPermission, requestTiltOnOpen, stepParallax, useStageParallax,
 } from './stageParallax';
 
 afterEach(() => {
@@ -86,7 +86,7 @@ describe('stage parallax math', () => {
     // Directions oppose each other on both axes.
     expect(Math.sign(bg.x)).toBe(-Math.sign(char.x));
     expect(Math.sign(bg.y)).toBe(-Math.sign(char.y));
-    // Amplitudes stay small: background ±10px, character ±4px.
+    // Amplitudes stay readable on a phone: background ±28px, character ±12px.
     expect(Math.abs(bg.x)).toBeLessThanOrEqual(PARALLAX_BG_MAX);
     expect(Math.abs(char.x)).toBeLessThanOrEqual(PARALLAX_CHAR_MAX);
     expect(parallaxOffsets({x: 0, y: 0})).toEqual({bg: {x: 0, y: 0}, char: {x: 0, y: 0}});
@@ -161,14 +161,14 @@ describe('tilt motion (gyroscope)', () => {
     // right tilt) pushes the background left and the character right.
     dispatchTilt(45, 45);
     nextFrame()(0);
-    expect(fill.style.transform).toBe('translate3d(-1.20px, 0.00px, 0) scale(1.12)');
-    expect(canvas.style.transform).toBe('translate3d(0.48px, 0.00px, 0)');
+    expect(fill.style.transform).toBe('translate3d(-3.36px, 0.00px, 0) scale(1.12)');
+    expect(canvas.style.transform).toBe('translate3d(1.44px, 0.00px, 0)');
 
     // Gyro takes precedence over the pointer once live: a pointer hard left
-    // would ease toward +10, but the tilt keeps easing toward -10.
+    // would ease toward +28, but the tilt keeps easing toward -28.
     wrap.dispatchEvent(new MouseEvent('pointermove', {clientX: 0, clientY: 50}));
     nextFrame()(1);
-    expect(fill.style.transform).toBe('translate3d(-2.26px, 0.00px, 0) scale(1.12)');
+    expect(fill.style.transform).toBe('translate3d(-6.32px, 0.00px, 0) scale(1.12)');
     unmount();
   });
 
@@ -187,7 +187,7 @@ describe('tilt motion (gyroscope)', () => {
     // Denied tilt never hijacks: the pointer still drives.
     wrap.dispatchEvent(new MouseEvent('pointermove', {clientX: 200, clientY: 50}));
     nextFrame()(0);
-    expect(fill.style.transform).toBe('translate3d(-1.20px, 0.00px, 0) scale(1.12)');
+    expect(fill.style.transform).toBe('translate3d(-3.36px, 0.00px, 0) scale(1.12)');
     unmount();
   });
 
@@ -203,7 +203,7 @@ describe('tilt motion (gyroscope)', () => {
     // beta 90 (leaned fully back) pushes the background down.
     dispatchTilt(90, 0);
     nextFrame()(0);
-    expect(fill.style.transform).toBe('translate3d(0.00px, -1.20px, 0) scale(1.12)');
+    expect(fill.style.transform).toBe('translate3d(0.00px, -3.36px, 0) scale(1.12)');
     unmount();
   });
 
@@ -219,6 +219,67 @@ describe('tilt motion (gyroscope)', () => {
     const {unmount} = renderHook(() => useStageParallax());
     expect(addSpy.mock.calls.filter((c) => c[0] === 'deviceorientation')).toHaveLength(1);
     unmount();
+  });
+});
+
+describe('requestTiltOnOpen', () => {
+  it('is a silent no-op where no permission gate exists (Android/desktop)', async () => {
+    stubNoReducedMotion();
+    const addSpy = vi.spyOn(window, 'addEventListener');
+    await expect(requestTiltOnOpen()).resolves.toBe(true);
+    // No gate, no prompt: the gyro was already subscribed at hook creation.
+    expect(addSpy.mock.calls.filter((c) => c[0] === 'deviceorientation')).toHaveLength(0);
+  });
+
+  it('asks once from the open tap on iOS and remembers the grant', async () => {
+    stubNoReducedMotion();
+    stubIOSGate('granted');
+    const requestPermission = (window as unknown as {DeviceOrientationEvent: {requestPermission: ReturnType<typeof vi.fn>}}).DeviceOrientationEvent.requestPermission;
+
+    await expect(requestTiltOnOpen()).resolves.toBe(true);
+    expect(requestPermission).toHaveBeenCalledTimes(1);
+    expect(isTiltOptedIn()).toBe(true);
+
+    // Already opted in: later opens never re-prompt.
+    await expect(requestTiltOnOpen()).resolves.toBe(true);
+    expect(requestPermission).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays silent after a denial but the manual button can still retry', async () => {
+    stubNoReducedMotion();
+    const requestPermission = stubIOSGate('denied');
+
+    await expect(requestTiltOnOpen()).resolves.toBe(false);
+    expect(requestPermission).toHaveBeenCalledTimes(1);
+    expect(isTiltOptedIn()).toBe(false);
+
+    // The denial is remembered: opening the preview never nags.
+    await expect(requestTiltOnOpen()).resolves.toBe(false);
+    expect(requestPermission).toHaveBeenCalledTimes(1);
+
+    // The manual "Enable tilt" button bypasses the denial memory. If the
+    // user grants there, the denial clears and tilt goes live.
+    requestPermission.mockResolvedValue('granted');
+    const granted = new Promise<boolean>((resolve) => {
+      window.addEventListener('erudoza:tilt-granted', () => resolve(true), {once: true});
+    });
+    await expect(enableTiltMotion()).resolves.toBe(true);
+    await expect(granted).resolves.toBe(true);
+    expect(isTiltOptedIn()).toBe(true);
+    expect(requestPermission).toHaveBeenCalledTimes(2);
+
+    // Denial cleared: the open tap no longer suppresses itself.
+    await expect(requestTiltOnOpen()).resolves.toBe(true);
+    expect(requestPermission).toHaveBeenCalledTimes(2);
+  });
+
+  it('forgets the denial on reset', async () => {
+    stubNoReducedMotion();
+    const requestPermission = stubIOSGate('denied');
+    await expect(requestTiltOnOpen()).resolves.toBe(false);
+    _resetTiltMotion();
+    await expect(requestTiltOnOpen()).resolves.toBe(false);
+    expect(requestPermission).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -276,8 +337,8 @@ describe('useStageParallax', () => {
     wrap.dispatchEvent(new MouseEvent('pointermove', {clientX: 200, clientY: 50}));
     expect(frame).not.toBeNull();
     frame!(0);
-    expect(fill.style.transform).toBe('translate3d(-1.20px, 0.00px, 0) scale(1.12)');
-    expect(canvas.style.transform).toBe('translate3d(0.48px, 0.00px, 0)');
+    expect(fill.style.transform).toBe('translate3d(-3.36px, 0.00px, 0) scale(1.12)');
+    expect(canvas.style.transform).toBe('translate3d(1.44px, 0.00px, 0)');
 
     // Pointer leaves: eases back to neutral and the transforms clear.
     wrap.dispatchEvent(new MouseEvent('pointerleave'));

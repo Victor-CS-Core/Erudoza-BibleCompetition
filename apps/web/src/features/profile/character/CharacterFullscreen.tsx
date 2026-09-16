@@ -4,17 +4,25 @@ import {Button} from '../../../components/ui';
 import {CharacterPreview} from './CharacterPreview';
 import {AnimatedCharacterView} from './AnimatedCharacterView';
 import {PreviewModeToggle, type PreviewMode} from './PreviewModeToggle';
-import {enableTiltMotion, needsMotionPermission, prefersReducedMotion} from './stageParallax';
+import {enableTiltMotion, isTiltOptedIn, needsMotionPermission, prefersReducedMotion} from './stageParallax';
 
 /**
- * iOS-only one-time tilt opt-in. The tap is the user gesture
- * DeviceOrientationEvent.requestPermission() requires; a denied or
- * unavailable grant fails silently and the pointer path keeps working. The
- * button only renders where the iOS permission gate exists.
+ * iOS-only tilt opt-in button. Tapping the character preview already asks
+ * for motion permission on the way in, so this button is the fallback: it
+ * only shows where the iOS permission gate exists and tilt is not yet live
+ * (e.g. the request was declined earlier and the user changed their mind).
+ * A denied or unavailable grant fails silently and the pointer path keeps
+ * working.
  */
 function TiltOptIn() {
   const [done, setDone] = useState(false);
-  if (done || !needsMotionPermission() || prefersReducedMotion()) return null;
+  const [live, setLive] = useState(isTiltOptedIn);
+  useEffect(() => {
+    const onGranted = () => setLive(true);
+    window.addEventListener('erudoza:tilt-granted', onGranted);
+    return () => window.removeEventListener('erudoza:tilt-granted', onGranted);
+  }, []);
+  if (done || live || !needsMotionPermission() || prefersReducedMotion()) return null;
   return <Button variant="secondary" size="compact"
     onClick={() => { void enableTiltMotion().then(() => setDone(true)); }}>
     Enable tilt

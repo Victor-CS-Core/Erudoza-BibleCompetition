@@ -11,6 +11,7 @@ import { PreviewModeToggle, type PreviewMode } from './character/PreviewModeTogg
 import { skinTones, eyeColors, backgrounds } from './character/appearance';
 import { honorImageSrc } from './character/assets';
 import type { ShareHistory, SharePatch } from './character/share';
+import { requestTiltOnOpen } from './character/stageParallax';
 import './profile.css';
 
 const CharacterPreview = lazy(() => import('./character/CharacterPreview').then(module => ({ default: module.CharacterPreview })));
@@ -62,7 +63,14 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
   const [status, setStatus] = useState(''), [renderError, setRenderError] = useState('');
   const [previewMode, setPreviewMode] = useState<PreviewMode>('still');
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
-  const openFullscreen = () => setFullscreenOpen(true);
+  const openFullscreen = () => {
+    setFullscreenOpen(true);
+    // The tap IS the iOS user gesture DeviceOrientationEvent.requestPermission()
+    // needs: ask for motion access on the way in so tilting the phone drives
+    // the parallax without a second tap. Silent after a denial (the fullscreen
+    // "Enable tilt" button stays as the manual retry) and a no-op elsewhere.
+    void requestTiltOnOpen();
+  };
   const [rendererVersion, setRendererVersion] = useState(0);
   const [confirmReload, setConfirmReload] = useState(false), [reloadError, setReloadError] = useState('');
   const [reloading, setReloading] = useState(false);

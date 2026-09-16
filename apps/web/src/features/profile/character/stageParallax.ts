@@ -2,10 +2,11 @@ import {useEffect, useMemo} from 'react';
 
 /** Parallax amplitudes in CSS px. The blurred background drifts opposite the
  *  pointer while the character counter-moves minimally the other way, which
- *  sells the depth. Kept small on purpose: this is a preview garnish,
- *  not a ride. */
-export const PARALLAX_BG_MAX = 10;
-export const PARALLAX_CHAR_MAX = 4;
+ *  sells the depth. Strong enough to read clearly on a phone — a casual
+ *  ±15° tilt still moves the layers ~9px/4px, a full tilt goes dramatic —
+ *  but still a preview garnish, not a ride. */
+export const PARALLAX_BG_MAX = 28;
+export const PARALLAX_CHAR_MAX = 12;
 /** Lerp factor per animation frame toward the target offset. */
 export const PARALLAX_EASE = 0.12;
 
@@ -99,6 +100,10 @@ export function needsMotionPermission(): boolean {
 }
 
 const TILT_OPT_IN_KEY = 'erudoza:tilt-opt-in';
+const TILT_DENIED_KEY = 'erudoza:tilt-denied';
+/** Fired on window when the tilt opt-in is granted, so UI (the "Enable tilt"
+ *  button) can hide itself without polling. */
+const TILT_GRANTED_EVENT = 'erudoza:tilt-granted';
 
 function loadTiltOptIn(): boolean {
   try { return typeof localStorage !== 'undefined' && localStorage.getItem(TILT_OPT_IN_KEY) === '1'; }
@@ -109,6 +114,29 @@ function saveTiltOptIn(): void {
   try { localStorage.setItem(TILT_OPT_IN_KEY, '1'); } catch { /* private mode: opt-in lasts this visit */ }
 }
 
+function loadTiltDenied(): boolean {
+  try { return typeof localStorage !== 'undefined' && localStorage.getItem(TILT_DENIED_KEY) === '1'; }
+  catch { return false; }
+}
+
+function saveTiltDenied(): void {
+  try { localStorage.setItem(TILT_DENIED_KEY, '1'); } catch { /* private mode: denial lasts this visit */ }
+}
+
+function clearTiltDenied(): void {
+  try { localStorage.removeItem(TILT_DENIED_KEY); } catch { /* noop */ }
+}
+
+function announceTiltGranted(): void {
+  try { window.dispatchEvent(new CustomEvent(TILT_GRANTED_EVENT)); } catch { /* noop */ }
+}
+
+/** True once the iOS motion grant is in place (this visit or a remembered
+ *  earlier one). UI uses this to hide the now-redundant "Enable tilt" button. */
+export function isTiltOptedIn(): boolean {
+  return tiltOptInGranted;
+}
+
 /** Live parallax controllers, so one "Enable tilt" tap arms the gyro on every
  *  mounted preview (inline and fullscreen share the per-origin grant). */
 const tiltControllers = new Set<{startGyro: () => void}>();
@@ -117,24 +145,46 @@ let tiltOptInGranted = loadTiltOptIn();
 /**
  * One-time tilt opt-in for iOS: call directly in the "Enable tilt" tap
  * handler, then the gyro subscribes and drives the tilt. Resolves true when
- * tilt is live. Denied or unavailable fails silently — the pointer path keeps
- * working. The grant is remembered per origin (and cached locally), so later
- * visits start the gyro without asking again.
+ * tilt is live. A denial is remembered so later automatic attempts stay
+ * silent (the button remains the manual retry); a later grant clears the
+ * denial. Either way the preview works; the parallax simply stays off until
+ * tilt is live, with the pointer as the fallback.
  */
 export async function enableTiltMotion(): Promise<boolean> {
   const granted = await requestMotionPermission();
   if (granted) {
     tiltOptInGranted = true;
     saveTiltOptIn();
+    clearTiltDenied();
     tiltControllers.forEach((controller) => controller.startGyro());
+    announceTiltGranted();
+  } else {
+    saveTiltDenied();
   }
   return granted;
+}
+
+/**
+ * Call from the tap that opens the fullscreen preview — the tap IS the user
+ * gesture iOS requires for DeviceOrientationEvent.requestPermission(). Where
+ * no permission gate exists (Android/desktop) this is a no-op that resolves
+ * true: the gyro is already live. After a denial it resolves false without
+ * re-prompting, so opening the preview never nags; the fullscreen "Enable
+ * tilt" button stays available as the manual retry.
+ */
+export async function requestTiltOnOpen(): Promise<boolean> {
+  if (!needsMotionPermission()) return true;
+  if (tiltOptInGranted || loadTiltDenied()) return tiltOptInGranted;
+  return enableTiltMotion();
 }
 
 /** Test-only reset for the module-level tilt opt-in state. */
 export function _resetTiltMotion(): void {
   tiltOptInGranted = false;
-  try { localStorage.removeItem(TILT_OPT_IN_KEY); } catch { /* noop */ }
+  try {
+    localStorage.removeItem(TILT_OPT_IN_KEY);
+    localStorage.removeItem(TILT_DENIED_KEY);
+  } catch { /* noop */ }
 }
 
 type ParallaxController = {

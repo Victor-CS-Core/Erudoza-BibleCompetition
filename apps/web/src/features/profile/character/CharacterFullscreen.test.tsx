@@ -3,6 +3,7 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {CharacterFullscreen} from './CharacterFullscreen';
 import {PreviewModeToggle} from './PreviewModeToggle';
 import {CharacterStage} from './CharacterPreview';
+import {_resetTiltMotion} from './stageParallax';
 import type {Configuration} from './composition';
 
 const config: Configuration = {
@@ -117,6 +118,7 @@ describe('TiltOptIn', () => {
 
   afterEach(() => {
     delete (window as unknown as {DeviceOrientationEvent?: unknown}).DeviceOrientationEvent;
+    _resetTiltMotion();
   });
 
   it('hides the tilt button where no iOS permission gate exists', () => {
