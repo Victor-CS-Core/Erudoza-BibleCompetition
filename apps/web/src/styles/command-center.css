@@ -26,7 +26,10 @@
 .command-bell-list li.is-unread { background:var(--er-selected); }
 .command-bell-list p { margin:0 0 4px; font-size:var(--er-text-sm); }
 .command-bell-list small { color:var(--er-muted-ink); font-size:var(--er-text-xs); }
-.command-bell-empty { margin:0; padding:20px 16px; text-align:center; color:var(--er-muted-ink); font-size:var(--er-text-sm); display:grid; gap:8px; justify-items:center; }.command-masthead .command-menu-wrap>.ds-button { color:var(--er-on-navy); }
+.command-bell-empty { margin:0; padding:20px 16px; text-align:center; color:var(--er-muted-ink); font-size:var(--er-text-sm); display:grid; gap:8px; justify-items:center; }
+.command-bell-label { display:none; }
+/* Notifications live in the account menu on phones; hidden on desktop. */
+.command-account-notifications { display:none; }.command-masthead .command-menu-wrap>.ds-button { color:var(--er-on-navy); }
 .command-masthead .command-menu-wrap>.ds-button:hover,.command-masthead .command-menu-wrap>.ds-button[aria-expanded=true] { background:color-mix(in srgb,var(--er-on-navy) 12%,transparent); }
 .command-masthead .training-avatar { width:36px; height:36px; flex-shrink:0; }
 .command-account-name { max-width:140px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
@@ -113,6 +116,14 @@
   .command-trigger-copy,.command-trigger kbd { display:none; }
   .command-masthead .command-menu-wrap>.ds-button { width:44px; min-height:44px; height:44px; padding:0; }
   .command-masthead .command-menu-wrap>.ds-button>svg:last-child { display:none; }
+  /* Phones get the approved single 44px avatar control: the standalone bell
+     moves into the account menu and the avatar fits its touch target. */
+  .command-masthead .command-account-cluster>.command-bell-wrap { display:none; }
+  .command-masthead .profile-avatar { flex:0 0 40px; width:40px; height:40px; }
+  .command-account-notifications { display:block; }
+  .command-account-notifications .command-bell { display:flex; align-items:center; gap:12px; width:100%; min-height:44px; padding:10px 12px; border-radius:var(--er-radius-control); text-align:left; font-size:var(--er-text-sm); color:var(--er-ink-navy); }
+  .command-account-notifications .command-bell:hover,.command-account-notifications .command-bell[aria-expanded=true] { background:var(--er-selected); }
+  .command-account-notifications .command-bell-label { display:inline; }
   .command-context-inner { min-height:44px; padding:0 16px; }
   .command-context-links { column-gap:16px; row-gap:0; }
   .command-context-links>a { min-height:44px; }

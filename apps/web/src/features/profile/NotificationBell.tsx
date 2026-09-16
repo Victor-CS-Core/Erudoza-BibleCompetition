@@ -47,6 +47,7 @@ export function NotificationBell() {
   return <div className="command-bell-wrap" ref={wrapRef}>
     <Button variant="ghost" className="command-bell ds-button-mobile-icon" aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"} aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(value => !value)}>
       <AppIcon name="bell" />
+      <span className="command-bell-label">Notifications</span>
       {unreadCount > 0 && <span className="command-bell-badge" aria-hidden="true">{unreadCount > 99 ? "99+" : unreadCount}</span>}
     </Button>
     {open && <div className="command-bell-panel ds-panel" role="dialog" aria-label="Notifications">

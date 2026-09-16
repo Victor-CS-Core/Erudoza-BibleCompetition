@@ -12,10 +12,8 @@ type Registration = {shoulder: Point; hip: Point};
 // and both attires. Never mirror the character or Honor artwork to change fit.
 export const registration: Record<string, Registration> = {
   'student-curls': {shoulder: [352, 572], hip: [628, 900]},
-  'student-sweep': {shoulder: [363, 595], hip: [625, 913]},
   'student-bob': {shoulder: [364, 606], hip: [625, 920]},
   'coach-curls': {shoulder: [353, 637], hip: [637, 964]},
-  'coach-sweep': {shoulder: [355, 604], hip: [635, 926]},
   'coach-bob': {shoulder: [355, 609], hip: [630, 930]},
 };
 const images = new Map<string, Promise<HTMLImageElement>>();
@@ -107,7 +105,10 @@ export function setSlot(slots: Slots, index: number, value: string | null): Slot
 
 // The avatar is drawn directly from the head layer. It never samples the
 // character stage, garment, background, or ground shadow.
-export async function renderPortrait(canvas:HTMLCanvasElement,config:CharacterAppearance){
+export type PortraitConfig={bodyType:BodyType;style:string;hairColor:HairColor;skin:Skin;eyes:Eyes};
+export type PortraitHead={head:HTMLCanvasElement;extent:number;cx:number;cy:number};
+/** Recolor the head sprite and measure its tight alpha-bounds crop. */
+export async function portraitHead(config:PortraitConfig):Promise<PortraitHead>{
  const name=`${config.bodyType}-${config.style}`;
  const [head,mask]=await Promise.all([loadImage(characterAsset(`heads/${name}.png`)),loadImage(characterAsset(`heads/${name}-mask.png`))]);
  const colored=appearanceHead(head,mask,name,config.skin,config.eyes,config.hairColor);
@@ -115,8 +116,12 @@ export async function renderPortrait(canvas:HTMLCanvasElement,config:CharacterAp
  let left=512,top=512,right=0,bottom=0;
  for(let i=0;i<pixels.length;i+=4)if(pixels[i+3]>8){const x=i/4%512,y=Math.floor(i/4/512);left=Math.min(left,x);right=Math.max(right,x);top=Math.min(top,y);bottom=Math.max(bottom,y);}
  const extent=Math.max(right-left+1,bottom-top+1)+28,cx=(left+right)/2,cy=(top+bottom)/2;
+ return {head:colored,extent,cx,cy};
+}
+export async function renderPortrait(canvas:HTMLCanvasElement,config:CharacterAppearance){
+ const {head,extent,cx,cy}=await portraitHead(config);
  canvas.width=320;canvas.height=320;
- canvas.getContext('2d')!.drawImage(colored,cx-extent/2,cy-extent/2,extent,extent,0,0,320,320);
+ canvas.getContext('2d')!.drawImage(head,cx-extent/2,cy-extent/2,extent,extent,0,0,320,320);
  return canvas;
 }
 

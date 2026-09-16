@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {blinkOpen, playCharacterAnimation, poseAt} from './animate';
+import {blinkOpen, playCharacterAnimation, playPortraitAnimation, portraitPoseAt, poseAt} from './animate';
 import type {Configuration} from './composition';
 
 const config: Configuration = {
@@ -51,6 +51,42 @@ describe('character idle animation', () => {
     const errors: string[] = [];
     const stop = await playCharacterAnimation(document.createElement('canvas'), config, {onError: (message) => errors.push(message)});
     expect(errors).toEqual(['Unable to start the animated preview on this device.']);
+    expect(typeof stop).toBe('function');
+    stop();
+  });
+});
+
+describe('animated profile portrait', () => {
+  const appearance = {bodyType: 'female', style: 'curly-bob', hairColor: 'brown', skin: 'medium', eyes: 'brown'} as const;
+
+  it('starts at rest and loops each motion on its own period', () => {
+    const start = portraitPoseAt(0);
+    expect(start.bob).toBe(0);
+    expect(start.gaze).toBeCloseTo(0, 10);
+    expect(start.tilt).toBeCloseTo((1.2*Math.PI/180)*Math.sin(1.1), 10);
+    expect(portraitPoseAt(1.3).bob).toBeCloseTo(portraitPoseAt(1.3+2.6).bob, 10);
+    expect(portraitPoseAt(2.1).gaze).toBeCloseTo(portraitPoseAt(2.1+5.3).gaze, 10);
+  });
+
+  it('keeps the head planted: only bob, tilt, and the iris glance exist', () => {
+    for (let t = 0; t < 30; t += 0.17) {
+      expect(Object.keys(portraitPoseAt(t)).sort()).toEqual(['bob', 'gaze', 'tilt']);
+    }
+  });
+
+  it('keeps the glance subtle and the head motion small', () => {
+    for (let t = 0; t < 30; t += 0.17) {
+      const pose = portraitPoseAt(t);
+      expect(Math.abs(pose.bob)).toBeLessThanOrEqual(2.4);
+      expect(Math.abs(pose.tilt)).toBeLessThanOrEqual(1.3*Math.PI/180);
+      expect(Math.abs(pose.gaze)).toBeLessThanOrEqual(6);
+    }
+  });
+
+  it('reports a friendly error when canvas 2d is unavailable', async () => {
+    const errors: string[] = [];
+    const stop = await playPortraitAnimation(document.createElement('canvas'), appearance, {onError: (message) => errors.push(message)});
+    expect(errors).toEqual(['Unable to start the animated portrait on this device.']);
     expect(typeof stop).toBe('function');
     stop();
   });

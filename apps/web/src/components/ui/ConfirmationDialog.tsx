@@ -20,7 +20,7 @@ export function ConfirmationDialog({ title, description, confirmLabel, pendingLa
     <form className="flex h-full min-h-0 flex-col gap-4" onSubmit={event => { event.preventDefault(); if (!pending && !disabled) onConfirm(); }}>
       <h2 id={`${id}-title`}>{title}</h2>
       <div className="min-h-0 flex-1 overflow-y-auto"><p id={`${id}-description`}>{description}</p>{children}{error && <Notice className="mt-3" tone="danger">{error}</Notice>}</div>
-      <div className="flex shrink-0 justify-end gap-3">
+      <div className="ds-dialog-footer flex shrink-0 justify-end gap-3">
         <Button data-cancel variant="secondary" disabled={pending} onClick={onCancel}>Cancel</Button>
         <Button type="submit" className="min-w-28" variant={variant} disabled={pending || disabled}>{pending ? pendingLabel : confirmLabel}</Button>
       </div>

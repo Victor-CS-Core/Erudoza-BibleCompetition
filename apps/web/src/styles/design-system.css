@@ -210,6 +210,8 @@
  .ds-dialog.ds-dialog-workspace { width: 100%; max-width: none; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; }
  .ds-dialog-workspace .ds-training-dialog-body { padding-bottom: max(var(--er-space-6), env(safe-area-inset-bottom)); }
  .ds-panel-question-stage [role=timer] { font-size: 2.75rem; }
+ /* Confirmation actions stack full-width on phones, Cancel first. */
+ .ds-dialog-footer[class] { flex-direction: column; align-items: stretch; }
 }
 .ds-panel-roster-heading[class] { background:var(--er-card);color:var(--er-ink-navy);border-bottom:1px solid var(--er-border); }
 .ds-panel-roster-heading[class] h2 { color:var(--er-ink-navy);font-size:var(--er-text-lg); }

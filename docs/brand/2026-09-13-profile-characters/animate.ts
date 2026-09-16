@@ -1,5 +1,5 @@
 import {headEyes} from './hair';
-import {renderCharacterLayers, type CharacterLayers, type Configuration} from './composition';
+import {renderCharacterLayers,portraitHead,type CharacterLayers,type Configuration,type PortraitConfig,type PortraitHead} from './composition';
 
 export type AnimationOptions = {onError?: (message: string) => void};
 
@@ -129,6 +129,109 @@ export async function playCharacterAnimation(
     if (stopped) return;
     const t = (now-start)/1000;
     drawFrame(ctx, layers, irises, skin, poseAt(t), blinkOpen(t));
+    raf = requestAnimationFrame(frame);
+  };
+  raf = requestAnimationFrame(frame);
+  return () => { stopped = true; cancelAnimationFrame(raf); };
+}
+
+/** Idle portrait pose as a pure function of seconds since the loop started. */
+export function portraitPoseAt(t: number) {
+  const TAU = Math.PI*2;
+  return {
+    /** Head vertical drift, 512px head-space px. The head never translates sideways. */
+    bob: 2.4*Math.sin(TAU*t/2.6),
+    /** Head tilt around the head center, radians. */
+    tilt: (1.2*Math.PI/180)*Math.sin(TAU*t/3.4+1.1),
+    /** Sideways glance: only the irises shift inside the eye whites, 512px head-space px. */
+    gaze: 6*Math.sin(TAU*t/5.3+Math.PI),
+  };
+}
+export type PortraitPose = ReturnType<typeof portraitPoseAt>;
+const stillPortraitPose: PortraitPose = {bob: 0, tilt: 0, gaze: 0};
+
+type IrisSprite = {image: HTMLCanvasElement; x: number; y: number; rx: number; ry: number; pad: number};
+
+// Snip each iris out of the recolored head so the glance can move the irises
+// inside the eye whites. The sprite carries a small white margin so the shift
+// stays seamless against the sclera.
+function irisSprites(head: HTMLCanvasElement, irises: number[][]): IrisSprite[] {
+  return irises.map(([x, y, rx, ry]) => {
+    const pad = 4, w = Math.ceil(rx*2+pad*2), h = Math.ceil(ry*2+pad*2);
+    const image = document.createElement('canvas'); image.width = w; image.height = h;
+    image.getContext('2d')!.drawImage(head, x-rx-pad, y-ry-pad, w, h, 0, 0, w, h);
+    return {image, x, y, rx, ry, pad};
+  });
+}
+
+const PORTRAIT_PX = 320;
+
+function drawPortraitFrame(
+  ctx: CanvasRenderingContext2D, head: HTMLCanvasElement,
+  crop: {extent: number; cx: number; cy: number},
+  sprites: IrisSprite[], irises: number[][], skin: string,
+  pose: PortraitPose, open: number,
+) {
+  ctx.clearRect(0, 0, PORTRAIT_PX, PORTRAIT_PX);
+  const s = PORTRAIT_PX/crop.extent;
+  ctx.save();
+  ctx.translate(PORTRAIT_PX/2, PORTRAIT_PX/2);
+  ctx.scale(s, s);
+  // In-place head motion only: vertical bob and tilt around the head center.
+  ctx.translate(crop.cx, crop.cy+pose.bob); ctx.rotate(pose.tilt); ctx.translate(-crop.cx, -crop.cy);
+  ctx.drawImage(head, 0, 0);
+  // The glance moves only the irises: cover each painted iris with the eye
+  // white, then paint its sprite at the shifted position.
+  ctx.fillStyle = '#ffffff';
+  for (const sprite of sprites) {
+    ctx.beginPath();
+    ctx.ellipse(sprite.x, sprite.y, sprite.rx+2.5, sprite.ry+2.5, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.drawImage(sprite.image, sprite.x-sprite.rx-sprite.pad+pose.gaze, sprite.y-sprite.ry-sprite.pad);
+  }
+  // Blink lids follow the glance.
+  ctx.translate(pose.gaze, 0);
+  drawBlink(ctx, irises, skin, open);
+  ctx.restore();
+}
+
+/**
+ * Play the idle portrait animation for a character appearance on a canvas.
+ * The head bobs, tilts, blinks, and glances side to side while staying
+ * planted: only the irises move horizontally, never the head itself.
+ * Resolves to a stop function; the loop ends when it is called or the canvas
+ * is gone. Honors prefers-reduced-motion with a single still frame.
+ */
+export async function playPortraitAnimation(
+  canvas: HTMLCanvasElement,
+  appearance: PortraitConfig,
+  options: AnimationOptions = {},
+): Promise<() => void> {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) { options.onError?.('Unable to start the animated portrait on this device.'); return () => {}; }
+  let prep: PortraitHead;
+  try {
+    prep = await portraitHead(appearance);
+  } catch {
+    options.onError?.('Unable to load your portrait. Please try again.');
+    return () => {};
+  }
+  canvas.width = PORTRAIT_PX; canvas.height = PORTRAIT_PX;
+  const irises = headEyes[`${appearance.bodyType}-${appearance.style}`] ?? [];
+  const skin = irises.length ? lidColor(prep.head, irises) : '#e8b98f';
+  const sprites = irisSprites(prep.head, irises);
+  const crop = {extent: prep.extent, cx: prep.cx, cy: prep.cy};
+  const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) {
+    drawPortraitFrame(ctx, prep.head, crop, sprites, irises, skin, stillPortraitPose, 1);
+    return () => {};
+  }
+  let raf = 0, stopped = false;
+  const start = performance.now();
+  const frame = (now: number) => {
+    if (stopped || !canvas.isConnected) return;
+    const t = (now-start)/1000;
+    drawPortraitFrame(ctx, prep.head, crop, sprites, irises, skin, portraitPoseAt(t), blinkOpen(t));
     raf = requestAnimationFrame(frame);
   };
   raf = requestAnimationFrame(frame);

@@ -127,6 +127,32 @@ describe("shared profile identity", () => {
   });
 });
 
+describe("animated character avatar", () => {
+  const character = { bodyType: "female", style: "curly-bob", hairColor: "brown", skin: "medium", eyes: "brown" } as const;
+  it("animates the character head while Honor and initials avatars stay still", async () => {
+    vi.spyOn(profileApi, "identities").mockImplementation(async ids => ids.map(userId => (
+      userId === "coach"
+        ? { userId, avatarHonorKey: null, avatarKind: "character", character }
+        : userId === "honored"
+          ? { userId, avatarHonorKey: "solo:exact-recall", avatarKind: "honor" }
+          : { userId, avatarHonorKey: null, avatarKind: "initials" }
+    )));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const view = render(<QueryClientProvider client={client}>
+      <ProfileAvatar userId="coach" displayName="Coach Carter" />
+      <ProfileAvatar userId="honored" displayName="Honor Student" />
+      <ProfileAvatar userId="plain" displayName="Plain Jane" />
+    </QueryClientProvider>);
+    await waitFor(() => expect(view.container.querySelector('canvas[data-character-portrait="animated"]')).not.toBeNull());
+    // No static PNG portrait is rendered for the animated avatar.
+    expect(view.container.querySelector('img[data-character-portrait]')).toBeNull();
+    // Honor and initials branches are unchanged.
+    expect(view.container.querySelector('[data-profile-honor="solo:exact-recall"]')).not.toBeNull();
+    expect(view.container.textContent).toContain("PJ");
+    view.unmount();
+  });
+});
+
 describe('profile patch publication refresh',()=>{
  it('refreshes a newly published simulation patch on a bounded page schedule',async()=>{
   await import("./character/CharacterPreview");

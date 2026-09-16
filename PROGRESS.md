@@ -1689,3 +1689,30 @@ Ten of fourteen tasks are now independently reviewed. B4 integration follows thi
 - Fix (`apps/web/src/features/profile/character/animate.ts` + byte-identical review twin): removed `drift` from the pose; the figure is drawn at a fixed horizontal position and the stage renders static. Idle is now in-place motion only — head bob/tilt, breathing, sash sway, blinking. `prefers-reduced-motion` still frame unchanged.
 - Tests: `animate.test.ts` updated — dropped drift assertions, added "keeps the figure planted with no horizontal translation" (pose keys exactly bob/breath/sway/tilt). 5/5 pass; profile suites 27/27; `verify-twins.mjs` 6/6; `tsc --noEmit` clean; ESLint clean on touched files.
 - Merged to GitHub main as `d3575f60` via `merge_branch_to_main.py` (script fixed: stale hardcoded COMMITS removed, now takes SHAs as argv). Staging redeployed via the Cloudflare skill for immediate retest. Not on prod — no deploy approval.
+
+## Animated profile avatar + mobile alignment fixes, September 16
+
+User request (voice-dictated, confirmed before building):
+1. Fix mobile alignment of confirmation-dialog buttons, save/discard buttons, and the header.
+2. Animate the character head wherever a selected character profile picture appears — head bob, blink, subtle side-to-side gaze/turn; no whole-head horizontal translation; honor reduced-motion; static PNG exports/share cards stay static.
+3. Mobile sticky character preview: the preview card pins below the app header while scrolling the editor controls (sticky, keeps 2D/3D toggle usable).
+
+What was built (production + review twin mirrored, `verify-twins.mjs` 6/6 clean):
+- `composition.ts` (+ twin): extracted reusable `portraitHead(config)` / `PortraitConfig` / `PortraitHead` from the existing 512px recolored-head crop; `renderPortrait` output unchanged, so static thumbnails/exports are byte-identical.
+- `animate.ts` (+ twin): `portraitPoseAt(t)` — bob ≤2.4px (2.6s), tilt ≤1.2° (4.1s), gaze = iris shift ≤6px (5.3s, starts at rest); `playPortraitAnimation(canvas, config)` — rAF loop drawing the composed portrait with the head posed in place, irises copied from the recolored head and shifted inside eye whites, existing `blinkOpen`/procedural eyelids reused; zero whole-head horizontal translation; reduced-motion draws one static frame; loop stops on disconnect/stop.
+- `AnimatedPortrait.tsx` (new): 320×320 canvas wrapper with error fallback; `ProfileAvatar.tsx` character branch lazy-loads it (Suspense, static `CharacterPortrait` until loaded). Honor and initials branches untouched.
+- Mobile sticky preview (`profile.css`): `.profile-page .character-panel` is `position: sticky; top: var(--er-space-2); z-index: 5` on phones (whole panel incl. 2D/3D toggle sticks; bottom dock at z-index 30 stays above).
+- Save/discard (`profile.css`): one-column full-width grid on mobile — status, Discard, Save.
+- Confirmation dialog (`design-system.css` + `ConfirmationDialog.tsx`): new `ds-dialog-footer` class; on ≤760px stacks full-width with Cancel first. Shared component — regression-checked visually only.
+- Masthead (`command-center.css`, `NotificationBell.tsx`, `TrainingAppFrame.tsx`): bell hidden from the phone masthead (avatar constrained to 40px in its 44px target); a second bell instance lives inside the account menu, shown on phones only with a visible "Notifications" label; desktop unchanged.
+
+Avatar audit (delegated, read-only): 14 `ProfileAvatar` consumers, all through the shared component, so the animation propagates everywhere. One intentional bypass: `ProfilePage.tsx:141–148` renders the draft-picker previews directly (`CharacterPortrait` static) — kept static by design since it previews unsaved drafts.
+
+Verification:
+- Tests: `animate.test.ts` (pose periods/rest, no head translation, motion bounds, friendly no-2D-context error) + `profile.test.tsx` new "animated character avatar" test (animated canvas present, no static PNG, Honor/initials unchanged) + `profile-character.test.tsx` — 29/29 pass. `test:wiki` 12/12 after the `profile-character` article update (animated-avatar control entry, headshots section, keyword).
+- `tsc --noEmit` clean; ESLint clean on all touched files; `review.bundle.js` rebuilt.
+- Visual (Playwright, headless shell, 390px against the native fixture with a rebuilt `dist-native`): masthead shows the animated character avatar with zero overflow; sticky panel pins at top:8px while Attire/Background scroll beneath; dirty-state save panel stacks Discard/Save full-width; discard confirmation dialog stacks Cancel over "Reload saved profile", zero overflow. `char-top`/`char-scrolled`/`save-dirty`/`dialog-stacked` screenshots inspected in /tmp/shots2.
+- Known limitation: 320px viewport not screenshotted this round (CSS rules are width-agnostic); the pre-existing "Buy me a coffee" float overlaps the sticky panel's lower text — pre-existing, out of scope.
+- Pre-existing working-tree artwork/gauntlet changes (docs/brand webp/png/manifest/appearance.ts/ShareEditor.tsx/README.md, `apps/web/.coach-shots/`, `verify-*.mjs` scripts) left untouched and uncommitted.
+
+Not yet done: commit + push to main, staging deploy + health check.

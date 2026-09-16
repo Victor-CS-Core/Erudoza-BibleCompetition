@@ -131,6 +131,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
       <NotificationBell />
       <NavigationMenu key={`account:${route}`} name="Account" label={<><ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? ""} size={48} /><span className="command-account-name">{me?.displayName}</span></>}>
         <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach mode" : "Student mode"}</small></div>
+        <span className="command-account-notifications"><NotificationBell /></span>
         <Link to={coach ? "/admin/profile" : `/student/profile${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`}><AppIcon name="users" />Your profile</Link>
         <Link to="/help"><AppIcon name="book" />Help</Link>
         {canSwitch && <Link data-testid="switch-workspace" to={`${coach ? "/student" : "/admin"}${switchSeason ? `?seasonId=${encodeURIComponent(switchSeason)}` : ""}`}><AppIcon name="arrow" />Switch to {coach ? "Student" : "Coach"} mode</Link>}
