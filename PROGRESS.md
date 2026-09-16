@@ -1,6 +1,6 @@
 # Erudoza progress log
 
-## Character animated preview (2D/3D toggle) — ready to commit, September 16
+## Character animated preview (2D/3D toggle) — merged to main, September 16
 
 - Per user clarification, the "3D view" is NOT a modal or new page: a 2D/3D segmented toggle sits above the character preview in the shared character panel (Profile, Character, Honors pages) and swaps the canvas in place; toggling back restores the still render. Animation is a canvas puppet-rig idle loop, not true 3D and not AI-generated video.
 - New `renderCharacterLayers(config)` in composition.ts (both twins): same pixels as `renderCharacter`, split into stage (1536x1536 background + ground shadow), body (1024x1536 frame-normalized garment-masked body), overlay (1024x1536 sash + Honor patches/dotted spots), and head sprite plus neck/shoulder/groundY anchors. `renderCharacter` refactored onto a shared `loadCharacterAssets` + `honorPatch` helper with no static-output change.
@@ -9,7 +9,8 @@
 - `verify-twins.mjs` now checks 6 pairs (animate.ts added, no normalization rules needed); `review.bundle.js` rebuilt.
 - Wiki: profile-character article documents the 2D/3D control, the animated preview (preview-only, never changes the saved character), new keywords, and a toggle step.
 - Local verification: animate 4/4 (pose periodicity/subtlety bounds, blink cycle, graceful no-canvas error); profile suites 26/26 incl. a new toggle test (2D default, 3D swaps the canvas in place in the same panel, back to 2D restores); `test:wiki` 12/12; web `tsc --noEmit` clean; eslint clean on touched files; twins clean.
-- Limits: no visual screenshot review (sandbox browser localhost restrictions documented in prior entries); responsive check at 1440/390/320 recommended before deploy. AI-generated video/action variants recorded as future work. Not committed, not pushed, not deployed.
+- Limits: no visual screenshot review (sandbox browser localhost restrictions documented in prior entries); responsive check at 1440/390/320 recommended before deploy. AI-generated video/action variants recorded as future work. NOT deployed — no deploy approval.
+- Merged to GitHub main via Git Data API replay per the user's standing "merge to main and push as needed" approval: local `b5bc900` → main `4ea85f1f` (PROGRESS.md needed a clean three-way merge with upstream; ProfilePage.tsx matched upstream modulo trailing newline). Branch `profile/animated-preview-toggle` synced to the same hash. Unrelated working-tree changes (sweep-registration removal in composition.ts, appearance.ts, manifest.json, WebP/PNG review assets, verify-share.mjs) were left unstaged and untouched.
 - Files: `apps/web/src/features/profile/character/{animate.ts,animate.test.ts,AnimatedCharacterView.tsx,composition.ts}`, `docs/brand/2026-09-13-profile-characters/{animate.ts,composition.ts,verify-twins.mjs,review.bundle.js}`, `apps/web/src/features/profile/{ProfilePage.tsx,profile.css,profile-character.test.tsx}`, `apps/web/src/features/wiki/wikiContent.ts`.
 
 ## Coach Invitations alignment fix — ready to commit, September 16
