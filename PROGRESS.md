@@ -1767,3 +1767,10 @@ Completed:
 - Eye-geometry safety: measured the actual sclera in the artwork (iris rx=24 nearly fills the eye; ~10px outer sclera) — ±8 shift kisses the eye corner like a natural side-eye; verified artifact-free in headless Chromium renders at both extremes (iris sprites + yaw shear, head centered).
 - Tests: `animate.test.ts` 15/15 (new: no-roll pose vocabulary, glance dwell fraction, yaw-pivot planted, gaze-moves-only-sprites, full-view neck-pivot planted + full-view glance sprites); profile suite 39/39; `tsc --noEmit` clean; ESLint clean. Wiki gate: no article change — the `profile-character` article already documents "glances side to side".
 - Also fixed during this task: the review twin had drifted (off-center fix from earlier today was never mirrored) — twin is byte-identical again and the review bundle rebuilt.
+
+## Look-left/right animation — deployed to staging, September 16
+
+- Merged to GitHub main: local `2cab80c` → main `b72af99b` via merge_branch_to_main.py (fast-forward). Only the 4 in-scope files staged; unrelated working-tree changes untouched.
+- Deployed to staging via the Cloudflare skill (build:native + worker bundle first): version `a681c0ee-92b2-433c-a466-e4978b709007`, deployment `b49e2ae6-4c15-42cd-9561-e3be0d3ad012`.
+- Verified: https://staging.erudoza.com/ 200, /api/v1/health healthy (database:true), served chunk `assets/animate-DaMqK3bL.js` contains the new glance wave (`Math.tanh(2*Math.sin(...))`).
+- Production untouched — no deploy approval given.
