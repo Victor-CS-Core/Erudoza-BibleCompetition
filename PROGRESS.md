@@ -1750,4 +1750,8 @@ Not yet done: commit + push to main, staging deploy + health check.
 - Visual verification (Playwright headless shell against the real app with a rebuilt `dist-native`, fresh bundle `index-KSItqT5m.js`): 440px close-up shows the full character head centered in the avatar circle; 390px full header shows search / centered wordmark / full avatar with proper right padding, zero overflow; animation frames differ 1.6s apart (bob/blink/gaze alive); `prefers-reduced-motion` gives identical still frames; head-content bounds in the 320px canvas measure exactly centered (cx=160, cy=160). No page errors.
 - Files: `apps/web/src/features/profile/character/animate.ts` (transform reorder + export `drawPortraitFrame` for tests), `apps/web/src/features/profile/character/animate.test.ts` (3 new tests).
 
-Not yet done: commit + push to main, staging deploy + health check. Production untouched.
+Completed:
+- Committed as `8019c8c` on `staging/auto-deploy-workflow`; merged to GitHub main as `d227b755` via `merge_branch_to_main.py` (fast-forward from `a34fe1ae`). Only the 3 in-scope files staged (`animate.ts`, `animate.test.ts`, `PROGRESS.md`); unrelated working-tree changes (docs/brand artwork, `.coach-shots/`, `appearance.ts`, etc.) left untouched.
+- Deployed to staging: worker version `5923ad1e-9a00-4b2b-9a2e-6d40c507c1c3`, deployment `a3787ff9-2f13-4b7c-958d-97a6c3f2fc20` (`build:native` + `build-worker-bundle.sh` + `deploy-staging-worker.py deploy`).
+- Staging verified: `https://staging.erudoza.com/` 200, `/api/v1/health` ok (database:true), serving the new bundle `assets/index-KSItqT5m.js` containing the fixed portrait transform.
+- Production untouched — no deploy approval given.
