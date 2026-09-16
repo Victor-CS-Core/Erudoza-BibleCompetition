@@ -1,7 +1,17 @@
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import type {CharacterAppearance} from '../../../../shared/profileCharacter';
+import {backgrounds,type Background} from './appearance';
 import {renderCharacter,renderPortrait,type Configuration} from './composition';
 import {hairStyles} from './hair';
+
+/** Blurred scene backdrop behind the character preview canvas (letterbox
+ *  style). When the square canvas is letterboxed inside the wider card, the
+ *  side space shows a blurred, dimmed copy of the selected scene instead of
+ *  blank card; the sharp canvas stays centered on top. Purely decorative. */
+export function CharacterStage({background,children}:{background:Background;children:ReactNode}){
+ const src=backgrounds.find(b=>b.key===background)?.src;
+ return <div className="character-stage-wrap">{src?<img className="character-stage-fill" src={src} alt="" aria-hidden="true" draggable={false}/>:null}{children}</div>;
+}
 
 const portraits=new Map<string,Promise<string>>();
 function portraitKey(c:CharacterAppearance){return JSON.stringify({bodyType:c.bodyType,style:c.style,hairColor:c.hairColor,skin:c.skin,eyes:c.eyes});}
@@ -30,5 +40,5 @@ export function CharacterPreview({config,onError}:{config:Configuration;onError?
  },()=>{if(active)error.current?.('Unable to load your character. Please try again.');});return()=>{active=false;};},[key]);
  const hairstyle=hairStyles[config.bodyType].find(h=>h.key===config.style)?.name;
  const label=`${config.bodyType} body, ${config.hairColor} hair, ${hairstyle}, ${config.attire==='coach'?'Master Guide':'Pathfinder'}, ${config.skin} skin, ${config.eyes} eyes, sash with ${config.slots.filter(Boolean).length} of 3 Honors`;
- return <canvas ref={ref} width={1536} height={1536} className="character-canvas" role="img" aria-label={label} aria-busy={readyKey!==key} data-ready={readyKey===key}>{label}</canvas>;
+ return <CharacterStage background={config.background}><canvas ref={ref} width={1536} height={1536} className="character-canvas" role="img" aria-label={label} aria-busy={readyKey!==key} data-ready={readyKey===key}>{label}</canvas></CharacterStage>;
 }

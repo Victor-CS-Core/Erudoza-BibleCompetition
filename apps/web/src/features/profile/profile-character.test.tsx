@@ -173,4 +173,21 @@ describe('production character profile', () => {
     expect(within(back).getByRole('button', { name: '2D' })).toHaveAttribute('aria-pressed', 'true');
     expect(within(back.closest('.character-panel') as HTMLElement).queryByRole('img', { name: /^Animated preview/ })).not.toBeInTheDocument();
   });
+
+  it('backs the character preview with a blurred copy of the selected background in both preview modes', async () => {
+    mount();
+    await page('Character');
+    const panelOf = () => screen.getByRole('group', { name: 'Preview style' }).closest('.character-panel') as HTMLElement;
+    const fillSrc = () => panelOf().querySelector('.character-stage-fill')?.getAttribute('src');
+    // 2D still view: the blurred backdrop matches the selected background.
+    expect(fillSrc()).toContain('sunrise');
+    // Changing the background follows the backdrop.
+    fireEvent.click(screen.getByRole('button', { name: 'Woodland Basecamp' }));
+    expect(fillSrc()).toContain('basecamp');
+    // 3D animated view keeps the same blurred backdrop behind the canvas.
+    fireEvent.click(within(screen.getByRole('group', { name: 'Preview style' })).getByRole('button', { name: '3D' }));
+    const reloaded = await screen.findByRole('group', { name: 'Preview style' });
+    expect(within(reloaded).getByRole('button', { name: '3D' })).toHaveAttribute('aria-pressed', 'true');
+    expect(fillSrc()).toContain('basecamp');
+  });
 });
