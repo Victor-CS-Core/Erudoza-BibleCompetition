@@ -166,7 +166,8 @@ function irisSprites(head: HTMLCanvasElement, irises: number[][]): IrisSprite[] 
 
 const PORTRAIT_PX = 320;
 
-function drawPortraitFrame(
+/** Draw one animated portrait frame. Exported for regression tests. */
+export function drawPortraitFrame(
   ctx: CanvasRenderingContext2D, head: HTMLCanvasElement,
   crop: {extent: number; cx: number; cy: number},
   sprites: IrisSprite[], irises: number[][], skin: string,
@@ -175,10 +176,14 @@ function drawPortraitFrame(
   ctx.clearRect(0, 0, PORTRAIT_PX, PORTRAIT_PX);
   const s = PORTRAIT_PX/crop.extent;
   ctx.save();
-  ctx.translate(PORTRAIT_PX/2, PORTRAIT_PX/2);
+  // Center the head crop on the canvas, then apply in-place motion only: a
+  // vertical bob and a tilt around the head center. The bob is measured in
+  // head-space px, so scale it into canvas px here. (Translating by the crop
+  // center before the scale would shove the head off the canvas.)
+  ctx.translate(PORTRAIT_PX/2, PORTRAIT_PX/2+pose.bob*s);
+  ctx.rotate(pose.tilt);
   ctx.scale(s, s);
-  // In-place head motion only: vertical bob and tilt around the head center.
-  ctx.translate(crop.cx, crop.cy+pose.bob); ctx.rotate(pose.tilt); ctx.translate(-crop.cx, -crop.cy);
+  ctx.translate(-crop.cx, -crop.cy);
   ctx.drawImage(head, 0, 0);
   // The glance moves only the irises: cover each painted iris with the eye
   // white, then paint its sprite at the shifted position.
