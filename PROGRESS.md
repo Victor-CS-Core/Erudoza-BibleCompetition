@@ -1596,6 +1596,14 @@ Ten of fourteen tasks are now independently reviewed. B4 integration follows thi
 - Tests: worker notifications 3/3, NotificationBell 3/3, application + coach-learning + mastery 33/33, profile + layouts 59/59; typecheck + lint clean.
 - Committed locally as 98583f2 (not pushed, not deployed).
 
+## Student my-assignments 403 — deployed to production, September 16
+
+- DEPLOYED 2026-09-16 00:27 UTC. User said "Yes, deploy it." Cloudflare connected through the secure connector (custom.cloudflare); a Cloudflare skill now lives at `~/workspace/skills/cloudflare/` with two CLIs: `bin/manifest.js` (wrangler-compatible BLAKE3 asset manifest via blake3-wasm) and `bin/deploy-worker.py` (full `wrangler deploy` equivalent: assets-upload-session → bucket uploads → versions POST with `bindings_inherit=strict` → deployments POST at 100%).
+- Deployed source: exact upstream main `5e8d9ca2` (fix b98cf6b7 + student-dashboard type corrections 715721e6/5e8d9ca2 + upstream season-deletion work). Built in a pristine worktree: frontend `npm run build:native` and esbuild worker bundle (`--format=esm --target=es2022 --platform=neutral --external:cloudflare:*`) both from the verified tree; 166 assets, 8 new/changed uploaded incrementally, rest preserved.
+- Cloudflare version `79e3fb8a-6824-4228-a067-7d23d39093e0`, deployment `447b8655-c6b0-41a1-a296-c05588adee27` at 100% traffic. Bindings carried from `wrangler.production.jsonc` (D1, 4 Durable Objects, 2 rate limiters, ASSETS, plain-text vars, observability); secrets inherited via `bindings_inherit=strict`, never re-uploaded.
+- Verification: `erudoza.com` 200, `/api/v1/health` 200 `{"status":"ok","database":true}`; live worker source pulled back from the API contains the `personalSeason` bypass and my-assignments routes, and the admin gate is still present for all other routes. (Note: user's own wrangler deploy v30 at 18:47 EDT Sep 15 predates the fix merge — this deployment supersedes it.)
+- Ask the user to retry the student account's "Your assigned passages" panel.
+
 ## Student my-assignments 403 — root cause fixed and pushed, September 15
 
 - User reported "Assigned passages could not load" in a student account with repeated console 403s; the raw API body was `{"title":"Administrator access denied."}`. Root cause: in `handleApplication` (`apps/web/worker/native/application.ts`) the blanket `admin(ctx.actor)` gate and `administrationBudget(ctx)` ran before the learner-scoped `/seasons/{id}/my-assignments` handlers, so every student GET/POST/DELETE to those routes was rejected with 403 before the route's own `requireLearner` checks ever ran. The bug predates the feature; it became visible when the Training HQ "Your assigned passages" panel (added in the verses commit) started calling `api.myAssignments` from student accounts.
