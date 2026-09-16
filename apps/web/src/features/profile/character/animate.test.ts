@@ -11,9 +11,7 @@ describe('character idle animation', () => {
   it('starts the head at rest and loops each motion on its own period', () => {
     const start = poseAt(0);
     expect(start.bob).toBe(0);
-    expect(start.tilt).toBeCloseTo((0.4*Math.PI/180)*Math.sin(1.1), 10);
     expect(start.gaze).toBe(0);
-    expect(start.yaw).toBe(0);
     for (const t of [0.7, 2.1, 5.3]) {
       expect(poseAt(t).bob).toBeCloseTo(poseAt(t+2.6).bob, 10);
     }
@@ -22,19 +20,17 @@ describe('character idle animation', () => {
 
   it('keeps the figure planted with no horizontal translation', () => {
     for (let t = 0; t < 30; t += 0.13) {
-      expect(Object.keys(poseAt(t)).sort()).toEqual(['bob', 'breath', 'gaze', 'sway', 'tilt', 'yaw']);
+      expect(Object.keys(poseAt(t)).sort()).toEqual(['bob', 'breath', 'gaze', 'sway']);
     }
   });
 
-  it('keeps every motion subtle and the tilt barely perceptible', () => {
+  it('keeps every motion subtle with no tilt or turn', () => {
     for (let t = 0; t < 30; t += 0.13) {
       const pose = poseAt(t);
       expect(Math.abs(pose.bob)).toBeLessThanOrEqual(7);
-      expect(Math.abs(pose.tilt)).toBeLessThanOrEqual(0.5*Math.PI/180);
       expect(Math.abs(pose.breath)).toBeLessThanOrEqual(0.007);
       expect(Math.abs(pose.sway)).toBeLessThanOrEqual(1.7*Math.PI/180);
-      expect(Math.abs(pose.gaze)).toBeLessThanOrEqual(8);
-      expect(Math.abs(pose.yaw)).toBeLessThanOrEqual(0.045);
+      expect(Math.abs(pose.gaze)).toBeLessThanOrEqual(6);
     }
   });
 
@@ -68,39 +64,30 @@ describe('animated profile portrait', () => {
     const start = portraitPoseAt(0);
     expect(start.bob).toBe(0);
     expect(start.gaze).toBe(0);
-    expect(start.yaw).toBe(0);
     expect(portraitPoseAt(1.3).bob).toBeCloseTo(portraitPoseAt(1.3+2.6).bob, 10);
     expect(portraitPoseAt(2.1).gaze).toBeCloseTo(portraitPoseAt(2.1+5.3).gaze, 10);
   });
 
-  it('looks left and right with no roll: only bob, gaze, and yaw exist', () => {
+  it('has no roll or turn: only bob and gaze exist', () => {
     for (let t = 0; t < 30; t += 0.17) {
-      expect(Object.keys(portraitPoseAt(t)).sort()).toEqual(['bob', 'gaze', 'yaw']);
+      expect(Object.keys(portraitPoseAt(t)).sort()).toEqual(['bob', 'gaze']);
     }
   });
 
-  it('keeps the glance clearly visible but the head motion small', () => {
+  it('keeps the gaze subtle and the head motion small', () => {
     for (let t = 0; t < 30; t += 0.17) {
       const pose = portraitPoseAt(t);
       expect(Math.abs(pose.bob)).toBeLessThanOrEqual(2.4);
-      expect(Math.abs(pose.gaze)).toBeLessThanOrEqual(8);
-      expect(Math.abs(pose.yaw)).toBeLessThanOrEqual(0.05);
+      expect(Math.abs(pose.gaze)).toBeLessThanOrEqual(6);
     }
   });
 
-  it('dwells at each side of the glance instead of sweeping through', () => {
-    let max = 0;
-    const samples: number[] = [];
-    for (let t = 0; t < 5.3; t += 0.01) {
-      const g = Math.abs(portraitPoseAt(t).gaze);
-      samples.push(g);
-      if (g > max) max = g;
-    }
-    // A look-hold-look rhythm spends most of the cycle near the extremes;
-    // a plain sine sweep would sit under half.
-    const dwell = samples.filter(g => g >= 0.8*max).length/samples.length;
-    expect(max).toBeGreaterThan(6);
-    expect(dwell).toBeGreaterThan(0.5);
+  it('moves the eyes as a plain sine sweep', () => {
+    // Simple, unshaped sine: at t = 5.3/4 the gaze reaches its full ±6 peak
+    // and crosses zero at the half period.
+    expect(portraitPoseAt(5.3/4).gaze).toBeCloseTo(6, 8);
+    expect(portraitPoseAt(3*5.3/4).gaze).toBeCloseTo(-6, 8);
+    expect(portraitPoseAt(5.3/2).gaze).toBeCloseTo(0, 8);
   });
 
   it('reports a friendly error when canvas 2d is unavailable', async () => {
@@ -144,7 +131,7 @@ describe('animated profile portrait', () => {
     return ctx;
   }
 
-  const still = {bob: 0, gaze: 0, yaw: 0};
+  const still = {bob: 0, gaze: 0};
   const headCanvas = {} as HTMLCanvasElement;
   const crop = {extent: 423, cx: 247, cy: 260};
   const sprite = (x: number) => ({image: {} as HTMLCanvasElement, x, y: 301, rx: 24, ry: 27, pad: 12});
@@ -161,7 +148,7 @@ describe('animated profile portrait', () => {
 
   it('bobs vertically without any sideways drift', () => {
     const ctx = mockPortraitCtx();
-    const pose = {bob: 2.4, gaze: 0, yaw: 0};
+    const pose = {bob: 2.4, gaze: 0};
     drawPortraitFrame(ctx as unknown as CanvasRenderingContext2D, headCanvas, crop, [], [], '#e8b98f', pose, 1);
     const [x, y] = ctx.map(ctx.draws[0].at, crop.cx, crop.cy);
     const s = 320/crop.extent;
@@ -169,30 +156,10 @@ describe('animated profile portrait', () => {
     expect(y).toBeCloseTo(160+pose.bob*s, 8);
   });
 
-  it('yaws around the head center without translating it', () => {
-    const ctx = mockPortraitCtx();
-    const pose = {bob: 0, gaze: 0, yaw: 0.045};
-    drawPortraitFrame(ctx as unknown as CanvasRenderingContext2D, headCanvas, crop, [], [], '#e8b98f', pose, 1);
-    const at = ctx.draws[0].at;
-    // The head center stays exactly planted under the shear.
-    const [x, y] = ctx.map(at, crop.cx, crop.cy);
-    expect(x).toBeCloseTo(160, 8);
-    expect(y).toBeCloseTo(160, 8);
-    // Points symmetric about the head center stay symmetric about the canvas
-    // center: the shear pivots on the head center.
-    const s = 320/crop.extent;
-    const [lx, ly] = ctx.map(at, crop.cx-50, crop.cy);
-    const [rx, ry] = ctx.map(at, crop.cx+50, crop.cy);
-    expect((lx+rx)/2).toBeCloseTo(160, 8);
-    expect((ly+ry)/2).toBeCloseTo(160, 8);
-    expect(Math.hypot(lx-160, ly-160)).toBeCloseTo(50*s, 8);
-    expect(Math.hypot(rx-160, ry-160)).toBeCloseTo(50*s, 8);
-  });
-
   it('moves only the iris sprites sideways, never the head', () => {
     const ctx = mockPortraitCtx();
     const sprites = [sprite(213), sprite(334)];
-    const pose = {bob: 0, gaze: 8, yaw: 0};
+    const pose = {bob: 0, gaze: 6};
     drawPortraitFrame(ctx as unknown as CanvasRenderingContext2D, headCanvas, crop, sprites, [], '#e8b98f', pose, 1);
     // The head image itself does not move sideways...
     const [hx, hy] = ctx.map(ctx.draws[0].at, crop.cx, crop.cy);
@@ -200,11 +167,11 @@ describe('animated profile portrait', () => {
     expect(hy).toBeCloseTo(160, 8);
     // ...while each iris sprite shifts by exactly the gaze.
     expect(ctx.draws).toHaveLength(3);
-    expect(ctx.draws[1].x).toBeCloseTo(213-24-12+8, 8);
-    expect(ctx.draws[2].x).toBeCloseTo(334-24-12+8, 8);
+    expect(ctx.draws[1].x).toBeCloseTo(213-24-12+6, 8);
+    expect(ctx.draws[2].x).toBeCloseTo(334-24-12+6, 8);
   });
 
-  it('keeps the full-figure neck pivot planted while it glances', () => {
+  it('keeps the full-figure neck pivot planted while the eyes move', () => {
     const ctx = mockPortraitCtx();
     const neck: [number, number] = [260.5, 422];
     const layers = {
@@ -212,17 +179,19 @@ describe('animated profile portrait', () => {
       headSprite: {x: 100, y: 200, scale: 1.5},
       neck, shoulder: [512, 600] as [number, number], groundY: 1400,
     } as unknown as CharacterLayers;
-    const pose = {...poseAt(1.7), bob: 0};
-    expect(Math.abs(pose.yaw)).toBeGreaterThan(0.01);
+    const pose = poseAt(1.7);
+    // The pose vocabulary has no tilt or turn: only bob, breath, gaze, sway.
+    expect('tilt' in pose).toBe(false);
+    expect('yaw' in pose).toBe(false);
     const sprites = [sprite(213), sprite(334)];
     drawFrame(ctx as unknown as CanvasRenderingContext2D, layers, sprites, [], '#e8b98f', pose, 1);
     // The neck pivot maps to itself (plus the outer 256px stage offset):
-    // yaw and tilt never translate the planted figure sideways.
+    // bob and gaze never translate the planted figure sideways.
     const headDraw = ctx.draws.find(d => d.image === headCanvas)!;
     const [x, y] = ctx.map(headDraw.at, neck[0], neck[1]);
     expect(x).toBeCloseTo(256+neck[0], 8);
-    expect(y).toBeCloseTo(neck[1], 8);
-    // Both iris sprites are repainted at the glanced position.
+    expect(y).toBeCloseTo(neck[1]+pose.bob, 8);
+    // Both iris sprites are repainted at the shifted position.
     const spriteDraws = ctx.draws.filter(d => d.image === sprites[0].image || d.image === sprites[1].image);
     expect(spriteDraws).toHaveLength(2);
     expect(spriteDraws[0].x).toBeCloseTo(213-24-12+pose.gaze, 8);

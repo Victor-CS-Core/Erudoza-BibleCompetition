@@ -3,36 +3,22 @@ import {renderCharacterLayers,portraitHead,type CharacterLayers,type Configurati
 
 export type AnimationOptions = {onError?: (message: string) => void};
 
-/**
- * Sideways-glance shaping: a softened sine that dwells at the extremes, so
- * the head reads as *looking* left and right (hold at each side) rather than
- * sweeping. Still exactly periodic in `period`, and zero at t = 0.
- */
-function glanceWave(t: number, period: number) {
-  return Math.tanh(2*Math.sin(Math.PI*2*t/period));
-}
-
 /** Idle pose offsets as a pure function of seconds since the loop started. */
 export function poseAt(t: number) {
   const TAU = Math.PI*2;
-  const glance = glanceWave(t, 5.3);
   return {
     /** Head vertical drift, buffer-space px. */
     bob: 7*Math.sin(TAU*t/2.6),
-    /** Residual head tilt around the neck anchor, radians — barely perceptible. */
-    tilt: (0.4*Math.PI/180)*Math.sin(TAU*t/3.4+1.1),
     /** Body scale delta around the boot line. */
     breath: 0.007*Math.sin(TAU*t/2.6+0.5),
     /** Sash sway around the shoulder attachment, radians. */
     sway: (1.6*Math.PI/180)*Math.sin(TAU*t/3.1+2.3),
-    /** Sideways glance: the irises shift inside the eye whites, 512px head-space px. */
-    gaze: 8*glance,
-    /** Head yaw: a slight shear around the neck anchor, radians. Zero sideways translation. */
-    yaw: 0.04*glance,
+    /** Simple eye movement: the irises shift side to side, 512px head-space px. */
+    gaze: 6*Math.sin(TAU*t/5.3),
   };
 }
 export type Pose = ReturnType<typeof poseAt>;
-const stillPose: Pose = {bob: 0, tilt: 0, breath: 0, sway: 0, gaze: 0, yaw: 0};
+const stillPose: Pose = {bob: 0, breath: 0, sway: 0, gaze: 0};
 
 /** Blink openness 0..1 as a pure function of seconds. Blinks every ~4.2s. */
 export function blinkOpen(t: number): number {
@@ -87,18 +73,16 @@ export function drawFrame(
 ) {
   ctx.clearRect(0, 0, 1536, 1536);
   // The figure stays planted: the idle loop is in-place motion only
-  // (head bob/glance/yaw, breathing, sash sway, blinking) with no translation.
+  // (head bob, eye movement, breathing, sash sway, blinking) with no translation.
   ctx.drawImage(layers.stage, 0, 0, 1536, 1536);
   ctx.save();
   ctx.translate(256, 0);
   // Head first, so the collar covers the neck exactly like the still render.
   const hs = layers.headSprite;
   ctx.save();
-  // The head turns on the neck anchor: residual tilt plus a yaw shear around
-  // the anchor, so the pivot never translates sideways; the bob stays vertical.
+  // The head bobs vertically on the neck anchor; the bob stays vertical and
+  // the head never turns or translates sideways.
   ctx.translate(layers.neck[0], layers.neck[1]+pose.bob);
-  ctx.rotate(pose.tilt);
-  ctx.transform(1, 0, Math.tan(pose.yaw), 1, 0, 0);
   ctx.translate(-layers.neck[0], -layers.neck[1]);
   ctx.drawImage(layers.head, hs.x, hs.y, 512*hs.scale, 512*hs.scale);
   ctx.translate(hs.x, hs.y); ctx.scale(hs.scale, hs.scale);
@@ -169,18 +153,15 @@ export async function playCharacterAnimation(
 /** Idle portrait pose as a pure function of seconds since the loop started. */
 export function portraitPoseAt(t: number) {
   const TAU = Math.PI*2;
-  const glance = glanceWave(t, 5.3);
   return {
     /** Head vertical drift, 512px head-space px. The head never translates sideways. */
     bob: 2.4*Math.sin(TAU*t/2.6),
-    /** Sideways glance: the irises shift inside the eye whites, 512px head-space px. */
-    gaze: 8*glance,
-    /** Head yaw: a slight shear around the head center, radians. Zero sideways translation. */
-    yaw: 0.045*glance,
+    /** Simple eye movement: the irises shift side to side, 512px head-space px. */
+    gaze: 6*Math.sin(TAU*t/5.3),
   };
 }
 export type PortraitPose = ReturnType<typeof portraitPoseAt>;
-const stillPortraitPose: PortraitPose = {bob: 0, gaze: 0, yaw: 0};
+const stillPortraitPose: PortraitPose = {bob: 0, gaze: 0};
 
 type IrisSprite = {image: HTMLCanvasElement; x: number; y: number; rx: number; ry: number; pad: number};
 
@@ -210,12 +191,10 @@ export function drawPortraitFrame(
   const s = PORTRAIT_PX/crop.extent;
   ctx.save();
   // Center the head crop on the canvas, then apply in-place motion only: a
-  // vertical bob and a yaw shear around the head center, so the center never
-  // translates sideways. The bob is measured in head-space px, so scale it
-  // into canvas px here. (Translating by the crop center before the scale
-  // would shove the head off the canvas.)
+  // vertical bob. The head never turns or translates sideways. The bob is
+  // measured in head-space px, so scale it into canvas px here. (Translating
+  // by the crop center before the scale would shove the head off the canvas.)
   ctx.translate(PORTRAIT_PX/2, PORTRAIT_PX/2+pose.bob*s);
-  ctx.transform(1, 0, Math.tan(pose.yaw), 1, 0, 0);
   ctx.scale(s, s);
   ctx.translate(-crop.cx, -crop.cy);
   ctx.drawImage(head, 0, 0);
@@ -232,8 +211,8 @@ export function drawPortraitFrame(
 
 /**
  * Play the idle portrait animation for a character appearance on a canvas.
- * The head bobs, glances side to side (the eyes shift and the head yaws to
- * follow), and blinks while staying planted: nothing translates sideways.
+ * The head bobs and blinks with simple side-to-side eye movement while
+ * staying planted: nothing turns or translates sideways.
  * Resolves to a stop function; the loop ends when it is called or the canvas
  * is gone. Honors prefers-reduced-motion with a single still frame.
  */

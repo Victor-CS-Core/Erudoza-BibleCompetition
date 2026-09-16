@@ -1774,3 +1774,12 @@ Completed:
 - Deployed to staging via the Cloudflare skill (build:native + worker bundle first): version `a681c0ee-92b2-433c-a466-e4978b709007`, deployment `b49e2ae6-4c15-42cd-9561-e3be0d3ad012`.
 - Verified: https://staging.erudoza.com/ 200, /api/v1/health healthy (database:true), served chunk `assets/animate-DaMqK3bL.js` contains the new glance wave (`Math.tanh(2*Math.sin(...))`).
 - Production untouched — no deploy approval given.
+
+## Revert sideways glance — basic blink + eye movement only, September 16
+
+- User feedback from staging: the head-yaw shear "breaks the image" (distorts the artwork). Reverted to the pre-glance motion with no rotation or face turn: removed `yaw` shear entirely from both the portrait avatar and the full 3D view; removed `tilt` entirely (no clockwise/counterclockwise read anywhere). The `glanceWave` dwell-shaping helper is deleted.
+- Kept: vertical bob, breathing, sash sway, blinking, the off-center transform fix (head stays centered in the portrait circle — that fix is NOT reverted), prefers-reduced-motion still frame.
+- Eye movement is now a plain sine iris shift at ±6 head-space px (was ±8 dwell-shaped) on a 5.3s period; blink lids still follow the gaze.
+- Files: `apps/web/src/features/profile/character/animate.ts` (poseAt keys now bob/breath/gaze/sway; portraitPoseAt keys bob/gaze; drawFrame/drawPortraitFrame drop rotate/transform), twin `docs/brand/2026-09-13-profile-characters/animate.ts` mirrored byte-identical (`verify-twins.mjs` 6/6, review bundle rebuilt locally, git-ignored).
+- Tests: `animate.test.ts` 14/14 — new motion vocabulary asserts no tilt/yaw keys, gaze is a plain sine hitting ±6 at the quarter periods, bob vertical-only, head/figure planted and centered; the dwell test and yaw-pivot test from the reverted change are removed.
+- Profile suite 38/38; web `tsc --noEmit` clean; ESLint clean on both files; `test:wiki` 12/12. Wiki gate: no article change — the motion is subtler than documented but the article describes the animation in general terms.
