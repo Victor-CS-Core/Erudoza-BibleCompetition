@@ -1809,3 +1809,14 @@ Completed:
 - Deployed to staging via the Cloudflare skill (build:native + worker bundle first): version `6abe5ae0-95cc-4f8e-b360-17d7842f83d0`, deployment `0dcf2c37-4d56-4511-adf7-08afe6836dfd`.
 - Verified: https://staging.erudoza.com/ 200, /api/v1/health healthy (database:true), served `assets/animate-9-hSJbiC.js` contains `destination-in` + `createRadialGradient` (new mask code) and zero `irisSprites`/`glanceWave` references.
 - Production untouched — no deploy approval given.
+
+## Fullscreen preview + pointer/gyro parallax (tilt-the-phone), September 16
+
+- User correction, two passes: (1) drop the gyroscope entirely in favor of pointer-driven parallax (no permission prompts); (2) user then asked for tilt-the-phone too — so BOTH inputs now drive the stage parallax.
+- Pointer path (`stageParallax.ts`): `pointermove`/`pointerleave` on the stage wrap covers mouse + touch + pen with one listener (no `preventDefault`). Eases toward the pointer (lerp 0.12), background ±10px opposite input, character ±4px with it; eases back to neutral on leave. `pointercancel` also resets (browser scroll takeover). `touch-action: pan-y` on the inline stage (vertical page scroll never hijacked) and `touch-action: none` on the fullscreen stage (`profile.css`).
+- Gyro path: `deviceorientation` shares the same smoothing pipeline and takes precedence once live. iOS Safari shows a one-time "Enable tilt" button in the fullscreen bar (rendered only where `DeviceOrientationEvent.requestPermission` exists); the tap calls `requestPermission()` directly, then subscribes. Grant is cached in localStorage so later visits auto-start without asking. Android/no-gate browsers auto-subscribe on mount (desktop: no sensor, no events, harmless). Denied/unavailable fails silently — pointer keeps working.
+- `prefers-reduced-motion`: everything off (no listeners, no button). Fullscreen tap target, blurred backdrop, X/backdrop/Escape close, focus restore, body scroll lock unchanged.
+- Files: `apps/web/src/features/profile/character/stageParallax.ts` (dual-input controller, `needsMotionPermission`, `enableTiltMotion`), `CharacterFullscreen.tsx` (TiltOptIn button), `profile.css` (touch-action rules), `wikiContent.ts` (article documents pointer + tilt).
+- Tests: parallax 17/17 (gamma/beta mapping, permission granted/denied/throws/no-API, iOS no-subscribe-until-grant, gyro precedence over pointer, denied→pointer fallback, Android auto-start, grant remembered, pointercancel reset), fullscreen 14/14 (button hidden without the iOS gate, tap→granted hides button, denied fails silently, hidden under reduced motion). Profile suite 71/71; `test:wiki` 12/12; `tsc --noEmit` clean; ESLint clean on touched files.
+- Not committed/pushed/deployed — awaiting parent release steps. Visual check on a real iPhone still owed (tilt feel + fullscreen stage).
+- Production untouched — no deploy approval given.

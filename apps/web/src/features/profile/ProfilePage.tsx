@@ -7,6 +7,7 @@ import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';
 import { MasteryHonorArtwork } from './MasteryHonorArtwork';
 import { completeProfile, useMyProfile, useSaveCharacterProfile, type MyProfile } from './profile';
 import { hairStyles, hairColors, type BodyType } from './character/hair';
+import { PreviewModeToggle, type PreviewMode } from './character/PreviewModeToggle';
 import { skinTones, eyeColors, backgrounds } from './character/appearance';
 import { honorImageSrc } from './character/assets';
 import type { ShareHistory, SharePatch } from './character/share';
@@ -14,6 +15,7 @@ import './profile.css';
 
 const CharacterPreview = lazy(() => import('./character/CharacterPreview').then(module => ({ default: module.CharacterPreview })));
 const AnimatedCharacterView = lazy(() => import('./character/AnimatedCharacterView').then(module => ({ default: module.AnimatedCharacterView })));
+const CharacterFullscreen = lazy(() => import('./character/CharacterFullscreen').then(module => ({ default: module.CharacterFullscreen })));
 const CharacterPortrait = lazy(() => import('./character/CharacterPreview').then(module => ({ default: module.CharacterPortrait })));
 const ShareEditor = lazy(() => import('./character/ShareEditor').then(module => ({ default: module.ShareEditor })));
 const pages = ['Profile', 'Character', 'Honors', 'Share'] as const;
@@ -58,7 +60,9 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
   const dirty = session !== null && JSON.stringify(payload(session)) !== JSON.stringify(payload(profileDraft(profile)));
   const rememberedHair = useRef<Record<BodyType, string>>({ male: 'curls', female: 'curly-bob', [config.bodyType]: config.style });
   const [status, setStatus] = useState(''), [renderError, setRenderError] = useState('');
-  const [previewMode, setPreviewMode] = useState<'still' | 'animated'>('still');
+  const [previewMode, setPreviewMode] = useState<PreviewMode>('still');
+  const [fullscreenOpen, setFullscreenOpen] = useState(false);
+  const openFullscreen = () => setFullscreenOpen(true);
   const [rendererVersion, setRendererVersion] = useState(0);
   const [confirmReload, setConfirmReload] = useState(false), [reloadError, setReloadError] = useState('');
   const [reloading, setReloading] = useState(false);
@@ -137,7 +141,8 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
           options={draft.shareOptions} setOptions={(next: SetStateAction<ShareOptions>) => change(current => ({ ...current, shareOptions: applyState(next, current.shareOptions) }))}
           onBackground={background => update('background', background)} onEdit={() => navigate('Character')} onError={setRenderError}/>
           : <div className="creator-layout">
-            <Panel className="character-panel"><div className="preview-mode-toggle" role="group" aria-label="Preview style"><Button variant={previewMode === 'still' ? 'primary' : 'secondary'} size="compact" aria-pressed={previewMode === 'still'} onClick={() => setPreviewMode('still')}>2D</Button><Button variant={previewMode === 'animated' ? 'primary' : 'secondary'} size="compact" aria-pressed={previewMode === 'animated'} onClick={() => setPreviewMode('animated')}>3D</Button></div>{previewMode === 'animated' ? <AnimatedCharacterView config={config} onError={setRenderError}/> : <CharacterPreview config={config} onError={setRenderError}/>}<p className="figure-caption">Sash · {config.slots.filter(Boolean).length} of 3 Honors selected</p><div className="figure-actions"><Button onClick={() => navigate(page === 'Character' ? 'Profile' : 'Character')}>{page === 'Character' ? 'Back to profile' : 'Edit character'}</Button><Button variant="secondary" onClick={() => navigate('Share')}>Share character</Button></div></Panel>
+            <Panel className="character-panel"><PreviewModeToggle mode={previewMode} onChange={setPreviewMode}/>{previewMode === 'animated' ? <AnimatedCharacterView config={config} onError={setRenderError} onActivate={openFullscreen}/> : <CharacterPreview config={config} onError={setRenderError} onActivate={openFullscreen}/>}<p className="figure-caption">Sash · {config.slots.filter(Boolean).length} of 3 Honors selected</p><div className="figure-actions"><Button onClick={() => navigate(page === 'Character' ? 'Profile' : 'Character')}>{page === 'Character' ? 'Back to profile' : 'Edit character'}</Button><Button variant="secondary" onClick={() => navigate('Share')}>Share character</Button></div></Panel>
+            {fullscreenOpen && <CharacterFullscreen config={config} mode={previewMode} onModeChange={setPreviewMode} onClose={() => setFullscreenOpen(false)} onError={setRenderError}/>}
             <div className="editor-panels">
               {page === 'Profile' && <><Panel><h2>Profile image</h2><p className="help">Choose how you appear across Erudoza.</p><div className="avatar-options">
                 <Button variant={draft.avatarKind === 'honor' ? 'primary' : 'secondary'} aria-label="Honor" aria-pressed={draft.avatarKind === 'honor'} disabled={!defaultHonor} onClick={() => chooseAvatar('honor', defaultHonor)}>{defaultHonor ? <MasteryHonorArtwork honorKey={defaultHonor} size={145}/> : <span className="avatar-empty"><span className="empty-ring"/></span>}<span>Honor</span></Button>
