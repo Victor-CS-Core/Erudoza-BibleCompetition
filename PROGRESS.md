@@ -1733,3 +1733,9 @@ Not yet done: commit + push to main, staging deploy + health check.
 - Wiki release gate: added one clause to the "2D / 3D" control explanation in the profile-character article; `test:wiki` 12/12.
 - Local verification: profile-character 11/11 (new test: backdrop src matches the selected background in 2D, follows a background change, and persists in 3D mode); web `tsc --noEmit` clean; eslint clean on touched files. No visual screenshot review (sandbox browser localhost restriction, as documented).
 - Files: `apps/web/src/features/profile/character/{CharacterPreview.tsx,AnimatedCharacterView.tsx}`, `apps/web/src/features/profile/{profile.css,profile-character.test.tsx}`, `apps/web/src/features/wiki/wikiContent.ts`.
+
+## Blurred backdrop — deployed to staging, September 16
+
+- Merged to GitHub main: local `3cf0930` → main `b9b3cfea` via merge_branch_to_main.py (fast-forward; `profile/animated-preview-toggle` synced to same). Only the 6 in-scope files were staged; unrelated working-tree modifications left untouched.
+- Deployed to staging via the Cloudflare skill (build:native + worker bundle first): version `44645634-6a3d-4963-8930-24ff36033464`, deployment `106cd40a-5072-4934-897a-199525f3feb6`. Verified: https://staging.erudoza.com/ 200, /api/v1/health healthy (database:true). Production untouched.
+- Limit: no visual screenshot review (sandbox browser localhost restriction, as documented) — user retest on their phone is the visual confirmation.
