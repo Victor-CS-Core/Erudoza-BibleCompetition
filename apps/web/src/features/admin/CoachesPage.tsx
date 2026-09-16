@@ -70,8 +70,10 @@ export function CoachesPage() {
         <Panel id="coach-invitations"><h2>Invitations</h2>
           {invitations.data.length ? <ul className="coach-directory">{invitations.data.map(invitation => <li key={invitation.id}>
             <div className="coach-directory-detail"><strong>{invitation.email}</strong><p>{invitation.status === "pending" ? "Expires" : "Expiry"} {new Date(invitation.expiresAt).toLocaleDateString()}</p></div>
-            <Badge tone={invitation.status === "accepted" ? "success" : invitation.status === "expired" ? "warning" : "neutral"}>{invitation.status[0].toUpperCase() + invitation.status.slice(1)}</Badge>
-            {(invitation.status === "pending" || invitation.status === "expired") && <div className="coach-form-actions"><Button variant="secondary" size="compact" disabled={pending} onClick={() => void mutate("resend", invitation)} aria-label={`Resend invitation to ${invitation.email}`}>Resend</Button><Button variant="ghost" size="compact" disabled={pending} onClick={() => { setError(""); setRevoking(invitation); }} aria-label={`Revoke invitation for ${invitation.email}`}>Revoke</Button></div>}
+            <div className="coach-invitation-meta">
+              <Badge tone={invitation.status === "accepted" ? "success" : invitation.status === "expired" ? "warning" : "neutral"}>{invitation.status[0].toUpperCase() + invitation.status.slice(1)}</Badge>
+              {(invitation.status === "pending" || invitation.status === "expired") && <div className="coach-form-actions"><Button variant="secondary" size="compact" disabled={pending} onClick={() => void mutate("resend", invitation)} aria-label={`Resend invitation to ${invitation.email}`}>Resend</Button><Button variant="ghost" size="compact" disabled={pending} onClick={() => { setError(""); setRevoking(invitation); }} aria-label={`Revoke invitation for ${invitation.email}`}>Revoke</Button></div>}
+            </div>
           </li>)}</ul> : <EmptyState title="No invitations yet" description="Invite a coach above to share the work of running your club." />}
         </Panel>
       </>}

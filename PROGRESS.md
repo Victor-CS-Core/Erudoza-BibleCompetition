@@ -1,5 +1,20 @@
 # Erudoza progress log
 
+## Coach Invitations alignment fix — ready to commit, September 16
+
+- Scope correction: the user's screenshot shows the **Invitations panel** on the Coaches page, not the whole page. Fix is minimal and focused: the Pending/Expired badge and Resend/Revoke buttons now form one aligned cluster; excess whitespace removed. Directory and invite form untouched.
+- Root cause: each invitation `<li>` had three independent flex children (detail, Badge, `.coach-form-actions`). The shared `.coach-form-actions` class carries `margin-top` (meant for forms), pushing buttons below the badge; flex wrapping could also separate badge from actions.
+- Change: Badge + actions wrapped in `.coach-invitation-meta` (`display:flex; flex-wrap:wrap; align-items:center; gap; margin-left:auto` — cluster stays together, sits right on wide rows, wraps below detail as a unit on narrow rows). Scoped `.coach-directory .coach-form-actions { margin-top: 0; }` removes the form margin inside directory rows only.
+- Files: `apps/web/src/features/admin/CoachesPage.tsx`, `apps/web/src/styles/coach-onboarding.css` (2 files, ~6 lines).
+- Wiki release gate: no article update needed — workflow, labels, routes, and control semantics unchanged; visual-alignment only.
+- Local verification: CoachesPage tests 11/11; web `tsc --noEmit` clean; native `tsc -p tsconfig.native.json` clean; eslint clean on touched files; `test:wiki` 12/12.
+- **Limit — no browser screenshots:** the environment's Meta-hardened Chromium cannot reach a local fixture server. Documented blockers: (1) Local Network Access checks block HTTP loopback and any cert-bypassed HTTPS to localhost (ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS) whenever cert-bypass flags are present; (2) without bypass flags, the fixture's self-signed cert fails (ERR_CERT_AUTHORITY_INVALID) and the system NSS db is read-only so the test CA can't be trusted; (3) a Meta enterprise URL policy blocks browser-initiated navigation to localhost ("Your organization doesn't allow you to view this site") and isn't overridable via URLAllowlist; (4) headless one-shot mode is broken in this build. A sanitized fixture (Miniflare :8444 + Node TLS proxy :8443, owner/second-coach/demo-student, pending+expired+accepted invitations) was built and serves correctly (curl 200) at `https://localhost:8443` — screenshots need a real browser via parent delegation. Responsive behavior at 390/320 follows from flex-wrap + the existing 380px media query, but is unverified visually.
+- Not committed, not pushed, not deployed. Next: commit; push to main via merge_branch_to_main.py under standing approval; screenshots via delegated browser before any deploy claim.
+
+## Student dashboard type corrections — ready to commit, September 16
+
+- Pre-existing type errors from the merged student-dashboard work (unrelated to Invitations): `StudentDashboardPanel.test.tsx` used invalid badge key `"first-steps"` (changed to valid `"steady-study"`); `src/api/types.ts` `recentActivity.correct` and `fullTargetReached` made nullable to match worker output; `worker/native/application/student-dashboard.ts` imports `TrainingDifficulty` and narrows membership difficulty. Web + native typecheck clean; `build:native` passes (large-chunk advisory only). Commit separately from the Invitations visual fix.
+
 ## Coach per-student dashboard — merged to main, September 15
 
 - A "Dashboard" button on each row of the coach Students table now opens a slide-over panel with the student's detailed data: effort (weekly target progress, 7-day strip, current streak, sessions in the last 7 days, last activity), progress (seen/strong/mastered counts with per-chapter breakdown, reviews due, attempts), mastery (earned badges, passage-level distribution), active assignments, and the last 8 completed sessions with inline summaries.

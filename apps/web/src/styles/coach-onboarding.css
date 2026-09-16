@@ -11,6 +11,10 @@
 .coach-directory li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--er-space-3); }
 .coach-directory-detail { min-width: 0; flex: 1 1 220px; overflow-wrap: anywhere; }
 .coach-directory-detail p { margin-bottom: 0; }
+/* Keep each invitation's status cluster (badge + actions) together as one unit so it
+   aligns right on wide rows and wraps below the detail as a unit on narrow rows. */
+.coach-invitation-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--er-space-3); margin-left: auto; }
+.coach-directory .coach-form-actions { margin-top: 0; }
 .coach-invite-form { display: grid; gap: var(--er-space-3); max-width: 560px; }
 @media (max-width: 380px) {
   /* Turnstile's flexible widget has a 300px minimum width. */
