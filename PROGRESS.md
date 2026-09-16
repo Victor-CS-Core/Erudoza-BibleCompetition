@@ -1820,3 +1820,9 @@ Completed:
 - Tests: parallax 17/17 (gamma/beta mapping, permission granted/denied/throws/no-API, iOS no-subscribe-until-grant, gyro precedence over pointer, denied→pointer fallback, Android auto-start, grant remembered, pointercancel reset), fullscreen 14/14 (button hidden without the iOS gate, tap→granted hides button, denied fails silently, hidden under reduced motion). Profile suite 71/71; `test:wiki` 12/12; `tsc --noEmit` clean; ESLint clean on touched files.
 - Not committed/pushed/deployed — awaiting parent release steps. Visual check on a real iPhone still owed (tilt feel + fullscreen stage).
 - Production untouched — no deploy approval given.
+
+## Fullscreen preview + parallax — staging deploy record, September 16
+- Committed locally as `a3c8aaa` (11 files, in-scope only); pushed to GitHub main as `8252186c` via merge_branch_to_main.py (fast-forward); `profile/animated-preview-toggle` synced.
+- Deployed to staging via the Cloudflare skill (build:native + worker bundle first): version `7ade640c-c495-4195-989a-4875595952b1`, deployment `5e5aae71-39c6-434a-9934-0aa6222d170e`.
+- Verified: https://staging.erudoza.com/ 200, /api/v1/health healthy (database:true), served `assets/index-DApermKM.js`.
+- Production untouched — no deploy approval given.
