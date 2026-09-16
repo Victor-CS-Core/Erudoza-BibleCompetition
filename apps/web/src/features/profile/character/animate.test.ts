@@ -11,11 +11,15 @@ describe('character idle animation', () => {
   it('starts the head at rest and loops each motion on its own period', () => {
     const start = poseAt(0);
     expect(start.bob).toBe(0);
-    expect(start.drift).toBe(0);
     expect(start.tilt).toBeCloseTo((1.4*Math.PI/180)*Math.sin(1.1), 10);
     for (const t of [0.7, 2.1, 5.3]) {
       expect(poseAt(t).bob).toBeCloseTo(poseAt(t+2.6).bob, 10);
-      expect(poseAt(t).drift).toBeCloseTo(poseAt(t+7.5).drift, 10);
+    }
+  });
+
+  it('keeps the figure planted with no horizontal translation', () => {
+    for (let t = 0; t < 30; t += 0.13) {
+      expect(Object.keys(poseAt(t)).sort()).toEqual(['bob', 'breath', 'sway', 'tilt']);
     }
   });
 
@@ -26,7 +30,6 @@ describe('character idle animation', () => {
       expect(Math.abs(pose.tilt)).toBeLessThanOrEqual(1.5*Math.PI/180);
       expect(Math.abs(pose.breath)).toBeLessThanOrEqual(0.007);
       expect(Math.abs(pose.sway)).toBeLessThanOrEqual(1.7*Math.PI/180);
-      expect(Math.abs(pose.drift)).toBeLessThanOrEqual(12);
     }
   });
 

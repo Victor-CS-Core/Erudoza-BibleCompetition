@@ -15,12 +15,10 @@ export function poseAt(t: number) {
     breath: 0.007*Math.sin(TAU*t/2.6+0.5),
     /** Sash sway around the shoulder attachment, radians. */
     sway: (1.6*Math.PI/180)*Math.sin(TAU*t/3.1+2.3),
-    /** Whole-figure horizontal drift against the static stage, px. */
-    drift: 12*Math.sin(TAU*t/7.5),
   };
 }
 export type Pose = ReturnType<typeof poseAt>;
-const stillPose: Pose = {bob: 0, tilt: 0, breath: 0, sway: 0, drift: 0};
+const stillPose: Pose = {bob: 0, tilt: 0, breath: 0, sway: 0};
 
 /** Blink openness 0..1 as a pure function of seconds. Blinks every ~4.2s. */
 export function blinkOpen(t: number): number {
@@ -70,11 +68,11 @@ function drawBlink(ctx: CanvasRenderingContext2D, irises: number[][], color: str
 
 function drawFrame(ctx: CanvasRenderingContext2D, layers: CharacterLayers, irises: number[][], skin: string, pose: Pose, open: number) {
   ctx.clearRect(0, 0, 1536, 1536);
-  // The stage is drawn slightly oversized so the parallax counter-shift
-  // never exposes an edge.
-  ctx.drawImage(layers.stage, -0.02*1536-pose.drift*0.4, -0.02*1536, 1536*1.04, 1536*1.04);
+  // The figure stays planted: the idle loop is in-place motion only
+  // (head bob/tilt, breathing, sash sway, blinking) with no translation.
+  ctx.drawImage(layers.stage, 0, 0, 1536, 1536);
   ctx.save();
-  ctx.translate(256+pose.drift, 0);
+  ctx.translate(256, 0);
   // Head first, so the collar covers the neck exactly like the still render.
   const hs = layers.headSprite;
   ctx.save();
