@@ -37,4 +37,4 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       - name: Verify staging health
-        run: curl -fsS https://erudoza-staging.fedilms-deployment-companion.workers.dev/api/v1/health
+        run: curl -fsS https://staging.erudoza.com/api/v1/health
