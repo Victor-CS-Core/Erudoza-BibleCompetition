@@ -183,7 +183,6 @@ describe('profile patch publication refresh',()=>{
 describe("locked cosmetics", () => {
   const locks = [
     { id: "background:starlight", requirement: "Study 7 days in a row" },
-    { id: "hair:blond", requirement: "Earn the Steady Study Honor" },
     { id: "style:buzz", requirement: "Reach level 4" },
     { id: "style:waves", requirement: "Reach level 4" },
     { id: "style:locs", requirement: "Reach level 4" },
@@ -207,9 +206,8 @@ describe("locked cosmetics", () => {
     const buzz = screen.getByRole("button", { name: /Buzz cut/ });
     expect(buzz).toBeDisabled();
     expect(buzz).toHaveTextContent("Locked · Reach level 4");
-    const blond = screen.getByRole("button", { name: /Blond/ });
-    expect(blond).toBeDisabled();
-    expect(blond).toHaveTextContent("Locked · Earn the Steady Study Honor");
+    // Hair colors are never locked — only styles are.
+    expect(screen.getByRole("button", { name: /Blond/ })).toBeEnabled();
     const starlight = screen.getByRole("button", { name: /Starlight Camp/ });
     expect(starlight).toBeDisabled();
     expect(starlight).toHaveTextContent("Locked · Study 7 days in a row");

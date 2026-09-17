@@ -73,8 +73,10 @@ it('rejects locked cosmetics until they are earned', async () => {
   await app.db.prepare("DELETE FROM Records WHERE kind IN ('training-day','training-xp','solo-badge-award')").run();
   const base = config();
   expect((await save({ ...base, character: { ...base.character, background: 'starlight' } })).status).toBe(403);
-  expect((await save({ ...base, character: { ...base.character, hairColor: 'blond' } })).status).toBe(403);
   expect((await save({ ...base, character: { ...base.character, style: 'braids' } })).status).toBe(403);
+  // Hair colors are never locked — only styles are.
+  const locks = (await (await request()).json()).cosmeticLocks as { id: string }[];
+  expect(locks.map(l => l.id)).not.toContain('hair:blond');
   await earn();
   expect((await save({ ...base, character: { ...base.character, slots: [null, key, null] } })).status).toBe(403);
   expect((await save(base)).status).toBe(200);
@@ -83,8 +85,6 @@ it('rejects locked cosmetics until they are earned', async () => {
     await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-day',?,?,?,?)")
       .bind(`${TEST_ORG}:${TEST_USER}:${localDate}`, TEST_ORG, TEST_USER, JSON.stringify({ id: `${TEST_ORG}:${TEST_USER}:${localDate}`, localDate, timeZone: 'UTC', firstQualifiedAtUtc: `${localDate}T12:00:00Z`, sessionId: 's', credited: true })).run();
   }
-  await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('solo-badge-award',?,?,?,?)")
-    .bind(`${TEST_ORG}:${TEST_USER}:steady-study:training-v1:academy`, TEST_ORG, TEST_USER, JSON.stringify({ id: `${TEST_ORG}:${TEST_USER}:steady-study:training-v1:academy`, key: 'steady-study', scope: 'training-v1', scopeId: 'academy', earnedAtUtc: '2026-09-10T12:00:00Z', ruleVersion: 'training-v1' })).run();
   await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-xp',?,?,?,?)")
     .bind(`${TEST_ORG}:${TEST_USER}`, TEST_ORG, TEST_USER, JSON.stringify({ totalXp: 500, xpBySeason: {}, attemptXpByDay: {}, xpByDay: {}, updatedAtUtc: '2026-09-17T12:00:00Z' })).run();
   const teamKey = 'team:first-fellowship', teamId = honorId(TEST_ORG, TEST_USER, teamKey);
@@ -94,7 +94,7 @@ it('rejects locked cosmetics until they are earned', async () => {
   expect((await save(unlocked)).status).toBe(200);
   const profile = await (await request()).json();
   expect(profile).toMatchObject({ character: unlocked.character, characterVersion: 2 });
-  expect(profile.unlockedCosmetics).toEqual(expect.arrayContaining(['background:starlight', 'hair:blond', 'style:braids', 'sash:2']));
+  expect(profile.unlockedCosmetics).toEqual(expect.arrayContaining(['background:starlight', 'style:braids', 'sash:2']));
   expect(profile.cosmeticLocks.map((l: { id: string }) => l.id)).toContain('sash:3');
 });
 it('omits foreign and inactive identities and ignores foreign-owned character records', async () => {

@@ -29,9 +29,6 @@ beforeAll(async () => {
         await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-day',?,?,?,?)")
             .bind(`${TEST_ORG}:${U1}:${localDate}`, TEST_ORG, U1, JSON.stringify({ id: `${TEST_ORG}:${U1}:${localDate}`, localDate, timeZone: 'UTC', firstQualifiedAtUtc: `${localDate}T12:00:00Z`, sessionId: 's', credited: true })).run();
     }
-    // U1: steady-study milestone -> blond hair.
-    await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('solo-badge-award',?,?,?,?)")
-        .bind(`${TEST_ORG}:${U1}:steady-study:training-v1:academy`, TEST_ORG, U1, JSON.stringify({ id: `${TEST_ORG}:${U1}:steady-study:training-v1:academy`, key: 'steady-study', scope: 'training-v1', scopeId: 'academy', earnedAtUtc: '2026-09-10T12:00:00Z', ruleVersion: 'training-v1' })).run();
     // U1: 600 XP (level 4 Keeper) -> set-2 hairstyles.
     await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-xp',?,?,?,?)")
         .bind(`${TEST_ORG}:${U1}`, TEST_ORG, U1, JSON.stringify({ totalXp: 600, xpBySeason: {}, attemptXpByDay: {}, xpByDay: {}, updatedAtUtc: '2026-09-17T12:00:00Z' })).run();
@@ -45,7 +42,6 @@ beforeAll(async () => {
 it('unlocks every cosmetic for a fully-earned learner', async () => {
     const unlocked = await unlockedCosmetics(ctxFor(U1));
     expect(unlocked.has('background:starlight')).toBe(true);
-    expect(unlocked.has('hair:blond')).toBe(true);
     for (const style of ['buzz', 'waves', 'locs', 'braids', 'natural-curls', 'low-bun']) expect(unlocked.has(`style:${style}`)).toBe(true);
     expect(unlocked.has('sash:2')).toBe(true);
     expect(unlocked.has('sash:3')).toBe(true);
@@ -56,10 +52,9 @@ it('locks every cosmetic for a fresh learner, with requirement copy', async () =
     const unlocked = await unlockedCosmetics(ctxFor(U2));
     expect(unlocked.size).toBe(0);
     const locks = lockedCosmetics(unlocked);
-    expect(locks).toHaveLength(10);
+    expect(locks).toHaveLength(9);
     const byId = new Map(locks.map(l => [l.id, l.requirement]));
     expect(byId.get('background:starlight')).toMatch(/7-day/);
-    expect(byId.get('hair:blond')).toMatch(/Steady Study/);
     expect(byId.get('style:buzz')).toMatch(/level 4/);
     expect(byId.get('sash:2')).toMatch(/Team Practice/);
     expect(byId.get('sash:3')).toMatch(/Simulation/);

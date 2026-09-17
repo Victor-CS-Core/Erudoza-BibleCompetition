@@ -15,7 +15,6 @@ const styles = {
 export const SET_TWO_STYLES = ['buzz', 'waves', 'locs', 'braids', 'natural-curls', 'low-bun'] as const;
 export const COSMETIC_REQUIREMENTS: Record<string, string> = {
   'background:starlight': 'Reach a 7-day practice streak',
-  'hair:blond': 'Earn the Steady Study milestone',
   ...Object.fromEntries(SET_TWO_STYLES.map(s => [`style:${s}`, 'Reach level 4 (Keeper)'])),
   'sash:2': 'Earn any Team Practice Honor',
   'sash:3': 'Earn any Simulation Honor',
