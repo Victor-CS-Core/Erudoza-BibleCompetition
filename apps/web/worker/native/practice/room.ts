@@ -158,7 +158,7 @@ export class PracticeRoom extends DurableObject<Env> {
   try{
    const user=await this.env.DB.prepare("SELECT id,display_name,user_name,kind,role,credential_version FROM Users WHERE id=? AND org_id=? AND active=1").bind(r.ownerId,r.orgId).first<{id:string;display_name:string;user_name:string;kind:'Student'|'Adult';role:'Student'|'Admin'|'Owner';credential_version:string}>();
    const store=new Store(this.env.DB),setting=await store.get<{enabled:boolean}>('practice-setting',r.orgId,r.orgId);
-   if(!user||!setting?.value.enabled)return null;
+   if(!user||setting?.value.enabled===false)return null;
    const scope=await authorizePbeRoom({env:this.env,store,orgId:r.orgId,path:'',request:new Request('https://internal/room-clock'),actor:{userId:user.id,organizationId:r.orgId,organizationName:'',displayName:user.display_name,userName:user.user_name,email:null,kind:user.kind,role:user.role,credentialVersion:user.credential_version}},r);return {reserveIds:scope.eligibleReserveIds};
   }catch{return null;}
  }

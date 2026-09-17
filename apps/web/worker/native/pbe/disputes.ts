@@ -16,7 +16,7 @@ const admin=(ctx:RequestContext)=>ctx.actor.kind==='Adult'&&['Owner','Admin'].in
 const coach=(ctx:RequestContext,d:PbeDispute)=>admin(ctx)&&!d.allParticipantIds.includes(ctx.actor.userId);
 const normalized=(s:unknown,label:string)=>requiredString(s,label,200).toLowerCase();
 const publicDispute=(d:PbeDispute)=>({id:d.id,organizationId:d.organizationId,seasonId:d.seasonId,activity:d.activity,sessionId:d.sessionId,attemptId:d.attemptId,questionId:d.questionId,questionVersion:d.questionVersion,team:d.team,status:d.status,reason:d.reason,revision:d.revision,partPoints:d.partPoints,sourceEvidence:d.sourceEvidence,question:d.question,answers:d.answers,originalPointsByPart:d.originalPointsByPart,acceptedAtUtc:d.acceptedAtUtc,resolution:d.resolution});
-async function teamGate(ctx:RequestContext){const setting=await ctx.store.get<{enabled:boolean}>('practice-setting',ctx.orgId,ctx.orgId);if(!setting?.value.enabled)throw new HttpError(403,'Team Practice is disabled.');return {kind:'practice-setting',id:ctx.orgId,revision:setting.revision};}
+async function teamGate(ctx:RequestContext){const setting=await ctx.store.get<{enabled:boolean}>('practice-setting',ctx.orgId,ctx.orgId);if(setting?.value.enabled===false)throw new HttpError(403,'Team Practice is disabled.');return {kind:'practice-setting',id:ctx.orgId,revision:setting?.revision??0};}
 async function frozenAttempt(ctx:RequestContext,activity:'Solo'|'Team',sessionId:string,attemptId:string):Promise<FrozenAttempt>{
  if(activity==='Team'){
   await teamGate(ctx);if(!ctx.env.ROOMS)throw new HttpError(503,'Room storage is not configured.');
@@ -76,7 +76,7 @@ export async function disputeRoutes(ctx:RequestContext):Promise<Response|null>{
   const after=new URL(ctx.request.url).searchParams.get('after')??'';if(after.length>450)throw new HttpError(400,'Invalid cursor.');
   const enabled=(await ctx.store.get<{enabled:boolean}>('practice-setting',ctx.orgId,ctx.orgId))?.value.enabled;
   // Seek and cap each indexed kind/activity stream before the bounded in-memory merge.
-  const streams=[['pbe-dispute-pending','Solo'],['pbe-dispute-correction','Solo'],...(enabled?[['pbe-dispute-pending','Team']]:[])];
+  const streams=[['pbe-dispute-pending','Solo'],['pbe-dispute-correction','Solo'],...(enabled!==false?[['pbe-dispute-pending','Team']]:[])];
   const candidates:{data:string;id:string}[]=[];
   for(const [kind,activity] of streams){const rows=await ctx.env.DB.prepare("SELECT data,id FROM Records INDEXED BY Records_owner WHERE org_id=? AND kind=? AND owner_id=? AND id>? ORDER BY id LIMIT 51").bind(ctx.orgId,kind,activity,after).all<{data:string;id:string}>();candidates.push(...rows.results);}
   const rows=candidates.sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0).slice(0,51);

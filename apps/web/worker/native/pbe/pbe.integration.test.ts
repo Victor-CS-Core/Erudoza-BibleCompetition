@@ -31,7 +31,7 @@ async function setup(measureD1=false){
 }
 it('imports and publishes through HTTP without legacy Team Practice, respects all sources and hides keys',async()=>{
  const {send,ctx,scope}=await setup();
- const cookie=(await app.login()).headers.get('set-cookie')!.split(';')[0];const bootstrap=await app.fetch(`/api/v1/organizations/${TEST_ORG}/practice/bootstrap`,{headers:{Cookie:cookie}});expect(await bootstrap.json()).toMatchObject({enabled:false,seasons:[{id:season}],questions:[]});
+ const cookie=(await app.login()).headers.get('set-cookie')!.split(';')[0];const bootstrap=await app.fetch(`/api/v1/organizations/${TEST_ORG}/practice/bootstrap`,{headers:{Cookie:cookie}});expect(await bootstrap.json()).toMatchObject({enabled:true,seasons:[{id:season}],questions:[]});
  expect((await send('/questions/import',{questions:[question],targets:[target]})).status).toBe(204);
  expect((await loadPbeBank(ctx,{...scope,studentId:undefined})).questions).toHaveLength(0);
  expect((await send(`/questions/${question.id}/1/publish`,{})).status).toBe(204);

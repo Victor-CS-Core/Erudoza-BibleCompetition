@@ -1951,3 +1951,20 @@ Completed:
 - Fix: generated the install SQL (`node apps/web/scripts/nkjv-library.mjs --write-sql`: 370 statements, SHA-256 validated against the manifest, 66 books / 1189 chapters / 31102 verses) and seeded it via the Cloudflare D1 `/query` batch body in 19 batches. Note: the D1 batch API takes `{"batch": [...]}` on the `/query` path — a separate `/batch` path 404s.
 - Verified: `library-version` row `ready:true`; 66 packs / 31102 sources; all packs pass the endpoint's isBuiltIn/isActive/bookKey/bookName/chapters checks. Generated SQL is git-ignored (content/nkjv/generated/).
 - User should tap "Try again" on staging — the book list will load now. Production untouched (its D1 was already seeded).
+## Team Practice on by default + coach toggle in season editor — September 17
+
+- User couldn't find where a coach turns Team Practice on/off: the on-switch was an "Enable Team Practice" button on the Team Practice page itself, and there was NO off-switch anywhere (backend supported `enabled:false`, but no UI called it).
+- Change: Team Practice is now ON by default for every club (no `practice-setting` record = enabled). A coach can switch it off/on from the season editor: new "Team Practice" panel under Season & books (step 1) with an On/Off badge and a checkbox wired to `POST /practice/enabled`. The hub's "not enabled" gate + enable button remain as the re-enable path if a coach turns it off.
+- Worker default-on flips (all previously treated a missing flag as disabled): `auth.ts` room authenticate, `practice/routes.ts` bootstrap, `practice/questions.ts` guard, `practice/room.ts` `authorizeBackground`, `pbe/disputes.ts` `teamGate` + dispute-list Team stream. `teamGate` now tolerates a missing flag (`revision: setting?.revision ?? 0`).
+- Files: `apps/web/worker/native/auth.ts`, `auth.test.ts`, `practice/routes.ts`, `practice/questions.ts`, `practice/room.ts`, `pbe/disputes.ts`, `pbe/pbe.integration.test.ts`, `src/features/admin/SeasonWizardPage.tsx` (+2 tests), `src/features/wiki/wikiContent.ts` (team-practice article: on-by-default wording, toggle location).
+- Wiki release gate: article updated (behavior change), `test:wiki` 13/13.
+- Verification: SeasonWizardPage/PracticeHub/PracticePage 49/49; worker auth + practice suites (pending at commit time — re-verify before staging deploy); typecheck + ESLint clean on touched files. Staging deploy: TBD.
+
+## Auth hero message enlarged (sign-in / sign-up) — on staging, September 17
+
+- User asked for the message on the left panel of the sign-in and sign-up screens to be bigger, taking more of that side. Both pages share `.training-login-message`, so one CSS change covers both: headline to `--er-text-section` (2.125rem, tighter line-height), supporting paragraph to `--er-text-lead` (1.25rem), block max-width 480→560px with more top margin. Mobile unaffected (message hidden below 760px).
+- Files: `apps/web/src/styles/training-login.css` only; committed locally as `a908520` on `gamification/phase1-streaks-celebrations` (NOT pushed to main — per-push approval required).
+- Wiki release gate: no article update needed — visual type-size change only; no workflow, labels, routes, or control semantics changed.
+- Verification: LoginPage tests 5/5; Playwright visual run captured `/login` at 1440px showing the enlarged message; staging deploy version `64793889-3db9-441f-ae2c-76eb0cccdc69` (deployment `d3e7cdc1`), `staging.erudoza.com` root + `/login` both 200. Production untouched.
+
+- Staging deploy (Sept 17): `python3 ~/workspace/skills/cloudflare/bin/deploy-staging-worker.py deploy` after fresh `build:native` + worker bundle rebuild. Version `c44f3ab9-b638-4a59-8650-da91bb7a5f32`, deployment `55957278-6cd7-4b81-bc02-5e103311779e`; `https://staging.erudoza.com` root 200, `/api/v1/health` ok (`database:true`). Staging D1 untouched by this deploy (no migrations needed); staging has no email sending, use the seeded coach account for UI verification. Production untouched; nothing pushed to `main`. Branch committed locally only — this environment has no git remote configured, so no push was possible or attempted.

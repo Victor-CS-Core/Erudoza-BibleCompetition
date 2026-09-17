@@ -51,6 +51,6 @@ it("checks live practice access with one database statement per authentication",
   expect(queries).toBe(1);
   await app.db.prepare("DELETE FROM Records WHERE kind='practice-setting' AND org_id=?").bind(TEST_ORG).run();
   queries = 0;
-  await expect(authenticate(request, env, TEST_ORG)).rejects.toMatchObject({ status: 403 });
+  expect((await authenticate(request, env, TEST_ORG)).userId).toBe(TEST_USER);
   expect(queries).toBe(1);
 });

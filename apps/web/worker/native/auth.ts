@@ -30,7 +30,7 @@ export async function authenticate(request:Request,env:Env,practiceOrgId?:string
   if(practice){
     if(row.org_id!==practiceOrgId)throw new HttpError(403,"Organization access denied.");
     const settings=JSON.parse(row.practice_settings??"null") as {enabled?:boolean}|null;
-    if(!settings?.enabled)throw new HttpError(403,"Team Practice is not enabled for this organization.");
+    if(settings?.enabled===false)throw new HttpError(403,"Team Practice is not enabled for this organization.");
   }
   return actor(row);
 }

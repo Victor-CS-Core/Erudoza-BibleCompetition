@@ -4,8 +4,10 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { profileApi } from "../profile/profile";
 import { api } from "../../api/client";
+import { practiceApi } from "../../api/practice";
 import { lifecycleApi } from "../../api/lifecycle";
 vi.mock("../../api/lifecycle", () => ({ lifecycleApi: { removeAssignment: vi.fn(), correctAssignment: vi.fn(), transitionSeason: vi.fn() } }));
+vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), enabled: vi.fn() } }));
 import { SeasonAssignmentEditor, SeasonWizardPage } from "./SeasonWizardPage";
 
 vi.mock("../../api/client", () => ({ api: { library: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn(), scriptureCatalog: vi.fn(), students: vi.fn(), season: vi.fn(), seasonScope: vi.fn(), assignments: vi.fn(), defineScope: vi.fn(), assign: vi.fn(), setDifficulty: vi.fn(), createSeason: vi.fn(), activate: vi.fn(), deleteSeason: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
@@ -36,6 +38,8 @@ beforeEach(() => {
   vi.mocked(api.setDifficulty).mockResolvedValue({ difficulty: "Advanced" });
   vi.mocked(api.createSeason).mockResolvedValue(season);
   vi.mocked(api.activate).mockResolvedValue({ activated: true, blockingProblems: [] });
+  vi.mocked(practiceApi.bootstrap).mockResolvedValue({ enabled: true, seasons: [], players: [], rooms: [], invitations: [], achievements: [], questions: [] });
+  vi.mocked(practiceApi.enabled).mockResolvedValue(undefined);
   vi.mocked(api.deleteSeason).mockResolvedValue(undefined);
 });
 
@@ -114,6 +118,27 @@ describe("Two-step season planner", () => {
     expect(screen.queryByRole("heading", { name: "Season planner" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Start verse")).not.toBeInTheDocument();
   });
+});
+
+it("shows the Team Practice toggle in the season editor and switches it off", async () => {
+  renderWizard("/admin/seasons/season-1?step=details");
+  const toggle = await screen.findByRole("checkbox", { name: /Enable Team Practice for your club/ });
+  expect(toggle).toBeChecked();
+  const panel = (await screen.findByRole("heading", { name: "Team Practice" })).closest("section")!;
+  expect(within(panel).getByText("On")).toBeInTheDocument();
+  fireEvent.click(toggle);
+  await waitFor(() => expect(practiceApi.enabled).toHaveBeenCalledWith("org-1", false));
+});
+
+it("switches Team Practice back on from the season editor", async () => {
+  vi.mocked(practiceApi.bootstrap).mockResolvedValue({ enabled: false, seasons: [], players: [], rooms: [], invitations: [], achievements: [], questions: [] });
+  renderWizard("/admin/seasons/season-1?step=details");
+  const toggle = await screen.findByRole("checkbox", { name: /Enable Team Practice for your club/ });
+  expect(toggle).not.toBeChecked();
+  const panel = (await screen.findByRole("heading", { name: "Team Practice" })).closest("section")!;
+  expect(within(panel).getByText("Off")).toBeInTheDocument();
+  fireEvent.click(toggle);
+  await waitFor(() => expect(practiceApi.enabled).toHaveBeenCalledWith("org-1", true));
 });
 
 it("preserves unsaved season book selections until saved or cancelled", async () => {
