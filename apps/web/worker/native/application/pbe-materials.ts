@@ -1,5 +1,5 @@
 import type { Actor, RequestContext } from '../types';
-import { admin, body, HttpError, json, requiredString } from '../types';
+import { body, HttpError, json, requiredString } from '../types';
 import { LIBRARY_ORG } from './library-access';
 import { atomic, fail, id, requireLearner } from './model';
 import type { Season } from './model';
@@ -98,6 +98,16 @@ function insertLib(ctx: RequestContext, kind: string, recId: string, value: unkn
 
 function ownerOnly(actor: Actor, action: string): void {
   if (actor.role !== 'Owner') throw new HttpError(403, `Only the Owner (master admin) can ${action}.`);
+}
+
+/**
+ * Draft-level PBE content access: Owner and Content Manager only. Regular Admins
+ * have no access to PBE materials/news management at all (403, not hidden links).
+ * Approval/rejection of releases and publishing/unpublishing news stay ownerOnly.
+ */
+function contentAccess(actor: Actor): void {
+  if (actor.kind !== 'Adult' || !['Owner', 'Content Manager'].includes(actor.role))
+    throw new HttpError(403, 'PBE content access denied.');
 }
 
 function httpUrl(value: unknown, name: string, required: boolean): string | undefined {
@@ -376,7 +386,7 @@ export interface WatcherResult {
 }
 
 async function watchNad(ctx: RequestContext): Promise<WatcherResult> {
-  admin(ctx.actor);
+  contentAccess(ctx.actor);
   const checkedAt = new Date().toISOString();
   const drafted: WatcherResult['drafted'] = [], newsDrafted: WatcherResult['newsDrafted'] = [];
   let mediaChecked = 0;
@@ -523,22 +533,22 @@ export async function pbeMaterials(ctx: RequestContext): Promise<Response | null
   }
   if (path === '/pbe-materials/watch' && method === 'POST') return json(await watchNad(ctx));
   if (path === '/pbe-materials/releases' && method === 'GET') {
-    admin(ctx.actor);
+    contentAccess(ctx.actor);
     return json((await listLib<PbeMaterialProposal>(ctx, 'pbe-material-proposal')).sort((a, b) => b.proposedAtUtc.localeCompare(a.proposedAtUtc) || b.id.localeCompare(a.id)).map(proposalSummary));
   }
   if (path === '/pbe-materials/releases' && method === 'POST') {
-    admin(ctx.actor);
+    contentAccess(ctx.actor);
     return json(await createProposal(ctx), 201);
   }
   const reviewMatch = path.match(/^\/pbe-materials\/releases\/([^/]+)\/review$/);
   if (reviewMatch && method === 'POST') return json(await reviewProposal(ctx, reviewMatch[1]));
   const releaseMatch = path.match(/^\/pbe-materials\/releases\/([^/]+)$/);
   if (releaseMatch && method === 'GET') {
-    admin(ctx.actor);
+    contentAccess(ctx.actor);
     return json(await releaseDetail(ctx, releaseMatch[1]));
   }
   if (releaseMatch && method === 'PUT') {
-    admin(ctx.actor);
+    contentAccess(ctx.actor);
     return json(await updateProposal(ctx, releaseMatch[1]));
   }
   if (path === '/pbe-news' && method === 'GET') {
@@ -549,18 +559,18 @@ export async function pbeMaterials(ctx: RequestContext): Promise<Response | null
     })));
   }
   if (path === '/pbe-news/articles' && method === 'GET') {
-    admin(ctx.actor);
+    contentAccess(ctx.actor);
     return json((await allArticles(ctx)).map(articleSummary));
   }
   if (path === '/pbe-news/articles' && method === 'POST') {
-    admin(ctx.actor);
+    contentAccess(ctx.actor);
     return json(await createArticle(ctx), 201);
   }
   const publishMatch = path.match(/^\/pbe-news\/articles\/([^/]+)\/(publish|unpublish)$/);
   if (publishMatch && method === 'POST') return json(await setPublishState(ctx, publishMatch[1], publishMatch[2] === 'publish'));
   const articleMatch = path.match(/^\/pbe-news\/articles\/([^/]+)$/);
   if (articleMatch && method === 'PUT') {
-    admin(ctx.actor);
+    contentAccess(ctx.actor);
     return json(await updateArticle(ctx, articleMatch[1]));
   }
   const newsDetail = path.match(/^\/pbe-news\/([^/]+)$/);

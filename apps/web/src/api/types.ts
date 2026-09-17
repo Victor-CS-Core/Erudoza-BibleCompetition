@@ -8,7 +8,7 @@ export type Me = {
   userName: string;
   email: string | null;
   kind: "Adult" | "Student";
-  role: "Owner" | "Admin" | "Student";
+  role: "Owner" | "Admin" | "Content Manager" | "Student";
 };
 
 export type Organization = { id: string; name: string; slug: string };

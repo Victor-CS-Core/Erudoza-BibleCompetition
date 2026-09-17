@@ -1,4 +1,4 @@
-import { Button, LoadingState, Notice, Panel } from "../components/ui";
+import { Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from "../components/ui";
 import { Navigate, createBrowserRouter, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { lazy, Suspense, type ReactNode } from "react";
@@ -52,6 +52,30 @@ function Guard({ role, children }: { role: "admin" | "student"; children: ReactN
   return children;
 }
 
+/** Content Managers may open only /admin/materials and /admin/news; every other
+ *  /admin/* route renders this explanation instead. Server-side gates enforce it. */
+export function ContentManagerGate({ children }: { children: ReactNode }) {
+  const { me, loading } = useAuth();
+  if (loading) return <main className="training-public public-recovery"><LoadingState label="Opening your workspace…" /></main>;
+  if (me?.kind === "Adult" && me.role === "Content Manager")
+    return <div className="training-page"><PageHeader title="Restricted area" /><Notice tone="info">Your Content Manager role only includes PBE materials and PBE news. Ask your club Owner if you need wider access.</Notice><LinkButton to="/admin/materials">Go to PBE materials</LinkButton></div>;
+  return <>{children}</>;
+}
+
+function Restricted({ children }: { children: ReactNode }) {
+  return <ContentManagerGate>{children}</ContentManagerGate>;
+}
+
+/** /admin/materials and /admin/news are Owner + Content Manager only. Regular
+ *  Admins render this access-denied state instead; the worker 403 is the real
+ *  enforcement, never just the hidden link. */
+export function MaterialsNewsGate({ children }: { children: ReactNode }) {
+  const { me, loading } = useAuth();
+  if (loading) return <main className="training-public public-recovery"><LoadingState label="Opening your workspace…" /></main>;
+  if (me?.kind === "Adult" && me.role === "Admin")
+    return <div className="training-page"><PageHeader title="Restricted area" /><Notice tone="info">PBE materials and PBE news management is limited to the club Owner and Content Managers. Ask your club Owner if you need access.</Notice><LinkButton to="/admin">Back to Overview</LinkButton></div>;
+  return <>{children}</>;
+}
 /** Legacy /student/library now lives as the Library tab inside Study. */
 function LibraryRedirect() {
   const [params] = useSearchParams();
@@ -86,23 +110,22 @@ export const router = createBrowserRouter([
       </Guard>
     ),
     children: [
-      { index: true, element: <AdminHomePage /> },
-      { path: "seasons", element: <SeasonsListPage /> },
-      { path: "seasons/new", element: <SeasonWizardPage /> },
-      { path: "seasons/:seasonId", element: <SeasonWizardPage /> },
-      { path: "students", element: <StudentsPage /> },
-      { path: "coaches", element: <CoachesPage /> },
-      { path: "assignments", element: <AssignmentsPage /> },
-      { path: "seasons/:seasonId/students/:studentId/progress", element: <ProgressPage /> },
-      { path: "content", element: <ContentPage /> },
-      { path: "materials", element: <MaterialsPage /> },
-      { path: "news", element: <NewsPage base="/admin/news" /> },
-      { path: "news/:id", element: <NewsPage base="/admin/news" /> },
-      { path: "design-system", element: <DesignSystemPage /> },
-      { path: "profile", element: <ProfilePage /> },
-      { path: "practice/reviews", element: <Suspense fallback={<LoadingState label="Loading answer reviews…"/>}><DisputeQueue/></Suspense> },
-      { path: "practice", element: <PracticeRoute /> },
-      { path: "practice/:roomId", element: <PracticeRoute /> },
+      { index: true, element: <Restricted><AdminHomePage /></Restricted> },
+      { path: "seasons", element: <Restricted><SeasonsListPage /></Restricted> },
+      { path: "seasons/new", element: <Restricted><SeasonWizardPage /></Restricted> },
+      { path: "seasons/:seasonId", element: <Restricted><SeasonWizardPage /></Restricted> },
+      { path: "students", element: <Restricted><StudentsPage /></Restricted> },
+      { path: "coaches", element: <Restricted><CoachesPage /></Restricted> },
+      { path: "assignments", element: <Restricted><AssignmentsPage /></Restricted> },
+      { path: "seasons/:seasonId/students/:studentId/progress", element: <Restricted><ProgressPage /></Restricted> },
+      { path: "content", element: <Restricted><ContentPage /></Restricted> },
+      { path: "materials", element: <MaterialsNewsGate><MaterialsPage /></MaterialsNewsGate> },
+      { path: "news", element: <MaterialsNewsGate><MaterialsPage initialTab="news" /></MaterialsNewsGate> },
+      { path: "design-system", element: <Restricted><DesignSystemPage /></Restricted> },
+      { path: "profile", element: <Restricted><ProfilePage /></Restricted> },
+      { path: "practice/reviews", element: <Restricted><Suspense fallback={<LoadingState label="Loading answer reviews…"/>}><DisputeQueue/></Suspense></Restricted> },
+      { path: "practice", element: <Restricted><PracticeRoute /></Restricted> },
+      { path: "practice/:roomId", element: <Restricted><PracticeRoute /></Restricted> },
     ],
   },
   {

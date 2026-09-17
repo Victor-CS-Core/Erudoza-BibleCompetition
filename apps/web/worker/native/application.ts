@@ -23,8 +23,10 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     if (path === '/seasons' && method === 'GET')
         return json(await seasonSummaries(ctx));
     // PBE material releases + news authorize themselves per endpoint (requireLearner for
-    // student reads, admin() for proposal management, Owner-only for review/publish);
-    // they must run before the blanket admin gate so students are not rejected outright.
+    // student reads, contentAccess for draft-level management by Owner and Content
+    // Manager only — regular Admins are denied outright, Owner-only for
+    // review/publish); they must run before the blanket admin gate so students are
+    // not rejected outright.
     const pbeMaterialsResult = await pbeMaterials(ctx);
     if (pbeMaterialsResult) return pbeMaterialsResult;
     const seasonMatch = path.match(/^\/seasons\/([^/]+)(.*)$/);

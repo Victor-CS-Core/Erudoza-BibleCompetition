@@ -8,7 +8,7 @@ import type { ChallengeRow } from "./challenges";
 import { liveInvitation } from "./invitations";
 
 const noExistingUser=`NOT EXISTS(SELECT 1 FROM Users u WHERE u.email=c.email OR u.user_name=c.email)`;
-const recoveryEligible=`EXISTS(SELECT 1 FROM Users u WHERE u.id=c.user_id AND u.email=c.email AND u.credential_version=c.credential_version AND u.active=1 AND u.kind='Adult' AND u.role IN ('Owner','Admin'))`;
+const recoveryEligible=`EXISTS(SELECT 1 FROM Users u WHERE u.id=c.user_id AND u.email=c.email AND u.credential_version=c.credential_version AND u.active=1 AND u.kind='Adult' AND u.role IN ('Owner','Admin','Content Manager'))`;
 const invitationEligible=`EXISTS(SELECT 1 FROM CoachInvitations i WHERE i.id=c.invitation_id AND i.version=c.invitation_version AND i.email=c.email AND ${liveInvitation}
   AND (SELECT COUNT(*) FROM Users u WHERE u.org_id=i.org_id AND u.active=1 AND u.kind='Adult')<20)`;
 const claimed=`SELECT 1 FROM AuthChallenges WHERE id=? AND claim_nonce=?`;
@@ -26,7 +26,8 @@ export async function completeCode(env:Env,purpose:Purpose,data:Record<string,un
     throw invalidCode();
   }
   const now=Date.now(),claim=crypto.randomUUID(),userId=purpose==="password"?candidate.user_id??crypto.randomUUID():crypto.randomUUID();
-  const invitation=purpose==="invitation"?await env.DB.prepare("SELECT org_id FROM CoachInvitations WHERE id=?").bind(candidate.invitation_id).first<{org_id:string}>():null;
+  const invitation=purpose==="invitation"?await env.DB.prepare("SELECT org_id,role FROM CoachInvitations WHERE id=?").bind(candidate.invitation_id).first<{org_id:string;role:string}>():null;
+  const invitationRole=invitation&&["Owner","Admin","Content Manager"].includes(invitation.role)?invitation.role:"Admin";
   const recovered=purpose==="password"?await env.DB.prepare("SELECT org_id FROM Users WHERE id=?").bind(candidate.user_id).first<{org_id:string}>():null;
   const orgId=purpose==="signup"?crypto.randomUUID():invitation?.org_id??recovered?.org_id??"";
   const condition=purpose==="password"?recoveryEligible:purpose==="signup"?noExistingUser:`${noExistingUser} AND ${invitationEligible}`;
@@ -48,7 +49,7 @@ export async function completeCode(env:Env,purpose:Purpose,data:Record<string,un
     );
   } else {
     statements.push(env.DB.prepare(`INSERT INTO Users(id,org_id,user_name,email,display_name,kind,role,password_hash,credential_version)
-      SELECT ?,?,?,?,?, 'Adult',?,?,? WHERE EXISTS(${claimed})`).bind(userId,orgId,candidate.email,candidate.email,displayName,purpose==="signup"?"Owner":"Admin",hash,credentialVersion,id,claim));
+      SELECT ?,?,?,?,?, 'Adult',?,?,? WHERE EXISTS(${claimed})`).bind(userId,orgId,candidate.email,candidate.email,displayName,purpose==="signup"?"Owner":invitationRole,hash,credentialVersion,id,claim));
     statements.push(env.DB.prepare(`INSERT INTO Sessions(token_hash,user_id,credential_version,expires_at) SELECT ?,?,?,? WHERE EXISTS(${claimed})`).bind(sessionHash,userId,credentialVersion,Date.now()+8*3600_000,id,claim));
     if(purpose==="invitation")statements.push(env.DB.prepare(`UPDATE CoachInvitations SET status='accepted',accepted_user_id=? WHERE id=? AND EXISTS(${claimed})`).bind(userId,candidate.invitation_id,id,claim));
   }

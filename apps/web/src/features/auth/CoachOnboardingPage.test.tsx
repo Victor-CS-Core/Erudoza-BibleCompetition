@@ -8,7 +8,7 @@ import type { Me } from "../../api/types";
 import { CoachOnboardingPage } from "./CoachOnboardingPage";
 
 vi.mock("../../auth/AuthContext", () => ({ useAuth: vi.fn() }));
-vi.mock("../../api/onboarding", () => ({ onboardingApi: { options: vi.fn(), signupCode: vi.fn(), signupComplete: vi.fn(), recoveryCode: vi.fn(), recoveryComplete: vi.fn(), invitationDetails: vi.fn(), invitationCode: vi.fn(), invitationComplete: vi.fn() } }));
+vi.mock("../../api/onboarding", () => ({ onboardingApi: { options: vi.fn(), signupCode: vi.fn(), signupComplete: vi.fn(), recoveryCode: vi.fn(), recoveryComplete: vi.fn(), invitationDetails: vi.fn(), invitationCode: vi.fn(), invitationComplete: vi.fn(), invitationAcceptDirect: vi.fn() } }));
 const owner = { userId: "new-owner", organizationId: "new-club", organizationName: "New club", kind: "Adult", role: "Owner", displayName: "Coach" } as Me;
 const acceptSession = vi.fn();
 type WidgetCallbacks = { callback: (token: string) => void; "expired-callback": () => void; "error-callback": () => void; action: string; size: string };
@@ -163,6 +163,22 @@ describe("Coach onboarding", () => {
   expect(await screen.findByText(/Inviting club/)).toBeInTheDocument();
   await waitFor(() => expect(router.state.location.hash).toBe(""));
   await sendCode(); expect(onboardingApi.invitationCode).toHaveBeenCalledWith(token, "coach@example.com", "verified-widget-token");
+ });
+ it("accepts the invitation directly when email delivery is unavailable", async () => {
+  vi.mocked(onboardingApi.options).mockResolvedValue({ available: false, turnstileSiteKey: null });
+  const invited = { ...owner, role: "Content Manager" } as Me;
+  vi.mocked(onboardingApi.invitationAcceptDirect).mockResolvedValue(invited);
+  const router = setup("invitation", "#direct-token");
+  expect(await screen.findByText(/the invitation link you opened is your proof/)).toBeInTheDocument();
+  await waitFor(() => expect(router.state.location.hash).toBe(""));
+  expect(onboardingApi.invitationDetails).toHaveBeenCalledWith("direct-token");
+  fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Direct Coach" } });
+  fireEvent.change(screen.getByLabelText("New password"), { target: { value: "Long secure password!42" } });
+  fireEvent.click(screen.getByLabelText("I confirm that I am 18 years old or older."));
+  fireEvent.click(screen.getByRole("button", { name: "Join club as a coach" }));
+  await waitFor(() => expect(onboardingApi.invitationAcceptDirect).toHaveBeenCalledWith({ token: "direct-token", displayName: "Direct Coach", password: "Long secure password!42", ageConfirmed: true }));
+  await screen.findByText("Coach workspace");
+  expect(acceptSession).toHaveBeenCalledWith(invited);
  });
  it("locks the completion form while verification is pending", async () => {
   let resolve!: (value: Me) => void;

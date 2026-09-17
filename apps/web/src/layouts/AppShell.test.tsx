@@ -45,6 +45,7 @@ it("starts with the approved three student shortcuts and preserves saved pin cho
  expect(within(screen.getByRole("navigation", { name: "Learner" })).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Team Practice", "Progress"]);
 });
 it("shows five focused coach shortcuts by default with the rest pin-able from Search", () => {
+ account.kind = "Adult"; account.role = "Owner";
  shell("/admin/assignments", "admin"); const nav = screen.getByRole("navigation", { name: "Coach" });
  expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual(["Overview", "Seasons", "Students", "Assignments", "Team Practice"]);
  expect(within(nav).getByRole("link", { name: "Assignments" })).toHaveAttribute("aria-current", "page");
@@ -52,6 +53,16 @@ it("shows five focused coach shortcuts by default with the rest pin-able from Se
  const dialog = screen.getByRole("dialog");
  for (const name of ["Coaches", "Scripture library", "PBE materials", "PBE news", "Your profile"]) expect(within(dialog).getByRole("button", { name: `Pin ${name}` })).toBeInTheDocument();
  expect(within(dialog).queryByRole("button", { name: /^Pin Help$/ })).not.toBeInTheDocument();
+});
+it("hides PBE materials, PBE news, and the invite-coach shortcut from admins in Search", () => {
+ account.kind = "Adult"; account.role = "Admin";
+ shell("/admin/assignments", "admin");
+ fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
+ const dialog = screen.getByRole("dialog");
+ expect(within(dialog).queryByRole("button", { name: "Pin PBE materials" })).not.toBeInTheDocument();
+ expect(within(dialog).queryByRole("button", { name: "Pin PBE news" })).not.toBeInTheDocument();
+ expect(within(dialog).queryByRole("button", { name: "Pin Invite a coach" })).not.toBeInTheDocument();
+ expect(within(dialog).getByRole("button", { name: "Pin Coaches" })).toBeInTheDocument();
 });
 it.each([
  ["/admin", ["overview", "seasons", "students"], "Overview", 3],

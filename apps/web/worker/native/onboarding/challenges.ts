@@ -16,7 +16,7 @@ export async function requestCode(request:Request,env:Env,purpose:Purpose,data:R
   const invitation=purpose==="invitation"?await findInvitation(env,data.token):null;
   if(invitation&&invitation.email!==email)throw invalidInvitation();
   await deliveryBudget(request,env,email,invitation?{userId:invitation.inviter_id,organizationId:invitation.org_id}:undefined);
-  const user=purpose==="password"?await env.DB.prepare("SELECT id,credential_version FROM Users WHERE email=? AND kind='Adult' AND role IN ('Owner','Admin') AND active=1").bind(email).first<{id:string;credential_version:string}>():null;
+  const user=purpose==="password"?await env.DB.prepare("SELECT id,credential_version FROM Users WHERE email=? AND kind='Adult' AND role IN ('Owner','Admin','Content Manager') AND active=1").bind(email).first<{id:string;credential_version:string}>():null;
   const id=crypto.randomUUID(),code=randomCode(),now=Date.now(),expiresAt=now+10*60000;
   await env.DB.batch([
     env.DB.prepare("UPDATE AuthChallenges SET consumed_at=? WHERE email=? AND purpose=? AND consumed_at IS NULL").bind(now,email,purpose),

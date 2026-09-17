@@ -5,7 +5,7 @@ import type { PerimeterEnv } from "./perimeter";
 export interface Env extends PerimeterEnv { DB: D1Database; ASSETS?: { fetch(request: Request): Promise<Response> }; ROOMS?: DurableObjectNamespace; REPORTS?: DurableObjectNamespace; PBE_SOLO?: DurableObjectNamespace; PASSWORD_CRYPTO?: DurableObjectNamespace<PasswordCrypto>; PUBLIC_ORIGIN?: string; RESEND_API_KEY?:string; AUTH_CODE_SECRET?:string; TURNSTILE_SECRET_KEY?:string; TURNSTILE_SITE_KEY?:string; AUTH_EMAIL_FROM?:string }
 export interface Actor {
   userId: string; organizationId: string; organizationName: string; displayName: string; userName: string;
-  email: string | null; kind: "Adult" | "Student"; role: "Owner" | "Admin" | "Student"; credentialVersion: string;
+  email: string | null; kind: "Adult" | "Student"; role: "Owner" | "Admin" | "Content Manager" | "Student"; credentialVersion: string;
 }
 export interface RequestContext { request: Request; env: Env; actor: Actor; path: string; orgId: string; store: Store }
 export class HttpError extends Error { constructor(public status: number, message: string) { super(message); } }

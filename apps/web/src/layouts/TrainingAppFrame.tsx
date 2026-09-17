@@ -8,7 +8,7 @@ import { api } from "../api/client";
 import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
 import { PathfinderBackdrop } from "../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../components/AppIcon";
-import { Button, Notice } from "../components/ui";
+import { Badge, Button, Notice } from "../components/ui";
 import { CommandCenter } from "../components/navigation/CommandCenter";
 import { NavigationMenu } from "../components/navigation/NavigationMenu";
 import { currentDestination, navigation, studentSearchExtras, type Destination } from "../components/navigation/destinations";
@@ -26,6 +26,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const navigate = useNavigate();
   const params = new URLSearchParams(location.search);
   const canSwitch = me?.kind === "Adult" && (me.role === "Owner" || me.role === "Admin");
+  const isContentManager = me?.kind === "Adult" && me.role === "Content Manager";
   const seasonStorageKey = `erudoza:learner-season:${me?.organizationId}:${me?.userId}`;
   const selectedSeason = params.get("seasonId");
   let rememberedSeason: string | null = null;
@@ -33,7 +34,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const pathSeason = coach ? location.pathname.match(/^\/admin\/seasons\/([^/]+)/)?.[1] : undefined;
   const switchSeason = (pathSeason && pathSeason !== "new" ? pathSeason : null) ?? selectedSeason ?? rememberedSeason;
   useEffect(() => { if (selectedSeason) { try { sessionStorage.setItem(seasonStorageKey, selectedSeason); } catch { /* Storage is optional. */ } } }, [seasonStorageKey, selectedSeason]);
-  const items = navigation(coach, coach ? switchSeason : selectedSeason, canSwitch);
+  const items = navigation(coach, coach ? switchSeason : selectedSeason, canSwitch, me?.kind === "Adult" && me.role !== "Student" ? me.role : null);
   const searchItems = coach ? items : [...items, ...studentSearchExtras(canSwitch, selectedSeason)];
   const active = currentDestination(items, location.pathname);
   const route = location.pathname + location.search + location.hash;
@@ -50,10 +51,10 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const storageKey = `erudoza:pins:${me?.organizationId}:${me?.userId}:${coach ? "coach" : "student"}`;
   const [pinned, setPinned] = useState<string[]>(() => {
     try { const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "null"); if (Array.isArray(saved)) return [...new Set(saved.filter((id): id is string => typeof id === "string" && items.some(item => item.id === id)))]; } catch { /* Browser storage can be unavailable. */ }
-    return coach ? ["overview", "seasons", "students", "assignments", "practice"] : ["home", "study", "progress"];
+    return isContentManager ? ["materials", "news"] : coach ? ["overview", "seasons", "students", "assignments", "practice"] : ["home", "study", "progress"];
   });
   const visibleShortcuts = active && !pinned.includes(active.id) ? [...pinned, active.id] : pinned;
-  const mobileIds = coach ? ["overview", "seasons", "students"] : ["home", "study", "progress"];
+  const mobileIds = isContentManager ? ["materials", "news"] : coach ? ["overview", "seasons", "students"] : ["home", "study", "progress"];
   const mobileActive = active?.id;
   const mobileItems = mobileIds.map(id => items.find(item => item.id === id)!);
   useEffect(() => {
@@ -130,9 +131,9 @@ function CommandFrame({ coach }: { coach: boolean }) {
       <div className="command-account-cluster">
       <NotificationBell />
       <NavigationMenu key={`account:${route}`} name="Account" label={<><ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? ""} size={48} /><span className="command-account-name">{me?.displayName}</span></>}>
-        <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? "Coach mode" : "Student mode"}</small></div>
+        <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? <><Badge>{me?.role ?? "Coach"}</Badge> mode</> : "Student mode"}</small></div>
         <span className="command-account-notifications"><NotificationBell /></span>
-        <Link to={coach ? "/admin/profile" : `/student/profile${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`}><AppIcon name="users" />Your profile</Link>
+        {!isContentManager && <Link to={coach ? "/admin/profile" : `/student/profile${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`}><AppIcon name="users" />Your profile</Link>}
         <Link to="/help"><AppIcon name="book" />Help</Link>
         {canSwitch && <Link data-testid="switch-workspace" to={`${coach ? "/student" : "/admin"}${switchSeason ? `?seasonId=${encodeURIComponent(switchSeason)}` : ""}`}><AppIcon name="arrow" />Switch to {coach ? "Student" : "Coach"} mode</Link>}
         <Button variant="ghost" onClick={() => void signOut()} disabled={signingOut} data-testid="logout"><AppIcon name="logout" />{signingOut ? "Signing out…" : "Sign out"}</Button>

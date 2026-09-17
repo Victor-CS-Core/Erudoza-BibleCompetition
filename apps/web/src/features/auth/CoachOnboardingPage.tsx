@@ -59,12 +59,14 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
     if (mode === "invitation" && location.hash) void navigate({ pathname: location.pathname, search: location.search }, { replace: true, state: location.state });
   }, [mode, location.hash, location.pathname, location.search, location.state, navigate]);
   useEffect(() => {
-    if (mode !== "invitation" || !invitationToken || auth.loading || auth.me || auth.error || !options?.available) return;
+    // Invitation details are readable without email delivery (staging): the
+    // direct-accept flow needs the club name too.
+    if (mode !== "invitation" || !invitationToken || auth.loading || auth.me || auth.error || !options) return;
     let active = true;
     void onboardingApi.invitationDetails(invitationToken).then(details => { if (active) setInvitation(details); })
       .catch(failure => { if (active) setInvitationError(failure instanceof Error ? failure.message : "This invitation is unavailable. Ask your coach for a new invitation."); });
     return () => { active = false; };
-  }, [mode, invitationToken, auth.loading, auth.me, auth.error, options?.available]);
+  }, [mode, invitationToken, auth.loading, auth.me, auth.error, options]);
   useEffect(() => {
     if (!receipt && !retryAt) return;
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -122,6 +124,22 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
     finally { submitting.current = false; setPending(false); }
   }
   const invitationUnavailable = mode === "invitation" && (!invitationToken || invitationError);
+  /** No-email deployments (staging): the invitation link itself is the proof, no code is sent. */
+  const directAvailable = mode === "invitation" && !!invitationToken && !!options && !options.available;
+  async function acceptDirect(event: FormEvent) {
+    event.preventDefault();
+    if (submitting.current || !invitation || !directAvailable || auth.me || auth.loading || auth.error) return;
+    submitting.current = true; setPending(true); setError("");
+    if (!ageConfirmed) { submitting.current = false; setPending(false); setError("You must confirm that you are 18 years old or older to create a coach account."); return; }
+    try {
+      const next = await onboardingApi.invitationAcceptDirect({ token: invitationToken, displayName: displayName.trim(), password, ageConfirmed });
+      await auth.acceptSession(next); setInvitationToken(""); setDisplayName(""); setPassword(""); setAgeConfirmed(false);
+      void navigate("/admin", { replace: true });
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Unable to accept this invitation. Ask your coach for a new invitation.");
+    }
+    finally { submitting.current = false; setPending(false); }
+  }
   const ready = options?.available && options.turnstileSiteKey && !invitationUnavailable && (mode !== "invitation" || invitation);
   const isSignup = mode === "signup";
   return <main className={`training-login coach-onboarding${isSignup ? " coach-signup" : ""}`}>
@@ -135,12 +153,25 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
       <PathfinderBackdrop />
       <Link to="/login" className="training-login-back">{isSignup ? "← Back to sign in" : "Back to sign in"}</Link>
       <div className="training-login-form-wrap">
-        <PageHeader title={titles[mode]} description={messages[mode]} />
+        <PageHeader title={titles[mode]} description={directAvailable ? "This site does not send invitation emails. Create your coach account below — the invitation link you opened is your proof of invitation." : messages[mode]} />
         {auth.loading ? <LoadingState label="Checking your account…" /> : auth.error ? <><Notice tone="danger">{auth.error}</Notice><Button onClick={() => void auth.refresh()}>Try again</Button></> : auth.me ? <>
           <Notice>You are signed in as {auth.me.displayName}. Sign out before continuing with another coach account.</Notice>
           {error && <Notice tone="danger">{error}</Notice>}
           <div className="coach-form-actions"><LinkButton variant="secondary" to={auth.me.kind === "Student" ? "/student" : "/admin"}>Return to your workspace</LinkButton><Button onClick={() => void signOut()} disabled={pending}>{pending ? "Signing out…" : "Sign out to continue"}</Button></div>
-        </> : complete ? <><Notice tone="success">Your password has been reset. Sign in with your new password.</Notice><LinkButton to="/login">Sign in</LinkButton></> : !options ? <LoadingState label="Checking coach account services…" /> : !options.available ? <>
+        </> : complete ? <><Notice tone="success">Your password has been reset. Sign in with your new password.</Notice><LinkButton to="/login">Sign in</LinkButton></> : !options ? <LoadingState label="Checking coach account services…" /> : directAvailable ? <>
+          {invitationError ? <Notice tone="danger">{invitationError || "This invitation is unavailable. Ask your coach for a new invitation."}</Notice> : !invitation ? <LoadingState label="Checking your invitation…" /> : <>
+            <Notice>Join <strong>{invitation.organizationName}</strong>. This invitation was created for {invitation.emailHint} and expires {new Date(invitation.expiresAt).toLocaleDateString()}.</Notice>
+            <form ref={form} onSubmit={event => void acceptDirect(event)} aria-busy={pending}>
+              <label htmlFor="coach-direct-name">Your name</label><Input id="coach-direct-name" value={displayName} onChange={event => setDisplayName(event.target.value)} autoComplete="name" maxLength={100} required disabled={pending} />
+              <label htmlFor="coach-direct-password">New password</label>
+              <div className="training-login-password"><Input id="coach-direct-password" type={showPassword ? "text" : "password"} value={password} onChange={event => setPassword(event.target.value)} autoComplete="new-password" minLength={12} maxLength={128} required disabled={pending} aria-describedby="coach-direct-password-help" /><Button variant="ghost" size="compact" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword} disabled={pending} onClick={() => setShowPassword(value => !value)}>{showPassword ? "Hide" : "Show"}</Button></div>
+              <p id="coach-direct-password-help">Use 12–128 characters. A long, unique phrase works well.</p>
+              <label htmlFor="coach-direct-age-confirm" className="coach-age-confirm"><Input id="coach-direct-age-confirm" type="checkbox" checked={ageConfirmed} onChange={event => setAgeConfirmed(event.target.checked)} required disabled={pending} /><span>I confirm that I am 18 years old or older.</span></label>
+              {error && <Notice id="coach-error" tone="danger">{error}</Notice>}
+              <Button type="submit" disabled={pending}>{pending ? "Joining…" : "Join club as a coach"}</Button>
+            </form>
+          </>}
+        </> : !options.available ? <>
           <Notice>Coach account services are currently unavailable. Please try again later or contact your club administrator.</Notice><Button variant="secondary" onClick={retry}>Check availability again</Button>
         </> : invitationUnavailable ? <Notice tone="danger">{invitationError || "Open the complete invitation link from your email. If it has expired or been revoked, ask your coach for a new invitation."}</Notice> : !ready ? <LoadingState label="Checking your invitation…" /> : <>
           {invitation && <Notice>Join <strong>{invitation.organizationName}</strong>. This invitation was sent to {invitation.emailHint} and expires {new Date(invitation.expiresAt).toLocaleDateString()}.</Notice>}

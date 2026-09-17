@@ -151,18 +151,18 @@ function proposalStatusBadge(status: PbeMaterialProposal["status"]) {
   return <Badge tone={status === "approved" ? "success" : status === "rejected" ? "warning" : "info"}>{status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : "Draft"}</Badge>;
 }
 
-export function MaterialsPage() {
+export function MaterialsPage({ initialTab }: { initialTab?: "releases" | "news" }) {
   const { me, loading, error: authError } = useAuth();
-  const allowed = !loading && !authError && me?.kind === "Adult" && (me.role === "Owner" || me.role === "Admin");
+  const allowed = !loading && !authError && me?.kind === "Adult" && (me.role === "Owner" || me.role === "Content Manager");
   const [params, setParams] = useSearchParams();
-  const tab = params.get("tab") === "news" ? "news" : "releases";
+  const tab = params.get("tab") === "news" ? "news" : params.get("tab") === "releases" ? "releases" : (initialTab ?? "releases");
   const proposalId = params.get("proposal");
   const setTab = (next: "releases" | "news") => { const n = new URLSearchParams(params); n.set("tab", next); n.delete("proposal"); setParams(n); };
 
   if (loading) return <LoadingState label="Checking your account…" />;
-  if (!allowed) return <div className="training-page"><PageHeader title="PBE materials" /><Notice tone="danger">Only club owners and coaches can manage PBE materials.</Notice><LinkButton to={me?.kind === "Student" ? "/student" : "/login"}>Return to your workspace</LinkButton></div>;
+  if (!allowed) return <div className="training-page"><PageHeader title="PBE materials" /><Notice tone="danger">PBE materials and news management is limited to the club Owner and Content Managers.</Notice><LinkButton to={me?.kind === "Student" ? "/student" : "/login"}>Return to your workspace</LinkButton></div>;
 
-  return <div className="training-page"><PageHeader title="PBE materials" description="Review yearly PBE releases and news. Nothing publishes itself — the club Owner approves every release and every news article." />
+  return <div className="training-page"><PageHeader title={tab === "news" ? "PBE news" : "PBE materials"} description="Review yearly PBE releases and news. Nothing publishes itself — the club Owner approves every release, and publishes or unpublishes every news article." />
     <div role="tablist" aria-label="Materials sections" className="ds-tablist">
       <Button variant={tab === "releases" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "releases"} onClick={() => setTab("releases")}>Releases</Button>
       <Button variant={tab === "news" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "news"} onClick={() => setTab("news")}>News</Button>
@@ -324,7 +324,7 @@ function ProposalDetail({ org, id, isOwner, viewerId, onBack }: { org: string; i
       : <div className="materials-actions"><Button variant="secondary" onClick={() => setEditing(true)}>Edit draft</Button></div>)}
     <Panel><h2>Review</h2>
       {reviewError && <Notice tone="danger">{reviewError}</Notice>}
-      {!isOwner && <Notice id="materials-review-owner-notice">Approval requires the club Owner (master admin) role. Coaches can prepare drafts, but only the Owner can approve or reject a release.</Notice>}
+      {!isOwner && <Notice id="materials-review-owner-notice">Approval requires the club Owner (master admin) role. Owners and Content Managers can prepare drafts, but only the Owner can approve or reject a release.</Notice>}
       {isProposer && <Notice id="materials-review-separation-notice">You proposed this release, so a different approver must review it — the proposer cannot approve their own proposal.</Notice>}
       <label>Review note (optional)<Textarea rows={3} value={reviewNote} onChange={event => setReviewNote(event.target.value)} disabled={reviewPending || !isDraft} placeholder="What changed, what to double-check…" /></label>
       <div className="materials-form-actions">
@@ -416,7 +416,7 @@ function NewsManager({ org, isOwner }: { org: string; isOwner: boolean }) {
   const saveEdit = (article: PbeNewsArticle, input: PbeNewsArticleInput) => mutate(article.id, () => api.updatePbeNewsArticle(org, article.id, input), () => setEditingId(null));
 
   return <>
-    {!isOwner && <Notice id="materials-news-owner-notice">Publishing and unpublishing news articles requires the club Owner (master admin) role. Coaches can draft and edit articles; publishing a watcher-suggested draft is the Owner's review step.</Notice>}
+    {!isOwner && <Notice id="materials-news-owner-notice">Publishing and unpublishing news articles requires the club Owner (master admin) role. Owners and Content Managers can draft and edit articles; publishing a watcher-suggested draft is the Owner's review step.</Notice>}
     <div className="materials-actions">
       <Button variant="secondary" onClick={() => setShowNewForm(!showNewForm)}>{showNewForm ? "Close article form" : "New article"}</Button>
     </div>

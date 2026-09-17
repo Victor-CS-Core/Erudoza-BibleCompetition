@@ -1,9 +1,10 @@
 import type { IconName } from "../AppIcon";
+import type { AdultRole } from "../../api/onboarding";
 export type Destination = { id: string; label: string; to: string; icon: IconName; testId?: string; children?: Destination[]; searchOnly?: boolean };
 const child = (id: string, label: string, to: string, icon: IconName = "arrow"): Destination => ({ id, label, to, icon });
-export function navigation(coach: boolean, selectedSeason?: string | null, personalAssignments = false): Destination[] {
+export function navigation(coach: boolean, selectedSeason?: string | null, personalAssignments = false, adultRole?: AdultRole | null): Destination[] {
   const student = (path: string) => selectedSeason ? `${path}${path.includes("?") ? "&" : "?"}seasonId=${encodeURIComponent(selectedSeason)}` : path;
-  return coach ? [
+  const all: Destination[] = coach ? [
     { id: "overview", label: "Overview", to: "/admin", icon: "home", testId: "coach-tab-overview" },
     { id: "seasons", label: "Seasons", to: "/admin/seasons", icon: "flag", testId: "coach-tab-seasons", children: [child("all-seasons", "All seasons", "/admin/seasons"), child("create-season", "Create season", "/admin/seasons/new", "plus"), ...(selectedSeason ? [child("season-books", "Season & books", `/admin/seasons/${encodeURIComponent(selectedSeason)}?step=details`, "book"), child("season-assignments", "Season assignments", `/admin/seasons/${encodeURIComponent(selectedSeason)}?step=students`, "users")] : [])] },
     { id: "students", label: "Students", to: "/admin/students", icon: "users", testId: "coach-tab-students", children: [child("directory", "Student directory", "/admin/students#student-directory"), child("add-student", "Add student", "/admin/students#add-student", "plus")] },
@@ -22,6 +23,15 @@ export function navigation(coach: boolean, selectedSeason?: string | null, perso
     { id: "progress", label: "Progress", to: student("/student/progress"), icon: "chart", testId: "learner-tab-progress" },
     { id: "profile", label: "Your profile", to: student("/student/profile"), icon: "users" },
   ];
+  /** Content Managers see only PBE materials and PBE news. Regular Admins (and
+   *  unknown roles) see every other coach area but never PBE materials/news or the
+   *  invitation controls. Owners see everything. */
+  if (!coach) return all;
+  if (adultRole === "Content Manager") return all.filter(item => item.id === "materials" || item.id === "news");
+  if (adultRole !== "Owner") return all
+    .filter(item => item.id !== "materials" && item.id !== "news")
+    .map(item => item.id === "coaches" ? { ...item, children: item.children?.filter(entry => entry.id !== "invite-coach") } : item);
+  return all;
 }
 /** Search-only destinations: reachable via the command dialog but not shown in the nav. */
 export function studentSearchExtras(personalAssignments: boolean, selectedSeason?: string | null): Destination[] {

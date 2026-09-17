@@ -4,7 +4,7 @@ import { Response as TestResponse } from "miniflare";
 import { createNativeTestApp, TEST_ORG, TEST_USER } from "../test-runtime";
 import { budget, ingressBudget } from "./limits";
 import type { Env } from "../types";
-import { createHmac } from "node:crypto";
+import { createHmac, pbkdf2Sync, randomBytes } from "node:crypto";
 import { boundedCleanup } from "./limits";
 
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
@@ -53,6 +53,23 @@ const inviteCode=async(token:string,email="invitee@example.com")=>{
   return await response.json() as {challengeId:string};
 };
 const accept=(challengeId:string,value=code())=>post("/auth/invitation/complete",{challengeId,code:value,displayName:"Invited Coach",password:"Testing!567890",ageConfirmed:true});
+
+const loginAs=async(userName:string,password:string)=>{
+  const response=await post("/auth/login",{identifier:userName,password});
+  expect(response.status).toBe(200);
+  return response.headers.get("set-cookie")!.split(";")[0];
+};
+const createAdult=async(userName:string,password:string,role="Admin")=>{
+  const salt=randomBytes(16),hash=`pbkdf2:${salt.toString("base64")}:${pbkdf2Sync(password,salt,100000,32,"sha256").toString("base64")}`;
+  const userId=crypto.randomUUID();
+  await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)")
+    .bind(userId,TEST_ORG,userName,userName,"Adult",role,hash,"v1").run();
+  return userId;
+};
+const manage=(cookie:string)=>({
+  patchRole:(userId:string,role:string)=>app.fetch(`/api/v1/organizations/${TEST_ORG}/coaches/${userId}/role`,{method:"PATCH",headers:{Origin:"https://erudoza.test","Content-Type":"application/json",Cookie:cookie},body:JSON.stringify({role})}),
+  remove:(userId:string)=>app.fetch(`/api/v1/organizations/${TEST_ORG}/coaches/${userId}`,{method:"DELETE",headers:{Origin:"https://erudoza.test",Cookie:cookie}}),
+});
 
 it("creates one verified Adult Owner and a secure session, never trusting submitted roles",async()=>{
   expect(await (await app.fetch("/api/v1/auth/coach-options")).json()).toEqual({available:true,turnstileSiteKey:"test-only-site"});
@@ -302,4 +319,82 @@ it("reserves login and invitation revocation capacity independently of public on
   const cookie=response.headers.get("set-cookie")!.split(";")[0];
   const invitation=await invite(cookie);
   expect((await app.fetch(`/api/v1/organizations/${TEST_ORG}/coach-invitations/${invitation.id}`,{method:"DELETE",headers:{Origin:"https://erudoza.test",Cookie:cookie}})).status).toBe(204);
+});
+
+it("invitation management is owner-only; admins keep the read-only coach directory",async()=>{
+  const cookie=await ownerCookie();
+  for(const role of ["Owner","Content Manager"]){
+    const response=await post(`/organizations/${TEST_ORG}/coach-invitations`,{email:`${role.replace(" ","").toLowerCase()}@example.com`,role},cookie);
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({role});
+  }
+  const adminId=await createAdult("inviting-admin","Admin!123");
+  const adminCookie=await loginAs("inviting-admin","Admin!123");
+  // Admins can no longer invite at all: create, list, resend, and revoke are all 403.
+  expect((await post(`/organizations/${TEST_ORG}/coach-invitations`,{email:"chosen@example.com",role:"Owner"},adminCookie)).status).toBe(403);
+  expect((await post(`/organizations/${TEST_ORG}/coach-invitations`,{email:"plain@example.com"},adminCookie)).status).toBe(403);
+  expect((await app.fetch(`/api/v1/organizations/${TEST_ORG}/coach-invitations`,{headers:{Cookie:adminCookie}})).status).toBe(403);
+  const created=await post(`/organizations/${TEST_ORG}/coach-invitations`,{email:"managed@example.com"},cookie);
+  expect(created.status).toBe(201);
+  const {id}=await created.json() as {id:string};
+  expect((await post(`/organizations/${TEST_ORG}/coach-invitations/${id}/resend`,{},adminCookie)).status).toBe(403);
+  expect((await app.fetch(`/api/v1/organizations/${TEST_ORG}/coach-invitations/${id}`,{method:"DELETE",headers:{Origin:"https://erudoza.test",Cookie:adminCookie}})).status).toBe(403);
+  // The coach directory itself stays visible to admins.
+  const directory=await app.fetch(`/api/v1/organizations/${TEST_ORG}/coaches`,{headers:{Cookie:adminCookie}});
+  expect(directory.status).toBe(200);
+  expect(adminId).toBeTruthy();
+});
+it("role changes and removals are owner-only and protect the last owner",async()=>{
+  const owner=await ownerCookie();
+  const adminId=await createAdult("managed-admin","Admin!123");
+  const adminCookie=await loginAs("managed-admin","Admin!123");
+  // Admins cannot change roles, and owners cannot change their own role.
+  expect((await manage(adminCookie).patchRole(adminId,"Content Manager")).status).toBe(403);
+  expect((await manage(owner).patchRole(TEST_USER,"Admin")).status).toBe(403);
+  expect((await manage(owner).patchRole(adminId,"Student")).status).toBe(400);
+  expect((await manage(owner).patchRole(adminId,"Content Manager")).status).toBe(200);
+  const listed=await app.fetch(`/api/v1/organizations/${TEST_ORG}/coaches`,{headers:{Cookie:owner}});
+  expect(await listed.json()).toEqual(expect.arrayContaining([expect.objectContaining({userId:adminId,role:"Content Manager"})]));
+  // A second owner lets the original owner step down; the last owner is protected.
+  expect((await manage(owner).patchRole(adminId,"Owner")).status).toBe(200);
+  const promoted=await loginAs("managed-admin","Admin!123");
+  expect((await manage(promoted).patchRole(TEST_USER,"Admin")).status).toBe(200);
+  expect((await manage(promoted).patchRole(adminId,"Admin")).status).toBe(403);
+  expect((await manage(promoted).remove(adminId)).status).toBe(403);
+  // Plain admins cannot remove anyone; the owner can remove non-owners.
+  const removable=await createAdult("removable-admin","Admin!123");
+  const remover=await createAdult("remover-admin","Admin!123");
+  const removerCookie=await loginAs("remover-admin","Admin!123");
+  expect((await manage(removerCookie).remove(removable)).status).toBe(403);
+  expect((await manage(promoted).remove(removable)).status).toBe(204);
+  const after=await app.fetch(`/api/v1/organizations/${TEST_ORG}/coaches`,{headers:{Cookie:promoted}});
+  expect((await after.json() as {userId:string}[]).some(coach=>coach.userId===removable)).toBe(false);
+  expect(remover).toBeTruthy();
+});
+it("accepts invitations directly only where email is not configured",async()=>{
+  const configuredCookie=await ownerCookie();
+  expect((await post("/auth/invitation/accept-direct",{token:"x".repeat(43),displayName:"X",password:"Testing!567890",ageConfirmed:true},configuredCookie)).status).toBe(404);
+  const bare=await createNativeTestApp();
+  try{
+    const bareOwner=(await bare.login()).headers.get("set-cookie")!.split(";")[0];
+    const jsonHeaders=(cookie?:string)=>({Origin:"https://erudoza.test","Content-Type":"application/json",...(cookie?{Cookie:cookie}:{})});
+    const created=await bare.fetch(`/api/v1/organizations/${TEST_ORG}/coach-invitations`,{method:"POST",headers:jsonHeaders(bareOwner),body:JSON.stringify({email:"direct@example.com",role:"Content Manager"})});
+    expect(created.status).toBe(201);
+    const invitation=await created.json() as {id:string;inviteUrl:string};
+    expect(invitation.inviteUrl).toMatch(/^https:\/\/erudoza\.test\/join-coach#[A-Za-z0-9_-]{43}$/);
+    // The URL never leaks through list views.
+    const list=await bare.fetch(`/api/v1/organizations/${TEST_ORG}/coach-invitations`,{headers:{Cookie:bareOwner}});
+    expect(await list.json()).toEqual([expect.not.objectContaining({inviteUrl:expect.anything()})]);
+    const token=invitation.inviteUrl.split("#")[1];
+    expect((await bare.fetch("/api/v1/auth/invitation/details",{method:"POST",headers:jsonHeaders(),body:JSON.stringify({token})})).status).toBe(200);
+    const acceptBody={token,displayName:"Direct Coach",password:"Testing!567890",ageConfirmed:true};
+    expect((await bare.fetch("/api/v1/auth/invitation/accept-direct",{method:"POST",headers:jsonHeaders(),body:JSON.stringify({...acceptBody,ageConfirmed:false})})).status).toBe(400);
+    const accepted=await bare.fetch("/api/v1/auth/invitation/accept-direct",{method:"POST",headers:jsonHeaders(),body:JSON.stringify(acceptBody)});
+    expect(accepted.status).toBe(200);
+    expect(await accepted.json()).toMatchObject({kind:"Adult",role:"Content Manager"});
+    const session=accepted.headers.get("set-cookie")!.split(";")[0];
+    const whoami=await bare.fetch("/api/v1/me",{headers:{Cookie:session}});
+    expect(await whoami.json()).toMatchObject({role:"Content Manager"});
+    expect((await bare.fetch("/api/v1/auth/invitation/accept-direct",{method:"POST",headers:jsonHeaders(),body:JSON.stringify(acceptBody)})).status).toBe(400);
+  } finally { await bare.runtime.dispose(); }
 });

@@ -19,6 +19,7 @@ vi.mock("../../auth/AuthContext", () => ({ useAuth: () => useAuthMock() }));
 
 const owner = { organizationId: "org-1", userId: "owner-1", kind: "Adult", role: "Owner", organizationName: "Club", displayName: "Olivia Owner", userName: "owner", email: null };
 const admin = { ...owner, userId: "admin-1", role: "Admin", displayName: "Ari Admin", userName: "admin" };
+const contentManager = { ...owner, userId: "cm-1", role: "Content Manager", displayName: "Casey Content", userName: "content" };
 
 const draftPayload = {
   yearLabel: "2025-26",
@@ -157,16 +158,29 @@ it("lets the Owner approve with a review note and shows the student link", async
   expect(screen.getByRole("link", { name: "See what students will see" })).toHaveAttribute("href", "/student/study?mode=Library");
 });
 
-it("disables approve and reject for non-Owners with an explanatory notice", async () => {
+it("denies regular admins with an explanatory notice", async () => {
+  renderPage("/admin/materials", admin);
+  await screen.findByText(/limited to the club Owner and Content Managers/);
+  expect(api.pbeReleases).not.toHaveBeenCalled();
+  expect(api.pbeRelease).not.toHaveBeenCalled();
+  expect(api.pbeNewsArticles).not.toHaveBeenCalled();
+});
+
+it("grants Content Managers access with review and publish disabled", async () => {
   vi.mocked(api.pbeRelease).mockResolvedValue({ proposal: fullProposal, diff, live: null });
-  renderPage("/admin/materials?proposal=prop-1", admin);
+  renderPage("/admin/materials?proposal=prop-1", contentManager);
   await screen.findByText("2025–26 proposal");
+  expect(screen.queryByText(/limited to the club Owner and Content Managers/)).not.toBeInTheDocument();
   expect(screen.getByText(/Approval requires the club Owner/)).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Approve and publish" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Reject" })).toBeDisabled();
-  expect(api.reviewPbeRelease).not.toHaveBeenCalled();
 });
-
+it("grants Content Managers news access with publish disabled", async () => {
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([newsArticle]);
+  renderPage("/admin/materials?tab=news", contentManager);
+  await screen.findByText("New materials detected");
+  expect(screen.queryByText(/limited to the club Owner and Content Managers/)).not.toBeInTheDocument();
+});
 it("disables review for the proposer with a separation notice", async () => {
   vi.mocked(api.pbeRelease).mockResolvedValue({ proposal: { ...fullProposal, proposedBy: "owner-1" }, diff, live: null });
   renderPage("/admin/materials?proposal=prop-1", owner);
@@ -218,9 +232,9 @@ it("unpublishes an article as the Owner", async () => {
   expect(api.unpublishPbeNewsArticle).toHaveBeenCalledWith("org-1", "art-1");
 });
 
-it("disables publish for non-Owners with an explanatory notice", async () => {
+it("disables publish for Content Managers with an explanatory notice", async () => {
   vi.mocked(api.pbeNewsArticles).mockResolvedValue([newsArticle]);
-  renderPage("/admin/materials?tab=news", admin);
+  renderPage("/admin/materials?tab=news", contentManager);
   await screen.findByText("New materials detected");
   expect(screen.getByText(/Publishing and unpublishing news articles requires the club Owner/)).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Publish" })).toBeDisabled();

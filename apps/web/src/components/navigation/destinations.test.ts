@@ -18,7 +18,7 @@ it("keeps six student destinations with study modes consolidated under Study", (
 });
 
 it("keeps ten focused coach destinations with five default shortcuts", () => {
-  const items = navigation(true, "s");
+  const items = navigation(true, "s", false, "Owner");
   expect(items.map(item => item.id)).toEqual(["overview", "seasons", "students", "coaches", "assignments", "practice", "profile", "library", "materials", "news"]);
   // Help moved out of primary navigation; it stays in the account menu and workspace footer.
   expect(items.some(item => item.id === "wiki")).toBe(false);
@@ -46,7 +46,7 @@ it("keeps My assignments searchable for eligible coaches without adding a nav en
 });
 
 it("exposes PBE materials and PBE news destinations with article deep links", () => {
-  const coach = navigation(true);
+  const coach = navigation(true, undefined, false, "Owner");
   expect(coach.find(item => item.id === "materials")?.to).toBe("/admin/materials");
   expect(coach.find(item => item.id === "news")?.to).toBe("/admin/news");
   expect(navigation(false).find(item => item.id === "news")?.to).toBe("/student/news");
@@ -54,4 +54,24 @@ it("exposes PBE materials and PBE news destinations with article deep links", ()
   expect(currentDestination(coach, "/admin/news/some-id")?.id).toBe("news");
   expect(currentDestination(navigation(false), "/student/news/some-id")?.id).toBe("news");
   expect(currentDestination(coach, "/admin/materials")?.id).toBe("materials");
+});
+
+it("limits content managers to PBE materials and PBE news", () => {
+  const items = navigation(true, "s", false, "Content Manager");
+  expect(items.map(item => item.id)).toEqual(["materials", "news"]);
+  // Owners keep the full coach navigation.
+  expect(navigation(true, "s", false, "Owner").some(item => item.id === "coaches")).toBe(true);
+  expect(navigation(true, "s", false, "Owner").some(item => item.id === "materials")).toBe(true);
+});
+
+it("hides PBE materials/news and the invite link from regular admins", () => {
+  const items = navigation(true, "s", false, "Admin");
+  expect(items.some(item => item.id === "materials")).toBe(false);
+  expect(items.some(item => item.id === "news")).toBe(false);
+  // Admins keep every other coach area, including the (read-only) coach directory.
+  expect(items.some(item => item.id === "coaches")).toBe(true);
+  expect(items.find(item => item.id === "coaches")?.children?.some(child => child.id === "invite-coach")).toBe(false);
+  // Unknown roles default to the least-privilege view: no materials/news.
+  expect(navigation(true, "s").some(item => item.id === "materials")).toBe(false);
+  expect(navigation(true, "s", false, "Owner").find(item => item.id === "coaches")?.children?.some(child => child.id === "invite-coach")).toBe(true);
 });

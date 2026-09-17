@@ -7,7 +7,7 @@ import { createNativeTestApp, TEST_ORG } from '../test-runtime';
 
 const libraryOrg = '00000000-0000-4000-8000-000000000066';
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
-let coachCookie = '', studentCookie = '', adminCookie = '';
+let coachCookie = '', studentCookie = '', adminCookie = '', contentManagerCookie = '';
 let wpHandler: (request: TestRequest) => Promise<TestResponse> = async () => { throw new Error('Unexpected outbound request in pbe-materials test'); };
 
 const call = (path: string, data?: unknown, method = data ? 'POST' : 'GET') =>
@@ -16,6 +16,7 @@ const callAs = (cookie: string) => (path: string, data?: unknown, method = data 
   app.fetch(`/api/v1/organizations/${TEST_ORG}${path}`, { method, headers: { Cookie: cookie, Origin: 'https://erudoza.test' }, ...(data ? { body: JSON.stringify(data) } : {}) });
 const asStudent = (path: string, data?: unknown, method = data ? 'POST' : 'GET') => callAs(studentCookie)(path, data, method);
 const asAdmin = (path: string, data?: unknown, method = data ? 'POST' : 'GET') => callAs(adminCookie)(path, data, method);
+const asContentManager = (path: string, data?: unknown, method = data ? 'POST' : 'GET') => callAs(contentManagerCookie)(path, data, method);
 
 const validRelease = (yearLabel = '2025-26') => ({
   yearLabel,
@@ -57,6 +58,12 @@ beforeAll(async () => {
     .bind(adminId, TEST_ORG, 'pbe-admin', 'PBE admin', 'Adult', 'Admin', hash, 'v1').run();
   const adminLogin = await app.fetch('/api/v1/auth/login', { method: 'POST', headers: { Origin: 'https://erudoza.test' }, body: JSON.stringify({ identifier: 'pbe-admin', password: 'Admin!123' }) });
   adminCookie = adminLogin.headers.get('set-cookie')!.split(';')[0];
+  // Content Manager adult user, inserted directly.
+  const cmId = crypto.randomUUID();
+  await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)")
+    .bind(cmId, TEST_ORG, 'pbe-content-manager', 'PBE content manager', 'Adult', 'Content Manager', hash, 'v1').run();
+  const cmLogin = await app.fetch('/api/v1/auth/login', { method: 'POST', headers: { Origin: 'https://erudoza.test' }, body: JSON.stringify({ identifier: 'pbe-content-manager', password: 'Admin!123' }) });
+  contentManagerCookie = cmLogin.headers.get('set-cookie')!.split(';')[0];
 }, 60000);
 afterAll(async () => { await app?.runtime.dispose(); });
 
@@ -76,24 +83,26 @@ it('creates draft proposals with strict validation, and students cannot create t
   expect((await asStudent('/pbe-materials/releases', validRelease('2030-31'))).status).toBe(403);
 });
 
-it('keeps students off every release-management route while admins pass the admin gate', async () => {
+it('denies students and regular admins every management route; Owner and Content Manager pass', async () => {
   const probe = validRelease('2031-32');
   const created = await call('/pbe-materials/releases', probe);
   const { id } = await created.json() as { id: string };
-  expect((await asStudent('/pbe-materials/releases')).status).toBe(403);
-  expect((await asStudent(`/pbe-materials/releases/${id}`)).status).toBe(403);
-  expect((await asStudent(`/pbe-materials/releases/${id}`, probe, 'PUT')).status).toBe(403);
-  expect((await asStudent(`/pbe-materials/releases/${id}/review`, { decision: 'approved' })).status).toBe(403);
-  expect((await asStudent('/pbe-materials/watch', {})).status).toBe(403);
-  expect((await asStudent('/pbe-news/articles')).status).toBe(403);
-  expect((await asStudent('/pbe-news/articles', validArticle())).status).toBe(403);
-  expect((await asAdmin('/pbe-materials/releases')).status).toBe(200);
-  expect((await asAdmin(`/pbe-materials/releases/${id}`)).status).toBe(200);
+  for (const asDenied of [asStudent, asAdmin]) {
+    expect((await asDenied('/pbe-materials/releases')).status).toBe(403);
+    expect((await asDenied(`/pbe-materials/releases/${id}`)).status).toBe(403);
+    expect((await asDenied(`/pbe-materials/releases/${id}`, probe, 'PUT')).status).toBe(403);
+    expect((await asDenied(`/pbe-materials/releases/${id}/review`, { decision: 'approved' })).status).toBe(403);
+    expect((await asDenied('/pbe-materials/watch', {})).status).toBe(403);
+    expect((await asDenied('/pbe-news/articles')).status).toBe(403);
+    expect((await asDenied('/pbe-news/articles', validArticle())).status).toBe(403);
+  }
+  expect((await asContentManager('/pbe-materials/releases')).status).toBe(200);
+  expect((await asContentManager(`/pbe-materials/releases/${id}`)).status).toBe(200);
 });
 
 it('approves a release atomically: material live, gate written, proposal marked', async () => {
-  // The Admin drafts; the Owner (a different user) reviews — proposer and approver stay separate.
-  const created = await asAdmin('/pbe-materials/releases', validRelease('2025-26'));
+  // The Content Manager drafts; the Owner (a different user) reviews — proposer and approver stay separate.
+  const created = await asContentManager('/pbe-materials/releases', validRelease('2025-26'));
   const { id } = await created.json() as { id: string };
   const reviewed = await call(`/pbe-materials/releases/${id}/review`, { decision: 'approved', note: 'Looks good' });
   expect(reviewed.status).toBe(200);
@@ -121,7 +130,7 @@ it('re-releases the same year with a bumped version', async () => {
   const firstVersion = (JSON.parse(first!.data) as { version: number }).version;
   const payload = validRelease('2025-26');
   payload.material.commentary.sections = [{ heading: 'Title and Authorship', body: 'Revised body text.' }];
-  const created = await asAdmin('/pbe-materials/releases', payload);
+  const created = await asContentManager('/pbe-materials/releases', payload);
   const { id } = await created.json() as { id: string };
   expect((await call(`/pbe-materials/releases/${id}/review`, { decision: 'approved' })).status).toBe(200);
   const material = await libRow('pbe-material', 'pbe-material-2025-26');
@@ -179,7 +188,7 @@ it('resolves the current material by the season yearLabel, and returns null when
 });
 
 it('rejects a proposal without publishing anything', async () => {
-  const created = await asAdmin('/pbe-materials/releases', validRelease('2026-27'));
+  const created = await asContentManager('/pbe-materials/releases', validRelease('2026-27'));
   const { id } = await created.json() as { id: string };
   const rejected = await call(`/pbe-materials/releases/${id}/review`, { decision: 'rejected', note: 'Needs work' });
   expect(rejected.status).toBe(200);
@@ -201,8 +210,8 @@ it('keeps proposer and approver separate: the Owner cannot review their own prop
 });
 
 it('restricts review to the Owner: Admin and Student both get 403', async () => {
-  // Drafted by the Admin so the Owner can still review it (proposer/approver separation).
-  const created = await asAdmin('/pbe-materials/releases', validRelease('2033-34'));
+  // Drafted by the Content Manager so the Owner can still review it (proposer/approver separation).
+  const created = await asContentManager('/pbe-materials/releases', validRelease('2033-34'));
   const { id } = await created.json() as { id: string };
   expect((await asAdmin(`/pbe-materials/releases/${id}/review`, { decision: 'approved' })).status).toBe(403);
   expect((await asStudent(`/pbe-materials/releases/${id}/review`, { decision: 'approved' })).status).toBe(403);
@@ -210,6 +219,28 @@ it('restricts review to the Owner: Admin and Student both get 403', async () => 
   const stored = await libRow('pbe-material-proposal', id);
   expect((JSON.parse(stored!.data) as { status: string }).status).toBe('draft');
   expect(await libRow('pbe-material', 'pbe-material-2033-34')).toBeNull();
+});
+
+it('lets content managers draft and edit, but never review releases or publish news', async () => {
+  // Draft-level operations pass the content gate.
+  const draft = await asContentManager('/pbe-materials/releases', validRelease('2035-36'));
+  expect(draft.status).toBe(201);
+  const { id: proposalId } = await draft.json() as { id: string };
+  const updated = await asContentManager(`/pbe-materials/releases/${proposalId}`, validRelease('2035-36'), 'PUT');
+  expect(updated.status).toBe(200);
+  expect((await asContentManager('/pbe-materials/releases')).status).toBe(200);
+  const article = await asContentManager('/pbe-news/articles', validArticle());
+  expect(article.status).toBe(201);
+  const { id: articleId } = await article.json() as { id: string };
+  const edited = await asContentManager(`/pbe-news/articles/${articleId}`, { ...validArticle(), title: 'CM edited title' }, 'PUT');
+  expect(edited.status).toBe(200);
+  // Review and publish stay Owner-only: Content Manager and Admin both get 403.
+  expect((await asContentManager(`/pbe-materials/releases/${proposalId}/review`, { decision: 'approved' })).status).toBe(403);
+  expect((await asAdmin(`/pbe-materials/releases/${proposalId}/review`, { decision: 'approved' })).status).toBe(403);
+  expect((await asContentManager(`/pbe-news/articles/${articleId}/publish`, {})).status).toBe(403);
+  expect((await asContentManager(`/pbe-news/articles/${articleId}/unpublish`, {})).status).toBe(403);
+  const stored = await libRow('pbe-material-proposal', proposalId);
+  expect((JSON.parse(stored!.data) as { status: string }).status).toBe('draft');
 });
 
 it('updates a draft proposal payload (completing watcher-style drafts); non-drafts 404', async () => {
@@ -227,22 +258,22 @@ it('updates a draft proposal payload (completing watcher-style drafts); non-draf
 });
 
 it('runs news article CRUD with Owner-only publish state changes', async () => {
-  const created = await asAdmin('/pbe-news/articles', validArticle());
+  const created = await asContentManager('/pbe-news/articles', validArticle());
   expect(created.status).toBe(201);
   const article = await created.json() as { id: string; status: string; createdBy: string };
   expect(article.status).toBe('draft'); expect(article.createdBy).toBeTruthy();
-  for (const bad of [{ ...validArticle(), title: ' ' }, { ...validArticle(), sections: [] }]) expect((await asAdmin('/pbe-news/articles', bad)).status).toBe(400);
+  for (const bad of [{ ...validArticle(), title: ' ' }, { ...validArticle(), sections: [] }]) expect((await asContentManager('/pbe-news/articles', bad)).status).toBe(400);
   // Drafts are invisible to learners.
   const emptyFeed = await asStudent('/pbe-news');
   expect(emptyFeed.status).toBe(200);
   expect(await emptyFeed.json()).toEqual([]);
   expect((await asStudent(`/pbe-news/${article.id}`)).status).toBe(404);
-  // Admins can list and edit drafts, but only the Owner changes publish state.
-  const listed = await asAdmin('/pbe-news/articles');
+  // Content Managers can list and edit drafts, but only the Owner changes publish state.
+  const listed = await asContentManager('/pbe-news/articles');
   expect((await listed.json() as { status: string }[]).some(a => a.status === 'draft')).toBe(true);
-  expect((await asAdmin(`/pbe-news/articles/${article.id}/publish`, {})).status).toBe(403);
+  expect((await asContentManager(`/pbe-news/articles/${article.id}/publish`, {})).status).toBe(403);
   expect((await asStudent(`/pbe-news/articles/${article.id}/publish`, {})).status).toBe(403);
-  const edited = await asAdmin(`/pbe-news/articles/${article.id}`, { ...validArticle(), title: 'Updated title' }, 'PUT');
+  const edited = await asContentManager(`/pbe-news/articles/${article.id}`, { ...validArticle(), title: 'Updated title' }, 'PUT');
   expect(edited.status).toBe(200);
   const editedBody = await edited.json() as { title: string; status: string };
   expect(editedBody.title).toBe('Updated title');

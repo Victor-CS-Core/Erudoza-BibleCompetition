@@ -4,8 +4,9 @@ import type { Me } from "./types";
 export type CoachOptions = { available: boolean; turnstileSiteKey: string | null };
 export type CodeReceipt = { challengeId: string; expiresAt: string; resendAfterSeconds: number };
 export type InvitationDetails = { organizationName: string; emailHint: string; expiresAt: string };
-export type Coach = { userId: string; displayName: string; email: string | null; role: "Owner" | "Admin" };
-export type CoachInvitation = { id: string; email: string; createdAt: string; expiresAt: string; status: "pending" | "accepted" | "revoked" | "expired" };
+export type AdultRole = "Owner" | "Admin" | "Content Manager";
+export type Coach = { userId: string; displayName: string; email: string | null; role: AdultRole };
+export type CoachInvitation = { id: string; email: string; role: AdultRole; createdAt: string; expiresAt: string; status: "pending" | "accepted" | "revoked" | "expired"; inviteUrl?: string };
 type Completion = { challengeId: string; code: string; password: string };
 const post = <T>(path: string, body: unknown) => request<T>(`/api/v1/${path}`, { method: "POST", body: JSON.stringify(body) });
 const clubPath = (organizationId: string) => `/api/v1/organizations/${encodeURIComponent(organizationId)}`;
@@ -29,9 +30,13 @@ export const onboardingApi = {
   invitationDetails: (token: string) => post<InvitationDetails>("auth/invitation/details", { token }),
   invitationCode: (token: string, email: string, turnstileToken: string) => post<CodeReceipt>("auth/invitation/code", { token, email, turnstileToken }),
   invitationComplete: (body: Completion & { displayName: string; ageConfirmed: boolean }) => post<Me>("auth/invitation/complete", body),
+  /** No-email deployments (staging): accept with the invitation token directly. 404s where email is configured. */
+  invitationAcceptDirect: (body: { token: string; displayName: string; password: string; ageConfirmed: boolean }) => post<Me>("auth/invitation/accept-direct", body),
   coaches: (org: string) => request<Coach[]>(`${clubPath(org)}/coaches`),
   invitations: (org: string) => request<CoachInvitation[]>(`${clubPath(org)}/coach-invitations`),
-  invite: (org: string, email: string) => request<CoachInvitation>(`${clubPath(org)}/coach-invitations`, { method: "POST", body: JSON.stringify({ email }) }),
+  invite: (org: string, email: string, role?: AdultRole) => request<CoachInvitation>(`${clubPath(org)}/coach-invitations`, { method: "POST", body: JSON.stringify(role ? { email, role } : { email }) }),
   resend: (org: string, id: string) => request<CoachInvitation>(`${clubPath(org)}/coach-invitations/${encodeURIComponent(id)}/resend`, { method: "POST" }),
   revoke: (org: string, id: string) => request<void>(`${clubPath(org)}/coach-invitations/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  changeRole: (org: string, userId: string, role: AdultRole) => request<{ userId: string; role: AdultRole }>(`${clubPath(org)}/coaches/${encodeURIComponent(userId)}/role`, { method: "PATCH", body: JSON.stringify({ role }) }),
+  removeCoach: (org: string, userId: string) => request<void>(`${clubPath(org)}/coaches/${encodeURIComponent(userId)}`, { method: "DELETE" }),
 };
