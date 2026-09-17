@@ -11,10 +11,11 @@ import { trainingNow } from './clock';
 import { preference, resolvePreference, write, makeRecap } from './store';
 import type { Writes } from './store';
 import { today, honors, journey } from './query';
+import { leaderboard, setLeaderboardOptIn, teamActivity } from './social';
 export async function handleTraining(ctx: RequestContext): Promise<Response | null> {
     const { path, request } = ctx, method = request.method;
     const recap = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)\/recap$/);
-    if (!recap && !/^\/api\/v1\/progress\/me\/(today|honors|journey|preferences|chapters(?:\/continue)?|pbe-cooperation(?:\/continue)?)$/.test(path))
+    if (!recap && !/^\/api\/v1\/progress\/me\/(today|honors|journey|preferences(?:\/leaderboard)?|team-activity|chapters(?:\/continue)?|pbe-cooperation(?:\/continue)?)$/.test(path))
         return null;
     await requireLearner(ctx);
     const url = new URL(request.url), seasonId = url.searchParams.get('seasonId');
@@ -33,12 +34,18 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
     if(method==='POST'&&path.endsWith('/chapters/continue'))return json(await continueChapters(ctx,await body(request)));
     if (method === 'GET') {
         if(path.endsWith('/chapters'))return json(await chapters(ctx,url));
+        if (path.endsWith('/team-activity'))
+            return json(await teamActivity(ctx));
         if (path.endsWith('/today'))
             return json(await today(ctx, seasonId, undefined, url.searchParams.get('deviceTimeZone') ?? undefined));
         if (path.endsWith('/honors'))
             return json(await honors(ctx, seasonId));
         if (path.endsWith('/journey'))
             return json(await journey(ctx, seasonId, url.searchParams.get('after')));
+    }
+    if (method === 'PUT' && path.endsWith('/preferences/leaderboard')) {
+        const input = await body<{ optIn: unknown }>(request);
+        return json(await setLeaderboardOptIn(ctx, input.optIn));
     }
     if (method === 'PUT' && path.endsWith('/preferences')) {
         const input = await body<{

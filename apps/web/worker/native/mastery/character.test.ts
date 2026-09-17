@@ -5,7 +5,7 @@ import { honorId, RULE_VERSION } from './catalog';
 import type { SaveCharacterProfile } from '../../../shared/profileCharacter';
 let app: Awaited<ReturnType<typeof createNativeTestApp>>, cookie: string;
 const key = 'solo:exact-recall';
-const config = (): SaveCharacterProfile => ({ version: 0, avatarKind: 'character', avatarHonorKey: null, character: { bodyType: 'female', style: 'braids', hairColor: 'red', skin: 'deep', eyes: 'blue', attire: 'student', background: 'starlight', slots: [null, null, null] }, shareOptions: { showName: false, showBrand: true, showQR: false }, sharePatches: [] });
+const config = (): SaveCharacterProfile => ({ version: 0, avatarKind: 'character', avatarHonorKey: null, character: { bodyType: 'female', style: 'ponytail', hairColor: 'red', skin: 'deep', eyes: 'blue', attire: 'student', background: 'sunrise', slots: [null, null, null] }, shareOptions: { showName: false, showBrand: true, showQR: false }, sharePatches: [] });
 const request = (path = '/api/v1/profile/me', method = 'GET', data?: unknown) => app.fetch(path, { method, headers: { Cookie: cookie, Origin: 'https://erudoza.test', 'Content-Type': 'application/json' }, ...(data === undefined ? {} : { body: JSON.stringify(data) }) });
 const save = (data: unknown) => request('/api/v1/profile/me/character', 'PUT', data);
 const earn = async () => { const id = honorId(TEST_ORG, TEST_USER, key); await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('mastery-honor',?,?,?,?)").bind(id, TEST_ORG, TEST_USER, JSON.stringify({ id, userId: TEST_USER, key, ruleVersion: RULE_VERSION, earnedAtUtc: '2026-09-13T00:00:00Z' })).run(); };
@@ -19,11 +19,11 @@ it('returns read-only safe defaults and migrates the existing earned Honor selec
   expect(await (await request()).json()).toMatchObject({ avatarKind: 'honor', avatarHonorKey: key, characterVersion: 0 });
 });
 it('persists appearance, earned slots and shares while identities disclose only the portrait', async () => {
-  await earn(); const input = config(); input.character.slots = [null, key, null]; input.sharePatches = [{ key, x: 400, y: 1200, size: 216, rotation: 35 }];
+  await earn(); const input = config(); input.character.slots = [key, null, null]; input.sharePatches = [{ key, x: 400, y: 1200, size: 216, rotation: 35 }];
   const saved = await save(input); expect(saved.status).toBe(200);
   expect(await saved.json()).toMatchObject({ avatarKind: 'character', character: input.character, shareOptions: input.shareOptions, sharePatches: input.sharePatches, characterVersion: 1 });
   expect(await (await request()).json()).toMatchObject({ character: input.character, shareOptions: input.shareOptions, sharePatches: input.sharePatches, characterVersion: 1 });
-  expect(await (await request(`/api/v1/profile/identities?userId=${TEST_USER}&userId=${TEST_USER}`)).json()).toEqual([{ userId: TEST_USER, avatarHonorKey: null, avatarKind: 'character', character: { bodyType: 'female', style: 'braids', hairColor: 'red', skin: 'deep', eyes: 'blue' } }]);
+  expect(await (await request(`/api/v1/profile/identities?userId=${TEST_USER}&userId=${TEST_USER}`)).json()).toEqual([{ userId: TEST_USER, avatarHonorKey: null, avatarKind: 'character', character: { bodyType: 'female', style: 'ponytail', hairColor: 'red', skin: 'deep', eyes: 'blue' } }]);
 });
 it('allows one atomic create and update per revision without stale avatar writes', async () => {
   await earn(); const first = config(), second = { ...config(), avatarKind: 'honor', avatarHonorKey: key };
@@ -68,6 +68,34 @@ it('sanitizes lost simulation eligibility without changing immutable unlocks', a
   await app.db.prepare("UPDATE Records SET data=json_set(data,'$.eligible',json('false')) WHERE kind='simulation-eligibility'").run();
   expect(await (await request()).json()).toMatchObject({ character: { slots: [null, null, null] }, sharePatches: [], characterVersion: 1 }); expect((await save({ ...input, version: 1 })).status).toBe(403);
   expect(await app.db.prepare("SELECT count(*) n FROM Records WHERE kind='mastery-honor'").first('n')).toBe(1);
+});
+it('rejects locked cosmetics until they are earned', async () => {
+  await app.db.prepare("DELETE FROM Records WHERE kind IN ('training-day','training-xp','solo-badge-award')").run();
+  const base = config();
+  expect((await save({ ...base, character: { ...base.character, background: 'starlight' } })).status).toBe(403);
+  expect((await save({ ...base, character: { ...base.character, hairColor: 'blond' } })).status).toBe(403);
+  expect((await save({ ...base, character: { ...base.character, style: 'braids' } })).status).toBe(403);
+  await earn();
+  expect((await save({ ...base, character: { ...base.character, slots: [null, key, null] } })).status).toBe(403);
+  expect((await save(base)).status).toBe(200);
+  for (let i = 0; i < 7; i++) {
+    const localDate = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-day',?,?,?,?)")
+      .bind(`${TEST_ORG}:${TEST_USER}:${localDate}`, TEST_ORG, TEST_USER, JSON.stringify({ id: `${TEST_ORG}:${TEST_USER}:${localDate}`, localDate, timeZone: 'UTC', firstQualifiedAtUtc: `${localDate}T12:00:00Z`, sessionId: 's', credited: true })).run();
+  }
+  await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('solo-badge-award',?,?,?,?)")
+    .bind(`${TEST_ORG}:${TEST_USER}:steady-study:training-v1:academy`, TEST_ORG, TEST_USER, JSON.stringify({ id: `${TEST_ORG}:${TEST_USER}:steady-study:training-v1:academy`, key: 'steady-study', scope: 'training-v1', scopeId: 'academy', earnedAtUtc: '2026-09-10T12:00:00Z', ruleVersion: 'training-v1' })).run();
+  await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-xp',?,?,?,?)")
+    .bind(`${TEST_ORG}:${TEST_USER}`, TEST_ORG, TEST_USER, JSON.stringify({ totalXp: 500, xpBySeason: {}, attemptXpByDay: {}, xpByDay: {}, updatedAtUtc: '2026-09-17T12:00:00Z' })).run();
+  const teamKey = 'team:first-fellowship', teamId = honorId(TEST_ORG, TEST_USER, teamKey);
+  await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('mastery-honor',?,?,?,?)")
+    .bind(teamId, TEST_ORG, TEST_USER, JSON.stringify({ id: teamId, userId: TEST_USER, key: teamKey, ruleVersion: 'mastery-v1', earnedAtUtc: '2026-09-10T12:00:00Z' })).run();
+  const unlocked = { ...base, version: 1, character: { ...base.character, background: 'starlight', hairColor: 'blond', style: 'braids', slots: [null, teamKey, null] } };
+  expect((await save(unlocked)).status).toBe(200);
+  const profile = await (await request()).json();
+  expect(profile).toMatchObject({ character: unlocked.character, characterVersion: 2 });
+  expect(profile.unlockedCosmetics).toEqual(expect.arrayContaining(['background:starlight', 'hair:blond', 'style:braids', 'sash:2']));
+  expect(profile.cosmeticLocks.map((l: { id: string }) => l.id)).toContain('sash:3');
 });
 it('omits foreign and inactive identities and ignores foreign-owned character records', async () => {
   const other = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', foreign = '22222222-2222-4222-8222-222222222222';

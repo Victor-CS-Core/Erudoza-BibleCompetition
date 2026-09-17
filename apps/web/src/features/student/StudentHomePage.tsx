@@ -11,6 +11,7 @@ import { PassageJourney } from "./PassageJourney";
 import { AssignedPassages } from "./AssignedPassages";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
 import { WeeklyGoalDialog } from "./WeeklyGoalDialog";
+import { TeamActivityStrip, LeaderboardCard } from "./TeamMomentum";
 import { honorAsset, trainingLink } from "./trainingAssets";
 import "./student.css";
 export function StudentHomePage() {
@@ -55,6 +56,7 @@ export function StudentHomePage() {
     {seasons.isError && <Notice tone="danger">Assigned seasons could not load. <Button variant="secondary" onClick={() => void seasons.refetch()}>Retry seasons</Button></Notice>}
     {today.isPending ? <LoadingState label="Loading your training plan…" /> : today.isError ? <Notice tone="danger">Your training plan could not load. <Button variant="secondary" onClick={() => void today.refetch()}>Try again</Button></Notice> : data && <>
       {data.streakNudge && <Notice tone="info" data-testid="streak-nudge" className="training-streak-nudge">One missed day just pauses your streak — practice today to keep it going.</Notice>}
+      <TeamActivityStrip />
       <div className="training-hq-grid">
         <div className="training-mission-column">
           <Panel className="training-mission">
@@ -102,6 +104,7 @@ export function StudentHomePage() {
               <ProgressMeter label={`${quest.title}: quest progress`} value={quest.progress} max={quest.target} />
             </li>)}</ul>
           </Panel>}
+          <LeaderboardCard />
           <Panel className="training-week-panel">
             <div className="training-panel-title"><h2>Weekly practice goal</h2><Button variant="ghost" size="compact" aria-label="Edit weekly goal" onClick={() => setGoalOpen(true)}>Edit goal</Button></div>
             <p className="training-week-count" aria-label={`${data.week.completedDays} of ${data.week.target} practice days`}><strong>{data.week.completedDays} <span>of</span> {data.week.target}</strong><span>practice days this week</span></p>

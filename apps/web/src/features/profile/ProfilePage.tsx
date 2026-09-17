@@ -109,16 +109,32 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
   }
   const earned = profile.honors.filter(honor => honor.earnedAtUtc);
   const earnedKeys = new Set(earned.map(honor => honor.key));
+  // Gamification Phase 3 §5: cosmetic IDs mirror the worker's `<slot>:<value>` scheme.
+  const cosmeticLock = (id: string) => profile.cosmeticLocks?.find(lock => lock.id === id)?.requirement ?? null;
+  const FREE_DEFAULTS = { background: 'sunrise', hairColor: 'brown', style: { male: 'curls', female: 'curly-bob' } } as const;
+  function lockedCosmeticIds(character: CharacterConfig): string[] {
+    const ids = [`background:${character.background}`, `hair:${character.hairColor}`, `style:${character.style}`];
+    if (character.slots[1]) ids.push('sash:2');
+    if (character.slots[2]) ids.push('sash:3');
+    return ids.filter(id => cosmeticLock(id));
+  }
   const unavailable = config.slots.some(key => key !== null && !earnedKeys.has(key)) || draft.history.present.some(patch => !earnedKeys.has(patch.key))
-    || (draft.avatarKind === 'honor' && !earnedKeys.has(draft.avatarHonorKey ?? '')) || (config.attire === 'coach' && !profile.canUseMasterGuide);
+    || (draft.avatarKind === 'honor' && !earnedKeys.has(draft.avatarHonorKey ?? '')) || (config.attire === 'coach' && !profile.canUseMasterGuide)
+    || lockedCosmeticIds(config).length > 0;
   function removeUnavailable() {
-    change(current => ({ ...current,
+    change(current => {
+      const locked = new Set(lockedCosmeticIds(current.character));
+      const bodyType = current.character.bodyType;
+      return { ...current,
       avatarKind: current.avatarKind === 'honor' && !earnedKeys.has(current.avatarHonorKey ?? '') ? 'initials' : current.avatarKind,
       avatarHonorKey: current.avatarHonorKey && earnedKeys.has(current.avatarHonorKey) ? current.avatarHonorKey : null,
       character: { ...current.character, attire: current.character.attire === 'coach' && !profile.canUseMasterGuide ? 'student' : current.character.attire,
-        slots: current.character.slots.map(key => key && earnedKeys.has(key) ? key : null) as CharacterConfig['slots'] },
+        background: locked.has(`background:${current.character.background}`) ? FREE_DEFAULTS.background : current.character.background,
+        hairColor: locked.has(`hair:${current.character.hairColor}`) ? FREE_DEFAULTS.hairColor : current.character.hairColor,
+        style: locked.has(`style:${current.character.style}`) ? FREE_DEFAULTS.style[bodyType] : current.character.style,
+        slots: current.character.slots.map((key, index) => key && earnedKeys.has(key) && !locked.has(`sash:${index + 1}`) ? key : null) as CharacterConfig['slots'] },
       history: { past: [], present: current.history.present.filter(patch => earnedKeys.has(patch.key)), future: [] },
-    }));
+    };});
   }
   const selectedHonor = profile.honors.find(honor => honor.key === draft.avatarHonorKey);
   const defaultHonor = selectedHonor?.earnedAtUtc ? selectedHonor.key : earned[0]?.key;
@@ -128,17 +144,18 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
   });
   const saveError = save.isError ? save.error.message || 'Unable to save your profile. Your draft is still here.' : '';
   const conflict = save.isError && save.error instanceof ApiError && save.error.status === 409;
-  const honorSlots = <div className="slot-grid">{config.slots.map((key, index) => <div className="slot-option" key={index}>
+  const honorSlots = <div className="slot-grid">{config.slots.map((key, index) => { const sashLock = index === 0 ? null : cosmeticLock(`sash:${index + 1}`); return <div className="slot-option" key={index}>
     <span>Slot {index + 1}</span><span className="patch-preview">{key ? <MasteryHonorArtwork honorKey={key} size={110}/> : <span className="empty-ring" role="img" aria-label="Empty Honor spot"/>}</span>
-    {page === 'Honors' ? <Select aria-label={`Honor in spot ${index + 1}`} value={key ?? ''} onChange={event => chooseSlot(index, event.target.value || null)}>
+    {sashLock ? <p className="locked-reason">Locked · {sashLock}</p>
+    : page === 'Honors' ? <Select aria-label={`Honor in spot ${index + 1}`} value={key ?? ''} onChange={event => chooseSlot(index, event.target.value || null)}>
       <option value="">Empty · dotted</option>{profile.honors.map(honor => <option key={honor.key} value={honor.key} disabled={!honor.earnedAtUtc || config.slots.some((slot, i) => i !== index && slot === honor.key)}>{honor.title}{honor.earnedAtUtc ? '' : ' · Locked'}</option>)}
     </Select> : key ? <Button variant="secondary" size="compact" aria-label={`Remove Honor from slot ${index + 1}`} onClick={() => chooseSlot(index, null)}>Remove</Button> : <Button variant="secondary" size="compact" onClick={() => navigate('Honors')}>Choose Honor</Button>}
-  </div>)}</div>;
+  </div>; })}</div>;
   return <div className="training-page profile-page">
     <div className="profile-navigation"><span className="breadcrumb">Account <span aria-hidden="true">/</span> {page}</span><nav aria-label="Profile pages">{pages.map(item => <Button key={item} variant="ghost" aria-current={page === item ? 'page' : undefined} onClick={() => navigate(item)}>{item}</Button>)}</nav></div>
     <div ref={heading} tabIndex={-1} className="profile-heading"><PageHeader title={page === 'Profile' ? 'Your profile' : page === 'Character' ? 'Make your Pathfinder' : page === 'Honors' ? 'Your displayed Honors' : 'Share your character'} description={`${profile.displayName} · ${me?.organizationName ?? ''}`}/></div>
     {status && <Notice tone="success">{status}</Notice>}
-    {unavailable && <Notice><p>Some selected Honors or attire are no longer available to your account. Remove those choices to keep editing the rest of your profile.</p><Button variant="secondary" disabled={save.isPending || reloading} onClick={removeUnavailable}>Remove unavailable choices</Button></Notice>}
+    {unavailable && <Notice><p>Some selected Honors, attire, or character options are no longer available to your account. Remove those choices to keep editing the rest of your profile.</p><Button variant="secondary" disabled={save.isPending || reloading} onClick={removeUnavailable}>Remove unavailable choices</Button></Notice>}
     {saveError && <Notice tone="danger"><p>{saveError}</p><p>Your changes are still here.{conflict ? ' Reload the saved profile before making a new save.' : ' Review your choices and try again.'}</p>{conflict && <Button variant="secondary" disabled={save.isPending} onClick={() => setConfirmReload(true)}>Reload saved profile</Button>}</Notice>}
     {renderError && <Notice tone="danger"><p>{renderError}</p><Button variant="secondary" onClick={() => { setRenderError(''); setRendererVersion(version => version + 1); }}>Retry artwork</Button></Notice>}
     <Suspense key={rendererVersion} fallback={<LoadingState label="Loading your character editor…"/>}>
@@ -162,11 +179,11 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
               {page === 'Character' && <><Panel><h2>Appearance</h2>
                 <fieldset><legend>Body type</legend><div className="choice-row">{(['male', 'female'] as const).map(body => <Button key={body} variant={config.bodyType === body ? 'primary' : 'secondary'} aria-pressed={config.bodyType === body} onClick={() => selectBody(body)}>{body === 'male' ? 'Male' : 'Female'}</Button>)}</div></fieldset>
                 <fieldset><legend>Skin tone</legend><div className="choice-row">{skinTones.map(tone => <Button key={tone.key} variant={config.skin === tone.key ? 'primary' : 'secondary'} aria-pressed={config.skin === tone.key} onClick={() => update('skin', tone.key)}><span className="color-swatch" style={{ background: tone.color }}/>{tone.name}</Button>)}</div></fieldset>
-                <fieldset><legend>{config.bodyType === 'male' ? 'Male hairstyles' : 'Female hairstyles'}</legend><div className="style-options">{hairStyles[config.bodyType].map(hair => <Button key={hair.key} variant={config.style === hair.key ? 'primary' : 'secondary'} aria-pressed={config.style === hair.key} onClick={() => update('style', hair.key)}><CharacterPortrait appearance={{ ...config, style: hair.key }} className="hair-thumbnail" onError={setRenderError}/>{hair.name}</Button>)}</div></fieldset>
-                <fieldset><legend>Hair color</legend><div className="choice-row hair-colors">{hairColors.map(hair => <Button key={hair.key} variant={config.hairColor === hair.key ? 'primary' : 'secondary'} aria-pressed={config.hairColor === hair.key} onClick={() => update('hairColor', hair.key)}><span className="color-swatch" style={{ background: hair.color }}/>{hair.name}</Button>)}</div></fieldset>
+                <fieldset><legend>{config.bodyType === 'male' ? 'Male hairstyles' : 'Female hairstyles'}</legend><div className="style-options">{hairStyles[config.bodyType].map(hair => { const lock = cosmeticLock(`style:${hair.key}`); return <Button key={hair.key} variant={config.style === hair.key ? 'primary' : 'secondary'} aria-pressed={config.style === hair.key} disabled={!!lock} title={lock ?? undefined} onClick={() => update('style', hair.key)}><CharacterPortrait appearance={{ ...config, style: hair.key }} className="hair-thumbnail" onError={setRenderError}/>{hair.name}{lock && <small className="locked-reason">Locked · {lock}</small>}</Button>; })}</div></fieldset>
+                <fieldset><legend>Hair color</legend><div className="choice-row hair-colors">{hairColors.map(hair => { const lock = cosmeticLock(`hair:${hair.key}`); return <Button key={hair.key} variant={config.hairColor === hair.key ? 'primary' : 'secondary'} aria-pressed={config.hairColor === hair.key} disabled={!!lock} title={lock ?? undefined} onClick={() => update('hairColor', hair.key)}><span className="color-swatch" style={{ background: hair.color }}/>{hair.name}{lock && <small className="locked-reason">Locked · {lock}</small>}</Button>; })}</div></fieldset>
                 <fieldset><legend>Eye color</legend><div className="choice-row">{eyeColors.map(eyes => <Button key={eyes.key} variant={config.eyes === eyes.key ? 'primary' : 'secondary'} aria-pressed={config.eyes === eyes.key} onClick={() => update('eyes', eyes.key)}><span className="color-swatch" style={{ background: eyes.color }}/>{eyes.name}</Button>)}</div></fieldset>
               </Panel><Panel><h2>Attire</h2><div className="choice-row"><Button variant={config.attire === 'student' ? 'primary' : 'secondary'} aria-pressed={config.attire === 'student'} onClick={() => update('attire', 'student')}>Pathfinder</Button><Button variant={config.attire === 'coach' ? 'primary' : 'secondary'} aria-pressed={config.attire === 'coach'} disabled={!profile.canUseMasterGuide} onClick={() => update('attire', 'coach')}>Master Guide · coach</Button></div>{!profile.canUseMasterGuide && <p className="help">Master Guide attire is available to coaches.</p>}</Panel>
-                <Panel><h2>Background</h2><div className="background-options">{backgrounds.map(background => <Button key={background.key} variant={config.background === background.key ? 'primary' : 'secondary'} aria-pressed={config.background === background.key} onClick={() => update('background', background.key)}><img src={background.thumbnail} alt=""/>{background.name}</Button>)}</div></Panel></>}
+                <Panel><h2>Background</h2><div className="background-options">{backgrounds.map(background => { const lock = cosmeticLock(`background:${background.key}`); return <Button key={background.key} variant={config.background === background.key ? 'primary' : 'secondary'} aria-pressed={config.background === background.key} disabled={!!lock} title={lock ?? undefined} onClick={() => update('background', background.key)}><img src={background.thumbnail} alt=""/>{background.name}{lock && <small className="locked-reason">Locked · {lock}</small>}</Button>; })}</div></Panel></>}
               {page === 'Honors' && <><Panel><h2>Three spots on your sash</h2><p className="help">Slots run from shoulder to waist. Choose an earned Honor for each spot, or leave it dotted.</p>{honorSlots}<Button variant="ghost" onClick={() => update('slots', [null, null, null])}>Clear all three spots</Button></Panel>
                 <Panel><div className="profile-collection-heading"><h2>Honor collection</h2><Button variant="secondary" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? 'Refreshing patches…' : 'Refresh patches'}</Button></div><p className="help">{earned.length} of {profile.honors.length} unlocked. Earn an Honor to wear its patch.</p>
                   {(['Scripture', 'Team Practice', 'Simulation'] as const).filter(category => profile.honors.some(honor => honor.category === category)).map(category => <section key={category} className="profile-category" aria-label={`${category} profile images`}><h3>{category}</h3><div className="honor-collection">{profile.honors.filter(honor => honor.category === category).map(honor => {

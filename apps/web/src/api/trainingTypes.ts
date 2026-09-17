@@ -12,6 +12,8 @@ export type SkillScores = {
 export type TrainingPreferences = {
     timeZone: string;
     weeklyTarget: WeeklyTarget;
+    /** Weekly XP leaderboard visibility. Opt-in only; defaults to false. */
+    leaderboardOptIn?: boolean;
     pending: {
         timeZone: string;
         weeklyTarget: WeeklyTarget;

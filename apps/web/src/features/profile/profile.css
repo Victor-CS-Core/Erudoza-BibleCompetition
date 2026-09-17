@@ -95,3 +95,7 @@
   .profile-page .choice-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .profile-page .choice-row .ds-button { overflow-wrap: normal; }
 }
+
+/* Gamification Phase 3 §5: locked cosmetic options render greyed with their requirement. */
+.profile-page .locked-reason { display: block; font-size: var(--er-text-xs); color: var(--er-muted-ink); margin-top: 4px; }
+.profile-page .ds-button:disabled .locked-reason { color: inherit; opacity: 0.85; }

@@ -125,6 +125,13 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
           </div>
           <p><small>One missed day pauses the streak; two in a row restart it.</small></p>
         </Panel>
+        <Panel data-testid="student-dashboard-social">
+          <h2>Team &amp; social</h2>
+          <dl className="ds-student-dashboard-metrics">
+            <div><dt>Leaderboard</dt><dd>{data.social.leaderboardOptIn ? "Visible to teammates" : "Hidden from teammates"}</dd></div>
+            <div><dt>Team Practice sessions</dt><dd>{data.social.teamPracticeSessions}</dd></div>
+          </dl>
+        </Panel>
         <Panel data-testid="student-dashboard-progress">
           <h2>Progress</h2>
           <dl className="ds-student-dashboard-metrics">

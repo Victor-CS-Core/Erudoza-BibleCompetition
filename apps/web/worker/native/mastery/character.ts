@@ -7,6 +7,31 @@ const styles = {
   male: ['curls', 'side-part', 'quiff', 'buzz', 'waves', 'locs'],
   female: ['curly-bob', 'straight-bob', 'ponytail', 'braids', 'natural-curls', 'low-bun'],
 };
+/**
+ * Gamification Phase 3 — cosmetic unlocks (spec §5). Cosmetic IDs use
+ * `<slot>:<value>` form. Everything not listed here is free. The requirement
+ * strings are shown greyed-out in the creator for locked options.
+ */
+export const SET_TWO_STYLES = ['buzz', 'waves', 'locs', 'braids', 'natural-curls', 'low-bun'] as const;
+export const COSMETIC_REQUIREMENTS: Record<string, string> = {
+  'background:starlight': 'Reach a 7-day practice streak',
+  'hair:blond': 'Earn the Steady Study milestone',
+  ...Object.fromEntries(SET_TWO_STYLES.map(s => [`style:${s}`, 'Reach level 4 (Keeper)'])),
+  'sash:2': 'Earn any Team Practice Honor',
+  'sash:3': 'Earn any Simulation Honor',
+};
+/** Cosmetic IDs selected by a character config (sash entries only when filled). */
+export function cosmeticIdsFor(config: Pick<CharacterConfig, 'background' | 'hairColor' | 'style' | 'slots'>): string[] {
+  const ids = [`background:${config.background}`, `hair:${config.hairColor}`, `style:${config.style}`];
+  if (config.slots[1]) ids.push('sash:2');
+  if (config.slots[2]) ids.push('sash:3');
+  return ids;
+}
+/** 403 unless every locked cosmetic in the config is in the unlocked set. */
+export function assertCosmeticsUnlocked(config: Pick<CharacterConfig, 'background' | 'hairColor' | 'style' | 'slots'>, unlocked: ReadonlySet<string>): void {
+  const locked = cosmeticIdsFor(config).filter(id => COSMETIC_REQUIREMENTS[id] && !unlocked.has(id));
+  if (locked.length) throw new HttpError(403, `Unlock this first — ${locked.map(id => COSMETIC_REQUIREMENTS[id]).join('; ')}.`);
+}
 const object = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const oneOf = <T extends string>(value: unknown, choices: readonly T[]): value is T => typeof value === 'string' && choices.includes(value as T);
 export const defaultCharacter = (): CharacterConfig => ({ bodyType: 'male', style: 'curls', hairColor: 'brown', skin: 'medium', eyes: 'brown', attire: 'student', background: 'sunrise', slots: [null, null, null] });
@@ -31,7 +56,7 @@ function placement(value: unknown): SharePlacement | null {
   if (!object(value) || !isHonorKey(value.key) || !bounded(value.x, 0, 1200) || !bounded(value.y, 0, 1600) || !bounded(value.size, 144, 336) || !bounded(value.rotation, -180, 180)) return null;
   return { key: value.key, x: value.x, y: value.y, size: value.size, rotation: value.rotation };
 }
-export function validateCharacterSave(value: unknown, earned: ReadonlySet<string>, canUseMasterGuide: boolean): SaveCharacterProfile {
+export function validateCharacterSave(value: unknown, earned: ReadonlySet<string>, canUseMasterGuide: boolean, unlockedCosmetics: ReadonlySet<string>): SaveCharacterProfile {
   if (!object(value)) throw new HttpError(400, 'Provide a character profile.');
   const config = character(value.character), options = shareOptions(value.shareOptions);
   if (!Number.isSafeInteger(value.version) || ((value.version as number) < 0 || (value.version as number) >= Number.MAX_SAFE_INTEGER) || !config || !options || !oneOf(value.avatarKind, ['initials', 'honor', 'character']) || (value.avatarHonorKey !== null && !isHonorKey(value.avatarHonorKey)) || (value.avatarKind === 'honor' && value.avatarHonorKey === null) || !Array.isArray(value.sharePatches) || value.sharePatches.length > honorCatalog.length) throw new HttpError(400, 'Choose valid character, avatar and sharing options.');
@@ -39,6 +64,7 @@ export function validateCharacterSave(value: unknown, earned: ReadonlySet<string
   if (patches.some(p => !p) || new Set(patches.map(p => p!.key)).size !== patches.length) throw new HttpError(400, 'Choose distinct Honors and valid patch positions.');
   if (config.attire === 'coach' && !canUseMasterGuide) throw new HttpError(403, 'Master Guide attire is available to coaches.');
   if ([value.avatarHonorKey, ...config.slots, ...patches.map(p => p!.key)].some(key => key !== null && !earned.has(key))) throw new HttpError(403, 'Earn each Honor before using it in your profile.');
+  assertCosmeticsUnlocked(config, unlockedCosmetics);
   return { version: value.version as number, character: config, avatarKind: value.avatarKind, avatarHonorKey: value.avatarHonorKey, shareOptions: options, sharePatches: patches as SharePlacement[] };
 }
 export function characterFields(saved: unknown, revision: number, userId: string, avatarHonorKey: string | null, earned: ReadonlySet<string>, canUseMasterGuide: boolean): CharacterProfileFields {

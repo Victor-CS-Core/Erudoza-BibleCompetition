@@ -179,3 +179,46 @@ describe('profile patch publication refresh',()=>{
   }finally{view.unmount();client.clear();vi.useRealTimers();}
  });
 });
+
+describe("locked cosmetics", () => {
+  const locks = [
+    { id: "background:starlight", requirement: "Study 7 days in a row" },
+    { id: "hair:blond", requirement: "Earn the Steady Study Honor" },
+    { id: "style:buzz", requirement: "Reach level 4" },
+    { id: "style:waves", requirement: "Reach level 4" },
+    { id: "style:locs", requirement: "Reach level 4" },
+    { id: "style:braids", requirement: "Reach level 4" },
+    { id: "style:natural-curls", requirement: "Reach level 4" },
+    { id: "style:low-bun", requirement: "Reach level 4" },
+    { id: "sash:2", requirement: "Earn a Team Practice Honor" },
+    { id: "sash:3", requirement: "Earn a Simulation Honor" },
+  ];
+  async function showCharacter(profile: MyProfile) {
+    vi.spyOn(profileApi, "me").mockResolvedValue(profile);
+    vi.spyOn(profileApi, "identities").mockResolvedValue([]);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<QueryClientProvider client={client}><ProfilePage /></QueryClientProvider>);
+    const nav = await screen.findByRole("navigation", { name: "Profile pages" });
+    fireEvent.click(within(nav).getByRole("button", { name: "Character" }));
+    await screen.findByRole("heading", { name: "Appearance" });
+  }
+  it("disables locked options and explains how to earn them", async () => {
+    await showCharacter({ ...structuredClone(catalog), unlockedCosmetics: [], cosmeticLocks: locks });
+    const buzz = screen.getByRole("button", { name: /Buzz cut/ });
+    expect(buzz).toBeDisabled();
+    expect(buzz).toHaveTextContent("Locked · Reach level 4");
+    const blond = screen.getByRole("button", { name: /Blond/ });
+    expect(blond).toBeDisabled();
+    expect(blond).toHaveTextContent("Locked · Earn the Steady Study Honor");
+    const starlight = screen.getByRole("button", { name: /Starlight Camp/ });
+    expect(starlight).toBeDisabled();
+    expect(starlight).toHaveTextContent("Locked · Study 7 days in a row");
+    expect(screen.getByRole("button", { name: /Short curls/ })).toBeEnabled();
+  });
+  it("enables options once they are unlocked", async () => {
+    await showCharacter({ ...structuredClone(catalog), unlockedCosmetics: locks.map(lock => lock.id), cosmeticLocks: [] });
+    expect(screen.getByRole("button", { name: /Buzz cut/ })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /Blond/ })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /Starlight Camp/ })).toBeEnabled();
+  });
+});

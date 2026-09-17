@@ -3,6 +3,7 @@ import { body, HttpError, json } from '../types';
 import { honorCatalog, honorId, isHonorKey, ruleVersionFor } from './catalog';
 import type { HonorUnlock, ProfileSelection } from './catalog';
 import { characterFields, defaultCharacter, defaultShareOptions, portraitIdentity, validateCharacterSave } from './character';
+import { lockedCosmetics, unlockedCosmetics } from '../training/cosmetics';
 import type { AssignmentNotification } from '../application/notifications';
 import { notificationSummary } from '../application/notifications';
 const guid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -22,7 +23,9 @@ export async function selfProfile(ctx: RequestContext) {
   const avatarHonorKey = selectionValid ? selected!.honorKey : null;
   const honors = honorCatalog.map(h => ({ ...h, ruleVersion: ruleVersionFor(h.key), earnedAtUtc: awards.find(a => validUnlock(a, ctx.orgId, ctx.actor.userId, h.key,records.find(r=>r.value.id===a.id)?.eligible))?.earnedAtUtc ?? null }));
   const saved = profiles.results.find(p => p.kind === 'profile-character');
+  const unlocked = await unlockedCosmetics(ctx);
   return { userId: ctx.actor.userId, displayName: ctx.actor.displayName, avatarHonorKey, honors,
+    unlockedCosmetics: [...unlocked], cosmeticLocks: lockedCosmetics(unlocked),
     ...characterFields(saved ? JSON.parse(saved.data) : null, saved?.revision ?? 0, ctx.actor.userId, avatarHonorKey, new Set(honors.filter(h => h.earnedAtUtc).map(h => h.key)), ctx.actor.kind === 'Adult' && ['Owner', 'Admin'].includes(ctx.actor.role)) };
 }
 function selection(ctx: RequestContext, key: ProfileSelection['honorKey']): ProfileSelection {
@@ -46,7 +49,7 @@ export async function handleProfile(ctx: RequestContext): Promise<Response | nul
   }
   if (ctx.path === '/api/v1/profile/me/character' && ctx.request.method === 'PUT') {
     const raw = await body<unknown>(ctx.request, 16384), current = await selfProfile(ctx);
-    const input = validateCharacterSave(raw, new Set(current.honors.filter(h => h.earnedAtUtc).map(h => h.key)), current.canUseMasterGuide);
+    const input = validateCharacterSave(raw, new Set(current.honors.filter(h => h.earnedAtUtc).map(h => h.key)), current.canUseMasterGuide, new Set(current.unlockedCosmetics));
     const operationId = crypto.randomUUID();
     const value = JSON.stringify({ userId: ctx.actor.userId, character: input.character, avatarKind: input.avatarKind, shareOptions: input.shareOptions, sharePatches: input.sharePatches, operationId });
     const write = input.version === 0

@@ -115,6 +115,12 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
       levelCounts: [...levelCounts.entries()].map(([level, count]) => ({ level, count })).sort((a, b) => b.count - a.count),
     },
     assignments: seasonAssignments,
+    social: {
+      leaderboardOptIn: pref?.value.leaderboardOptIn === true,
+      teamPracticeSessions: await ctx.env.DB.prepare(
+        `SELECT COUNT(*) AS n FROM Records WHERE kind='room' AND org_id=? AND EXISTS (SELECT 1 FROM json_each(json_extract(data,'$.memberIds')) m WHERE m.value=?)`
+      ).bind(ctx.orgId, s.userId).first<{ n: number }>().then(r => r?.n ?? 0),
+    },
     recentActivity: activity,
   };
 }

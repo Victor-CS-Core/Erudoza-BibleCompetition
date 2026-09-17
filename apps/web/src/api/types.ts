@@ -286,6 +286,10 @@ export type StudentDashboard = {
     levelCounts: { level: string; count: number }[];
   };
   assignments: Assignment[];
+  social: {
+    leaderboardOptIn: boolean;
+    teamPracticeSessions: number;
+  };
   recentActivity: {
     sessionId: string;
     mode: string;
@@ -309,6 +313,29 @@ export type EngagementRow = {
   level: number;
   levelName: string;
   honorsEarned: number;
+};
+
+/** Gamification Phase 3 §4 — peer momentum: team activity strip data. */
+export type TeamActivity = {
+  practicedToday: number;
+  practicedThisWeek: number;
+  memberCount: number;
+};
+
+/** Gamification Phase 3 §4 — one weekly leaderboard row. */
+export type LeaderboardEntry = {
+  userId: string;
+  displayName: string;
+  xp: number;
+  level: number;
+  levelName: string;
+};
+
+/** Gamification Phase 3 §4 — weekly XP leaderboard response. */
+export type LeaderboardResponse = {
+  weekStartLocalDate: string;
+  entries: LeaderboardEntry[];
+  me: { userId: string; rank: number | null; xp: number; optedIn: boolean } | null;
 };
 
 /** One entry in a student's paginated session history (gamification §7c). */

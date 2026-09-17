@@ -4,8 +4,9 @@ import { useAuth } from "../../auth/AuthContext";
 import type { AvatarKind, CharacterAppearance, CharacterProfileFields, SaveCharacterProfile } from "../../../shared/profileCharacter";
 
 export type MasteryHonorOption = { key: string; title: string; requirement: string; category: "Scripture" | "Team Practice" | "Simulation"; ruleVersion: "mastery-v1" | "simulation-v1"; earnedAtUtc: string | null };
+export type CosmeticLock = { id: string; requirement: string };
 // Optional additions preserve older profile/identity responses during a rolling release.
-export type MyProfile = { userId: string; displayName: string; avatarHonorKey: string | null; honors: MasteryHonorOption[] } & Partial<CharacterProfileFields>;
+export type MyProfile = { userId: string; displayName: string; avatarHonorKey: string | null; honors: MasteryHonorOption[]; unlockedCosmetics?: string[]; cosmeticLocks?: CosmeticLock[] } & Partial<CharacterProfileFields>;
 export type ProfileIdentity = { userId: string; avatarHonorKey: string | null; avatarKind?: AvatarKind; character?: CharacterAppearance | null };
 export function completeProfile(profile: MyProfile): MyProfile & CharacterProfileFields {
   return {

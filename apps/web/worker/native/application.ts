@@ -10,6 +10,7 @@ import { notebook } from './application/notebook';
 import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeDto, scopePacks, scopeSources, seasonSummaries, student, students, learner, requireLearner, studentAssignments, validatePackRanges } from './application/model';
 import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
 import { buildAssignmentNotification } from './application/notifications';
+import { leaderboard } from './training/social';
 import { studentDashboard, studentSessionRecap } from './application/student-dashboard';
 import { engagementOverview, studentExportCsv, studentSessionHistory } from './application/engagement';
 import { studentDashboard } from './application/student-dashboard';
@@ -27,6 +28,12 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     if (path === '/engagement' && method === 'GET') {
         admin(ctx.actor);
         return json(await engagementOverview(ctx));
+    }
+    // Leaderboard is visible to learners and coaches; the handler scopes
+    // visibility itself (students see opt-in teammates only, coaches see all).
+    if (path === '/leaderboard' && method === 'GET') {
+        await requireLearner(ctx);
+        return json(await leaderboard(ctx, new URL(request.url)));
     }
     // PBE material releases + news authorize themselves per endpoint (requireLearner for
     // student reads, contentAccess for draft-level management by Owner and Content
@@ -91,19 +98,6 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     const dashboardMatch = path.match(/^\/students\/([^/]+)\/dashboard$/);
     if (dashboardMatch && method === 'GET')
         return json(await studentDashboard(ctx, dashboardMatch[1]));
-    const recapMatch = path.match(/^\/students\/([^/]+)\/sessions\/([^/]+)\/recap$/);
-    if (recapMatch && method === 'GET')
-        return json(await studentSessionRecap(ctx, recapMatch[1], recapMatch[2]));
-    const historyMatch = path.match(/^\/students\/([^/]+)\/sessions$/);
-    if (historyMatch && method === 'GET') {
-        const url = new URL(request.url);
-        return json(await studentSessionHistory(ctx, historyMatch[1], url.searchParams.get('before') ?? undefined, Number(url.searchParams.get('limit') ?? 30)));
-    }
-    const exportMatch = path.match(/^\/students\/([^/]+)\/export\.csv$/);
-    if (exportMatch && method === 'GET') {
-        const csv = await studentExportCsv(ctx, exportMatch[1]);
-        return new Response(csv, { status: 200, headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="student-export-${exportMatch[1]}.csv"` } });
-    }
     if (studentMatch && (studentMatch[2] === 'password' && method === 'POST' || studentMatch[2] === 'state' && method === 'PUT')) {
         await student(ctx, studentMatch[1]);
         const input = await body<{

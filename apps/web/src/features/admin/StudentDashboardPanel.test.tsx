@@ -39,6 +39,7 @@ const dashboard: StudentDashboard = {
     levelCounts: [{ level: "Mastered", count: 1 }, { level: "Strong", count: 2 }, { level: "Unseen", count: 4 }],
   },
   assignments: [{ id: "a1", studentUserId: "student-1", type: "PrimarySpecialist", bookKey: "JHN", startChapter: 3, startVerse: 16, endChapter: 3, endVerse: 18, difficulty: "Standard" }],
+  social: { leaderboardOptIn: true, teamPracticeSessions: 4 },
   recentActivity: [{ sessionId: "s1", mode: "Practice", format: "Memory", createdAtUtc: "2026-09-15T10:00:00Z", completedAtUtc: "2026-09-15T10:20:00Z", attempted: 8, correct: 6, fullTargetReached: true }],
 };
 
@@ -131,4 +132,17 @@ it("renders the paginated session history with per-session XP and a CSV download
   fireEvent.click(screen.getByRole("button", { name: "Load more sessions" }));
   expect(await screen.findByText("6 / 8 correct · +42 XP")).toBeInTheDocument();
   expect(api.studentSessionHistory).toHaveBeenLastCalledWith("org", "student-1", "2026-09-17T10:30:00Z");
+});
+
+it("shows the student's leaderboard visibility and Team Practice session count", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue(dashboard);
+  const first = mount();
+  const social = await screen.findByTestId("student-dashboard-social");
+  expect(within(social).getByText("Visible to teammates")).toBeInTheDocument();
+  expect(within(social).getByText("4")).toBeInTheDocument();
+  first.unmount();
+  vi.mocked(api.studentDashboard).mockResolvedValue({ ...dashboard, social: { leaderboardOptIn: false, teamPracticeSessions: 0 } });
+  mount();
+  const hidden = await screen.findByTestId("student-dashboard-social");
+  expect(within(hidden).getByText("Hidden from teammates")).toBeInTheDocument();
 });

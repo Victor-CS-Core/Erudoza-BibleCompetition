@@ -154,6 +154,9 @@ export const api = {
     request<{ difficulty: TrainingDifficulty }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/difficulty`, { method: "PUT", body: JSON.stringify({ difficulty }), signal }),
   assignedSeasons: () => request<{ id: string; name: string }[]>("/api/v1/progress/me/seasons"),
   progress: (seasonId?: string) => request<Progress>(`/api/v1/progress/me${seasonId ? `?seasonId=${encodeURIComponent(seasonId)}` : ""}`),
+  teamActivity: () => request<import("./types").TeamActivity>("/api/v1/progress/me/team-activity"),
+  leaderboard: (orgId: string, weekStart?: string) => request<import("./types").LeaderboardResponse>(`/api/v1/organizations/${orgId}/leaderboard${weekStart ? `?weekStart=${encodeURIComponent(weekStart)}` : ""}`),
+  setLeaderboardOptIn: (optIn: boolean) => request<{ leaderboardOptIn: boolean }>("/api/v1/progress/me/preferences/leaderboard", { method: "PUT", body: JSON.stringify({ optIn }) }),
   studentProgress: (orgId: string, seasonId: string, studentId: string) =>
     request<Progress>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/progress`),
   coverage: (orgId: string, seasonId: string) =>
