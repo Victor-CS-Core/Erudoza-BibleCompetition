@@ -74,9 +74,11 @@ export function WikiPage({ scope }: { scope: WikiScope }) {
     <a className="training-skip" href="#wiki-main">Skip to content</a>
     <header className="wiki-header ds-inverse-surface"><div className="wiki-header-inner">
       <Link to="/" aria-label="Erudoza home"><ErudozaWordmark compact inverted /></Link>
-      {isPublic
-        ? <div className="wiki-header-account"><LinkButton to="/login" variant="secondary" size="compact">Sign in</LinkButton><LinkButton to="/signup" variant="primary" size="compact">Create a club</LinkButton></div>
-        : me && <div className="wiki-header-account"><ProfileAvatar userId={me.userId} displayName={me.displayName} size={40} /><span><strong>{me.displayName}</strong><small>{roleLabel}</small></span><LinkButton to={home} variant="secondary" size="compact">Back to workspace</LinkButton></div>}
+      {me
+        ? <div className="wiki-header-account"><ProfileAvatar userId={me.userId} displayName={me.displayName} size={40} /><span><strong>{me.displayName}</strong><small>{roleLabel}</small></span><LinkButton to={home} variant="secondary" size="compact">Back to workspace</LinkButton></div>
+        : isPublic
+          ? <div className="wiki-header-account"><LinkButton to="/login" variant="secondary" size="compact">Sign in</LinkButton><LinkButton to="/signup" variant="primary" size="compact" className="wiki-header-signup">Create a club</LinkButton></div>
+          : null}
     </div></header>
     <main id="wiki-main" className="wiki-main" tabIndex={-1}>
       <PageHeader

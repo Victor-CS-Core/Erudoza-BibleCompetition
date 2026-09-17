@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -59,6 +59,17 @@ describe("public wiki", () => {
     renderWiki(null, "/wiki?q=club");
     expect(screen.getByRole("searchbox", { name: "Search the wiki" })).toHaveValue("club");
     expect(screen.getAllByText(/Create a club/).length).toBeGreaterThan(0);
+  });
+
+  it("shows the workspace account block instead of sign-in entry points when signed in", async () => {
+    renderWiki(coach, "/wiki");
+    expect(await screen.findByRole("heading", { name: "Erudoza wiki" })).toBeInTheDocument();
+    const header = document.querySelector(".wiki-header");
+    expect(header).not.toBeNull();
+    const headerScope = within(header as HTMLElement);
+    expect(headerScope.getByRole("link", { name: "Back to workspace" })).toHaveAttribute("href", "/admin");
+    expect(headerScope.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();
+    expect(headerScope.queryByRole("link", { name: "Create a club" })).not.toBeInTheDocument();
   });
 });
 

@@ -62,14 +62,14 @@ export function PracticeHub() {
 
   return <div className="practice-page practice-hub">
     <section className="practice-hub-banner ds-inverse-surface" aria-label="Team Practice"><img src="/brand/team-practice-banner.png" width={2172} height={724} alt="" fetchPriority="high" /><div className="practice-hub-banner-copy"><PageHeader title="Team Practice" description="Practice answering questions about your assigned Scripture as a team." /></div></section>
-    {coach&&<Panel><h2>PBE answer reviews</h2><p>Review saved Solo and Team answers without holding up independent practice.</p><LinkButton variant="secondary" to="/admin/practice/reviews">Open PBE answer reviews</LinkButton></Panel>}
+    {coach&&<Panel><h2>PBE answer reviews</h2><p>Review saved Solo and Team answers without holding up independent practice.</p><LinkButton to="/admin/practice/reviews">Open PBE answer reviews</LinkButton></Panel>}
     {error && <Notice tone="danger">{error}</Notice>}
     {bootstrap.isPending && <Panel aria-busy="true"><LoadingState label="Loading Team Practice…" /></Panel>}
     {bootstrap.isError && <Notice tone="danger">{bootstrap.error.message}<Button variant="secondary" onClick={() => void bootstrap.refetch()}>Retry</Button></Notice>}
     {data && <>
       {!data.enabled ? <Panel>
         <h2>Team Practice is not enabled</h2>
-        <p>Ask your coach to enable Team Practice for your club.</p>
+        <p>{coach ? "Enable Team Practice below to run rooms, simulations, and answer reviews for your club." : "Ask your coach to enable Team Practice for your club."}</p>
         {coach && <Button disabled={!!pending} onClick={() => void run("enable", () => practiceApi.enabled(org, true))}>{pending === "enable" ? "Enabling…" : "Enable Team Practice"}</Button>}
       </Panel> : <>
         <label className="practice-active-season">Active season<Select value={selectedSeasonId} disabled={!data.seasons.length||!!pending} onChange={event=>setSeason(event.target.value)}>{!data.seasons.length&&<option value="">No active seasons</option>}{data.seasons.map(season=><option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>

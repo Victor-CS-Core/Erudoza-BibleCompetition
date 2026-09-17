@@ -138,8 +138,18 @@ describe("Team Practice hub", () => {
     vi.mocked(practiceApi.bootstrap).mockResolvedValue({ ...data, enabled: false });
     mount();
     await screen.findByText("Team Practice is not enabled");
+    expect(screen.getByText("Ask your coach to enable Team Practice for your club.")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Create room" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Enable Team Practice" })).not.toBeInTheDocument();
+  });
+
+  it("tells a coach to enable Team Practice instead of asking them to ask their coach", async () => {
+    account.kind = "Adult";
+    vi.mocked(practiceApi.bootstrap).mockResolvedValue({ ...data, enabled: false });
+    mount();
+    await screen.findByText("Team Practice is not enabled");
+    expect(screen.getByText("Enable Team Practice below to run rooms, simulations, and answer reviews for your club.")).toBeInTheDocument();
+    expect(screen.queryByText("Ask your coach to enable Team Practice for your club.")).not.toBeInTheDocument();
   });
 
   it("lets a Coach enable practice and refresh the available setup", async () => {

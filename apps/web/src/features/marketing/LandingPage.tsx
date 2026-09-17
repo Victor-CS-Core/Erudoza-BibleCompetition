@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
 import { AppIcon } from "../../components/AppIcon";
+import { useAuth } from "../../auth/AuthContext";
 import { LinkButton, PageHeader, Panel } from "../../components/ui";
 import { PatchArtwork } from "../../components/ui/PatchArtwork";
 import { AppFooter } from "../../components/ui/AppFooter";
@@ -14,13 +15,17 @@ const trainingSteps = [
 ];
 
 export function LandingPage() {
+  const { me } = useAuth();
+  const home = me?.kind === "Adult" ? "/admin" : "/student";
   return <div className="training-public public-expedition">
     <CoffeeWidget />
     <a className="training-skip" href="#public-main">Skip to content</a>
     <header className="public-header">
       <Link to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
       <div className="public-header-actions">
-        <LinkButton to="/login" variant="secondary">Sign in</LinkButton>
+        {me
+          ? <LinkButton to={home} variant="secondary">Back to workspace</LinkButton>
+          : <LinkButton to="/login" variant="secondary">Sign in</LinkButton>}
       </div>
     </header>
     <main id="public-main" className="public-main" data-testid="landing-phone-column" tabIndex={-1}>

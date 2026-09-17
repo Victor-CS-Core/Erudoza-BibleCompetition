@@ -1,8 +1,28 @@
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { beforeEach, vi } from "vitest";
+import type { Me } from "../api/types";
+import { useAuth } from "../auth/AuthContext";
 import { PrivacyPage } from "../features/legal/PrivacyPage";
 import { TermsPage } from "../features/legal/TermsPage";
 import { LandingPage } from "../features/marketing/LandingPage";
+
+vi.mock("../auth/AuthContext", () => ({ useAuth: vi.fn() }));
+
+const coach: Me = {
+  userId: "coach-1",
+  organizationId: "org-1",
+  organizationName: "Erudoza Academy",
+  displayName: "Coach",
+  userName: "coach",
+  email: null,
+  kind: "Adult",
+  role: "Admin",
+};
+
+beforeEach(() => {
+  vi.mocked(useAuth).mockReturnValue({ me: null, loading: false, error: null, login: vi.fn(), logout: vi.fn(), refresh: vi.fn(), acceptSession: vi.fn() });
+});
 
 function renderAt(path: string, element: React.ReactNode) {
   return render(
@@ -64,5 +84,27 @@ describe("public footer legal links", () => {
     const legal = within(footer).getByRole("navigation", { name: "Legal" });
     expect(within(legal).getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
     expect(within(legal).getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
+  });
+});
+
+describe("public header when signed in", () => {
+  it("offers Back to workspace instead of Sign in on the landing page", () => {
+    vi.mocked(useAuth).mockReturnValue({ me: coach, loading: false, error: null, login: vi.fn(), logout: vi.fn(), refresh: vi.fn(), acceptSession: vi.fn() });
+    renderAt("/", <LandingPage />);
+    const header = document.querySelector(".public-header");
+    expect(header).not.toBeNull();
+    const headerScope = within(header as HTMLElement);
+    expect(headerScope.getByRole("link", { name: "Back to workspace" })).toHaveAttribute("href", "/admin");
+    expect(headerScope.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();
+  });
+
+  it("offers Back to workspace instead of Sign in on the privacy page", () => {
+    vi.mocked(useAuth).mockReturnValue({ me: coach, loading: false, error: null, login: vi.fn(), logout: vi.fn(), refresh: vi.fn(), acceptSession: vi.fn() });
+    renderAt("/privacy", <PrivacyPage />);
+    const header = document.querySelector(".public-header");
+    expect(header).not.toBeNull();
+    const headerScope = within(header as HTMLElement);
+    expect(headerScope.getByRole("link", { name: "Back to workspace" })).toHaveAttribute("href", "/admin");
+    expect(headerScope.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();
   });
 });

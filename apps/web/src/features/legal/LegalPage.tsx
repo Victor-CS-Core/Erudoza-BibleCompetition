@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
+import { useAuth } from "../../auth/AuthContext";
 import { AppFooter } from "../../components/ui/AppFooter";
 import { LinkButton, Notice, PageHeader, Panel } from "../../components/ui";
 import "../../styles/training-public.css";
@@ -47,13 +48,17 @@ export function LegalPage({
   sections: LegalSection[];
   testId: string;
 }) {
+  const { me } = useAuth();
+  const home = me?.kind === "Adult" ? "/admin" : "/student";
   return (
     <div className="training-public public-legal">
       <a className="training-skip" href="#public-main">Skip to content</a>
       <header className="public-header">
         <Link to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
         <div className="public-header-actions">
-          <LinkButton to="/login" variant="secondary">Sign in</LinkButton>
+          {me
+            ? <LinkButton to={home} variant="secondary">Back to workspace</LinkButton>
+            : <LinkButton to="/login" variant="secondary">Sign in</LinkButton>}
         </div>
       </header>
       <main id="public-main" className="public-main" tabIndex={-1}>
