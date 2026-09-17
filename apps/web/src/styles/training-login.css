@@ -27,6 +27,9 @@
 .training-login-error { margin-top:16px; }
 .training-login .ds-notice { overflow-wrap:anywhere; }
 .training-login-help { border-top:1px solid var(--er-border); padding-top:24px; margin-top:32px; color:var(--er-muted-ink); font-size:var(--er-text-sm); line-height:1.8; }
+.training-login-help a { color:var(--er-teal); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.training-login-help a:visited { color:var(--er-teal); }
+.training-login-help a:hover { text-decoration-thickness:2px; }
 .training-login-caps { margin:8px 0 0; color:var(--er-warning-ink); font-size:var(--er-text-sm); }
 @media(max-width:1000px) { .training-login-hero { padding:32px; } .training-login-main { padding-inline:32px; } }
 @media(max-width:760px) {
