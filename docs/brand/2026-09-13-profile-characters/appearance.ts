@@ -33,18 +33,14 @@ export function mapSkinTone(original:number[],reference:number[],skin:Skin){
 // sclera, eyelashes, pupils and catchlights; skin excludes both eye regions.
 const anatomy: Record<string,{eyes:number[][]; face:number[]; neck:number[]; armY:number; cheek:number[]}> = {
  'student-curls':{eyes:[[213,187,17,19],[296,185,17,20]],face:[255,191,119,84],neck:[252,273,34,25],armY:366,cheek:[240,211]},
- 'student-sweep':{eyes:[[212,197,16,18],[294,193,16,18]],face:[254,192,114,86],neck:[252,278,31,22],armY:370,cheek:[240,219]},
  'student-bob':{eyes:[[216,207,15,17],[292,205,15,17]],face:[254,204,106,80],neck:[253,285,30,23],armY:382,cheek:[242,226]},
  'coach-curls':{eyes:[[218,203,16,18],[299,201,16,18]],face:[256,204,120,83],neck:[252,293,32,26],armY:397,cheek:[240,219]},
- 'coach-sweep':{eyes:[[218,189,16,18],[291,184,16,18]],face:[253,186,111,88],neck:[250,276,30,23],armY:374,cheek:[240,211]},
  'coach-bob':{eyes:[[217,193,16,18],[292,193,16,18]],face:[253,193,108,84],neck:[254,281,30,23],armY:380,cheek:[239,218]},
 };
 const faceOutlines: Record<string,number[][]> = {
  'student-curls':[[129,215],[163,176],[164,126],[199,102],[254,80],[300,101],[347,145],[348,180],[381,174],[384,246],[320,275],[190,280]],
- 'student-sweep':[[131,190],[163,172],[178,139],[206,128],[236,117],[257,96],[289,105],[324,139],[337,183],[371,179],[373,239],[314,280],[181,280],[131,240]],
  'student-bob':[[143,214],[173,194],[176,153],[211,150],[235,133],[250,107],[288,114],[317,141],[336,184],[365,202],[357,251],[306,284],[192,284]],
  'coach-curls':[[130,213],[163,173],[173,128],[216,103],[260,96],[310,116],[343,157],[348,192],[382,190],[384,256],[320,294],[184,293]],
- 'coach-sweep':[[138,193],[172,165],[180,122],[208,111],[238,98],[274,90],[308,104],[328,145],[339,177],[369,173],[367,231],[317,275],[190,279]],
  'coach-bob':[[141,211],[174,177],[181,139],[214,132],[238,107],[262,99],[295,113],[320,141],[337,180],[365,192],[360,244],[307,279],[190,284]],
 };
 function inside(x:number,y:number,points:number[][]){let yes=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const a=points[i],b=points[j];const dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy)));if(Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy)<16)return true;if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])yes=!yes;}return yes;}

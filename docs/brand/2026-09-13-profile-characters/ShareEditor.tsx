@@ -21,23 +21,26 @@ export function ShareEditor({config,profile,collection,history,setHistory,option
  const renderKey=JSON.stringify([resourceKey,visible,options,profile.userName]),ready=resources?.key===resourceKey&&drawnKey===renderKey;
  const selection=visible.find(p=>p.key===selected),selectedArt=available.find(p=>p.key===selected);
  const selectedIndex=visible.findIndex(p=>p.key===selected);
- const fileReady=ready&&!draft&&prepared?.key===renderKey;
+ const isDragging=draft!==null;
+ const fileReady=ready&&!isDragging&&prepared?.key===renderKey;
  const nativeShareAPI=window.isSecureContext&&typeof navigator.share==='function'&&typeof navigator.canShare==='function';
  const offerNativeShare=nativeShareAPI&&(prepared?.nativeShare??true);
 
  useEffect(()=>{
   let active=true;
-  Promise.all([renderShareBase(config),Promise.all(unlockedPatches(collection).map(async p=>[p.key,await loadImage(p.src)] as const))]).then(([base,art])=>{
+  const [configuration,patchCollection]=JSON.parse(resourceKey) as [Configuration,SharePatch[]];
+  Promise.all([renderShareBase(configuration),Promise.all(unlockedPatches(patchCollection).map(async p=>[p.key,await loadImage(p.src)] as const))]).then(([base,art])=>{
    if(active)setResources({key:resourceKey,base,art:new Map(art)});
   }).catch(e=>{if(active)onError(e instanceof Error?e.message:'Unable to prepare your card.');});
   return()=>{active=false;};
  },[resourceKey,onError]);
  useLayoutEffect(()=>{
   if(resources?.key!==resourceKey||!canvasRef.current)return;
-  paintShareCard(canvasRef.current,resources.base,visible,resources.art,profile,options);setDrawnKey(renderKey);
+  const [,placements,visibility,userName]=JSON.parse(renderKey) as [string,Placement[],ShareOptions,string];
+  paintShareCard(canvasRef.current,resources.base,placements,resources.art,{userName},visibility);setDrawnKey(renderKey);
  },[resources,resourceKey,renderKey]);
  useEffect(()=>{
-  if(!ready||draft)return;
+  if(!ready||isDragging)return;
   let active=true;
   // Prepare the current PNG before a tap: no asynchronous encoding may delay navigator.share().
   // Debounce rapid edits and avoid encoding every frame of a patch drag.
@@ -52,7 +55,7 @@ export function ShareEditor({config,profile,collection,history,setHistory,option
    },'image/png');}catch{if(active)onError('Unable to prepare your image. Please try changing the card again.');}
   },100);
   return()=>{active=false;window.clearTimeout(timer);};
- },[ready,renderKey,Boolean(draft),config.attire,nativeShareAPI,onError]);
+ },[ready,renderKey,isDragging,config.attire,nativeShareAPI,onError]);
  useEffect(()=>{
   function escape(event:KeyboardEvent){if(event.key==='Escape'&&drag.current){event.preventDefault();cancelDrag();}}
   function blur(){if(drag.current)cancelDrag();}

@@ -64,22 +64,31 @@ node docs/brand/2026-09-13-profile-characters/verify-selector-previews.mjs
 node docs/brand/2026-09-13-profile-characters/verify-backgrounds.mjs
 node docs/brand/2026-09-13-profile-characters/verify-share.mjs
 node docs/brand/2026-09-13-profile-characters/verify-native-share.mjs
+node docs/brand/2026-09-13-profile-characters/verify-share-labels.mjs
 node docs/brand/2026-09-13-profile-characters/verify-attire-scale.mjs
 node docs/brand/2026-09-13-profile-characters/verify-skin-sash.mjs
 python docs/brand/2026-09-13-profile-characters/verify-cutout-edges.py
 python docs/brand/2026-09-13-profile-characters/verify-placement.py
 node docs/brand/2026-09-13-profile-characters/capture-review.mjs
 node docs/brand/2026-09-13-profile-characters/capture-share.mjs
+```
+
+No server needed — twin/manifest/production guards:
+
+```sh
+node docs/brand/2026-09-13-profile-characters/verify-twins.mjs
+node docs/brand/2026-09-13-profile-characters/verify-manifest.mjs
+node docs/brand/2026-09-13-profile-characters/verify-production-assets.mjs
 ./node_modules/.bin/tsc --noEmit --jsx react-jsx --target es2022 --module esnext --moduleResolution bundler --lib ES2022,DOM --allowSyntheticDefaultImports --skipLibCheck --types vite/client --resolveJsonModule docs/brand/2026-09-13-profile-characters/review.tsx
 ```
 
 The review imports actual shared React UI primitives and semantic CSS. Its checked-in browser bundle is separate from the application bundle. Color changes are deterministic runtime rendering, not new generated images for each selection.
 
-Local validation: bundle/scoped TypeScript and whitespace passed. Chromium checked all **96 body/hairstyle/attire/hair-color combinations**, distinct rendered colors, body-specific hairstyle memory, Master Guide preservation, skin/eye/background controls, Honor ordering/duplicates/empty states, independent avatars and live portraits, image download, search/navigation and keyboard focus. All four pages passed at 1440/390/320 for both bodies and both attires (**48 page/viewport checks**), with no overflow, missing images or page errors. The sash containment check passed.
+Local validation: bundle/scoped TypeScript and whitespace passed. Chromium checked all **96 body/hairstyle/attire/hair-color combinations** (2 bodies × 2 attires × 6 styles/body × 4 hair colors), distinct rendered colors, body-specific hairstyle memory, Master Guide preservation, skin/eye/background controls, Honor ordering/duplicates/empty states, independent avatars and live portraits, image download, search/navigation and keyboard focus. All four pages passed at 1440/390/320 for both bodies and both attires (**48 page/viewport checks** = 4 pages × 3 viewports × 2 bodies × 2 attires), with no overflow, missing images or page errors. The sash containment check passed.
 
-The dedicated refinement check covers **144 hairstyle/skin/hair-color combinations**, **678,444 protected inner-ear sample comparisons**, transparent borders on **144 portraits**, and **24 neck attachment registrations**. It also verifies identical portrait output when attire/background/Honors change. Enlarged neck joins across all twelve styles and both attires, both 24-portrait color sheets, refreshed profile screenshots and a matched before/after were visually inspected. Tests establish the stated pixel/interaction properties, not universal art quality; see the notes for limits. QA-only images remain outside Git; intentional review screenshots and comparison sheets are in this package.
+The dedicated refinement check covers **144 hairstyle/skin/hair-color combinations** (12 styles × 3 skins × 4 hair colors), **678,444 protected inner-ear sample comparisons** (counted at runtime from the ear-ellipse geometry), transparent borders on **144 portraits**, and **24 neck attachment registrations** (12 styles × 2 attires). It also verifies identical portrait output when attire/background/Honors change. Enlarged neck joins across all twelve styles and both attires, both 24-portrait color sheets, refreshed profile screenshots and a matched before/after were visually inspected. Tests establish the stated pixel/interaction properties, not universal art quality; see the notes for limits. QA-only images remain outside Git; intentional review screenshots and comparison sheets are in this package.
 
-The selector regression check reproduced the original static-thumbnail defect, then passed **120 individual thumbnail color updates** across both bodies, **four selected-thumbnail/Profile-portrait matches**, rapid changes, attire/background independence and 1440/390/320 layouts. Creator capture/verification now waits for all six rendered thumbnails as well as the main character.
+The selector regression check reproduced the original static-thumbnail defect, then passed **120 individual thumbnail color updates** across both bodies (2 bodies × 10 recolor options × 6 thumbnails), **four selected-thumbnail/Profile-portrait matches**, rapid changes, attire/background independence and 1440/390/320 layouts. Creator capture/verification now waits for all six rendered thumbnails as well as the main character.
 
 ## Share editor and complexion tuning — September 13
 
