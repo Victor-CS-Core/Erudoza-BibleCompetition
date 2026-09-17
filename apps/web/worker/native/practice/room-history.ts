@@ -1,6 +1,9 @@
 import type {Env} from '../types';
 import {HttpError} from '../types';
+import type {RequestContext} from '../types';
 import type {Room,Submission} from './state';
+import {points} from './scoring';
+import {QUEST_DEFS,type QuestKey} from '../training/quests';
 import {ROOM_STORAGE_FORMAT,RoomCodec,isRoomManifest,manifestRefs,parseNode,validateManifest,type RoomManifest} from './room-storage';
 
 export type ScoreSubmission=Omit<Submission,'answers'>&{answers?:string[];unanswered?:boolean};
@@ -38,4 +41,75 @@ export async function readRoomHistory(db:Env['DB'],org:string,id:string):Promise
  }
  const room=await new RoomCodec().decode(m,hash=>nodes.get(hash)??null);
  return {value:room,revision:row.revision};
+}
+
+/** Single-room summary projection for the room recap endpoint (no component hydration). */
+export async function readRoomSummary(db:Env['DB'],org:string,id:string):Promise<RoomHistorySummary|null>{
+ const row=await db.prepare(`SELECT CASE WHEN json_extract(r.data,'$.format')=? THEN json_extract(r.data,'$.summary') ELSE ${legacySummary} END AS data FROM Records r WHERE kind='match' AND org_id=? AND id=?`).bind(ROOM_STORAGE_FORMAT,org,id).first<{data:string|null}>();
+ if(!row?.data)return null;
+ return JSON.parse(row.data) as RoomHistorySummary;
+}
+
+/**
+ * Room-participation record written by the room-completion hook
+ * (kind `room-participation`, id `${roomId}:${userId}`). Holds the room's
+ * gamification credit for one learner. May be absent for rooms completed
+ * before the hook shipped; the recap then reports XP as untracked.
+ */
+export interface RoomParticipation {
+ roomId:string;userId:string;seasonId:string;format:'Arcade'|'Pbe';
+ simulation:boolean;completedAtUtc:string;questionsAnswered:number;
+ xpAwarded:number;dayCredited:boolean;questsCompleted:string[];
+}
+
+export interface RoomRecapQuest {key:string;title:string}
+export interface RoomRecap {
+ roomId:string;seasonId:string;format:'Arcade'|'Pbe';status:string;
+ completedAtUtc:string|null;teamCount:1|2;simulation:boolean;questionCount:number;
+ myTeam:number;
+ teamScore:{accuracyHundredths:number;speedHundredths:number;availableHundredths:number};
+ contributions:{questionsAnswered:number;accuracyHundredths:number};
+ /** `tracked:false` (earned:null) means the room predates room XP tracking. */
+ xp:{earned:number|null;tracked:boolean};
+ dayCredited:boolean;
+ questsCompleted:RoomRecapQuest[];
+ /** The learner's team milestones for the room's season (not room-attributable). */
+ awards:{key:string;title:string}[];
+}
+
+/**
+ * Build the completed-room recap for the requesting learner.
+ * Returns null when the room is missing or the requester is not a member;
+ * throws 409 when the room has not completed.
+ */
+export async function buildRoomRecap(ctx:RequestContext,roomId:string):Promise<RoomRecap|null>{
+ const summary=await readRoomSummary(ctx.env.DB,ctx.orgId,roomId);
+ if(!summary)return null;
+ const member=summary.members.find(m=>m.userId===ctx.actor.userId);
+ if(!member)return null;
+ if(summary.status!=='Completed')throw new HttpError(409,'This room has not completed yet.');
+ const participation=await ctx.store.get<RoomParticipation>('room-participation',`${roomId}:${ctx.actor.userId}`,ctx.orgId);
+ const record=participation?.value??null;
+ const availableByQuestion=new Map(summary.questions.map(q=>[q.id,points(q)*100]));
+ const teamSubmissions=summary.submissions.filter(s=>s.team===member.team);
+ const teamScore={
+  accuracyHundredths:teamSubmissions.reduce((n,s)=>n+s.accuracyHundredths,0),
+  speedHundredths:teamSubmissions.reduce((n,s)=>n+s.speedHundredths,0),
+  availableHundredths:teamSubmissions.reduce((n,s)=>n+(availableByQuestion.get(s.questionId)??0),0),
+ };
+ const mySubmissions=summary.submissions.filter(s=>s.scribeId===ctx.actor.userId&&!s.deadlineDraft);
+ const awards=(await ctx.store.list<{key:string;title:string;seasonId:string;userId:string}>('award',ctx.orgId))
+  .filter(a=>a.userId===ctx.actor.userId&&a.seasonId===summary.seasonId)
+  .map(a=>({key:a.key,title:a.title}));
+ const questKey=(key:string):key is QuestKey=>key in QUEST_DEFS;
+ return {
+  roomId:summary.id,seasonId:summary.seasonId,format:summary.format??'Arcade',status:summary.status,
+  completedAtUtc:summary.completedAt??null,teamCount:summary.teamCount??2,simulation:!!summary.simulation,
+  questionCount:summary.questionCount,myTeam:member.team,teamScore,
+  contributions:{questionsAnswered:mySubmissions.length,accuracyHundredths:mySubmissions.reduce((n,s)=>n+s.accuracyHundredths,0)},
+  xp:record?{earned:record.xpAwarded,tracked:true}:{earned:null,tracked:false},
+  dayCredited:record?.dayCredited??false,
+  questsCompleted:(record?.questsCompleted??[]).filter(questKey).map(key=>({key,title:QUEST_DEFS[key].title})),
+  awards,
+ };
 }

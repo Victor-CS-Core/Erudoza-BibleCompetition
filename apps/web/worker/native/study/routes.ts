@@ -9,7 +9,7 @@ import type { SessionTraining, MissionRecord, Writes } from '../training/store';
 import { fullTargetReached } from '../training/rules';
 import { resolveTrainingCalendar } from '../training/calendar';
 import { awardXp } from '../training/xp';
-import { sessionCompleteQuests } from '../training/quests';
+import { sessionCompleteQuests, QUEST_DEFS } from '../training/quests';
 import type { RequestContext } from '../types';
 import { admin, body, HttpError, json, requiredString } from '../types';
 import { atomic, contains, effectiveSources, fail, id, memberId, student, requireLearner } from '../application/model';
@@ -304,7 +304,9 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
       session.training ??= { missionId: null, missionRevision: null, missionLocalDate: null, timeZone: pcal.timeZone, reviewKnowledgeUnitIds: [], creditedLocalDate: null, newlyCreditedDay: false, earnedBadges: [] };
       const qLocalDate = session.training.creditedLocalDate ?? pcal.localDate;
       const qAttempts = session.attempts.filter(a => !a.isLegacyDuplicate), qCorrect = qAttempts.filter(a => a.isCorrect).length;
-      const questXp = await sessionCompleteQuests(ctx, qw, { localDate: qLocalDate, timeZone: pcal.timeZone, seasonId: session.seasonId, atUtc: session.completedAtUtc }, { mode: session.mode, accuracy: qAttempts.length ? qCorrect / qAttempts.length * 100 : 0, fullTargetReached: fullTargetReached(session.targetCardCount, session.attempts) });
+      const questRes = await sessionCompleteQuests(ctx, qw, { localDate: qLocalDate, timeZone: pcal.timeZone, seasonId: session.seasonId, atUtc: session.completedAtUtc }, { mode: session.mode, accuracy: qAttempts.length ? qCorrect / qAttempts.length * 100 : 0, fullTargetReached: fullTargetReached(session.targetCardCount, session.attempts) });
+      const questXp = questRes.xpEvents;
+      session.training.questsCompleted = questRes.completedNow.map(key => ({ key, title: QUEST_DEFS[key].title }));
       if (questXp.length) {
         const awarded = await awardXp(ctx, qw, { seasonId: session.seasonId, localDate: qLocalDate, atUtc: session.completedAtUtc, events: questXp });
         session.training.xpEarned = (session.training.xpEarned ?? 0) + awarded.awarded;

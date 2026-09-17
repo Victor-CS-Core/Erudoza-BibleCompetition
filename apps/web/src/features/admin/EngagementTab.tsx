@@ -5,17 +5,28 @@ import type { EngagementRow } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LoadingState, Notice, Panel } from "../../components/ui";
 
-type SortKey = "name" | "streak" | "xpThisWeek" | "practiceDaysThisWeek" | "level" | "honorsEarned" | "lastActiveAtUtc";
+type SortKey = "name" | "streak" | "xpThisWeek" | "practiceDaysThisWeek" | "quests" | "level" | "honorsEarned" | "lastActiveAtUtc";
 
 const columns: { key: SortKey; label: string }[] = [
   { key: "name", label: "Student" },
   { key: "streak", label: "Streak" },
   { key: "xpThisWeek", label: "XP this week" },
   { key: "practiceDaysThisWeek", label: "Practice days · 7d" },
+  { key: "quests", label: "Quests" },
   { key: "level", label: "Level" },
   { key: "honorsEarned", label: "Honors" },
   { key: "lastActiveAtUtc", label: "Last active" },
 ];
+
+function formatQuests(q: EngagementRow["quests"]): string {
+  if (q.totalThisWeek === 0) return "—";
+  return `${q.completedThisWeek}/${q.totalThisWeek} · ${Math.round(q.rate * 100)}%`;
+}
+
+/** Quests sorts by completion rate; every other key sorts by its own value. */
+function sortValue(row: EngagementRow, key: SortKey): string | number | null {
+  return key === "quests" ? row.quests.rate : row[key];
+}
 
 function formatLastActive(value: string | null): string {
   if (!value) return "—";
@@ -39,7 +50,7 @@ export function EngagementTab() {
   const rows = useMemo(() => {
     const data = engagement.data ?? [];
     const sorted = [...data].sort((a: EngagementRow, b: EngagementRow) => {
-      const av = a[sortKey], bv = b[sortKey];
+      const av = sortValue(a, sortKey), bv = sortValue(b, sortKey);
       if (av === null) return 1;
       if (bv === null) return -1;
       const cmp = typeof av === "string" ? av.localeCompare(bv as string) : (av as number) - (bv as number);
@@ -73,6 +84,7 @@ export function EngagementTab() {
             <td>{row.streak} {row.streak === 1 ? "day" : "days"}</td>
             <td>{row.xpThisWeek.toLocaleString()}</td>
             <td>{row.practiceDaysThisWeek} / 7</td>
+            <td>{formatQuests(row.quests)}</td>
             <td>{row.levelName}<br /><small>Level {row.level}</small></td>
             <td>{row.honorsEarned}</td>
             <td>{formatLastActive(row.lastActiveAtUtc)}</td>

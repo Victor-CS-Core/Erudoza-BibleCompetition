@@ -23,6 +23,7 @@ import { MyAssignmentsPage } from "../features/student/MyAssignmentsPage";
 import { StudentHomePage } from "../features/student/StudentHomePage";
 import { ProfilePage } from "../features/profile/ProfilePage";
 import { SessionRecapPage } from "../features/student/SessionRecapPage";
+import { RoomRecapPage } from "../features/practice/RoomRecapPage";
 import { StudyPage } from "../features/student/StudyPage";
 import { AppShell } from "../layouts/AppShell";
 import { RouteProblemPage } from "./RouteProblemPage";
@@ -149,6 +150,7 @@ export const router = createBrowserRouter([
       { path: "profile", element: <ProfilePage /> },
       { path: "practice", element: <PracticeRoute /> },
       { path: "practice/:roomId", element: <PracticeRoute /> },
+      { path: "practice/rooms/:roomId/recap", element: <RoomRecapPage /> },
     ],
   },
 ]);

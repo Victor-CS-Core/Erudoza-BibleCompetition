@@ -9,6 +9,7 @@ import {overlayRoom,type PbeResultOverlay} from '../pbe/result-overlays';
 import {simulationHonorStatements} from './simulation-awards';
 import {calculateAwards} from './awards';
 import {listRoomSummaries,summarizeRoom,type RoomHistorySummary,type RoomHistoryEnvelope} from './room-history';
+import {applyRoomCompletionGamification} from '../training/room-gamification';
 import {contentHash,manifestRefs,parseNode,validateManifest,ROOM_STAGE_BYTES,ROOM_STAGE_NODES,ROOM_STORAGE_FORMAT,type RoomManifest} from './room-storage';
 export {calculateAwards,trends} from './awards';
 export type {Award} from './awards';
@@ -68,7 +69,17 @@ export class PracticeReports extends DurableObject<Env>{
    const rooms=legacy.results.map(x=>JSON.parse(x.data) as Room).filter(x=>x.id!==r.id);rooms.push(raw as Room);statements.push(...prepareTeamHonors(store,r.orgId,rooms,raw as Room));
   }
   if(r.simulation)statements.push(...simulationHonorStatements(this.env.DB,r.orgId,r.seasonId,all.map(x=>overlayRoom(x,byId.get(`Team:${x.id}`)))));
-  await this.env.DB.batch(statements);return json({projected:true});
+  // Team-room gamification: XP, day credit, teammate quest, honor XP, and
+  // room-participation records — real completions only (never re-projections).
+  let roomGamificationPost:(()=>Promise<void>)|null=null;
+  if(!review){
+   const roomGamification=await applyRoomCompletionGamification(this.env,r,review);
+   statements.push(...roomGamification.statements);
+   roomGamificationPost=roomGamification.postBatch;
+  }
+  await this.env.DB.batch(statements);
+  if(roomGamificationPost)await roomGamificationPost();
+  return json({projected:true});
  }
  async fetch(request:Request):Promise<Response>{
   if(maintenanceOffline(this.env))return dispatchMaintenance(request,this.ctx.storage,this.env,'reports',this.ctx.id.toString());

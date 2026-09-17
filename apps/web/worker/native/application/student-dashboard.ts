@@ -1,7 +1,9 @@
 import type { RequestContext } from '../types';
 import { HttpError } from '../types';
-import { memberId, student, type Assignment, type Membership } from './model';
+import { memberId, student, type Assignment, type Membership, type Season } from './model';
 import { honors, trainingScope } from '../training/query';
+import { honorCatalog, type HonorUnlock } from '../mastery/catalog';
+import type { Award } from '../practice/awards';
 import { identity, kid, makeRecap, preference, resolvePreference, type DayRecord, type WeekRecord } from '../training/store';
 import { bestStreak, streakStatus } from '../training/streak';
 import { addDays, resolveTrainingCalendar } from '../training/calendar';
@@ -67,6 +69,22 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
   for (const m of relevant) levelCounts.set(m.level, (levelCounts.get(m.level) ?? 0) + 1);
   levelCounts.set('Unseen', sources.length - relevant.length);
 
+  // --- Team awards: team/simulation mastery-honors plus the calculateAwards
+  // --- `award` records (e.g. First Fellowship, Team Steady). Neither surface
+  // --- in the solo badge catalog, so they get their own drill-down section. ---
+  const seasons = await listAll<Season>(learner, 'season');
+  const seasonNames = new Map(seasons.map(x => [x.id, x.name]));
+  const honorTitles = new Map(honorCatalog.map(h => [h.key, h.title]));
+  const teamHonors = (await listAll<HonorUnlock>(learner, 'mastery-honor', { ownerId: s.userId }))
+    .filter(h => h.key.startsWith('team:') || h.key.startsWith('simulation:'))
+    .map(h => ({ key: h.key, title: honorTitles.get(h.key) ?? h.key, seasonName: seasonNames.get(h.seasonId) ?? null, earnedAtUtc: h.earnedAtUtc ?? null, source: 'honor' as const }));
+  // Award payloads carry no record id, so read them through store.list
+  // directly (room-history.ts precedent) rather than the cursor-paginated
+  // listAll helper, which requires an id for its `after` cursor.
+  const roomAwards = (await learner.store.list<Award>('award', learner.orgId, { ownerId: s.userId }))
+    .map(a => ({ key: a.key, title: a.title, seasonName: seasonNames.get(a.seasonId) ?? null, earnedAtUtc: null as string | null, source: 'award' as const }));
+  const teamAwards = [...teamHonors, ...roomAwards].sort((a, b) => a.title.localeCompare(b.title) || a.key.localeCompare(b.key));
+
   // --- Assignments for the active season (with coach-set difficulty like the progress view). ---
   const assignments = await listAll<Assignment>(learner, 'assignment', { ownerId: s.userId });
   const member = season ? (await learner.store.get<Membership>('membership', memberId(season.id, s.userId), learner.orgId))?.value ?? null : null;
@@ -113,13 +131,20 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
     mastery: {
       badges: allBadges.filter(b => b.earnedAtUtc !== null),
       levelCounts: [...levelCounts.entries()].map(([level, count]) => ({ level, count })).sort((a, b) => b.count - a.count),
+      teamAwards,
     },
     assignments: seasonAssignments,
     social: {
       leaderboardOptIn: pref?.value.leaderboardOptIn === true,
-      teamPracticeSessions: await ctx.env.DB.prepare(
-        `SELECT COUNT(*) AS n FROM Records WHERE kind='room' AND org_id=? AND EXISTS (SELECT 1 FROM json_each(json_extract(data,'$.memberIds')) m WHERE m.value=?)`
-      ).bind(ctx.orgId, s.userId).first<{ n: number }>().then(r => r?.n ?? 0),
+      // Completed rooms in the current season where the student is a member.
+      // Match history is stored two ways: the new storage envelope keeps the
+      // room summary at data.summary, legacy records keep it at data root.
+      teamPracticeSessions: season ? await ctx.env.DB.prepare(
+        `SELECT COUNT(*) AS n FROM Records WHERE kind='match' AND org_id=? AND season_id=?
+         AND COALESCE(json_extract(data,'$.summary.status'), json_extract(data,'$.status'))='Completed'
+         AND EXISTS (SELECT 1 FROM json_each(COALESCE(json_extract(data,'$.summary.members'), json_extract(data,'$.members'))) m
+                     WHERE json_extract(m.value,'$.userId')=?)`
+      ).bind(ctx.orgId, season.id, s.userId).first<{ n: number }>().then(r => r?.n ?? 0) : 0,
     },
     recentActivity: activity,
   };

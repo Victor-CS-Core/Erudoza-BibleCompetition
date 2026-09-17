@@ -11,9 +11,9 @@ vi.mock("../../api/client", () => ({ api: { engagement: vi.fn() } }));
 beforeEach(() => { vi.clearAllMocks(); });
 
 const rows: EngagementRow[] = [
-  { studentId: "s1", name: "Ava", streak: 5, xpThisWeek: 420, practiceDaysThisWeek: 5, level: 3, levelName: "Reader", honorsEarned: 2, lastActiveAtUtc: new Date(Date.now() - 3600_000).toISOString() },
-  { studentId: "s2", name: "Ben", streak: 0, xpThisWeek: 0, practiceDaysThisWeek: 0, level: 1, levelName: "Seedling", honorsEarned: 0, lastActiveAtUtc: null },
-  { studentId: "s3", name: "Cleo", streak: 12, xpThisWeek: 900, practiceDaysThisWeek: 7, level: 5, levelName: "Scribe", honorsEarned: 5, lastActiveAtUtc: new Date(Date.now() - 86400_000 * 3).toISOString() },
+  { studentId: "s1", name: "Ava", streak: 5, xpThisWeek: 420, practiceDaysThisWeek: 5, level: 3, levelName: "Reader", honorsEarned: 2, lastActiveAtUtc: new Date(Date.now() - 3600_000).toISOString(), quests: { completedThisWeek: 4, totalThisWeek: 6, rate: 4 / 6 } },
+  { studentId: "s2", name: "Ben", streak: 0, xpThisWeek: 0, practiceDaysThisWeek: 0, level: 1, levelName: "Seedling", honorsEarned: 0, lastActiveAtUtc: null, quests: { completedThisWeek: 0, totalThisWeek: 0, rate: 0 } },
+  { studentId: "s3", name: "Cleo", streak: 12, xpThisWeek: 900, practiceDaysThisWeek: 7, level: 5, levelName: "Scribe", honorsEarned: 5, lastActiveAtUtc: new Date(Date.now() - 86400_000 * 3).toISOString(), quests: { completedThisWeek: 6, totalThisWeek: 6, rate: 1 } },
 ];
 
 function mount() {
@@ -51,4 +51,19 @@ it("shows a retry notice when the engagement feed fails", async () => {
   vi.mocked(api.engagement).mockRejectedValue(new Error("nope"));
   mount();
   expect(await screen.findByText("Engagement could not load.")).toBeInTheDocument();
+});
+
+it("renders the weekly quest completion column and sorts by rate", async () => {
+  vi.mocked(api.engagement).mockResolvedValue(rows);
+  mount();
+  await screen.findByTestId("engagement-table");
+  expect(screen.getByText("4/6 · 67%")).toBeInTheDocument();
+  expect(screen.getByText("6/6 · 100%")).toBeInTheDocument();
+  // Ben has no quests this week: an em dash instead of a fraction.
+  const benRow = screen.getAllByRole("row").slice(1).find(r => (r as HTMLTableRowElement).cells[0]?.textContent?.includes("Ben")) as HTMLTableRowElement;
+  expect(benRow.cells[4]?.textContent).toBe("—");
+  // Sort by Quests: numeric columns default to descending — Cleo (100%) first.
+  fireEvent.click(screen.getByRole("button", { name: "Sort by Quests" }));
+  const nameCells = () => screen.getAllByRole("row").slice(1).map(r => (r as HTMLTableRowElement).cells[0]?.textContent ?? "");
+  expect(nameCells()[0]).toContain("Cleo");
 });

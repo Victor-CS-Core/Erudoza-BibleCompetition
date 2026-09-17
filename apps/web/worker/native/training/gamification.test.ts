@@ -3,14 +3,20 @@ import type { Env, RequestContext } from '../types';
 import { atomic } from '../application/model';
 import { createNativeTestApp, TEST_ORG } from '../test-runtime';
 import { awardXp, levelForXp, levelNameFor, XP_VALUES } from './xp';
-import { generateDailyQuests, progressQuests, questDto, sessionCompleteQuests, type QuestKey, type QuestState } from './quests';
+import { generateDailyQuests, progressQuests, questDto, sessionCompleteQuests, questEligibility, inTeamRoom, QUEST_DEFS, type QuestKey, type QuestState } from './quests';
+import { makeRecap } from './store';
+import type { Session } from '../study/routes';
 import { engagementOverview, studentExportCsv, studentSessionHistory } from '../application/engagement';
+import { identity, preference, resolvePreference } from './store';
+import { resolveTrainingCalendar } from './calendar';
+import { trainingNow } from './clock';
 import type { Writes } from './store';
 // @vitest-environment node
 import { beforeAll, expect, it } from 'vitest';
 
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
 const STUDENT = '22222222-2222-4222-8222-222222222222';
+const QUEST_STUDENT = '33333333-3333-4333-8333-333333333333';
 const ELIGIBLE: QuestKey[] = ['sharpshooter', 'explorer', 'comeback', 'marathon'];
 
 function studentCtx(userId: string): RequestContext {
@@ -27,6 +33,8 @@ beforeAll(async () => {
     app = await createNativeTestApp();
     await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)")
         .bind(STUDENT, TEST_ORG, 'xpstudent', 'XP Student', 'Student', 'Student', 'x', 'v1').run();
+    await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)")
+        .bind(QUEST_STUDENT, TEST_ORG, 'queststudent', 'Quest Student', 'Student', 'Student', 'x', 'v1').run();
 });
 
 it('maps XP totals to the eight named levels', () => {
@@ -80,7 +88,7 @@ it('generates a deterministic daily quest set', () => {
     expect(sets.size).toBeGreaterThan(1);
     // questDto carries progress state for the client.
     const state: QuestState = { key: 'warmup', title: 'Warm-up', description: 'd', target: 1, progress: 0, completed: false, xpAwarded: false };
-    expect(questDto(state)).toEqual({ key: 'warmup', title: 'Warm-up', description: 'd', target: 1, progress: 0, completed: false });
+    expect(questDto(state)).toEqual({ key: 'warmup', title: 'Warm-up', description: 'd', target: 1, progress: 0, completed: false, xpReward: XP_VALUES.questCompleted });
 });
 
 it('completes sharpshooter + marathon at session completion, with the triple bonus', async () => {
@@ -96,11 +104,12 @@ it('completes sharpshooter + marathon at session completion, with the triple bon
     expect(keys).toContain('sharpshooter');
     expect(keys).toContain('marathon');
     const w = newWrites();
-    const xpEvents = await sessionCompleteQuests(ctx, w,
+    const { xpEvents, completedNow } = await sessionCompleteQuests(ctx, w,
         { localDate, timeZone: 'America/New_York', atUtc: `${localDate}T12:00:00Z` },
         { mode: 'Practice', accuracy: 95, fullTargetReached: true });
     await atomic(ctx, 'gamification.test', w.statements, w.guards);
     // Two quest completions; the third quest was not landed, so no triple bonus.
+    expect(new Set(completedNow)).toEqual(new Set(['sharpshooter', 'marathon']));
     const questXp = xpEvents.filter(e => e.kind === 'quest').reduce((n, e) => n + e.amount, 0);
     expect(questXp).toBe(XP_VALUES.questCompleted * 2);
     const rows = await app.db.prepare("SELECT data FROM Records WHERE kind='training-quest' AND org_id=? AND owner_id=?").bind(TEST_ORG, STUDENT).all<{ data: string }>();
@@ -166,4 +175,212 @@ it('paginates session history and exports CSV', async () => {
     expect(lines[0]).toBe('date,type,mode,correct,attempted,xp,streak_day,honor_earned');
     expect(lines.some(l => l.includes('session') && l.includes('58'))).toBe(true);
     expect(lines.some(l => l.includes('credited_day'))).toBe(true);
+});
+
+it('reports this-week quest completions on the engagement overview', async () => {
+    // A dedicated student keeps this deterministic: other tests write quest
+    // records for STUDENT that may fall in the same calendar week.
+    const ctx = studentCtx(QUEST_STUDENT);
+    const pref = await preference(ctx);
+    const resolved = resolvePreference(ctx, pref, trainingNow());
+    const calendar = resolveTrainingCalendar(trainingNow(), resolved);
+    const id = identity(ctx, calendar.weekStartLocalDate);
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-quest',?,?,?,?)")
+        .bind(id, TEST_ORG, QUEST_STUDENT, JSON.stringify({
+            id, localDate: calendar.weekStartLocalDate, timeZone: 'UTC',
+            quests: [
+                { key: 'warmup', title: 'Warm-up', description: 'd', target: 1, progress: 1, completed: true, xpAwarded: true },
+                { key: 'marathon', title: 'Marathon', description: 'd', target: 1, progress: 1, completed: true, xpAwarded: true },
+                { key: 'sharpshooter', title: 'Sharpshooter', description: 'd', target: 1, progress: 0, completed: false, xpAwarded: false },
+            ],
+            tripleAwarded: false,
+        })).run();
+    const coach: RequestContext = { ...ctx, actor: { ...ctx.actor, userId: 'coach', kind: 'Adult', role: 'Owner' } };
+    const rows = await engagementOverview(coach);
+    const row = rows.find(r => r.studentId === QUEST_STUDENT)!;
+    expect(row.quests).toMatchObject({ completedThisWeek: 2, totalThisWeek: 3 });
+    expect(row.quests.rate).toBeCloseTo(2 / 3, 5);
+});
+
+it('includes completed team rooms in session history, paginated with solo sessions', async () => {
+    const member = (userId: string) => ({ userId, displayName: 'XP Student', team: 1, ready: true, captain: false, scribe: true });
+    const submission = (questionId: string, scribeId: string, deadlineDraft: boolean) =>
+        ({ questionId, team: 1, scribeId, answers: ['a'], elapsedMs: 1200, deadlineDraft, accuracyHundredths: 10000, speedHundredths: 8000, appealed: false, resolved: true, appealReason: '' });
+    // room-1: legacy raw-Room match record, completed, with a participation record.
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,data,revision) VALUES('match',?,?,?,?,1)")
+        .bind('room-1', TEST_ORG, 's', JSON.stringify({
+            id: 'room-1', status: 'Completed', format: 'Arcade', completedAt: '2026-09-15T12:00:00Z',
+            members: [member(STUDENT)],
+            submissions: [
+                submission('q1', STUDENT, false), submission('q2', STUDENT, false),
+                submission('q1', STUDENT, false), // duplicate question: distinct stays 2
+                submission('q3', 'other-user', false),
+                submission('q4', STUDENT, true), // draft: not participation
+            ],
+        })).run();
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) VALUES('room-participation',?,?,?,?,?)")
+        .bind(`room-1:${STUDENT}`, TEST_ORG, 's', STUDENT, JSON.stringify({
+            roomId: 'room-1', userId: STUDENT, seasonId: 's', format: 'Arcade', simulation: null,
+            completedAtUtc: '2026-09-15T12:00:00Z', questionsAnswered: 3, xpAwarded: 40, dayCredited: true, questsCompleted: [],
+        })).run();
+    // room-2: new storage-envelope PBE match record, no participation record.
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,data,revision) VALUES('match',?,?,?,?,1)")
+        .bind('room-2', TEST_ORG, 's', JSON.stringify({
+            format: 'erudoza.practice-room/1', manifest: {},
+            summary: {
+                summaryVersion: 1, id: 'room-2', orgId: TEST_ORG, seasonId: 's', revision: 3,
+                format: 'Pbe', status: 'Completed', teamCount: 2, teamSize: 3, questionCount: 1,
+                coached: false, bookKey: null, rules: null, completedAt: '2026-09-14T12:00:00Z',
+                members: [member(STUDENT)], contributions: [], simulation: null, services: [],
+                questions: [], submissions: [submission('pq1', STUDENT, false)],
+            },
+        })).run();
+    // room-3: not completed — excluded. room-4: completed, student not a member — excluded.
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,data,revision) VALUES('match',?,?,?,?,1)")
+        .bind('room-3', TEST_ORG, 's', JSON.stringify({ id: 'room-3', status: 'Playing', format: 'Arcade', completedAt: null, members: [member(STUDENT)], submissions: [] })).run();
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,data,revision) VALUES('match',?,?,?,?,1)")
+        .bind('room-4', TEST_ORG, 's', JSON.stringify({ id: 'room-4', status: 'Completed', format: 'Arcade', completedAt: '2026-09-13T12:00:00Z', members: [member('other-user')], submissions: [] })).run();
+
+    const ctx = studentCtx(STUDENT);
+    const history = await studentSessionHistory(ctx, STUDENT);
+    // Newest first across solo + room entries: sess-2, sess-1, room-1, room-2.
+    expect(history.sessions.map(e => e.sessionId)).toEqual(['sess-2', 'sess-1', 'room-1', 'room-2']);
+    const rooms = history.sessions.filter(e => e.format === 'Room');
+    expect(rooms).toHaveLength(2);
+    // Participation record wins over derived submissions.
+    expect(rooms[0]).toMatchObject({
+        sessionId: 'room-1', format: 'Room', roomId: 'room-1', teamFormat: 'Arcade',
+        mode: 'Team Arcade', completedAtUtc: '2026-09-15T12:00:00Z',
+        attempted: 3, correct: null, xpEarned: 40,
+    });
+    // No participation record: participation derived from match JSON, XP 0.
+    expect(rooms[1]).toMatchObject({
+        sessionId: 'room-2', format: 'Room', roomId: 'room-2', teamFormat: 'Pbe',
+        mode: 'Team PBE', completedAtUtc: '2026-09-14T12:00:00Z',
+        attempted: 1, correct: null, xpEarned: 0,
+    });
+    // Pagination carries the merged list.
+    const page1 = await studentSessionHistory(ctx, STUDENT, undefined, 2);
+    expect(page1.sessions.map(e => e.sessionId)).toEqual(['sess-2', 'sess-1']);
+    expect(page1.nextBefore).toBe('2026-09-16T10:30:00Z');
+    const page2 = await studentSessionHistory(ctx, STUDENT, page1.nextBefore!, 2);
+    expect(page2.sessions.map(e => e.sessionId)).toEqual(['room-1', 'room-2']);
+    expect(page2.nextBefore).toBeNull();
+});
+
+it('exports completed rooms in the CSV with day credit from the room day record', async () => {
+    // The room-completion hook credits the day with sessionId 'room:' + roomId.
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-day',?,?,?,?)")
+        .bind(`${TEST_ORG}:${STUDENT}:2026-09-15`, TEST_ORG, STUDENT, JSON.stringify({
+            id: `${TEST_ORG}:${STUDENT}:2026-09-15`, localDate: '2026-09-15', timeZone: 'UTC',
+            firstQualifiedAtUtc: '2026-09-15T13:00:00Z', sessionId: 'room:room-1', credited: true,
+        })).run();
+    const ctx = studentCtx(STUDENT);
+    const csv = await studentExportCsv(ctx, STUDENT);
+    const roomLines = csv.trim().split('\n').filter(l => l.includes('team_room'));
+    expect(roomLines).toHaveLength(2);
+    const arcade = roomLines.find(l => l.includes('Team Arcade'))!;
+    expect(arcade.startsWith('"2026-09-15"')).toBe(true);
+    expect(arcade).toContain('"3"'); // attempted from the participation record
+    expect(arcade).toContain('"40"'); // xp from the participation record
+    expect(arcade).toContain('"true",""'); // streak_day from the room:room-1 day record
+    const pbe = roomLines.find(l => l.includes('Team PBE'))!;
+    expect(pbe.startsWith('"2026-09-14"')).toBe(true);
+    expect(pbe).toContain('"1"');
+    expect(pbe).toContain('"0"');
+});
+
+it('inTeamRoom only counts active or recently completed rooms', async () => {
+    const user = '77777777-7777-4777-8777-777777777777';
+    await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)")
+        .bind(user, TEST_ORG, 'roomstudent', 'Room Student', 'Student', 'Student', 'x', 'v1').run();
+    const ctx = studentCtx(user);
+    const roomRow = (id: string, status: string, memberIds: string[]) =>
+        app.db.prepare("INSERT INTO Records(kind,id,org_id,data,revision) VALUES('room',?,?,?,1)")
+            .bind(id, TEST_ORG, JSON.stringify({ id, status, memberIds, memberCount: memberIds.length, teamSize: 4, teamCount: 2 })).run();
+    const matchRow = (id: string, envelope: boolean, status: string, completedAt: string, members: string[]) => {
+        const inner = { id, status, completedAt, members: members.map(userId => ({ userId, displayName: 'S', team: 1, ready: true, captain: false, scribe: false })) };
+        const data = envelope
+            ? { format: 'erudoza.practice-room/1', manifest: { format: 'erudoza.practice-room/1', id, orgId: TEST_ORG, seasonId: 's', revision: 9 }, summary: { ...inner, summaryVersion: 1 } }
+            : inner;
+        return app.db.prepare("INSERT INTO Records(kind,id,org_id,data,revision) VALUES('match',?,?,?,1)").bind(id, TEST_ORG, JSON.stringify(data)).run();
+    };
+    const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
+    // A room completed 30 days ago no longer counts…
+    await matchRow('old-match', false, 'Completed', daysAgo(30), [user]);
+    // …nor does a recently completed room the learner never joined…
+    await matchRow('stranger-match', true, 'Completed', daysAgo(1), ['someone-else']);
+    // …nor an interrupted one.
+    await roomRow('interrupted-room', 'Interrupted', [user]);
+    expect(await inTeamRoom(ctx)).toBe(false);
+    // …but a lobby membership does.
+    await roomRow('lobby-room', 'Lobby', [user]);
+    expect(await inTeamRoom(ctx)).toBe(true);
+    // Clean up: later tests must not see these rooms.
+    for (const id of ['old-match', 'stranger-match']) await app.db.prepare("DELETE FROM Records WHERE kind='match' AND id=? AND org_id=?").bind(id, TEST_ORG).run();
+    for (const id of ['interrupted-room', 'lobby-room']) await app.db.prepare("DELETE FROM Records WHERE kind='room' AND id=? AND org_id=?").bind(id, TEST_ORG).run();
+});
+
+it('inTeamRoom counts Playing membership and recent completions in both history shapes', async () => {
+    const user = '88888888-8888-4888-8888-888888888888';
+    await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)")
+        .bind(user, TEST_ORG, 'roomstudent2', 'Room Student 2', 'Student', 'Student', 'x', 'v1').run();
+    const ctx = studentCtx(user);
+    const member = [{ userId: user, displayName: 'S', team: 1, ready: true, captain: false, scribe: false }];
+    const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
+    // Playing membership via the live directory.
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,data,revision) VALUES('room',?,?,?,1)")
+        .bind('playing-room', TEST_ORG, JSON.stringify({ id: 'playing-room', status: 'Playing', memberIds: [user], memberCount: 1, teamSize: 4, teamCount: 2 })).run();
+    expect(await inTeamRoom(ctx)).toBe(true);
+    await app.db.prepare("DELETE FROM Records WHERE kind='room' AND id='playing-room' AND org_id=?").bind(TEST_ORG).run();
+    expect(await inTeamRoom(ctx)).toBe(false);
+    // Recent completion in the legacy raw-Room shape.
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,data,revision) VALUES('match',?,?,?,1)")
+        .bind('legacy-match', TEST_ORG, JSON.stringify({ id: 'legacy-match', status: 'Completed', completedAt: daysAgo(2), members: member })).run();
+    expect(await inTeamRoom(ctx)).toBe(true);
+    await app.db.prepare("DELETE FROM Records WHERE kind='match' AND id='legacy-match' AND org_id=?").bind(TEST_ORG).run();
+    // Recent completion in the envelope shape.
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,data,revision) VALUES('match',?,?,?,1)")
+        .bind('envelope-match', TEST_ORG, JSON.stringify({ format: 'erudoza.practice-room/1', manifest: { format: 'erudoza.practice-room/1', id: 'envelope-match', orgId: TEST_ORG, seasonId: 's', revision: 3 }, summary: { summaryVersion: 1, id: 'envelope-match', status: 'Completed', completedAt: daysAgo(6), members: member } })).run();
+    expect(await inTeamRoom(ctx)).toBe(true);
+});
+
+it('scopes teammate eligibility to rooms the learner can actually join', async () => {
+    const user = '99999999-9999-4999-8999-999999999999';
+    await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)")
+        .bind(user, TEST_ORG, 'eligstudent', 'Elig Student', 'Student', 'Student', 'x', 'v1').run();
+    const ctx = studentCtx(user);
+    const atUtc = '2026-09-17T12:00:00Z';
+    const roomRow = (id: string, memberIds: string[]) =>
+        app.db.prepare("INSERT INTO Records(kind,id,org_id,data,revision) VALUES('room',?,?,?,1)")
+            .bind(id, TEST_ORG, JSON.stringify({ id, status: 'Lobby', memberIds, memberCount: memberIds.length, teamSize: 2, teamCount: 2 })).run();
+    // A full Lobby room the learner is not in is not joinable.
+    await roomRow('full-room', ['o1', 'o2', 'o3', 'o4']);
+    expect((await questEligibility(ctx, atUtc)).roomsOpen).toBe(false);
+    // A Lobby room with a free slot is joinable even for a non-member.
+    await roomRow('open-room', ['o1']);
+    expect((await questEligibility(ctx, atUtc)).roomsOpen).toBe(true);
+    await app.db.prepare("DELETE FROM Records WHERE kind='room' AND id='open-room' AND org_id=?").bind(TEST_ORG).run();
+    // A full Lobby room the learner already belongs to still counts.
+    await roomRow('own-full-room', [user, 'o1', 'o2', 'o3']);
+    expect((await questEligibility(ctx, atUtc)).roomsOpen).toBe(true);
+    // Clean up: later tests must not see these rooms.
+    for (const id of ['full-room', 'own-full-room']) await app.db.prepare("DELETE FROM Records WHERE kind='room' AND id=? AND org_id=?").bind(id, TEST_ORG).run();
+});
+
+it('carries completed quests through sessionCompleteQuests into the recap', async () => {
+    const ctx = studentCtx(STUDENT);
+    const base = {
+        id: 'sess-quests', studentUserId: STUDENT, seasonId: 's1', status: 'Completed', mode: 'Practice',
+        targetCardCount: 0, cards: [], attempts: [], createdAtUtc: '2026-09-17T10:00:00Z', completedAtUtc: '2026-09-17T10:30:00Z',
+    };
+    const training = { missionId: null, missionRevision: null, missionLocalDate: null, timeZone: 'UTC', reviewKnowledgeUnitIds: [], creditedLocalDate: null, newlyCreditedDay: false, earnedBadges: [] };
+    const withQuests = await makeRecap(ctx, {
+        ...base,
+        training: { ...training, questsCompleted: [{ key: 'marathon' as QuestKey, title: QUEST_DEFS.marathon.title }] },
+    } as unknown as Session);
+    expect(withQuests.questsCompleted).toEqual([{ key: 'marathon', title: 'Marathon' }]);
+    // Sessions completed before this change (or with no quests) default to [].
+    const withoutQuests = await makeRecap(ctx, { ...base, training } as unknown as Session);
+    expect(withoutQuests.questsCompleted).toEqual([]);
 });

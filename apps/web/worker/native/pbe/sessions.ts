@@ -14,8 +14,8 @@ import { PBE_RULE_VERSION, PBE_SCORING_VERSION } from './rules';
 import { rehearsalPoints } from './presentation';
 import type { PbeQuestion, PbeTarget } from './types';
 import { pbeMissionSteps, awardPbeSimulationAttemptXp, preparePbeEffort, preparePbeStartEffort, recordPbePersonalBests } from './effort';
-import { awardXp, levelNameFor, xpSummary, XP_VALUES } from '../training/xp';
-import { sessionCompleteQuests } from '../training/quests';
+import { awardXp, levelNameFor, xpSummary } from '../training/xp';
+import { sessionCompleteQuests, QUEST_DEFS } from '../training/quests';
 import { preference, resolvePreference } from '../training/store';
 import type { Writes } from '../training/store';
 import { resolveTrainingCalendar } from '../training/calendar';
@@ -80,6 +80,8 @@ export interface PbeSession {
     xpEarned?: number;
     /** Level-up crossed during this session, if any. */
     leveledUp?: { from: number; to: number } | null;
+    /** Quests completed when this session was completed (keys + titles), for the recap. */
+    questsCompleted?: { key: string; title: string }[];
 }
 interface Start {
     seasonId: string;
@@ -109,7 +111,7 @@ export const pbeSummary=(s:PbeSession,interrupted=false,overlay?:PbeResultOverla
  const results=s.attempts.map(a=>{const card=s.cards.find(c=>c.id===a.cardId)!,candidate=overlay?.entries[a.result.attemptId],dispute=candidate?.questionId===card.question.id&&candidate.questionVersion===card.question.version?candidate:null;return {attemptId:a.result.attemptId,questionId:card.question.id,earnedPoints:dispute?.pointsByPart?.reduce((n,p)=>n+p,0)??a.result.earnedPoints,originalEarnedPoints:a.result.earnedPoints,availablePoints:a.result.availablePoints,acceptedAtUtc:a.result.acceptedAtUtc,dispute};});
  const correct=results.filter(r=>r.earnedPoints===r.availablePoints).length,pendingCount=results.filter(r=>r.dispute?.status==='Pending').length,finalized=results.filter(r=>r.dispute?.status!=='Pending');
  const metrics={earnedPoints:results.reduce((n,r)=>n+r.earnedPoints,0),availablePoints:results.reduce((n,r)=>n+r.availablePoints,0),pendingCount,provisional:pendingCount>0,finalizedEarnedPoints:finalized.reduce((n,r)=>n+r.earnedPoints,0),finalizedAvailablePoints:finalized.reduce((n,r)=>n+r.availablePoints,0)};
- return {sessionId:s.id,format:s.format,mode:s.mode,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,status:interrupted?'Interrupted':s.status,...metrics,results:s.mode==='Simulation'&&s.status==='Completed'?s.attempts.map((a,i)=>({...a.result,...results[i]})):results,recap:{version:'pbe-daily-v2',sessionId:s.id,seasonId:s.seasonId,mode:s.mode,completedAtUtc:s.completedAtUtc??null,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,fullTargetReached:s.attempts.length===s.cards.length,newlyCreditedDay:s.newlyCreditedDay,missionLocalDate:s.missionLocalDate,creditedLocalDate:s.creditedLocalDate,weeklyGoalComplete:s.weeklyGoalComplete??false,personalBest:s.personalBest??null,xp:xp??{earned:s.xpEarned??0,total:0,level:1,levelName:'Seedling'},levelUp:levelUp??null,missionSteps:pbeMissionSteps(s),earnedBadges:s.earnedBadges??[],passageChanges:[],interrupted,results,...metrics}};
+ return {sessionId:s.id,format:s.format,mode:s.mode,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,status:interrupted?'Interrupted':s.status,...metrics,results:s.mode==='Simulation'&&s.status==='Completed'?s.attempts.map((a,i)=>({...a.result,...results[i]})):results,recap:{version:'pbe-daily-v2',sessionId:s.id,seasonId:s.seasonId,mode:s.mode,completedAtUtc:s.completedAtUtc??null,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,fullTargetReached:s.attempts.length===s.cards.length,newlyCreditedDay:s.newlyCreditedDay,missionLocalDate:s.missionLocalDate,creditedLocalDate:s.creditedLocalDate,weeklyGoalComplete:s.weeklyGoalComplete??false,personalBest:s.personalBest??null,xp:xp??{earned:s.xpEarned??0,total:0,level:1,levelName:'Seedling'},levelUp:levelUp??null,missionSteps:pbeMissionSteps(s),earnedBadges:s.earnedBadges??[],questsCompleted:s.questsCompleted??[],passageChanges:[],interrupted,results,...metrics}};
 };
 export async function reviewedPbeSummary(ctx:Pick<RequestContext,'store'|'orgId'>,s:PbeSession,interrupted=false){const overlay=await ctx.store.get<PbeResultOverlay>('pbe-result-overlay',`Solo:${s.id}`,ctx.orgId);const xp=await xpSummary({...ctx,actor:{userId:s.studentUserId}} as RequestContext);return pbeSummary(s,interrupted,overlay?.value,{earned:s.xpEarned??0,total:xp.total,level:xp.level,levelName:xp.levelName},s.leveledUp?{from:s.leveledUp.from,to:s.leveledUp.to,fromName:levelNameFor(s.leveledUp.from),toName:levelNameFor(s.leveledUp.to)}:null);}
 
@@ -260,7 +262,9 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
             const pref = await preference(ctx), pcal = resolveTrainingCalendar(s.completedAtUtc, resolvePreference(ctx, pref, s.completedAtUtc));
             const qLocalDate = s.creditedLocalDate ?? pcal.localDate;
             const earned = s.attempts.reduce((n, a) => n + a.result.earnedPoints, 0), available = s.attempts.reduce((n, a) => n + a.result.availablePoints, 0);
-            const questXp = await sessionCompleteQuests(ctx, qw, { localDate: qLocalDate, timeZone: pcal.timeZone, seasonId: s.seasonId, atUtc: s.completedAtUtc }, { mode: s.mode, accuracy: available ? earned / available * 100 : 0, fullTargetReached: s.cards.length > 0 && s.attempts.length === s.cards.length });
+            const questRes = await sessionCompleteQuests(ctx, qw, { localDate: qLocalDate, timeZone: pcal.timeZone, seasonId: s.seasonId, atUtc: s.completedAtUtc }, { mode: s.mode, accuracy: available ? earned / available * 100 : 0, fullTargetReached: s.cards.length > 0 && s.attempts.length === s.cards.length });
+            const questXp = questRes.xpEvents;
+            s.questsCompleted = questRes.completedNow.map(key => ({ key, title: QUEST_DEFS[key].title }));
             if (questXp.length) {
                 const awarded = await awardXp(ctx, qw, { seasonId: s.seasonId, localDate: qLocalDate, atUtc: s.completedAtUtc, events: questXp });
                 s.xpEarned = (s.xpEarned ?? 0) + awarded.awarded;

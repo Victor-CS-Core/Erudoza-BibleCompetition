@@ -284,6 +284,7 @@ export type StudentDashboard = {
   mastery: {
     badges: import("./trainingTypes").BadgeProgress[];
     levelCounts: { level: string; count: number }[];
+    teamAwards: { key: string; title: string; seasonName: string | null; earnedAtUtc: string | null; source: "honor" | "award" }[];
   };
   assignments: Assignment[];
   social: {
@@ -313,6 +314,7 @@ export type EngagementRow = {
   level: number;
   levelName: string;
   honorsEarned: number;
+  quests: { completedThisWeek: number; totalThisWeek: number; rate: number };
 };
 
 /** Gamification Phase 3 §4 — peer momentum: team activity strip data. */
@@ -341,12 +343,15 @@ export type LeaderboardResponse = {
 /** One entry in a student's paginated session history (gamification §7c). */
 export type SessionHistoryEntry = {
   sessionId: string;
-  format: "Memory" | "Pbe";
+  format: "Memory" | "Pbe" | "Room";
   mode: string;
   completedAtUtc: string | null;
   attempted: number;
   correct: number | null;
   xpEarned: number;
+  /** Present only when format === "Room". */
+  roomId?: string;
+  teamFormat?: "Pbe" | "Arcade";
 };
 
 export type SessionHistoryPage = {

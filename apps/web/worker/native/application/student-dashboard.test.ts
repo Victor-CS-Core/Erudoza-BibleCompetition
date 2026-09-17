@@ -53,3 +53,43 @@ it('requires authentication', async () => {
   const { student } = await setup('dashboard-anon');
   expect((await call(`/students/${student.userId}/dashboard`, 'GET', undefined, '')).status).toBe(401);
 });
+
+it('counts only completed current-season rooms for team practice sessions', async () => {
+  const { season, student } = await setup('dashboard-rooms');
+  const otherId = '99999999-9999-4999-8999-999999999999';
+  const member = (userId: string) => ({ userId, displayName: 'Room Student', team: 1, ready: true, captain: false, scribe: true });
+  const insert = (id: string, seasonId: string, status: string, members: unknown[]) =>
+    app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,data,revision) VALUES('match',?,?,?,?,1)")
+      .bind(id, TEST_ORG, seasonId, JSON.stringify({ id, status, format: 'Arcade', completedAt: '2026-09-16T12:00:00Z', members, submissions: [] })).run();
+  await insert('drm-1', season.id, 'Completed', [member(student.userId)]); // counted
+  await insert('drm-2', season.id, 'Completed', [member(student.userId)]); // counted
+  await insert('drm-3', 'other-season', 'Completed', [member(student.userId)]); // other season
+  await insert('drm-4', season.id, 'Playing', [member(student.userId)]); // not completed
+  await insert('drm-5', season.id, 'Completed', [member(otherId)]); // student not a member
+  const response = await call(`/students/${student.userId}/dashboard`);
+  expect(response.status).toBe(200);
+  const dashboard = await response.json() as StudentDashboard;
+  expect(dashboard.social.teamPracticeSessions).toBe(2);
+});
+
+it('surfaces team honors and room awards in the drill-down mastery section', async () => {
+  const { season, student } = await setup('dashboard-awards');
+  await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data,revision) VALUES('mastery-honor',?,?,?,?,?,1)")
+    .bind(`${TEST_ORG}:${student.userId}:mastery-v1:team:first-fellowship`, TEST_ORG, season.id, student.userId,
+      JSON.stringify({ id: 'h1', userId: student.userId, key: 'team:first-fellowship', ruleVersion: 'mastery-v1', earnedAtUtc: '2026-09-16T12:00:00Z', seasonId: season.id, evidence: null })).run();
+  await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data,revision) VALUES('award',?,?,?,?,?,1)")
+    .bind(`pbe-team-v1:team-steady:${student.userId}:${season.id}`, TEST_ORG, season.id, student.userId,
+      JSON.stringify({ key: 'pbe-team-v1:team-steady', title: 'Team Steady', seasonId: season.id, userId: student.userId })).run();
+  const response = await call(`/students/${student.userId}/dashboard`);
+  expect(response.status).toBe(200);
+  const dashboard = await response.json() as StudentDashboard;
+  expect(dashboard.mastery.teamAwards).toHaveLength(2);
+  expect(dashboard.mastery.teamAwards[0]).toMatchObject({
+    key: 'team:first-fellowship', title: 'First Fellowship', source: 'honor',
+    seasonName: 'dashboard-awards', earnedAtUtc: '2026-09-16T12:00:00Z',
+  });
+  expect(dashboard.mastery.teamAwards[1]).toMatchObject({
+    key: 'pbe-team-v1:team-steady', title: 'Team Steady', source: 'award',
+    seasonName: 'dashboard-awards', earnedAtUtc: null,
+  });
+});

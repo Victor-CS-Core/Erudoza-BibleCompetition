@@ -97,6 +97,8 @@ export interface SessionTraining {
     xpEarned?: number;
     /** Level-up crossed during this session, if any. */
     leveledUp?: { from: number; to: number } | null;
+    /** Quests completed when this session was completed (keys + titles), for the recap celebration. */
+    questsCompleted?: { key: QuestKey; title: string }[];
 }
 export type Guard = {
     kind: string;
@@ -338,7 +340,7 @@ export async function makeRecap(ctx: RequestContext, s: Session): Promise<Sessio
         const contiguous = events.every((e, i) => !i || attempts[i].previousAttemptId === events[i - 1].attemptId && JSON.stringify(e.before) === JSON.stringify(events[i - 1].after));
         changes.push({ knowledgeUnitId: id, title: attempts[0].result.citation, delta, before: contiguous ? events[0].before : null, after: contiguous ? events.at(-1)!.after : null, events });
     }
-    return { version: t ? 'training-v1' : 'legacy-counts', sessionId: s.id, seasonId: s.seasonId, mode: s.mode, completedAtUtc: s.completedAtUtc ?? null, attempted: s.attempts.filter(a => !a.isLegacyDuplicate).length, correct: s.attempts.filter(a => !a.isLegacyDuplicate && a.isCorrect).length, targetCardCount: s.targetCardCount, fullTargetReached: fullTargetReached(s.targetCardCount, s.attempts), newlyCreditedDay: t?.newlyCreditedDay ?? false, missionLocalDate: t?.missionLocalDate ?? null, creditedLocalDate: t?.creditedLocalDate ?? null, weeklyGoalComplete: t?.weeklyGoalComplete ?? false, personalBest: null, xp: { earned: t?.xpEarned ?? 0, total: xp.total, level: xp.level, levelName: xp.levelName }, levelUp: t?.leveledUp ? { from: t.leveledUp.from, to: t.leveledUp.to, fromName: levelNameFor(t.leveledUp.from), toName: levelNameFor(t.leveledUp.to) } : null, missionSteps: mission && mission.value.revision === t?.missionRevision ? missionSteps(mission.value) : [], earnedBadges: t?.earnedBadges ?? [], passageChanges: changes };
+    return { version: t ? 'training-v1' : 'legacy-counts', sessionId: s.id, seasonId: s.seasonId, mode: s.mode, completedAtUtc: s.completedAtUtc ?? null, attempted: s.attempts.filter(a => !a.isLegacyDuplicate).length, correct: s.attempts.filter(a => !a.isLegacyDuplicate && a.isCorrect).length, targetCardCount: s.targetCardCount, fullTargetReached: fullTargetReached(s.targetCardCount, s.attempts), newlyCreditedDay: t?.newlyCreditedDay ?? false, missionLocalDate: t?.missionLocalDate ?? null, creditedLocalDate: t?.creditedLocalDate ?? null, weeklyGoalComplete: t?.weeklyGoalComplete ?? false, personalBest: null, xp: { earned: t?.xpEarned ?? 0, total: xp.total, level: xp.level, levelName: xp.levelName }, levelUp: t?.leveledUp ? { from: t.leveledUp.from, to: t.leveledUp.to, fromName: levelNameFor(t.leveledUp.from), toName: levelNameFor(t.leveledUp.to) } : null, missionSteps: mission && mission.value.revision === t?.missionRevision ? missionSteps(mission.value) : [], earnedBadges: t?.earnedBadges ?? [], questsCompleted: t?.questsCompleted ?? [], passageChanges: changes };
 }
 /** Streak milestone keys share the solo-badge pipeline but are academy-scoped (cross-season). */
 const streakKeys = ['streak-7', 'streak-14', 'streak-30'] as const;

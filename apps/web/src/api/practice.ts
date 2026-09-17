@@ -8,6 +8,19 @@ export type PracticeQuestion = { id?: string; contentPackId: string; sourceUnitI
 export type PracticeAward = { key: string; title: string; seasonId: string };
 export type RoomSummary = { simulation?:SimulationConfig; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; id: string; seasonId: string; teamSize: number; questionCount: number; coached: boolean; status: string; memberCount: number; ownerId: string };
 export type PracticeTrend = { pendingCount?: number; provisional?: boolean; scoringVersion?: string; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; seasonId: string; teamSize: number; bookKey: string | null; ruleVersion: string; matches: number; wins: number; draws: number; accuracyHundredths: number; speedHundredths: number; availableHundredths: number; unansweredQuestions: number; averageResponseMs: number; distinctQuestions: number; distinctPassages: number; participatedQuestions: number };
+export type RoomRecap = {
+  roomId: string; seasonId: string; format: 'Arcade' | 'Pbe'; status: string;
+  completedAtUtc: string | null; teamCount: 1 | 2; simulation: boolean; questionCount: number;
+  myTeam: number;
+  teamScore: { accuracyHundredths: number; speedHundredths: number; availableHundredths: number };
+  contributions: { questionsAnswered: number; accuracyHundredths: number };
+  /** tracked:false (earned:null) means the room predates room XP tracking. */
+  xp: { earned: number | null; tracked: boolean };
+  dayCredited: boolean;
+  questsCompleted: { key: string; title: string }[];
+  /** The learner's team milestones for the room's season. */
+  awards: { key: string; title: string }[];
+};
 export type PracticeBootstrap = { simulationAchievements?:SimulationAchievement[]; trends?: PracticeTrend[]; enabled: boolean; seasons: { id: string; name: string; pbeEnabled?: boolean }[]; players: { id: string; displayName: string }[]; rooms: RoomSummary[]; invitations: { id: string; roomId: string; team?: number; teamCount?:1|2; inviterName: string; expiresAt: string }[]; achievements: PracticeAward[]; questions: { id: string; seasonId: string; published: boolean; question: PracticeQuestion }[] };
 export type PracticeRoom = {
   simulation?:SimulationConfig;audioReadingComplete?:boolean;
@@ -33,6 +46,7 @@ export const practiceApi = {
   enabled: (org: string, enabled: boolean) => post<void>(`${base(org)}/enabled`, { enabled }),
   create: (org: string, body: { simulation?:SimulationConfig; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; seasonId: string; teamSize: number; questionCount: number; coached: boolean; bookKey?: string }) => post<PracticeRoom>(`${base(org)}/rooms`, body),
   room: (org: string, id: string) => request<PracticeRoom>(`${base(org)}/rooms/${encodeURIComponent(id)}`),
+  roomRecap: (org: string, id: string) => request<RoomRecap>(`${base(org)}/rooms/${encodeURIComponent(id)}/recap`),
   command: (org: string, id: string, command: PracticeCommand) => post<PracticeRoom>(`${base(org)}/rooms/${encodeURIComponent(id)}/commands`, command),
   accept: (org: string, id: string, team?: number) => post<PracticeRoom>(`${base(org)}/invitations/${encodeURIComponent(id)}/accept`, { team }),
   import: (org: string, seasonId: string, questions: PracticeQuestion[]) => post<void>(`${base(org)}/questions/import`, { seasonId, questions }),

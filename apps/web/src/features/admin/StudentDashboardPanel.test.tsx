@@ -37,6 +37,7 @@ const dashboard: StudentDashboard = {
   mastery: {
     badges: [{ key: "steady-study", ruleVersion: "training-v1", title: "Steady Study", completed: 1, target: 1, earnedAtUtc: "2026-09-10T00:00:00Z", scopeLabel: "Assigned scope", evidenceSessionId: null }],
     levelCounts: [{ level: "Mastered", count: 1 }, { level: "Strong", count: 2 }, { level: "Unseen", count: 4 }],
+    teamAwards: [],
   },
   assignments: [{ id: "a1", studentUserId: "student-1", type: "PrimarySpecialist", bookKey: "JHN", startChapter: 3, startVerse: 16, endChapter: 3, endVerse: 18, difficulty: "Standard" }],
   social: { leaderboardOptIn: true, teamPracticeSessions: 4 },
@@ -88,7 +89,7 @@ it("opens a session recap drill-down when a recent activity row is activated", a
     version: "training-v1", sessionId: "s1", seasonId: "season-1", mode: "Practice", completedAtUtc: "2026-09-15T10:20:00Z",
     attempted: 8, correct: 6, targetCardCount: 8, fullTargetReached: true, newlyCreditedDay: true,
     missionLocalDate: "2026-09-15", creditedLocalDate: "2026-09-15", weeklyGoalComplete: false, personalBest: null,
-    xp: { earned: 80, total: 200, level: 2, levelName: "Seeker" }, levelUp: null,
+    xp: { earned: 80, total: 200, level: 2, levelName: "Seeker" }, levelUp: null, questsCompleted: [],
     missionSteps: [], earnedBadges: [], passageChanges: [],
   });
   mount();
@@ -145,4 +146,51 @@ it("shows the student's leaderboard visibility and Team Practice session count",
   mount();
   const hidden = await screen.findByTestId("student-dashboard-social");
   expect(within(hidden).getByText("Hidden from teammates")).toBeInTheDocument();
+});
+
+it("renders team room entries as plain labels that never open the solo recap dialog", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue(dashboard);
+  vi.mocked(api.studentSessionHistory).mockResolvedValue({
+    sessions: [
+      { sessionId: "room-1", format: "Room", mode: "Team PBE", roomId: "room-1", teamFormat: "Pbe", completedAtUtc: "2026-09-16T12:00:00Z", attempted: 12, correct: null, xpEarned: 40 },
+      { sessionId: "s1", format: "Memory", mode: "Practice", completedAtUtc: "2026-09-15T10:20:00Z", attempted: 8, correct: 6, xpEarned: 42 },
+    ],
+    nextBefore: null,
+  });
+  mount();
+  const history = await screen.findByTestId("student-dashboard-history");
+  expect(within(history).getByText("Team room · PBE")).toBeInTheDocument();
+  expect(within(history).getByText("12 answered · +40 XP")).toBeInTheDocument();
+  // Only the solo entry is a recap button; the room row has no recap action.
+  const recapButtons = within(history).getAllByRole("button", { name: /session recap/ });
+  expect(recapButtons).toHaveLength(1);
+  expect(recapButtons[0]).toHaveTextContent("Practice");
+  expect(api.studentSessionRecap).not.toHaveBeenCalled();
+});
+
+it("lists team honors and room awards in the mastery section", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue({
+    ...dashboard,
+    mastery: {
+      ...dashboard.mastery,
+      teamAwards: [
+        { key: "team:first-fellowship", title: "First Fellowship", seasonName: "2026 Season", earnedAtUtc: "2026-09-16T12:00:00Z", source: "honor" },
+        { key: "pbe-team-v1:team-steady", title: "Team Steady", seasonName: "2026 Season", earnedAtUtc: null, source: "award" },
+      ],
+    },
+  });
+  mount();
+  const mastery = await screen.findByTestId("student-dashboard-mastery");
+  expect(within(mastery).getByText("First Fellowship")).toBeInTheDocument();
+  expect(within(mastery).getByText("Team Steady")).toBeInTheDocument();
+  expect(within(mastery).getByText("Team honor")).toBeInTheDocument();
+  expect(within(mastery).getByText("Room award")).toBeInTheDocument();
+  expect(within(mastery).queryByText("No team awards yet.")).not.toBeInTheDocument();
+});
+
+it("shows an empty team awards state when the student has none", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue(dashboard);
+  mount();
+  const mastery = await screen.findByTestId("student-dashboard-mastery");
+  expect(within(mastery).getByText("No team awards yet.")).toBeInTheDocument();
 });

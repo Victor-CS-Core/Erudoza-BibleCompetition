@@ -64,6 +64,14 @@ describe("Team Practice hub", () => {
     expect(within(current).queryByText(/players ready|of .* ready/)).not.toBeInTheDocument();
   });
 
+  it("routes students to the room recap for completed rooms and coaches to the room page", async () => {
+    vi.mocked(practiceApi.bootstrap).mockResolvedValue({ ...data, rooms: [
+      { id: "done", seasonId: "daniel", status: "Completed", teamSize: 5, questionCount: 30, coached: false, ownerId: "other", memberCount: 4 },
+    ] });
+    mount();
+    expect(await screen.findByRole("link", { name: "View results" })).toHaveAttribute("href", "/student/practice/rooms/done/recap?seasonId=daniel");
+  });
+
   it("does not manufacture an active room or earned honors from empty history", async () => {
     mount();
     expect(await screen.findByText("No rooms yet. Create a room or accept an invitation.")).toBeInTheDocument();

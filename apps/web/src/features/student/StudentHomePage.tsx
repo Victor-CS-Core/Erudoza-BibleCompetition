@@ -51,7 +51,7 @@ export function StudentHomePage() {
         {data && <div className="training-hq-season" data-testid="current-season"><small className="ds-caption">Current season</small><strong>{data.seasonName || "Not assigned"}</strong><Badge tone={data.seasonStatus === "Active" ? "success" : "neutral"}>{data.seasonStatus === "None" ? "Awaiting assignment" : data.seasonStatus}</Badge></div>}
       </div>
     </section>
-    {data?.format === "Pbe" && <div className="flex flex-wrap gap-3"><Badge>PBE questions</Badge><LinkButton variant="secondary" to={link("/student/study?mode=Practice&format=Memory")}>Choose Memory</LinkButton><p>Shortened timed practice is available.</p></div>}
+    {data?.format === "Pbe" && <div className="flex flex-wrap gap-3"><Badge>PBE questions</Badge><LinkButton variant="secondary" to={link("/student/study?mode=Practice&format=Memory")}>Choose Memory</LinkButton><p>Solo timed rehearsal is available.</p></div>}
     {(seasons.data?.length ?? 0) > 1 && <label className="training-season-select">Assigned season<Select value={seasonId ?? ""} onChange={event => { setGoalOpen(false); setParams({ seasonId: event.target.value }); }}>{seasons.data?.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}
     {seasons.isError && <Notice tone="danger">Assigned seasons could not load. <Button variant="secondary" onClick={() => void seasons.refetch()}>Retry seasons</Button></Notice>}
     {today.isPending ? <LoadingState label="Loading your training plan…" /> : today.isError ? <Notice tone="danger">Your training plan could not load. <Button variant="secondary" onClick={() => void today.refetch()}>Try again</Button></Notice> : data && <>
@@ -91,18 +91,19 @@ export function StudentHomePage() {
             {data.streak.best > data.streak.current && <p><small>Best streak: {data.streak.best} {data.streak.best === 1 ? "day" : "days"}</small></p>}
           </Panel>}
           <Panel className="training-xp-panel">
-            <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="chart" /><h2>Level {data.xp.level}</h2></div><Badge tone="info">{data.xp.levelName}</Badge></div>
+            <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="chart" /><h2>Rank {data.xp.level}</h2></div><Badge tone="info">{data.xp.levelName}</Badge></div>
             <p className="training-week-count" aria-label={`${data.xp.total} experience points total`}><strong>{data.xp.total} <span>XP</span></strong><span>total</span></p>
-            <ProgressMeter label="Progress to the next level" value={data.xp.xpIntoLevel} max={data.xp.xpForNext} />
+            <ProgressMeter label="Progress to the next rank" value={data.xp.xpIntoLevel} max={data.xp.xpForNext} />
           </Panel>
           {!!data.quests.length && <Panel className="training-quest-board">
             <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="flag" /><h2>Today’s bonus quests</h2></div></div>
             <p className="training-quest-note">Little extras — no penalty for skipping.</p>
             <ul className="training-quest-list">{data.quests.map(quest => <li key={quest.key} className={quest.completed ? "is-complete" : ""}>
-              <div className="training-quest-head"><strong>{quest.title}</strong>{quest.completed && <Badge tone="success">Done</Badge>}</div>
+              <div className="training-quest-head"><strong>{quest.title}</strong><Badge tone="info">+{quest.xpReward ?? 25} XP</Badge>{quest.completed && <Badge tone="success">Done</Badge>}</div>
               <p>{quest.description}</p>
               <ProgressMeter label={`${quest.title}: quest progress`} value={quest.progress} max={quest.target} />
             </li>)}</ul>
+            <p className="training-quest-note"><small>Finish all three for a +25 XP triple bonus.</small></p>
           </Panel>}
           <LeaderboardCard />
           <Panel className="training-week-panel">
@@ -117,7 +118,7 @@ export function StudentHomePage() {
       </div>
       {seasonId && <PassageJourney key={`${seasonId}:${data.format ?? 'Memory'}`} seasonId={seasonId} format={data.format ?? 'Memory'} preview />}
       {seasonId && data.format === 'Pbe' && <SeasonCoveragePanel key={`cooperation:${seasonId}`} seasonId={seasonId} audience="student" />}
-      <Panel className="training-more"><div><h2>More practice options</h2><p>Review passages on your own or join Team Practice.</p></div><div className="training-controls">{available && <><LinkButton variant="secondary" to={study("Practice", null)}>Practice another drill</LinkButton>{data.mission.steps.some(step => step.kind === "Review" && step.target > 0 && step.status !== "NotNeeded") && <LinkButton variant="secondary" data-testid="start-reviews" to={study("Review", null)}>Start due reviews</LinkButton>}<>{data.format === "Pbe" ? <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start shortened timed practice</LinkButton> : <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start rehearsal</LinkButton>}</></>}<LinkButton variant="secondary" to={link("/student/practice")}>Team Practice</LinkButton></div></Panel>
+      <Panel className="training-more"><div><h2>More practice options</h2><p>Rehearse on your own or join Team Practice. Solo rehearsal earns XP and counts toward your streak; full-event team rehearsal unlocks Simulation honors.</p></div><div className="training-controls">{available && <><LinkButton variant="secondary" to={study("Practice", null)}>Practice another drill</LinkButton>{data.mission.steps.some(step => step.kind === "Review" && step.target > 0 && step.status !== "NotNeeded") && <LinkButton variant="secondary" data-testid="start-reviews" to={study("Review", null)}>Start due reviews</LinkButton>}<>{data.format === "Pbe" ? <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start solo timed rehearsal</LinkButton> : <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>Start rehearsal</LinkButton>}</></>}<LinkButton variant="secondary" to={link("/student/practice")}>Team Practice</LinkButton></div></Panel>
       {goalOpen && <WeeklyGoalDialog preferences={data.preferences} onClose={() => setGoalOpen(false)} />}
     </>}
   </div>;

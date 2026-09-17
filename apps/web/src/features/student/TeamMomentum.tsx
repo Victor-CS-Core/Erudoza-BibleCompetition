@@ -66,10 +66,10 @@ function BoardRows({ board }: { board: LeaderboardResponse }) {
   const top = board.entries.slice(0, 5);
   return <ol className="leaderboard-list">
     {top.map((entry, index) => <li key={entry.userId} className={board.me?.userId === entry.userId ? "is-me" : ""} data-testid={`leaderboard-row-${index + 1}`}>
-      <span className="leaderboard-rank" aria-label={`Rank ${index + 1}`}>{index + 1}</span>
+      <span className="leaderboard-rank" aria-label={`Position ${index + 1}`}>{index + 1}</span>
       <span className="leaderboard-name">{entry.displayName}{board.me?.userId === entry.userId && <Badge tone="info">You</Badge>}</span>
       <span className="leaderboard-xp"><strong>{entry.xp}</strong> XP</span>
-      <Badge tone="neutral">Lv {entry.level}</Badge>
+      <Badge tone="neutral">Rank {entry.level}</Badge>
     </li>)}
   </ol>;
 }

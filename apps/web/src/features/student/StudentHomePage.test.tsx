@@ -5,7 +5,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import { trainingApi } from "../../api/training";
 import { StudentHomePage } from "./StudentHomePage";
-import { todayFixture, journeyFixture } from "./trainingFixtures";
+import { todayFixture, journeyFixture, questFixture } from "./trainingFixtures";
 vi.mock("../../api/client", () => ({ api: { progress: vi.fn(), assignedSeasons: vi.fn(), teamActivity: vi.fn(), leaderboard: vi.fn(), setLeaderboardOptIn: vi.fn() } }));
 vi.mock("../../api/training", () => ({ trainingApi: { today: vi.fn(), journey: vi.fn(), chapters: vi.fn(), continueChapters: vi.fn(), cooperation: vi.fn(), continueCooperation: vi.fn() } }));
 const account = vi.hoisted(() => ({ organizationId: "org", userId: "student", kind: "Student" }));
@@ -18,6 +18,18 @@ it("invalidated missions explain scope changes and do not start study", async ()
 it("unassigned students receive honest recovery", async () => { vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ seasonId: null, seasonStatus: "None", mission: { id: null, revision: null, status: "Unavailable", scopeVersion: null, explanation: null, steps: [] }, nextAction: null })); home(); expect(await screen.findByText("Your coach will add your study assignment here.")).toBeInTheDocument(); });
 it("retries failures without showing zero progress", async () => { vi.mocked(trainingApi.today).mockRejectedValueOnce(new Error("offline")); home(); expect(await screen.findByRole("alert")).toHaveTextContent("could not load"); fireEvent.click(screen.getByRole("button", { name: "Try again" })); expect(await screen.findByRole("link", { name: "Continue review" })).toBeInTheDocument(); });
 it("switches the bounded request and retained season", async () => { vi.mocked(trainingApi.today).mockImplementation(async id => todayFixture({ seasonId: id ?? "s" })); home(); fireEvent.change(await screen.findByLabelText("Assigned season"), { target: { value: "other" } }); expect(await screen.findByRole("link", { name: "Continue review" })).toHaveAttribute("href", expect.stringContaining("seasonId=other")); });
+it("shows the quest board rewards and the triple bonus note", async () => {
+  vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ quests: [questFixture({ xpReward: 25 }), questFixture({ key: "sharpshooter", title: "Sharpshooter" }), questFixture({ key: "marathon", title: "Marathon" })] }));
+  home();
+  expect(await screen.findByRole("heading", { name: "Today’s bonus quests" })).toBeInTheDocument();
+  expect(screen.getAllByText("+25 XP")).toHaveLength(3);
+  expect(screen.getByText("Finish all three for a +25 XP triple bonus.")).toBeInTheDocument();
+});
+it("shows the XP rank, not a level", async () => {
+  home();
+  expect(await screen.findByRole("heading", { name: /Rank \d/ })).toBeInTheDocument();
+  expect(screen.getByLabelText("Progress to the next rank")).toBeInTheDocument();
+});
 
 it("starts an updated invalidated mission without stale identifiers", async () => { const data = todayFixture(); vi.mocked(trainingApi.today).mockResolvedValue({ ...data, mission: { ...data.mission, status: "Invalidated" } }); home(); const action = await screen.findByRole("link", { name: "Start updated training" }); expect(action).toHaveAttribute("href", "/student/study?mode=Review&step=Review&seasonId=s"); });
 it("completed missions link their saved recap without a next action", async () => { const data = todayFixture(); vi.mocked(trainingApi.today).mockResolvedValue({ ...data, nextAction: null, mission: { ...data.mission, status: "Complete", steps: [{ kind: "Review", target: 4, completed: 4, status: "Complete", sessionId: "review-done" }, { kind: "Practice", target: 8, completed: 8, status: "Complete", sessionId: "practice-done" }] } }); home(); expect(await screen.findByRole("link", { name: "See today’s recap" })).toHaveAttribute("href", "/student/sessions/practice-done/recap?seasonId=s"); });
@@ -53,13 +65,13 @@ it("records the resolved coach training season in navigation context", async () 
  await waitFor(() => expect(screen.getByLabelText("Current search")).toHaveTextContent("seasonId=s"));
 });
 
-it("offers shortened timed PBE practice", async () => {
+it("offers solo timed PBE rehearsal", async () => {
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ format: "Pbe" }));
   vi.mocked(trainingApi.chapters).mockResolvedValue({ seasonId: 's', ruleVersion: 'r', scopeVersion: 'v', snapshotId: 'snap', chapterKey: null, work: { id: null, state: 'Complete', stage: null, reason: null }, currentAvailable: true, historyAvailable: false, asOfUtc: '2026-09-12T00:00:00Z', dueRefreshAtUtc: '2099-09-12T00:00:00Z', nextCursor: null, view: 'Chapters', items: [] });
   vi.mocked(trainingApi.cooperation).mockResolvedValue({ seasonId: 's', ruleVersion: 'r', scopeVersion: 'v', snapshotId: 'coop', state: 'Snapshot', reason: null, checkedAtUtc: '2026-09-12T00:00:00Z', dueRefreshAtUtc: '2099-09-12T00:00:00Z', rosterStudents: 1, unknownStudents: 0, scripture: null, introduction: null, own: null, work: { id: null, next: 'None' } });
   home();
   expect(await screen.findByTestId("start-simulation")).toHaveAttribute("href", expect.stringContaining("mode=Simulation"));
-  expect(screen.getByTestId("start-simulation")).toHaveTextContent("Start shortened timed practice");
+  expect(screen.getByTestId("start-simulation")).toHaveTextContent("Start solo timed rehearsal");
   expect(screen.getByRole("link", { name: "Practice another drill" })).toHaveAttribute("href", expect.stringContaining("format=Pbe"));
   expect(await screen.findByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
   expect(screen.getByRole('heading', { name: 'Season cooperation' })).toBeVisible();

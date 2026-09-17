@@ -54,9 +54,16 @@ function SessionHistory({ orgId, studentId, onViewRecap }: { orgId: string; stud
     {loading && sessions.length === 0 && <LoadingState label="Loading session history…" />}
     {failed && sessions.length === 0 && <Notice tone="danger">Session history could not load. <Button variant="secondary" size="compact" onClick={() => { setFailed(false); setLoading(true); void loadMore(); }}>Try again</Button></Notice>}
     {sessions.length ? <ul className="ds-student-dashboard-list">{sessions.map(session =>
-      <li key={session.sessionId}><button type="button" className="ds-student-dashboard-session" onClick={() => onViewRecap(session.sessionId)} aria-label={`View ${session.mode} session recap from ${formatDateTime(session.completedAtUtc)}`}>
+      <li key={session.sessionId}>{session.format === "Room" ? (
+        // Room entries are plain labels: there is no coach-facing room recap
+        // route, so they never open the solo recap dialog.
+        <><div><strong>Team room · {session.teamFormat === "Pbe" ? "PBE" : "Arcade"}</strong><small><time dateTime={session.completedAtUtc ?? undefined}>{formatDateTime(session.completedAtUtc)}</time></small></div>
+        <span>{session.attempted} answered · +{session.xpEarned} XP</span></>
+      ) : (
+        <button type="button" className="ds-student-dashboard-session" onClick={() => onViewRecap(session.sessionId)} aria-label={`View ${session.mode} session recap from ${formatDateTime(session.completedAtUtc)}`}>
         <div><strong>{session.mode} · {session.format}</strong><small><time dateTime={session.completedAtUtc ?? undefined}>{formatDateTime(session.completedAtUtc)}</time></small></div>
-        <span>{session.correct === null ? `${session.attempted} attempted` : `${session.correct} / ${session.attempted} correct`} · +{session.xpEarned} XP</span></button></li>)}
+        <span>{session.correct === null ? `${session.attempted} attempted` : `${session.correct} / ${session.attempted} correct`} · +{session.xpEarned} XP</span></button>
+      )}</li>)}
     </ul> : !loading && !failed && <p>No completed sessions yet.</p>}
     {nextBefore && <Button variant="secondary" size="compact" disabled={loading} onClick={() => void loadMore()}>{loading ? "Loading…" : "Load more sessions"}</Button>}
   </Panel>;
@@ -156,6 +163,10 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
           {data.mastery.badges.length ? <ul className="ds-student-dashboard-list">{data.mastery.badges.map(badge =>
             <li key={badge.key}><div><strong>{badge.title}</strong><small>Earned {formatDate(badge.earnedAtUtc!)}</small></div><Badge tone="success">Earned</Badge></li>)}
           </ul> : <p>No badges earned yet.</p>}
+          <h3>Team awards</h3>
+          {data.mastery.teamAwards.length ? <ul className="ds-student-dashboard-list">{data.mastery.teamAwards.map(award =>
+            <li key={`${award.source}:${award.key}`}><div><strong>{award.title}</strong><small>{award.seasonName ?? "Unknown season"}{award.earnedAtUtc ? ` · Earned ${formatDate(award.earnedAtUtc)}` : ""}</small></div><Badge tone="info">{award.source === "honor" ? "Team honor" : "Room award"}</Badge></li>)}
+          </ul> : <p>No team awards yet.</p>}
           <h3>Passage levels</h3>
           <ul className="ds-student-dashboard-list">{data.mastery.levelCounts.map(({ level, count }) =>
             <li key={level}><strong>{level}</strong><span>{count}</span></li>)}

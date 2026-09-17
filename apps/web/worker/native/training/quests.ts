@@ -29,7 +29,7 @@ export const QUEST_DEFS: Record<QuestKey, QuestDef> = {
     explorer: { key: 'explorer', title: 'Explorer', description: 'Practice a chapter you have seen less than half of', target: 1 },
     comeback: { key: 'comeback', title: 'Comeback', description: 'Practice 3 of your weakest passages', target: 3 },
     marathon: { key: 'marathon', title: 'Marathon', description: 'Reach the full session target', target: 1 },
-    teammate: { key: 'teammate', title: 'Teammate', description: 'Join a Team Practice room', target: 1 },
+    teammate: { key: 'teammate', title: 'Teammate', description: 'Play a full match in a Team Practice room', target: 1 },
 };
 
 export interface QuestState {
@@ -97,9 +97,20 @@ export async function questEligibility(ctx: RequestContext, atUtc: string): Prom
     const due = await ctx.env.DB.prepare(
         `SELECT COUNT(*) AS n FROM Records WHERE kind='mastery' AND org_id=? AND owner_id=? AND json_extract(data,'$.reviewDueAt') <= ?`
     ).bind(ctx.orgId, ctx.actor.userId, atUtc).first<{ n: number }>();
+    // Rooms the learner can actually join: a Lobby room they already belong to,
+    // or one with a free slot. Joinability follows practice/state.ts `join()`:
+    // Lobby status, an actor who is not the room's coach, and per-team capacity.
+    // The live room directory summary carries only the total member count (not
+    // per-team rosters), so capacity is approximated as
+    // memberCount < teamSize * teamCount. There is no public/private flag on
+    // rooms — every Lobby room is effectively open, and invitations are an
+    // additional path subject to the same capacity rule.
     const open = await ctx.env.DB.prepare(
-        `SELECT 1 FROM Records WHERE kind='room' AND org_id=? AND json_extract(data,'$.status') IN ('Lobby','Playing') LIMIT 1`
-    ).bind(ctx.orgId).first();
+        `SELECT 1 FROM Records WHERE kind='room' AND org_id=? AND json_extract(data,'$.status')='Lobby'
+         AND (EXISTS (SELECT 1 FROM json_each(json_extract(data,'$.memberIds')) WHERE value=?)
+              OR COALESCE(json_extract(data,'$.memberCount'), 0) < COALESCE(json_extract(data,'$.teamSize'), 0) * COALESCE(json_extract(data,'$.teamCount'), 2))
+         LIMIT 1`
+    ).bind(ctx.orgId, ctx.actor.userId).first();
     return { reviewDueCount: due?.n ?? 0, roomsOpen: !!open };
 }
 
@@ -122,12 +133,31 @@ export async function getDailyQuests(ctx: RequestContext, localDate: string, atU
     return generateDailyQuests(ctx.actor.userId, localDate, eligibleQuestKeys(e));
 }
 
-/** True when the learner is currently a member of any team practice room. */
-export async function inTeamRoom(ctx: RequestContext): Promise<boolean> {
-    const row = await ctx.env.DB.prepare(
-        `SELECT 1 FROM Records WHERE kind='room' AND org_id=? AND EXISTS (SELECT 1 FROM json_each(json_extract(data,'$.memberIds')) WHERE value=?) LIMIT 1`
-    ).bind(ctx.orgId, ctx.actor.userId).first();
-    return !!row;
+/**
+ * True when the learner is actively in a team room (Lobby/Playing membership)
+ * or completed one in the last 7 days. The live room directory (kind='room',
+ * projected by the room Durable Object in practice/room.ts) carries status +
+ * memberIds but no completedAt, so recent completions come from the room
+ * history records (kind='match', published by practice/reports.ts), which
+ * store either a `{format, manifest, summary}` envelope (current rooms) or
+ * the raw Room (legacy) — both expose status, completedAt, and members.
+ */
+export async function inTeamRoom(ctx: RequestContext, atUtc?: string): Promise<boolean> {
+    const userId = ctx.actor.userId;
+    const live = await ctx.env.DB.prepare(
+        `SELECT 1 FROM Records WHERE kind='room' AND org_id=? AND json_extract(data,'$.status') IN ('Lobby','Playing') AND EXISTS (SELECT 1 FROM json_each(json_extract(data,'$.memberIds')) WHERE value=?) LIMIT 1`
+    ).bind(ctx.orgId, userId).first();
+    if (live)
+        return true;
+    const weekAgo = new Date(Date.parse(atUtc ?? new Date().toISOString()) - 7 * 86400000).toISOString();
+    const recent = await ctx.env.DB.prepare(
+        `SELECT 1 FROM Records WHERE kind='match' AND org_id=?
+         AND COALESCE(json_extract(data,'$.summary.status'), json_extract(data,'$.status')) = 'Completed'
+         AND COALESCE(json_extract(data,'$.summary.completedAt'), json_extract(data,'$.completedAt')) >= ?
+         AND EXISTS (SELECT 1 FROM json_each(COALESCE(json_extract(data,'$.summary.members'), json_extract(data,'$.members'))) WHERE json_extract(value,'$.userId')=?)
+         LIMIT 1`
+    ).bind(ctx.orgId, weekAgo, userId).first();
+    return !!recent;
 }
 
 export interface QuestProgressApi {
@@ -224,7 +254,7 @@ export async function progressQuests(
 
 /** Quest DTO for the `today()` response. */
 export function questDto(q: QuestState) {
-    return { key: q.key, title: q.title, description: q.description, target: q.target, progress: q.progress, completed: q.completed };
+    return { key: q.key, title: q.title, description: q.description, target: q.target, progress: q.progress, completed: q.completed, xpReward: XP_VALUES.questCompleted };
 }
 
 /** This week's quest rollup for the coach dashboard. */
@@ -247,17 +277,18 @@ export async function questWeek(ctx: RequestContext, weekStartLocalDate: string)
  * Session-complete quest hook shared by the Memory and PBE complete actions.
  * Sharpshooter needs ≥90% accuracy in a Practice session; marathon needs the
  * full session target. Returns quest XP events for the caller to award with
- * its other XP in a single `awardXp` call.
+ * its other XP in a single `awardXp` call, plus the keys completed by this
+ * call so the caller can persist them on the session for the recap.
  */
 export async function sessionCompleteQuests(
     ctx: RequestContext,
     w: Writes,
     qctx: QuestUpdateContext,
     opts: { mode: string; accuracy: number; fullTargetReached: boolean },
-): Promise<XpEvent[]> {
+): Promise<{ xpEvents: XpEvent[]; completedNow: QuestKey[] }> {
     const res = await progressQuests(ctx, w, qctx, api => {
         if (opts.mode === 'Practice' && opts.accuracy >= 90) api.complete('sharpshooter');
         if (opts.fullTargetReached) api.complete('marathon');
     });
-    return res.xpEvents;
+    return { xpEvents: res.xpEvents, completedNow: res.completedNow };
 }

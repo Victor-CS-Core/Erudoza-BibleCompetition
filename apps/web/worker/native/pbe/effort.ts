@@ -5,7 +5,7 @@ import type { DayRecord, WeekRecord, Writes } from '../training/store';
 import { awardStreakBadges, identity, preference, recordBests, resolvePreference, write } from '../training/store';
 import type { BestsInput } from '../training/store';
 import { awardXp, xpSummary, XP_VALUES, type XpEvent } from '../training/xp';
-import { getDailyQuests, inTeamRoom, progressQuests, questDto, sessionCompleteQuests, type QuestKey } from '../training/quests';
+import { getDailyQuests, inTeamRoom, progressQuests, questDto, type QuestKey } from '../training/quests';
 import { bestStreak, creditedDates, streakCount, streakStatus } from '../training/streak';
 import { addDays, resolveTrainingCalendar } from '../training/calendar';
 export interface PbeMission {
@@ -45,6 +45,31 @@ export async function awardPbeSimulationAttemptXp(ctx: RequestContext, s: PbeSes
     return w;
 }
 
+/**
+ * Pure explorer/comeback signals for one PBE attempt. "Target" here is the
+ * card's served question (card.question.id): a PBE session serves questions,
+ * one per card, so the question is the natural analogue of a Memory passage.
+ *
+ * - explorer: true when the question was served fewer than 2 times before in
+ *   this session (earlier cards with the same question id). Sessions select
+ *   distinct questions, so the first attempt of a session normally qualifies —
+ *   the PBE analogue of Memory's "practice a chapter you have seen less than
+ *   half of".
+ * - comeback: the repaired question id when this attempt is fully correct on
+ *   a question that was attempted incorrectly earlier in this session
+ *   (distinctId counting dedupes repairs of the same question within the day).
+ */
+export function pbeQuestSignals(s: Pick<PbeSession, 'cards' | 'attempts'>, attempt: PbeAttempt): { explorerFresh: boolean; repairedQuestionId: string | null } {
+    const card = s.cards.find(c => c.id === attempt.cardId);
+    if (!card)
+        return { explorerFresh: false, repairedQuestionId: null };
+    const questionId = card.question.id;
+    const cardIndex = s.cards.findIndex(c => c.id === card.id);
+    const priorServes = cardIndex < 0 ? 0 : s.cards.slice(0, cardIndex).filter(c => c.question.id === questionId).length;
+    const correct = attempt.result.earnedPoints === attempt.result.availablePoints;
+    const repaired = correct && s.attempts.some(a => a.id !== attempt.id && s.cards.some(c => c.id === a.cardId && c.question.id === questionId) && a.result.earnedPoints < a.result.availablePoints);
+    return { explorerFresh: priorServes < 2, repairedQuestionId: repaired ? questionId : null };
+}
 /** Stage participation only. No legacy mastery, badges or Honor evaluator is called. */
 export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: string): Promise<Writes> {
     const w: Writes = { statements: [], guards: [] }, old = await preference(ctx), p = resolvePreference(ctx, old, at), m = await ctx.store.require<PbeMission>('pbe-daily-mission', s.id, ctx.orgId);
@@ -88,13 +113,22 @@ export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: s
             }
         }
     }
-    // Daily bonus quests: warmup on Review completion, teammate on room membership.
+    // Daily bonus quests: warmup on Review completion, teammate on room
+    // membership, explorer for fresh questions, comeback for repaired ones.
     const questRes = await progressQuests(ctx, w, { localDate: cal.localDate, timeZone: cal.timeZone, seasonId: s.seasonId, atUtc: at }, async api => {
         const has = (key: QuestKey) => api.quests.some(q => q.key === key && !q.completed);
         if (has('warmup') && s.mode === 'Review' && s.cards.length > 0 && s.attempts.length === s.cards.length)
             api.complete('warmup');
         if (has('teammate') && await inTeamRoom(ctx))
             api.complete('teammate');
+        const attempt = lastAttempt;
+        if (attempt && (has('explorer') || has('comeback'))) {
+            const signals = pbeQuestSignals(s, attempt);
+            if (has('explorer') && signals.explorerFresh)
+                api.addProgress('explorer', 1);
+            if (has('comeback') && signals.repairedQuestionId)
+                api.addProgress('comeback', 1, signals.repairedQuestionId);
+        }
     });
     xpEvents.push(...questRes.xpEvents);
     if (xpEvents.length) {

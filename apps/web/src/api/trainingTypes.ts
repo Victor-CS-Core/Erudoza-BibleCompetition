@@ -55,6 +55,8 @@ export type QuestDto = {
     target: number;
     progress: number;
     completed: boolean;
+    /** XP awarded per completed quest (server XP_VALUES.questCompleted); optional until the quest DTO ships it. */
+    xpReward?: number;
 };
 export type TrainingToday = {
     format?: "Memory" | "Pbe";
@@ -118,6 +120,8 @@ export type SessionRecap = {
     levelUp: { from: number; to: number; fromName: string; toName: string } | null;
     missionSteps: TrainingStep[];
     earnedBadges: BadgeProgress[];
+    /** Quests completed during this session (keys + titles), for the recap celebration. */
+    questsCompleted: { key: string; title: string }[];
     passageChanges: {
         knowledgeUnitId: string;
         title: string;

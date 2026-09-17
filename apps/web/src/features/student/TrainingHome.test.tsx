@@ -10,14 +10,14 @@ import { todayFixture, journeyFixture, questFixture } from "./trainingFixtures";
 vi.mock("../../api/client", () => ({ api: { assignedSeasons: vi.fn().mockResolvedValue([]), progress: vi.fn() } }));
 vi.mock("../../api/training", () => ({ trainingApi: { today: vi.fn(), journey: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
-it("shows the XP level panel with progress to the next level", async () => {
+it("shows the XP rank panel with progress to the next rank", async () => {
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture());
   vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture());
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>);
-  expect(await screen.findByRole("heading", { name: "Level 2" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "Rank 2" })).toBeInTheDocument();
   expect(screen.getByText("Seeker")).toBeInTheDocument();
   expect(screen.getByLabelText("120 experience points total")).toBeVisible();
-  expect(screen.getByLabelText("Progress to the next level")).toBeVisible();
+  expect(screen.getByLabelText("Progress to the next rank")).toBeVisible();
 });
 
 it("renders the daily quest board with progress and completed states", async () => {
@@ -34,7 +34,7 @@ it("hides the quest board when no quests are available", async () => {
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ quests: [] }));
   vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture());
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>);
-  await screen.findByRole("heading", { name: "Level 2" });
+  await screen.findByRole("heading", { name: "Rank 2" });
   expect(screen.queryByRole("heading", { name: "Today’s bonus quests" })).not.toBeInTheDocument();
 });
 
@@ -46,7 +46,7 @@ it("shows the gentle streak nudge only when the streak is paused", async () => {
   unmount();
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ streakNudge: false }));
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>);
-  await screen.findByRole("heading", { name: "Level 2" });
+  await screen.findByRole("heading", { name: "Rank 2" });
   expect(screen.queryByTestId("streak-nudge")).not.toBeInTheDocument();
 });
 it("reports saved weekly and passage evidence without inventing readiness", async () => {

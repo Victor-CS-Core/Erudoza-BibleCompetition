@@ -13,6 +13,7 @@ import { buildAssignmentNotification } from './application/notifications';
 import { leaderboard } from './training/social';
 import { studentDashboard, studentSessionRecap } from './application/student-dashboard';
 import { engagementOverview, studentExportCsv, studentSessionHistory } from './application/engagement';
+import { buildRoomRecap } from './practice/room-history';
 import { studentDashboard } from './application/student-dashboard';
 import { pbeMaterials } from './application/pbe-materials';
 export { effectiveSources } from './application/model';
@@ -34,6 +35,14 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     if (path === '/leaderboard' && method === 'GET') {
         await requireLearner(ctx);
         return json(await leaderboard(ctx, new URL(request.url)));
+    }
+    // Completed-room recap for the requesting member; 404 unless they were in the room, 409 unless completed.
+    const roomRecapMatch = path.match(/^\/practice\/rooms\/([a-f0-9-]{36})\/recap$/i);
+    if (roomRecapMatch && method === 'GET') {
+        const recap = await buildRoomRecap(ctx, roomRecapMatch[1].toLowerCase());
+        if (!recap)
+            throw new HttpError(404, 'Room recap not found.');
+        return json(recap);
     }
     // PBE material releases + news authorize themselves per endpoint (requireLearner for
     // student reads, contentAccess for draft-level management by Owner and Content

@@ -11,6 +11,12 @@ describe('Simulation setup',()=>{
  fireEvent.click(screen.getByRole('tab',{name:'Review'})); fireEvent.click(screen.getByRole('button',{name:'Save setup'}));
  expect(save).toHaveBeenCalledWith(expect.objectContaining({bookKeys:['MRK'],chapters:[{bookKey:'MRK',chapter:2}],preset:'FullEvent',halfTime:true,scope:'SelectedChapters'}),6,90);
  });
+ it('explains that full-event team rehearsals count toward Simulation honors',()=>{
+ const save=vi.fn(); render(<SimulationEditor material={material} creatorId="u" onSave={save} pending={false}/>);
+ fireEvent.click(screen.getByRole('tab',{name:'Review'}));
+ expect(screen.getByText(/counts toward Simulation honors/)).toBeInTheDocument();
+ expect(screen.getByText(/For XP and streak credit, use the solo timed rehearsal from Study instead/)).toBeInTheDocument();
+ });
  it('blocks empty explicit chapters and locks full event count',()=>{
  render(<SimulationEditor material={material} creatorId="u" onSave={vi.fn()} pending={false}/>);
  fireEvent.click(screen.getByLabelText('Selected chapters')); expect(screen.getByRole('button',{name:'Save setup'})).toBeDisabled();
