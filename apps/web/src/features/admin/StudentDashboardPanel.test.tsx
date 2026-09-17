@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import type { Student, StudentDashboard } from "../../api/types";
 import { StudentDashboardPanel } from "./StudentDashboardPanel";
 
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "coach", organizationId: "org", kind: "Adult", role: "Admin" } }) }));
-vi.mock("../../api/client", () => ({ api: { studentDashboard: vi.fn() } }));
+vi.mock("../../api/client", () => ({ api: { studentDashboard: vi.fn(), studentSessionRecap: vi.fn() } }));
 
 beforeEach(() => { vi.clearAllMocks(); });
 
@@ -23,7 +23,7 @@ const dashboard: StudentDashboard = {
   effort: {
     weeklyTarget: 5, completedDays: 3, weekStartLocalDate: "2026-09-14", timeZone: "UTC",
     days: Array.from({ length: 7 }, (_, i) => ({ localDate: `2026-09-${14 + i}`, credited: i < 3, isToday: i === 1 })),
-    streakDays: 3, sessionsLast7Days: 4, lastActivityAtUtc: "2026-09-15T10:00:00Z",
+    streakDays: 3, streakState: "active", bestStreak: 5, streakHistory: [], sessionsLast7Days: 4, lastActivityAtUtc: "2026-09-15T10:00:00Z",
   },
   progress: {
     eligibleCount: 10, seenCount: 6, strongCount: 3, masteredCount: 1, reviewDueCount: 2, attemptCount: 40,
@@ -49,12 +49,46 @@ it("renders every dashboard section with the student's data", async () => {
   expect(screen.getByTestId("student-dashboard-progress")).toBeInTheDocument();
   expect(screen.getByText("6 / 10")).toBeInTheDocument();
   expect(screen.getByTestId("student-dashboard-mastery")).toBeInTheDocument();
-  expect(screen.getByText("First Steps")).toBeInTheDocument();
+  expect(within(screen.getByTestId("student-dashboard-mastery")).getByText("Mastered")).toBeInTheDocument();
   expect(screen.getByTestId("student-dashboard-assignments")).toBeInTheDocument();
   expect(screen.getByText("JHN 3:16–18")).toBeInTheDocument();
   expect(screen.getByTestId("student-dashboard-activity")).toBeInTheDocument();
   expect(screen.getByText("6 / 8 correct")).toBeInTheDocument();
   expect(api.studentDashboard).toHaveBeenCalledWith("org", "student-1", expect.any(AbortSignal));
+});
+
+it("shows streak state, best streak and the 90-day practice history", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue({
+    ...dashboard,
+    effort: {
+      ...dashboard.effort,
+      streakHistory: Array.from({ length: 90 }, (_, i) => ({ localDate: `2026-06-${String(20 + (i % 10)).padStart(2, "0")}`, credited: i % 3 === 0 })),
+    },
+  });
+  mount();
+  await screen.findByTestId("student-dashboard-effort");
+  const effort = within(screen.getByTestId("student-dashboard-effort"));
+  expect(effort.getByText("Streak state")).toBeInTheDocument();
+  expect(effort.getByText("Active")).toBeInTheDocument();
+  expect(effort.getByText("Best streak")).toBeInTheDocument();
+  expect(effort.getByText("5 days")).toBeInTheDocument();
+  expect(screen.getByRole("img", { name: /Practice history: 30 of the last 90 days credited/ })).toBeInTheDocument();
+  expect(screen.getByText(/One missed day pauses the streak/)).toBeInTheDocument();
+});
+
+it("opens a session recap drill-down when a recent activity row is activated", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue(dashboard);
+  vi.mocked(api.studentSessionRecap).mockResolvedValue({
+    version: "training-v1", sessionId: "s1", seasonId: "season-1", mode: "Practice", completedAtUtc: "2026-09-15T10:20:00Z",
+    attempted: 8, correct: 6, targetCardCount: 8, fullTargetReached: true, newlyCreditedDay: true,
+    missionLocalDate: "2026-09-15", creditedLocalDate: "2026-09-15", weeklyGoalComplete: false, personalBest: null,
+    missionSteps: [], earnedBadges: [], passageChanges: [],
+  });
+  mount();
+  await screen.findByTestId("student-dashboard-activity");
+  fireEvent.click(screen.getByRole("button", { name: /View Practice session recap/ }));
+  expect(await screen.findByTestId("student-session-recap-dialog")).toBeInTheDocument();
+  expect(api.studentSessionRecap).toHaveBeenCalledWith("org", "student-1", "s1");
 });
 
 it("shows a retry notice when the dashboard fails to load", async () => {

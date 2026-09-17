@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import type { Student } from "../../api/types";
@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LoadingState, Notice, Panel, ProgressMeter, WeeklyProgressStrip } from "../../components/ui";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { formatPassageCitation } from "./passageRanges";
+import { StudentSessionRecapDialog } from "./StudentSessionRecapDialog";
 import "../../styles/student-dashboard.css";
 
 const assignmentTypeLabels: Record<string, string> = {
@@ -42,8 +43,10 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
     return () => { element.close(); if (trigger?.isConnected) trigger.focus({ preventScroll: true }); };
   }, []);
   const data = dashboard.data;
+  const [recapSessionId, setRecapSessionId] = useState<string | null>(null);
   const progressPercent = data && data.progress.eligibleCount > 0
     ? Math.round((data.progress.seenCount / data.progress.eligibleCount) * 100) : null;
+  const streakHistoryCredited = data?.effort.streakHistory.filter(day => day.credited).length ?? 0;
   return <dialog
     ref={dialog}
     className="ds-dialog ds-student-dashboard"
@@ -71,9 +74,18 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
           <WeeklyProgressStrip week={{ weekStartLocalDate: data.effort.weekStartLocalDate, timeZone: data.effort.timeZone, target: data.effort.weeklyTarget as 3 | 4 | 5, completedDays: data.effort.completedDays, days: data.effort.days }} />
           <dl className="ds-student-dashboard-metrics">
             <div><dt>Current streak</dt><dd>{data.effort.streakDays} {data.effort.streakDays === 1 ? "day" : "days"}</dd></div>
+            <div><dt>Streak state</dt><dd>{data.effort.streakState === "active" ? "Active" : data.effort.streakState === "paused" ? "Paused" : "Not started"}</dd></div>
+            <div><dt>Best streak</dt><dd>{data.effort.bestStreak} {data.effort.bestStreak === 1 ? "day" : "days"}</dd></div>
             <div><dt>Sessions, last 7 days</dt><dd>{data.effort.sessionsLast7Days}</dd></div>
             <div><dt>Last activity</dt><dd>{formatDateTime(data.effort.lastActivityAtUtc)}</dd></div>
           </dl>
+          <h3>Practice history · last 90 days</h3>
+          <div className="ds-streak-heatmap" role="img" aria-label={`Practice history: ${streakHistoryCredited} of the last 90 days credited`}>
+            {data.effort.streakHistory.map(day => <span key={day.localDate}
+              title={`${formatDate(day.localDate)}${day.credited ? " · practiced" : ""}`}
+              className={`${day.credited ? "is-credited" : ""}${day.localDate === data.effort.days.find(d => d.isToday)?.localDate ? " is-today" : ""}`} />)}
+          </div>
+          <p><small>One missed day pauses the streak; two in a row restart it.</small></p>
         </Panel>
         <Panel data-testid="student-dashboard-progress">
           <h2>Progress</h2>
@@ -113,11 +125,13 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
         <Panel data-testid="student-dashboard-activity">
           <h2>Recent activity</h2>
           {data.recentActivity.length ? <ul className="ds-student-dashboard-list">{data.recentActivity.map(session =>
-            <li key={session.sessionId}><div><strong>{session.mode} · {session.format}</strong><small><time dateTime={session.createdAtUtc}>{formatDateTime(session.createdAtUtc)}</time></small></div>
-              <span>{session.correct === null ? `${session.attempted} attempted` : `${session.correct} / ${session.attempted} correct`}</span></li>)}
+            <li key={session.sessionId}><button type="button" className="ds-student-dashboard-session" onClick={() => setRecapSessionId(session.sessionId)} aria-label={`View ${session.mode} session recap from ${formatDateTime(session.createdAtUtc)}`}>
+              <div><strong>{session.mode} · {session.format}</strong><small><time dateTime={session.createdAtUtc}>{formatDateTime(session.createdAtUtc)}</time></small></div>
+              <span>{session.correct === null ? `${session.attempted} attempted` : `${session.correct} / ${session.attempted} correct`}</span></button></li>)}
           </ul> : <p>No completed sessions yet.</p>}
         </Panel>
       </>}
     </div>
+    {recapSessionId && me?.organizationId && <StudentSessionRecapDialog orgId={me.organizationId} studentId={student.userId} studentName={student.displayName} sessionId={recapSessionId} onClose={() => setRecapSessionId(null)} />}
   </dialog>;
 }

@@ -13,7 +13,7 @@ import { selectPbeQuestions } from './selection';
 import { PBE_RULE_VERSION, PBE_SCORING_VERSION } from './rules';
 import { rehearsalPoints } from './presentation';
 import type { PbeQuestion, PbeTarget } from './types';
-import { pbeMissionSteps, preparePbeEffort, preparePbeStartEffort } from './effort';
+import { pbeMissionSteps, preparePbeEffort, preparePbeStartEffort, recordPbePersonalBests } from './effort';
 import type { StartTrainingContext } from '../../../src/api/trainingTypes';
 export interface PbeCard {
     id: string;
@@ -65,6 +65,12 @@ export interface PbeSession {
     missionLocalDate: string | null;
     creditedLocalDate: string | null;
     newlyCreditedDay: boolean;
+    /** True when this session completed the learner's weekly practice goal. */
+    weeklyGoalComplete?: boolean;
+    /** Set when this session set a personal best (computed once at completion). */
+    personalBest?: { accuracyBeaten: boolean; correctBeaten: boolean } | null;
+    /** Streak milestone badges earned by this session (PBE has no other badge pipeline). */
+    earnedBadges?: import('../../../src/api/trainingTypes').BadgeProgress[];
 }
 interface Start {
     seasonId: string;
@@ -94,7 +100,7 @@ export const pbeSummary=(s:PbeSession,interrupted=false,overlay?:PbeResultOverla
  const results=s.attempts.map(a=>{const card=s.cards.find(c=>c.id===a.cardId)!,candidate=overlay?.entries[a.result.attemptId],dispute=candidate?.questionId===card.question.id&&candidate.questionVersion===card.question.version?candidate:null;return {attemptId:a.result.attemptId,questionId:card.question.id,earnedPoints:dispute?.pointsByPart?.reduce((n,p)=>n+p,0)??a.result.earnedPoints,originalEarnedPoints:a.result.earnedPoints,availablePoints:a.result.availablePoints,acceptedAtUtc:a.result.acceptedAtUtc,dispute};});
  const correct=results.filter(r=>r.earnedPoints===r.availablePoints).length,pendingCount=results.filter(r=>r.dispute?.status==='Pending').length,finalized=results.filter(r=>r.dispute?.status!=='Pending');
  const metrics={earnedPoints:results.reduce((n,r)=>n+r.earnedPoints,0),availablePoints:results.reduce((n,r)=>n+r.availablePoints,0),pendingCount,provisional:pendingCount>0,finalizedEarnedPoints:finalized.reduce((n,r)=>n+r.earnedPoints,0),finalizedAvailablePoints:finalized.reduce((n,r)=>n+r.availablePoints,0)};
- return {sessionId:s.id,format:s.format,mode:s.mode,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,status:interrupted?'Interrupted':s.status,...metrics,results:s.mode==='Simulation'&&s.status==='Completed'?s.attempts.map((a,i)=>({...a.result,...results[i]})):results,recap:{version:'pbe-daily-v2',sessionId:s.id,seasonId:s.seasonId,mode:s.mode,completedAtUtc:s.completedAtUtc??null,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,fullTargetReached:s.attempts.length===s.cards.length,newlyCreditedDay:s.newlyCreditedDay,missionLocalDate:s.missionLocalDate,creditedLocalDate:s.creditedLocalDate,missionSteps:pbeMissionSteps(s),earnedBadges:[],passageChanges:[],interrupted,results,...metrics}};
+ return {sessionId:s.id,format:s.format,mode:s.mode,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,status:interrupted?'Interrupted':s.status,...metrics,results:s.mode==='Simulation'&&s.status==='Completed'?s.attempts.map((a,i)=>({...a.result,...results[i]})):results,recap:{version:'pbe-daily-v2',sessionId:s.id,seasonId:s.seasonId,mode:s.mode,completedAtUtc:s.completedAtUtc??null,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,fullTargetReached:s.attempts.length===s.cards.length,newlyCreditedDay:s.newlyCreditedDay,missionLocalDate:s.missionLocalDate,creditedLocalDate:s.creditedLocalDate,weeklyGoalComplete:s.weeklyGoalComplete??false,personalBest:s.personalBest??null,missionSteps:pbeMissionSteps(s),earnedBadges:s.earnedBadges??[],passageChanges:[],interrupted,results,...metrics}};
 };
 export async function reviewedPbeSummary(ctx:Pick<RequestContext,'store'|'orgId'>,s:PbeSession,interrupted=false){const overlay=await ctx.store.get<PbeResultOverlay>('pbe-result-overlay',`Solo:${s.id}`,ctx.orgId);return pbeSummary(s,interrupted,overlay?.value);}
 
@@ -237,7 +243,10 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
         if (s.status !== 'Completed') {
             s.status = 'Completed';
             s.completedAtUtc = trainingNow();
-            await persist(scope);
+            const bests = await recordPbePersonalBests(ctx, s);
+            if (bests.beaten.accuracyBeaten || bests.beaten.correctBeaten)
+                s.personalBest = bests.beaten;
+            await persist(scope, { statements: bests.writes.statements, guards: bests.writes.guards });
         }
         return json(await reviewedPbeSummary(ctx,s));
     }

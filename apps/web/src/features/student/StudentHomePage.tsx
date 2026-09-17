@@ -81,6 +81,12 @@ export function StudentHomePage() {
           {seasonId && <AssignedPassages seasonId={seasonId} />}
         </div>
         <aside className="training-hq-aside">
+          {data.streak && <Panel className="training-streak-panel">
+            <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="flame" /><h2>Practice streak</h2></div>{data.streak.state !== "none" && <Badge tone={data.streak.state === "active" ? "success" : "neutral"}>{data.streak.state === "active" ? "Active" : "Paused"}</Badge>}</div>
+            <p className="training-week-count" aria-label={`${data.streak.current} day practice streak`}><strong>{data.streak.current} <span>{data.streak.current === 1 ? "day" : "days"}</span></strong><span>in a row</span></p>
+            <p>{data.streak.state === "active" ? "Keep it going — practice today to extend it." : data.streak.state === "paused" ? "Paused, not lost. Practice today to keep your streak alive." : "Practice today to start your first streak."}</p>
+            {data.streak.best > data.streak.current && <p><small>Best streak: {data.streak.best} {data.streak.best === 1 ? "day" : "days"}</small></p>}
+          </Panel>}
           <Panel className="training-week-panel">
             <div className="training-panel-title"><h2>Weekly practice goal</h2><Button variant="ghost" size="compact" aria-label="Edit weekly goal" onClick={() => setGoalOpen(true)}>Edit goal</Button></div>
             <p className="training-week-count" aria-label={`${data.week.completedDays} of ${data.week.target} practice days`}><strong>{data.week.completedDays} <span>of</span> {data.week.target}</strong><span>practice days this week</span></p>

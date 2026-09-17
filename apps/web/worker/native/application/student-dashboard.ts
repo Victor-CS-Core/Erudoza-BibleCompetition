@@ -1,11 +1,13 @@
 import type { RequestContext } from '../types';
+import { HttpError } from '../types';
 import { memberId, student, type Assignment, type Membership } from './model';
 import { honors, trainingScope } from '../training/query';
-import { identity, kid, preference, resolvePreference, type DayRecord, type WeekRecord } from '../training/store';
+import { identity, kid, makeRecap, preference, resolvePreference, type DayRecord, type WeekRecord } from '../training/store';
+import { bestStreak, streakStatus } from '../training/streak';
 import { addDays, resolveTrainingCalendar } from '../training/calendar';
 import { trainingNow } from '../training/clock';
 import type { Mastery, Session } from '../study/routes';
-import type { PbeSession } from '../pbe/sessions';
+import { reviewedPbeSummary, type PbeSession } from '../pbe/sessions';
 import type { StudentDashboard, TrainingDifficulty } from '../../../src/api/types';
 
 async function listAll<T extends { id: string }>(ctx: RequestContext, kind: string, scope: { seasonId?: string; ownerId?: string } = {}) {
@@ -30,9 +32,8 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
   // --- Effort: this week, streak, recent sessions, last activity. ---
   const days = await listAll<DayRecord>(learner, 'training-day', { ownerId: s.userId });
   const credited = new Set(days.filter(d => d.credited).map(d => d.localDate));
-  let cursor = credited.has(calendar.localDate) ? calendar.localDate : addDays(calendar.localDate, -1);
-  let streakDays = 0;
-  while (credited.has(cursor)) { streakDays += 1; cursor = addDays(cursor, -1); }
+  const streak = streakStatus(credited, calendar.localDate);
+  const streakHistory = Array.from({ length: 90 }, (_, i) => { const localDate = addDays(calendar.localDate, -(89 - i)); return { localDate, credited: credited.has(localDate) }; });
   const sessions = await listAll<Session>(learner, 'session', { ownerId: s.userId });
   const pbeSessions = await listAll<PbeSession>(learner, 'pbe-session', { ownerId: s.userId });
   const weekAgo = Date.parse(now) - 7 * 86400000;
@@ -61,7 +62,7 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
   const attempts = season ? (await listAll<{ id: string; at: string; isLegacyDuplicate?: boolean }>(learner, 'attempt', { seasonId: season.id, ownerId: s.userId })).filter(a => !a.isLegacyDuplicate) : [];
 
   // --- Mastery: earned badges + level distribution. ---
-  const allBadges = await honors(learner, season?.id ?? null);
+  const allBadges = await honors(learner, season?.id ?? null, streak.current);
   const levelCounts = new Map<string, number>();
   for (const m of relevant) levelCounts.set(m.level, (levelCounts.get(m.level) ?? 0) + 1);
   levelCounts.set('Unseen', sources.length - relevant.length);
@@ -82,7 +83,7 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
       sessionId: x.id, mode: x.mode, format: 'Pbe' as const, createdAtUtc: x.createdAtUtc, completedAtUtc: x.completedAtUtc ?? null,
       attempted: x.attempts.length, correct: null as number | null, fullTargetReached: null as boolean | null,
     })),
-  ].sort((a, b) => b.createdAtUtc.localeCompare(a.createdAtUtc)).slice(0, 8);
+  ].sort((a, b) => b.createdAtUtc.localeCompare(a.createdAtUtc)).slice(0, 30);
 
   return {
     student: { userId: s.userId, displayName: s.displayName, userName: s.userName, isActive: s.isActive !== false },
@@ -93,7 +94,10 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
       weekStartLocalDate: calendar.weekStartLocalDate,
       timeZone: week?.timeZone ?? resolved.timeZone,
       days: Array.from({ length: 7 }, (_, i) => { const localDate = addDays(calendar.weekStartLocalDate, i); return { localDate, credited: week?.creditedDates.includes(localDate) ?? false, isToday: localDate === calendar.localDate }; }),
-      streakDays,
+      streakDays: streak.current,
+      streakState: streak.state,
+      bestStreak: bestStreak(credited),
+      streakHistory,
       sessionsLast7Days: recentSessions.length + recentPbe.length,
       lastActivityAtUtc,
     },
@@ -113,4 +117,18 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
     assignments: seasonAssignments,
     recentActivity: activity,
   };
+}
+
+/** Coach/admin-only read of one student's stored session recap. Never writes. */
+export async function studentSessionRecap(ctx: RequestContext, studentId: string, sessionId: string) {
+  const s = await student(ctx, studentId);
+  const rec = await ctx.store.get<Session>('session', sessionId, ctx.orgId);
+  if (rec && rec.value.studentUserId === s.userId) {
+    if (rec.value.status !== 'Completed') throw new HttpError(409, 'This session is not complete.');
+    return rec.value.recap ?? await makeRecap(ctx, rec.value);
+  }
+  const pbe = await ctx.store.get<PbeSession>('pbe-session', sessionId, ctx.orgId);
+  if (!pbe || pbe.value.studentUserId !== s.userId) throw new HttpError(404, 'Study session was not found.');
+  if (pbe.value.status !== 'Completed') throw new HttpError(409, 'This session is not complete.');
+  return (await reviewedPbeSummary(ctx, pbe.value)).recap;
 }

@@ -74,6 +74,8 @@ export const api = {
   students: (orgId: string) => request<Student[]>(`/api/v1/organizations/${orgId}/students`),
   studentDashboard: (orgId: string, studentId: string, signal?: AbortSignal) =>
     request<StudentDashboard>(`/api/v1/organizations/${orgId}/students/${encodeURIComponent(studentId)}/dashboard`, { signal }),
+  studentSessionRecap: (orgId: string, studentId: string, sessionId: string) =>
+    request<import("./trainingTypes").SessionRecap>(`/api/v1/organizations/${orgId}/students/${encodeURIComponent(studentId)}/sessions/${encodeURIComponent(sessionId)}/recap`),
   createStudent: (orgId: string, body: { userName: string; displayName: string; password: string }) =>
     request<Student>(`/api/v1/organizations/${orgId}/students`, { method: "POST", body: JSON.stringify(body) }),
   resetStudentPassword: (orgId: string, studentId: string, password: string) =>

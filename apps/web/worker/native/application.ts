@@ -10,6 +10,7 @@ import { notebook } from './application/notebook';
 import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeDto, scopePacks, scopeSources, seasonSummaries, student, students, learner, requireLearner, studentAssignments, validatePackRanges } from './application/model';
 import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
 import { buildAssignmentNotification } from './application/notifications';
+import { studentDashboard, studentSessionRecap } from './application/student-dashboard';
 import { studentDashboard } from './application/student-dashboard';
 import { pbeMaterials } from './application/pbe-materials';
 export { effectiveSources } from './application/model';
@@ -85,6 +86,9 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     const dashboardMatch = path.match(/^\/students\/([^/]+)\/dashboard$/);
     if (dashboardMatch && method === 'GET')
         return json(await studentDashboard(ctx, dashboardMatch[1]));
+    const recapMatch = path.match(/^\/students\/([^/]+)\/sessions\/([^/]+)\/recap$/);
+    if (recapMatch && method === 'GET')
+        return json(await studentSessionRecap(ctx, recapMatch[1], recapMatch[2]));
     if (studentMatch && (studentMatch[2] === 'password' && method === 'POST' || studentMatch[2] === 'state' && method === 'PUT')) {
         await student(ctx, studentMatch[1]);
         const input = await body<{

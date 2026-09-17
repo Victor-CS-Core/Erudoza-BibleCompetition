@@ -51,3 +51,11 @@
   .ds-dialog.ds-student-dashboard { animation: ds-student-dashboard-in 180ms ease-out; }
   @keyframes ds-student-dashboard-in { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 }
+.ds-streak-heatmap { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 3px; margin: var(--er-space-3) 0; }
+.ds-streak-heatmap span { aspect-ratio: 1; border-radius: 3px; background: var(--er-border); min-width: 0; }
+.ds-streak-heatmap span.is-credited { background: var(--er-teal); }
+.ds-streak-heatmap span.is-today { outline: 2px solid var(--er-ink-navy); outline-offset: -2px; }
+.ds-student-dashboard-session { display: flex; align-items: center; justify-content: space-between; gap: var(--er-space-3); width: 100%; padding: var(--er-space-1) var(--er-space-2); margin: calc(var(--er-space-1) * -1) calc(var(--er-space-2) * -1); border: 0; border-radius: 8px; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.ds-student-dashboard-session:hover { background: color-mix(in srgb, var(--er-teal) 8%, transparent); }
+.ds-student-dashboard-session:focus-visible { outline: 2px solid var(--er-teal); outline-offset: 2px; }
+.ds-student-dashboard-session > div { min-width: 0; }

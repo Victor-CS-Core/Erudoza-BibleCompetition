@@ -2,7 +2,9 @@ import { builtInContentSql } from '../application/library-access';
 import type { RequestContext } from '../types';
 import type { PbeSession } from './sessions';
 import type { DayRecord, WeekRecord, Writes } from '../training/store';
-import { identity, preference, resolvePreference, write } from '../training/store';
+import { awardStreakBadges, identity, preference, recordBests, resolvePreference, write } from '../training/store';
+import type { BestsInput } from '../training/store';
+import { bestStreak, creditedDates, streakCount, streakStatus } from '../training/streak';
 import { addDays, resolveTrainingCalendar } from '../training/calendar';
 export interface PbeMission {
     id: string;
@@ -46,10 +48,16 @@ export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: s
                 week.creditedDates.push(c.localDate);
             if (week.creditedDates.length >= week.target && !week.qualifiedAtUtc) {
                 week.qualifiedAtUtc = at;
+                s.weeklyGoalComplete = true;
                 if (p.qualifyingWeekStarts.length < 4 && !p.qualifyingWeekStarts.includes(week.weekStartLocalDate))
                     p.qualifyingWeekStarts.push(week.weekStartLocalDate);
             }
             write(ctx, w, 'training-week', wid, week, oldWeek);
+            const credited = await creditedDates(ctx);
+            credited.add(c.localDate);
+            const earned = await awardStreakBadges(ctx, w, streakCount(credited, c.localDate), at, s.id);
+            if (earned.length)
+                s.earnedBadges = [...(s.earnedBadges ?? []), ...earned];
         }
     }
     // The same preference revision serializes day/week races with Memory sessions.
@@ -57,6 +65,20 @@ export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: s
     return w;
 }
 export const pbeMissionSteps = (s: PbeSession) => [{ kind: s.mode, target: s.cards.length, completed: s.attempts.length, status: s.attempts.length === s.cards.length ? 'Complete' : 'Active', sessionId: s.id }];
+/**
+ * Compare a completed PBE session's points against the learner's stored PBE
+ * personal bests and queue bests-record writes. Accuracy is earned/available
+ * points; "correct" counts fully-correct questions. Tracked per mode, separate
+ * from Memory bests. Called once from the session-complete action.
+ */
+export async function recordPbePersonalBests(ctx: RequestContext, s: PbeSession): Promise<{ writes: Writes; beaten: { accuracyBeaten: boolean; correctBeaten: boolean } }> {
+    if (!s.attempts.length)
+        return { writes: { statements: [], guards: [] }, beaten: { accuracyBeaten: false, correctBeaten: false } };
+    const earned = s.attempts.reduce((n, a) => n + a.result.earnedPoints, 0), available = s.attempts.reduce((n, a) => n + a.result.availablePoints, 0);
+    const correct = s.attempts.filter(a => a.result.earnedPoints === a.result.availablePoints).length;
+    const input: BestsInput = { mode: s.mode, format: 'Pbe', accuracy: available > 0 ? earned / available * 100 : 0, correct, sessionId: s.id, atUtc: s.completedAtUtc ?? s.attempts.at(-1)?.result.acceptedAtUtc ?? new Date().toISOString() };
+    return recordBests(ctx, input);
+}
 export async function pbeToday(ctx: RequestContext, season: import('../application/model').Season, now: string, deviceTimeZone?: string): Promise<import('../../../src/api/trainingTypes').TrainingToday> {
     const { resolvePbeSources, resolvePbeSessionSources } = await import('./sources'), { loadFromResolvedSources } = await import('./bank');
     const old = await preference(ctx), p = resolvePreference(ctx, old, now, deviceTimeZone), c = resolveTrainingCalendar(now, p), week = (await ctx.store.get<WeekRecord>('training-week', identity(ctx, c.weekStartLocalDate), ctx.orgId))?.value;
@@ -78,5 +100,6 @@ export async function pbeToday(ctx: RequestContext, season: import('../applicati
     }>();
     if (changed?.changed)
         throw new (await import('../types')).HttpError(409, 'The PBE scope changed. Refresh and retry.');
-    return { format: 'Pbe', seasonId: season.id, seasonName: season.name, seasonStatus: season.status, localDate: c.localDate, preferences: { timeZone: p.timeZone, weeklyTarget: p.weeklyTarget, pending: p.pending }, week: { weekStartLocalDate: c.weekStartLocalDate, timeZone: week?.timeZone ?? p.timeZone, target: week?.target ?? p.weeklyTarget, completedDays: week?.creditedDates.length ?? 0, days: Array.from({ length: 7 }, (_, i) => { const localDate = addDays(c.weekStartLocalDate, i); return { localDate, credited: week?.creditedDates.includes(localDate) ?? false, isToday: localDate === c.localDate }; }) }, mission: { id: s && !stale ? s.id : null, revision: s && !stale ? 1 : null, status: !available ? 'Unavailable' : stale ? 'Invalidated' : !s ? 'Suggested' : complete ? 'Complete' : 'Active', scopeVersion: scope.eligibility, steps, explanation: !available ? 'No published PBE questions are available for your assignment. Ask your coach to add questions, or choose Memory.' : stale ? 'Your assignment changed. Start updated training.' : null }, nextAction: available && next ? { label: next.sessionId && s?.status !== 'Completed' ? 'Resume PBE practice' : 'Start PBE practice', mode: next.kind, sessionId: s?.status === 'Completed' ? null : next.sessionId } : null, honors: [] };
+    const credited = await creditedDates(ctx), streak = streakStatus(credited, c.localDate);
+    return { format: 'Pbe', seasonId: season.id, seasonName: season.name, seasonStatus: season.status, localDate: c.localDate, preferences: { timeZone: p.timeZone, weeklyTarget: p.weeklyTarget, pending: p.pending }, week: { weekStartLocalDate: c.weekStartLocalDate, timeZone: week?.timeZone ?? p.timeZone, target: week?.target ?? p.weeklyTarget, completedDays: week?.creditedDates.length ?? 0, days: Array.from({ length: 7 }, (_, i) => { const localDate = addDays(c.weekStartLocalDate, i); return { localDate, credited: week?.creditedDates.includes(localDate) ?? false, isToday: localDate === c.localDate }; }) }, mission: { id: s && !stale ? s.id : null, revision: s && !stale ? 1 : null, status: !available ? 'Unavailable' : stale ? 'Invalidated' : !s ? 'Suggested' : complete ? 'Complete' : 'Active', scopeVersion: scope.eligibility, steps, explanation: !available ? 'No published PBE questions are available for your assignment. Ask your coach to add questions, or choose Memory.' : stale ? 'Your assignment changed. Start updated training.' : null }, nextAction: available && next ? { label: next.sessionId && s?.status !== 'Completed' ? 'Resume PBE practice' : 'Start PBE practice', mode: next.kind, sessionId: s?.status === 'Completed' ? null : next.sessionId } : null, honors: [], streak: { current: streak.current, best: bestStreak(credited), state: streak.state } };
 }

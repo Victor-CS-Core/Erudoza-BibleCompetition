@@ -17,7 +17,7 @@ export function badgeCounters(sources: {
     knowledgeUnitId: string;
     algorithmVersion: string;
     level: string;
-})[], seen: string[], weeks: number, review: boolean) {
+})[], seen: string[], weeks: number, review: boolean, streak = 0) {
     const current = states.filter(m => m.algorithmVersion === 'v2-skill-evidence' && sources.some(s => s.id === m.knowledgeUnitId));
     const chapters = [...new Set(sources.map(s => `${s.bookKey}:${s.chapter}`))].map(key => {
         const ids = sources.filter(s => `${s.bookKey}:${s.chapter}` === key).map(s => s.id);
@@ -27,7 +27,7 @@ export function badgeCounters(sources: {
         ];
     });
     const chapter = chapters.sort((a, b) => Number(b[0] === b[1]) - Number(a[0] === a[1]) || b[0] / b[1] - a[0] / a[1])[0] ?? [0, 0];
-    return { 'exact-recall': [Math.min(5, new Set(current.filter(m => m.exactWording >= 80).map(m => m.knowledgeUnitId)).size), 5], 'reference-ready': [Math.min(10, new Set(current.filter(m => m.reference >= 70).map(m => m.knowledgeUnitId)).size), 10], 'chapter-strong': chapter, 'full-coverage': [sources.filter(s => seen.includes(s.id)).length, sources.length], 'steady-study': [Math.min(4, weeks), 4], 'review-complete': [review ? 1 : 0, 1] } as Record<import('../../../src/api/trainingTypes').BadgeKey, [
+    return { 'exact-recall': [Math.min(5, new Set(current.filter(m => m.exactWording >= 80).map(m => m.knowledgeUnitId)).size), 5], 'reference-ready': [Math.min(10, new Set(current.filter(m => m.reference >= 70).map(m => m.knowledgeUnitId)).size), 10], 'chapter-strong': chapter, 'full-coverage': [sources.filter(s => seen.includes(s.id)).length, sources.length], 'steady-study': [Math.min(4, weeks), 4], 'review-complete': [review ? 1 : 0, 1], 'streak-7': [Math.min(7, streak), 7], 'streak-14': [Math.min(14, streak), 14], 'streak-30': [Math.min(30, streak), 30] } as Record<import('../../../src/api/trainingTypes').BadgeKey, [
         number,
         number
     ]>;

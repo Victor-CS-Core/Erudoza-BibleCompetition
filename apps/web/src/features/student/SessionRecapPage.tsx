@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { ApiError } from "../../api/client";
 import { trainingApi } from "../../api/training";
@@ -7,8 +7,10 @@ import type { SkillScores } from "../../api/trainingTypes";
 import { useAuth } from "../../auth/AuthContext";
 import { PbeFlagAnswer } from "../practice/PbeFlagAnswer";
 import { PatchArtwork } from "../../components/ui/PatchArtwork";
+import { AppIcon } from "../../components/AppIcon";
 import { Badge, Button, HonorArtwork, LinkButton, LoadingState, Notice, PageHeader, Panel, ProgressMeter } from "../../components/ui";
 import { evidenceDate, honorAsset, trainingLink } from "./trainingAssets";
+import { CelebrationBurst } from "./CelebrationBurst";
 import "./student.css";
 import "./student-collections.css";
 const skillNames: [keyof SkillScores, string][] = [["exactWording", "Wording"], ["reference", "Reference"], ["sequence", "Sequence"], ["recognition", "Recognition"], ["factualRecall", "Factual recall"]];
@@ -18,7 +20,7 @@ export function SessionRecapPage() {
   const { me } = useAuth();
   const recap = useQuery({ queryKey: ["training-recap", sessionId, me?.organizationId, me?.userId], queryFn: () => trainingApi.recap(sessionId!), enabled: !!sessionId });
   const data = recap.data;
-  const earnedMilestones = data?.version === "training-v1" ? data.earnedBadges.filter(honor => honor.earnedAtUtc) : [];
+  const earnedMilestones = data?.earnedBadges.filter(honor => honor.earnedAtUtc) ?? [];
   const featuredMilestone = earnedMilestones[0];
   const seasonId = data?.seasonId ?? params.get("seasonId");
   useEffect(() => {
@@ -27,6 +29,32 @@ export function SessionRecapPage() {
     }
   }, [data?.seasonId, params, setParams]);
   const link = (path: string) => trainingLink(path, seasonId);
+  const [shareState, setShareState] = useState<"idle" | "copied" | "failed">("idle");
+  const personalBest = data?.personalBest ?? null;
+  const weeklyGoalComplete = !!data?.weeklyGoalComplete;
+  const hasCelebration = !!featuredMilestone || !!personalBest?.accuracyBeaten || !!personalBest?.correctBeaten || !!weeklyGoalComplete;
+  const shareText = data && data.version !== "legacy-counts" && hasCelebration
+    ? `I completed a ${data.mode} practice session on Erudoza: ${data.correct} of ${data.attempted} correct${personalBest && (personalBest.accuracyBeaten || personalBest.correctBeaten) ? " — a new personal best!" : ""}${featuredMilestone ? ` Earned the ${featuredMilestone.title} milestone!` : ""}`
+    : null;
+  const share = async () => {
+    if (!shareText) return;
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setShareState("copied");
+    } catch {
+      const area = document.createElement("textarea");
+      area.value = shareText;
+      document.body.appendChild(area);
+      area.select();
+      try {
+        document.execCommand("copy");
+        setShareState("copied");
+      } catch {
+        setShareState("failed");
+      }
+      document.body.removeChild(area);
+    }
+  };
   const pbeResults = data?.version === "pbe-daily-v2" && <Panel><h2>Saved answer reviews</h2>
     {data.provisional && <Notice>{data.pendingCount} answer{data.pendingCount === 1 ? " is" : "s are"} awaiting review. Scores remain provisional; you can keep practicing.</Notice>}
     {data.finalizedAvailablePoints !== undefined && <p>Finalized accuracy: {data.finalizedEarnedPoints} / {data.finalizedAvailablePoints} points. Pending answers are excluded.</p>}
@@ -39,8 +67,13 @@ export function SessionRecapPage() {
     {!sessionId ? <Notice tone="danger">This recap link is incomplete. Return to training to find your session.</Notice> : recap.isPending ? <LoadingState label="Loading your saved recap…" /> : recap.isError && recap.error instanceof ApiError && recap.error.status === 409 ? <Panel><h2>This session is still in progress</h2><LinkButton to={link(`/student/study?sessionId=${encodeURIComponent(sessionId)}`)}>Resume session</LinkButton></Panel> : recap.isError ? <Notice tone="danger">This recap is unavailable or you do not have access. <Button variant="secondary" onClick={() => void recap.refetch()}>Try again</Button></Notice> : data?.interrupted ? <><Panel><Badge>Interrupted rehearsal</Badge><h2>Earlier answers are saved</h2><p>{data.correct} fully correct from {data.attempted} accepted attempts.</p>{data.version !== "pbe-daily-v2" && data.results?.map(result=><p key={result.attemptId}>{result.earnedPoints} / {result.availablePoints} points</p>)}<LinkButton to={link('/student/study?mode=Simulation&format=Pbe')}>Start another shortened timed practice</LinkButton></Panel>{pbeResults}</> : data && !data.completedAtUtc ? <Panel><h2>This session is still in progress</h2><p>Complete your session to save its recap.</p><LinkButton to={link(`/student/study?sessionId=${encodeURIComponent(data.sessionId)}&mode=${encodeURIComponent(data.mode)}`)}>Resume session</LinkButton></Panel> : data && <>
       <div className="training-recap-layout">
         <Panel className="training-recap-main">
+          {hasCelebration && <CelebrationBurst celebrate />}
           <Badge tone={data.fullTargetReached ? "success" : "neutral"}>{data.mode} · {data.fullTargetReached ? "Complete" : "Saved"}</Badge>
           <h2 className="training-recap-title">{data.fullTargetReached ? "Practice complete." : "Your practice is saved."}</h2>
+          {hasCelebration && <div className="training-recap-celebrations" role="status">
+            {personalBest && (personalBest.accuracyBeaten || personalBest.correctBeaten) && <p className="training-celebration"><AppIcon name="flag" /><span><strong>New personal best!</strong> {personalBest.accuracyBeaten && personalBest.correctBeaten ? "Your best accuracy and most correct answers in one session." : personalBest.accuracyBeaten ? "Your best accuracy in a single session." : "Your most correct answers in a single session."}</span></p>}
+            {weeklyGoalComplete && <p className="training-celebration"><AppIcon name="check" /><span><strong>Weekly goal complete!</strong> You hit your practice target for this week.</span></p>}
+          </div>}
           <p>{data.correct} correct from {data.attempted} accepted attempts.</p>
           <div className="training-recap-award">
             {featuredMilestone ? <>
@@ -58,6 +91,10 @@ export function SessionRecapPage() {
           <p><small>Completed <time dateTime={data.completedAtUtc!}>{evidenceDate(data.completedAtUtc!)}</time></small></p>
           {!data.fullTargetReached && <p>You finished early. Your accepted answers are saved. The full session target was not reached.</p>}
           <div className="training-recap-actions"><LinkButton to={link("/student")}>Back to Training HQ</LinkButton><LinkButton variant="ghost" to={link("/student/honors")}>View Honors</LinkButton></div>
+          {shareText && <div className="training-recap-share">
+            <Button variant="secondary" onClick={() => void share()}>{shareState === "copied" ? "Copied to clipboard" : "Share your progress"}</Button>
+            {shareState === "failed" && <p><small>Copy didn’t work on this device. Your summary: {shareText}</small></p>}
+          </div>}
         </Panel>
         <aside className="training-recap-side" aria-label="Saved practice details">
           {pbeResults}

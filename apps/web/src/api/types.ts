@@ -262,6 +262,9 @@ export type StudentDashboard = {
     timeZone: string;
     days: { localDate: string; credited: boolean; isToday: boolean }[];
     streakDays: number;
+    streakState: "active" | "paused" | "none";
+    bestStreak: number;
+    streakHistory: { localDate: string; credited: boolean }[];
     sessionsLast7Days: number;
     lastActivityAtUtc: string | null;
   };

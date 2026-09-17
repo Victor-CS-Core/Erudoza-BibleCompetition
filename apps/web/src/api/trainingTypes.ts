@@ -1,7 +1,7 @@
 export type WeeklyTarget = 3 | 4 | 5;
 export type TrainingStepKind = "Review" | "Practice" | "Simulation";
 export type MissionStatus = "Suggested" | "Active" | "Complete" | "Invalidated" | "Unavailable";
-export type BadgeKey = "exact-recall" | "reference-ready" | "chapter-strong" | "full-coverage" | "steady-study" | "review-complete";
+export type BadgeKey = "exact-recall" | "reference-ready" | "chapter-strong" | "full-coverage" | "steady-study" | "review-complete" | "streak-7" | "streak-14" | "streak-30";
 export type SkillScores = {
     exactWording: number;
     recognition: number;
@@ -68,6 +68,11 @@ export type TrainingToday = {
         sessionId: string | null;
     } | null;
     honors: BadgeProgress[];
+    streak: {
+        current: number;
+        best: number;
+        state: "active" | "paused" | "none";
+    };
 };
 export type SessionRecap = {
     version: "training-v1" | "legacy-counts" | "pbe-daily-v2";
@@ -82,6 +87,10 @@ export type SessionRecap = {
     newlyCreditedDay: boolean;
     missionLocalDate: string | null;
     creditedLocalDate: string | null;
+    /** True when this session completed the learner's weekly practice goal. */
+    weeklyGoalComplete: boolean;
+    /** Set when this session set a personal best (Memory sessions). */
+    personalBest: { accuracyBeaten: boolean; correctBeaten: boolean } | null;
     missionSteps: TrainingStep[];
     earnedBadges: BadgeProgress[];
     passageChanges: {

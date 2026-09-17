@@ -1,4 +1,4 @@
-export type IconName = "home" | "book" | "review" | "chart" | "users" | "flag" | "arrow" | "logout" | "menu" | "close" | "search" | "pin" | "chevron" | "grid" | "plus" | "check" | "bell";
+export type IconName = "home" | "book" | "review" | "chart" | "users" | "flag" | "arrow" | "logout" | "menu" | "close" | "search" | "pin" | "chevron" | "grid" | "plus" | "check" | "bell" | "flame";
 const paths: Record<IconName, string> = {
   check: "m5 12 4 4L19 6",
   search: "M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
@@ -17,6 +17,7 @@ const paths: Record<IconName, string> = {
   menu: "M3 6h18M3 12h18M3 18h18",
   close: "m5 5 14 14M5 19 19 5",
   bell: "M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
+  flame: "M12 2s6 5 6 11a6 6 0 0 1-12 0c0-2 1-4 2-5.2.6 1.6 1.6 2.6 3 3.2-.4-3 .1-6 1-9z",
 };
 export function AppIcon({ name }: { name: IconName }) {
   return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>;
