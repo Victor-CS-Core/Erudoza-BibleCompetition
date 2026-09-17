@@ -141,6 +141,14 @@ it("switches Team Practice back on from the season editor", async () => {
   await waitFor(() => expect(practiceApi.enabled).toHaveBeenCalledWith("org-1", true));
 });
 
+it("shows the Team Practice toggle on the new season page", async () => {
+  renderWizard("/admin/seasons/new");
+  const toggle = await screen.findByRole("checkbox", { name: /Enable Team Practice for your club/ });
+  expect(toggle).toBeChecked();
+  const panel = (await screen.findByRole("heading", { name: "Team Practice" })).closest("section")!;
+  expect(within(panel).getByText("On")).toBeInTheDocument();
+});
+
 it("preserves unsaved season book selections until saved or cancelled", async () => {
   renderWizard("/admin/seasons/season-1?step=details");
   fireEvent.click(await screen.findByRole("checkbox", { name: /Ephesians/ }));

@@ -31,7 +31,8 @@ export function SeasonAssignmentEditor({ seasonId, studentId, onDirtyChange }: {
   return <Panel><BookAssignmentEditor key={`${seasonId}-${studentId}`} season={season.data!} studentId={studentId} onDirtyChange={onDirtyChange} name={studentId === me!.userId ? "My assignments" : student!.displayName} /></Panel>;
 }
 function NewPlanner() {
-  return <div className="season-planner"><LinkButton variant="ghost" size="compact" to="/admin/seasons">← All seasons</LinkButton><PageHeader title="New season" description="Choose the books. Assign your students now or later." action={<Badge>Draft</Badge>} /><BookDetails /></div>;
+  const { me } = useAuth();
+  return <div className="season-planner"><LinkButton variant="ghost" size="compact" to="/admin/seasons">← All seasons</LinkButton><PageHeader title="New season" description="Choose the books. Assign your students now or later." action={<Badge>Draft</Badge>} /><BookDetails /><TeamPracticePanel org={me!.organizationId} /></div>;
 }
 function BookDetails({ season, initialPacks = [], onDirtyChange }: { season?: Season; initialPacks?: PackScope[]; onDirtyChange?: (dirty: boolean) => void }) {
   const { me } = useAuth();
