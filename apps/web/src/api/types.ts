@@ -262,6 +262,9 @@ export type StudentDashboard = {
     timeZone: string;
     days: { localDate: string; credited: boolean; isToday: boolean }[];
     streakDays: number;
+    streakState: "active" | "paused" | "none";
+    bestStreak: number;
+    streakHistory: { localDate: string; credited: boolean }[];
     sessionsLast7Days: number;
     lastActivityAtUtc: string | null;
   };
@@ -357,6 +360,8 @@ export type SessionHistoryEntry = {
 export type SessionHistoryPage = {
   sessions: SessionHistoryEntry[];
   nextBefore: string | null;
+};
+
 /** One section of a yearly PBE Bible commentary introduction. */
 export type PbeCommentarySection = { heading: string; body: string };
 

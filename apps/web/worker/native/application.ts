@@ -14,7 +14,6 @@ import { leaderboard } from './training/social';
 import { studentDashboard, studentSessionRecap } from './application/student-dashboard';
 import { engagementOverview, studentExportCsv, studentSessionHistory } from './application/engagement';
 import { buildRoomRecap } from './practice/room-history';
-import { studentDashboard } from './application/student-dashboard';
 import { pbeMaterials } from './application/pbe-materials';
 export { effectiveSources } from './application/model';
 async function mapSeason(ctx: RequestContext, s: Season) { return { ...s, scopeUnitCount: (await effectiveSources(ctx, s.id)).length, assignmentCount: (await studentAssignments(ctx,s.id)).length }; }
