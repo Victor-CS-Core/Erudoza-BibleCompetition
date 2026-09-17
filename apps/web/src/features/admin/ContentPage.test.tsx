@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import { ContentPage } from "./ContentPage";
-vi.mock("../../api/client", () => ({ api: { notebook: vi.fn().mockResolvedValue({ version: 0, entries: [] }), library: vi.fn(), libraryChapter: vi.fn(), progress: vi.fn(), contentPacks: vi.fn(), scriptureCatalog: vi.fn(), scriptureBooks: vi.fn(), scriptureChapters: vi.fn() } }));
+vi.mock("../../api/client", () => ({ api: { notebook: vi.fn().mockResolvedValue({ version: 0, entries: [] }), library: vi.fn(), libraryChapter: vi.fn(), progress: vi.fn(), contentPacks: vi.fn(), scriptureCatalog: vi.fn(), scriptureBooks: vi.fn(), scriptureChapters: vi.fn(), pbeMaterials: vi.fn().mockResolvedValue([]), pbeMaterialCurrent: vi.fn().mockResolvedValue({ material: null }) } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org-1", userId: "user-1" } }) }));
 const library = { translationId: "nkjv" as const, translationName: "New King James Version", version: 1, books: [
   { contentPackId: "eph", bookKey: "EPH", name: "Ephesians", verseCount: 12, chapters: [1,2,3,4,5,6].map(number => ({ number, verses: [1,2] })) },

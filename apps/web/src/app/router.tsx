@@ -13,6 +13,8 @@ import {
 import { LoginPage } from "../features/auth/LoginPage";
 import { CoachOnboardingPage } from "../features/auth/CoachOnboardingPage";
 import { CoachesPage } from "../features/admin/CoachesPage";
+import { MaterialsPage } from "../features/admin/MaterialsPage";
+import { NewsPage } from "../features/news/NewsPage";
 import { LandingPage } from "../features/marketing/LandingPage";
 import { PrivacyPage } from "../features/legal/PrivacyPage";
 import { TermsPage } from "../features/legal/TermsPage";
@@ -93,6 +95,9 @@ export const router = createBrowserRouter([
       { path: "assignments", element: <AssignmentsPage /> },
       { path: "seasons/:seasonId/students/:studentId/progress", element: <ProgressPage /> },
       { path: "content", element: <ContentPage /> },
+      { path: "materials", element: <MaterialsPage /> },
+      { path: "news", element: <NewsPage base="/admin/news" /> },
+      { path: "news/:id", element: <NewsPage base="/admin/news" /> },
       { path: "design-system", element: <DesignSystemPage /> },
       { path: "profile", element: <ProfilePage /> },
       { path: "practice/reviews", element: <Suspense fallback={<LoadingState label="Loading answer reviews…"/>}><DisputeQueue/></Suspense> },
@@ -111,6 +116,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <StudentHomePage /> },
       { path: "assignments", element: <MyAssignmentsPage /> },
+      { path: "news", element: <NewsPage base="/student/news" /> },
+      { path: "news/:id", element: <NewsPage base="/student/news" /> },
       { path: "library", element: <LibraryRedirect /> },
       { path: "study", element: <StudyPage /> },
       { path: "sessions/:sessionId/recap", element: <SessionRecapPage /> },

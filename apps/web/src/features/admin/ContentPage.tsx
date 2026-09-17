@@ -5,6 +5,7 @@ import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { BookBrowser } from "../../components/scripture/BookBrowser";
 import { StudyWorkspace } from "../../components/scripture/StudyWorkspace";
+import { PbeMaterialsSection } from "./PbeMaterialsSection";
 import { Badge, Button, Notice, PageHeader, Panel, Select } from "../../components/ui";
 import "./content-library.css";
 export function ContentPage() {
@@ -22,6 +23,7 @@ export function ContentPage() {
   const index = selected?.chapters.findIndex(c => c.number === chapter) ?? -1;
   return <div className="training-page"><PageHeader title="Scripture library" description="New King James Version" />
     {library.isPending ? <Notice>Loading the NKJV library…</Notice> : library.isError ? <Notice tone="danger">{library.error.message} <Button variant="secondary" onClick={() => void library.refetch()}>Retry library</Button></Notice> : <div className="study-library">
+      <PbeMaterialsSection org={org} seasonId={seasonId} books={library.data.books} onOpenChapter={choose} />
       <Panel id="library-books"><div className="study-books-heading"><h2>Books of the Bible <Badge>{library.data.books.length}</Badge></h2>{selected && <Button variant="secondary" aria-expanded={browserOpen} aria-controls="study-book-browser" onClick={() => setBrowserOpen(!browserOpen)}>{browserOpen ? 'Hide books' : 'Choose book'}</Button>}</div><div id="study-book-browser" hidden={!!selected && !browserOpen}><p>Explore every book. Read at your own pace.</p>
         {assigned.size > 0 && <p>“Assigned” marks books in your study plan. Reading here does not change training progress.</p>}
         {progress.isError && <Notice>Your assignment markers could not load. All books are still available to read.</Notice>}

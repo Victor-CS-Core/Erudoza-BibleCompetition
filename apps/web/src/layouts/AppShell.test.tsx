@@ -50,7 +50,7 @@ it("shows five focused coach shortcuts by default with the rest pin-able from Se
  expect(within(nav).getByRole("link", { name: "Assignments" })).toHaveAttribute("aria-current", "page");
  fireEvent.click(screen.getByRole("button", { name: /^Search sections, (students|seasons), or actions$/ }));
  const dialog = screen.getByRole("dialog");
- for (const name of ["Coaches", "Scripture library", "Your profile"]) expect(within(dialog).getByRole("button", { name: `Pin ${name}` })).toBeInTheDocument();
+ for (const name of ["Coaches", "Scripture library", "PBE materials", "PBE news", "Your profile"]) expect(within(dialog).getByRole("button", { name: `Pin ${name}` })).toBeInTheDocument();
  expect(within(dialog).queryByRole("button", { name: /^Pin Help$/ })).not.toBeInTheDocument();
 });
 it.each([

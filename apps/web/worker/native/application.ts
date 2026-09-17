@@ -11,6 +11,7 @@ import { atomic, contains, deletion, difficulty, editable, effectiveSources, fai
 import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
 import { buildAssignmentNotification } from './application/notifications';
 import { studentDashboard } from './application/student-dashboard';
+import { pbeMaterials } from './application/pbe-materials';
 export { effectiveSources } from './application/model';
 async function mapSeason(ctx: RequestContext, s: Season) { return { ...s, scopeUnitCount: (await effectiveSources(ctx, s.id)).length, assignmentCount: (await studentAssignments(ctx,s.id)).length }; }
 export async function handleApplication(ctx: RequestContext): Promise<Response | null> {
@@ -21,6 +22,11 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         return json(await ctx.env.DB.prepare('SELECT id,name,slug FROM Organizations WHERE id=?').bind(orgId).first());
     if (path === '/seasons' && method === 'GET')
         return json(await seasonSummaries(ctx));
+    // PBE material releases + news authorize themselves per endpoint (requireLearner for
+    // student reads, admin() for proposal management, Owner-only for review/publish);
+    // they must run before the blanket admin gate so students are not rejected outright.
+    const pbeMaterialsResult = await pbeMaterials(ctx);
+    if (pbeMaterialsResult) return pbeMaterialsResult;
     const seasonMatch = path.match(/^\/seasons\/([^/]+)(.*)$/);
     if (seasonMatch && (!seasonMatch[2] || seasonMatch[2] === '/assignments') && method === 'GET') {
         const s = await store.require<Season>('season', seasonMatch[1], orgId);

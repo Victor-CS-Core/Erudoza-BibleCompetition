@@ -5,9 +5,9 @@ it("offers coach management only in coach navigation", () => {
  expect(JSON.stringify(navigation(false))).not.toContain("/admin/coaches");
 });
 
-it("keeps five student destinations with study modes consolidated under Study", () => {
+it("keeps six student destinations with study modes consolidated under Study", () => {
   const items = navigation(false, "season with spaces");
-  expect(items.map(item => item.id)).toEqual(["home", "study", "practice", "progress", "profile"]);
+  expect(items.map(item => item.id)).toEqual(["home", "study", "news", "practice", "progress", "profile"]);
   expect(items.find(item => item.id === "study")?.to).toBe("/student/study?seasonId=season%20with%20spaces");
   expect(currentDestination(items, "/student/sessions/saved/recap")?.id).toBe("study");
   // Legacy library/honors routes and every study mode resolve to the consolidated destinations.
@@ -17,9 +17,9 @@ it("keeps five student destinations with study modes consolidated under Study", 
   expect(navigation(true).some(item => item.id === "honors")).toBe(false);
 });
 
-it("keeps eight focused coach destinations with five default shortcuts", () => {
+it("keeps ten focused coach destinations with five default shortcuts", () => {
   const items = navigation(true, "s");
-  expect(items.map(item => item.id)).toEqual(["overview", "seasons", "students", "coaches", "assignments", "practice", "profile", "library"]);
+  expect(items.map(item => item.id)).toEqual(["overview", "seasons", "students", "coaches", "assignments", "practice", "profile", "library", "materials", "news"]);
   // Help moved out of primary navigation; it stays in the account menu and workspace footer.
   expect(items.some(item => item.id === "wiki")).toBe(false);
   // Students no longer duplicates the Assignments destination as a child link.
@@ -43,4 +43,15 @@ it("keeps My assignments searchable for eligible coaches without adding a nav en
   expect(extras[0].to).toBe("/student/assignments?seasonId=s");
   expect(extras[0].searchOnly).toBe(true);
   expect(navigation(false, "s", true).some(item => item.id === "my-assignments")).toBe(false);
+});
+
+it("exposes PBE materials and PBE news destinations with article deep links", () => {
+  const coach = navigation(true);
+  expect(coach.find(item => item.id === "materials")?.to).toBe("/admin/materials");
+  expect(coach.find(item => item.id === "news")?.to).toBe("/admin/news");
+  expect(navigation(false).find(item => item.id === "news")?.to).toBe("/student/news");
+  // News article readers resolve under the news destination in both workspaces.
+  expect(currentDestination(coach, "/admin/news/some-id")?.id).toBe("news");
+  expect(currentDestination(navigation(false), "/student/news/some-id")?.id).toBe("news");
+  expect(currentDestination(coach, "/admin/materials")?.id).toBe("materials");
 });

@@ -12,9 +12,12 @@ export function navigation(coach: boolean, selectedSeason?: string | null, perso
     { id: "practice", label: "Team Practice", to: "/admin/practice", icon: "users", testId: "nav-team-practice", children: [child("rooms", "Your rooms", "/admin/practice#rooms"), child("create-room", "Create a room", "/admin/practice#create-room", "plus"), child("invitations", "Invitations", "/admin/practice#invitations")] },
     { id: "profile", label: "Your profile", to: "/admin/profile", icon: "users" },
     { id: "library", label: "Scripture library", to: student("/admin/content"), icon: "book", testId: "nav-content", children: [child("books", "Books of the Bible", student("/admin/content") + "#library-books"), child("preview", "Read Scripture", student("/admin/content") + "#library-preview", "book")] },
+    { id: "materials", label: "PBE materials", to: "/admin/materials", icon: "book", testId: "nav-pbe-materials" },
+    { id: "news", label: "PBE news", to: "/admin/news", icon: "bell", testId: "nav-pbe-news" },
   ] : [
     { id: "home", label: "Training HQ", to: student("/student"), icon: "home", testId: "learner-tab-home" },
     { id: "study", label: "Study", to: student("/student/study"), icon: "book", testId: "nav-academy-learner" },
+    { id: "news", label: "PBE news", to: student("/student/news"), icon: "bell", testId: "nav-pbe-news" },
     { id: "practice", label: "Team Practice", to: student("/student/practice"), icon: "users", testId: "nav-team-practice", children: [child("rooms", "Your rooms", student("/student/practice") + "#rooms"), child("invitations", "Invitations", student("/student/practice") + "#invitations")] },
     { id: "progress", label: "Progress", to: student("/student/progress"), icon: "chart", testId: "learner-tab-progress" },
     { id: "profile", label: "Your profile", to: student("/student/profile"), icon: "users" },

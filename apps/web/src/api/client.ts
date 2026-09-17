@@ -150,4 +150,34 @@ export const api = {
     request<Progress>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/progress`),
   coverage: (orgId: string, seasonId: string) =>
     request<SeasonCoverage>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/coverage`),
+  pbeMaterials: (orgId: string) =>
+    request<import("./types").PbeMaterialSummary[]>(`/api/v1/organizations/${orgId}/pbe-materials`),
+  pbeMaterialCurrent: (orgId: string, seasonId: string) =>
+    request<{ material: import("./types").PbeMaterial | null }>(`/api/v1/organizations/${orgId}/pbe-materials/current?seasonId=${encodeURIComponent(seasonId)}`),
+  pbeReleases: (orgId: string) =>
+    request<import("./types").PbeMaterialProposalSummary[]>(`/api/v1/organizations/${orgId}/pbe-materials/releases`),
+  createPbeRelease: (orgId: string, body: { yearLabel: string; material: import("./types").PbeMaterialDraftPayload }) =>
+    request<import("./types").PbeMaterialProposal>(`/api/v1/organizations/${orgId}/pbe-materials/releases`, { method: "POST", body: JSON.stringify(body) }),
+  updatePbeRelease: (orgId: string, id: string, body: { yearLabel: string; material: import("./types").PbeMaterialDraftPayload }) =>
+    request<import("./types").PbeMaterialProposal>(`/api/v1/organizations/${orgId}/pbe-materials/releases/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(body) }),
+  pbeRelease: (orgId: string, id: string) =>
+    request<{ proposal: import("./types").PbeMaterialProposal; diff: import("./types").PbeMaterialDiff; live: import("./types").PbeMaterial | null }>(`/api/v1/organizations/${orgId}/pbe-materials/releases/${encodeURIComponent(id)}`),
+  reviewPbeRelease: (orgId: string, id: string, body: { decision: "approved" | "rejected"; note?: string }) =>
+    request<import("./types").PbeMaterialProposal>(`/api/v1/organizations/${orgId}/pbe-materials/releases/${encodeURIComponent(id)}/review`, { method: "POST", body: JSON.stringify(body) }),
+  watchNadMaterials: (orgId: string) =>
+    request<import("./types").PbeMaterialWatchResult>(`/api/v1/organizations/${orgId}/pbe-materials/watch`, { method: "POST" }),
+  pbeNews: (orgId: string) =>
+    request<import("./types").PbeNewsArticleSummary[]>(`/api/v1/organizations/${orgId}/pbe-news`),
+  pbeNewsArticle: (orgId: string, id: string) =>
+    request<import("./types").PbeNewsArticle>(`/api/v1/organizations/${orgId}/pbe-news/${encodeURIComponent(id)}`),
+  pbeNewsArticles: (orgId: string) =>
+    request<import("./types").PbeNewsArticle[]>(`/api/v1/organizations/${orgId}/pbe-news/articles`),
+  createPbeNewsArticle: (orgId: string, body: import("./types").PbeNewsArticleInput) =>
+    request<import("./types").PbeNewsArticle>(`/api/v1/organizations/${orgId}/pbe-news/articles`, { method: "POST", body: JSON.stringify(body) }),
+  updatePbeNewsArticle: (orgId: string, id: string, body: import("./types").PbeNewsArticleInput) =>
+    request<import("./types").PbeNewsArticle>(`/api/v1/organizations/${orgId}/pbe-news/articles/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(body) }),
+  publishPbeNewsArticle: (orgId: string, id: string) =>
+    request<import("./types").PbeNewsArticle>(`/api/v1/organizations/${orgId}/pbe-news/articles/${encodeURIComponent(id)}/publish`, { method: "POST" }),
+  unpublishPbeNewsArticle: (orgId: string, id: string) =>
+    request<import("./types").PbeNewsArticle>(`/api/v1/organizations/${orgId}/pbe-news/articles/${encodeURIComponent(id)}/unpublish`, { method: "POST" }),
 };

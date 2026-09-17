@@ -297,3 +297,123 @@ export type StudentDashboard = {
     fullTargetReached: boolean | null;
   }[];
 };
+
+/** One section of a yearly PBE Bible commentary introduction. */
+export type PbeCommentarySection = { heading: string; body: string };
+
+/** Deep links back to the original NAD source material. */
+export type PbeMaterialSourceUrls = {
+  versesPdf?: string;
+  commentaryPdf?: string;
+  resourcesPage: string;
+};
+
+export type PbeMaterialRosterBook = { bookKey: string; bookName: string; chapters: number[] };
+
+/** Live, approved PBE release for a competition year (kind='pbe-material'). */
+export type PbeMaterial = {
+  id: string;
+  yearLabel: string;
+  books: PbeMaterialRosterBook[];
+  commentary: { bookName: string; title: string; sections: PbeCommentarySection[] };
+  sourceUrls: PbeMaterialSourceUrls;
+  approvedBy: string;
+  approvedAtUtc: string;
+  releaseNote?: string;
+  version: number;
+};
+
+/** Summary DTO returned by GET /pbe-materials for live releases. */
+export type PbeMaterialSummary = {
+  yearLabel: string;
+  books: PbeMaterialRosterBook[];
+  commentary: { bookName: string; title: string; sectionHeadings: string[] };
+  sourceUrls: PbeMaterialSourceUrls;
+  approvedAtUtc: string;
+};
+
+/** Draft payload for a proposal create/update (no id/status/version). */
+export type PbeMaterialDraftPayload = {
+  yearLabel: string;
+  books: PbeMaterialRosterBook[];
+  commentary: { bookName: string; title: string; sections: PbeCommentarySection[] };
+  sourceUrls: PbeMaterialSourceUrls;
+};
+
+export type PbeMaterialProposalStatus = "draft" | "approved" | "rejected";
+
+/** The review pipeline record (kind='pbe-material-proposal'). */
+export type PbeMaterialProposal = {
+  id: string;
+  yearLabel: string;
+  status: PbeMaterialProposalStatus;
+  origin: "watcher" | "manual";
+  proposedBy: string;
+  proposedAtUtc: string;
+  material: PbeMaterialDraftPayload;
+  reviewNote?: string;
+  decidedBy?: string | null;
+  decidedAtUtc?: string | null;
+};
+
+/** Summary DTO for the proposal list. */
+export type PbeMaterialProposalSummary = {
+  id: string;
+  yearLabel: string;
+  status: PbeMaterialProposalStatus;
+  origin: "watcher" | "manual";
+  proposedBy: string;
+  proposedAtUtc: string;
+  decidedBy?: string | null;
+  decidedAtUtc?: string | null;
+};
+
+/** Diff of a proposal against the current live release for the same year. */
+export type PbeMaterialDiff = {
+  booksChanged: boolean;
+  addedSections: string[];
+  removedSections: string[];
+  changedSections: string[];
+  rosterChanged: boolean;
+};
+
+export type PbeMaterialWatchDraft = { proposalId: string; yearLabel: string; title: string; sourceUrl: string };
+export type PbeMaterialWatchResult = { checkedAt: string; mediaChecked: number; drafted: PbeMaterialWatchDraft[] };
+
+/** One section of a PBE news article body. */
+export type PbeNewsSection = { heading: string; body: string };
+
+/** News article record (kind='pbe-news-article'); students only ever see published articles. */
+export type PbeNewsArticle = {
+  id: string;
+  title: string;
+  summary: string;
+  sections: PbeNewsSection[];
+  sourceUrl?: string;
+  sourceLabel?: string;
+  status: "draft" | "published";
+  createdBy: string;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+  publishedAtUtc?: string;
+  publishedBy?: string;
+};
+
+/** Feed DTO returned by GET /pbe-news (published articles, newest first). */
+export type PbeNewsArticleSummary = {
+  id: string;
+  title: string;
+  summary: string;
+  publishedAtUtc: string | null;
+  sourceUrl?: string | null;
+  sourceLabel?: string | null;
+};
+
+/** Create/update payload for a news article (publish state is separate). */
+export type PbeNewsArticleInput = {
+  title: string;
+  summary: string;
+  sections: PbeNewsSection[];
+  sourceUrl?: string;
+  sourceLabel?: string;
+};
