@@ -102,7 +102,7 @@
   .wiki-header-inner { padding-inline:16px; }
   .wiki-header-inner .er-wordmark { gap:8px; }
   .wiki-header-account .ds-button { padding-inline:12px; }
-  .wiki-header-signup { display:none; }
+  .wiki-header-account .wiki-header-signup { display:none; }
   .wiki-main { padding-inline:16px; }
   .wiki-search-panel { padding:16px; }
 }
