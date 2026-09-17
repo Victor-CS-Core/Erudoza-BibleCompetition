@@ -4,6 +4,9 @@ import { pbkdf2Sync } from 'node:crypto';
 import { Response as TestServiceResponse } from 'miniflare';
 import type { Request as TestRequest, Response as TestResponse } from 'miniflare';
 import { createNativeTestApp, TEST_ORG } from '../test-runtime';
+import { runScheduledWatch } from './pbe-materials';
+import type { Env } from '../types';
+import { vi } from 'vitest';
 
 const libraryOrg = '00000000-0000-4000-8000-000000000066';
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
@@ -371,6 +374,49 @@ it('returns 502 with a clear message when nadpbe.org is unreachable', async () =
   expect(failed.status).toBe(502);
   const message = await failed.text();
   expect(message).toContain('nadpbe.org');
+});
+
+it('runs the NAD watch from the scheduled trigger without HTTP auth and records the run', async () => {
+  // Distinct fixture URLs so this test is independent of the manual-watch test above (dedupe by source URL).
+  const scheduledMedia = [
+    { id: 111, date: '2026-08-20T10:00:00', slug: 'mark-commentary-2027', mime_type: 'application/pdf', source_url: 'https://nadpbe.org/wp-content/uploads/2026/08/mark-commentary.pdf', title: { rendered: 'Mark Commentary 2027' }, caption: { rendered: '' } },
+  ];
+  const scheduledSearch = [
+    { id: 211, title: 'PBE 2027 books announced', url: 'https://nadpbe.org/pbe-2027-books/', type: 'post', subtype: 'post' },
+  ];
+  vi.stubGlobal('fetch', async (url: string | URL | Request) => {
+    const u = String(url);
+    if (u.includes('/wp-json/wp/v2/search')) return Response.json(scheduledSearch);
+    if (u.includes('/wp-json/wp/v2/media')) return Response.json(scheduledMedia);
+    throw new Error(`Unexpected NAD URL: ${u}`);
+  });
+  try {
+    const result = await runScheduledWatch({ DB: app.db } as unknown as Env);
+    expect(result.mediaChecked).toBe(3); // one PDF examined across three search queries
+    expect(result.drafted).toHaveLength(1);
+    expect(result.drafted[0].sourceUrl).toContain('mark-commentary.pdf');
+    expect(result.drafted[0].yearLabel).toBe('2027-28'); // guessed from "2027" in the title
+    expect(result.newsDrafted).toHaveLength(2); // one per new PDF + one new announcement
+    // The proposal is a draft from the watcher identity, exactly like the manual run.
+    const stored = await libRow('pbe-material-proposal', result.drafted[0].proposalId);
+    const proposal = JSON.parse(stored!.data) as { origin: string; proposedBy: string; status: string };
+    expect(proposal.origin).toBe('watcher'); expect(proposal.proposedBy).toBe('nad-watcher'); expect(proposal.status).toBe('draft');
+    // The run itself is recorded for the audit trail.
+    const runs = await app.db.prepare("SELECT data FROM Records WHERE kind='pbe-watcher-run' AND org_id=? ORDER BY id").bind(libraryOrg).all<{ data: string }>();
+    const recorded = runs.results.map(r => JSON.parse(r.data) as { trigger: string; mediaChecked: number; drafted: number; newsDrafted: number; checkedAt: string });
+    const scheduled = recorded.filter(r => r.trigger === 'scheduled');
+    expect(scheduled.length).toBeGreaterThan(0);
+    const last = scheduled[scheduled.length - 1];
+    expect(last.checkedAt).toBe(result.checkedAt);
+    expect(last.mediaChecked).toBe(result.mediaChecked);
+    expect(last.drafted).toBe(result.drafted.length);
+    expect(last.newsDrafted).toBe(result.newsDrafted.length);
+    // A second scheduled run drafts nothing new (dedupe), but still records the run.
+    const rerun = await runScheduledWatch({ DB: app.db } as unknown as Env);
+    expect(rerun.drafted).toEqual([]); expect(rerun.newsDrafted).toEqual([]);
+  } finally {
+    vi.unstubAllGlobals();
+  }
 });
 
 it('completes a watcher draft via PUT and approves it strictly', async () => {

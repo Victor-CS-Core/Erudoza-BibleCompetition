@@ -11,6 +11,7 @@ import { handleStudy } from "./study/routes";
 import { handleScripture } from "./study/scripture";
 import { handleOnboarding } from "./onboarding/routes";
 import { handleCoachManagement } from "./onboarding/invitations";
+import { runScheduledWatch } from "./application/pbe-materials";
 import { enforcePerimeter } from "./perimeter";
 export { PracticeRoom } from "./practice/room";
 export { PracticeReports } from "./practice/reports";
@@ -61,6 +62,17 @@ export default {
       if(error instanceof HttpError) return json({title:error.message,detail:error.message},error.status);
       console.error("Native API operation failed",error instanceof Error?error.name:"UnknownError");
       return json({title:"Service unavailable",detail:"The operation could not be completed. Please retry."},503);
+    }
+  },
+  // Cloudflare cron trigger: weekly NAD PBE materials watch. Drafts only —
+  // the master admin reviews everything in /admin/materials. Runs as the
+  // first-party system identity, so no HTTP auth is involved.
+  async scheduled(_event: unknown, env: Env): Promise<void> {
+    try {
+      const result = await runScheduledWatch(env);
+      console.log(`NAD watcher scheduled run: checked ${result.mediaChecked} media items, drafted ${result.drafted.length} proposals + ${result.newsDrafted.length} news articles.`);
+    } catch (error) {
+      console.error("NAD watcher scheduled run failed", error instanceof Error ? error.message : "UnknownError");
     }
   }
 };

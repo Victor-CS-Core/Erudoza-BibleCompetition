@@ -1,6 +1,7 @@
-import type { Actor, RequestContext } from '../types';
+import type { Actor, Env, RequestContext } from '../types';
 import { body, HttpError, json, requiredString } from '../types';
 import { LIBRARY_ORG } from './library-access';
+import { Store } from '../store';
 import { atomic, fail, id, requireLearner } from './model';
 import type { Season } from './model';
 
@@ -385,8 +386,26 @@ export interface WatcherResult {
   newsDrafted: { articleId: string; title: string; sourceUrl: string }[];
 }
 
-async function watchNad(ctx: RequestContext): Promise<WatcherResult> {
-  contentAccess(ctx.actor);
+/** kind='pbe-watcher-run' — audit trail of watcher checks (scheduled + manual). */
+export interface PbeWatcherRun {
+  id: string;
+  checkedAt: string;
+  trigger: 'scheduled' | 'manual';
+  mediaChecked: number;
+  drafted: number;
+  newsDrafted: number;
+}
+
+async function recordWatchRun(ctx: RequestContext, result: WatcherResult, trigger: PbeWatcherRun['trigger']): Promise<void> {
+  const runId = id();
+  const run: PbeWatcherRun = {
+    id: runId, checkedAt: result.checkedAt, trigger,
+    mediaChecked: result.mediaChecked, drafted: result.drafted.length, newsDrafted: result.newsDrafted.length,
+  };
+  await insertLib(ctx, 'pbe-watcher-run', runId, run).run();
+}
+
+async function runWatchCore(ctx: RequestContext): Promise<WatcherResult> {
   const checkedAt = new Date().toISOString();
   const drafted: WatcherResult['drafted'] = [], newsDrafted: WatcherResult['newsDrafted'] = [];
   let mediaChecked = 0;
@@ -446,6 +465,37 @@ async function watchNad(ctx: RequestContext): Promise<WatcherResult> {
   }
 
   return { checkedAt, mediaChecked, drafted, newsDrafted };
+}
+
+async function watchNad(ctx: RequestContext): Promise<WatcherResult> {
+  contentAccess(ctx.actor);
+  const result = await runWatchCore(ctx);
+  await recordWatchRun(ctx, result, 'manual');
+  return result;
+}
+
+/**
+ * Entry point for the Cloudflare cron trigger (see the `triggers.crons` in the
+ * wrangler configs). Runs the NAD watch as the first-party system identity —
+ * no HTTP request and no session auth involved. Drafts only; the master admin
+ * still reviews everything in /admin/materials.
+ */
+export async function runScheduledWatch(env: Env): Promise<WatcherResult> {
+  const ctx: RequestContext = {
+    request: new Request('https://internal/scheduled/pbe-watch'),
+    env,
+    actor: {
+      userId: 'nad-watcher', organizationId: LIBRARY_ORG, organizationName: 'Erudoza Built-in Scripture Library',
+      displayName: 'NAD watcher', userName: 'nad-watcher', email: null,
+      kind: 'Adult', role: 'Owner', credentialVersion: '0',
+    },
+    path: '/pbe-materials/watch',
+    orgId: LIBRARY_ORG,
+    store: new Store(env.DB),
+  };
+  const result = await runWatchCore(ctx);
+  await recordWatchRun(ctx, result, 'scheduled');
+  return result;
 }
 
 /* ---------------- news ---------------- */
