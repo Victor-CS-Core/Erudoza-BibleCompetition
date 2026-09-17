@@ -5,10 +5,10 @@
 .training-login-brand .er-wordmark-name { font:32px/1 var(--er-font-reading); }
 .training-login-brand .er-wordmark-mark { width:56px; height:56px; }
 .training-login-brand .er-wordmark-tagline { font-size:var(--er-text-xs); }
-.training-login-message { margin:64px 0 32px; max-width:480px; }
-.training-login-message h2 { color:var(--er-on-navy); margin:0 0 24px; text-wrap:balance; }
+.training-login-message { margin:80px 0 40px; max-width:560px; }
+.training-login-message h2 { color:var(--er-on-navy); margin:0 0 28px; text-wrap:balance; font-size:var(--er-text-section); line-height:1.15; }
 .training-login-message h2 em { font-style:normal; }
-.training-login-message>p { color:var(--er-on-navy); max-width:42ch; }
+.training-login-message>p { color:var(--er-on-navy); max-width:44ch; font-size:var(--er-text-lead); line-height:1.6; }
 .training-login-art { display:block; width:100%; height:auto; border-radius:var(--er-radius-card); margin-top:auto; }
 .training-login-coach-art { max-height:340px; object-fit:contain; }
 .training-login-motto { font-size:var(--er-text-sm); margin-top:24px; }
