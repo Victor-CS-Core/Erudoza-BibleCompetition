@@ -9,6 +9,7 @@ import { lifecycleApi } from "../../api/lifecycle";
 vi.mock("../../api/lifecycle", () => ({ lifecycleApi: { removeAssignment: vi.fn(), correctAssignment: vi.fn(), transitionSeason: vi.fn() } }));
 vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), enabled: vi.fn() } }));
 import { SeasonAssignmentEditor, SeasonWizardPage } from "./SeasonWizardPage";
+import { ToastProvider } from "../../components/ui";
 
 vi.mock("../../api/client", () => ({ api: { library: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn(), scriptureCatalog: vi.fn(), students: vi.fn(), season: vi.fn(), seasonScope: vi.fn(), assignments: vi.fn(), defineScope: vi.fn(), assign: vi.fn(), setDifficulty: vi.fn(), createSeason: vi.fn(), activate: vi.fn(), deleteSeason: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org-1", userId: "coach", displayName: "Coach", kind: "Adult", role: "Owner" } }) }));
@@ -16,7 +17,7 @@ const range = { bookKey: "DAN", startChapter: 2, startVerse: 1, endChapter: 2, e
 const season = { id: "season-1", organizationId: "org-1", name: "Daniel 2026", yearLabel: "2026", status: "ContentReady", ruleProfileKey: "PBE_STYLE_V1", ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, scopeUnitCount: 8, assignmentCount: 0 };
 const assignment = { id: "a1", studentUserId: "student-1", type: "PrimarySpecialist", ...range, difficulty: "Foundation" as const, studentDisplayName: "Daniel Student" };
 function renderWizard(path = "/admin/seasons/season-1") {
-  return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}><MemoryRouter initialEntries={[path]}><Routes><Route path="/admin/seasons" element={<h1>All seasons list</h1>} /><Route path="/admin/seasons/new" element={<SeasonWizardPage />} /><Route path="/admin/seasons/:seasonId" element={<SeasonWizardPage />} /></Routes></MemoryRouter></QueryClientProvider>);
+  return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}><MemoryRouter initialEntries={[path]}><Routes><Route path="/admin/seasons" element={<h1>All seasons list</h1>} /><Route path="/admin/seasons/new" element={<ToastProvider><SeasonWizardPage /></ToastProvider>} /><Route path="/admin/seasons/:seasonId" element={<ToastProvider><SeasonWizardPage /></ToastProvider>} /></Routes></MemoryRouter></QueryClientProvider>);
 }
 beforeEach(() => {
   vi.clearAllMocks();
@@ -113,7 +114,7 @@ describe("Two-step season planner", () => {
     expect(await screen.findByText(/This student is unavailable/)).toBeInTheDocument();
   });
   it("reuses the book editor without setup chrome from student management", async () => {
-    render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><SeasonAssignmentEditor seasonId="season-1" studentId="student-1" /></MemoryRouter></QueryClientProvider>);
+    render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><ToastProvider><SeasonAssignmentEditor seasonId="season-1" studentId="student-1" /></ToastProvider></MemoryRouter></QueryClientProvider>);
     expect(await screen.findByRole("checkbox", { name: /DAN/ })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Season planner" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Start verse")).not.toBeInTheDocument();

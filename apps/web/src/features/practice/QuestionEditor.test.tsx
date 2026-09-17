@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import type { PracticeBootstrap } from "../../api/practice";
 import { QuestionEditor } from "./QuestionEditor";
+import { ToastProvider } from "../../components/ui";
 
 vi.mock("../../api/client", () => ({ api: { library: vi.fn(), seasonScope: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn() } }));
 vi.mock("../../api/practice", () => ({ practiceApi: { import: vi.fn(), publish: vi.fn() } }));
@@ -12,7 +13,7 @@ const data: PracticeBootstrap = { enabled: true, seasons: [{ id: "daniel", name:
   { id: "published", seasonId: "daniel", published: true, question },
   { id: "draft", seasonId: "daniel", published: false, question: { ...question, prompt: "What did the king ask?", reference: "Daniel 2:1" } },
 ] };
-function mount(value = data) { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><QuestionEditor org="org" data={value} /></QueryClientProvider>); }
+function mount(value = data) { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><ToastProvider><QuestionEditor org="org" data={value} /></ToastProvider></QueryClientProvider>); }
 beforeEach(() => { vi.clearAllMocks(); vi.mocked(api.library).mockResolvedValue({ translationId: "nkjv", translationName: "New King James Version", version: 1, books: [] }); vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "pack", includes: [{ bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 1 }], excludes: [] }); vi.mocked(api.contentPacks).mockResolvedValue([]); vi.mocked(api.sourceUnits).mockResolvedValue([]); });
 describe("Coach question discovery", () => {
   it("filters saved questions by reference and publication status", async () => {

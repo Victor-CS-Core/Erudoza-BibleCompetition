@@ -5,6 +5,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { profileApi } from "../profile/profile";
 import { api } from "../../api/client";
 import { MyAssignmentsPage } from "./MyAssignmentsPage";
+import { ToastProvider } from "../../components/ui";
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "coach", displayName: "Demo Coach", organizationId: "org", kind: "Adult", role: "Owner" } }) }));
 vi.mock("../../api/client", () => ({ api: { library: vi.fn(), seasons: vi.fn(), seasonScope: vi.fn(), sourceUnits: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
 const range = { bookKey: "Daniel", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 };
@@ -19,7 +20,7 @@ beforeEach(() => {
  vi.mocked(api.assignMyself).mockImplementation(async (_org, _season, input) => ({ id: "assignment", studentUserId: "coach", ...input, ...input.range } as never));
  vi.mocked(api.removeMyAssignment).mockResolvedValue();
 });
-function mount() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}><MemoryRouter initialEntries={["/student/assignments?seasonId=season"]}><MyAssignmentsPage /></MemoryRouter></QueryClientProvider>); }
+function mount() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}><MemoryRouter initialEntries={["/student/assignments?seasonId=season"]}><ToastProvider><MyAssignmentsPage /></ToastProvider></MemoryRouter></QueryClientProvider>); }
 it("adds a personal assignment using permitted passages and Standard difficulty", async () => {
  mount();
  const add = await screen.findByRole("button", { name: "Save assignments" });

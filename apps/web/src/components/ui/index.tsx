@@ -3,6 +3,7 @@ import type { Ref, AnchorHTMLAttributes, ButtonHTMLAttributes, HTMLAttributes, I
 import { Link, type LinkProps } from "react-router-dom";
 export { ProgressMeter, WeeklyProgressStrip } from "./TrainingProgress";
 export { HonorArtwork } from "./HonorArtwork";
+export { ToastProvider, useToast, type ToastTone, type ToastAction, type ToastOptions, type ToastApi } from "./toast";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "inverse";
 type ActionStyle = { variant?: Variant; size?: "default" | "compact" | "large" };

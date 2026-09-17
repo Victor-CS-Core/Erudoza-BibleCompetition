@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type SetStateAction } from
 import type { AvatarKind, CharacterConfig, SaveCharacterProfile, ShareOptions } from '../../../shared/profileCharacter';
 import { useAuth } from '../../auth/AuthContext';
 import { ApiError } from '../../api/client';
-import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel, Select } from '../../components/ui';
+import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, useToast } from '../../components/ui';
 import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';
 import { MasteryHonorArtwork } from './MasteryHonorArtwork';
 import { completeProfile, useMyProfile, useSaveCharacterProfile, type MyProfile } from './profile';
@@ -60,7 +60,8 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
   const draft = session ?? profileDraft(profile), config = draft.character;
   const dirty = session !== null && JSON.stringify(payload(session)) !== JSON.stringify(payload(profileDraft(profile)));
   const rememberedHair = useRef<Record<BodyType, string>>({ male: 'curls', female: 'curly-bob', [config.bodyType]: config.style });
-  const [status, setStatus] = useState(''), [renderError, setRenderError] = useState('');
+  const [renderError, setRenderError] = useState('');
+  const toast = useToast();
   const [previewMode, setPreviewMode] = useState<PreviewMode>('still');
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const openFullscreen = () => {
@@ -77,7 +78,6 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
   const heading = useRef<HTMLDivElement>(null);
   function navigate(next: Page) { setPage(next); requestAnimationFrame(() => heading.current?.focus()); }
   function change(update: (current: EditorDraft) => EditorDraft) {
-    setStatus('');
     setSession(previous => {
       const current = previous ?? profileDraft(profile), next = update(current);
       return JSON.stringify(payload(current)) === JSON.stringify(payload(next)) ? previous : next;
@@ -98,14 +98,14 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
   }
   function saveChanges() {
     if (!dirty || save.isPending) return;
-    save.mutate(payload(draft), { onSuccess: () => { setSession(null); setStatus('Profile changes saved.'); } });
+    save.mutate(payload(draft), { onSuccess: () => { setSession(null); toast.success('Profile changes saved.'); } });
   }
   async function reloadSaved() {
     setReloadError(''); setReloading(true);
     const result = await refresh();
     setReloading(false);
     if (result.isError) { setReloadError(result.error.message || 'Unable to reload your profile. Your draft is still here.'); return; }
-    setSession(null); save.reset(); setConfirmReload(false); setStatus('Saved profile reloaded.');
+    setSession(null); save.reset(); setConfirmReload(false); toast.success('Saved profile reloaded.');
   }
   const earned = profile.honors.filter(honor => honor.earnedAtUtc);
   const earnedKeys = new Set(earned.map(honor => honor.key));
@@ -154,7 +154,6 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
   return <div className="training-page profile-page">
     <div className="profile-navigation"><span className="breadcrumb">Account <span aria-hidden="true">/</span> {page}</span><nav aria-label="Profile pages">{pages.map(item => <Button key={item} variant="ghost" aria-current={page === item ? 'page' : undefined} onClick={() => navigate(item)}>{item}</Button>)}</nav></div>
     <div ref={heading} tabIndex={-1} className="profile-heading"><PageHeader title={page === 'Profile' ? 'Your profile' : page === 'Character' ? 'Make your Pathfinder' : page === 'Honors' ? 'Your displayed Honors' : 'Share your character'} description={`${profile.displayName} · ${me?.organizationName ?? ''}`}/></div>
-    {status && <Notice tone="success">{status}</Notice>}
     {unavailable && <Notice><p>Some selected Honors, attire, or character options are no longer available to your account. Remove those choices to keep editing the rest of your profile.</p><Button variant="secondary" disabled={save.isPending || reloading} onClick={removeUnavailable}>Remove unavailable choices</Button></Notice>}
     {saveError && <Notice tone="danger"><p>{saveError}</p><p>Your changes are still here.{conflict ? ' Reload the saved profile before making a new save.' : ' Review your choices and try again.'}</p>{conflict && <Button variant="secondary" disabled={save.isPending} onClick={() => setConfirmReload(true)}>Reload saved profile</Button>}</Notice>}
     {renderError && <Notice tone="danger"><p>{renderError}</p><Button variant="secondary" onClick={() => { setRenderError(''); setRendererVersion(version => version + 1); }}>Retry artwork</Button></Notice>}

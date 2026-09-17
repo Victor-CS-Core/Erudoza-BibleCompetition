@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { practiceApi, pbeDisputeApi, type PracticeRoom } from "../../api/practice";
 import { PracticePage } from "./PracticePage";
+import { ToastProvider } from "../../components/ui";
 
 const auth = vi.hoisted(() => ({ me: { userId: "player", organizationId: "org", kind: "Student" } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => auth }));
@@ -18,7 +19,7 @@ function mount(snapshot: PracticeRoom, path = snapshot.isCoach ? "/admin/practic
   vi.mocked(practiceApi.room).mockResolvedValue(snapshot);
   vi.mocked(practiceApi.command).mockResolvedValue(snapshot);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}><Routes><Route path="/student/practice/:roomId" element={<PracticePage />} /><Route path="/admin/practice/:roomId" element={<PracticePage />} /></Routes></MemoryRouter></QueryClientProvider>);
+  render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}><Routes><Route path="/student/practice/:roomId" element={<ToastProvider><PracticePage /></ToastProvider>} /><Route path="/admin/practice/:roomId" element={<ToastProvider><PracticePage /></ToastProvider>} /></Routes></MemoryRouter></QueryClientProvider>);
   return client;
 }
 beforeEach(() => {

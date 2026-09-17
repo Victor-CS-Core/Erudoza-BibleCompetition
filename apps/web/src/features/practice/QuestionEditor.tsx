@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import { practiceApi, type PracticeBootstrap, type PracticeQuestion } from "../../api/practice";
-import { Badge, Button, ExternalLinkButton, Input, Notice, Panel, Select, Textarea } from "../../components/ui";
+import { Badge, Button, ExternalLinkButton, Input, Notice, Panel, Select, Textarea, useToast } from "../../components/ui";
 import { parseQuestionImport } from "./practiceUtils";
 import { scopePacks, withinRange } from "../admin/passageRanges";
 
@@ -26,7 +26,7 @@ export function QuestionEditor({ org, data }: { org: string; data: PracticeBoots
   const [preview, setPreview] = useState<PracticeQuestion[] | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const toast = useToast();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const selectedSeason = season || data.seasons[0]?.id || "";
@@ -39,11 +39,11 @@ export function QuestionEditor({ org, data }: { org: string; data: PracticeBoots
 
   const seasonQuestions = data.questions.filter(question => question.seasonId === selectedSeason);
   const visibleQuestions = seasonQuestions.filter(question => (status === "all" || (status === "published" ? question.published : !question.published)) && `${question.question.prompt} ${question.question.reference}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()));
-  async function run(work: () => Promise<unknown>) { setPending(true); setError(""); setSuccess(""); try { await work(); await cache.invalidateQueries({ queryKey: ["practice", org] }); setSuccess("Saved. Drafts require publication before matches can use them."); } catch (e) { setError(e instanceof Error ? e.message : "Could not save questions."); } finally { setPending(false); } }
+  async function run(work: () => Promise<unknown>) { if (pending) return; setPending(true); setError(""); try { await work(); await cache.invalidateQueries({ queryKey: ["practice", org] }); toast.success("Saved. Drafts require publication before matches can use them."); } catch (e) { toast.danger(e instanceof Error ? e.message : "Could not save questions."); } finally { setPending(false); } }
   function prepare() { try { if (!selectedPack || !availableUnits.some(u => u.id === unit)) throw new Error("Choose a source within the selected season passages."); const normalized = parts.map(part => ({ ...part, acceptedAnswers: part.acceptedAnswers.map(answer => answer.trim()).filter(Boolean) })); if (normalized.some(part => !part.acceptedAnswers.length)) throw new Error("Each scoring part needs at least one accepted answer."); setPreview([{ id: identity.id, contentPackId: pack, sourceUnitId: unit, prompt, kind, parts: normalized, ordered, reference, evidence, version: identity.version }]); setError(""); } catch (e) { setError(e instanceof Error ? e.message : "Invalid scoring parts."); } }
   return <Panel className="coach-question-bank"><header><h2>Coach question bank</h2><p>Prepare the questions your students will practice. Save drafts, review the answers against the source, then publish them for sessions to use.</p></header>
     <div className="practice-form"><Notice><strong>Team Practice</strong><p>Questions for Arcade matches, with accepted answers and scoring points.</p></Notice><Notice><strong>PBE training</strong><p>Questions for Solo PBE, PBE team matches and simulations, with learning targets and coverage checks.</p></Notice></div>
-    {error && <Notice tone="danger">{error}</Notice>}{success && <Notice tone="success">{success}</Notice>}
+    {error && <Notice tone="danger">{error}</Notice>}
     <div className="practice-form"><label>Question season<Select disabled={!data.seasons.length} value={selectedSeason} onChange={e => { setSeason(e.target.value); setConversion(undefined); setPack(""); setUnit(""); setPreview(null); }}>{!data.seasons.length && <option value="">No active seasons</option>}{data.seasons.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</Select></label>
     <label>Question format<Select disabled={!selectedSeason} value={format} onChange={e=>setFormat(e.target.value)}><option value="legacy">Existing Team Practice</option><option value="pbe">PBE training</option></Select></label></div>
     {!selectedSeason ? <Notice><h3>Set up a season before adding questions</h3><p>Create a season and choose its Scripture passages. Then return here to prepare questions from that material.</p><ExternalLinkButton variant="primary" href="/admin/seasons">Manage seasons</ExternalLinkButton></Notice> : format === "pbe" ? (selectedSeason ? <PbeQuestionEditor key={`${selectedSeason}:${conversion?.id??"new"}:${conversion?.version??0}`} org={org} season={selectedSeason} initialLegacy={conversion}/> : <p>Create an active season first.</p>) : <>

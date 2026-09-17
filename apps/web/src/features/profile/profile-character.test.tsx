@@ -5,6 +5,7 @@ import type { CharacterProfileFields, SaveCharacterProfile } from '../../../shar
 import { ProfilePage } from './ProfilePage';
 import { ProfileAvatar } from './ProfileAvatar';
 import { profileApi, type MyProfile } from './profile';
+import { ToastProvider } from "../../components/ui";
 
 vi.mock('../../auth/AuthContext', () => ({ useAuth: () => ({ me: { userId: 'self', organizationId: 'academy', organizationName: 'Academy', displayName: 'Anna Reed', userName: 'anna.reed', kind: 'Student', role: 'Student' } }) }));
 const base: MyProfile & CharacterProfileFields = {
@@ -21,7 +22,7 @@ function mount(value = structuredClone(base)) {
   vi.spyOn(profileApi, 'me').mockResolvedValue(value);
   vi.spyOn(profileApi, 'identities').mockResolvedValue([{ userId: 'self', avatarHonorKey: null }]);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const view = render(<QueryClientProvider client={client}><ProfileAvatar userId="self" displayName="Anna Reed"/><ProfilePage/></QueryClientProvider>);
+  const view = render(<QueryClientProvider client={client}><ProfileAvatar userId="self" displayName="Anna Reed"/><ToastProvider><ProfilePage/></ToastProvider></QueryClientProvider>);
   return { ...view, client };
 }
 async function page(name: string) {

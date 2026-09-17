@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { AuthProvider } from "../auth/AuthContext";
+import { ToastProvider } from "../components/ui";
 
 const client = new QueryClient({
   defaultOptions: {
@@ -11,7 +12,7 @@ const client = new QueryClient({
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={client}>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider><ToastProvider>{children}</ToastProvider></AuthProvider>
     </QueryClientProvider>
   );
 }

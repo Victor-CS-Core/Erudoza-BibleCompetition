@@ -8,6 +8,7 @@ import { lifecycleApi } from "../../api/lifecycle";
 vi.mock("../../api/lifecycle", () => ({ lifecycleApi: { setStudentActive: vi.fn() } }));
 import type { Season, SeasonCoverage } from "../../api/types";
 import { AssignmentsPage, SeasonsListPage, StudentsPage } from "./SimpleAdminPages";
+import { ToastProvider } from "../../components/ui";
 
 vi.mock("../../api/client", () => ({ api: { seasons: vi.fn(), students: vi.fn(), coverage: vi.fn(), createStudent: vi.fn(), resetStudentPassword: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org-1" } }) }));
@@ -19,7 +20,7 @@ const coverage: SeasonCoverage = { seasonId: "active", seasonName: "Daniel", sea
 function Location() { return <output data-testid="location">{useLocation().search}</output>; }
 function renderPage(ui: ReactNode, route = "/") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[route]}>{ui}<Location /></MemoryRouter></QueryClientProvider>);
+  return render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[route]}><ToastProvider>{ui}</ToastProvider><Location /></MemoryRouter></QueryClientProvider>);
 }
 
 describe("Coach directory pages", () => {

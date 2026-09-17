@@ -7,6 +7,7 @@ import { useAuth } from "../../auth/AuthContext";
 import type { Me } from "../../api/types";
 import { ApiError } from "../../api/client";
 import { CoachesPage } from "./CoachesPage";
+import { ToastProvider } from "../../components/ui";
 
 vi.mock("../../auth/AuthContext", () => ({ useAuth: vi.fn() }));
 vi.mock("../../api/onboarding", () => ({ onboardingApi: { options: vi.fn(), coaches: vi.fn(), invitations: vi.fn(), invite: vi.fn(), resend: vi.fn(), revoke: vi.fn(), changeRole: vi.fn(), removeCoach: vi.fn() } }));
@@ -19,7 +20,7 @@ const directory: Coach[] = [
 ];
 function setup() {
  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
- render(<QueryClientProvider client={client}><MemoryRouter><CoachesPage /></MemoryRouter></QueryClientProvider>);
+ render(<QueryClientProvider client={client}><MemoryRouter><ToastProvider><CoachesPage /></ToastProvider></MemoryRouter></QueryClientProvider>);
 }
 function authAs(me: Me) {
  vi.mocked(useAuth).mockReturnValue({ me, loading: false, error: null, login: vi.fn(), logout: vi.fn(), refresh: vi.fn(), acceptSession: vi.fn() });

@@ -6,7 +6,7 @@ import { api } from "../../api/client";
 import { lifecycleApi } from "../../api/lifecycle";
 import type { Student } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { Button, Input, LinkButton, Notice, PageHeader, Panel, Select } from "../../components/ui";
+import { Button, Input, LinkButton, Notice, PageHeader, Panel, Select, useToast } from "../../components/ui";
 import { SeasonAssignmentEditor } from "./SeasonWizardPage";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { StudentTable } from "./StudentTable";
@@ -46,30 +46,29 @@ export function StudentsPage() {
   const [stateStudent, setStateStudent] = useState<Student | null>(null);
   const [dashboardStudent, setDashboardStudent] = useState<Student | null>(null);
   const [tab, setTab] = useState<"directory" | "engagement">("directory");
-  const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
   const students = useQuery({ queryKey: ["students", me?.organizationId], queryFn: () => api.students(me!.organizationId), enabled: !!me });
   const create = useMutation({
     mutationFn: () => api.createStudent(me!.organizationId, { userName: userName.trim(), displayName: displayName.trim(), password }),
-    onSuccess: () => { setError(null); setStatus("Student added."); setUserName(""); setDisplayName(""); setPassword(""); void queryClient.invalidateQueries({ queryKey: ["students"] }); },
+    onSuccess: () => { setError(null); toast.success("Student added."); setUserName(""); setDisplayName(""); setPassword(""); void queryClient.invalidateQueries({ queryKey: ["students"] }); },
     onError: err => setError(err instanceof Error ? err.message : "Unable to add student."),
   });
   const reset = useMutation({
     mutationFn: () => api.resetStudentPassword(me!.organizationId, resetStudentId!, resetPassword),
-    onSuccess: () => { setError(null); setStatus("Password updated."); setResetStudentId(null); setResetPassword(""); },
+    onSuccess: () => { setError(null); toast.success("Password updated."); setResetStudentId(null); setResetPassword(""); },
     onError: err => setError(err instanceof Error ? err.message : "Unable to reset password."),
   });
   const canCreate = !!userName.trim() && !!displayName.trim() && password.length >= 8;
   const changeState = useMutation({
     mutationFn: () => lifecycleApi.setStudentActive(me!.organizationId, stateStudent!.userId, stateStudent!.isActive === false),
-    onSuccess: () => { setStatus(stateStudent!.isActive === false ? "Student reactivated." : "Student deactivated. Study history is preserved."); setStateStudent(null); void queryClient.invalidateQueries({ queryKey: ["students"] }); },
+    onSuccess: () => { toast.success(stateStudent!.isActive === false ? "Student reactivated." : "Student deactivated. Study history is preserved."); setStateStudent(null); void queryClient.invalidateQueries({ queryKey: ["students"] }); },
   });
-  function onSubmit(event: FormEvent) { event.preventDefault(); if (!canCreate || create.isPending) return; setStatus(null); setError(null); create.mutate(); }
+  function onSubmit(event: FormEvent) { event.preventDefault(); if (!canCreate || create.isPending) return; setError(null); create.mutate(); }
 
   return <div className="training-page">
     <PageHeader title="Students" description="Add students and manage their sign-in details." />
 
-    {status && <Notice tone="success" data-testid="reset-password-status">{status}</Notice>}
     {error && !resetStudentId && <Notice tone="danger">{error}</Notice>}
     <div role="tablist" aria-label="Students views" className="ds-tablist">
       <Button variant={tab === "directory" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "directory"} onClick={() => setTab("directory")}>Directory</Button>
@@ -83,9 +82,9 @@ export function StudentsPage() {
 
         <Button size="compact" variant="secondary" onClick={() => setDashboardStudent(student)}>Dashboard<span className="sr-only"> for {student.displayName}</span></Button>
         <LinkButton size="compact" variant="secondary" to={`/admin/assignments?studentId=${encodeURIComponent(student.userId)}`}>Manage assignments<span className="sr-only"> for {student.displayName}</span></LinkButton>
-        <Button size="compact" variant="ghost" disabled={changeState.isPending} onClick={() => { changeState.reset(); setStateStudent(student); setStatus(null); }}>{student.isActive === false ? "Reactivate" : "Deactivate"}<span className="sr-only"> {student.displayName}</span></Button>
+        <Button size="compact" variant="ghost" disabled={changeState.isPending} onClick={() => { changeState.reset(); setStateStudent(student); }}>{student.isActive === false ? "Reactivate" : "Deactivate"}<span className="sr-only"> {student.displayName}</span></Button>
         <Button size="compact" type="button" data-testid={`reset-password-${student.userName}`} variant="ghost" disabled={reset.isPending}
-          onClick={() => { setResetStudentId(student.userId); setResetPassword(""); setStatus(null); setError(null); }}>Reset password<span className="sr-only"> for {student.displayName}</span></Button>
+          onClick={() => { setResetStudentId(student.userId); setResetPassword(""); setError(null); }}>Reset password<span className="sr-only"> for {student.displayName}</span></Button>
       </>} />}
       {stateStudent && <ConfirmationDialog title={`${stateStudent.isActive === false ? "Reactivate" : "Deactivate"} ${stateStudent.displayName}?`}
         description={stateStudent.isActive === false ? "The student can sign in again using their existing password. Saved assignments and progress remain available." : "The student will be signed out and cannot sign in or study. Their assignments, attempts and progress are preserved. You can reactivate them later."}
@@ -95,7 +94,7 @@ export function StudentsPage() {
         description="The student will need the new password the next time they sign in." confirmLabel="Save password"
         pending={reset.isPending} disabled={resetPassword.length < 8} error={error}
         onCancel={() => { setResetStudentId(null); setResetPassword(""); setError(null); }}
-        onConfirm={() => { setStatus(null); setError(null); reset.mutate(); }}>
+        onConfirm={() => { setError(null); reset.mutate(); }}>
         <label className="mt-3 block">New password for {students.data?.find(student => student.userId === resetStudentId)?.displayName}
           <Input data-testid="reset-password-input" type="password" autoComplete="new-password" required minLength={8} value={resetPassword} onChange={e => setResetPassword(e.target.value)} disabled={reset.isPending} /></label>
       </ConfirmationDialog>}

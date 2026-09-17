@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "../../api/client";
 import { onboardingApi, type AdultRole, type Coach, type CoachInvitation } from "../../api/onboarding";
 import { useAuth } from "../../auth/AuthContext";
-import { Badge, Button, EmptyState, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select } from "../../components/ui";
+import { Badge, Button, EmptyState, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, useToast } from "../../components/ui";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { useCoachOptions } from "../auth/useCoachOptions";
 import "../../styles/coach-onboarding.css";
@@ -23,10 +23,10 @@ export function CoachesPage() {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<AdultRole>("Admin");
   const [error, setError] = useState("");
-  const [status, setStatus] = useState("");
   const [inviteUrl, setInviteUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
   const busy = useRef(false);
   const form = useRef<HTMLFormElement>(null);
   const [revoking, setRevoking] = useState<CoachInvitation | null>(null);
@@ -38,20 +38,20 @@ export function CoachesPage() {
 
   async function mutate(kind: "invite" | "resend" | "revoke", invitation?: CoachInvitation) {
     if (busy.current || !isOwner || forbidden) return;
-    busy.current = true; setPending(true); setError(""); setStatus(""); setInviteUrl("");
+    busy.current = true; setPending(true); setError(""); setInviteUrl("");
     try {
       if (kind === "invite") {
         const result = await onboardingApi.invite(me!.organizationId, email.trim(), role);
         setEmail("");
-        if (result.inviteUrl) { setInviteUrl(result.inviteUrl); setStatus(`Invitation created for ${result.email}. Share this link with them directly — it will not be emailed:`); }
-        else setStatus(`Invitation sent to ${result.email}.`);
+        if (result.inviteUrl) { setInviteUrl(result.inviteUrl); toast.success(`Invitation created for ${result.email}. Share this link with them directly — it will not be emailed:`); }
+        else toast.success(`Invitation sent to ${result.email}.`);
       } else if (kind === "resend" && invitation) {
         const result = await onboardingApi.resend(me!.organizationId, invitation.id);
-        if (result.inviteUrl) { setInviteUrl(result.inviteUrl); setStatus(`New invitation for ${result.email} created. Share this link with them directly — the previous link no longer works:`); }
-        else setStatus(`New invitation sent to ${result.email}. The previous link no longer works.`);
+        if (result.inviteUrl) { setInviteUrl(result.inviteUrl); toast.success(`New invitation for ${result.email} created. Share this link with them directly — the previous link no longer works:`); }
+        else toast.success(`New invitation sent to ${result.email}. The previous link no longer works.`);
       } else if (kind === "revoke" && invitation) {
         await onboardingApi.revoke(me!.organizationId, invitation.id);
-        setStatus(`Invitation revoked for ${invitation.email}.`); setRevoking(null);
+        toast.success(`Invitation revoked for ${invitation.email}.`); setRevoking(null);
       }
       await Promise.all([client.invalidateQueries({ queryKey: ["coach-invitations", me!.organizationId] }), client.invalidateQueries({ queryKey: ["coaches", me!.organizationId] })]);
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Unable to update this invitation. Try again."); }
@@ -64,7 +64,7 @@ export function CoachesPage() {
     setRoleBusy(coach.userId); setError("");
     try {
       await onboardingApi.changeRole(me!.organizationId, coach.userId, next);
-      setStatus(`${coach.displayName} is now ${next === "Owner" ? "an Owner" : next === "Admin" ? "an Admin" : "a Content Manager"}.`);
+      toast.success(`${coach.displayName} is now ${next === "Owner" ? "an Owner" : next === "Admin" ? "an Admin" : "a Content Manager"}.`);
       await client.invalidateQueries({ queryKey: ["coaches", me!.organizationId] });
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Unable to change this role. Try again."); }
     finally { setRoleBusy(null); }
@@ -74,7 +74,7 @@ export function CoachesPage() {
     setRoleBusy(removing.userId); setError("");
     try {
       await onboardingApi.removeCoach(me!.organizationId, removing.userId);
-      setStatus(`${removing.displayName} has been removed from this club.`); setRemoving(null);
+      toast.success(`${removing.displayName} has been removed from this club.`); setRemoving(null);
       await client.invalidateQueries({ queryKey: ["coaches", me!.organizationId] });
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Unable to remove this coach. Try again."); }
     finally { setRoleBusy(null); }
@@ -91,7 +91,6 @@ export function CoachesPage() {
       : forbidden ? <Notice tone="danger">You do not have permission to manage coaches for this club. Sign in with an authorized coach account.</Notice>
       : coaches.isError || invitations.isError ? <Panel><Notice tone="danger">Unable to load coaches and invitations. Check your connection and try again.</Notice><Button variant="secondary" onClick={() => { void coaches.refetch(); void invitations.refetch(); }}>Try again</Button></Panel>
       : coaches.isLoading || invitations.isLoading ? <LoadingState label="Loading coaches and invitations…" /> : <>
-        {status && <Notice tone="success">{status}</Notice>}
         {error && !revoking && !removing && <Notice id="coach-invite-error" tone="danger">{error}</Notice>}
         <Panel id="coach-directory"><h2>Coach directory</h2>
           {coaches.data?.length ? <ul className="coach-directory">{coaches.data.map(coach => <li key={coach.userId}><ProfileAvatar userId={coach.userId} displayName={coach.displayName} /><div className="coach-directory-detail"><strong>{coach.displayName}</strong><p>{coach.email ?? "No email on file"}{coach.userId === me!.userId ? " · You" : ""}</p></div>

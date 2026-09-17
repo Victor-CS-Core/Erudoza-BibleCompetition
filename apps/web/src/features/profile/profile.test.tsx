@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { batchIdentity, profileApi, useSetProfileAvatar, type MyProfile } from "./profile";
 import { ProfilePage } from "./ProfilePage";
 import { ProfileAvatar } from "./ProfileAvatar";
+import { ToastProvider } from "../../components/ui";
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "self", organizationId: "academy", organizationName: "Academy", displayName: "Anna Reed", userName: "anna.reed", kind: "Student", role: "Student" } }) }));
 const catalog: MyProfile = { userId: "self", displayName: "Anna Reed", avatarHonorKey: null, honors: [
   { key: "solo:exact-recall", title: "Exact Recall", category: "Scripture", requirement: "Reach 90 on 12 distinct passages.", ruleVersion: "mastery-v1", earnedAtUtc: "2026-09-11T12:00:00Z" },
@@ -38,7 +39,7 @@ describe("shared profile identity", () => {
     vi.spyOn(profileApi, "identities").mockResolvedValue([{ userId: "self", avatarHonorKey: null }]);
     const save = vi.spyOn(profileApi, "character").mockImplementation(async value => ({ ...catalog, ...value, characterVersion: value.version + 1 }));
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const view = render(<QueryClientProvider client={client}><ProfileAvatar userId="self" displayName="Anna Reed" /><ProfilePage /></QueryClientProvider>);
+    const view = render(<QueryClientProvider client={client}><ProfileAvatar userId="self" displayName="Anna Reed" /><ToastProvider><ProfilePage /></ToastProvider></QueryClientProvider>);
     await showHonors();
     expect(await screen.findByRole("button", { name: "Use Full Coverage as profile image" })).toBeDisabled();
     expect(screen.getByText("Master all 30 assigned passages.")).toBeVisible();
@@ -59,7 +60,7 @@ describe("shared profile identity", () => {
     vi.spyOn(profileApi, "identities").mockResolvedValue([]);
     vi.spyOn(profileApi, "avatar").mockImplementation(async avatarHonorKey => ({ ...catalog, avatarHonorKey }));
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const view = render(<QueryClientProvider client={client}><ProfileAvatar userId="self" displayName="Anna Reed"/><ProfilePage/><LegacyAvatarControls/></QueryClientProvider>);
+    const view = render(<QueryClientProvider client={client}><ProfileAvatar userId="self" displayName="Anna Reed"/><ToastProvider><ProfilePage/></ToastProvider><LegacyAvatarControls/></QueryClientProvider>);
     await screen.findByRole("navigation", { name: "Profile pages" });
     fireEvent.click(screen.getByRole("button", { name: "Legacy Honor" }));
     await waitFor(() => expect(view.container.querySelector('[data-profile-honor="solo:exact-recall"]')).not.toBeNull());
@@ -73,7 +74,7 @@ describe("shared profile identity", () => {
     let finish!: (value: MyProfile) => void;
     const save = vi.spyOn(profileApi, "character").mockImplementation(() => new Promise(resolve => { finish = resolve; }));
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const view = render(<QueryClientProvider client={client}><ProfilePage /></QueryClientProvider>);
+    const view = render(<QueryClientProvider client={client}><ToastProvider><ProfilePage /></ToastProvider></QueryClientProvider>);
     await showHonors();
     fireEvent.click(await screen.findByRole("button", { name: "Use Exact Recall as profile image" }));
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
@@ -91,7 +92,7 @@ describe("shared profile identity", () => {
     vi.spyOn(profileApi, "identities").mockResolvedValue([]);
     const save = vi.spyOn(profileApi, "character").mockImplementation(() => new Promise(resolve => { finishSave = resolve; }));
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    render(<QueryClientProvider client={client}><ProfilePage/></QueryClientProvider>);
+    render(<QueryClientProvider client={client}><ToastProvider><ProfilePage/></ToastProvider></QueryClientProvider>);
     await showHonors();
     fireEvent.click(await screen.findByRole("button", { name: "Use Exact Recall as profile image" }));
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
@@ -109,7 +110,7 @@ describe("shared profile identity", () => {
     vi.spyOn(profileApi, "identities").mockResolvedValue([]);
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     client.setQueryData(["profile", "academy", "self"], { ...catalog, honors: catalog.honors.map(honor => ({ ...honor, earnedAtUtc: null })) });
-    render(<QueryClientProvider client={client}><ProfilePage /></QueryClientProvider>);
+    render(<QueryClientProvider client={client}><ToastProvider><ProfilePage /></ToastProvider></QueryClientProvider>);
     await showHonors();
     await waitFor(() => expect(screen.getByRole("button", { name: "Use Exact Recall as profile image" })).toBeEnabled());
     expect(me).toHaveBeenCalled();
@@ -118,7 +119,7 @@ describe("shared profile identity", () => {
     vi.spyOn(profileApi, "me").mockResolvedValue(structuredClone(catalog));
     vi.spyOn(profileApi, "identities").mockResolvedValue([]);
     vi.spyOn(profileApi, "character").mockRejectedValue(new Error("Earn this Honor before selecting it."));
-    const view = render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><ProfilePage /></QueryClientProvider>);
+    const view = render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><ToastProvider><ProfilePage /></ToastProvider></QueryClientProvider>);
     await showHonors();
     fireEvent.click(await screen.findByRole("button", { name: "Use Exact Recall as profile image" }));
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
@@ -161,7 +162,7 @@ describe('profile patch publication refresh',()=>{
   const read=vi.spyOn(profileApi,'me').mockResolvedValueOnce(locked).mockResolvedValue({...locked,honors:[{...locked.honors[0],earnedAtUtc:'2026-09-13T00:00:00Z'}]});
   vi.spyOn(profileApi,'identities').mockResolvedValue([{userId:'self',avatarHonorKey:null}]);
   const client=new QueryClient({defaultOptions:{queries:{retry:false}}});
-  const view=render(<QueryClientProvider client={client}><ProfilePage/></QueryClientProvider>);
+  const view=render(<QueryClientProvider client={client}><ToastProvider><ProfilePage/></ToastProvider></QueryClientProvider>);
   try{
    await act(async()=>{await vi.advanceTimersByTimeAsync(500);});
    fireEvent.click(within(screen.getByRole('navigation',{name:'Profile pages'})).getByRole('button',{name:'Honors'}));
@@ -196,7 +197,7 @@ describe("locked cosmetics", () => {
     vi.spyOn(profileApi, "me").mockResolvedValue(profile);
     vi.spyOn(profileApi, "identities").mockResolvedValue([]);
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    render(<QueryClientProvider client={client}><ProfilePage /></QueryClientProvider>);
+    render(<QueryClientProvider client={client}><ToastProvider><ProfilePage /></ToastProvider></QueryClientProvider>);
     const nav = await screen.findByRole("navigation", { name: "Profile pages" });
     fireEvent.click(within(nav).getByRole("button", { name: "Character" }));
     await screen.findByRole("heading", { name: "Appearance" });
