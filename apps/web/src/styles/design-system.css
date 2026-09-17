@@ -103,6 +103,10 @@
 :is(.ds-table,.training-table) small { color: var(--er-muted-ink); }
 /* Keep absolutely positioned accessible labels inside the table's scroll region. */
 .ds-table-scroll, .training-table-scroll { position: relative; overflow-x: auto; }
+/* Sortable table headers: button reset so the heading style comes from the th. */
+.ds-table-sort { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; min-height: 44px; }
+/* Simple tab toggle row (e.g. Students directory / engagement). */
+.ds-tablist { display: flex; gap: var(--er-space-2); margin-bottom: var(--er-space-4); }
 :where(.training-app) progress { appearance: none; border: 0; border-radius: 8px; overflow: hidden; background: var(--er-surface-soft); }
 :where(.training-app) progress::-webkit-progress-bar { background: var(--er-surface-soft); }
 :where(.training-app) progress::-webkit-progress-value { background: var(--er-teal); border-radius: 8px; }

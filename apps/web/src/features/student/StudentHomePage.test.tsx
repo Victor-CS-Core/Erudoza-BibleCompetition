@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
@@ -50,7 +50,7 @@ it("offers coaches personal assignments from an empty Training HQ", async () => 
 it("records the resolved coach training season in navigation context", async () => {
  account.kind = "Adult"; home();
  await screen.findByRole("link", { name: "Continue review" });
- expect(screen.getByLabelText("Current search")).toHaveTextContent("seasonId=s");
+ await waitFor(() => expect(screen.getByLabelText("Current search")).toHaveTextContent("seasonId=s"));
 });
 
 it("offers shortened timed PBE practice", async () => {

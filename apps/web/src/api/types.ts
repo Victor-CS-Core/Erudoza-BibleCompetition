@@ -262,9 +262,6 @@ export type StudentDashboard = {
     timeZone: string;
     days: { localDate: string; credited: boolean; isToday: boolean }[];
     streakDays: number;
-    streakState: "active" | "paused" | "none";
-    bestStreak: number;
-    streakHistory: { localDate: string; credited: boolean }[];
     sessionsLast7Days: number;
     lastActivityAtUtc: string | null;
   };
@@ -301,6 +298,33 @@ export type StudentDashboard = {
   }[];
 };
 
+/** Coach engagement overview row (gamification §7b): at-a-glance "who's fading" view. */
+export type EngagementRow = {
+  studentId: string;
+  name: string;
+  streak: number;
+  xpThisWeek: number;
+  practiceDaysThisWeek: number;
+  lastActiveAtUtc: string | null;
+  level: number;
+  levelName: string;
+  honorsEarned: number;
+};
+
+/** One entry in a student's paginated session history (gamification §7c). */
+export type SessionHistoryEntry = {
+  sessionId: string;
+  format: "Memory" | "Pbe";
+  mode: string;
+  completedAtUtc: string | null;
+  attempted: number;
+  correct: number | null;
+  xpEarned: number;
+};
+
+export type SessionHistoryPage = {
+  sessions: SessionHistoryEntry[];
+  nextBefore: string | null;
 /** One section of a yearly PBE Bible commentary introduction. */
 export type PbeCommentarySection = { heading: string; body: string };
 

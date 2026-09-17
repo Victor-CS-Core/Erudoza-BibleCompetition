@@ -184,6 +184,17 @@
 .training-streak-panel .training-week-count { margin-bottom: 8px; }
 .training-streak-title { display: flex; align-items: center; gap: 8px; }
 .training-streak-title svg { color: var(--er-teal); }
+
+/* Gamification Phase 2: XP panel, quest board, streak nudge */
+.training-streak-nudge { margin-bottom: var(--er-space-4); }
+.training-xp-panel .training-week-count { margin-bottom: 8px; }
+.training-quest-note { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin: 0 0 12px; }
+.training-quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.training-quest-list li { padding: 12px; border-radius: 12px; border: 1px solid var(--er-border); }
+.training-quest-list li.is-complete { border-color: color-mix(in srgb, var(--er-teal) 35%, transparent); background: color-mix(in srgb, var(--er-teal) 6%, transparent); }
+.training-quest-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.training-quest-head strong { font-size: var(--er-text-sm); }
+.training-quest-list p { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin: 4px 0 8px; }
 .training-streak-heatmap { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 3px; margin: 12px 0; }
 .training-streak-heatmap span { aspect-ratio: 1; border-radius: 3px; background: var(--er-border); }
 .training-streak-heatmap span.is-credited { background: var(--er-teal); }

@@ -1,9 +1,11 @@
 import { builtInContentSql } from '../application/library-access';
 import type { RequestContext } from '../types';
-import type { PbeSession } from './sessions';
+import type { PbeAttempt, PbeSession } from './sessions';
 import type { DayRecord, WeekRecord, Writes } from '../training/store';
 import { awardStreakBadges, identity, preference, recordBests, resolvePreference, write } from '../training/store';
 import type { BestsInput } from '../training/store';
+import { awardXp, xpSummary, XP_VALUES, type XpEvent } from '../training/xp';
+import { getDailyQuests, inTeamRoom, progressQuests, questDto, sessionCompleteQuests, type QuestKey } from '../training/quests';
 import { bestStreak, creditedDates, streakCount, streakStatus } from '../training/streak';
 import { addDays, resolveTrainingCalendar } from '../training/calendar';
 export interface PbeMission {
@@ -31,18 +33,42 @@ export async function preparePbeStartEffort(ctx: RequestContext, s: PbeSession, 
     write(ctx, w, 'pbe-daily-mission-head', headId, { id: headId, format: 'Pbe', missionId: s.id, ruleVersion:s.ruleVersion, scoringVersion:s.scoringVersion, selectionVersion:s.selectionVersion }, head, s.seasonId);
     return w;
 }
+/** Attempt XP for PBE Simulation sessions (preparePbeEffort is bypassed there). */
+export async function awardPbeSimulationAttemptXp(ctx: RequestContext, s: PbeSession, attempt: PbeAttempt, at: string): Promise<Writes> {
+    const w: Writes = { statements: [], guards: [] };
+    const old = await preference(ctx), p = resolvePreference(ctx, old, at), cal = resolveTrainingCalendar(at, p);
+    const correct = attempt.result.earnedPoints === attempt.result.availablePoints;
+    const awarded = await awardXp(ctx, w, { seasonId: s.seasonId, localDate: cal.localDate, atUtc: at, events: [{ kind: 'attempt', amount: correct ? (attempt.hintsUsed ? XP_VALUES.attemptCorrectHints : XP_VALUES.attemptCorrectNoHints) : XP_VALUES.attemptIncorrect }] });
+    s.xpEarned = (s.xpEarned ?? 0) + awarded.awarded;
+    if (awarded.leveledUp)
+        s.leveledUp = { from: s.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
+    return w;
+}
+
 /** Stage participation only. No legacy mastery, badges or Honor evaluator is called. */
 export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: string): Promise<Writes> {
     const w: Writes = { statements: [], guards: [] }, old = await preference(ctx), p = resolvePreference(ctx, old, at), m = await ctx.store.require<PbeMission>('pbe-daily-mission', s.id, ctx.orgId);
     p.lastEventAtUtc = p.lastEventAtUtc > at ? p.lastEventAtUtc : at;
     const mission = { ...m.value, completed: s.attempts.length };
     write(ctx, w, 'pbe-daily-mission', s.id, mission, m, s.seasonId);
+    // XP events collected across the attempt; awarded once at the end.
+    const xpEvents: XpEvent[] = [];
+    const cal = resolveTrainingCalendar(at, p);
+    const lastAttempt = s.attempts.at(-1);
+    if (lastAttempt) {
+        const correct = lastAttempt.result.earnedPoints === lastAttempt.result.availablePoints;
+        xpEvents.push({ kind: 'attempt', amount: correct ? (lastAttempt.hintsUsed ? XP_VALUES.attemptCorrectHints : XP_VALUES.attemptCorrectNoHints) : XP_VALUES.attemptIncorrect });
+    }
+    // Review-step completion: a Review-mode session reaching its full target.
+    if (s.mode === 'Review' && s.cards.length > 0 && s.attempts.length === s.cards.length && m.value.completed < s.cards.length)
+        xpEvents.push({ kind: 'review', amount: XP_VALUES.reviewStepCompleted });
     if (s.cards.length > 0 && s.attempts.length === s.cards.length && !s.creditedLocalDate) {
         const c = resolveTrainingCalendar(at, p), dayId = identity(ctx, c.localDate), day = await ctx.store.get<DayRecord>('training-day', dayId, ctx.orgId);
         s.creditedLocalDate = c.localDate;
         if (!day) {
             s.newlyCreditedDay = true;
             write(ctx, w, 'training-day', dayId, { id: dayId, localDate: c.localDate, timeZone: c.timeZone, firstQualifiedAtUtc: at, sessionId: s.id, credited: true }, null);
+            xpEvents.push({ kind: 'day', amount: XP_VALUES.dayCredited });
             const wid = identity(ctx, c.weekStartLocalDate), oldWeek = await ctx.store.get<WeekRecord>('training-week', wid, ctx.orgId), week = oldWeek?.value ?? { id: wid, weekStartLocalDate: c.weekStartLocalDate, timeZone: c.timeZone, target: p.weeklyTarget, dates: Array.from({ length: 7 }, (_, i) => addDays(c.weekStartLocalDate, i)), creditedDates: [], qualifiedAtUtc: null };
             if (!week.creditedDates.includes(c.localDate))
                 week.creditedDates.push(c.localDate);
@@ -56,9 +82,26 @@ export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: s
             const credited = await creditedDates(ctx);
             credited.add(c.localDate);
             const earned = await awardStreakBadges(ctx, w, streakCount(credited, c.localDate), at, s.id);
-            if (earned.length)
+            if (earned.length) {
                 s.earnedBadges = [...(s.earnedBadges ?? []), ...earned];
+                xpEvents.push({ kind: 'milestone', amount: XP_VALUES.soloMilestone * earned.length });
+            }
         }
+    }
+    // Daily bonus quests: warmup on Review completion, teammate on room membership.
+    const questRes = await progressQuests(ctx, w, { localDate: cal.localDate, timeZone: cal.timeZone, seasonId: s.seasonId, atUtc: at }, async api => {
+        const has = (key: QuestKey) => api.quests.some(q => q.key === key && !q.completed);
+        if (has('warmup') && s.mode === 'Review' && s.cards.length > 0 && s.attempts.length === s.cards.length)
+            api.complete('warmup');
+        if (has('teammate') && await inTeamRoom(ctx))
+            api.complete('teammate');
+    });
+    xpEvents.push(...questRes.xpEvents);
+    if (xpEvents.length) {
+        const awarded = await awardXp(ctx, w, { seasonId: s.seasonId, localDate: cal.localDate, atUtc: at, events: xpEvents });
+        s.xpEarned = (s.xpEarned ?? 0) + awarded.awarded;
+        if (awarded.leveledUp)
+            s.leveledUp = { from: s.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
     }
     // The same preference revision serializes day/week races with Memory sessions.
     write(ctx, w, 'training-preferences', p.id, p, old);
@@ -101,5 +144,6 @@ export async function pbeToday(ctx: RequestContext, season: import('../applicati
     if (changed?.changed)
         throw new (await import('../types')).HttpError(409, 'The PBE scope changed. Refresh and retry.');
     const credited = await creditedDates(ctx), streak = streakStatus(credited, c.localDate);
-    return { format: 'Pbe', seasonId: season.id, seasonName: season.name, seasonStatus: season.status, localDate: c.localDate, preferences: { timeZone: p.timeZone, weeklyTarget: p.weeklyTarget, pending: p.pending }, week: { weekStartLocalDate: c.weekStartLocalDate, timeZone: week?.timeZone ?? p.timeZone, target: week?.target ?? p.weeklyTarget, completedDays: week?.creditedDates.length ?? 0, days: Array.from({ length: 7 }, (_, i) => { const localDate = addDays(c.weekStartLocalDate, i); return { localDate, credited: week?.creditedDates.includes(localDate) ?? false, isToday: localDate === c.localDate }; }) }, mission: { id: s && !stale ? s.id : null, revision: s && !stale ? 1 : null, status: !available ? 'Unavailable' : stale ? 'Invalidated' : !s ? 'Suggested' : complete ? 'Complete' : 'Active', scopeVersion: scope.eligibility, steps, explanation: !available ? 'No published PBE questions are available for your assignment. Ask your coach to add questions, or choose Memory.' : stale ? 'Your assignment changed. Start updated training.' : null }, nextAction: available && next ? { label: next.sessionId && s?.status !== 'Completed' ? 'Resume PBE practice' : 'Start PBE practice', mode: next.kind, sessionId: s?.status === 'Completed' ? null : next.sessionId } : null, honors: [], streak: { current: streak.current, best: bestStreak(credited), state: streak.state } };
+    const xp = await xpSummary(ctx);
+    return { format: 'Pbe', seasonId: season.id, seasonName: season.name, seasonStatus: season.status, localDate: c.localDate, preferences: { timeZone: p.timeZone, weeklyTarget: p.weeklyTarget, pending: p.pending }, week: { weekStartLocalDate: c.weekStartLocalDate, timeZone: week?.timeZone ?? p.timeZone, target: week?.target ?? p.weeklyTarget, completedDays: week?.creditedDates.length ?? 0, days: Array.from({ length: 7 }, (_, i) => { const localDate = addDays(c.weekStartLocalDate, i); return { localDate, credited: week?.creditedDates.includes(localDate) ?? false, isToday: localDate === c.localDate }; }) }, mission: { id: s && !stale ? s.id : null, revision: s && !stale ? 1 : null, status: !available ? 'Unavailable' : stale ? 'Invalidated' : !s ? 'Suggested' : complete ? 'Complete' : 'Active', scopeVersion: scope.eligibility, steps, explanation: !available ? 'No published PBE questions are available for your assignment. Ask your coach to add questions, or choose Memory.' : stale ? 'Your assignment changed. Start updated training.' : null }, nextAction: available && next ? { label: next.sessionId && s?.status !== 'Completed' ? 'Resume PBE practice' : 'Start PBE practice', mode: next.kind, sessionId: s?.status === 'Completed' ? null : next.sessionId } : null, honors: [], xp: { total: xp.total, level: xp.level, levelName: xp.levelName, xpIntoLevel: xp.xpIntoLevel, xpForNext: xp.xpForNext }, quests: (await getDailyQuests(ctx, c.localDate, now)).map(questDto), streak: { current: streak.current, best: bestStreak(credited), state: streak.state }, streakNudge: streak.state === 'paused' };
 }

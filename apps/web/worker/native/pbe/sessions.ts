@@ -13,7 +13,12 @@ import { selectPbeQuestions } from './selection';
 import { PBE_RULE_VERSION, PBE_SCORING_VERSION } from './rules';
 import { rehearsalPoints } from './presentation';
 import type { PbeQuestion, PbeTarget } from './types';
-import { pbeMissionSteps, preparePbeEffort, preparePbeStartEffort, recordPbePersonalBests } from './effort';
+import { pbeMissionSteps, awardPbeSimulationAttemptXp, preparePbeEffort, preparePbeStartEffort, recordPbePersonalBests } from './effort';
+import { awardXp, levelNameFor, xpSummary, XP_VALUES } from '../training/xp';
+import { sessionCompleteQuests } from '../training/quests';
+import { preference, resolvePreference } from '../training/store';
+import type { Writes } from '../training/store';
+import { resolveTrainingCalendar } from '../training/calendar';
 import type { StartTrainingContext } from '../../../src/api/trainingTypes';
 export interface PbeCard {
     id: string;
@@ -71,6 +76,10 @@ export interface PbeSession {
     personalBest?: { accuracyBeaten: boolean; correctBeaten: boolean } | null;
     /** Streak milestone badges earned by this session (PBE has no other badge pipeline). */
     earnedBadges?: import('../../../src/api/trainingTypes').BadgeProgress[];
+    /** XP earned during this session (all kinds). */
+    xpEarned?: number;
+    /** Level-up crossed during this session, if any. */
+    leveledUp?: { from: number; to: number } | null;
 }
 interface Start {
     seasonId: string;
@@ -96,13 +105,13 @@ const conflict = (message = 'The assignment changed. Start a new PBE session.') 
 export const pbeSessionDto = (s: PbeSession) => ({ id: s.id, format: s.format, seasonId: s.seasonId, mode: s.mode, status: s.status, targetCardCount: s.cards.length, ruleVersion: s.ruleVersion, scoringVersion: s.scoringVersion, selectionVersion: s.selectionVersion, ...(s.mode === 'Simulation' ? { rehearsalScope: 'ShortenedTimedPractice', eligibleCount: s.cards.length } : {}) });
 const dto = (s: PbeSession, c: PbeCard) => ({ id: c.id, sessionId: s.id, format: 'Pbe', sequence: s.cards.indexOf(c) + 1, total: s.cards.length, question: questionView(c.question), assisted: c.assistedAtMs !== null });
 const receipt = (result:PbeResult, alreadyProcessed:boolean) => ({ attemptId:result.attemptId,acceptedAtUtc:result.acceptedAtUtc,acceptedSequence:result.acceptedSequence,alreadyProcessed,feedbackDeferred:true });
-export const pbeSummary=(s:PbeSession,interrupted=false,overlay?:PbeResultOverlay)=>{
+export const pbeSummary=(s:PbeSession,interrupted=false,overlay?:PbeResultOverlay,xp?:{earned:number;total:number;level:number;levelName:string},levelUp?:{from:number;to:number;fromName:string;toName:string}|null)=>{
  const results=s.attempts.map(a=>{const card=s.cards.find(c=>c.id===a.cardId)!,candidate=overlay?.entries[a.result.attemptId],dispute=candidate?.questionId===card.question.id&&candidate.questionVersion===card.question.version?candidate:null;return {attemptId:a.result.attemptId,questionId:card.question.id,earnedPoints:dispute?.pointsByPart?.reduce((n,p)=>n+p,0)??a.result.earnedPoints,originalEarnedPoints:a.result.earnedPoints,availablePoints:a.result.availablePoints,acceptedAtUtc:a.result.acceptedAtUtc,dispute};});
  const correct=results.filter(r=>r.earnedPoints===r.availablePoints).length,pendingCount=results.filter(r=>r.dispute?.status==='Pending').length,finalized=results.filter(r=>r.dispute?.status!=='Pending');
  const metrics={earnedPoints:results.reduce((n,r)=>n+r.earnedPoints,0),availablePoints:results.reduce((n,r)=>n+r.availablePoints,0),pendingCount,provisional:pendingCount>0,finalizedEarnedPoints:finalized.reduce((n,r)=>n+r.earnedPoints,0),finalizedAvailablePoints:finalized.reduce((n,r)=>n+r.availablePoints,0)};
- return {sessionId:s.id,format:s.format,mode:s.mode,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,status:interrupted?'Interrupted':s.status,...metrics,results:s.mode==='Simulation'&&s.status==='Completed'?s.attempts.map((a,i)=>({...a.result,...results[i]})):results,recap:{version:'pbe-daily-v2',sessionId:s.id,seasonId:s.seasonId,mode:s.mode,completedAtUtc:s.completedAtUtc??null,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,fullTargetReached:s.attempts.length===s.cards.length,newlyCreditedDay:s.newlyCreditedDay,missionLocalDate:s.missionLocalDate,creditedLocalDate:s.creditedLocalDate,weeklyGoalComplete:s.weeklyGoalComplete??false,personalBest:s.personalBest??null,missionSteps:pbeMissionSteps(s),earnedBadges:s.earnedBadges??[],passageChanges:[],interrupted,results,...metrics}};
+ return {sessionId:s.id,format:s.format,mode:s.mode,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,status:interrupted?'Interrupted':s.status,...metrics,results:s.mode==='Simulation'&&s.status==='Completed'?s.attempts.map((a,i)=>({...a.result,...results[i]})):results,recap:{version:'pbe-daily-v2',sessionId:s.id,seasonId:s.seasonId,mode:s.mode,completedAtUtc:s.completedAtUtc??null,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,fullTargetReached:s.attempts.length===s.cards.length,newlyCreditedDay:s.newlyCreditedDay,missionLocalDate:s.missionLocalDate,creditedLocalDate:s.creditedLocalDate,weeklyGoalComplete:s.weeklyGoalComplete??false,personalBest:s.personalBest??null,xp:xp??{earned:s.xpEarned??0,total:0,level:1,levelName:'Seedling'},levelUp:levelUp??null,missionSteps:pbeMissionSteps(s),earnedBadges:s.earnedBadges??[],passageChanges:[],interrupted,results,...metrics}};
 };
-export async function reviewedPbeSummary(ctx:Pick<RequestContext,'store'|'orgId'>,s:PbeSession,interrupted=false){const overlay=await ctx.store.get<PbeResultOverlay>('pbe-result-overlay',`Solo:${s.id}`,ctx.orgId);return pbeSummary(s,interrupted,overlay?.value);}
+export async function reviewedPbeSummary(ctx:Pick<RequestContext,'store'|'orgId'>,s:PbeSession,interrupted=false){const overlay=await ctx.store.get<PbeResultOverlay>('pbe-result-overlay',`Solo:${s.id}`,ctx.orgId);const xp=await xpSummary({...ctx,actor:{userId:s.studentUserId}} as RequestContext);return pbeSummary(s,interrupted,overlay?.value,{earned:s.xpEarned??0,total:xp.total,level:xp.level,levelName:xp.levelName},s.leveledUp?{from:s.leveledUp.from,to:s.leveledUp.to,fromName:levelNameFor(s.leveledUp.from),toName:levelNameFor(s.leveledUp.to)}:null);}
 
 async function eligible(ctx: RequestContext, s: PbeSession) { const scope = await resolvePbeSessionSources(ctx, s.id); if (!scope.guards.some(g => g.kind === 'membership') || scope.eligibility !== s.scopeVersion || !scope.sources.length)
     throw conflict(); return scope; }
@@ -231,7 +240,7 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
         const attempt: PbeAttempt = { id: attemptId, cardId: card.id, clientSubmissionId: submission.clientSubmissionId, answers: [...submission.answers], hintsUsed: submission.hintsUsed, atMs, ...(s.mode === 'Simulation' ? { responseLockedAtMs: timed!.lockedAtMs } : {}), result };
         s.attempts.push(attempt);
         s.status = 'Active';
-        const effort = s.mode === 'Simulation' ? { statements: [], guards: [] } : await preparePbeEffort(ctx, s, result.acceptedAtUtc);
+        const effort = s.mode === 'Simulation' ? await awardPbeSimulationAttemptXp(ctx, s, attempt, result.acceptedAtUtc) : await preparePbeEffort(ctx, s, result.acceptedAtUtc);
         await persist(scope, { statements: [...progress.statements, ...effort.statements, ctx.store.insertion('pbe-attempt', attempt.id, ctx.orgId, { ...attempt, sessionId: s.id, format: 'Pbe', ruleVersion: s.ruleVersion, scoringVersion: s.scoringVersion, selectionVersion: s.selectionVersion }, { seasonId: s.seasonId, ownerId: s.studentUserId })], guards: [...progress.guards, ...effort.guards] });
         return json(s.mode === 'Simulation' ? receipt(result, false) : result);
     }
@@ -246,7 +255,19 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
             const bests = await recordPbePersonalBests(ctx, s);
             if (bests.beaten.accuracyBeaten || bests.beaten.correctBeaten)
                 s.personalBest = bests.beaten;
-            await persist(scope, { statements: bests.writes.statements, guards: bests.writes.guards });
+            // Daily bonus quests: sharpshooter / marathon land at completion.
+            const qw: Writes = { statements: [], guards: [] };
+            const pref = await preference(ctx), pcal = resolveTrainingCalendar(s.completedAtUtc, resolvePreference(ctx, pref, s.completedAtUtc));
+            const qLocalDate = s.creditedLocalDate ?? pcal.localDate;
+            const earned = s.attempts.reduce((n, a) => n + a.result.earnedPoints, 0), available = s.attempts.reduce((n, a) => n + a.result.availablePoints, 0);
+            const questXp = await sessionCompleteQuests(ctx, qw, { localDate: qLocalDate, timeZone: pcal.timeZone, seasonId: s.seasonId, atUtc: s.completedAtUtc }, { mode: s.mode, accuracy: available ? earned / available * 100 : 0, fullTargetReached: s.cards.length > 0 && s.attempts.length === s.cards.length });
+            if (questXp.length) {
+                const awarded = await awardXp(ctx, qw, { seasonId: s.seasonId, localDate: qLocalDate, atUtc: s.completedAtUtc, events: questXp });
+                s.xpEarned = (s.xpEarned ?? 0) + awarded.awarded;
+                if (awarded.leveledUp)
+                    s.leveledUp = { from: s.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
+            }
+            await persist(scope, { statements: [...bests.writes.statements, ...qw.statements], guards: [...bests.writes.guards, ...qw.guards] });
         }
         return json(await reviewedPbeSummary(ctx,s));
     }

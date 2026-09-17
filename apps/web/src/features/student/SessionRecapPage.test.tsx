@@ -11,6 +11,18 @@ vi.mock("../../api/training", () => ({ trainingApi: { recap: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
 function page() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={["/student/sessions/session/recap"]}><Routes><Route path="/student/sessions/:sessionId/recap" element={<SessionRecapPage />} /></Routes></MemoryRouter></QueryClientProvider>); }
 beforeEach(() => { vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture()); });
+it("shows XP earned and a level-up celebration when the session leveled up", async () => {
+  vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ xp: { earned: 85, total: 285, level: 3, levelName: "Reader" }, levelUp: { from: 2, to: 3, fromName: "Seeker", toName: "Reader" } }));
+  page();
+  expect(await screen.findByText("Level up!")).toBeInTheDocument();
+  expect(screen.getByText(/Seeker → Reader/)).toBeInTheDocument();
+  expect(screen.getByText("+85")).toBeInTheDocument();
+});
+it("shows XP earned without a level-up line on ordinary sessions", async () => {
+  page();
+  expect(await screen.findByText("+80")).toBeInTheDocument();
+  expect(screen.queryByText("Level up!")).not.toBeInTheDocument();
+});
 it("loads persisted recap without route state and explains interleaved evidence and date crossing", async () => { page(); expect(await screen.findByText(/6 correct from 8/)).toBeInTheDocument(); expect(trainingApi.recap).toHaveBeenCalledWith("session"); expect(screen.getByText(/Mission date: 2026-09-10/)).toBeInTheDocument(); expect(screen.getByText("+5 contributed")).toBeInTheDocument(); fireEvent.click(screen.getByText("View saved answer evidence")); expect(screen.getByText("20 → 25")).toBeInTheDocument(); expect(screen.queryByText("Honors earned in this session")).not.toBeInTheDocument(); });
 it("legacy counts never claim skill improvement", async () => { vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ version: "legacy-counts" })); page(); expect(await screen.findByText(/saved counts only/)).toBeInTheDocument(); expect(screen.queryByText("+5 contributed")).not.toBeInTheDocument(); });
 it("incomplete sessions offer resume with saved season", async () => { vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ completedAtUtc: null })); page(); expect(await screen.findByRole("link", { name: "Resume session" })).toHaveAttribute("href", "/student/study?sessionId=session&mode=Practice&seasonId=s"); });

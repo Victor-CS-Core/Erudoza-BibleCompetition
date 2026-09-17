@@ -32,7 +32,7 @@ export function SessionRecapPage() {
   const [shareState, setShareState] = useState<"idle" | "copied" | "failed">("idle");
   const personalBest = data?.personalBest ?? null;
   const weeklyGoalComplete = !!data?.weeklyGoalComplete;
-  const hasCelebration = !!featuredMilestone || !!personalBest?.accuracyBeaten || !!personalBest?.correctBeaten || !!weeklyGoalComplete;
+  const hasCelebration = !!featuredMilestone || !!personalBest?.accuracyBeaten || !!personalBest?.correctBeaten || !!weeklyGoalComplete || !!data?.levelUp;
   const shareText = data && data.version !== "legacy-counts" && hasCelebration
     ? `I completed a ${data.mode} practice session on Erudoza: ${data.correct} of ${data.attempted} correct${personalBest && (personalBest.accuracyBeaten || personalBest.correctBeaten) ? " — a new personal best!" : ""}${featuredMilestone ? ` Earned the ${featuredMilestone.title} milestone!` : ""}`
     : null;
@@ -73,6 +73,7 @@ export function SessionRecapPage() {
           {hasCelebration && <div className="training-recap-celebrations" role="status">
             {personalBest && (personalBest.accuracyBeaten || personalBest.correctBeaten) && <p className="training-celebration"><AppIcon name="flag" /><span><strong>New personal best!</strong> {personalBest.accuracyBeaten && personalBest.correctBeaten ? "Your best accuracy and most correct answers in one session." : personalBest.accuracyBeaten ? "Your best accuracy in a single session." : "Your most correct answers in a single session."}</span></p>}
             {weeklyGoalComplete && <p className="training-celebration"><AppIcon name="check" /><span><strong>Weekly goal complete!</strong> You hit your practice target for this week.</span></p>}
+            {data.levelUp && <p className="training-celebration"><AppIcon name="flag" /><span><strong>Level up!</strong> {data.levelUp.fromName} → {data.levelUp.toName}</span></p>}
           </div>}
           <p>{data.correct} correct from {data.attempted} accepted attempts.</p>
           <div className="training-recap-award">
@@ -87,6 +88,7 @@ export function SessionRecapPage() {
             <div><dt>Correct answers</dt><dd>{data.correct}</dd></div>
             <div><dt>Accepted attempts</dt><dd>{data.attempted}</dd></div>
             <div><dt>Full session target</dt><dd>{data.targetCardCount}</dd></div>
+            <div><dt>XP earned</dt><dd>+{data.xp.earned}</dd></div>
           </dl>
           <p><small>Completed <time dateTime={data.completedAtUtc!}>{evidenceDate(data.completedAtUtc!)}</time></small></p>
           {!data.fullTargetReached && <p>You finished early. Your accepted answers are saved. The full session target was not reached.</p>}

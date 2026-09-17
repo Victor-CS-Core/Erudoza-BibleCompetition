@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
-import type { Student } from "../../api/types";
+import type { SessionHistoryEntry, Student } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LoadingState, Notice, Panel, ProgressMeter, WeeklyProgressStrip } from "../../components/ui";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
@@ -22,6 +22,44 @@ function formatDateTime(value: string | null): string {
 
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+/** Paginated session history with per-session XP and a CSV export (§7c). */
+function SessionHistory({ orgId, studentId, onViewRecap }: { orgId: string; studentId: string; onViewRecap(sessionId: string): void }) {
+  const [sessions, setSessions] = useState<SessionHistoryEntry[]>([]);
+  const [nextBefore, setNextBefore] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true); setFailed(false); setSessions([]); setNextBefore(null);
+    api.studentSessionHistory(orgId, studentId).then(page => {
+      if (cancelled) return;
+      setSessions(page.sessions); setNextBefore(page.nextBefore); setLoading(false);
+    }).catch(() => { if (!cancelled) { setFailed(true); setLoading(false); } });
+    return () => { cancelled = true; };
+  }, [orgId, studentId]);
+  async function loadMore() {
+    if (!nextBefore || loading) return;
+    setLoading(true);
+    try {
+      const page = await api.studentSessionHistory(orgId, studentId, nextBefore);
+      setSessions(prev => [...prev, ...page.sessions]); setNextBefore(page.nextBefore);
+    } catch { setFailed(true); }
+    setLoading(false);
+  }
+  return <Panel data-testid="student-dashboard-history">
+    <h2>Session history</h2>
+    <p><a href={api.studentExportCsvUrl(orgId, studentId)} download={`student-history-${studentId}.csv`}>Download full history (CSV)</a></p>
+    {loading && sessions.length === 0 && <LoadingState label="Loading session history…" />}
+    {failed && sessions.length === 0 && <Notice tone="danger">Session history could not load. <Button variant="secondary" size="compact" onClick={() => { setFailed(false); setLoading(true); void loadMore(); }}>Try again</Button></Notice>}
+    {sessions.length ? <ul className="ds-student-dashboard-list">{sessions.map(session =>
+      <li key={session.sessionId}><button type="button" className="ds-student-dashboard-session" onClick={() => onViewRecap(session.sessionId)} aria-label={`View ${session.mode} session recap from ${formatDateTime(session.completedAtUtc)}`}>
+        <div><strong>{session.mode} · {session.format}</strong><small><time dateTime={session.completedAtUtc ?? undefined}>{formatDateTime(session.completedAtUtc)}</time></small></div>
+        <span>{session.correct === null ? `${session.attempted} attempted` : `${session.correct} / ${session.attempted} correct`} · +{session.xpEarned} XP</span></button></li>)}
+    </ul> : !loading && !failed && <p>No completed sessions yet.</p>}
+    {nextBefore && <Button variant="secondary" size="compact" disabled={loading} onClick={() => void loadMore()}>{loading ? "Loading…" : "Load more sessions"}</Button>}
+  </Panel>;
 }
 
 /** Coach slide-over with one student's effort, progress, mastery, assignments and recent activity. */
@@ -130,6 +168,7 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
               <span>{session.correct === null ? `${session.attempted} attempted` : `${session.correct} / ${session.attempted} correct`}</span></button></li>)}
           </ul> : <p>No completed sessions yet.</p>}
         </Panel>
+        {me?.organizationId && <SessionHistory orgId={me.organizationId} studentId={student.userId} onViewRecap={setRecapSessionId} />}
       </>}
     </div>
     {recapSessionId && me?.organizationId && <StudentSessionRecapDialog orgId={me.organizationId} studentId={student.userId} studentName={student.displayName} sessionId={recapSessionId} onClose={() => setRecapSessionId(null)} />}

@@ -6,7 +6,12 @@ import type { Student, StudentDashboard } from "../../api/types";
 import { StudentDashboardPanel } from "./StudentDashboardPanel";
 
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "coach", organizationId: "org", kind: "Adult", role: "Admin" } }) }));
-vi.mock("../../api/client", () => ({ api: { studentDashboard: vi.fn(), studentSessionRecap: vi.fn() } }));
+vi.mock("../../api/client", () => ({ api: {
+  studentDashboard: vi.fn(),
+  studentSessionRecap: vi.fn(),
+  studentSessionHistory: vi.fn(async () => ({ sessions: [], nextBefore: null })),
+  studentExportCsvUrl: (org: string, student: string) => `/api/v1/organizations/${org}/students/${student}/export.csv`,
+} }));
 
 beforeEach(() => { vi.clearAllMocks(); });
 
@@ -82,6 +87,7 @@ it("opens a session recap drill-down when a recent activity row is activated", a
     version: "training-v1", sessionId: "s1", seasonId: "season-1", mode: "Practice", completedAtUtc: "2026-09-15T10:20:00Z",
     attempted: 8, correct: 6, targetCardCount: 8, fullTargetReached: true, newlyCreditedDay: true,
     missionLocalDate: "2026-09-15", creditedLocalDate: "2026-09-15", weeklyGoalComplete: false, personalBest: null,
+    xp: { earned: 80, total: 200, level: 2, levelName: "Seeker" }, levelUp: null,
     missionSteps: [], earnedBadges: [], passageChanges: [],
   });
   mount();
@@ -104,4 +110,25 @@ it("closes when the close button is activated", async () => {
   await screen.findByTestId("student-dashboard-effort");
   fireEvent.click(screen.getByRole("button", { name: "Close Jane Doe dashboard" }));
   expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+it("renders the paginated session history with per-session XP and a CSV download", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue(dashboard);
+  vi.mocked(api.studentSessionHistory)
+    .mockResolvedValueOnce({
+      sessions: [{ sessionId: "s2", mode: "Review", format: "Pbe", completedAtUtc: "2026-09-17T10:30:00Z", attempted: 10, correct: 9, xpEarned: 58 }],
+      nextBefore: "2026-09-17T10:30:00Z",
+    })
+    .mockResolvedValueOnce({
+      sessions: [{ sessionId: "s1", mode: "Practice", format: "Memory", completedAtUtc: "2026-09-16T10:30:00Z", attempted: 8, correct: 6, xpEarned: 42 }],
+      nextBefore: null,
+    });
+  mount();
+  expect(await screen.findByTestId("student-dashboard-history")).toBeInTheDocument();
+  expect(screen.getByText("9 / 10 correct · +58 XP")).toBeInTheDocument();
+  const download = screen.getByRole("link", { name: "Download full history (CSV)" });
+  expect(download).toHaveAttribute("href", "/api/v1/organizations/org/students/student-1/export.csv");
+  fireEvent.click(screen.getByRole("button", { name: "Load more sessions" }));
+  expect(await screen.findByText("6 / 8 correct · +42 XP")).toBeInTheDocument();
+  expect(api.studentSessionHistory).toHaveBeenLastCalledWith("org", "student-1", "2026-09-17T10:30:00Z");
 });

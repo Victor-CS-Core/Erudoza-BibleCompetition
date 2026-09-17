@@ -76,6 +76,12 @@ export const api = {
     request<StudentDashboard>(`/api/v1/organizations/${orgId}/students/${encodeURIComponent(studentId)}/dashboard`, { signal }),
   studentSessionRecap: (orgId: string, studentId: string, sessionId: string) =>
     request<import("./trainingTypes").SessionRecap>(`/api/v1/organizations/${orgId}/students/${encodeURIComponent(studentId)}/sessions/${encodeURIComponent(sessionId)}/recap`),
+  engagement: (orgId: string) =>
+    request<import("./types").EngagementRow[]>(`/api/v1/organizations/${orgId}/engagement`),
+  studentSessionHistory: (orgId: string, studentId: string, before?: string, limit = 30, signal?: AbortSignal) =>
+    request<import("./types").SessionHistoryPage>(`/api/v1/organizations/${orgId}/students/${encodeURIComponent(studentId)}/sessions?limit=${limit}${before ? `&before=${encodeURIComponent(before)}` : ""}`, { signal }),
+  studentExportCsvUrl: (orgId: string, studentId: string) =>
+    `/api/v1/organizations/${orgId}/students/${encodeURIComponent(studentId)}/export.csv`,
   createStudent: (orgId: string, body: { userName: string; displayName: string; password: string }) =>
     request<Student>(`/api/v1/organizations/${orgId}/students`, { method: "POST", body: JSON.stringify(body) }),
   resetStudentPassword: (orgId: string, studentId: string, password: string) =>

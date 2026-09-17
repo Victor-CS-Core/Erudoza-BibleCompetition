@@ -16,7 +16,7 @@ export const proofId = (org: string, user: string, season: string, passage: stri
 export function insertUnlocks(store: Store, orgId: string, awards: HonorUnlock[]): D1PreparedStatement {
   return store.db.prepare("INSERT OR IGNORE INTO Records(kind,id,org_id,season_id,owner_id,data,revision) SELECT 'mastery-honor',json_extract(value,'$.id'),?,json_extract(value,'$.seasonId'),json_extract(value,'$.userId'),value,1 FROM json_each(?)").bind(orgId, JSON.stringify(awards));
 }
-export async function prepareSoloHonors(ctx: RequestContext, session: Session, attempt: Attempt, sources: Source[], states: Mastery[], mastery: Mastery, dueAtUtc?: string): Promise<Writes> {
+export async function prepareSoloHonors(ctx: RequestContext, session: Session, attempt: Attempt, sources: Source[], states: Mastery[], mastery: Mastery, dueAtUtc?: string): Promise<{ writes: Writes; newAwards: HonorUnlock[] }> {
   const writes: Writes = { statements: [], guards: [] };
   const ids = [...new Set(sources.map(passageId))].map(p => proofId(ctx.orgId, ctx.actor.userId, session.seasonId, p));
   const stored = await ctx.store.getMany<PassageProof>('mastery-proof', ids, ctx.orgId);
@@ -30,7 +30,11 @@ export async function prepareSoloHonors(ctx: RequestContext, session: Session, a
     evidence: { sessionId: session.id, attemptId: attempt.id, passageIds, skills: states.filter(m => passageIds.includes(m.knowledgeUnitId)).map(m => ({ knowledgeUnitId: m.knowledgeUnitId, sourceUnitId: m.sourceUnitId, algorithmVersion: m.algorithmVersion, exactWording: m.exactWording, reference: m.reference, recognition: m.recognition })), proofs: proofs.filter(p => passageIds.includes(p.knowledgeUnitId)) },
   }));
   if (awards.length) writes.statements.push(insertUnlocks(ctx.store, ctx.orgId, awards));
-  return writes;
+  // INSERT OR IGNORE keeps the write idempotent; report which awards are new so
+  // the caller can award profile-Honor XP exactly once per honor.
+  const existing = awards.length ? await ctx.store.getMany<HonorUnlock>('mastery-honor', awards.map(a => a.id), ctx.orgId) : [];
+  const newAwards = awards.filter(a => !existing.some(e => e.value.id === a.id));
+  return { writes, newAwards };
 }
 export function prepareTeamHonors(store: Store, orgId: string, rooms: Room[], updated: Room): D1PreparedStatement[] {
   // Restrict newly evaluated people to this changed match. Read-only endpoints never issue awards.

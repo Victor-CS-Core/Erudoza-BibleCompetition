@@ -46,6 +46,14 @@ export type TrainingWeek = {
         isToday: boolean;
     }[];
 };
+export type QuestDto = {
+    key: "warmup" | "sharpshooter" | "explorer" | "comeback" | "marathon" | "teammate";
+    title: string;
+    description: string;
+    target: number;
+    progress: number;
+    completed: boolean;
+};
 export type TrainingToday = {
     format?: "Memory" | "Pbe";
     seasonId: string | null;
@@ -68,11 +76,22 @@ export type TrainingToday = {
         sessionId: string | null;
     } | null;
     honors: BadgeProgress[];
+    xp: {
+        total: number;
+        level: number;
+        levelName: string;
+        xpIntoLevel: number;
+        xpForNext: number;
+    };
+    /** Today's bonus quests (spec §6). */
+    quests: QuestDto[];
     streak: {
         current: number;
         best: number;
         state: "active" | "paused" | "none";
     };
+    /** True when the streak is paused — the client shows a gentle nudge banner. */
+    streakNudge: boolean;
 };
 export type SessionRecap = {
     version: "training-v1" | "legacy-counts" | "pbe-daily-v2";
@@ -91,6 +110,10 @@ export type SessionRecap = {
     weeklyGoalComplete: boolean;
     /** Set when this session set a personal best (Memory sessions). */
     personalBest: { accuracyBeaten: boolean; correctBeaten: boolean } | null;
+    /** XP earned this session plus the learner's current totals. */
+    xp: { earned: number; total: number; level: number; levelName: string };
+    /** Set when this session crossed a level threshold. */
+    levelUp: { from: number; to: number; fromName: string; toName: string } | null;
     missionSteps: TrainingStep[];
     earnedBadges: BadgeProgress[];
     passageChanges: {

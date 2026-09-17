@@ -125,7 +125,8 @@ export async function studentSessionRecap(ctx: RequestContext, studentId: string
   const rec = await ctx.store.get<Session>('session', sessionId, ctx.orgId);
   if (rec && rec.value.studentUserId === s.userId) {
     if (rec.value.status !== 'Completed') throw new HttpError(409, 'This session is not complete.');
-    return rec.value.recap ?? await makeRecap(ctx, rec.value);
+    // XP is read per-actor, so scope the recap to the student, not the coach viewing it.
+    return rec.value.recap ?? await makeRecap({ ...ctx, actor: { userId: s.userId } } as RequestContext, rec.value);
   }
   const pbe = await ctx.store.get<PbeSession>('pbe-session', sessionId, ctx.orgId);
   if (!pbe || pbe.value.studentUserId !== s.userId) throw new HttpError(404, 'Study session was not found.');

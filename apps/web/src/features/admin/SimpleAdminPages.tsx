@@ -11,6 +11,7 @@ import { SeasonAssignmentEditor } from "./SeasonWizardPage";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { StudentTable } from "./StudentTable";
 import { StudentDashboardPanel } from "./StudentDashboardPanel";
+import { EngagementTab } from "./EngagementTab";
 import { SeasonStatusBadge } from "./SeasonStatusBadge";
 import { formatPassageCitation } from "./passageRanges";
 
@@ -44,6 +45,7 @@ export function StudentsPage() {
   const [resetPassword, setResetPassword] = useState("");
   const [stateStudent, setStateStudent] = useState<Student | null>(null);
   const [dashboardStudent, setDashboardStudent] = useState<Student | null>(null);
+  const [tab, setTab] = useState<"directory" | "engagement">("directory");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const students = useQuery({ queryKey: ["students", me?.organizationId], queryFn: () => api.students(me!.organizationId), enabled: !!me });
@@ -69,6 +71,11 @@ export function StudentsPage() {
 
     {status && <Notice tone="success" data-testid="reset-password-status">{status}</Notice>}
     {error && !resetStudentId && <Notice tone="danger">{error}</Notice>}
+    <div role="tablist" aria-label="Students views" className="ds-tablist">
+      <Button variant={tab === "directory" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "directory"} onClick={() => setTab("directory")}>Directory</Button>
+      <Button variant={tab === "engagement" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "engagement"} onClick={() => setTab("engagement")}>Engagement</Button>
+    </div>
+    {tab === "directory" ? <>
     <Panel id="student-directory"><h2>Student directory</h2>
       {students.isPending && <p role="status">Loading students…</p>}
       {students.isError && <QueryError retry={() => void students.refetch()}>Unable to load students.</QueryError>}
@@ -102,6 +109,7 @@ export function StudentsPage() {
         <Button data-testid="add-student" type="submit" disabled={!canCreate || create.isPending}>{create.isPending ? "Adding student…" : "Add student"}</Button>
       </form>
     </Panel>
+    </> : <EngagementTab />}
   </div>;
 }
 

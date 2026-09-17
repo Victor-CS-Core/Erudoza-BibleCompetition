@@ -10,6 +10,8 @@ import type { BadgeProgress, TrainingPreferences, TrainingStep, SkillScores, Ses
 import { addDays, effectivePreferences, resolveTrainingCalendar, validateZone } from './calendar';
 import { badgeCounters, fullTargetReached } from './rules';
 import { creditedDates, streakCount } from './streak';
+import { awardXp, levelNameFor, xpSummary, XP_VALUES, type XpEvent } from './xp';
+import { inTeamRoom, progressQuests, type QuestKey } from './quests';
 export interface PreferenceRecord extends TrainingPreferences {
     id: string;
     lastEventAtUtc: string;
@@ -91,6 +93,10 @@ export interface SessionTraining {
     /** True when the credited day completed the learner's weekly practice goal. */
     weeklyGoalComplete?: boolean;
     earnedBadges: BadgeProgress[];
+    /** XP earned during this session (all kinds). */
+    xpEarned?: number;
+    /** Level-up crossed during this session, if any. */
+    leveledUp?: { from: number; to: number } | null;
 }
 export type Guard = {
     kind: string;
@@ -203,6 +209,11 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
     p.lastEventAtUtc = at > p.lastEventAtUtc ? at : p.lastEventAtUtc;
     // A shared preference revision serializes first-day/week/award races across sessions and seasons.
     write(ctx, w, 'training-preferences', p.id, p, old);
+    // XP events collected across the attempt; awarded once at the end so the
+    // training-xp record sees a single read-modify-write per request.
+    const xpEvents: XpEvent[] = [];
+    const xpDate = resolveTrainingCalendar(at, p).localDate;
+    xpEvents.push({ kind: 'attempt', amount: attempt.isCorrect ? (attempt.hintsUsed ? XP_VALUES.attemptCorrectHints : XP_VALUES.attemptCorrectNoHints) : XP_VALUES.attemptIncorrect });
     session.training ??= { missionId: null, missionRevision: null, missionLocalDate: null, timeZone: p.timeZone, reviewKnowledgeUnitIds: [], creditedLocalDate: null, newlyCreditedDay: false, earnedBadges: [] };
     const training = session.training, fingerprint = await scopeVersion(sources);
     let review = false, reviewTransition = false;
@@ -221,6 +232,8 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
             write(ctx, w, 'daily-mission', m.id, m, prior, m.seasonId);
         }
     }
+    if (reviewTransition)
+        xpEvents.push({ kind: 'review', amount: XP_VALUES.reviewStepCompleted });
     const before = session.attempts.filter(a => a.id !== attempt.id), qualifies = training.missionId && session.mode === 'Review' ? reviewTransition : fullTargetReached(session.targetCardCount, session.attempts) && !fullTargetReached(session.targetCardCount, before);
     let streak = 0;
     if (qualifies && !training.creditedLocalDate) {
@@ -229,6 +242,7 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
         if (!day) {
             training.newlyCreditedDay = true;
             write(ctx, w, 'training-day', dayId, { id: dayId, localDate: c.localDate, timeZone: c.timeZone, firstQualifiedAtUtc: at, sessionId: session.id, credited: true }, null);
+            xpEvents.push({ kind: 'day', amount: XP_VALUES.dayCredited });
             const wid = identity(ctx, c.weekStartLocalDate), oldWeek = await ctx.store.get<WeekRecord>('training-week', wid, ctx.orgId), week = oldWeek?.value ?? { id: wid, weekStartLocalDate: c.weekStartLocalDate, timeZone: c.timeZone, target: p.weeklyTarget, dates: Array.from({ length: 7 }, (_, i) => addDays(c.weekStartLocalDate, i)), creditedDates: [], qualifiedAtUtc: null };
             if (!week.creditedDates.includes(c.localDate))
                 week.creditedDates.push(c.localDate);
@@ -250,8 +264,10 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
     const states = (await ctx.store.list<Mastery>('mastery', ctx.orgId, { seasonId: session.seasonId, ownerId: ctx.actor.userId })).filter(m => m.knowledgeUnitId !== mastery.knowledgeUnitId);
     states.push(mastery);
     const masteryWrites = await prepareSoloHonors(ctx, session, attempt, sources, states, mastery, dueAtUtc);
-    w.statements.push(...masteryWrites.statements);
-    w.guards.push(...masteryWrites.guards);
+    w.statements.push(...masteryWrites.writes.statements);
+    w.guards.push(...masteryWrites.writes.guards);
+    if (masteryWrites.newAwards.length)
+        xpEvents.push({ kind: 'honor', amount: XP_VALUES.profileHonor * masteryWrites.newAwards.length });
     const counters = badgeCounters(sources.map(s => ({ id: kid(s), bookKey: s.bookKey, chapter: s.chapter })), states, seen, p.qualifyingWeekStarts.length, review, streak), projection = { id: pid, seasonId: session.seasonId, scopeVersion: fingerprint, seenKnowledgeUnitIds: seen, counters };
     if (!oldProgress || JSON.stringify(oldProgress.value) !== JSON.stringify(projection))
         write(ctx, w, 'training-season-progress', pid, projection, oldProgress, session.seasonId);
@@ -268,6 +284,41 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
         const award: AwardRecord = { id: aid, key, ruleVersion: 'training-v1', title: titles[key], completed, target, earnedAtUtc: at, scopeLabel: key === 'steady-study' ? 'Academy practice weeks' : key.startsWith('streak-') ? 'Practice streak' : key === 'review-complete' ? `Daily review (${reviewIds.length} passages)` : `Assigned scope${chapter ? ` · ${chapter.bookKey} ${chapter.chapter}` : ''} (${target} passages)`, evidenceSessionId: session.id, seasonId: academyScoped ? null : session.seasonId, scopeVersion: fingerprint, eligibleKnowledgeUnitIds: awardSources.map(kid), evidence: { missionId: training.missionId, qualifyingWeekStarts: [...p.qualifyingWeekStarts], skills: states.filter(m => awardSources.some(s => kid(s) === m.knowledgeUnitId)).map(m => ({ knowledgeUnitId: m.knowledgeUnitId, algorithmVersion: m.algorithmVersion, scores: skills(m) })) } };
         write(ctx, w, 'solo-badge-award', aid, award, null, award.seasonId ?? undefined);
         training.earnedBadges.push(badgeDto(award));
+        xpEvents.push({ kind: 'milestone', amount: XP_VALUES.soloMilestone });
+    }
+    // Daily bonus quests: explorer / comeback progress from this attempt,
+    // warmup on review-step completion, teammate on room membership.
+    const questRes = await progressQuests(ctx, w, { localDate: xpDate, timeZone: p.timeZone, seasonId: session.seasonId, atUtc: at }, async api => {
+        const has = (key: QuestKey) => api.quests.some(q => q.key === key && !q.completed);
+        if (has('warmup') && reviewTransition)
+            api.complete('warmup');
+        if (has('explorer')) {
+            const source = sources.find(s => kid(s) === attempt.knowledgeUnitId);
+            if (source) {
+                const chapterSources = sources.filter(s => s.bookKey === source.bookKey && s.chapter === source.chapter);
+                const seenBefore = chapterSources.filter(s => kid(s) !== attempt.knowledgeUnitId && seen.includes(kid(s))).length;
+                if (chapterSources.length > 0 && seenBefore / chapterSources.length < 0.5)
+                    api.addProgress('explorer', 1);
+            }
+        }
+        if (has('comeback')) {
+            const weakest = [...states]
+                .map(m => ({ id: m.knowledgeUnitId, total: m.exactWording + m.recognition + m.reference + m.sequence + m.factualRecall }))
+                .sort((a, b) => a.total - b.total)
+                .slice(0, 3)
+                .map(x => x.id);
+            if (weakest.includes(attempt.knowledgeUnitId))
+                api.addProgress('comeback', 1, attempt.knowledgeUnitId);
+        }
+        if (has('teammate') && await inTeamRoom(ctx))
+            api.complete('teammate');
+    });
+    xpEvents.push(...questRes.xpEvents);
+    if (xpEvents.length) {
+        const awarded = await awardXp(ctx, w, { seasonId: session.seasonId, localDate: xpDate, atUtc: at, events: xpEvents });
+        training.xpEarned = (training.xpEarned ?? 0) + awarded.awarded;
+        if (awarded.leveledUp)
+            training.leveledUp = { from: training.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
     }
     // Serialize the final preference value after qualification changed its bounded week evidence.
     w.statements[0] = old ? ctx.store.update('training-preferences', p.id, ctx.orgId, p, old.revision) : ctx.store.insertion('training-preferences', p.id, ctx.orgId, p, { ownerId: ctx.actor.userId });
@@ -276,6 +327,7 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
 const skills = (s: SkillScores): SkillScores => ({ exactWording: s.exactWording, recognition: s.recognition, reference: s.reference, sequence: s.sequence, factualRecall: s.factualRecall });
 export async function makeRecap(ctx: RequestContext, s: Session): Promise<SessionRecap> {
     const t = s.training, mission = t?.missionId ? await ctx.store.get<MissionRecord>('daily-mission', t.missionId, ctx.orgId) : null;
+    const xp = await xpSummary(ctx);
     const changes: SessionRecap['passageChanges'] = [];
     for (const id of new Set(s.attempts.filter(a => a.before && a.after && !a.isLegacyDuplicate).map(a => a.knowledgeUnitId))) {
         const attempts = s.attempts.filter(a => a.knowledgeUnitId === id && a.before && a.after && !a.isLegacyDuplicate), events = attempts.map(a => ({ attemptId: a.id, acceptedAtUtc: a.at, before: skills(a.before!), after: skills(a.after!) }));
@@ -286,7 +338,7 @@ export async function makeRecap(ctx: RequestContext, s: Session): Promise<Sessio
         const contiguous = events.every((e, i) => !i || attempts[i].previousAttemptId === events[i - 1].attemptId && JSON.stringify(e.before) === JSON.stringify(events[i - 1].after));
         changes.push({ knowledgeUnitId: id, title: attempts[0].result.citation, delta, before: contiguous ? events[0].before : null, after: contiguous ? events.at(-1)!.after : null, events });
     }
-    return { version: t ? 'training-v1' : 'legacy-counts', sessionId: s.id, seasonId: s.seasonId, mode: s.mode, completedAtUtc: s.completedAtUtc ?? null, attempted: s.attempts.filter(a => !a.isLegacyDuplicate).length, correct: s.attempts.filter(a => !a.isLegacyDuplicate && a.isCorrect).length, targetCardCount: s.targetCardCount, fullTargetReached: fullTargetReached(s.targetCardCount, s.attempts), newlyCreditedDay: t?.newlyCreditedDay ?? false, missionLocalDate: t?.missionLocalDate ?? null, creditedLocalDate: t?.creditedLocalDate ?? null, weeklyGoalComplete: t?.weeklyGoalComplete ?? false, personalBest: null, missionSteps: mission && mission.value.revision === t?.missionRevision ? missionSteps(mission.value) : [], earnedBadges: t?.earnedBadges ?? [], passageChanges: changes };
+    return { version: t ? 'training-v1' : 'legacy-counts', sessionId: s.id, seasonId: s.seasonId, mode: s.mode, completedAtUtc: s.completedAtUtc ?? null, attempted: s.attempts.filter(a => !a.isLegacyDuplicate).length, correct: s.attempts.filter(a => !a.isLegacyDuplicate && a.isCorrect).length, targetCardCount: s.targetCardCount, fullTargetReached: fullTargetReached(s.targetCardCount, s.attempts), newlyCreditedDay: t?.newlyCreditedDay ?? false, missionLocalDate: t?.missionLocalDate ?? null, creditedLocalDate: t?.creditedLocalDate ?? null, weeklyGoalComplete: t?.weeklyGoalComplete ?? false, personalBest: null, xp: { earned: t?.xpEarned ?? 0, total: xp.total, level: xp.level, levelName: xp.levelName }, levelUp: t?.leveledUp ? { from: t.leveledUp.from, to: t.leveledUp.to, fromName: levelNameFor(t.leveledUp.from), toName: levelNameFor(t.leveledUp.to) } : null, missionSteps: mission && mission.value.revision === t?.missionRevision ? missionSteps(mission.value) : [], earnedBadges: t?.earnedBadges ?? [], passageChanges: changes };
 }
 /** Streak milestone keys share the solo-badge pipeline but are academy-scoped (cross-season). */
 const streakKeys = ['streak-7', 'streak-14', 'streak-30'] as const;

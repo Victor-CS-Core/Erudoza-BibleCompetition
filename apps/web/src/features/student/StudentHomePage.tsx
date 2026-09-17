@@ -54,6 +54,7 @@ export function StudentHomePage() {
     {(seasons.data?.length ?? 0) > 1 && <label className="training-season-select">Assigned season<Select value={seasonId ?? ""} onChange={event => { setGoalOpen(false); setParams({ seasonId: event.target.value }); }}>{seasons.data?.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}
     {seasons.isError && <Notice tone="danger">Assigned seasons could not load. <Button variant="secondary" onClick={() => void seasons.refetch()}>Retry seasons</Button></Notice>}
     {today.isPending ? <LoadingState label="Loading your training plan…" /> : today.isError ? <Notice tone="danger">Your training plan could not load. <Button variant="secondary" onClick={() => void today.refetch()}>Try again</Button></Notice> : data && <>
+      {data.streakNudge && <Notice tone="info" data-testid="streak-nudge" className="training-streak-nudge">One missed day just pauses your streak — practice today to keep it going.</Notice>}
       <div className="training-hq-grid">
         <div className="training-mission-column">
           <Panel className="training-mission">
@@ -86,6 +87,20 @@ export function StudentHomePage() {
             <p className="training-week-count" aria-label={`${data.streak.current} day practice streak`}><strong>{data.streak.current} <span>{data.streak.current === 1 ? "day" : "days"}</span></strong><span>in a row</span></p>
             <p>{data.streak.state === "active" ? "Keep it going — practice today to extend it." : data.streak.state === "paused" ? "Paused, not lost. Practice today to keep your streak alive." : "Practice today to start your first streak."}</p>
             {data.streak.best > data.streak.current && <p><small>Best streak: {data.streak.best} {data.streak.best === 1 ? "day" : "days"}</small></p>}
+          </Panel>}
+          <Panel className="training-xp-panel">
+            <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="chart" /><h2>Level {data.xp.level}</h2></div><Badge tone="info">{data.xp.levelName}</Badge></div>
+            <p className="training-week-count" aria-label={`${data.xp.total} experience points total`}><strong>{data.xp.total} <span>XP</span></strong><span>total</span></p>
+            <ProgressMeter label="Progress to the next level" value={data.xp.xpIntoLevel} max={data.xp.xpForNext} />
+          </Panel>
+          {!!data.quests.length && <Panel className="training-quest-board">
+            <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="flag" /><h2>Today’s bonus quests</h2></div></div>
+            <p className="training-quest-note">Little extras — no penalty for skipping.</p>
+            <ul className="training-quest-list">{data.quests.map(quest => <li key={quest.key} className={quest.completed ? "is-complete" : ""}>
+              <div className="training-quest-head"><strong>{quest.title}</strong>{quest.completed && <Badge tone="success">Done</Badge>}</div>
+              <p>{quest.description}</p>
+              <ProgressMeter label={`${quest.title}: quest progress`} value={quest.progress} max={quest.target} />
+            </li>)}</ul>
           </Panel>}
           <Panel className="training-week-panel">
             <div className="training-panel-title"><h2>Weekly practice goal</h2><Button variant="ghost" size="compact" aria-label="Edit weekly goal" onClick={() => setGoalOpen(true)}>Edit goal</Button></div>

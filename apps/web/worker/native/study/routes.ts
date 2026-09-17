@@ -4,8 +4,12 @@ import { resolvePbeSources } from '../pbe/sources';
 import { startPbeSession, pbeSessionAction } from '../pbe/sessions';
 import { trainingNow } from '../training/clock';
 import type { StartTrainingContext, SessionRecap, SkillScores } from '../../../src/api/trainingTypes';
-import { applyAcceptedAttempt, prepareStart, makeRecap, recordPersonalBests, scopeVersion, startPayload } from '../training/store';
-import type { SessionTraining, MissionRecord } from '../training/store';
+import { applyAcceptedAttempt, prepareStart, makeRecap, recordPersonalBests, scopeVersion, startPayload, preference, resolvePreference } from '../training/store';
+import type { SessionTraining, MissionRecord, Writes } from '../training/store';
+import { fullTargetReached } from '../training/rules';
+import { resolveTrainingCalendar } from '../training/calendar';
+import { awardXp } from '../training/xp';
+import { sessionCompleteQuests } from '../training/quests';
 import type { RequestContext } from '../types';
 import { admin, body, HttpError, json, requiredString } from '../types';
 import { atomic, contains, effectiveSources, fail, id, memberId, student, requireLearner } from '../application/model';
@@ -293,7 +297,20 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
   if (action === 'complete' && method === 'POST') return retry(async () => {
     const stored = await loadSession(ctx, sessionId), session = stored.value;
     if (!session.attempts.length) fail('A session cannot be completed without a persisted attempt.');
-    if (session.status !== 'Completed') { session.status = 'Completed'; session.completedAtUtc ??= trainingNow(); session.recap ??= await makeRecap(ctx,session); const bests = await recordPersonalBests(ctx, session); if (bests.beaten.accuracyBeaten || bests.beaten.correctBeaten) session.recap.personalBest = bests.beaten; await atomic(ctx, 'study.session.complete', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision), ...bests.writes.statements], [{ kind: 'session', id: sessionId, revision: stored.revision }, ...bests.writes.guards]); }
+    if (session.status !== 'Completed') { session.status = 'Completed'; session.completedAtUtc ??= trainingNow();
+      // Daily bonus quests: sharpshooter / marathon land at completion.
+      const qw: Writes = { statements: [], guards: [] };
+      const pref = await preference(ctx), pcal = resolveTrainingCalendar(session.completedAtUtc, resolvePreference(ctx, pref, session.completedAtUtc));
+      session.training ??= { missionId: null, missionRevision: null, missionLocalDate: null, timeZone: pcal.timeZone, reviewKnowledgeUnitIds: [], creditedLocalDate: null, newlyCreditedDay: false, earnedBadges: [] };
+      const qLocalDate = session.training.creditedLocalDate ?? pcal.localDate;
+      const qAttempts = session.attempts.filter(a => !a.isLegacyDuplicate), qCorrect = qAttempts.filter(a => a.isCorrect).length;
+      const questXp = await sessionCompleteQuests(ctx, qw, { localDate: qLocalDate, timeZone: pcal.timeZone, seasonId: session.seasonId, atUtc: session.completedAtUtc }, { mode: session.mode, accuracy: qAttempts.length ? qCorrect / qAttempts.length * 100 : 0, fullTargetReached: fullTargetReached(session.targetCardCount, session.attempts) });
+      if (questXp.length) {
+        const awarded = await awardXp(ctx, qw, { seasonId: session.seasonId, localDate: qLocalDate, atUtc: session.completedAtUtc, events: questXp });
+        session.training.xpEarned = (session.training.xpEarned ?? 0) + awarded.awarded;
+        if (awarded.leveledUp) session.training.leveledUp = { from: session.training.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
+      }
+      session.recap ??= await makeRecap(ctx,session); const bests = await recordPersonalBests(ctx, session); if (bests.beaten.accuracyBeaten || bests.beaten.correctBeaten) session.recap.personalBest = bests.beaten; await atomic(ctx, 'study.session.complete', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision), ...bests.writes.statements, ...qw.statements], [{ kind: 'session', id: sessionId, revision: stored.revision }, ...bests.writes.guards, ...qw.guards]); }
     return json(summary(session));
   });
   if (!action && method === 'GET') {
