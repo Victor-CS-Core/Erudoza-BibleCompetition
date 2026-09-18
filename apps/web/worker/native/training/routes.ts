@@ -11,7 +11,7 @@ import { trainingNow } from './clock';
 import { preference, resolvePreference, write, makeRecap } from './store';
 import type { Writes } from './store';
 import { today, honors, journey } from './query';
-import { leaderboard, setLeaderboardOptIn, teamActivity } from './social';
+import { setLeaderboardOptIn, teamActivity } from './social';
 export async function handleTraining(ctx: RequestContext): Promise<Response | null> {
     const { path, request } = ctx, method = request.method;
     const recap = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)\/recap$/);

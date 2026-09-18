@@ -11,7 +11,7 @@ import { atomic, contains, deletion, difficulty, editable, effectiveSources, fai
 import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
 import { buildAssignmentNotification } from './application/notifications';
 import { leaderboard } from './training/social';
-import { studentDashboard, studentSessionRecap } from './application/student-dashboard';
+import { studentDashboard } from './application/student-dashboard';
 import { engagementOverview, studentExportCsv, studentSessionHistory } from './application/engagement';
 import { buildRoomRecap } from './practice/room-history';
 import { pbeMaterials } from './application/pbe-materials';
