@@ -75,10 +75,8 @@ it("shows streak state, best streak and the 90-day practice history", async () =
   mount();
   await screen.findByTestId("student-dashboard-effort");
   const effort = within(screen.getByTestId("student-dashboard-effort"));
-  expect(effort.getByText("Streak state")).toBeInTheDocument();
-  expect(effort.getByText("Active")).toBeInTheDocument();
-  expect(effort.getByText("Best streak")).toBeInTheDocument();
-  expect(effort.getByText("5 days")).toBeInTheDocument();
+  expect(effort.getByText("Streak")).toBeInTheDocument();
+  expect(effort.getByText("3 days · Active · best 5 days")).toBeInTheDocument();
   expect(screen.getByRole("img", { name: /Practice history: 30 of the last 90 days credited/ })).toBeInTheDocument();
   expect(screen.getByText(/One missed day pauses the streak/)).toBeInTheDocument();
 });

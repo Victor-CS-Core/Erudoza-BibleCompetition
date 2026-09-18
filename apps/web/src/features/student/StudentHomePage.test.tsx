@@ -31,6 +31,20 @@ it("shows the XP rank, not a level", async () => {
   expect(screen.getByLabelText("Progress to the next rank")).toBeInTheDocument();
 });
 
+it("shows the practiced-today state and a weekly heatmap on the streak panel", async () => {
+  home();
+  expect(await screen.findByRole("heading", { name: "Practice streak" })).toBeInTheDocument();
+  expect(screen.getByText("Practiced today")).toBeInTheDocument();
+  expect(screen.getByRole("img", { name: "This week: 1 of 1 days practiced" })).toBeInTheDocument();
+});
+
+it("shows a not-yet-today state when today is not credited", async () => {
+  vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ week: { weekStartLocalDate: "2026-09-07", timeZone: "America/New_York", target: 5, completedDays: 0, days: [{ localDate: "2026-09-11", credited: false, isToday: true }] } }));
+  home();
+  expect(await screen.findByRole("heading", { name: "Practice streak" })).toBeInTheDocument();
+  expect(screen.getByText("Not yet today")).toBeInTheDocument();
+});
+
 it("starts an updated invalidated mission without stale identifiers", async () => { const data = todayFixture(); vi.mocked(trainingApi.today).mockResolvedValue({ ...data, mission: { ...data.mission, status: "Invalidated" } }); home(); const action = await screen.findByRole("link", { name: "Start updated training" }); expect(action).toHaveAttribute("href", "/student/study?mode=Review&step=Review&seasonId=s"); });
 it("completed missions link their saved recap without a next action", async () => { const data = todayFixture(); vi.mocked(trainingApi.today).mockResolvedValue({ ...data, nextAction: null, mission: { ...data.mission, status: "Complete", steps: [{ kind: "Review", target: 4, completed: 4, status: "Complete", sessionId: "review-done" }, { kind: "Practice", target: 8, completed: 8, status: "Complete", sessionId: "practice-done" }] } }); home(); expect(await screen.findByRole("link", { name: "See today’s recap" })).toHaveAttribute("href", "/student/sessions/practice-done/recap?seasonId=s"); });
 
@@ -40,11 +54,9 @@ it("counts an unneeded review as resolved without inventing completed practice",
   data.nextAction = { label: "Start daily drill", mode: "Practice", sessionId: null };
   vi.mocked(trainingApi.today).mockResolvedValue(data);
   home();
-  const progress = await screen.findByRole("progressbar", { name: "Today's training steps" });
-  expect(progress).toHaveAttribute("value", "1");
-  expect(progress).toHaveAttribute("max", "2");
-  expect(screen.getByText("No review needed today")).toBeInTheDocument();
+  expect(await screen.findByText("No review needed today")).toBeInTheDocument();
   expect(screen.getByText("0 of 8 cards completed")).toBeInTheDocument();
+  expect(screen.queryByRole("progressbar", { name: "Today's training steps" })).not.toBeInTheDocument();
 });
 
 it("labels effort-based sidebar progress as a milestone", async () => {

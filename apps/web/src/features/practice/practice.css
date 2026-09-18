@@ -121,7 +121,7 @@
 .practice-live-question { padding: 28px; }
 .practice-question-meta { display: flex; align-items: center; justify-content: space-between; gap: var(--er-space-3); margin-bottom: var(--er-space-6); color: var(--er-muted-ink); font-size: var(--er-text-xs); }
 .practice-question-meta > span:first-child { min-width: 0; }
-.practice-timer { flex-shrink: 0; font-size: var(--er-text-title); font-weight: 650; font-variant-numeric: tabular-nums; color: var(--er-ink-navy); }
+.practice-timer { flex-shrink: 0; font-size: var(--er-text-sm); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--er-muted-ink); background: var(--er-surface-soft); border: 1px solid var(--er-border); border-radius: 999px; padding: var(--er-space-1) var(--er-space-3); white-space: nowrap; }
 .practice-live-question h1.practice-question-prompt { font-size: var(--er-text-title); line-height: 1.5; letter-spacing: -.02em; margin: 0 0 var(--er-space-4); text-wrap: pretty; overflow-wrap: anywhere; }
 .practice-question-reference { font-family: var(--er-font-reading); color: var(--er-muted-ink); font-size: var(--er-text-base); margin: 0 0 var(--er-space-6); overflow-wrap: anywhere; }
 .practice-answer textarea { min-height: 128px; resize: vertical; }
@@ -215,8 +215,7 @@
   .practice-match-center h2, .practice-match-center p { font-size: var(--er-text-xs); }
   .practice-live-grid { grid-template-columns: minmax(0, 1fr); gap: var(--er-space-5); }
   .practice-room .practice-live-question { padding: var(--er-space-5); }
-  .practice-question-meta { margin-bottom: var(--er-space-5); gap: var(--er-space-2); }
-  .practice-timer { font-size: var(--er-text-title); }
+  .practice-question-meta { margin-bottom: var(--er-space-5); gap: var(--er-space-2); align-items: center; }
   .practice-live-question h1.practice-question-prompt { font-size: 1.25rem; }
   .practice-question-reference { margin-bottom: var(--er-space-5); }
   .practice-answer textarea { min-height: 120px; }
@@ -281,7 +280,7 @@
  .practice-room .practice-scoreboard[data-team-count="1"] { grid-template-columns:minmax(0,1fr); }
  .practice-scoreboard[data-team-count="1"] .practice-score-team>div { display:flex;flex-wrap:wrap;align-items:center;gap:var(--er-space-2); }
  .practice-question-meta { flex-wrap:wrap; }
- .practice-question-meta [role=timer] { flex-basis:100%;text-align:center; }
+ .practice-question-meta [role=timer] { flex-basis:auto; }
  .simulation-editor-footer .ds-button { width:100%; }
 }
 

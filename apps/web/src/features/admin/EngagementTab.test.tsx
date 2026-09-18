@@ -47,6 +47,18 @@ it("sorts by column when the heading is clicked", async () => {
   expect(nameCells()[0]).toContain("Ava");
 });
 
+it("exposes phone sort controls with a caption that follows the sort state", async () => {
+  vi.mocked(api.engagement).mockResolvedValue(rows);
+  mount();
+  await screen.findByTestId("engagement-table");
+  expect(screen.getByText("Sorted by Practice days · 7d · lowest first.")).toBeInTheDocument();
+  // Changing the sort key never unexpectedly flips direction: name defaults to ascending.
+  fireEvent.change(screen.getByLabelText("Sort students by"), { target: { value: "name" } });
+  expect(screen.getByText("Sorted by Student · A–Z.")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Sort descending" }));
+  expect(screen.getByText("Sorted by Student · Z–A.")).toBeInTheDocument();
+});
+
 it("shows a retry notice when the engagement feed fails", async () => {
   vi.mocked(api.engagement).mockRejectedValue(new Error("nope"));
   mount();

@@ -55,7 +55,7 @@
 .ds-streak-heatmap span { aspect-ratio: 1; border-radius: 3px; background: var(--er-border); min-width: 0; }
 .ds-streak-heatmap span.is-credited { background: var(--er-teal); }
 .ds-streak-heatmap span.is-today { outline: 2px solid var(--er-ink-navy); outline-offset: -2px; }
-.ds-student-dashboard-session { display: flex; align-items: center; justify-content: space-between; gap: var(--er-space-3); width: 100%; padding: var(--er-space-1) var(--er-space-2); margin: calc(var(--er-space-1) * -1) calc(var(--er-space-2) * -1); border: 0; border-radius: 8px; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.ds-student-dashboard-session { display: flex; align-items: center; justify-content: space-between; gap: var(--er-space-3); width: 100%; min-height: 44px; padding: var(--er-space-2); margin: calc(var(--er-space-2) * -1); border: 0; border-radius: 8px; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .ds-student-dashboard-session:hover { background: color-mix(in srgb, var(--er-teal) 8%, transparent); }
 .ds-student-dashboard-session:focus-visible { outline: 2px solid var(--er-teal); outline-offset: 2px; }
 .ds-student-dashboard-session > div { min-width: 0; }

@@ -296,7 +296,7 @@ export const wikiArticles: WikiArticle[] = [
     sections: [
       { heading: "Add a student", paragraphs: ["Use Add student to create the learner account with a display name, username, and initial password. Give the credentials to the student privately and ask them to sign in from the main sign-in page.", "The student directory is scoped to your club. A coach cannot use this page to manage a student from another organization."] },
       { heading: "Find a student", paragraphs: ["The directory is paginated for larger clubs. Use the search field to find a name or username instead of assuming the learner is on the first page. Open Manage assignments for the selected season or open the learner's progress."] },
-      { heading: "Student dashboard", paragraphs: ["Choose Dashboard on a student's row to open a slide-over with that student's current effort, progress, mastery, assignments, and recent activity. The dashboard is read-only and opens beside the directory, so you can review one student and move on to the next without losing your place."] },
+      { heading: "Student dashboard", paragraphs: ["Choose Dashboard on a student's row to open a slide-over with that student's current effort, progress, assignments, mastery, team and social standing, and recent activity. The dashboard is read-only and opens beside the directory, so you can review one student and move on to the next without losing your place."] },
       { heading: "Access state", paragraphs: ["An inactive student cannot sign in or continue new training, but saved assignments and historical progress remain available to authorized coaches. Re-enable the account when the learner should return."] },
     ],
     steps: ["Open Students and review the directory.", "Use Add student for a new learner or search for an existing one.", "Open the student's dashboard for an at-a-glance summary, or their assignment plan or progress detail.", "Share credentials privately and confirm the learner can sign in."],
@@ -453,7 +453,7 @@ export const wikiArticles: WikiArticle[] = [
     links: [{ label: "Open Coach overview", to: "/admin" }],
     sections: [
       { heading: "Read the overview", paragraphs: ["Coach overview summarizes the selected season and the students in your club. Counts distinguish students with assignments from students who need review and show the assignment/progress table below.", "Use the season selector when more than one plan is available. The page intentionally shows an empty state when there is no season rather than inventing coverage."] },
-      { heading: "Take action", paragraphs: ["Open a student's progress for evidence, Student directory for account management, or Seasons/Assignments to change future study scope. The overview is a starting point, not a replacement for the detailed editors."] },
+      { heading: "Take action", paragraphs: ["Open a student's progress for evidence, Student directory for account management, or Seasons/Assignments to change future study scope. The Need review count opens the student directory directly. The overview is a starting point, not a replacement for the detailed editors."] },
     ],
     steps: ["Open Coach overview.", "Select the season you want to inspect.", "Read assigned-student, review, and assignment status.", "Open the relevant detail page for the next coaching action."],
     related: ["seasons", "student-directory", "progress"],

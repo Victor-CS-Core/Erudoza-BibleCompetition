@@ -32,15 +32,12 @@
 .training-hq-aside { display: grid; gap: 24px; }
 .training-mission.ds-panel { position: relative; overflow: hidden; padding: 0; }
 .training-mission-main { position: relative; padding: 28px; }
-.training-mission-main h2 { font-size: 1.875rem; max-width: 340px; margin: 0 0 12px; letter-spacing: -.03em; }
+.training-mission-main h2 { font-size: 1.5rem; margin: 0 0 12px; letter-spacing: -.02em; }
 .training-mission-description { max-width: 320px; font-size: var(--er-text-sm); color: var(--er-muted-ink); margin-bottom: 20px; }
 .training-mission-scope { display: flex; align-items: center; gap: 8px; font-size: var(--er-text-sm); margin-bottom: 4px; }
 .training-mission-scope > svg { flex: none; }
 .training-mission-main > .ds-button { margin: 4px 0 18px; }
 .training-mission-main > .ds-notice { margin: 16px 0; }
-.training-mission-progress { display: flex; align-items: center; gap: 4px; margin-top: 8px; color: var(--er-muted-ink); font-size: var(--er-text-xs); }
-.training-mission-progress > .ds-progress-meter { flex: 1; min-width: 0; }
-.training-mission-progress > span { white-space: nowrap; }
 .training-mission-note { color: var(--er-muted-ink); font-size: var(--er-text-xs); margin: 12px 0 0; }
 .training-hq-aside h2, .training-journey-preview h2 { font-size: var(--er-text-lg); margin: 0; }
 .training-week-panel > .training-panel-title { margin-bottom: 16px; gap: 8px; }
@@ -94,8 +91,13 @@
 .training-honor-preview-items > a, .training-honor-preview-items > div { display: grid; justify-items: center; gap: 8px; min-width: 120px; max-width: 220px; text-align: center; }
 .training-honors-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 .training-honor-card { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
-.training-honor-card > p { margin: 0; }
-.training-honor-card > button { margin-top: auto; }
+.training-honor-card h2 { font-size: var(--er-text-lg); margin: 0; }
+.training-honor-card > small { color: var(--er-muted-ink); }
+.training-honor-criterion { display: grid; gap: 4px; margin: 0; font-size: var(--er-text-sm); }
+.training-honor-criterion-label { font-size: var(--er-text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--er-muted-ink); }
+.training-honor-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin: 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.training-honor-status > .ds-progress-meter { flex: 1 1 100%; }
+.training-honor-card > button, .training-honor-card > a { margin-top: auto; }
 .training-honor-card > .ds-progress-meter { width: 100%; }
 .training-honor-detail { display: grid; justify-items: start; gap: 12px; }
 .training-honor-detail > .ds-honor-art { justify-self: center; }
@@ -115,6 +117,11 @@
 .pbe-season-coverage { display: grid; gap: 20px; }
 .pbe-coverage-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .pbe-coverage-material, .pbe-own-contribution, .pbe-coach-breakdown { display: grid; gap: 12px; min-width: 0; }
+.pbe-coverage-stats { display: grid; gap: 12px; }
+.pbe-coverage-stat { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pbe-coverage-stat > span { color: var(--er-muted-ink); font-size: var(--er-text-sm); }
+.pbe-coverage-stat > strong { font-variant-numeric: tabular-nums; text-align: right; }
+.pbe-coverage-note { color: var(--er-muted-ink); font-size: var(--er-text-sm); margin: 0; }
 .pbe-coverage-material + .pbe-coverage-material { border-left: 1px solid var(--er-border); padding-left: 16px; }
 .pbe-own-contribution, .pbe-coach-breakdown { padding-top: 16px; border-top: 1px solid var(--er-border); }
 .pbe-own-contribution > div { display: grid; gap: 8px; }
@@ -131,7 +138,7 @@
   .training-recap-main { flex-direction: column; align-items: flex-start; gap: 16px; }
   .training-recap-main > .ds-patch-art { width:140px; height:140px; align-self:center; }
   .training-mission-main { padding: 24px 20px; }
-  .training-mission-main h2 { font-size: 1.6875rem; max-width: 240px; }
+  .training-mission-main h2 { font-size: 1.375rem; }
   .training-mission-description { max-width: 250px; }
   .training-mission-main > .ds-button { width: 100%; }
   .training-mission .training-mission-steps { padding: 4px 20px; }
@@ -192,10 +199,14 @@
 .training-quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .training-quest-list li { padding: 12px; border-radius: 12px; border: 1px solid var(--er-border); }
 .training-quest-list li.is-complete { border-color: color-mix(in srgb, var(--er-teal) 35%, transparent); background: color-mix(in srgb, var(--er-teal) 6%, transparent); }
-.training-quest-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.training-quest-head strong { font-size: var(--er-text-sm); }
+.training-quest-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.training-quest-head strong { font-size: var(--er-text-sm); min-width: 0; overflow-wrap: anywhere; }
 .training-quest-list p { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin: 4px 0 8px; }
 .training-streak-heatmap { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 3px; margin: 12px 0; }
+.training-streak-heatmap.is-weekly { grid-template-columns: repeat(7, minmax(0, 1fr)); max-width: 280px; }
+.training-streak-heatmap span { aspect-ratio: 1; border-radius: 3px; background: var(--er-border); min-width: 0; }
+.training-streak-heatmap span.is-credited { background: var(--er-teal); }
+.training-streak-heatmap span.is-today { outline: 2px solid var(--er-ink-navy); outline-offset: -2px; }
 .training-streak-heatmap span { aspect-ratio: 1; border-radius: 3px; background: var(--er-border); }
 .training-streak-heatmap span.is-credited { background: var(--er-teal); }
 .training-streak-heatmap span.is-today { outline: 2px solid var(--er-ink-navy); outline-offset: -2px; }
@@ -212,7 +223,7 @@
 .leaderboard-list li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--er-border); }
 .leaderboard-list li.is-me { border-color: color-mix(in srgb, var(--er-teal) 45%, transparent); background: color-mix(in srgb, var(--er-teal) 6%, transparent); }
 .leaderboard-rank { font-weight: 700; min-width: 20px; text-align: center; color: var(--er-muted-ink); }
-.leaderboard-name { flex: 1; font-size: var(--er-text-sm); display: flex; align-items: center; gap: 8px; }
+.leaderboard-name { flex: 1; min-width: 0; font-size: var(--er-text-sm); display: flex; align-items: center; gap: 8px; overflow-wrap: anywhere; }
 .leaderboard-xp { font-size: var(--er-text-sm); color: var(--er-muted-ink); white-space: nowrap; }
 .leaderboard-own-rank { font-size: var(--er-text-sm); color: var(--er-muted-ink); }
 .leaderboard-optin p { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin: 0 0 12px; }

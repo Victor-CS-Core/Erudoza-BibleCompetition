@@ -23,18 +23,27 @@ function TeamMaterial({ kind, summary }: { kind: 'Scripture' | 'Introduction'; s
   const item = kind === 'Scripture' ? 'passage' : 'introduction unit';
   const items = kind === 'Scripture' ? 'passages' : 'introduction units';
   const retained = rangeText(summary.retained,
-    count => `${count} of ${summary.assigned} ${items} retained by at least one student`,
-    (known, possible) => `${known} confirmed retained; up to ${possible} possible`);
+    count => `${count} of ${summary.assigned} ${items}`,
+    (known, possible) => `${known} confirmed · up to ${possible}`);
   const due = rangeText(summary.due,
-    count => `${count} ${count === 1 ? item : items} ${count === 1 ? 'needs' : 'need'} maintenance`,
-    (known, possible) => `Maintenance known for ${known}; up to ${possible} possible`);
+    count => `${count} ${count === 1 ? item : items}`,
+    (known, possible) => `${known} known · up to ${possible} possible`);
+  const questionCovered = rangeText(summary.questionCovered,
+    count => `${count} of ${summary.assigned} ${items}`,
+    (known, possible) => `${known} confirmed · up to ${possible} possible`);
+  const practiced = rangeText(summary.practiced,
+    count => `${count} of ${summary.assigned} ${items}`,
+    (known, possible) => `${known} confirmed · up to ${possible} possible`);
   return <div className="pbe-coverage-material">
     <div className="training-panel-title"><h3>{kind}</h3><Badge>{summary.assigned} assigned</Badge></div>
-    <p>{retained}</p>
-    <p>{due}</p>
-    <p>{rangeText(summary.questionCovered, count => `${count} have current question coverage`, (known, possible) => `${known} confirmed with questions; up to ${possible} possible`)}</p>
-    <p>{rangeText(summary.practiced, count => `${count} reached by Solo practice`, (known, possible) => `${known} confirmed practiced; up to ${possible} possible`)}</p>
-    {summary.equalRetained && <p>Equal student progress: {summary.equalRetained.lower === summary.equalRetained.upper ? percent(summary.equalRetained.lower) : `${percent(summary.equalRetained.lower).replace('%', '')}–${percent(summary.equalRetained.upper)} known range`}</p>}
+    <div className="pbe-coverage-stats">
+      <div className="pbe-coverage-stat"><span>Retained by someone</span><strong>{retained}</strong></div>
+      <ProgressMeter label={`${kind}: passages retained by at least one student`} value={summary.retained.known} max={summary.assigned} />
+      <div className="pbe-coverage-stat"><span>Need maintenance</span><strong>{due}</strong></div>
+      <div className="pbe-coverage-stat"><span>Question coverage</span><strong>{questionCovered}</strong></div>
+      <div className="pbe-coverage-stat"><span>Reached by Solo practice</span><strong>{practiced}</strong></div>
+    </div>
+    {summary.equalRetained && <p className="pbe-coverage-note">Equal student progress: {summary.equalRetained.lower === summary.equalRetained.upper ? percent(summary.equalRetained.lower) : `${percent(summary.equalRetained.lower).replace('%', '')}–${percent(summary.equalRetained.upper)} known range`}</p>}
   </div>;
 }
 
@@ -59,7 +68,7 @@ export function SeasonCoverage({ snapshot, audience, students = [], onContinue, 
   const published = (snapshot.state === 'Snapshot' || snapshot.state === 'Provisional') && !!snapshot.snapshotId;
   const empty = published && (snapshot.scripture?.assigned ?? 0) === 0 && (snapshot.introduction?.assigned ?? 0) === 0;
   return <Panel className="pbe-season-coverage" aria-labelledby="pbe-season-coverage-title">
-    <div className="training-panel-title"><div><h2 id="pbe-season-coverage-title">Season cooperation</h2><p>Independent Solo progress across assigned material. Team answers do not count as Solo recall.</p></div><Badge tone={snapshot.state === 'Snapshot' ? 'success' : snapshot.state === 'Provisional' ? 'warning' : 'neutral'}>{snapshot.state === 'Snapshot' ? 'Checked snapshot' : snapshot.state}</Badge></div>
+    <div className="training-panel-title"><div><h2 id="pbe-season-coverage-title">Season cooperation</h2><p>Independent Solo progress across assigned material. Team answers do not count as Solo recall.{snapshot.checkedAtUtc && <> Checked <time dateTime={snapshot.checkedAtUtc}>{evidenceDate(snapshot.checkedAtUtc)}</time>; maintenance counts are as of this check.</>}</p></div><Badge tone={snapshot.state === 'Snapshot' ? 'success' : snapshot.state === 'Provisional' ? 'warning' : 'neutral'}>{snapshot.state === 'Snapshot' ? 'Checked snapshot' : snapshot.state}</Badge></div>
     {snapshot.state === 'NotStarted' && <><p>Season progress has not been checked yet.</p>{onContinue && <Button disabled={busy} onClick={onContinue}>{busy ? 'Starting…' : 'Check season progress'}</Button>}</>}
     {snapshot.state === 'Updating' && <><p role="status">Checking assigned material and saved Solo progress.</p>{snapshot.work.next === 'Continue' && onContinue && <Button disabled={busy} onClick={onContinue}>{busy ? 'Checking…' : 'Continue checking progress'}</Button>}{snapshot.work.next === 'Reload' && onContinue && <Button variant="secondary" disabled={busy} onClick={onContinue}>Refresh checked progress</Button>}</>}
     {snapshot.state === 'Blocked' && <><p>{blockedReason[snapshot.reason ?? ''] ?? 'Season cooperation progress is unavailable.'}</p>{onRetry && <Button variant="secondary" disabled={busy} onClick={onRetry}>Try again</Button>}</>}
@@ -68,7 +77,6 @@ export function SeasonCoverage({ snapshot, audience, students = [], onContinue, 
       {empty ? <p>No eligible material is assigned for this season.</p> : <div className="pbe-coverage-grid">{snapshot.scripture && <TeamMaterial kind="Scripture" summary={snapshot.scripture} />}{snapshot.introduction && <TeamMaterial kind="Introduction" summary={snapshot.introduction} />}</div>}
       {audience === 'student' && snapshot.own && <div className="pbe-own-contribution"><h3>Your assigned progress</h3>{snapshot.own.state === 'Unassigned' ? <p>You are unassigned in this season.</p> : snapshot.own.state === 'Unknown' ? <p>Your assignment is counted, but your saved progress is still unknown.</p> : <><OwnMaterial kind="passages" summary={snapshot.own.scripture} /><OwnMaterial kind="introduction units" summary={snapshot.own.introduction} /></>}</div>}
       {audience === 'coach' && <div className="pbe-coach-breakdown"><h3>Student progress</h3>{students.length ? <ul className="training-list">{students.map(student => <li key={student.studentId}><div><strong>{student.displayName}</strong>{student.state === 'Unassigned' ? <p>Unassigned</p> : student.state === 'Unknown' ? <p>Progress unknown</p> : <>{student.scripture.assigned > 0 && <p>{student.scripture.retained.known} of {student.scripture.assigned} passages retained</p>}{student.introduction.assigned > 0 && <p>{student.introduction.retained.known} of {student.introduction.assigned} introduction units retained</p>}</>}</div><Badge tone={student.state === 'Known' ? 'success' : 'neutral'}>{student.state}</Badge></li>)}</ul> : <p>No student detail is available for this snapshot.</p>}</div>}
-      {snapshot.checkedAtUtc && <p><small>Checked <time dateTime={snapshot.checkedAtUtc}>{evidenceDate(snapshot.checkedAtUtc)}</time>. Maintenance counts are as of this check.</small></p>}
     </>}
   </Panel>;
 }

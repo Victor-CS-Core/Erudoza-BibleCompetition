@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import type { EngagementRow } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { Badge, Button, LoadingState, Notice, Panel } from "../../components/ui";
+import { Badge, Button, LoadingState, Notice, Panel, Select } from "../../components/ui";
 
 type SortKey = "name" | "streak" | "xpThisWeek" | "practiceDaysThisWeek" | "quests" | "level" | "honorsEarned" | "lastActiveAtUtc";
 
@@ -64,12 +64,21 @@ export function EngagementTab() {
     else { setSortKey(key); setAscending(key === "name"); }
   }
 
+  const activeColumn = columns.find(col => col.key === sortKey);
+  const sortDirection = sortKey === "name" ? (ascending ? "A–Z" : "Z–A") : (ascending ? "lowest first" : "highest first");
+
   return <Panel id="engagement" data-testid="engagement-tab">
     <h2>Engagement</h2>
     <p>Who's fading — streaks, XP and practice days at a glance. Choose a column heading to sort.</p>
     {engagement.isPending && <LoadingState label="Loading engagement…" />}
     {engagement.isError && <Notice tone="danger">Engagement could not load. <Button variant="secondary" size="compact" onClick={() => void engagement.refetch()}>Try again</Button></Notice>}
-    {engagement.data && (rows.length ? <div className="training-table-scroll" role="region" aria-label="Student engagement" tabIndex={0}>
+    {engagement.data && (rows.length ? <>
+      <div className="engagement-mobile-controls">
+        <label>Sort by<Select value={sortKey} onChange={event => toggleSort(event.target.value as SortKey)} aria-label="Sort students by">{columns.map(col => <option key={col.key} value={col.key}>{col.label}</option>)}</Select></label>
+        <Button variant="secondary" size="compact" onClick={() => setAscending(value => !value)} aria-label={ascending ? "Sort descending" : "Sort ascending"}>{ascending ? "▲" : "▼"}</Button>
+      </div>
+      <p className="engagement-sort-caption">Sorted by {activeColumn?.label} · {sortDirection}.</p>
+      <div className="training-table-scroll" role="region" aria-label="Student engagement" tabIndex={0}>
       <table className="training-table" data-testid="engagement-table">
         <thead><tr>{columns.map(col =>
           <th key={col.key} aria-sort={sortKey === col.key ? (ascending ? "ascending" : "descending") : "none"}>
@@ -80,17 +89,17 @@ export function EngagementTab() {
         </tr></thead>
         <tbody>{rows.map(row =>
           <tr key={row.studentId}>
-            <td><strong>{row.name}</strong>{row.practiceDaysThisWeek === 0 && <><br /><Badge tone="neutral">No practice this week</Badge></>}</td>
-            <td>{row.streak} {row.streak === 1 ? "day" : "days"}</td>
-            <td>{row.xpThisWeek.toLocaleString()}</td>
-            <td>{row.practiceDaysThisWeek} / 7</td>
-            <td>{formatQuests(row.quests)}</td>
-            <td>{row.levelName}<br /><small>Level {row.level}</small></td>
-            <td>{row.honorsEarned}</td>
-            <td>{formatLastActive(row.lastActiveAtUtc)}</td>
+            <td data-label="Student"><strong>{row.name}</strong>{row.practiceDaysThisWeek === 0 && <><br /><Badge tone="neutral">No practice this week</Badge></>}</td>
+            <td data-label="Streak">{row.streak} {row.streak === 1 ? "day" : "days"}</td>
+            <td data-label="XP this week">{row.xpThisWeek.toLocaleString()}</td>
+            <td data-label="Practice days · 7d">{row.practiceDaysThisWeek} / 7</td>
+            <td data-label="Quests">{formatQuests(row.quests)}</td>
+            <td data-label="Level">{row.levelName}<br /><small>Level {row.level}</small></td>
+            <td data-label="Honors">{row.honorsEarned}</td>
+            <td data-label="Last active">{formatLastActive(row.lastActiveAtUtc)}</td>
           </tr>)}
         </tbody>
       </table>
-    </div> : <p>No students yet.</p>)}
+      </div></> : <p>No students yet.</p>)}
   </Panel>;
 }

@@ -45,10 +45,12 @@ function snapshot(overrides: Partial<CooperationSnapshot> = {}): CooperationSnap
 
 it('shows deduplicated team totals and an independent own fraction', () => {
   render(<SeasonCoverage snapshot={snapshot()} audience="student" />);
-  expect(screen.getByText('5 of 9 passages retained by at least one student')).toBeVisible();
+  expect(screen.getByText('Retained by someone')).toBeVisible();
+  expect(screen.getByText('5 of 9 passages')).toBeVisible();
   expect(screen.getByText('Your retained assignment: 2 of 3 passages')).toBeVisible();
   expect(screen.getByText('Equal student progress: 50%')).toBeVisible();
-  expect(screen.getByText('2 passages need maintenance')).toBeVisible();
+  expect(screen.getByText('Need maintenance')).toBeVisible();
+  expect(screen.getByText('2 passages')).toBeVisible();
 });
 
 it('keeps provisional known and possible values distinct', () => {
@@ -62,10 +64,10 @@ it('keeps provisional known and possible values distinct', () => {
       equalRetained: { lower: 0.25, upper: 0.75, students: 3, unknownStudents: 1, unassignedStudents: 0 },
     },
   })} audience="student" />);
-  expect(screen.getByText('2 confirmed retained; up to 7 possible')).toBeVisible();
-  expect(screen.getByText('Maintenance known for 1; up to 4 possible')).toBeVisible();
+  expect(screen.getByText('2 confirmed · up to 7')).toBeVisible();
+  expect(screen.getByText('1 known · up to 4 possible')).toBeVisible();
   expect(screen.getByText('Equal student progress: 25–75% known range')).toBeVisible();
-  expect(screen.queryByText('7 passages retained')).not.toBeInTheDocument();
+  expect(screen.queryByText('7 passages')).not.toBeInTheDocument();
 });
 
 it('treats zero denominators as unassigned', () => {
@@ -147,7 +149,7 @@ it('bootstraps expired canonical work without its completed receipt ID and stops
     .mockResolvedValueOnce(snapshot({ state: 'Updating', snapshotId: null, scopeVersion: null, scripture: null, introduction: null, own: null, work: { id: 'replacement-work', next: 'Continue' } }))
     .mockResolvedValueOnce(expired);
   panel();
-  await screen.findByText('5 of 9 passages retained by at least one student');
+  await screen.findByText('5 of 9 passages');
   await waitFor(() => expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(2));
   expect(trainingApi.continueCooperation).toHaveBeenNthCalledWith(1, { seasonId: 'season-1' });
   expect(trainingApi.continueCooperation).toHaveBeenNthCalledWith(2, { seasonId: 'season-1', workId: 'replacement-work' });
@@ -171,7 +173,7 @@ it('advances the bounded invalidated-publication trace through cleanup to publis
   expect(trainingApi.continueCooperation).toHaveBeenNthCalledWith(3, { seasonId: 'season-1' });
   expect(trainingApi.continueCooperation).toHaveBeenNthCalledWith(4, { seasonId: 'season-1', workId: 'replacement-work' });
   await waitFor(() => expect(trainingApi.cooperation).toHaveBeenCalledTimes(2));
-  expect(await screen.findByText('2 passages need maintenance')).toBeVisible();
+  expect(await screen.findByText('2 passages')).toBeVisible();
   expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(4);
 });
 
@@ -265,7 +267,7 @@ it('starts one fresh cooperation epoch after a newer chapter publication superse
   await waitFor(() => expect(trainingApi.continueCooperation).toHaveBeenCalledTimes(4));
   expect(trainingApi.continueCooperation).toHaveBeenNthCalledWith(3, { seasonId: 'season-1' });
   expect(trainingApi.continueCooperation).toHaveBeenNthCalledWith(4, { seasonId: 'season-1', workId: 'fresh-work' });
-  expect(await screen.findByText('2 passages need maintenance')).toBeVisible();
+  expect(await screen.findByText('2 passages')).toBeVisible();
 
   await act(async () => { view.client.setQueryData(['pbe-chapter-publication', 'season-1'], 'chapter-snapshot-2'); });
   view.unmount();
@@ -321,7 +323,7 @@ it.each(['continue', 'stale error'] as const)('ignores a pending old-scope coope
   const view = render(<QueryClientProvider client={client}><SeasonCoveragePanel seasonId="season-1" audience="student" /></QueryClientProvider>);
   await waitFor(() => expect(trainingApi.continueCooperation).toHaveBeenCalledOnce());
   view.rerender(<QueryClientProvider client={client}><SeasonCoveragePanel seasonId="season-2" audience="student" /></QueryClientProvider>);
-  expect(await screen.findByText('5 of 9 passages retained by at least one student')).toBeVisible();
+  expect(await screen.findByText('5 of 9 passages')).toBeVisible();
   await act(async () => {
     if (outcome === 'continue') finish(snapshot({ seasonId: 'season-1', state: 'Updating', snapshotId: null, scopeVersion: null, scripture: null, introduction: null, own: null, work: { id: 'work-next', next: 'Continue' } }));
     else fail(new ApiError('PBE_COOPERATION_WORK_STALE', 409, undefined, 'PBE_COOPERATION_WORK_STALE'));

@@ -89,6 +89,11 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
   }, []);
   const data = dashboard.data;
   const [recapSessionId, setRecapSessionId] = useState<string | null>(null);
+  const streakSummary = !data ? "" : data.effort.streakState === "active"
+    ? `${data.effort.streakDays} ${data.effort.streakDays === 1 ? "day" : "days"} · Active · best ${data.effort.bestStreak} ${data.effort.bestStreak === 1 ? "day" : "days"}`
+    : data.effort.streakState === "paused"
+      ? `Paused · best ${data.effort.bestStreak} ${data.effort.bestStreak === 1 ? "day" : "days"}`
+      : "Not started";
   const progressPercent = data && data.progress.eligibleCount > 0
     ? Math.round((data.progress.seenCount / data.progress.eligibleCount) * 100) : null;
   const streakHistoryCredited = data?.effort.streakHistory.filter(day => day.credited).length ?? 0;
@@ -118,9 +123,7 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
           <p>{data.season ? `${data.season.name} · ` : ""}{data.effort.completedDays} of {data.effort.weeklyTarget} study days</p>
           <WeeklyProgressStrip week={{ weekStartLocalDate: data.effort.weekStartLocalDate, timeZone: data.effort.timeZone, target: data.effort.weeklyTarget as 3 | 4 | 5, completedDays: data.effort.completedDays, days: data.effort.days }} />
           <dl className="ds-student-dashboard-metrics">
-            <div><dt>Current streak</dt><dd>{data.effort.streakDays} {data.effort.streakDays === 1 ? "day" : "days"}</dd></div>
-            <div><dt>Streak state</dt><dd>{data.effort.streakState === "active" ? "Active" : data.effort.streakState === "paused" ? "Paused" : "Not started"}</dd></div>
-            <div><dt>Best streak</dt><dd>{data.effort.bestStreak} {data.effort.bestStreak === 1 ? "day" : "days"}</dd></div>
+            <div><dt>Streak</dt><dd>{streakSummary}</dd></div>
             <div><dt>Sessions, last 7 days</dt><dd>{data.effort.sessionsLast7Days}</dd></div>
             <div><dt>Last activity</dt><dd>{formatDateTime(data.effort.lastActivityAtUtc)}</dd></div>
           </dl>
@@ -131,13 +134,6 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
               className={`${day.credited ? "is-credited" : ""}${day.localDate === data.effort.days.find(d => d.isToday)?.localDate ? " is-today" : ""}`} />)}
           </div>
           <p><small>One missed day pauses the streak; two in a row restart it.</small></p>
-        </Panel>
-        <Panel data-testid="student-dashboard-social">
-          <h2>Team &amp; social</h2>
-          <dl className="ds-student-dashboard-metrics">
-            <div><dt>Leaderboard</dt><dd>{data.social.leaderboardOptIn ? "Visible to teammates" : "Hidden from teammates"}</dd></div>
-            <div><dt>Team Practice sessions</dt><dd>{data.social.teamPracticeSessions}</dd></div>
-          </dl>
         </Panel>
         <Panel data-testid="student-dashboard-progress">
           <h2>Progress</h2>
@@ -157,6 +153,12 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
             </li>;
           })}</ul>
         </Panel>
+        <Panel data-testid="student-dashboard-assignments">
+          <h2>Assignments</h2>
+          {data.assignments.length ? <ul className="ds-student-dashboard-list">{data.assignments.map(assignment =>
+            <li key={assignment.id}><div><strong>{formatPassageCitation(assignment)}</strong><small>{assignmentTypeLabels[assignment.type] ?? "Assigned study"} · {assignment.difficulty ?? "Standard"} difficulty</small></div></li>)}
+          </ul> : <p>No assignments yet.</p>}
+        </Panel>
         <Panel data-testid="student-dashboard-mastery">
           <h2>Mastery</h2>
           <h3>Badges earned</h3>
@@ -172,11 +174,12 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
             <li key={level}><strong>{level}</strong><span>{count}</span></li>)}
           </ul>
         </Panel>
-        <Panel data-testid="student-dashboard-assignments">
-          <h2>Assignments</h2>
-          {data.assignments.length ? <ul className="ds-student-dashboard-list">{data.assignments.map(assignment =>
-            <li key={assignment.id}><div><strong>{formatPassageCitation(assignment)}</strong><small>{assignmentTypeLabels[assignment.type] ?? "Assigned study"} · {assignment.difficulty ?? "Standard"} difficulty</small></div></li>)}
-          </ul> : <p>No assignments yet.</p>}
+        <Panel data-testid="student-dashboard-social">
+          <h2>Team &amp; social</h2>
+          <dl className="ds-student-dashboard-metrics">
+            <div><dt>Leaderboard</dt><dd>{data.social.leaderboardOptIn ? "Visible to teammates" : "Hidden from teammates"}</dd></div>
+            <div><dt>Team Practice sessions</dt><dd>{data.social.teamPracticeSessions}</dd></div>
+          </dl>
         </Panel>
         <Panel data-testid="student-dashboard-activity">
           <h2>Recent activity</h2>

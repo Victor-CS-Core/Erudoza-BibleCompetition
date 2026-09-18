@@ -30,7 +30,6 @@ export function StudentHomePage() {
   const action = data?.nextAction;
   const nextHonor = data?.honors.filter(honor => !honor.earnedAtUtc && honor.target > 0).sort((a, b) => b.completed / b.target - a.completed / a.target)[0];
   const completedSessionId = data?.mission.status === "Complete" ? [...data.mission.steps].reverse().find(step => step.status === "Complete" && step.sessionId)?.sessionId : null;
-  const resolvedSteps = data?.mission.steps.filter(step => step.status === "Complete" || step.status === "NotNeeded").length ?? 0;
   const nextStep = data?.mission.steps.find(step => step.kind === action?.mode);
   const todayCredited = data?.week.days.some(day => day.isToday && day.credited);
   const study = (mode: string, sessionId: string | null, mission = false) => {
@@ -69,7 +68,6 @@ export function StudentHomePage() {
               {data.seasonStatus === "Active" && data.mission.status === "Invalidated" && action && <LinkButton to={study(action.mode, null, true)}>Start updated training<AppIcon name="arrow" /></LinkButton>}
               {completedSessionId && <LinkButton to={link(`/student/sessions/${encodeURIComponent(completedSessionId)}/recap`)}>See today’s recap<AppIcon name="arrow" /></LinkButton>}
               {available && !completedSessionId && action && <LinkButton data-testid="start-todays-deck" to={study(action.mode, action.sessionId, true)}>{action.label}<AppIcon name="arrow" /></LinkButton>}
-              {!!data.mission.steps.length && <div className="training-mission-progress"><ProgressMeter label="Today's training steps" value={resolvedSteps} max={data.mission.steps.length} /><span>steps complete</span></div>}
             </div>
             {!!data.mission.steps.length && <ol className="training-mission-steps">{data.mission.steps.map((step, index) => {
               const resolved = step.status === "Complete" || step.status === "NotNeeded";
@@ -85,8 +83,11 @@ export function StudentHomePage() {
         </div>
         <aside className="training-hq-aside">
           {data.streak && <Panel className="training-streak-panel">
-            <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="flame" /><h2>Practice streak</h2></div>{data.streak.state !== "none" && <Badge tone={data.streak.state === "active" ? "success" : "neutral"}>{data.streak.state === "active" ? "Active" : "Paused"}</Badge>}</div>
+            <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="flame" /><h2>Practice streak</h2></div>{data.streak.state !== "none" && <Badge tone={data.streak.state === "active" ? "success" : "neutral"}>{data.streak.state === "active" ? "Active" : "Paused"}</Badge>}<Badge tone={todayCredited ? "success" : "neutral"}>{todayCredited ? "Practiced today" : "Not yet today"}</Badge></div>
             <p className="training-week-count" aria-label={`${data.streak.current} day practice streak`}><strong>{data.streak.current} <span>{data.streak.current === 1 ? "day" : "days"}</span></strong><span>in a row</span></p>
+            <div className="training-streak-heatmap is-weekly" role="img" aria-label={`This week: ${data.week.days.filter(day => day.credited).length} of ${data.week.days.length} days practiced`}>
+              {data.week.days.map(day => <span key={day.localDate} title={`${day.localDate}${day.credited ? " · practiced" : ""}${day.isToday ? " · today" : ""}`} className={`${day.credited ? "is-credited" : ""}${day.isToday ? " is-today" : ""}`} />)}
+            </div>
             <p>{data.streak.state === "active" ? "Keep it going — practice today to extend it." : data.streak.state === "paused" ? "Paused, not lost. Practice today to keep your streak alive." : "Practice today to start your first streak."}</p>
             {data.streak.best > data.streak.current && <p><small>Best streak: {data.streak.best} {data.streak.best === 1 ? "day" : "days"}</small></p>}
           </Panel>}

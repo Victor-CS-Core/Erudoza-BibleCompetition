@@ -30,6 +30,10 @@ it("counts a student once even with multiple assignments", async () => {
   expect(screen.getByText("Assigned students").parentElement).toHaveTextContent("1Assigned students");
   expect(screen.getByText("Need review").parentElement).toHaveTextContent("1Need review");
 });
+it("links the Need review stat card to the student directory", async () => {
+  home(); await screen.findByRole("table");
+  expect(screen.getByRole("link", { name: /needs review — open the student directory/ })).toHaveAttribute("href", "/admin/students");
+});
 it("shows no percentage for an empty scope", async () => {
   vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [{ ...student, eligibleUnitCount: 0, masteredCount: 0 }] });
   home(); const table = await screen.findByRole("table"); expect(within(table).getByText("—")).toBeInTheDocument(); expect(within(table).queryByRole("progressbar")).not.toBeInTheDocument();

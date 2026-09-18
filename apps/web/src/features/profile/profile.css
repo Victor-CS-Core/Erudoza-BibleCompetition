@@ -22,6 +22,7 @@
 .profile-page .editor-panels, .profile-page .editor-panels > .ds-panel { min-width: 0; }
 .profile-page .editor-panels h2 { margin: 0; }
 .profile-page .character-panel { min-width: 0; }
+.profile-page .character-panel-mini { display: none; }
 .profile-page .character-canvas { aspect-ratio: 1; }
 .profile-page .share-canvas.character-canvas { aspect-ratio: 3 / 4; }
 .profile-page .style-options .ds-button, .profile-page .avatar-options .ds-button, .profile-page .background-options .ds-button { min-width: 0; white-space: normal; }
@@ -62,7 +63,14 @@
   .profile-page .profile-navigation nav .ds-button { flex: 1 1 auto; min-width: 0; padding-inline: var(--er-space-1); white-space: nowrap; overflow-wrap: normal; }
   .profile-page .creator-layout { display: block; }
   .profile-page .character-panel { position: sticky; top: var(--er-space-2); z-index: 5; margin-bottom: var(--er-space-4); }
-  .profile-page .character-panel .character-canvas { max-height: 220px; }
+  .profile-page .character-panel-full { display: none; }
+  .profile-page .character-panel-mini { display: flex; align-items: center; gap: var(--er-space-3); }
+  .profile-page .character-mini-thumb { flex: 0 0 56px; width: 56px; height: 56px; padding: 0; border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-paper); overflow: hidden; cursor: pointer; }
+  .profile-page .character-mini-thumb .character-portrait { display: block; width: 100%; height: 100%; }
+  .profile-page .character-mini-thumb img { width: 100%; height: 100%; object-fit: contain; }
+  .profile-page .character-panel-mini .figure-caption { flex: 1 1 auto; min-width: 0; margin: 0; text-align: left; font-size: var(--er-text-sm); }
+  .profile-page .character-panel-mini .figure-actions { flex: 0 0 auto; padding: 0; gap: var(--er-space-2); }
+  .profile-page .character-panel-mini .figure-actions .ds-button { flex: none; min-height: 44px; font-size: var(--er-text-sm); white-space: nowrap; }
   .profile-page .ds-panel { padding: var(--er-space-4); }
   .profile-page .figure-actions { gap: var(--er-space-2); padding: 0; }
   .profile-page .figure-actions .ds-button { font-size: var(--er-text-sm); min-width: 0; white-space: normal; }
