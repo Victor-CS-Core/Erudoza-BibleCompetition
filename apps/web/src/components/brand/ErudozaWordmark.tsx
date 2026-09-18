@@ -6,8 +6,8 @@ type Props = {
 };
 
 export function ErudozaWordmark({ compact = false, inverted = false }: Props) {
-  const ink = inverted ? "text-[var(--er-card)]" : "text-[var(--er-ink-navy)]";
-  const muted = inverted ? "text-[color-mix(in_srgb,var(--er-card)_72%,transparent)]" : "text-[var(--er-muted-ink)]";
+  const ink = inverted ? "text-[var(--er-on-navy)]" : "text-[var(--er-ink-navy)]";
+  const muted = inverted ? "text-[var(--er-on-navy-muted)]" : "text-[var(--er-muted-ink)]";
 
   return (
     <div className={`er-wordmark flex items-center gap-3 ${ink}`} data-testid="erudoza-wordmark">

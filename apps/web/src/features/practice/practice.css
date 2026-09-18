@@ -61,7 +61,7 @@
 .practice-ready-heading .ds-page-action { flex-shrink: 0; }
 .practice-ready-heading p > span { display: block; margin-top: var(--er-space-1); }
 .practice-room .practice-team-card { padding: 0; min-width: 0; }
-.practice-team-banner { display: flex; align-items: center; gap: var(--er-space-6); padding: var(--er-space-5) var(--er-space-6); border-radius: var(--er-radius-card) var(--er-radius-card) 0 0; background: var(--er-ink-navy); color: var(--er-on-navy); }
+.practice-team-banner { display: flex; align-items: center; gap: var(--er-space-6); padding: var(--er-space-5) var(--er-space-6); border-radius: var(--er-radius-card) var(--er-radius-card) 0 0; background: var(--er-navy-surface); color: var(--er-on-navy); }
 .practice-team-banner > div { min-width: 0; overflow-wrap: anywhere; }
 .practice-team-banner .ds-patch-art { flex: 0 0 56px; width: 56px; height: 56px; }
 .practice-team-banner h2 { color: var(--er-on-navy); margin: 0 0 var(--er-space-2); font-size: var(--er-text-title); }
@@ -101,7 +101,7 @@
 .practice-player-controls { align-items: end; }
 .practice-player-controls > label { flex: 1 1 240px; }
 .practice-player-controls > .ds-button { flex-shrink: 0; }
-.practice-room .practice-scoreboard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, .75fr) minmax(0, 1fr); align-items: center; gap: var(--er-space-5); padding: var(--er-space-6) var(--er-space-7); background: var(--er-ink-navy); color: var(--er-on-navy); border-color: var(--er-ink-navy); }
+.practice-room .practice-scoreboard { display: grid; grid-template-columns: minmax(0, 1fr) minmax(160px, .75fr) minmax(0, 1fr); align-items: center; gap: var(--er-space-5); padding: var(--er-space-6) var(--er-space-7); background: var(--er-navy-surface); color: var(--er-on-navy); border-color: var(--er-navy-surface); }
 .practice-score-team { display: flex; align-items: center; gap: var(--er-space-4); min-width: 0; }
 .practice-score-team:last-child { flex-direction: row-reverse; text-align: right; }
 .practice-score-team > div { min-width: 0; }

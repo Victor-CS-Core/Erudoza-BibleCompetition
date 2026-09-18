@@ -8,7 +8,7 @@ html:not([data-erudoza-coffee-ready="true"]) :is(#bmc-wbtn, #bmc-iframe, #bmc-cl
 #bmc-wbtn { right: var(--coffee-right) !important; bottom: var(--coffee-bottom) !important; z-index: 40 !important; transition-property: transform, opacity, background-color, box-shadow !important; }
 #bmc-wbtn:focus-visible, #bmc-close-btn:focus-visible { outline: 3px solid var(--er-teal); outline-offset: 4px; }
 #erudoza-coffee-overlay[hidden] { display: none !important; }
-#erudoza-coffee-overlay { z-index: 1000 !important; background: color-mix(in srgb, var(--er-ink-navy) 44%, transparent) !important; }
+#erudoza-coffee-overlay { z-index: 1000 !important; background: color-mix(in srgb, var(--er-navy-surface) 44%, transparent) !important; }
 html[data-erudoza-coffee-open="true"] #bmc-wbtn { visibility: hidden !important; }
 #bmc-iframe {
   right: var(--coffee-right) !important;

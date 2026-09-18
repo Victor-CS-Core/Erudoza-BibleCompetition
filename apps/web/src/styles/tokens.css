@@ -2,6 +2,9 @@
 :root {
   color-scheme: light;
   --er-ink-navy: #102e47;
+  /* Navy surfaces (masthead, hero bands, scoreboards) stay deep navy after dark;
+     --er-ink-navy flips to a light tone in dark mode because it doubles as text. */
+  --er-navy-surface: #102e47;
   --er-teal: #087d80;
   --er-action-blue: #08777b;
   --er-learning-blue: #246f94;
@@ -68,6 +71,7 @@
 [data-theme="dark"] {
   color-scheme: dark;
   --er-ink-navy: #f0e9d8;
+  --er-navy-surface: #0d1c2b;
   --er-teal: #4fb3b6;
   --er-action-blue: #63b8bb;
   --er-learning-blue: #7fb0cf;

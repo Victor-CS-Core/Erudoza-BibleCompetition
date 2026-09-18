@@ -2,7 +2,7 @@
 .practice-hub > .ds-page-header p { font-size: var(--er-text-sm); }
 .practice-hub .practice-hub-grid,
 .practice-hub .practice-hub-lower { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(300px, 1fr); gap: var(--er-space-6); align-items: stretch; }
-.practice-hub .practice-hub-current { display: flex; flex-direction: column; padding: 28px 30px; background: var(--er-ink-navy); color: var(--er-on-navy); border-color: var(--er-ink-navy); }
+.practice-hub .practice-hub-current { display: flex; flex-direction: column; padding: 28px 30px; background: var(--er-navy-surface); color: var(--er-on-navy); border-color: var(--er-navy-surface); }
 .practice-hub .practice-hub-current h2 { margin: 0 0 10px; max-width: 400px; color: var(--er-on-navy); font-size: var(--er-text-page); }
 .practice-hub .practice-hub-current > p { margin: 0; color: var(--er-on-navy-muted); font-size: var(--er-text-sm); }
 .practice-hub .practice-hub-room-label { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: var(--er-space-5); color: var(--er-on-navy-muted); font-size: var(--er-text-xs); }
@@ -121,12 +121,12 @@
 
 .practice-hub-banner { width:100%; min-width:0; position:relative; isolation:isolate; overflow:hidden; border-radius:var(--er-radius-card); min-height:280px; aspect-ratio:3.5 / 1; display:flex; align-items:center; }
 .practice-hub-banner > img { position:absolute; z-index:-2; inset:0; width:100%; height:100%; object-fit:cover; object-position:right center; }
-.practice-hub-banner::after { content:""; position:absolute; z-index:-1; inset:0; pointer-events:none; background:linear-gradient(90deg,var(--er-ink-navy),transparent 70%); }
+.practice-hub-banner::after { content:""; position:absolute; z-index:-1; inset:0; pointer-events:none; background:linear-gradient(90deg,var(--er-navy-surface),transparent 70%); }
 .practice-hub-banner-copy { width:46%; padding:var(--er-space-8); min-width:0; }
 .practice-hub-banner-copy .ds-page-header { margin:0; }
 @media(max-width:760px) {
   .practice-hub-banner { aspect-ratio:auto; min-height:320px; align-items:flex-start; }
   .practice-hub-banner-copy { width:100%; padding:var(--er-space-6); padding-bottom:160px; }
-  .practice-hub-banner::after { background:linear-gradient(180deg,var(--er-ink-navy) 0%,var(--er-ink-navy) 32%,transparent 85%); }
+  .practice-hub-banner::after { background:linear-gradient(180deg,var(--er-navy-surface) 0%,var(--er-navy-surface) 32%,transparent 85%); }
 }
 @media(forced-colors:active) { .practice-hub-banner > img,.practice-hub-banner::after { display:none; } }

@@ -165,11 +165,11 @@
   width: 1.7rem;
   height: 1.7rem;
   border-radius: 999px;
-  color: var(--er-card);
+  color: var(--er-on-navy);
 }
 
 .er-deck-art-card-learner .er-deck-art-mark {
-  background: var(--er-ink-navy);
+  background: var(--er-navy-surface);
 }
 
 .er-deck-art-card-reviews .er-deck-art-mark {
@@ -185,8 +185,8 @@
   max-width: 100%;
   padding: 0.12rem 0.28rem;
   border-radius: 3px;
-  background: var(--er-ink-navy);
-  color: var(--er-card);
+  background: var(--er-navy-surface);
+  color: var(--er-on-navy);
   font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -524,9 +524,9 @@
 }
 
 .er-primary-action {
-  background: var(--er-ink-navy);
+  background: var(--er-navy-surface);
   box-shadow: 0 8px 18px rgba(13, 43, 79, 0.18);
-  color: var(--er-card);
+  color: var(--er-on-navy);
 }
 
 .er-secondary-action {
@@ -665,8 +665,8 @@
 }
 
 .er-ink-panel {
-  background: var(--er-ink-navy);
-  color: var(--er-card);
+  background: var(--er-navy-surface);
+  color: var(--er-on-navy);
 }
 
 .er-learner-shell {
@@ -958,8 +958,8 @@
       color-mix(in srgb, #ffffff 8%, transparent) 0 8px,
       transparent 8px 16px
     ),
-    var(--er-ink-navy);
-  color: var(--er-card);
+    var(--er-navy-surface);
+  color: var(--er-on-navy);
   text-decoration: none;
 }
 
@@ -1059,8 +1059,9 @@
   align-items: center;
   justify-content: center;
   height: 1.85rem;
-  background: var(--er-ink-navy);
+  background: var(--er-navy-surface);
   box-shadow: 0 0 0 3px var(--er-card);
+  color: var(--er-on-navy);
 }
 
 .er-challenge-ribbon img {
@@ -1576,9 +1577,9 @@
   background:
     repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.14) 0 1px, transparent 1px 3px),
-    linear-gradient(180deg, color-mix(in srgb, var(--er-ink-navy) 82%, #4a6a92), var(--er-ink-navy));
+    linear-gradient(180deg, color-mix(in srgb, var(--er-navy-surface) 82%, #4a6a92), var(--er-navy-surface));
   box-shadow: 0 8px 16px rgba(13, 43, 79, 0.22);
-  color: var(--er-card);
+  color: var(--er-on-navy);
   font-family: "Source Serif 4", Literata, Georgia, serif;
   font-size: 0.92rem;
   font-weight: 750;

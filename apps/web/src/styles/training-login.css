@@ -1,6 +1,6 @@
 /* Account forms stay on solid surfaces; approved art has its own desktop panel. */
 .training-login { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); min-height:100dvh; background:var(--er-paper); }
-.training-login-hero { display:flex; flex-direction:column; min-width:0; padding:48px; color:var(--er-on-navy); background:var(--er-ink-navy); }
+.training-login-hero { display:flex; flex-direction:column; min-width:0; padding:48px; color:var(--er-on-navy); background:var(--er-navy-surface); }
 .training-login-brand { align-self:flex-start; }
 .training-login-brand .er-wordmark-name { font:32px/1 var(--er-font-reading); }
 .training-login-brand .er-wordmark-mark { width:56px; height:56px; }
@@ -45,9 +45,9 @@
 
 /* Account pages share the original full-height landscape, fading into the navy brand panel. */
 .training-login-hero-landscape { position:relative; isolation:isolate; overflow:hidden; }
-.training-login-hero-landscape::before { content:""; position:absolute; z-index:-1; inset:0; pointer-events:none; background:linear-gradient(180deg,var(--er-ink-navy) 8%,color-mix(in srgb,var(--er-ink-navy) 90%,transparent) 38%,color-mix(in srgb,var(--er-ink-navy) 40%,transparent) 70%,transparent),url('/brand/training-landscape.webp') center bottom/cover; }
+.training-login-hero-landscape::before { content:""; position:absolute; z-index:-1; inset:0; pointer-events:none; background:linear-gradient(180deg,var(--er-navy-surface) 8%,color-mix(in srgb,var(--er-navy-surface) 90%,transparent) 38%,color-mix(in srgb,var(--er-navy-surface) 40%,transparent) 70%,transparent),url('/brand/training-landscape.webp') center bottom/cover; }
 .training-login-hero-landscape .training-login-motto { margin-top:auto; padding-top:160px; }
 @media(max-width:760px) {
-  .training-login-hero-landscape::before { background:linear-gradient(90deg,var(--er-ink-navy),color-mix(in srgb,var(--er-ink-navy) 80%,transparent)),url('/brand/training-landscape.webp') center 65%/cover; }
+  .training-login-hero-landscape::before { background:linear-gradient(90deg,var(--er-navy-surface),color-mix(in srgb,var(--er-navy-surface) 80%,transparent)),url('/brand/training-landscape.webp') center 65%/cover; }
 }
 @media(forced-colors:active), print { .training-login-hero-landscape::before { display:none; } }

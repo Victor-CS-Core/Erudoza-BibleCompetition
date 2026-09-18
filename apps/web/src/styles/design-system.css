@@ -56,11 +56,11 @@
 .ds-button-ghost { color: var(--er-action-blue); background: transparent; }
 .ds-button-quiet { padding-inline:var(--er-space-2); color:var(--er-muted-ink); background:transparent; font-size:var(--er-text-xs); font-weight:500; }
 .ds-button-danger { color: var(--er-stamp-red); background: var(--er-danger-surface); }
-.ds-button-inverse { color:var(--er-on-navy-muted); background:color-mix(in srgb,var(--er-on-navy) 6%,var(--er-ink-navy)); border-color:color-mix(in srgb,var(--er-on-navy-muted) 35%,transparent); }
-.ds-button-inverse:hover:not(:disabled) { background:color-mix(in srgb,var(--er-on-navy) 12%,var(--er-ink-navy)); }
+.ds-button-inverse { color:var(--er-on-navy-muted); background:color-mix(in srgb,var(--er-on-navy) 6%,var(--er-navy-surface)); border-color:color-mix(in srgb,var(--er-on-navy-muted) 35%,transparent); }
+.ds-button-inverse:hover:not(:disabled) { background:color-mix(in srgb,var(--er-on-navy) 12%,var(--er-navy-surface)); }
 @media(max-width:760px) {
   .ds-button-inverse.ds-button-mobile-icon { color:var(--er-on-navy); background:transparent; border-color:transparent; }
-  .ds-button-inverse.ds-button-mobile-icon:hover:not(:disabled) { background:color-mix(in srgb,var(--er-on-navy) 12%,var(--er-ink-navy)); }
+  .ds-button-inverse.ds-button-mobile-icon:hover:not(:disabled) { background:color-mix(in srgb,var(--er-on-navy) 12%,var(--er-navy-surface)); }
 }
 /* Hover washes only apply where a hover pointer exists: on touch screens a tap
    would otherwise leave ghost/secondary buttons stuck in the highlighted state. */
@@ -199,7 +199,7 @@
 @media(max-width:760px) { .ds-section-tabs { gap:0; } .ds-section-tabs .ds-button { padding-inline:12px; font-size:var(--er-text-xs); } }
 
 /* Public display treatments extend the shared palette and type scale. */
-.ds-inverse-surface { color:var(--er-on-navy); background:var(--er-ink-navy); }
+.ds-inverse-surface { color:var(--er-on-navy); background:var(--er-navy-surface); }
 .ds-inverse-surface :is(h1,h2,h3), .ds-inverse-surface .ds-page-header p { color:var(--er-on-navy); }
 .ds-display-header h1 { font-size:var(--er-text-display); line-height:1.08; font-weight:700; letter-spacing:-.035em; text-wrap:initial; }
 .ds-display-header p { font-size:var(--er-text-lead); line-height:1.5; }

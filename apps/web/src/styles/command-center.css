@@ -3,7 +3,7 @@
 .command-app .training-workspace { flex:1; min-width:0; }
 .command-app .training-main { width:100%; max-width:1440px; padding:32px 36px; margin:auto; }
 .command-app.training-focused .training-main { max-width:980px; }
-.command-masthead { background:var(--er-ink-navy); color:var(--er-on-navy); }
+.command-masthead { background:var(--er-navy-surface); color:var(--er-on-navy); }
 .command-masthead-inner { max-width:1600px; margin:auto; padding:12px 36px; min-height:72px; display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"brand search account"; align-items:center; gap:24px; }
 .command-brand { grid-area:brand; display:flex; align-items:center; min-height:44px; min-width:0; }
 .command-brand .er-wordmark-name { font-size:26px; }
@@ -66,7 +66,7 @@
 .command-app [id] { scroll-margin-top:24px; }
 .command-dialog { position:fixed; inset:0; margin:auto; width:min(740px,calc(100vw - 32px)); max-height:min(760px,calc(100dvh - 48px)); padding:0; border:1px solid var(--er-border); border-radius:var(--er-radius-sheet); color:var(--er-ink-navy); background:var(--er-card); }
 .command-dialog[open] { display:flex; flex-direction:column; }
-.command-dialog::backdrop { background:color-mix(in srgb,var(--er-ink-navy) 28%,transparent); }
+.command-dialog::backdrop { background:color-mix(in srgb,var(--er-navy-surface) 28%,transparent); }
 .command-dialog-heading { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 0; }
 .command-dialog-heading h2 { font-size:var(--er-text-lg); margin:0; }
 .command-search-field { display:flex; align-items:center; gap:12px; margin:12px 20px; }
