@@ -41,3 +41,35 @@
 .materials-news-preview h4{margin:0 0 var(--er-space-1)}
 @media(min-width:720px){.materials-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:719px){.materials-repeat-row{grid-template-columns:minmax(0,1fr)}.materials-list-row{flex-direction:column}.materials-row-actions{width:100%}.materials-meta > div{grid-template-columns:minmax(0,1fr);gap:var(--er-space-1)}}
+
+/* Newsroom: 3-column layout for the PBE news manager (Sources / Editor / Pipeline). */
+.newsroom{display:grid;gap:var(--er-space-5)}
+.newsroom-col{display:grid;gap:var(--er-space-4);align-content:start;padding:var(--er-space-5);border:1px solid var(--er-border);border-radius:var(--er-radius-card);background:var(--er-card);min-width:0}
+.newsroom-col > h2{margin:0;font-size:var(--er-text-lg)}
+.newsroom-col > .ds-button{align-self:start}
+.newsroom-import{display:grid;gap:var(--er-space-3);padding:var(--er-space-4);border:1.5px dashed var(--er-border-strong);border-radius:var(--er-radius-card);background:var(--er-surface-soft)}
+.newsroom-import h3{margin:0;font-size:var(--er-text-base)}
+.newsroom-import-row{display:flex;gap:var(--er-space-2);align-items:end}
+.newsroom-import-row .ds-input{flex:1;min-width:0}
+.newsroom-editor-idle{display:grid;gap:var(--er-space-4);align-content:start;justify-items:start}
+.newsroom-art-preview{margin-top:calc(var(--er-space-2) * -1)}
+.newsroom-kicker{margin:0;font-size:var(--er-text-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--er-teal)}
+.newsroom-group-heading{margin:var(--er-space-2) 0 0;font-size:var(--er-text-base)}
+.newsroom-group-sub{font-weight:400;font-size:var(--er-text-sm);color:var(--er-muted-ink)}
+.newsroom-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--er-space-3)}
+.newsroom-row{display:grid;gap:var(--er-space-3);padding:var(--er-space-4);border:1px solid var(--er-border);border-radius:var(--er-radius-card);background:var(--er-paper)}
+/* Form blocks inside the news article editor. */
+.materials-form-block{display:grid;gap:var(--er-space-3)}
+.materials-label{display:grid;gap:2px;font-weight:600}
+.materials-label small{font-weight:400;color:var(--er-muted-ink)}
+.materials-keypoint-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--er-space-2)}
+.materials-keypoint-list li{display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-3);padding:var(--er-space-2) var(--er-space-3);border:1px solid var(--er-border);border-radius:var(--er-radius-control);background:var(--er-paper);font-size:var(--er-text-sm)}
+.materials-keypoint-add{display:flex;gap:var(--er-space-2);align-items:end}
+.materials-keypoint-add .ds-input{flex:1;min-width:0}
+@media(min-width:1080px){
+  .newsroom{grid-template-columns:minmax(0,.9fr) minmax(0,1.25fr) minmax(0,1.1fr);align-items:start}
+  .newsroom-editor-col{position:sticky;top:var(--er-space-4)}
+}
+@media(max-width:1079px){
+  .newsroom{grid-template-columns:minmax(0,1fr)}
+}

@@ -454,6 +454,12 @@ export type PbeMaterialWatchResult = { checkedAt: string; mediaChecked: number; 
 /** One section of a PBE news article body. */
 export type PbeNewsSection = { heading: string; body: string };
 
+/** Article kind driving the feed art strip and kicker. Unknown values fall back to "announcement". */
+export type PbeNewsArticleType = "competition" | "study-material" | "rule-update" | "announcement";
+
+/** A reading-material deep link shown on the feed card and inside the article. */
+export type PbeNewsLinkedMaterial = { label: string; href: string; hint?: string };
+
 /** News article record (kind='pbe-news-article'); students only ever see published articles. */
 export type PbeNewsArticle = {
   id: string;
@@ -468,6 +474,10 @@ export type PbeNewsArticle = {
   updatedAtUtc: string;
   publishedAtUtc?: string;
   publishedBy?: string;
+  articleType?: PbeNewsArticleType;
+  keyPoints?: string[];
+  linkedMaterials?: PbeNewsLinkedMaterial[];
+  readMinutes?: number;
 };
 
 /** Feed DTO returned by GET /pbe-news (published articles, newest first). */
@@ -478,6 +488,10 @@ export type PbeNewsArticleSummary = {
   publishedAtUtc: string | null;
   sourceUrl?: string | null;
   sourceLabel?: string | null;
+  articleType?: PbeNewsArticleType;
+  keyPoints?: string[];
+  linkedMaterials?: PbeNewsLinkedMaterial[];
+  readMinutes?: number;
 };
 
 /** Create/update payload for a news article (publish state is separate). */
@@ -485,6 +499,20 @@ export type PbeNewsArticleInput = {
   title: string;
   summary: string;
   sections: PbeNewsSection[];
+  articleType: PbeNewsArticleType;
+  keyPoints?: string[];
+  linkedMaterials?: PbeNewsLinkedMaterial[];
+  readMinutes?: number;
   sourceUrl?: string;
   sourceLabel?: string;
+};
+
+/** Draft suggestion returned by POST /pbe-news/extract for a pasted source URL. */
+export type PbeNewsExtractDraft = {
+  title: string;
+  summary: string;
+  keyPoints: string[];
+  sections: PbeNewsSection[];
+  sourceUrl: string;
+  sourceLabel: string;
 };

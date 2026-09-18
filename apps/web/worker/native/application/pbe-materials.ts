@@ -65,6 +65,13 @@ export interface PbeMaterialDiff {
 
 export interface PbeNewsSection { heading: string; body: string; }
 
+/** Article type driving the feed card's thin art header. */
+export type PbeNewsArticleType = 'competition' | 'study-material' | 'rule-update' | 'announcement';
+const ARTICLE_TYPES: readonly PbeNewsArticleType[] = ['competition', 'study-material', 'rule-update', 'announcement'];
+
+/** Deep link to reading material: an internal app path ("/...") or an absolute http(s) URL. */
+export interface PbeNewsLinkedMaterial { label: string; href: string; hint?: string }
+
 /** kind='pbe-news-article' — under LIBRARY_ORG (global, shared). */
 export interface PbeNewsArticle {
   id: string;                    // uuid
@@ -79,6 +86,33 @@ export interface PbeNewsArticle {
   updatedAtUtc: string;
   publishedAtUtc?: string;
   publishedBy?: string;         // Owner user id who published
+  articleType: PbeNewsArticleType;
+  keyPoints: string[];            // "In this article" bullets shown on feed cards
+  linkedMaterials: PbeNewsLinkedMaterial[];
+  readMinutes?: number;          // estimated read time
+}
+
+/** Payload accepted by POST/PUT article routes. */
+export interface PbeNewsArticleInput {
+  title: string;
+  summary: string;
+  sections: { heading: string; body: string }[];
+  articleType: PbeNewsArticleType;
+  keyPoints?: string[];
+  linkedMaterials?: PbeNewsLinkedMaterial[];
+  readMinutes?: number;
+  sourceUrl?: string;
+  sourceLabel?: string;
+}
+
+/** Older stored rows lack the feed fields — backfill read-only defaults instead of migrating. */
+function backfillArticle(a: PbeNewsArticle): PbeNewsArticle {
+  return {
+    ...a,
+    articleType: ARTICLE_TYPES.includes(a.articleType) ? a.articleType : 'announcement',
+    keyPoints: Array.isArray(a.keyPoints) ? a.keyPoints : [],
+    linkedMaterials: Array.isArray(a.linkedMaterials) ? a.linkedMaterials : [],
+  };
 }
 
 const NAD_ORIGIN = 'https://nadpbe.org';
@@ -445,6 +479,7 @@ async function runWatchCore(ctx: RequestContext): Promise<WatcherResult> {
         summary: `NAD posted a new ${isCommentary ? 'Commentary' : 'Bible verses'} PDF for the ${yearLabel} competition year.`,
         sections: [{ heading: 'Detected by the NAD watcher', body: `The NAD watcher found "${title}" on nadpbe.org (${item.source_url}). A matching release proposal was drafted for master-admin review; the roster and commentary still need to be completed before approval.` }],
         sourceUrl: item.source_url, sourceLabel: 'nadpbe.org',
+        articleType: 'announcement', keyPoints: [], linkedMaterials: [],
         status: 'draft', createdBy: 'nad-watcher', createdAtUtc: checkedAt, updatedAtUtc: checkedAt,
       });
     }
@@ -459,6 +494,7 @@ async function runWatchCore(ctx: RequestContext): Promise<WatcherResult> {
       id: id(), title, summary: 'New announcement on nadpbe.org.',
       sections: [{ heading: 'Announcement', body: `"${title}" was posted on nadpbe.org. Open the original announcement for the full details.` }],
       sourceUrl: item.url, sourceLabel: 'nadpbe.org',
+      articleType: 'announcement', keyPoints: [], linkedMaterials: [],
       status: 'draft', createdBy: 'nad-watcher', createdAtUtc: checkedAt, updatedAtUtc: checkedAt,
     });
   }
@@ -500,26 +536,86 @@ export async function runScheduledWatch(env: Env): Promise<WatcherResult> {
 /* ---------------- news ---------------- */
 
 function articleSummary(a: PbeNewsArticle) {
+  const full = backfillArticle(a);
   return {
-    id: a.id, title: a.title, summary: a.summary, status: a.status,
-    sections: a.sections,
-    publishedAtUtc: a.publishedAtUtc ?? null, publishedBy: a.publishedBy ?? null,
-    sourceUrl: a.sourceUrl ?? null, sourceLabel: a.sourceLabel ?? null,
-    createdBy: a.createdBy, createdAtUtc: a.createdAtUtc, updatedAtUtc: a.updatedAtUtc,
+    id: full.id, title: full.title, summary: full.summary, status: full.status,
+    sections: full.sections,
+    articleType: full.articleType, keyPoints: full.keyPoints, linkedMaterials: full.linkedMaterials,
+    readMinutes: full.readMinutes ?? null,
+    publishedAtUtc: full.publishedAtUtc ?? null, publishedBy: full.publishedBy ?? null,
+    sourceUrl: full.sourceUrl ?? null, sourceLabel: full.sourceLabel ?? null,
+    createdBy: full.createdBy, createdAtUtc: full.createdAtUtc, updatedAtUtc: full.updatedAtUtc,
   };
 }
 
-function validateArticlePayload(input: { title?: unknown; summary?: unknown; sections?: unknown; sourceUrl?: unknown; sourceLabel?: unknown }): {
-  title: string; summary: string; sections: PbeNewsSection[]; sourceUrl?: string; sourceLabel?: string;
+function validateArticleType(value: unknown): PbeNewsArticleType {
+  if (typeof value !== 'string' || !(ARTICLE_TYPES as readonly string[]).includes(value))
+    return fail(`Choose an article type: ${ARTICLE_TYPES.join(', ')}.`);
+  return value as PbeNewsArticleType;
+}
+
+function validateKeyPoints(value: unknown): string[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) return fail('Key points must be a list of short lines.');
+  if (value.length > 6) return fail('Add at most 6 key points.');
+  return value.map((point, i) => requiredString(point, `Key point ${i + 1}`, 80));
+}
+
+function validateLinkedMaterials(value: unknown): PbeNewsLinkedMaterial[] {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value)) return fail('Linked materials must be a list.');
+  if (value.length > 8) return fail('Add at most 8 linked materials.');
+  return value.map((entry, i) => {
+    if (!entry || typeof entry !== 'object') return fail(`Linked material ${i + 1} needs a label and a link.`);
+    const e = entry as { label?: unknown; href?: unknown; hint?: unknown };
+    const label = requiredString(e.label, `Linked material ${i + 1} label`, 120);
+    const href = requiredString(e.href, `Linked material ${i + 1} link`, 500).trim();
+    if (href.startsWith('/')) {
+      if (href.length < 2) return fail(`Linked material ${i + 1} link must be a valid internal path or http(s) URL.`);
+    } else {
+      let parsed: URL;
+      try { parsed = new URL(href); } catch { return fail(`Linked material ${i + 1} link must start with / or be an http(s) URL.`); }
+      if (!['http:', 'https:'].includes(parsed.protocol)) return fail(`Linked material ${i + 1} link must start with / or be an http(s) URL.`);
+    }
+    const hint = e.hint === undefined || e.hint === null || e.hint === ''
+      ? undefined
+      : requiredString(e.hint, `Linked material ${i + 1} hint`, 120);
+    return { label, href, ...(hint ? { hint } : {}) };
+  });
+}
+
+function validateReadMinutes(value: unknown): number | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1 || value > 120)
+    return fail('Read time must be between 1 and 120 minutes.');
+  return value;
+}
+
+function validateArticlePayload(input: {
+  title?: unknown; summary?: unknown; sections?: unknown;
+  articleType?: unknown; keyPoints?: unknown; linkedMaterials?: unknown; readMinutes?: unknown;
+  sourceUrl?: unknown; sourceLabel?: unknown;
+}): {
+  title: string; summary: string; sections: PbeNewsSection[];
+  articleType: PbeNewsArticleType; keyPoints: string[]; linkedMaterials: PbeNewsLinkedMaterial[];
+  readMinutes?: number; sourceUrl?: string; sourceLabel?: string;
 } {
   const title = requiredString(input.title, 'Title', 500);
   const summary = requiredString(input.summary, 'Summary', 2000);
   const sections = validateSections(input.sections, true, 'article');
+  const articleType = validateArticleType(input.articleType);
+  const keyPoints = validateKeyPoints(input.keyPoints);
+  const linkedMaterials = validateLinkedMaterials(input.linkedMaterials);
+  const readMinutes = validateReadMinutes(input.readMinutes);
   const sourceUrl = httpUrl(input.sourceUrl, 'Source URL', false);
   const sourceLabel = input.sourceLabel === undefined || input.sourceLabel === null || input.sourceLabel === ''
     ? undefined
     : requiredString(input.sourceLabel, 'Source label', 200);
-  return { title, summary, sections, ...(sourceUrl ? { sourceUrl } : {}), ...(sourceLabel ? { sourceLabel } : {}) };
+  return {
+    title, summary, sections, articleType, keyPoints, linkedMaterials,
+    ...(readMinutes !== undefined ? { readMinutes } : {}),
+    ...(sourceUrl ? { sourceUrl } : {}), ...(sourceLabel ? { sourceLabel } : {}),
+  };
 }
 
 async function publishedNews(ctx: RequestContext): Promise<PbeNewsArticle[]> {
@@ -534,7 +630,11 @@ async function allArticles(ctx: RequestContext): Promise<PbeNewsArticle[]> {
 }
 
 async function createArticle(ctx: RequestContext): Promise<PbeNewsArticle> {
-  const input = await body<{ title?: unknown; summary?: unknown; sections?: unknown; sourceUrl?: unknown; sourceLabel?: unknown }>(ctx.request);
+  const input = await body<{
+    title?: unknown; summary?: unknown; sections?: unknown;
+    articleType?: unknown; keyPoints?: unknown; linkedMaterials?: unknown; readMinutes?: unknown;
+    sourceUrl?: unknown; sourceLabel?: unknown;
+  }>(ctx.request);
   const now = new Date().toISOString();
   const article: PbeNewsArticle = { id: id(), ...validateArticlePayload(input), status: 'draft', createdBy: ctx.actor.userId, createdAtUtc: now, updatedAtUtc: now };
   await insertLib(ctx, 'pbe-news-article', article.id, article).run();
@@ -544,8 +644,12 @@ async function createArticle(ctx: RequestContext): Promise<PbeNewsArticle> {
 async function updateArticle(ctx: RequestContext, articleId: string): Promise<PbeNewsArticle> {
   const stored = await getLib<PbeNewsArticle>(ctx, 'pbe-news-article', articleId);
   if (!stored) throw new HttpError(404, 'Article was not found.');
-  const input = await body<{ title?: unknown; summary?: unknown; sections?: unknown; sourceUrl?: unknown; sourceLabel?: unknown }>(ctx.request);
-  const updated: PbeNewsArticle = { ...stored.value, ...validateArticlePayload(input), updatedAtUtc: new Date().toISOString() };
+  const input = await body<{
+    title?: unknown; summary?: unknown; sections?: unknown;
+    articleType?: unknown; keyPoints?: unknown; linkedMaterials?: unknown; readMinutes?: unknown;
+    sourceUrl?: unknown; sourceLabel?: unknown;
+  }>(ctx.request);
+  const updated: PbeNewsArticle = { ...backfillArticle(stored.value), ...validateArticlePayload(input), updatedAtUtc: new Date().toISOString() };
   const result = await ctx.env.DB.prepare("UPDATE Records SET data=?,revision=revision+1 WHERE kind='pbe-news-article' AND id=? AND org_id=? AND revision=?")
     .bind(JSON.stringify(updated), articleId, LIBRARY_ORG, stored.revision).run();
   if (result.meta.changes !== 1) throw new HttpError(409, 'The record changed. Refresh and retry.');
@@ -558,7 +662,7 @@ async function setPublishState(ctx: RequestContext, articleId: string, publish: 
   if (!stored) throw new HttpError(404, 'Article was not found.');
   const now = new Date().toISOString();
   const updated: PbeNewsArticle = {
-    ...stored.value,
+    ...backfillArticle(stored.value),
     status: publish ? 'published' : 'draft',
     updatedAtUtc: now,
     ...(publish ? { publishedAtUtc: now, publishedBy: ctx.actor.userId } : {}),
@@ -567,6 +671,126 @@ async function setPublishState(ctx: RequestContext, articleId: string, publish: 
     .bind(JSON.stringify(updated), articleId, LIBRARY_ORG, stored.revision).run();
   if (result.meta.changes !== 1) throw new HttpError(409, 'The record changed. Refresh and retry.');
   return updated;
+}
+
+async function deleteArticle(ctx: RequestContext, articleId: string): Promise<{ ok: true }> {
+  ownerOnly(ctx.actor, 'delete news articles');
+  const stored = await getLib<PbeNewsArticle>(ctx, 'pbe-news-article', articleId);
+  if (!stored) throw new HttpError(404, 'Article was not found.');
+  const result = await ctx.env.DB.prepare("DELETE FROM Records WHERE kind='pbe-news-article' AND id=? AND org_id=? AND revision=?")
+    .bind(articleId, LIBRARY_ORG, stored.revision).run();
+  if (result.meta.changes !== 1) throw new HttpError(409, 'The record changed. Refresh and retry.');
+  return { ok: true as const };
+}
+
+/* ---------------- import-from-URL extraction ---------------- */
+
+const EXTRACT_TIMEOUT_MS = 8000;
+const EXTRACT_MAX_BODY_BYTES = 500 * 1024;
+
+function metaContent(html: string, key: string): string | undefined {
+  const tagRe = /<meta\b[^>]*>/gi;
+  let tag: RegExpExecArray | null;
+  while ((tag = tagRe.exec(html))) {
+    const attr = (name: string): string | undefined => {
+      const m = new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i').exec(tag![0]);
+      return m ? (m[1] ?? m[2] ?? m[3]) : undefined;
+    };
+    const k = attr('property') ?? attr('name');
+    if (k && k.toLowerCase() === key.toLowerCase()) {
+      const content = attr('content');
+      if (content) return content;
+    }
+  }
+  return undefined;
+}
+
+function firstTitleText(html: string): string {
+  const m = /<title\b[^>]*>([\s\S]*?)<\/title\s*>/i.exec(html);
+  return stripTags(m ? m[1] : '');
+}
+
+/** "Page Title | Site Name" → "Page Title" when the suffix is clearly a site name. */
+function cleanTitle(raw: string): string {
+  const title = raw.replace(/\s+/g, ' ').trim();
+  if (title.length <= 90) return title;
+  for (const sep of [' | ', ' - ', ' — ', ' – ']) {
+    const idx = title.lastIndexOf(sep);
+    if (idx > 20 && title.length - idx - sep.length < 40) return title.slice(0, idx).trim();
+  }
+  return title;
+}
+
+function paragraphTexts(html: string): string[] {
+  const out: string[] = [];
+  const pRe = /<p\b[^>]*>([\s\S]*?)<\/p\s*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = pRe.exec(html)) && out.length < 12) {
+    const text = stripTags(m[1]);
+    if (text.length >= 40) out.push(text);
+  }
+  return out;
+}
+
+function truncateSummary(text: string, max = 280): string {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.lastIndexOf(' ', max - 1);
+  return `${clean.slice(0, cut > 80 ? cut : max - 1).trim()}…`;
+}
+
+export interface ExtractedNewsDraft {
+  title: string;
+  summary: string;
+  sections: PbeNewsSection[];
+  articleType: PbeNewsArticleType;
+  keyPoints: string[];
+  linkedMaterials: PbeNewsLinkedMaterial[];
+  sourceUrl: string;
+  sourceLabel: string;
+}
+
+async function extractArticleDraft(ctx: RequestContext): Promise<ExtractedNewsDraft> {
+  const input = await body<{ url?: unknown }>(ctx.request);
+  const url = httpUrl(input.url, 'URL', true)!;
+  let res: Response;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), EXTRACT_TIMEOUT_MS);
+  try {
+    res = await fetch(url, {
+      signal: controller.signal, redirect: 'follow',
+      headers: { 'Accept': 'text/html', 'User-Agent': 'ErudozaPbeNewsroom/1.0 (+https://erudoza.com)' },
+    });
+  } catch {
+    throw new HttpError(422, `The article could not be fetched (${url}). Check the link and try again.`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!res.ok) throw new HttpError(422, `The article could not be fetched — the site returned status ${res.status}. Check the link and try again.`);
+  const contentType = res.headers.get('content-type') ?? '';
+  if (!/text\/html/i.test(contentType)) throw new HttpError(422, 'That link does not point to an article page — only HTML pages can be imported.');
+  let html: string;
+  try { html = (await res.text()).slice(0, EXTRACT_MAX_BODY_BYTES); }
+  catch { throw new HttpError(422, 'The article page could not be read. Check the link and try again.'); }
+
+  const title = cleanTitle(metaContent(html, 'og:title') || firstTitleText(html));
+  const summary = truncateSummary(metaContent(html, 'og:description') || metaContent(html, 'description') || paragraphTexts(html)[0] || '');
+  const paragraphs = paragraphTexts(html).slice(0, 3);
+  if (!title && !summary && paragraphs.length === 0)
+    throw new HttpError(422, 'No article content could be extracted from that page. Check the link and try again.');
+  const finalUrl = res.url || url;
+  let sourceLabel = '';
+  try { sourceLabel = new URL(finalUrl).hostname.replace(/^www\./, ''); } catch { sourceLabel = ''; }
+  return {
+    title: title || finalUrl,
+    summary: summary || 'Imported from the original announcement — add a summary before publishing.',
+    sections: paragraphs.length ? [{ heading: 'Extracted content', body: paragraphs.join('\n\n') }] : [],
+    articleType: 'announcement',
+    keyPoints: [],
+    linkedMaterials: [],
+    sourceUrl: finalUrl,
+    sourceLabel,
+  };
 }
 
 /* ---------------- router ---------------- */
@@ -604,10 +828,15 @@ export async function pbeMaterials(ctx: RequestContext): Promise<Response | null
   }
   if (path === '/pbe-news' && method === 'GET') {
     await requireLearner(ctx);
-    return json((await publishedNews(ctx)).map(a => ({
-      id: a.id, title: a.title, summary: a.summary, publishedAtUtc: a.publishedAtUtc,
-      sourceUrl: a.sourceUrl ?? null, sourceLabel: a.sourceLabel ?? null,
-    })));
+    return json((await publishedNews(ctx)).map(a => {
+      const full = backfillArticle(a);
+      return {
+        id: full.id, title: full.title, summary: full.summary, publishedAtUtc: full.publishedAtUtc,
+        articleType: full.articleType, keyPoints: full.keyPoints, linkedMaterials: full.linkedMaterials,
+        readMinutes: full.readMinutes ?? null,
+        sourceUrl: full.sourceUrl ?? null, sourceLabel: full.sourceLabel ?? null,
+      };
+    }));
   }
   if (path === '/pbe-news/articles' && method === 'GET') {
     contentAccess(ctx.actor);
@@ -617,9 +846,14 @@ export async function pbeMaterials(ctx: RequestContext): Promise<Response | null
     contentAccess(ctx.actor);
     return json(await createArticle(ctx), 201);
   }
+  if (path === '/pbe-news/extract' && method === 'POST') {
+    contentAccess(ctx.actor);
+    return json(await extractArticleDraft(ctx));
+  }
   const publishMatch = path.match(/^\/pbe-news\/articles\/([^/]+)\/(publish|unpublish)$/);
   if (publishMatch && method === 'POST') return json(await setPublishState(ctx, publishMatch[1], publishMatch[2] === 'publish'));
   const articleMatch = path.match(/^\/pbe-news\/articles\/([^/]+)$/);
+  if (articleMatch && method === 'DELETE') return json(await deleteArticle(ctx, articleMatch[1]));
   if (articleMatch && method === 'PUT') {
     contentAccess(ctx.actor);
     return json(await updateArticle(ctx, articleMatch[1]));
@@ -629,7 +863,7 @@ export async function pbeMaterials(ctx: RequestContext): Promise<Response | null
     await requireLearner(ctx);
     const stored = await getLib<PbeNewsArticle>(ctx, 'pbe-news-article', newsDetail[1]);
     if (!stored || stored.value.status !== 'published') throw new HttpError(404, 'Article was not found.');
-    return json(stored.value);
+    return json(backfillArticle(stored.value));
   }
   return null;
 }

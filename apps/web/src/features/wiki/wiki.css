@@ -2,7 +2,9 @@
 .wiki-header { flex:0 0 auto; }
 .wiki-header-inner { width:min(100%,1280px); min-height:76px; margin:auto; padding:16px 32px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
 .wiki-header-inner>a { color:var(--er-on-navy); text-decoration:none; }
-.wiki-header-account { display:flex; align-items:center; gap:12px; min-width:0; }
+.wiki-header-account { display:flex; align-items:center; gap:12px; min-width:0; flex-shrink:0; }
+/* Header actions must never collapse into vertical letter stacks, even when squeezed. */
+.wiki-header-account .ds-button { white-space:nowrap; }
 .wiki-header-account>span { display:grid; gap:2px; min-width:0; }
 .wiki-header-account strong,.wiki-header-account small { overflow-wrap:anywhere; }
 .wiki-header-account small { color:var(--er-on-navy-muted); font-size:var(--er-text-xs); }
@@ -13,7 +15,7 @@
 .wiki-search-heading,.wiki-group-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; }
 .wiki-search-heading h2,.wiki-group-heading h2 { margin:0; }
 .wiki-search-heading .ds-eyebrow,.wiki-group-heading .ds-eyebrow { margin:0 0 4px; }
-.wiki-search-label { display:grid; gap:8px; font-weight:600; }
+.wiki-search-label { display:block; }
 .wiki-search-label .ds-input { width:100%; }
 .wiki-filter-row { display:flex; flex-wrap:wrap; gap:8px; }
 .wiki-filter-row .ds-button[aria-pressed=true] { color:var(--er-ink-navy); }
@@ -98,11 +100,12 @@
   .wiki-article-heading strong { font-size:var(--er-text-base); }
   .wiki-article-heading>span:last-child { font-size:var(--er-text-xs); }
 }
-@media(max-width:360px) {
-  .wiki-header-inner { padding-inline:16px; }
-  .wiki-header-inner .er-wordmark { gap:8px; }
+@media(max-width:480px) {
+  /* Phones: mark-only brand so both header actions always fit side by side. */
+  .wiki-header-inner { padding:14px 16px; gap:16px; }
+  .wiki-header .er-wordmark-name { display:none; }
+  .wiki-header-account { gap:8px; }
   .wiki-header-account .ds-button { padding-inline:12px; }
-  .wiki-header-account .wiki-header-signup { display:none; }
   .wiki-main { padding-inline:16px; }
   .wiki-search-panel { padding:16px; }
 }

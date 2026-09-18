@@ -9,9 +9,12 @@ import type {
   PbeMaterialWatchResult,
   PbeNewsArticle,
   PbeNewsArticleInput,
+  PbeNewsArticleType,
 } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { Badge, Button, EmptyState, ExternalLinkButton, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Textarea } from "../../components/ui";
+import { Badge, Button, EmptyState, ExternalLinkButton, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, Textarea } from "../../components/ui";
+import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
+import { ArticleTypeArt, PBE_NEWS_TYPES, articleTypeLabel, normalizeArticleType } from "../news/articleTypeArt";
 import "./materials.css";
 
 export function formatPbeYearLabel(yearLabel: string) {
@@ -336,45 +339,103 @@ function ProposalDetail({ org, id, isOwner, viewerId, onBack }: { org: string; i
   </>;
 }
 
-function NewsArticleForm({ initial, submitLabel, pending, onSubmit, onCancel }: {
+type LinkedMaterialRow = { label: string; href: string; hint: string };
+
+function NewsArticleForm({ initial, submitLabel, reviewLabel, pending, onSubmit, onCancel }: {
   initial?: PbeNewsArticleInput;
   submitLabel: string;
+  reviewLabel?: string;
   pending: boolean;
-  onSubmit: (input: PbeNewsArticleInput) => void;
+  onSubmit: (input: PbeNewsArticleInput, forReview: boolean) => void;
   onCancel: () => void;
 }) {
+  const [articleType, setArticleType] = useState<PbeNewsArticleType>(initial?.articleType ?? "announcement");
   const [title, setTitle] = useState(initial?.title ?? "");
   const [summary, setSummary] = useState(initial?.summary ?? "");
+  const [keyPoints, setKeyPoints] = useState<string[]>(initial?.keyPoints ?? []);
+  const [newKeyPoint, setNewKeyPoint] = useState("");
+  const [materials, setMaterials] = useState<LinkedMaterialRow[]>(initial?.linkedMaterials?.map(material => ({ label: material.label, href: material.href, hint: material.hint ?? "" })) ?? []);
+  const [readMinutes, setReadMinutes] = useState(initial?.readMinutes != null ? String(initial.readMinutes) : "");
   const [sourceUrl, setSourceUrl] = useState(initial?.sourceUrl ?? "");
   const [sourceLabel, setSourceLabel] = useState(initial?.sourceLabel ?? "");
   const [sections, setSections] = useState<SectionRow[]>(initial?.sections.map(section => ({ heading: section.heading, body: section.body })) ?? [{ heading: "", body: "" }]);
   const [formError, setFormError] = useState("");
 
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    if (pending) return;
-    if (!title.trim() || !summary.trim()) { setFormError("The article needs a title and a summary."); return; }
-    const cleaned = sections.map(section => ({ heading: section.heading.trim(), body: section.body.trim() })).filter(section => section.heading || section.body);
-    if (cleaned.some(section => !section.heading || !section.body)) { setFormError("Every section needs a heading and a body."); return; }
-    if (!cleaned.length) { setFormError("Add at least one section."); return; }
-    setFormError("");
-    onSubmit({
-      title: title.trim(),
-      summary: summary.trim(),
-      sections: cleaned,
-      ...(sourceUrl.trim() ? { sourceUrl: sourceUrl.trim() } : {}),
-      ...(sourceLabel.trim() ? { sourceLabel: sourceLabel.trim() } : {}),
-    });
+  function addKeyPoint() {
+    const point = newKeyPoint.trim();
+    if (!point || keyPoints.length >= 6) return;
+    setKeyPoints([...keyPoints, point]);
+    setNewKeyPoint("");
   }
 
-  return <form className="materials-form" onSubmit={submit} aria-busy={pending}>
+  function buildInput(): PbeNewsArticleInput | null {
+    if (!title.trim() || !summary.trim()) { setFormError("The article needs a title and a summary."); return null; }
+    const cleaned = sections.map(section => ({ heading: section.heading.trim(), body: section.body.trim() })).filter(section => section.heading || section.body);
+    if (cleaned.some(section => !section.heading || !section.body)) { setFormError("Every section needs a heading and a body."); return null; }
+    if (!cleaned.length) { setFormError("Add at least one section."); return null; }
+    const points = keyPoints.map(point => point.trim()).filter(Boolean);
+    const linked = materials
+      .map(material => ({ label: material.label.trim(), href: material.href.trim(), hint: material.hint.trim() }))
+      .filter(material => material.label || material.href);
+    if (linked.some(material => !material.label || !material.href)) { setFormError("Each linked material needs a label and a link."); return null; }
+    const trimmed = readMinutes.trim();
+    const minutes = trimmed === "" ? null : Number(trimmed);
+    if (minutes !== null && (!Number.isInteger(minutes) || minutes < 1)) { setFormError("Read time must be a whole number of minutes."); return null; }
+    setFormError("");
+    return {
+      title: title.trim(),
+      summary: summary.trim(),
+      articleType,
+      sections: cleaned,
+      ...(points.length ? { keyPoints: points } : {}),
+      ...(linked.length ? { linkedMaterials: linked.map(({ label, href, hint }) => hint ? { label, href, hint } : { label, href }) } : {}),
+      ...(minutes !== null ? { readMinutes: minutes } : {}),
+      ...(sourceUrl.trim() ? { sourceUrl: sourceUrl.trim() } : {}),
+      ...(sourceLabel.trim() ? { sourceLabel: sourceLabel.trim() } : {}),
+    };
+  }
+
+  function submit(event: FormEvent, forReview: boolean) {
+    event.preventDefault();
+    if (pending) return;
+    const input = buildInput();
+    if (input) onSubmit(input, forReview);
+  }
+
+  return <form className="materials-form" onSubmit={event => submit(event, false)} aria-busy={pending}>
     {formError && <Notice tone="danger">{formError}</Notice>}
+    <label>Article type<Select value={articleType} onChange={event => setArticleType(event.target.value as PbeNewsArticleType)} disabled={pending}>
+      {PBE_NEWS_TYPES.map(entry => <option key={entry.value} value={entry.value}>{entry.label}</option>)}
+    </Select></label>
+    <span className="materials-hint">Sets the card art and kicker students see at a glance.</span>
+    <div className="newsroom-art-preview" aria-hidden="true"><ArticleTypeArt type={articleType} /></div>
     <label>Title<Input value={title} onChange={event => setTitle(event.target.value)} disabled={pending} required /></label>
     <label>Summary (1–2 sentences for the feed card)<Textarea rows={2} value={summary} onChange={event => setSummary(event.target.value)} disabled={pending} required /></label>
-    <div className="materials-form-grid">
-      <label>Source URL (optional)<Input type="url" value={sourceUrl} placeholder="https://nadpbe.org/…" onChange={event => setSourceUrl(event.target.value)} disabled={pending} /></label>
-      <label>Source label (optional)<Input value={sourceLabel} placeholder="nadpbe.org" onChange={event => setSourceLabel(event.target.value)} disabled={pending} /></label>
+    <span className="materials-hint">This is all most students will read. Say what they will find inside the article.</span>
+    <div className="materials-form-block">
+      <span className="materials-label">Key points <small>Shown on the student card as chips — up to 6.</small></span>
+      {keyPoints.length > 0 && <ul className="materials-keypoint-list">{keyPoints.map((point, index) => <li key={index}>
+        <span>{point}</span>
+        <Button type="button" variant="ghost" size="compact" disabled={pending} onClick={() => setKeyPoints(keyPoints.filter((_, i) => i !== index))} aria-label={`Remove key point ${index + 1}`}>Remove</Button>
+      </li>)}</ul>}
+      <div className="materials-keypoint-add">
+        <Input value={newKeyPoint} onChange={event => setNewKeyPoint(event.target.value)} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); addKeyPoint(); } }} placeholder="Add a key point" aria-label="New key point" maxLength={140} disabled={pending} />
+        <Button type="button" variant="secondary" size="compact" disabled={pending || !newKeyPoint.trim() || keyPoints.length >= 6} onClick={addKeyPoint}>Add point</Button>
+      </div>
     </div>
+    <div className="materials-form-block">
+      <span className="materials-label">Linked reading material <small>Deep links — students open them straight from the card and the article.</small></span>
+      {materials.map((material, index) => <div className="materials-section-row" key={index}>
+        <div className="materials-repeat-row">
+          <label>Label<Input value={material.label} placeholder="Isaiah 53 commentary notes" onChange={event => { const next = [...materials]; next[index] = { ...material, label: event.target.value }; setMaterials(next); }} disabled={pending} /></label>
+          <label>Link<Input value={material.href} placeholder="https://… or /student/…" onChange={event => { const next = [...materials]; next[index] = { ...material, href: event.target.value }; setMaterials(next); }} disabled={pending} /></label>
+          <label>Hint (optional)<Input value={material.hint} placeholder="Library › 2025–26 › Isaiah 53" onChange={event => { const next = [...materials]; next[index] = { ...material, hint: event.target.value }; setMaterials(next); }} disabled={pending} /></label>
+          <Button type="button" variant="ghost" size="compact" disabled={pending} onClick={() => setMaterials(materials.filter((_, i) => i !== index))} aria-label={`Remove linked material ${index + 1}`}>Remove</Button>
+        </div>
+      </div>)}
+      <Button type="button" variant="secondary" size="compact" disabled={pending} onClick={() => setMaterials([...materials, { label: "", href: "", hint: "" }])}>Add linked material</Button>
+    </div>
+    <label>Read time (minutes, optional)<Input type="number" min={1} value={readMinutes} onChange={event => setReadMinutes(event.target.value)} disabled={pending} /></label>
     {sections.map((section, index) => <div className="materials-section-row" key={index}>
       <div className="materials-repeat-row">
         <label>Section heading<Input value={section.heading} onChange={event => { const next = [...sections]; next[index] = { ...section, heading: event.target.value }; setSections(next); }} disabled={pending} /></label>
@@ -383,8 +444,13 @@ function NewsArticleForm({ initial, submitLabel, pending, onSubmit, onCancel }: 
       <label>Section body<Textarea rows={4} value={section.body} onChange={event => { const next = [...sections]; next[index] = { ...section, body: event.target.value }; setSections(next); }} disabled={pending} /></label>
     </div>)}
     <Button type="button" variant="secondary" size="compact" disabled={pending} onClick={() => setSections([...sections, { heading: "", body: "" }])}>Add section</Button>
+    <div className="materials-form-grid">
+      <label>Source URL (optional)<Input type="url" value={sourceUrl} placeholder="https://nadpbe.org/…" onChange={event => setSourceUrl(event.target.value)} disabled={pending} /></label>
+      <label>Source label (optional)<Input value={sourceLabel} placeholder="nadpbe.org" onChange={event => setSourceLabel(event.target.value)} disabled={pending} /></label>
+    </div>
     <div className="materials-form-actions">
       <Button type="button" variant="secondary" disabled={pending} onClick={onCancel}>Cancel</Button>
+      {reviewLabel && <Button type="button" variant="secondary" disabled={pending} onClick={event => submit(event, true)}>{pending ? "Saving…" : reviewLabel}</Button>}
       <Button type="submit" disabled={pending}>{pending ? "Saving…" : submitLabel}</Button>
     </div>
   </form>;
@@ -393,10 +459,17 @@ function NewsArticleForm({ initial, submitLabel, pending, onSubmit, onCancel }: 
 function NewsManager({ org, isOwner }: { org: string; isOwner: boolean }) {
   const client = useQueryClient();
   const articles = useQuery({ queryKey: ["pbe-news-articles", org], queryFn: () => api.pbeNewsArticles(org), retry: false });
-  const [showNewForm, setShowNewForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editor, setEditor] = useState<{ mode: "new" | "edit"; articleId?: string; initial?: PbeNewsArticleInput } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [reviewNotice, setReviewNotice] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [importUrl, setImportUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState("");
+  const [watching, setWatching] = useState(false);
+  const [watchError, setWatchError] = useState("");
+  const [watchResult, setWatchResult] = useState<PbeMaterialWatchResult | null>(null);
 
   async function mutate(id: string | null, run: () => Promise<unknown>, after?: () => void) {
     if (busyId) return;
@@ -412,48 +485,152 @@ function NewsManager({ org, isOwner }: { org: string; isOwner: boolean }) {
     finally { setBusyId(null); }
   }
 
-  const saveNew = (input: PbeNewsArticleInput) => mutate(null, () => api.createPbeNewsArticle(org, input), () => setShowNewForm(false));
-  const saveEdit = (article: PbeNewsArticle, input: PbeNewsArticleInput) => mutate(article.id, () => api.updatePbeNewsArticle(org, article.id, input), () => setEditingId(null));
+  function toInput(article: PbeNewsArticle): PbeNewsArticleInput {
+    return {
+      title: article.title,
+      summary: article.summary,
+      articleType: normalizeArticleType(article.articleType),
+      sections: article.sections,
+      ...(article.keyPoints?.length ? { keyPoints: article.keyPoints } : {}),
+      ...(article.linkedMaterials?.length ? { linkedMaterials: article.linkedMaterials } : {}),
+      ...(article.readMinutes != null ? { readMinutes: article.readMinutes } : {}),
+      ...(article.sourceUrl ? { sourceUrl: article.sourceUrl } : {}),
+      ...(article.sourceLabel ? { sourceLabel: article.sourceLabel } : {}),
+    };
+  }
+
+  const saveNew = (input: PbeNewsArticleInput, forReview: boolean) => mutate(null, () => api.createPbeNewsArticle(org, input), () => {
+    setEditor(null);
+    setReviewNotice(forReview ? "Draft saved and sent to the club Owner for review. It stays a draft until the Owner publishes it." : "");
+  });
+  const saveEdit = (articleId: string, input: PbeNewsArticleInput) => mutate(articleId, () => api.updatePbeNewsArticle(org, articleId, input), () => setEditor(null));
+
+  async function deleteArticle(id: string) {
+    await mutate(id, () => api.deletePbeNewsArticle(org, id), () => setConfirmDeleteId(null));
+  }
+
+  async function checkNewsWatcher() {
+    setWatching(true); setWatchError(""); setWatchResult(null);
+    try {
+      const result = await api.watchNadMaterials(org);
+      setWatchResult(result);
+      await client.invalidateQueries({ queryKey: ["pbe-news-articles", org] });
+    } catch (failure) { setWatchError(failure instanceof Error ? failure.message : "The NAD check failed. Try again."); }
+    finally { setWatching(false); }
+  }
+
+  async function importFromUrl(event: FormEvent) {
+    event.preventDefault();
+    const url = importUrl.trim();
+    if (!url) { setImportError("Paste a source URL to import."); return; }
+    setImporting(true); setImportError(""); setReviewNotice("");
+    try {
+      const draft = await api.extractPbeNewsDraft(org, url);
+      setImportUrl("");
+      setEditor({
+        mode: "new",
+        initial: {
+          title: draft.title,
+          summary: draft.summary,
+          articleType: "announcement",
+          sections: draft.sections,
+          ...(draft.keyPoints.length ? { keyPoints: draft.keyPoints } : {}),
+          sourceUrl: draft.sourceUrl,
+          sourceLabel: draft.sourceLabel,
+        },
+      });
+    } catch (failure) { setImportError(failure instanceof Error ? failure.message : "The article could not be extracted. Check the URL and try again."); }
+    finally { setImporting(false); }
+  }
+
+  function pipelineRow(article: PbeNewsArticle) {
+    return <li key={article.id} className="newsroom-row">
+      <div className="materials-list-detail">
+        <span className="newsroom-kicker">{articleTypeLabel(article.articleType)}</span>
+        <strong>{article.title}</strong>
+        <div className="materials-badges">
+          <Badge tone={article.status === "published" ? "success" : "neutral"}>{article.status === "published" ? "Published" : "Draft"}</Badge>
+          <Badge>{article.createdBy === "nad-watcher" ? "Watcher" : "Manual"}</Badge>
+        </div>
+        <p className="materials-news-summary">{article.summary}</p>
+        <small>Created {formatDateTime(article.createdAtUtc)}{article.publishedAtUtc ? ` · published ${formatDateTime(article.publishedAtUtc)}` : ""}</small>
+        <details className="materials-news-preview"><summary>Preview article</summary>
+          {article.sections.map((section, index) => <section key={index}><h4>{section.heading}</h4><p className="materials-section-body">{section.body}</p></section>)}
+          {article.sourceUrl && <p><a href={article.sourceUrl} target="_blank" rel="noreferrer">{article.sourceLabel ?? "View original announcement"}</a></p>}
+        </details>
+      </div>
+      <div className="materials-row-actions">
+        <Button variant="secondary" size="compact" disabled={!!busyId} onClick={() => setEditor({ mode: "edit", articleId: article.id, initial: toInput(article) })}>Edit</Button>
+        {article.status === "published"
+          ? <Button variant="secondary" size="compact" disabled={!isOwner || !!busyId} aria-describedby={!isOwner ? "materials-news-owner-notice" : undefined} onClick={() => void mutate(article.id, () => api.unpublishPbeNewsArticle(org, article.id))}>{busyId === article.id ? "Saving…" : "Unpublish"}</Button>
+          : <Button size="compact" disabled={!isOwner || !!busyId} aria-describedby={!isOwner ? "materials-news-owner-notice" : undefined} onClick={() => void mutate(article.id, () => api.publishPbeNewsArticle(org, article.id))}>{busyId === article.id ? "Saving…" : "Publish"}</Button>}
+        {isOwner && <Button variant="danger" size="compact" disabled={!!busyId} onClick={() => setConfirmDeleteId(article.id)}>Delete</Button>}
+      </div>
+    </li>;
+  }
+
+  const drafts = (articles.data ?? []).filter(article => article.status === "draft");
+  const published = (articles.data ?? []).filter(article => article.status === "published");
 
   return <>
     {!isOwner && <Notice id="materials-news-owner-notice">Publishing and unpublishing news articles requires the club Owner (master admin) role. Owners and Content Managers can draft and edit articles; publishing a watcher-suggested draft is the Owner's review step.</Notice>}
-    <div className="materials-actions">
-      <Button variant="secondary" onClick={() => setShowNewForm(!showNewForm)}>{showNewForm ? "Close article form" : "New article"}</Button>
-    </div>
     {error && <Notice tone="danger">{error}</Notice>}
-    {showNewForm && <Panel><h2>New article</h2><p>Articles start as drafts. Students only see published articles.</p>
-      <NewsArticleForm submitLabel="Save draft article" pending={busyId === "new"} onSubmit={saveNew} onCancel={() => setShowNewForm(false)} /></Panel>}
-    <Panel><h2>Articles</h2>
-      {articles.isPending ? <LoadingState label="Loading articles…" /> : articles.isError ? <Notice tone="danger">Articles could not load. <Button variant="secondary" size="compact" onClick={() => void articles.refetch()}>Try again</Button></Notice>
-        : articles.data.length === 0 ? <EmptyState title="No news articles yet" description="Draft the first announcement above, or run “Check for new NAD materials” on the Releases tab to collect watcher suggestions." />
-        : <ul className="materials-list">{articles.data.map(article => <li key={article.id} className="materials-list-row materials-news-row">
-          <div className="materials-list-detail">
-            <strong>{article.title}</strong>
-            <div className="materials-badges">
-              <Badge tone={article.status === "published" ? "success" : "neutral"}>{article.status === "published" ? "Published" : "Draft"}</Badge>
-              <Badge>{article.createdBy === "nad-watcher" ? "Watcher" : "Manual"}</Badge>
-            </div>
-            <p className="materials-news-summary">{article.summary}</p>
-            <small>Created {formatDateTime(article.createdAtUtc)}{article.publishedAtUtc ? ` · published ${formatDateTime(article.publishedAtUtc)}` : ""}</small>
-            <details className="materials-news-preview"><summary>Preview article</summary>
-              {article.sections.map((section, index) => <section key={index}><h4>{section.heading}</h4><p className="materials-section-body">{section.body}</p></section>)}
-              {article.sourceUrl && <p><a href={article.sourceUrl} target="_blank" rel="noreferrer">{article.sourceLabel ?? "View original announcement"}</a></p>}
-            </details>
+    {reviewNotice && <Notice tone="success">{reviewNotice}</Notice>}
+    <div className="newsroom">
+      <section className="newsroom-col" aria-label="Sources">
+        <h2>Sources</h2>
+        <p className="materials-hint">Pull the latest PBE developments. The weekly NAD watcher drafts suggestions automatically; import any announcement link into a draft you can edit.</p>
+        <Button onClick={() => void checkNewsWatcher()} disabled={watching}>{watching ? "Checking nadpbe.org…" : "Check for new NAD materials"}</Button>
+        {watchError && <Notice tone="danger">{watchError}</Notice>}
+        {watchResult && <Notice tone="success">
+          <p>Checked nadpbe.org at {formatDateTime(watchResult.checkedAt)} — {watchResult.mediaChecked} media items checked, {watchResult.drafted.length} new draft{watchResult.drafted.length === 1 ? "" : "s"}.</p>
+          <p className="materials-hint">Watcher news suggestions appear in the Pipeline column.</p>
+        </Notice>}
+        <form className="newsroom-import" onSubmit={importFromUrl}>
+          <h3>Import from URL</h3>
+          <div className="newsroom-import-row">
+            <Input type="url" value={importUrl} onChange={event => setImportUrl(event.target.value)} placeholder="https://nadpbe.org/…" aria-label="Source URL to import" disabled={importing} />
+            <Button type="submit" disabled={importing || !importUrl.trim()}>{importing ? "Extracting…" : "Extract"}</Button>
           </div>
-          <div className="materials-row-actions">
-            <Button variant="secondary" size="compact" disabled={!!busyId} onClick={() => setEditingId(editingId === article.id ? null : article.id)}>{editingId === article.id ? "Close editor" : "Edit"}</Button>
-            {article.status === "published"
-              ? <Button variant="secondary" size="compact" disabled={!isOwner || !!busyId} aria-describedby={!isOwner ? "materials-news-owner-notice" : undefined} onClick={() => void mutate(article.id, () => api.unpublishPbeNewsArticle(org, article.id))}>{busyId === article.id ? "Saving…" : "Unpublish"}</Button>
-              : <Button size="compact" disabled={!isOwner || !!busyId} aria-describedby={!isOwner ? "materials-news-owner-notice" : undefined} onClick={() => void mutate(article.id, () => api.publishPbeNewsArticle(org, article.id))}>{busyId === article.id ? "Saving…" : "Publish"}</Button>}
-          </div>
-        </li>)}</ul>}
-    </Panel>
-    {editingId && articles.data && (() => {
-      const article = articles.data.find(a => a.id === editingId);
-      if (!article) return null;
-      return <Panel><h2>Edit article</h2>
-        <NewsArticleForm initial={{ title: article.title, summary: article.summary, sections: article.sections, ...(article.sourceUrl ? { sourceUrl: article.sourceUrl } : {}), ...(article.sourceLabel ? { sourceLabel: article.sourceLabel } : {}) }} submitLabel="Save changes" pending={busyId === article.id} onSubmit={input => saveEdit(article, input)} onCancel={() => setEditingId(null)} />
-      </Panel>;
+          {importError && <Notice tone="danger">{importError}</Notice>}
+        </form>
+      </section>
+      <section className="newsroom-col newsroom-editor-col" aria-label="Article editor">
+        <h2>Article editor</h2>
+        {editor ? (editor.mode === "new"
+          ? <NewsArticleForm initial={editor.initial} submitLabel="Save draft article" reviewLabel="Send for review" pending={busyId === "new"} onSubmit={saveNew} onCancel={() => setEditor(null)} />
+          : <NewsArticleForm initial={editor.initial} submitLabel="Save changes" pending={busyId === editor.articleId} onSubmit={input => saveEdit(editor.articleId!, input)} onCancel={() => setEditor(null)} />)
+          : <div className="newsroom-editor-idle">
+            <p className="materials-hint">Pick Edit on a pipeline article, import a source URL, or start a fresh draft. Articles stay drafts until the club Owner publishes them.</p>
+            <Button variant="secondary" onClick={() => setEditor({ mode: "new" })}>New article</Button>
+          </div>}
+      </section>
+      <section className="newsroom-col" aria-label="Pipeline">
+        <h2>Pipeline</h2>
+        {articles.isPending ? <LoadingState label="Loading articles…" /> : articles.isError ? <Notice tone="danger">Articles could not load. <Button variant="secondary" size="compact" onClick={() => void articles.refetch()}>Try again</Button></Notice>
+          : articles.data!.length === 0 ? <EmptyState title="No news articles yet" description="Import a source URL, run “Check for new NAD materials”, or start the first draft." />
+          : <>
+            <h3 className="newsroom-group-heading">Drafts{!isOwner && <span className="newsroom-group-sub"> — awaiting Owner review</span>}</h3>
+            {drafts.length === 0 ? <p className="materials-hint">No drafts right now.</p> : <ul className="newsroom-list">{drafts.map(pipelineRow)}</ul>}
+            <h3 className="newsroom-group-heading">Published</h3>
+            {published.length === 0 ? <p className="materials-hint">Nothing published yet.</p> : <ul className="newsroom-list">{published.map(pipelineRow)}</ul>}
+          </>}
+      </section>
+    </div>
+    {confirmDeleteId && (() => {
+      const target = (articles.data ?? []).find(article => article.id === confirmDeleteId);
+      return <ConfirmationDialog
+        title="Delete this news article?"
+        description={`"${target?.title ?? "This article"}" will be permanently deleted. Published copies disappear from the student feed immediately. This cannot be undone.`}
+        confirmLabel="Delete article"
+        pendingLabel="Deleting…"
+        variant="danger"
+        pending={busyId === confirmDeleteId}
+        error={error}
+        onCancel={() => { setConfirmDeleteId(null); setError(""); }}
+        onConfirm={() => void deleteArticle(confirmDeleteId)}
+      />;
     })()}
   </>;
 }
+

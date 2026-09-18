@@ -45,6 +45,14 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("Team Practice hub", () => {
+  it("styles both game-mode setup buttons as primary actions", async () => {
+    mount();
+    const simulation = await screen.findByRole("button", { name: "Set up simulation" });
+    const pvp = await screen.findByRole("button", { name: "Set up PVP" });
+    expect(simulation).toHaveClass("ds-button-primary");
+    expect(pvp).toHaveClass("ds-button-primary");
+  });
+
   it("creates an enabled independent six-student rehearsal without inventing an opponent", async () => {
     vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:"daniel",name:"Daniel",pbeEnabled:true}]});
     vi.mocked(practiceApi.simulationAvailability).mockResolvedValue({eligibleQuestions:0,requestedQuestions:90,canStart:false,reason:'Invite your assigned team'});

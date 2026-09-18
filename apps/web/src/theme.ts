@@ -36,48 +36,70 @@ export function applyTheme(preference: ThemePreference): ResolvedTheme {
   return resolved;
 }
 
+/**
+ * Same-tab subscribers. Every useTheme() instance keeps its own React state,
+ * so a preference change made through one instance (e.g. the theme toggle)
+ * must re-sync the others — the storage event only fires in *other* tabs.
+ */
+type ThemeSync = () => void;
+const themeListeners = new Set<ThemeSync>();
+
+function readTheme(): { preference: ThemePreference; resolved: ResolvedTheme } {
+  const preference = getThemePreference();
+  return { preference, resolved: resolveTheme(preference) };
+}
+
 export function setThemePreference(preference: ThemePreference): ResolvedTheme {
   try {
     localStorage.setItem(STORAGE_KEY, preference);
   } catch {
     /* The preference still applies for this visit. */
   }
-  return applyTheme(preference);
+  const resolved = applyTheme(preference);
+  themeListeners.forEach((sync) => sync());
+  return resolved;
 }
 
-const ORDER: ThemePreference[] = ["system", "light", "dark"];
-
 /** Keeps <html data-theme> in sync with the preference and the OS theme. */
-export function useTheme(): { preference: ThemePreference; resolved: ResolvedTheme; cycle: () => void } {
-  const [preference, setPreferenceState] = useState<ThemePreference>(getThemePreference);
-  const [resolved, setResolved] = useState<ResolvedTheme>(() => resolveTheme(getThemePreference()));
+export function useTheme(): {
+  preference: ThemePreference;
+  resolved: ResolvedTheme;
+  setPreference: (next: ThemePreference) => void;
+} {
+  const [state, setState] = useState(readTheme);
 
   useEffect(() => {
-    setResolved(applyTheme(preference));
-    const query = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-color-scheme: dark)") : null;
-    if (preference !== "system" || !query) return;
-    const onChange = () => setResolved(applyTheme("system"));
-    query.addEventListener("change", onChange);
-    return () => query.removeEventListener("change", onChange);
-  }, [preference]);
-
-  useEffect(() => {
+    const sync = () => {
+      const next = readTheme();
+      // Re-apply so <html> reflects the saved preference even when the change
+      // came from another hook instance or another tab.
+      setState({ preference: next.preference, resolved: applyTheme(next.preference) });
+    };
+    themeListeners.add(sync);
+    sync();
     const onStorage = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY) return;
-      const next = getThemePreference();
-      setPreferenceState(next);
+      if (event.key === STORAGE_KEY) sync();
     };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    return () => {
+      themeListeners.delete(sync);
+      window.removeEventListener("storage", onStorage);
+    };
   }, []);
 
-  const cycle = () => {
-    const next = ORDER[(ORDER.indexOf(preference) + 1) % ORDER.length];
-    setPreferenceState(next);
-    setResolved(setThemePreference(next));
+  useEffect(() => {
+    const query = typeof window.matchMedia === "function" ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+    if (state.preference !== "system" || !query) return;
+    const onChange = () => setState({ preference: "system", resolved: applyTheme("system") });
+    query.addEventListener("change", onChange);
+    return () => query.removeEventListener("change", onChange);
+  }, [state.preference]);
+
+  const setPreference = (next: ThemePreference) => {
+    setThemePreference(next);
   };
 
-  return { preference, resolved, cycle };
+  return { preference: state.preference, resolved: state.resolved, setPreference };
 }
 
 /** Mount once near the app root so every page follows the theme. */

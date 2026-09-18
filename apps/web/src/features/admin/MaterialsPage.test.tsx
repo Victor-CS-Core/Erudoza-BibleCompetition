@@ -12,6 +12,7 @@ vi.mock("../../api/client", () => ({
     reviewPbeRelease: vi.fn(), watchNadMaterials: vi.fn(), pbeNewsArticles: vi.fn(),
     createPbeNewsArticle: vi.fn(), updatePbeNewsArticle: vi.fn(),
     publishPbeNewsArticle: vi.fn(), unpublishPbeNewsArticle: vi.fn(),
+    deletePbeNewsArticle: vi.fn(), extractPbeNewsDraft: vi.fn(),
   },
 }));
 const useAuthMock = vi.fn();
@@ -209,7 +210,8 @@ it("switches to the News tab and lists articles with status badges", async () =>
   renderPage("/admin/materials?tab=news");
   expect(await screen.findByText("New materials detected")).toBeInTheDocument();
   expect(screen.getByText("Draft")).toBeInTheDocument();
-  expect(screen.getByText("Published")).toBeInTheDocument();
+  // "Published" appears on both the pipeline group heading and the status badge.
+  expect(screen.getAllByText("Published")).toHaveLength(2);
   expect(screen.getAllByText("Watcher")).toHaveLength(2);
 });
 
@@ -256,7 +258,102 @@ it("creates a news article from the form", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Save draft article" }));
   await screen.findByText("Big announcement");
   expect(api.createPbeNewsArticle).toHaveBeenCalledWith("org-1", {
-    title: "Big announcement", summary: "Something happened.",
+    title: "Big announcement", summary: "Something happened.", articleType: "announcement",
     sections: [{ heading: "Details", body: "All the details." }],
   });
+});
+
+it("renders the newsroom in three columns", async () => {
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([newsArticle]);
+  renderPage("/admin/materials?tab=news");
+  await screen.findByText("New materials detected");
+  expect(screen.getByRole("region", { name: "Sources" })).toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "Article editor" })).toBeInTheDocument();
+  expect(screen.getByRole("region", { name: "Pipeline" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: "Import from URL" })).toBeInTheDocument();
+});
+
+it("previews the selected article type art in the editor", async () => {
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([]);
+  renderPage("/admin/materials?tab=news");
+  await screen.findByText("No news articles yet");
+  fireEvent.click(screen.getByRole("button", { name: "New article" }));
+  const select = screen.getByLabelText("Article type") as HTMLSelectElement;
+  expect(select.value).toBe("announcement");
+  fireEvent.change(select, { target: { value: "competition" } });
+  expect(document.querySelector(".newsroom-art-preview .article-art-strip")).toHaveAttribute("data-type", "competition");
+});
+
+it("imports a draft from a URL and prefills the editor", async () => {
+  vi.mocked(api.extractPbeNewsDraft).mockResolvedValue({
+    title: "Imported title", summary: "Imported summary.", keyPoints: ["Point one"],
+    sections: [{ heading: "Details", body: "Details here." }],
+    sourceUrl: "https://nadpbe.org/imported", sourceLabel: "nadpbe.org",
+  });
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([]);
+  renderPage("/admin/materials?tab=news");
+  await screen.findByText("No news articles yet");
+  fireEvent.change(screen.getByLabelText("Source URL to import"), { target: { value: "https://nadpbe.org/imported" } });
+  fireEvent.click(screen.getByRole("button", { name: "Extract" }));
+  expect(await screen.findByLabelText("Title")).toHaveValue("Imported title");
+  expect(screen.getByLabelText(/Summary/)).toHaveValue("Imported summary.");
+  expect(screen.getByText("Point one")).toBeInTheDocument();
+  expect(screen.getByLabelText("Source URL (optional)")).toHaveValue("https://nadpbe.org/imported");
+  expect(api.extractPbeNewsDraft).toHaveBeenCalledWith("org-1", "https://nadpbe.org/imported");
+});
+
+it("shows an error when the URL import fails", async () => {
+  vi.mocked(api.extractPbeNewsDraft).mockRejectedValue(new Error("No article found at that URL"));
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([]);
+  renderPage("/admin/materials?tab=news");
+  await screen.findByText("No news articles yet");
+  fireEvent.change(screen.getByLabelText("Source URL to import"), { target: { value: "https://example.com/x" } });
+  fireEvent.click(screen.getByRole("button", { name: "Extract" }));
+  expect(await screen.findByText("No article found at that URL")).toBeInTheDocument();
+  expect(api.extractPbeNewsDraft).toHaveBeenCalledWith("org-1", "https://example.com/x");
+});
+
+it("sends a new draft for review with an Owner-review notice", async () => {
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([]);
+  vi.mocked(api.createPbeNewsArticle).mockResolvedValue({ ...newsArticle, id: "art-new" });
+  renderPage("/admin/materials?tab=news", contentManager);
+  await screen.findByText("No news articles yet");
+  fireEvent.click(screen.getByRole("button", { name: "New article" }));
+  fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Review me" } });
+  fireEvent.change(screen.getByLabelText(/Summary/), { target: { value: "Please review." } });
+  fireEvent.change(screen.getByLabelText("Section heading"), { target: { value: "Details" } });
+  fireEvent.change(screen.getByLabelText("Section body"), { target: { value: "Body." } });
+  fireEvent.click(screen.getByRole("button", { name: "Send for review" }));
+  expect(await screen.findByText(/sent to the club Owner for review/)).toBeInTheDocument();
+  expect(api.createPbeNewsArticle).toHaveBeenCalledWith("org-1", expect.objectContaining({ title: "Review me", articleType: "announcement" }));
+});
+
+it("deletes an article as the Owner after confirmation", async () => {
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([newsArticle]);
+  vi.mocked(api.deletePbeNewsArticle).mockResolvedValue(undefined);
+  renderPage("/admin/materials?tab=news");
+  await screen.findByText("New materials detected");
+  fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+  expect(screen.getByText("Delete this news article?")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Delete article" }));
+  expect(api.deletePbeNewsArticle).toHaveBeenCalledWith("org-1", "art-1");
+});
+
+it("keeps the article when the Owner cancels the delete confirmation", async () => {
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([newsArticle]);
+  renderPage("/admin/materials?tab=news");
+  await screen.findByText("New materials detected");
+  fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(api.deletePbeNewsArticle).not.toHaveBeenCalled();
+  expect(screen.queryByText("Delete this news article?")).not.toBeInTheDocument();
+});
+
+it("hides the delete action from Content Managers", async () => {
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([newsArticle]);
+  renderPage("/admin/materials?tab=news", contentManager);
+  await screen.findByText("New materials detected");
+  expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
+  expect(screen.getByRole("heading", { name: /Drafts/ })).toBeInTheDocument();
+  expect(screen.getByText(/awaiting Owner review/)).toBeInTheDocument();
 });

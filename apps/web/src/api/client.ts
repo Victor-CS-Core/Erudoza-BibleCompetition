@@ -191,4 +191,8 @@ export const api = {
     request<import("./types").PbeNewsArticle>(`/api/v1/organizations/${orgId}/pbe-news/articles/${encodeURIComponent(id)}/publish`, { method: "POST" }),
   unpublishPbeNewsArticle: (orgId: string, id: string) =>
     request<import("./types").PbeNewsArticle>(`/api/v1/organizations/${orgId}/pbe-news/articles/${encodeURIComponent(id)}/unpublish`, { method: "POST" }),
+  deletePbeNewsArticle: (orgId: string, id: string) =>
+    request<void>(`/api/v1/organizations/${orgId}/pbe-news/articles/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  extractPbeNewsDraft: (orgId: string, url: string) =>
+    request<import("./types").PbeNewsExtractDraft>(`/api/v1/organizations/${orgId}/pbe-news/extract`, { method: "POST", body: JSON.stringify({ url }) }),
 };

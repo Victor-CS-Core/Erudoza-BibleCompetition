@@ -1,0 +1,116 @@
+/* ArticleTypeArt — thin painterly header strip identifying the PBE news article kind.
+   Decorative only: the adjacent text kicker carries the label for assistive tech.
+   Follows the app's navy/gold art direction: deep painted gradients, a soft light
+   falloff, and a faint large motif at the trailing edge. */
+
+.article-art-strip {
+  --art-a: #0d1c2b;
+  --art-b: #1d2f4d;
+  --art-glow: rgba(244, 205, 118, 0.28);
+  --art-ink: #fff9ed;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  padding: 6px var(--er-space-4);
+  overflow: hidden;
+  color: var(--art-ink);
+  background:
+    radial-gradient(120% 220% at 12% 20%, var(--art-glow) 0%, transparent 46%),
+    linear-gradient(102deg, var(--art-a) 0%, var(--art-b) 62%, var(--art-a) 100%);
+  isolation: isolate;
+}
+
+/* Painterly brush texture: faint diagonal strokes + vignette over the gradient. */
+.article-art-strip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    repeating-linear-gradient(118deg, rgba(255, 255, 255, 0.035) 0 5px, transparent 5px 11px),
+    radial-gradient(90% 160% at 88% 90%, rgba(0, 0, 0, 0.28) 0%, transparent 55%);
+}
+
+.article-art-strip[data-type="competition"] {
+  --art-a: #0d1c2b;
+  --art-b: #2b3f60;
+  --art-glow: rgba(244, 205, 118, 0.42);
+}
+
+.article-art-strip[data-type="study-material"] {
+  --art-a: #0c2418;
+  --art-b: #1e5636;
+  --art-glow: rgba(178, 226, 178, 0.25);
+}
+
+.article-art-strip[data-type="rule-update"] {
+  --art-a: #0d1c2b;
+  --art-b: #17517e;
+  --art-glow: rgba(140, 200, 235, 0.3);
+}
+
+.article-art-strip[data-type="announcement"] {
+  --art-a: #231a2c;
+  --art-b: #59332a;
+  --art-glow: rgba(233, 170, 90, 0.34);
+}
+
+.article-art-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--er-space-2);
+  font-size: var(--er-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.article-art-label svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.article-art-motif {
+  position: absolute;
+  right: var(--er-space-3);
+  top: 50%;
+  transform: translateY(-50%) rotate(-8deg);
+  opacity: 0.32;
+  color: var(--art-ink);
+  pointer-events: none;
+}
+
+.article-art-motif svg {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .article-art-strip {
+    animation: article-art-settle 0.5s ease-out both;
+  }
+}
+
+@keyframes article-art-settle {
+  from { filter: brightness(1.12); }
+  to { filter: none; }
+}
+
+/* Edge-to-edge placement at the top of a padded card. */
+.news-card .article-art-strip,
+.news-article .article-art-strip,
+.newsroom-art-preview .article-art-strip {
+  margin: calc(var(--er-space-6) * -1) calc(var(--er-space-6) * -1) var(--er-space-4);
+  border-radius: var(--er-radius-card) var(--er-radius-card) 0 0;
+}
+
+/* Mini preview inside the editor: flatter corners, fixed margin. */
+.newsroom-art-preview .article-art-strip {
+  margin: 0;
+  border-radius: var(--er-radius-control);
+}

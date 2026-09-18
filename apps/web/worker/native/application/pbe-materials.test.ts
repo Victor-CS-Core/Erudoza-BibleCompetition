@@ -35,6 +35,10 @@ const validArticle = () => ({
   title: 'PBE kickoff announced',
   summary: 'The new competition year is underway.',
   sections: [{ heading: 'Details', body: 'Everything you need to know.' }],
+  articleType: 'announcement',
+  keyPoints: ['Kickoff date confirmed'],
+  linkedMaterials: [{ label: 'PBE resources', href: 'https://nadpbe.org/pbe-resources/' }],
+  readMinutes: 2,
   sourceUrl: 'https://nadpbe.org/announcement/',
   sourceLabel: 'nadpbe.org',
 });

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
@@ -15,8 +15,33 @@ function audienceLabel(audience: WikiAudience) {
   return audience === "Shared" ? "Everyone" : `${audience} guide`;
 }
 
-function WikiArticleView({ article, scopeArticles }: { article: WikiArticle; scopeArticles: WikiArticle[] }) {
+function filterLabel(option: "All" | WikiAudience) {
+  return option === "Shared" ? "Everyone" : option;
+}
+
+/** Opens the article targeted by #wiki-<id> anchors (table of contents, related
+    guides, deep links): browsers scroll to a closed <details> without opening it.
+    The nonce re-fires the signal when the same link is clicked twice in a row. */
+function useWikiOpenSignal() {
+  const [signal, setSignal] = useState<{ id: string; n: number } | null>(null);
+  const requestOpen = useCallback((id: string) => {
+    setSignal(previous => ({ id, n: (previous?.n ?? 0) + 1 }));
+  }, []);
+  useEffect(() => {
+    const readHash = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith("#wiki-") && hash.length > "#wiki-".length) requestOpen(hash.slice("#wiki-".length));
+    };
+    readHash();
+    window.addEventListener("hashchange", readHash);
+    return () => window.removeEventListener("hashchange", readHash);
+  }, [requestOpen]);
+  return [signal, requestOpen] as const;
+}
+
+function WikiArticleView({ article, scopeArticles, openSignal }: { article: WikiArticle; scopeArticles: WikiArticle[]; openSignal: { id: string; n: number } | null }) {
   const [expanded, setExpanded] = useState(false);
+  useEffect(() => { if (openSignal?.id === article.id) setExpanded(true); }, [openSignal, article.id]);
   const inScope = useMemo(() => new Set(scopeArticles.map(item => item.id)), [scopeArticles]);
   const related = (article.related ?? []).map(id => scopeArticles.find(item => item.id === id)).filter((item): item is WikiArticle => !!item && inScope.has(item.id));
 
@@ -66,6 +91,7 @@ export function WikiPage({ scope }: { scope: WikiScope }) {
   const results = useMemo(() => searchWiki(articles, query).filter(result => filter === "All" || result.article.audience === filter), [articles, filter, query]);
   const resultIds = useMemo(() => new Set(results.map(result => result.article.id)), [results]);
   const findArticle = (id: string) => articles.find(article => article.id === id);
+  const [openSignal, requestOpenArticle] = useWikiOpenSignal();
 
   if (loading) return <main className="training-public public-recovery"><LoadingState label={isPublic ? "Opening the wiki…" : "Opening help…"} /></main>;
   if (!isPublic && !me) return <Navigate to="/login" replace />;
@@ -89,18 +115,18 @@ export function WikiPage({ scope }: { scope: WikiScope }) {
       />
       <Panel className="wiki-search-panel">
         <div className="wiki-search-heading"><div><p className="ds-eyebrow">{isPublic ? "New here? Start here" : "Help for the trail ahead"}</p><h2>Find an explanation</h2></div>{!isPublic && me && <Badge tone="info">{roleLabel}</Badge>}</div>
-        <label className="wiki-search-label">{searchLabel}<Input type="search" value={query} onChange={event => updateQuery(event.target.value)} placeholder={searchPlaceholder} aria-label={searchLabel} /></label>
-        <div className="wiki-filter-row" role="group" aria-label="Wiki audience filter">{filters.map(option => <Button key={option} variant={filter === option ? "secondary" : "ghost"} size="compact" aria-pressed={filter === option} onClick={() => setFilter(option)}>{option}</Button>)}</div>
+        <label className="wiki-search-label"><Input type="search" value={query} onChange={event => updateQuery(event.target.value)} placeholder={searchPlaceholder} aria-label={searchLabel} /></label>
+        <div className="wiki-filter-row" role="group" aria-label="Wiki audience filter">{filters.map(option => <Button key={option} variant={filter === option ? "secondary" : "ghost"} size="compact" aria-pressed={filter === option} onClick={() => setFilter(option)}>{filterLabel(option)}</Button>)}</div>
         <p className="wiki-result-count" aria-live="polite">{query ? `${results.length} ${results.length === 1 ? "guide" : "guides"} match “${query}”.` : `${results.length} guides.`}</p>
       </Panel>
       <div className="wiki-layout">
-        <aside className="wiki-contents ds-panel"><h2>Contents</h2>{groups.map(group => { const visible = group.articleIds.filter(id => resultIds.has(id) && (filter === "All" || findArticle(id)?.audience === filter)); if (!visible.length) return null; return <section key={group.id}><h3>{group.title}</h3><p>{group.description}</p><nav aria-label={`${group.title} articles`}>{visible.map(id => { const article = findArticle(id); return article ? <a key={id} href={`#wiki-${id}`}>{article.title}</a> : null; })}</nav></section>; })}</aside>
+        <aside className="wiki-contents ds-panel"><h2>Contents</h2>{groups.map(group => { const visible = group.articleIds.filter(id => resultIds.has(id) && (filter === "All" || findArticle(id)?.audience === filter)); if (!visible.length) return null; return <section key={group.id}><h3>{group.title}</h3><p>{group.description}</p><nav aria-label={`${group.title} articles`}>{visible.map(id => { const article = findArticle(id); return article ? <a key={id} href={`#wiki-${id}`} onClick={() => requestOpenArticle(id)}>{article.title}</a> : null; })}</nav></section>; })}</aside>
         <section className="wiki-results" aria-label="Wiki guides">
           {!results.length && <Panel className="wiki-empty"><h2>No matching guides</h2><p>Try a feature name, button label, status, or troubleshooting phrase.</p><Button variant="secondary" onClick={() => { updateQuery(""); setFilter("All"); }}>Show all guides</Button></Panel>}
           {groups.map(group => {
             const ids = (query ? group.articleIds.filter(id => resultIds.has(id)) : group.articleIds).filter(id => filter === "All" || findArticle(id)?.audience === filter);
             if (!ids.length) return null;
-            return <section key={group.id} className="wiki-group" aria-labelledby={`wiki-group-${group.id}`}><div className="wiki-group-heading"><div><p className="ds-eyebrow">{group.title}</p><h2 id={`wiki-group-${group.id}`}>{group.description}</h2></div><span>{ids.length} {ids.length === 1 ? "guide" : "guides"}</span></div>{ids.map(id => { const article = findArticle(id); if (!article) return null; return <WikiArticleView key={id} article={article} scopeArticles={articles} />; })}</section>;
+            return <section key={group.id} className="wiki-group" aria-labelledby={`wiki-group-${group.id}`}><div className="wiki-group-heading"><div><p className="ds-eyebrow">{group.title}</p><h2 id={`wiki-group-${group.id}`}>{group.description}</h2></div><span>{ids.length} {ids.length === 1 ? "guide" : "guides"}</span></div>{ids.map(id => { const article = findArticle(id); if (!article) return null; return <WikiArticleView key={id} article={article} scopeArticles={articles} openSignal={openSignal} />; })}</section>;
           })}
           {query && results.length > 0 && <p className="wiki-search-footnote">Search includes article details, steps, FAQs, route names, and keywords. Use the role label on each guide to check who it is written for.</p>}
         </section>

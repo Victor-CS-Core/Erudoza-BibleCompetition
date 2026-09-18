@@ -123,4 +123,42 @@ describe("in-app help", () => {
     expect(router.state.location.search).toBe("");
     expect(screen.getByRole("heading", { name: "Find an explanation" })).toBeInTheDocument();
   });
+
+  it("labels the shared-audience filter Everyone", () => {
+    renderWiki(student, "/help");
+    expect(screen.getByRole("button", { name: "Everyone" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Shared" })).not.toBeInTheDocument();
+  });
+
+  it("opens the article targeted by a contents link", () => {
+    renderWiki(student, "/help");
+    const details = document.getElementById("wiki-assignments");
+    expect(details).not.toBeNull();
+    expect(details).not.toHaveAttribute("open");
+    fireEvent.click(screen.getAllByRole("link", { name: "Assignments and chapter plans" })[0]);
+    expect(document.getElementById("wiki-assignments")).toHaveAttribute("open");
+  });
+
+  it("opens the article targeted by a deep link on load", () => {
+    window.location.hash = "#wiki-assignments";
+    try {
+      renderWiki(student, "/help");
+      expect(document.getElementById("wiki-assignments")).toHaveAttribute("open");
+    } finally {
+      window.location.hash = "";
+    }
+  });
+
+  it("reopens the article when its contents link is clicked again after closing", () => {
+    renderWiki(student, "/help");
+    const link = screen.getAllByRole("link", { name: "Assignments and chapter plans" })[0];
+    fireEvent.click(link);
+    const details = document.getElementById("wiki-assignments") as HTMLDetailsElement;
+    expect(details).toHaveAttribute("open");
+    details.open = false;
+    fireEvent(details, new Event("toggle"));
+    expect(details).not.toHaveAttribute("open");
+    fireEvent.click(link);
+    expect(details).toHaveAttribute("open");
+  });
 });

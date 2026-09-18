@@ -17,8 +17,12 @@
 .command-bell-wrap { position:relative; flex-shrink:0; }
 .command-bell { position:relative; color:var(--er-on-navy); }
 .command-bell:hover,.command-bell[aria-expanded=true] { background:color-mix(in srgb,var(--er-on-navy) 12%,transparent); }
-.command-theme { color:var(--er-on-navy); }
-.command-theme:hover { background:color-mix(in srgb,var(--er-on-navy) 12%,transparent); }
+.command-theme-toggle { display:flex; align-items:center; gap:8px; background:none; border:0; cursor:pointer; color:var(--er-on-navy); padding:8px 6px; border-radius:var(--er-radius-control); }
+.command-theme-toggle:hover { background:color-mix(in srgb,var(--er-on-navy) 12%,transparent); }
+.command-theme-toggle:focus-visible { outline:2px solid var(--er-teal); outline-offset:2px; }
+.command-theme-toggle svg { width:18px; height:18px; flex:none; }
+.command-theme-toggle[aria-checked="true"] .ds-switch-track { background:var(--er-teal); border-color:var(--er-teal); }
+.command-theme-toggle[aria-checked="true"] .ds-switch-track::after { transform:translateX(18px); background:var(--er-card); }
 .command-bell-badge { position:absolute; top:4px; right:4px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:var(--er-coral); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1; }
 [data-theme="dark"] .command-bell-badge { color:#10181a; }
 .command-bell-panel { position:absolute; top:calc(100% + 8px); right:0; z-index:45; width:320px; max-width:calc(100vw - 32px); background:var(--er-card); color:var(--er-ink-navy); box-shadow:var(--er-shadow-overlay); border-radius:var(--er-radius-card,12px); overflow:hidden; }
@@ -128,9 +132,9 @@
   .command-account-notifications .command-bell:hover,.command-account-notifications .command-bell[aria-expanded=true] { background:var(--er-selected); }
   .command-account-notifications .command-bell-label { display:inline; }
   /* The theme switch follows the bell: masthead icon on desktop, menu row on phones. */
-  .command-masthead .command-account-cluster>.command-theme { display:none; }
-  .command-account-notifications .command-theme { display:flex; align-items:center; gap:12px; width:100%; min-height:44px; padding:10px 12px; border-radius:var(--er-radius-control); text-align:left; font-size:var(--er-text-sm); color:var(--er-ink-navy); }
-  .command-account-notifications .command-theme:hover { background:var(--er-selected); }
+  .command-masthead .command-account-cluster>.command-theme-toggle { display:none; }
+  .command-account-notifications .command-theme-toggle { width:100%; min-height:44px; padding:10px 12px; color:var(--er-ink-navy); }
+  .command-account-notifications .command-theme-toggle:hover { background:var(--er-selected); }
   .command-context-inner { min-height:44px; padding:0 16px; }
   .command-context-links { column-gap:16px; row-gap:0; }
   .command-context-links>a { min-height:44px; }

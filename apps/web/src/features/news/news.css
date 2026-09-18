@@ -1,31 +1,45 @@
 /* Composition only; controls and surfaces inherit the shared design system. */
 .news-feed{display:grid;gap:var(--er-space-5)}
-.news-card,.news-hero{position:relative}
-.news-hero h2 a::after,.news-card h3 a::after{content:"";position:absolute;inset:0}
-.news-source-chip{position:relative;z-index:1}
-.news-hero{border-left:4px solid var(--er-teal)}
-.news-hero h2{margin:0 0 var(--er-space-2);font-size:var(--er-text-title);line-height:1.3}
-.news-hero h2 a,.news-card h3 a{color:inherit;text-decoration:none}
-.news-hero h2 a:hover,.news-card h3 a:hover{text-decoration:underline;text-decoration-color:var(--er-teal);text-underline-offset:3px}
+.news-card{position:relative;overflow:hidden}
+.news-card h3 a::after{content:"";position:absolute;inset:0}
+.news-source-chip,.news-chip-link{position:relative;z-index:1}
+.news-card h3 a{color:inherit;text-decoration:none}
+.news-card h3 a:hover{text-decoration:underline;text-decoration-color:var(--er-teal);text-underline-offset:3px}
 .news-card h3{margin:0 0 var(--er-space-2);font-size:var(--er-text-lg);line-height:1.35}
-.news-card p{margin:0 0 var(--er-space-3)}
+.news-summary{margin:0;color:var(--er-graphite);line-height:1.55}
 .news-kicker{margin:0 0 var(--er-space-2);font-size:var(--er-text-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--er-teal)}
 .news-lede{font-size:var(--er-text-lead);line-height:1.5;color:var(--er-graphite)}
 .news-meta{display:flex;align-items:center;flex-wrap:wrap;gap:var(--er-space-3);margin-top:var(--er-space-3);font-size:var(--er-text-sm);color:var(--er-muted-ink)}
 .news-source-chip{display:inline-flex;align-items:center;gap:var(--er-space-1);padding:2px var(--er-space-3);border:1px solid var(--er-border-strong);border-radius:999px;font-size:var(--er-text-xs);font-weight:600;color:var(--er-teal);background:var(--er-card);text-decoration:none;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .news-source-chip:hover{background:var(--er-selected)}
 @media(pointer:coarse){.news-source-chip{padding:10px var(--er-space-4);min-height:44px}}
-.news-article{max-width:68ch;margin-inline:auto}
+/* "In this article" block on the feed card: what the reader will find inside. */
+.news-inside{margin-top:var(--er-space-3);padding-top:var(--er-space-3);border-top:1px dashed var(--er-border-strong)}
+.news-inside-label{margin:0 0 var(--er-space-2);font-size:var(--er-text-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--er-muted-ink)}
+.news-inside-chips{display:flex;flex-wrap:wrap;gap:var(--er-space-2)}
+.news-chip{display:inline-flex;align-items:center;gap:var(--er-space-1);padding:3px var(--er-space-3);border:1px solid var(--er-border);border-radius:999px;font-size:var(--er-text-xs);font-weight:600;color:var(--er-graphite);background:var(--er-surface-soft)}
+.news-chip-link{border-color:var(--er-teal);color:var(--er-teal);background:var(--er-card);text-decoration:none}
+.news-chip-link:hover{background:var(--er-selected)}
+/* Article reader. */
+.news-article{max-width:68ch;margin-inline:auto;overflow:hidden}
 .news-article h1{margin:0 0 var(--er-space-2);font-size:var(--er-text-section);line-height:1.25}
 .news-article .news-meta{margin:0 0 var(--er-space-4)}
 .news-article .news-lede{margin:0 0 var(--er-space-5)}
 .news-article section{margin-top:var(--er-space-5)}
 .news-article section h2{margin:0 0 var(--er-space-2);font-size:var(--er-text-lg)}
 .news-section-body{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65}
+/* Reading material: deep links the reader can open directly from the article. */
+.news-materials{margin-top:var(--er-space-6);padding:var(--er-space-5);border:1px solid var(--er-border-strong);border-radius:var(--er-radius-card);background:var(--er-surface-soft)}
+.news-materials h2{margin:0 0 var(--er-space-3);font-size:var(--er-text-base)}
+.news-materials ul{list-style:none;margin:0;padding:0;display:grid;gap:var(--er-space-3)}
+.news-material-row{display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-4);padding:var(--er-space-3) var(--er-space-4);border:1px solid var(--er-border);border-radius:var(--er-radius-control);background:var(--er-card)}
+.news-material-detail{display:grid;gap:2px;min-width:0}
+.news-material-detail small{color:var(--er-muted-ink);font-size:var(--er-text-xs)}
+.news-open-button{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px var(--er-space-4);border-radius:var(--er-radius-control);background:var(--er-teal);color:#fff;font-weight:700;font-size:var(--er-text-sm);text-decoration:none}
+.news-open-button:hover{filter:brightness(1.06)}
 .news-original{margin-top:var(--er-space-6)}
 @media(min-width:720px){
   .news-feed{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .news-feed .news-hero{grid-column:1/-1}
 }
 /* Entrance motion: only when the user has no reduced-motion preference. */
 @media (prefers-reduced-motion: no-preference){
