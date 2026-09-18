@@ -19,10 +19,10 @@ import { applyMastery, chooseActivity, eligibleActivities, evaluateAnswer, gener
 import type { GeneratedActivity, MasteryScores, RuleProfile, StudyMode } from './engine';
 
 export interface Card extends GeneratedActivity { id: string; sequence: number; createdAtUtc: string; source: Source; answerSource: Source }
-export interface Result { missingWordAnswers?: MissingWordAnswer[]; missingWordResults?: MissingWordResult[]; attemptId: string; isCorrect: boolean; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; skillKey: string; skillLabel: string; skillScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean }
-export interface Attempt { answerPayload?: MissingWordAnswerPayload; id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean; previousAttemptId?: string; before?: SkillScores; after?: SkillScores }
+export interface Result { missingWordAnswers?: MissingWordAnswer[]; missingWordResults?: MissingWordResult[]; attemptId: string; isCorrect: boolean; score: number; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; skillKey: string; skillLabel: string; skillScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean }
+export interface Attempt { answerPayload?: MissingWordAnswerPayload; id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; score: number; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean; previousAttemptId?: string; before?: SkillScores; after?: SkillScores }
 export interface Session { memoryChallenge?: 'Warmup' | 'Advanced'; memoryChallengeRequest?: 'Warmup' | 'Advanced'; generatorVersion?: string; evidenceProfile?: import('./engine').MemoryEvidenceProfile; id: string; studentUserId: string; seasonId: string; status: string; mode: StudyMode; difficulty: string; targetCardCount: number; ruleProfile: RuleProfile & { showReference: boolean }; cards: Card[]; attempts: Attempt[]; createdAtUtc: string; completedAtUtc?: string; training?: SessionTraining; recap?: SessionRecap }
-export interface Mastery extends MasteryScores { id: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; algorithmVersion: string; reviewDueAt: string; lastSeenAt: string; lastAttemptId?: string }
+export interface Mastery extends MasteryScores { id: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; algorithmVersion: string; reviewDueAt: string; lastSeenAt: string; lastAttemptId?: string; streak: number }
 type Submission = import('../../../src/api/types').SubmitAttemptBody;
 function validateSubmission(input: Submission) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) fail('An answer object is required.');
@@ -45,7 +45,7 @@ function structuredAnswer(card: Card, answers: MissingWordAnswer[]) {
   try {
     const evaluation = evaluateMissingWordAnswers(card.payload.tokens, answers);
     const ordered = card.payload.tokens.filter(token=>token.hidden).map(token=>({index:token.index,text:answers.find(answer=>answer.index===token.index)!.text}));
-    return {format:'missing-words-slots/v1' as const,answers:ordered,results:evaluation.results};
+    return {format:'missing-words-slots/v1' as const,answers:ordered,results:evaluation.results,score:evaluation.score,evaluationCode:evaluation.evaluationCode};
   } catch { return fail('Invalid missing-word answers.'); }
 }
 interface Guard { kind: string; id: string; revision: number }
@@ -221,11 +221,12 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
     if (session.mode === 'Simulation' && input.hintsUsed) fail('Hints are not permitted in simulation.');
     validateCardSnapshot(session, card);
     const scope = await sessionScope(ctx, session, true); cardInScope(card, scope.sources);
-    const evaluation = answerPayload ? {isCorrect:answerPayload.results.every(result=>result.isCorrect),evaluationCode:answerPayload.results.every(result=>result.isCorrect)?'ExactMatch':'Incorrect'} : evaluateAnswer(submittedAnswer, card.answerKey.canonicalAnswer), now = trainingNow();
+    const evaluation = answerPayload ? { isCorrect: answerPayload.results.every(result => result.isCorrect), score: answerPayload.score, evaluationCode: answerPayload.evaluationCode } : evaluateAnswer(submittedAnswer, card.answerKey.canonicalAnswer, card.activityType, card.answerMode), now = trainingNow();
     const priorId = await ctx.env.DB.prepare("SELECT id FROM Records WHERE kind='mastery' AND org_id=? AND season_id=? AND owner_id=? AND json_extract(data,'$.knowledgeUnitId')=? LIMIT 1").bind(ctx.orgId, session.seasonId, session.studentUserId, card.knowledgeUnitId).first<{ id: string }>();
     const masteryId = priorId?.id ?? `${session.seasonId}:${session.studentUserId}:${card.knowledgeUnitId}`;
     const previous = await ctx.store.get<Mastery>('mastery', masteryId, ctx.orgId);
     let priorScores = previous?.value.algorithmVersion === MASTERY_VERSION ? previous.value : zero;
+    let priorStreak = previous?.value.algorithmVersion === MASTERY_VERSION ? previous.value.streak ?? 0 : 0;
     if (previous && previous.value.algorithmVersion !== MASTERY_VERSION) {
       const rows = await ctx.env.DB.prepare(`SELECT a.data,
         (SELECT c.value FROM json_each(s.data,'$.cards') c WHERE json_extract(c.value,'$.id')=json_extract(a.data,'$.cardId') LIMIT 1) AS card
@@ -236,15 +237,18 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
         const evidence = JSON.parse(row.data) as Attempt;
         const historicalCard = row.card ? JSON.parse(row.card) as Card : undefined;
         if (evidence.activityType === 'WhatComesNext' && !historicalCard?.answerSourceUnitId) continue;
-        priorScores = applyMastery(priorScores, evidence.isCorrect, evidence.hintsUsed, evidence.activityType, historicalCard?.answerMode ?? 'SelectedChoice', historicalCard?.payload.difficulty ?? 1, historicalCard?.payload.evidenceProfile);
+        const credit = { isCorrect: evidence.isCorrect, score: evidence.score ?? (evidence.isCorrect ? 100 : 0) };
+        priorScores = applyMastery(priorScores, credit, evidence.hintsUsed, evidence.activityType, historicalCard?.answerMode ?? 'SelectedChoice', historicalCard?.payload.difficulty ?? 1, historicalCard?.payload.evidenceProfile);
+        priorStreak = evidence.isCorrect ? priorStreak + 1 : 0;
       }
     }
-    const scores = applyMastery(priorScores, evaluation.isCorrect, input.hintsUsed, card.activityType, card.answerMode, card.payload.difficulty, card.payload.evidenceProfile);
-    const mastery: Mastery = { ...scores, id: masteryId, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, algorithmVersion: MASTERY_VERSION, reviewDueAt: nextReview(now, evaluation.isCorrect), lastSeenAt: now };
+    const scores = applyMastery(priorScores, { isCorrect: evaluation.isCorrect, score: evaluation.score }, input.hintsUsed, card.activityType, card.answerMode, card.payload.difficulty, card.payload.evidenceProfile);
+    const streak = evaluation.isCorrect ? priorStreak + 1 : 0;
+    const mastery: Mastery = { ...scores, id: masteryId, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, algorithmVersion: MASTERY_VERSION, reviewDueAt: nextReview(now, evaluation.score, streak), lastSeenAt: now, streak };
     const attemptId = id(); mastery.lastAttemptId = attemptId;
     const skill = scoredSkill(card.activityType, card.answerMode);
-    const result: Result = { ...(answerPayload?{missingWordAnswers:answerPayload.answers,missingWordResults:answerPayload.results}:{}), attemptId, isCorrect: evaluation.isCorrect, evaluationResult: evaluation.evaluationCode, canonicalAnswer: card.answerKey.canonicalAnswer, citation: card.answerSource.citation, sourceText: card.answerSource.canonicalText, masteryLevel: mastery.level, exactWordingScore: mastery.exactWording, skillKey: skill.key, skillLabel: skill.label, skillScore: scores[skill.key], reviewDueAtUtc: mastery.reviewDueAt, alreadyProcessed: false };
-    const attempt: Attempt = { ...(answerPayload?{answerPayload}:{}), id: attemptId, sessionId, cardId: card.id, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, clientSubmissionId: input.clientSubmissionId, submittedAnswer, responseTimeMs: input.responseTimeMs, hintsUsed: input.hintsUsed, isCorrect: evaluation.isCorrect, evaluationResult: evaluation.evaluationCode, activityType: card.activityType, at: now, result, previousAttemptId: previous?.value.lastAttemptId, before: { ...priorScores }, after: { ...scores } };
+    const result: Result = { ...(answerPayload?{missingWordAnswers:answerPayload.answers,missingWordResults:answerPayload.results}:{}), attemptId, isCorrect: evaluation.isCorrect, score: evaluation.score, evaluationResult: evaluation.evaluationCode, canonicalAnswer: card.answerKey.canonicalAnswer, citation: card.answerSource.citation, sourceText: card.answerSource.canonicalText, masteryLevel: mastery.level, exactWordingScore: mastery.exactWording, skillKey: skill.key, skillLabel: skill.label, skillScore: scores[skill.key], reviewDueAtUtc: mastery.reviewDueAt, alreadyProcessed: false };
+    const attempt: Attempt = { ...(answerPayload?{answerPayload}:{}), id: attemptId, sessionId, cardId: card.id, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, clientSubmissionId: input.clientSubmissionId, submittedAnswer, responseTimeMs: input.responseTimeMs, hintsUsed: input.hintsUsed, isCorrect: evaluation.isCorrect, score: evaluation.score, evaluationResult: evaluation.evaluationCode, activityType: card.activityType, at: now, result, previousAttemptId: previous?.value.lastAttemptId, before: { ...priorScores }, after: { ...scores } };
     session.attempts.push(attempt); session.status = 'Active';
     const recordScope = { seasonId: session.seasonId, ownerId: session.studentUserId };
     const trainingWrites = await applyAcceptedAttempt(ctx,session,attempt,scope.sources,mastery,previous?.value.reviewDueAt);

@@ -206,7 +206,7 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
     const w: Writes = { statements: [], guards: [] }, old = await preference(ctx), at = old && old.value.lastEventAtUtc > attempt.at ? old.value.lastEventAtUtc : attempt.at, p = resolvePreference(ctx, old, at);
     attempt.at = at;
     mastery.lastSeenAt = at;
-    mastery.reviewDueAt = nextReview(at, attempt.isCorrect);
+    mastery.reviewDueAt = nextReview(at, attempt.score ?? (attempt.isCorrect ? 100 : 0), mastery.streak ?? 0);
     attempt.result.reviewDueAtUtc = mastery.reviewDueAt;
     p.lastEventAtUtc = at > p.lastEventAtUtc ? at : p.lastEventAtUtc;
     // A shared preference revision serializes first-day/week/award races across sessions and seasons.

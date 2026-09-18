@@ -130,6 +130,8 @@ export interface MissingWordAnswerPayload {
   format: 'missing-words-slots/v1';
   answers: MissingWordAnswer[];
   results: MissingWordResult[];
+  score: number;
+  evaluationCode: 'ExactMatch' | 'PartialMatch' | 'Incorrect';
 }
 export type SubmitAttemptBody = {
   clientSubmissionId: string; challengeCardId: string; responseTimeMs: number; hintsUsed: boolean;
@@ -140,6 +142,7 @@ export type AttemptResult = {
   missingWordResults?: MissingWordResult[];
   attemptId: string;
   isCorrect: boolean;
+  score?: number;
   evaluationResult: string;
   canonicalAnswer: string;
   citation: string;

@@ -6,6 +6,8 @@ export interface MissingWordResult { index: number; isCorrect: boolean; expected
 export function evaluateMissingWordAnswers(tokens: Token[], answers: MissingWordAnswer[]): {
   isCorrect: boolean;
   results: MissingWordResult[];
+  score: number;
+  evaluationCode: 'ExactMatch' | 'PartialMatch' | 'Incorrect';
 } {
   const tokenIndices = new Set<number>();
   for (const token of tokens) {
@@ -34,5 +36,7 @@ export function evaluateMissingWordAnswers(tokens: Token[], answers: MissingWord
       : text.trim().length > 0 && text.trim() === token.text.trim();
     return { index: token.index, isCorrect, expected: token.text };
   });
-  return { isCorrect: results.every(result => result.isCorrect), results };
+  const isCorrect = results.every(result => result.isCorrect);
+  const score = results.length ? Math.round(results.filter(result => result.isCorrect).length / results.length * 100) : 0;
+  return { isCorrect, results, score, evaluationCode: isCorrect ? 'ExactMatch' : score >= 50 ? 'PartialMatch' : 'Incorrect' };
 }

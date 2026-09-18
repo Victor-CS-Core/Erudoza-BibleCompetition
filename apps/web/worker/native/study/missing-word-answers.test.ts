@@ -35,6 +35,8 @@ describe('evaluateMissingWordAnswers', () => {
       { index: 9, text: 'again' }, { index: 8, text: 'again' }, { index: 4, text: 'again' },
     ])).toEqual({
       isCorrect: false,
+      score: 67,
+      evaluationCode: 'PartialMatch',
       results: [
         { index: 8, isCorrect: true, expected: 'again' },
         { index: 4, isCorrect: false, expected: 'then' },
@@ -95,6 +97,8 @@ describe('evaluateMissingWordAnswers', () => {
     expect(evaluateMissingWordAnswers(tokens, [{ index: 7, text: '' }]).isCorrect).toBe(false);
     expect(evaluateMissingWordAnswers(tokens, [{ index: 7, text: '  “ ”  ' }])).toEqual({
       isCorrect: false,
+      score: 0,
+      evaluationCode: 'Incorrect',
       results: [{ index: 7, isCorrect: false, expected: '“”' }],
     });
     expect(evaluateMissingWordAnswers(tokens, [{ index: 7, text: '“”' }]).isCorrect).toBe(true);

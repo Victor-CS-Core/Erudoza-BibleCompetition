@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { generateActivity, eligibleActivities, chooseActivity, evaluateAnswer, applyMastery, normalizeText, stableSeed, DotNetRandom, evaluateOrderedTokens, toCardDto, scoredSkill, type ActivityRequest } from './engine';
+import { generateActivity, eligibleActivities, chooseActivity, evaluateAnswer, applyMastery, normalizeText, stableSeed, DotNetRandom, evaluateOrderedTokens, toCardDto, scoredSkill, nextReview, type ActivityRequest, type MasteryScores } from './engine';
 const unit = {id:'00112233-4455-6677-8899-aabbccddeeff', citationLabel:'Daniel 1:1', canonicalText:'one two three four five six seven eight nine ten eleven twelve'};
+const zero: MasteryScores = {recognition:0,exactWording:0,reference:0,sequence:0,factualRecall:0,level:'Unseen' as const};
+const exact = {isCorrect:true,score:100};
 const request: ActivityRequest = {sourceUnit:unit,knowledgeUnitId:'knowledge',sessionId:'ffeeddcc-bbaa-9988-7766-554433221100',sequence:1,difficulty:3,mode:'Practice',ruleProfile:{studyAllowMultipleChoice:true,simulationAllowMultipleChoice:false,simulationAllowTrueFalse:true,trueFalseMaxRatio:0.1},nextSourceUnit:{...unit,id:'next',canonicalText:'Next stored verse has several words.'}, nextKnowledgeUnitId:'next-knowledge',distractorCitations:['Daniel 1:2','Daniel 1:3','Daniel 1:4']};
 describe('C# activity parity',()=>{
  it('uses .NET seeded Random reference values',()=>{const rng=new DotNetRandom(42);expect([rng.next(),rng.next(),rng.next()]).toEqual([1434747710,302596119,269548474]);expect(stableSeed(unit.id,request.sessionId,1)).toBe(stableSeed(unit.id,request.sessionId,1));});
@@ -15,8 +17,47 @@ describe('C# activity parity',()=>{
  it('credits next verse and hides reference answer metadata',()=>{const card=generateActivity('WhatComesNext',{...request,difficulty:1});expect(card.knowledgeUnitId).toBe('next-knowledge');expect(card.answerKey.canonicalAnswer).toBe('Next stored verse has');expect(generateActivity('WhatComesNext',{...request,difficulty:1,mode:'Simulation'}).answerKey.canonicalAnswer).toBe(request.nextSourceUnit!.canonicalText);expect(toCardDto(generateActivity('ReferenceMatch',request),{id:'card',sessionId:request.sessionId,sequence:1,total:8},unit).citation).toBe('Assigned passage');});
  it('retains duplicate word identity and rejects missing, repeated and reversed answers',()=>{const card=generateActivity('VerseBuilder',{...request,difficulty:5,sourceUnit:{...unit,canonicalText:'one two one three'}});const tokens=card.payload.tokens;const used=new Set<number>();const order=['one','two','one','three'].map(word=>{const t=tokens.find(t=>t.text===word&&!used.has(t.index))!;used.add(t.index);return t.index;});expect(evaluateOrderedTokens(card,order).isCorrect).toBe(true);expect(evaluateOrderedTokens(card,[...order].reverse()).isCorrect).toBe(false);expect(evaluateOrderedTokens(card,order.slice(1)).isCorrect).toBe(false);expect(evaluateOrderedTokens(card,[order[0],order[0],...order.slice(2)]).isCorrect).toBe(false);});
  it('normalizes configured punctuation only and preserves word order',()=>{expect(normalizeText(' “Defile”  Himself. ')).toBe('defile himself');expect(evaluateAnswer('himself defile','defile himself').isCorrect).toBe(false);expect(normalizeText('well-being / yes')).toBe('well-being / yes');});
- it('awards skill evidence only and applies difficulty ceilings',()=>{const zero={recognition:0,exactWording:0,reference:0,sequence:0,factualRecall:0,level:'Unseen' as const};expect(applyMastery(zero,true,false,'VerseBuilder','OrderedSequence',3).sequence).toBe(18);expect(applyMastery(zero,true,false,'ReferenceMatch','SelectedChoice',3).reference).toBe(0);expect(applyMastery({...zero,exactWording:39},true,false,'MissingWords','ExactText',1).exactWording).toBe(40);expect(applyMastery({...zero,exactWording:90},true,false,'MissingWords','ExactText',1).exactWording).toBe(90);});
+ it('awards skill evidence only and applies difficulty ceilings',()=>{expect(applyMastery(zero,exact,false,'VerseBuilder','OrderedSequence',3).sequence).toBe(18);expect(applyMastery(zero,exact,false,'ReferenceMatch','SelectedChoice',3).reference).toBe(0);expect(applyMastery({...zero,exactWording:39},exact,false,'MissingWords','ExactText',1).exactWording).toBe(40);expect(applyMastery({...zero,exactWording:90},exact,false,'MissingWords','ExactText',1).exactWording).toBe(90);});
  it('names the skill each attempt actually moves',()=>{expect(scoredSkill('MissingWords','ExactText')).toEqual({key:'exactWording',label:'Exact wording'});expect(scoredSkill('ReferenceMatch','ShortFact').key).toBe('reference');expect(scoredSkill('WhatComesNext','ExactText').key).toBe('sequence');expect(scoredSkill('VerseBuilder','OrderedSequence').key).toBe('sequence');expect(scoredSkill('TrueFalse','ShortFact').key).toBe('recognition');expect(scoredSkill('ReferenceMatch','SelectedChoice').key).toBe('recognition');});
+});
+
+describe('partial credit, skill-weighted levels, graduated review',()=>{
+ it('scores word-order activities by token position accuracy',()=>{
+  const missing=evaluateAnswer('one two','one two three','MissingWords','ExactText');
+  expect(missing).toEqual(expect.objectContaining({isCorrect:false,score:67,evaluationCode:'PartialMatch'}));
+  const builder=evaluateAnswer('four three two one','one two three four','VerseBuilder','OrderedSequence');
+  expect(builder).toEqual(expect.objectContaining({isCorrect:false,score:0,evaluationCode:'Incorrect'}));
+  const next=evaluateAnswer('a b c d x y','a b c d e f','WhatComesNext','ExactText');
+  expect(next.score).toBe(67);
+  expect(evaluateAnswer('Daniel 1:2','Daniel 1:1','ReferenceMatch','ShortFact').score).toBe(0);
+  expect(evaluateAnswer('True','True','TrueFalse','ShortFact')).toEqual(expect.objectContaining({isCorrect:true,score:100,evaluationCode:'ExactMatch'}));
+ });
+ it('scales mastery deltas with partial credit without changing binary outcomes',()=>{
+  expect(applyMastery(zero,{isCorrect:false,score:75},false,'VerseBuilder','OrderedSequence',3).sequence).toBe(12);
+  expect(applyMastery(zero,{isCorrect:false,score:0},false,'VerseBuilder','OrderedSequence',3).sequence).toBe(0);
+  expect(applyMastery(zero,{isCorrect:false,score:50},false,'MissingWords','ExactText',3).exactWording).toBe(6);
+  expect(applyMastery(zero,{isCorrect:false,score:75},true,'VerseBuilder','OrderedSequence',3).sequence).toBe(6);
+  expect(applyMastery(zero,{isCorrect:false,score:0},true,'VerseBuilder','OrderedSequence',3).sequence).toBe(0);
+ });
+ it('weighs every evidenced skill in the mastery level',()=>{
+  const strong:MasteryScores={...zero,exactWording:85,recognition:75,reference:65,sequence:65};
+  expect(applyMastery(strong,exact,false,'TrueFalse','ShortFact',3).level).toBe('Mastered');
+  const weakSequence:MasteryScores={...zero,exactWording:85,recognition:75,reference:65,sequence:50};
+  expect(applyMastery(weakSequence,exact,false,'TrueFalse','ShortFact',3).level).toBe('Strong');
+  const recognitionOnly:MasteryScores={...zero,recognition:80};
+  expect(applyMastery(recognitionOnly,exact,false,'TrueFalse','ShortFact',3).level).toBe('Review');
+  expect(applyMastery(zero,{isCorrect:false,score:0},false,'TrueFalse','ShortFact',3).level).toBe('Learning');
+ });
+ it('graduates review intervals by streak and returns near-misses tomorrow',()=>{
+  const now='2026-09-18T12:00:00.000Z';
+  expect(nextReview(now,100,1)).toBe('2026-09-19T12:00:00.000Z');
+  expect(nextReview(now,100,2)).toBe('2026-09-21T12:00:00.000Z');
+  expect(nextReview(now,100,3)).toBe('2026-09-25T12:00:00.000Z');
+  expect(nextReview(now,100,4)).toBe('2026-10-02T12:00:00.000Z');
+  expect(nextReview(now,100,9)).toBe('2026-10-18T12:00:00.000Z');
+  expect(nextReview(now,75,0)).toBe('2026-09-19T12:00:00.000Z');
+  expect(nextReview(now,20,0)).toBe(now);
+ });
 });
 
 it('matches cards generated by the actual net10.0 domain assembly',async()=>{
@@ -64,10 +105,10 @@ describe('versioned Memory study aids',()=>{
  it.each([1,3,5])('caps cued wording without reducing higher scores or promoting difficulty %i',difficulty=>{
   const state={recognition:80,exactWording:39,reference:90,sequence:0,factualRecall:0,level:'Strong' as const};
   let result=state as import('./engine').MasteryScores;
-  for(let i=0;i<10;i++) result=applyMastery(result,true,false,'MissingWords','ExactText',difficulty,'memory-cued-v3');
+  for(let i=0;i<10;i++) result=applyMastery(result,exact,false,'MissingWords','ExactText',difficulty,'memory-cued-v3');
   expect(result.exactWording).toBe(difficulty===1?40:70);
-  expect(applyMastery({...state,exactWording:95},true,false,'MissingWords','ExactText',difficulty,'memory-cued-v3').exactWording).toBe(95);
-  expect(applyMastery(state,true,false,'VerseBuilder','OrderedSequence',difficulty,'memory-cued-v3').exactWording).toBe(39);
+  expect(applyMastery({...state,exactWording:95},exact,false,'MissingWords','ExactText',difficulty,'memory-cued-v3').exactWording).toBe(95);
+  expect(applyMastery(state,exact,false,'VerseBuilder','OrderedSequence',difficulty,'memory-cued-v3').exactWording).toBe(39);
  });
 });
 it('matches the shared versioned 47-word seed fixture in both runtimes',()=>{

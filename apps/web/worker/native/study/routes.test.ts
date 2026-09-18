@@ -2,6 +2,7 @@
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
 import { handleStudy } from './routes';
+import { MASTERY_VERSION } from './engine';
 import type { Attempt, Session } from './routes';
 import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
@@ -78,7 +79,7 @@ it('runs the complete eight-card flow and rebuilds legacy mastery from original 
   expect(await (await request(`${base}/complete`,'POST')).json()).toMatchObject({attempted:8,correct:8,status:'Completed'});
   expect(await (await request(base)).json()).toMatchObject({summary:{attempted:8,correct:8}});
   const mastery=await app.db.prepare("SELECT data FROM Records WHERE kind='mastery'").all<{data:string}>();
-  expect(mastery.results.map(r=>JSON.parse(r.data)).every(m=>m.algorithmVersion==='v2-skill-evidence'&&m.exactWording<=40)).toBe(true);
+  expect(mastery.results.map(r=>JSON.parse(r.data)).every(m=>m.algorithmVersion===MASTERY_VERSION&&m.exactWording<=40)).toBe(true);
 });
 it('keeps mastery atomic across simultaneous sessions and freezes each session difficulty',async()=>{
   expect((await request('/api/v1/study/sessions','POST',{seasonId:season,mode:'Review'})).status).toBe(400);
@@ -138,7 +139,7 @@ it('rebuilds evidence across sixty historical sessions within the Free plan quer
   expect(response!.status).toBe(200);expect(await response!.json()).toMatchObject({isCorrect:true});
   expect(queries).toBeLessThan(30);
   const mastery=JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='mastery' AND json_extract(data,'$.knowledgeUnitId')=?").bind(card.knowledgeUnitId).first<{data:string}>())!.data);
-  expect(mastery.algorithmVersion).toBe('v2-skill-evidence');expect(mastery.reference).toBe(100);
+  expect(mastery.algorithmVersion).toBe(MASTERY_VERSION);expect(mastery.reference).toBe(100);
   await app.db.prepare("UPDATE Records SET data=json_set(data,'$.includes[0].endVerse',3),revision=revision+1 WHERE kind='scope' AND id=?").bind(season).run();
 },30000);
 it('enforces review eligibility, simulation hints and revoked active scope',async()=>{

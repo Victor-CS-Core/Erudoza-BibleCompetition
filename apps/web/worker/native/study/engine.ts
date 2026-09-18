@@ -11,8 +11,8 @@ export interface Token { text: string; hidden: boolean; index: number }
 export interface Payload { generatorVersion?: string; evidenceProfile?: MemoryEvidenceProfile; citation: string; prompt: string; tokens: Token[]; difficulty: number; choices?: string[] | null }
 export interface AnswerKey { canonicalAnswer: string; hiddenWords?: string[] | null }
 export interface GeneratedActivity { activityType: ActivityType; providerType: string; answerMode: AnswerMode; evaluatorVersion: string; payload: Payload; answerKey: AnswerKey; sourceUnitId: string; knowledgeUnitId: string; answerSourceUnitId?: string }
-export const EVALUATOR_VERSION = 'exact-text-v1';
-export const MASTERY_VERSION = 'v2-skill-evidence';
+export const EVALUATOR_VERSION = 'partial-credit-v1';
+export const MASTERY_VERSION = 'v3-partial-credit';
 // Seeded System.Random uses the compatibility subtractive generator (not unseeded xoshiro).
 export class DotNetRandom {
  private values = new Array<number>(56).fill(0); private nextIndex = 0; private nextPrime = 21;
@@ -42,11 +42,29 @@ export function generateActivity(type:ActivityType,r:ActivityRequest):GeneratedA
  return {activityType:type,providerType:`${type}ActivityProvider`,answerMode,evaluatorVersion:EVALUATOR_VERSION,payload,answerKey:{canonicalAnswer,...(hiddenWords?{hiddenWords}:{})},sourceUnitId:unit.id,knowledgeUnitId,...(answerSourceUnitId?{answerSourceUnitId}:{})};
 }
 export function normalizeText(value:string|null|undefined){return Array.from(value??'').map(ch=>{const lower=ch.toLowerCase();return lower.length===ch.length?lower:ch;}).join('').replace(/[.,;:!?"'“”‘’]/g,'').replace(/[\u0009-\u000d\u0085\p{Z}]+/gu,' ').replace(/^ +| +$/g,'');}
-export function evaluateAnswer(submitted:string,canonical:string){const normalizedSubmitted=normalizeText(submitted),normalizedCanonical=normalizeText(canonical),isCorrect=normalizedSubmitted===normalizedCanonical;return {isCorrect,evaluationCode:isCorrect?'ExactMatch':'Incorrect',normalizedSubmitted,normalizedCanonical,evaluatorVersion:EVALUATOR_VERSION};}
+/** Token position accuracy: the share of canonical tokens reproduced in the right
+    position. Powers partial credit for ordering and recall activities. */
+function tokenScore(submitted:string,canonical:string){const submittedTokens=submitted.split(' ').filter(Boolean),canonicalTokens=canonical.split(' ').filter(Boolean);if(!canonicalTokens.length)return submittedTokens.length?0:100;let hits=0;for(let i=0;i<canonicalTokens.length;i++)if(submittedTokens[i]===canonicalTokens[i])hits++;return Math.round(hits/Math.max(submittedTokens.length,canonicalTokens.length)*100);}
+export interface ScoredAnswer { isCorrect:boolean;score:number;evaluationCode:'ExactMatch'|'PartialMatch'|'Incorrect';normalizedSubmitted:string;normalizedCanonical:string;evaluatorVersion:string }
+/** Grades an answer with per-activity partial credit. `isCorrect` stays a strict
+    exact-match verdict (it drives XP, quests, and session accuracy); `score` is the
+    0–100 credit the attempt earned. Word-order activities (Missing Words, Verse
+    Builder, What Comes Next) earn proportional credit for correct tokens in place;
+    ReferenceMatch and TrueFalse stay binary — a wrong reference or verdict is wrong. */
+export function evaluateAnswer(submitted:string,canonical:string,activityType:ActivityType='MissingWords',answerMode:AnswerMode='ExactText'):ScoredAnswer{const normalizedSubmitted=normalizeText(submitted),normalizedCanonical=normalizeText(canonical),isCorrect=normalizedSubmitted===normalizedCanonical;let score=isCorrect?100:0;if(!isCorrect){if(activityType==='MissingWords'&&answerMode==='ExactText')score=tokenScore(normalizedSubmitted,normalizedCanonical);else if(activityType==='VerseBuilder'&&answerMode==='OrderedSequence'||activityType==='WhatComesNext')score=tokenScore(normalizedSubmitted,normalizedCanonical);}return {isCorrect,score,evaluationCode:isCorrect?'ExactMatch':score>=50?'PartialMatch':'Incorrect',normalizedSubmitted,normalizedCanonical,evaluatorVersion:EVALUATOR_VERSION};}
 /** Optional token-ID adapter. Existing HTTP API submits joined text; identical repeated words are interchangeable there. */
-export function evaluateOrderedTokens(card:GeneratedActivity,indices:number[]){const tokens=card.payload.tokens;const valid=indices.length===tokens.length&&new Set(indices).size===indices.length&&indices.every(i=>tokens.some(t=>t.index===i));const result=evaluateAnswer(indices.map(i=>tokens.find(t=>t.index===i)?.text??'').join(' '),card.answerKey.canonicalAnswer);return valid?result:{...result,isCorrect:false,evaluationCode:'Incorrect'};}
+export function evaluateOrderedTokens(card:GeneratedActivity,indices:number[]){const tokens=card.payload.tokens;const valid=indices.length===tokens.length&&new Set(indices).size===indices.length&&indices.every(i=>tokens.some(t=>t.index===i));const result=evaluateAnswer(indices.map(i=>tokens.find(t=>t.index===i)?.text??'').join(' '),card.answerKey.canonicalAnswer,card.activityType,card.answerMode);return valid?result:{...result,isCorrect:false,score:0,evaluationCode:'Incorrect'};}
 export interface MasteryScores { recognition:number;exactWording:number;reference:number;sequence:number;factualRecall:number;level:'Unseen'|'Learning'|'Review'|'Strong'|'Mastered' }
-export function applyMastery(current:MasteryScores,isCorrect:boolean,hintsUsed:boolean,activityType:string,answerMode:AnswerMode='ExactText',difficulty=3,evidenceProfile?:MemoryEvidenceProfile):MasteryScores {const bound=(n:number)=>Math.max(0,Math.min(100,n));const next={...current,recognition:bound(current.recognition+(isCorrect?hintsUsed?4:10:-2))};const delta=isCorrect?hintsUsed?0:18:-6;if(answerMode!=='SelectedChoice'){if(activityType==='MissingWords'&&answerMode==='ExactText'){const ceiling=Math.min(evidenceProfile==='memory-cued-v3'?70:100,difficulty>=5?100:difficulty>=3?70:40);next.exactWording=isCorrect?Math.max(next.exactWording,Math.min(ceiling,bound(next.exactWording+delta))):bound(next.exactWording+delta);}else if(activityType==='ReferenceMatch')next.reference=bound(next.reference+delta);else if(activityType==='WhatComesNext'||activityType==='VerseBuilder')next.sequence=bound(next.sequence+delta);else if(activityType==='ShortAnswer')next.factualRecall=bound(next.factualRecall+delta);}next.level=next.exactWording>=80&&next.recognition>=70?'Mastered':next.exactWording>=55?'Strong':next.exactWording>0||!isCorrect&&next.recognition>0?'Review':'Learning';return next;}
+/** The credit an attempt earned: the strict exact-match verdict plus its 0–100 score. */
+export interface AttemptCredit { isCorrect:boolean;score:number }
+export function applyMastery(current:MasteryScores,credit:AttemptCredit,hintsUsed:boolean,activityType:string,answerMode:AnswerMode='ExactText',difficulty=3,evidenceProfile?:MemoryEvidenceProfile):MasteryScores {const bound=(n:number)=>Math.max(0,Math.min(100,n));const score=Math.max(0,Math.min(100,credit.score));const next={...current,recognition:bound(current.recognition+(credit.isCorrect?hintsUsed?4:10:-2))};
+/* Exact answers keep the historical +18 / -6 deltas. Partial credit scales the skill
+   delta linearly from -6 (blank) to +18 (exact); hints halve a partial gain. */
+const scaled=Math.round(-6+score/100*24);const delta=credit.isCorrect?hintsUsed?0:18:score<=0?-6:hintsUsed?Math.round(scaled/2):scaled;if(answerMode!=='SelectedChoice'){if(activityType==='MissingWords'&&answerMode==='ExactText'){const ceiling=Math.min(evidenceProfile==='memory-cued-v3'?70:100,difficulty>=5?100:difficulty>=3?70:40);next.exactWording=credit.isCorrect?Math.max(next.exactWording,Math.min(ceiling,bound(next.exactWording+delta))):bound(next.exactWording+delta);}else if(activityType==='ReferenceMatch')next.reference=bound(next.reference+delta);else if(activityType==='WhatComesNext'||activityType==='VerseBuilder')next.sequence=bound(next.sequence+delta);else if(activityType==='ShortAnswer')next.factualRecall=bound(next.factualRecall+delta);}
+/* The level weighs every skill with evidence, not just exact wording and recognition:
+   a weak sequence or reference score now blocks Mastered and Strong. factualRecall is
+   intentionally excluded — no registered activity feeds it (see PROGRESS.md). */
+const evidenced=[next.exactWording,next.recognition,next.reference,next.sequence].filter(s=>s>0);const weakest=evidenced.length?Math.min(...evidenced):0;next.level=next.exactWording>=80&&next.recognition>=70&&weakest>=60?'Mastered':next.exactWording>=55&&weakest>=40?'Strong':evidenced.length>0?'Review':'Learning';return next;}
 export type ScoredSkillKey='recognition'|'exactWording'|'reference'|'sequence'|'factualRecall';
 /** The mastery skill an attempt actually moves. Mirrors the branches in applyMastery so the
     result screen never reports a score the activity did not evaluate. */
@@ -59,5 +77,8 @@ export function scoredSkill(activityType:string,answerMode:AnswerMode='ExactText
  }
  return {key:'recognition',label:'Recognition'};
 }
-export function nextReview(nowUtc:string,isCorrect:boolean){return new Date(Date.parse(nowUtc)+(isCorrect?172800000:0)).toISOString();}
+/** Graduated review: exact recall stretches 1 → 3 → 7 → 14 → 30 days with each
+    consecutive exact answer; a near-miss (score ≥ 50) returns tomorrow;
+    anything weaker is due immediately. */
+export function nextReview(nowUtc:string,score=100,streak=0){const day=86400000;const interval=score>=100?[1,3,7,14,30][Math.min(Math.max(streak,1)-1,4)]*day:score>=50?day:0;return new Date(Date.parse(nowUtc)+interval).toISOString();}
 export function toCardDto(card:GeneratedActivity,metadata:{id:string;sessionId:string;sequence:number;total:number},source:SourceUnit,showCitation=true,exposeDebug=false){let prompt=card.activityType==='ReferenceMatch'?source.canonicalText:card.payload.prompt;if(card.activityType==='WhatComesNext')prompt+=` ${source.canonicalText}`;if(!showCitation)prompt=prompt.replaceAll(source.citationLabel,'the assigned passage');return {...metadata,generatorVersion:card.payload.generatorVersion,evidenceProfile:card.payload.evidenceProfile,activityType:card.activityType,citation:showCitation&&card.activityType!=='ReferenceMatch'?source.citationLabel:'Assigned passage',prompt,tokens:card.payload.tokens.map(t=>({display:t.hidden?'____':t.text,hidden:t.hidden,index:t.index})),choices:card.payload.choices?.length?card.payload.choices:null,debugAnswer:exposeDebug?card.answerKey.canonicalAnswer:null};}
