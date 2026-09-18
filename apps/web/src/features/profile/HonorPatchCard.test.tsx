@@ -8,7 +8,7 @@ function card(action?: string) {
       title="Exact Recall"
       artwork={<img alt="Exact Recall patch" src="patch.png" />}
       status={<span>Locked</span>}
-      detail={(close) => <><p>Reach 90 in exact wording.</p>{action && <button type="button" onClick={() => { vi.fn()(); close(); }}>{action}</button>}</>}
+      detail={(close) => <><h3>How to unlock</h3><p>Reach 90 in exact wording.</p>{action && <button type="button" onClick={() => { vi.fn()(); close(); }}>{action}</button>}</>}
     />
   );
 }
@@ -22,11 +22,12 @@ describe("HonorPatchCard", () => {
     expect(screen.queryByText("Reach 90 in exact wording.")).not.toBeInTheDocument();
   });
 
-  it("opens a square dialog with the details when the artwork is tapped", () => {
+  it("opens a dialog with the unlock description when the artwork is tapped", () => {
     card();
     fireEvent.click(screen.getByRole("button", { name: "Exact Recall: view details" }));
     const dialog = screen.getByRole("dialog", { name: "Exact Recall" });
     expect(dialog).toHaveClass("honor-patch-dialog");
+    expect(screen.getByRole("heading", { name: "How to unlock" })).toBeInTheDocument();
     expect(screen.getByText("Reach 90 in exact wording.")).toBeInTheDocument();
   });
 

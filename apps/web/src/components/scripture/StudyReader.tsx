@@ -58,6 +58,6 @@ export function StudyReader({ units, entries, ready, onHighlight, onNote, onOpen
         {!!notes.length && <Button className="study-note-link" size="compact" variant="ghost" onClick={() => onOpenNotes(unit.id)}>{notes.length} personal {notes.length === 1 ? 'note' : 'notes'} · verse {unit.verse}</Button>}
       </div>;
     })}
-    {!units.length && <p>No stored verses are available for this chapter.</p>}
+    {!units.length && <p>No assigned verses are available for this chapter.</p>}
   </div>;
 }

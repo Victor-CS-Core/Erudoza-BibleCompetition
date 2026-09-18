@@ -12,10 +12,11 @@
 .honor-patch-detail h3 { margin: var(--er-space-2) 0 0; font-size: var(--er-text-sm); text-transform: uppercase; letter-spacing: .05em; color: var(--er-muted-ink); }
 .honor-patch-detail p { margin: 0; }
 .honor-patch-detail .ds-button, .honor-patch-detail .ds-link-button { margin-top: var(--er-space-2); }
-/* The detail modal is a responsive square: 1:1 while the viewport allows it,
-   shrinking to the viewport height on short landscape screens. The body
-   scrolls internally so long requirements never break the square. */
-.honor-patch-dialog { width: min(440px, calc(100vw - 32px)); aspect-ratio: 1 / 1; max-height: calc(100dvh - 32px); display: flex; flex-direction: column; }
+/* The detail modal sizes to its content: it never exceeds the viewport height,
+   and the body scrolls internally so long requirements stay readable.
+   (A fixed square shape was tried here and did not render reliably on
+   device dialogs, so the modal now takes its natural height.) */
+.honor-patch-dialog { width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); display: flex; flex-direction: column; }
 .honor-patch-dialog .ds-training-dialog-body { flex: 1; min-height: 0; overflow-y: auto; }
 @media (max-width: 1100px) {
   .honor-patch-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--er-space-3); }

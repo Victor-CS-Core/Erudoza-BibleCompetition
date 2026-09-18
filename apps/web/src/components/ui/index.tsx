@@ -28,3 +28,13 @@ export function Badge({ tone = "neutral", className = "", ...props }: HTMLAttrib
 export function Notice({ tone = "info", className = "", ...props }: HTMLAttributes<HTMLDivElement> & { tone?: "info" | "success" | "danger" }) { return <div role={tone === "danger" ? "alert" : "status"} className={`ds-notice ds-notice-${tone} ${className}`} {...props} />; }
 export function LoadingState({ label = "Loading…" }: { label?: string }) { return <div className="ds-loading" role="status"><span aria-hidden="true" />{label}</div>; }
 export function EmptyState({ title, description, action }: { title: string; description: ReactNode; action?: ReactNode }) { return <div className="ds-empty"><h3>{title}</h3><p>{description}</p>{action && <div className="ds-empty-action">{action}</div>}</div>; }
+/** Accessible on/off switch. The whole row is the tap target; the track shows the state. */
+export function Switch({ checked, onChange, label, description, disabled = false, pending = false }: {
+  checked: boolean; onChange(next: boolean): void; label: ReactNode; description?: ReactNode; disabled?: boolean; pending?: boolean;
+}) {
+  return <button type="button" role="switch" aria-checked={checked} disabled={disabled || pending} aria-busy={pending || undefined}
+    className="ds-switch" onClick={() => onChange(!checked)}>
+    <span className="ds-switch-text"><span className="ds-switch-label">{label}</span>{description ? <span className="ds-switch-description">{description}</span> : null}</span>
+    <span className="ds-switch-track" aria-hidden="true" />
+  </button>;
+}

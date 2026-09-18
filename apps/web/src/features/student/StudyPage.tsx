@@ -327,7 +327,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             {result.sourceText}
           </p>
           <p className="mt-3 text-sm text-[var(--er-success-ink)]" data-testid="mastery-impact">
-            Mastery {result.masteryLevel} · exact wording {result.exactWordingScore} / 100
+            Mastery {result.masteryLevel} · {result.skillLabel ?? "Exact wording"} {result.skillScore ?? result.exactWordingScore} / 100
           </p>
         </div>
       ) : null}

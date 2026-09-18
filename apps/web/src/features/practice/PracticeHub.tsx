@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
-import { practiceApi } from "../../api/practice";
+import { practiceApi, pbeApi } from "../../api/practice";
 import { nativeCloudflare } from "../../api/practiceTransport";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select } from "../../components/ui";
@@ -30,7 +30,7 @@ export function PracticeHub() {
   const [simulationOpen,setSimulationOpen]=useState(false);
   const [availability,setAvailability]=useState("");
   const [error, setError] = useState("");
-  const [pending, setPending] = useState<"create" | "join" | "enable" | null>(null);
+  const [pending, setPending] = useState<"create" | "join" | "enable" | "pbe" | null>(null);
   const [seasonId, setSeason] = useState(() => new URLSearchParams(location.search).get("seasonId") ?? "");
   const [format,setFormat]=useState<'Arcade'|'Pbe'>('Arcade');
   const teamCount=2 as const;
@@ -48,6 +48,8 @@ export function PracticeHub() {
   const currentRoom = data?.rooms.find(room => room.status === "Playing") || data?.rooms.find(room => room.status === "Lobby");
   const invitation = data?.invitations[0];
   const seasonName = (id: string) => data?.seasons.find(season => season.id === id)?.name || "Past season";
+  /** PBE team practice (simulations, PBE rehearsal rooms) needs the per-season PBE training flag — the club-level toggle alone does not unlock it. */
+  const seasonPbeEnabled = data?.seasons.find(season => season.id === selectedSeasonId)?.pbeEnabled ?? false;
 
   async function run(action: NonNullable<typeof pending>, work: () => Promise<unknown>) {
     setPending(action);
@@ -75,7 +77,7 @@ export function PracticeHub() {
         {coach && <Button disabled={!!pending} onClick={() => void run("enable", () => practiceApi.enabled(org, true))}>{pending === "enable" ? "Enabling…" : "Enable Team Practice"}</Button>}
       </Panel> : <>
         <label className="practice-active-season">Active season<Select value={selectedSeasonId} disabled={!data.seasons.length||!!pending} onChange={event=>setSeason(event.target.value)}>{!data.seasons.length&&<option value="">No active seasons</option>}{data.seasons.map(season=><option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>
-        <div className="practice-mode-grid">{!coach&&<Panel className="practice-mode-entry"><PracticePatch kind="team-practice" size={64}/><div><h2>Full-event team rehearsal</h2><p>PBE simulation · One team · Two readings · Rubric points · Unlocks Simulation honors</p><Button disabled={!!pending||!data.seasons.find(s=>s.id===selectedSeasonId)?.pbeEnabled} onClick={()=>setSimulationOpen(true)}>Set up simulation</Button></div></Panel>}<Panel className="practice-mode-entry"><div className="practice-mode-patches"><PracticePatch kind="team-a" size={64}/><PracticePatch kind="team-b" size={64}/></div><div><h2>Head-to-head practice</h2><p>Two teams · Arcade or PBE</p><Button variant="secondary" disabled={!!pending} onClick={()=>setPvpOpen(true)}>Set up PVP</Button></div></Panel></div>
+        <div className="practice-mode-grid">{!coach&&<Panel className="practice-mode-entry"><PracticePatch kind="team-practice" size={64}/><div><h2>Full-event team rehearsal</h2><p>PBE simulation · One team · Two readings · Rubric points · Unlocks Simulation honors</p>{seasonPbeEnabled ? <Button disabled={!!pending} onClick={()=>setSimulationOpen(true)}>Set up simulation</Button> : <><Button disabled={true}>Set up simulation</Button><p className="practice-hub-secondary">PBE training is off for this season. Ask your coach to turn it on in season settings.</p></>}</div></Panel>}<Panel className="practice-mode-entry"><div className="practice-mode-patches"><PracticePatch kind="team-a" size={64}/><PracticePatch kind="team-b" size={64}/></div><div><h2>Head-to-head practice</h2><p>Two teams · Arcade or PBE</p><Button variant="secondary" disabled={!!pending} onClick={()=>setPvpOpen(true)}>Set up PVP</Button></div></Panel></div>
         {availability&&<Notice>{availability}</Notice>}
         <SimulationMenu error={error} org={org} seasonId={selectedSeasonId} creatorId={me!.userId} open={simulationOpen} onClose={()=>setSimulationOpen(false)} pending={pending==='create'} onSave={(simulation,size,count)=>void run('create',async()=>{const available=await practiceApi.simulationAvailability(org,{seasonId:selectedSeasonId,questionCount:count,teamSize:size,simulation});setAvailability(`Pre-room estimate: ${available.eligibleQuestions} eligible questions for ${available.requestedQuestions} requested. Start checks your actual team again.`);const room=await practiceApi.create(org,{seasonId:selectedSeasonId,teamSize:size,questionCount:count,format:'Pbe',teamCount:1,coached:false,simulation});navigate(roomLink(room.id,room.seasonId));})}/>
         {(currentRoom||invitation)&&<Panel className="practice-current-strip" aria-label={currentRoom?'Current room':'Practice invitation'}><div><Badge tone="info">{currentRoom?.status??'Invitation'}</Badge><h2>{currentRoom?currentRoom.status==='Playing'?'Your match is in progress.':'Your room is waiting for players.':'You’re invited to practice.'}</h2><p>{currentRoom?`${seasonName(currentRoom.seasonId)} · ${roomSizeLabel(currentRoom)} · ${currentRoom.questionCount} questions · ${currentRoom.memberCount} players`: `${invitation!.inviterName} invited you to practice.`}</p>{currentRoom?.ownerId===me!.userId&&<p>You’re the room owner.</p>}</div><LinkButton to={currentRoom?roomLink(currentRoom.id,currentRoom.seasonId):`${base}#invitations`}>{currentRoom?currentRoom.status==='Playing'?'Return to match':'Open lobby':'View invitation'}</LinkButton></Panel>}
@@ -98,7 +100,8 @@ export function PracticeHub() {
                   {!data.seasons.length && <option value="">No active seasons</option>}
                   {data.seasons.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}
                 </Select></label>
-                <label className="practice-hub-field-wide">Practice mode<Select value={format} onChange={event=>{const next=event.target.value as 'Arcade'|'Pbe';setFormat(next);setSize(next==='Pbe'?6:1);setCoached(false);}}><option value="Arcade">Arcade · accuracy and speed</option><option value="Pbe" disabled={!data.seasons.find(s=>s.id===selectedSeasonId)?.pbeEnabled}>PBE rehearsal · rubric points</option></Select></label>
+                <label className="practice-hub-field-wide">Practice mode<Select value={format} onChange={event=>{const next=event.target.value as 'Arcade'|'Pbe';setFormat(next);setSize(next==='Pbe'?6:1);setCoached(false);}}><option value="Arcade">Arcade · accuracy and speed</option><option value="Pbe" disabled={!seasonPbeEnabled}>PBE rehearsal · rubric points</option></Select></label>
+                {coach && !seasonPbeEnabled && <Notice>PBE rehearsal is locked because PBE training is off for this season. <Button variant="secondary" size="compact" disabled={pending === "pbe" || !selectedSeasonId} onClick={() => void run("pbe", () => pbeApi.enabled(org, selectedSeasonId, true))}>{pending === "pbe" ? "Turning on…" : "Turn on PBE training"}</Button></Notice>}
                 {format==='Pbe'&&<p>Two active teams. For one team, use Set up simulation.</p>}
                 <label>Team size<Select value={teamSize} onChange={event => setSize(Number(event.target.value))}>{(format==='Pbe'?[2,3,4,5,6]:[1,2,3,4,5]).map(size => <option key={size} value={size}>{format==='Pbe'?`${size} students per team`:`${size}v${size}`}</option>)}</Select></label>
                 <label>Match length<Select value={questionCount} onChange={event => setCount(Number(event.target.value))}><option value={10}>10 questions</option><option value={30}>30 questions</option><option value={90}>90 questions</option></Select></label>

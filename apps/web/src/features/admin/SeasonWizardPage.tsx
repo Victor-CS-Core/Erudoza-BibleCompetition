@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useIsMutating, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
-import { practiceApi } from "../../api/practice";
+import { practiceApi, pbeApi } from "../../api/practice";
 import { lifecycleApi } from "../../api/lifecycle";
 import type { PackScope, Season } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { Badge, Button, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select } from "../../components/ui";
+import { Badge, Button, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, Switch } from "../../components/ui";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { BookAssignmentEditor, useSeasonBooks } from "./BookAssignmentEditor";
@@ -76,21 +76,38 @@ function BookDetails({ season, initialPacks = [], onDirtyChange }: { season?: Se
     </Panel>
   </form>;
 }
-function TeamPracticePanel({ org }: { org: string }) {
+function TeamPracticePanel({ org, seasonId }: { org: string; seasonId?: string }) {
   const cache = useQueryClient();
   const bootstrap = useQuery({ queryKey: ["practice", org], queryFn: () => practiceApi.bootstrap(org) });
+  const season = useQuery({ queryKey: ["season", org, seasonId], queryFn: () => api.season(org, seasonId!), enabled: !!seasonId });
   const [error, setError] = useState("");
-  const save = useMutation({
+  const saveTeam = useMutation({
     mutationFn: (next: boolean) => practiceApi.enabled(org, next),
     onSuccess: async () => { setError(""); await cache.invalidateQueries({ queryKey: ["practice", org] }); },
     onError: reason => setError(reason instanceof Error ? reason.message : "Could not update Team Practice."),
   });
-  const enabled = bootstrap.data?.enabled ?? true;
+  const savePbe = useMutation({
+    mutationFn: (next: boolean) => pbeApi.enabled(org, seasonId!, next),
+    onSuccess: async () => { setError(""); await Promise.all([cache.invalidateQueries({ queryKey: ["practice", org] }), cache.invalidateQueries({ queryKey: ["season", org, seasonId] }), cache.invalidateQueries({ queryKey: ["pbe", org, seasonId] })]); },
+    onError: reason => setError(reason instanceof Error ? reason.message : "Could not update PBE training."),
+  });
+  const teamEnabled = bootstrap.data?.enabled ?? false;
+  const pbeEnabled = season.data?.pbeEnabled ?? false;
   return <Panel>
-    <div className="planner-section-heading"><div><h2>Team Practice</h2><p>Head-to-head rooms, simulations, and PBE answer reviews for your club.</p></div>{bootstrap.data && <Badge tone={enabled ? "success" : "neutral"}>{enabled ? "On" : "Off"}</Badge>}</div>
+    <div className="planner-section-heading"><div><h2>Team Practice</h2><p>Head-to-head rooms, simulations, and PBE answer reviews for your club.</p></div>{bootstrap.data && <Badge tone={teamEnabled ? "success" : "neutral"}>{teamEnabled ? "On" : "Off"}</Badge>}</div>
     {bootstrap.isPending && <LoadingState label="Loading Team Practice setting…" />}
     {bootstrap.isError && <Notice tone="danger">The Team Practice setting could not load. <Button variant="secondary" size="compact" onClick={() => void bootstrap.refetch()}>Try again</Button></Notice>}
-    {bootstrap.data && <label className="ds-choice"><Input type="checkbox" checked={enabled} disabled={save.isPending} onChange={event => { setError(""); save.mutate(event.target.checked); }} /><span><strong>Enable Team Practice for your club</strong><small>{save.isPending ? "Saving…" : enabled ? "Coaches and students can run rooms, simulations, and answer reviews." : "Team Practice stays hidden from coaches and students until you turn it back on."}</small></span></label>}
+    {bootstrap.data && <>
+      <Switch checked={teamEnabled} pending={saveTeam.isPending} onChange={next => { setError(""); saveTeam.mutate(next); }}
+        label="Team Practice for your club"
+        description={saveTeam.isPending ? "Saving…" : teamEnabled ? "Coaches and students can run rooms, simulations, and answer reviews." : "Team Practice stays hidden from coaches and students until you turn it back on."} />
+      {seasonId && <>
+        <Switch checked={pbeEnabled} pending={savePbe.isPending || season.isPending} onChange={next => { setError(""); savePbe.mutate(next); }}
+          label="PBE training for this season"
+          description={savePbe.isPending ? "Saving…" : pbeEnabled ? "PBE simulations, PBE rehearsal rooms, and PBE solo study are unlocked for this season's material." : "Turn this on to unlock PBE simulations and PBE rehearsal rooms for this season. They stay locked while it is off."} />
+        {!pbeEnabled && <p className="planner-hint">PBE team practice stays locked until PBE training is on for this season — even when Team Practice above is on.</p>}
+      </>}
+    </>}
     {error && <Notice tone="danger">{error}</Notice>}
   </Panel>;
 }
@@ -136,7 +153,7 @@ function SavedPlanner({ seasonId }: { seasonId: string }) {
   if ((season.error && !season.data) || (students.error && !students.data) || (assignments.error && !assignments.data) || (myAssignments.error && !myAssignments.data) || data.error) return <Notice tone="danger">Season information could not load. <Button onClick={() => { void season.refetch(); void students.refetch(); void assignments.refetch(); void myAssignments.refetch(); data.retry(); }}>Try again</Button></Notice>;
   return <div className="season-planner"><LinkButton variant="ghost" size="compact" to="/admin/seasons">← All seasons</LinkButton><PageHeader title={season.data!.name} description="Your season books and assignments, in one place." action={<Badge tone={active ? "success" : "neutral"}>{season.data!.status === "ContentReady" ? "Books ready" : season.data!.status === "AssignmentsReady" ? "Plans ready" : season.data!.status}</Badge>} />
     <nav className="planner-steps" aria-label="Season setup"><Button variant={step === 1 ? "secondary" : "ghost"} disabled={busy || dirty} aria-current={step === 1 ? "step" : undefined} onClick={() => setParams({ step: "details" })}>1 · Season & books</Button><Button variant={step === 2 ? "secondary" : "ghost"} disabled={busy || dirty} aria-current={step === 2 ? "step" : undefined} onClick={() => setParams({ step: "students" })}>2 · Assignments</Button></nav>
-    {step === 1 ? <><BookDetails key={seasonId} onDirtyChange={setDirty} season={season.data} initialPacks={data.books.map(({ contentPackId, includes, excludes }) => ({ contentPackId, includes, excludes }))} /><TeamPracticePanel org={org} /></> : <>
+    {step === 1 ? <><BookDetails key={seasonId} onDirtyChange={setDirty} season={season.data} initialPacks={data.books.map(({ contentPackId, includes, excludes }) => ({ contentPackId, includes, excludes }))} /><TeamPracticePanel org={org} seasonId={seasonId} /></> : <>
       <Panel className="planner-season-strip"><div><strong>Season books</strong><p>{data.books.map(book => book.name).join(" · ") || "No books selected"}</p></div><Button variant="ghost" size="compact" disabled={busy || dirty} onClick={() => setParams({ step: "details" })}>{active || closed ? "View" : "Edit"} books</Button></Panel>
       <Panel><div className="planner-section-heading"><h2>Student assignments</h2><Badge>{assignedCount} / {students.data!.length} assigned</Badge></div>
         <div className="planner-roster-layout"><label className="planner-mobile-student">Student or coach<Select disabled={busy} value={selectedId} onChange={event => requestSelect(event.target.value)}><option value={me!.userId}>My assignments</option>{students.data!.map(student => <option key={student.userId} value={student.userId}>{student.displayName}{student.isActive === false ? " · Inactive" : ""}</option>)}</Select></label><aside className="planner-roster"><Button variant={selectedId === me!.userId ? "secondary" : "ghost"} disabled={busy} onClick={() => requestSelect(me!.userId)}><ProfileAvatar userId={me!.userId} displayName={me!.displayName} size={32} /><span><strong>My assignments</strong><small>{selfAssigned ? "Assigned" : "No plan yet"}</small></span></Button><label className="planner-roster-search">Find a student<Input type="search" value={search} onChange={event => setSearch(event.target.value)} /></label>{roster.map(student => <Button key={student.userId} variant={selectedId === student.userId ? "secondary" : "ghost"} aria-pressed={selectedId === student.userId} disabled={busy} onClick={() => requestSelect(student.userId)}><ProfileAvatar userId={student.userId} displayName={student.displayName} size={32} /><span><strong>{student.displayName}</strong><small>{student.isActive === false ? "Inactive" : assignments.data!.some(item => item.studentUserId === student.userId) ? "Assigned" : "Needs a plan"}</small></span></Button>)}{!roster.length && <p>No students found.</p>}</aside>

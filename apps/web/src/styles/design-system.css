@@ -101,6 +101,18 @@
 .ds-choice:hover { border-color: var(--er-teal); }
 .ds-choice input { accent-color: var(--er-teal); width: 18px; height: 18px; min-height: 18px; }
 .ds-choice small { font-weight: 400; color: var(--er-muted-ink); }
+/* Accessible switch: label on the left, track on the right. The whole row is the tap target. */
+.ds-switch { display: flex; align-items: center; justify-content: space-between; gap: var(--er-space-4); width: 100%; min-height: 48px; padding: var(--er-space-2) 0; background: none; border: 0; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.ds-switch:disabled { cursor: wait; opacity: .65; }
+.ds-switch:focus-visible { outline: 2px solid var(--er-teal); outline-offset: 2px; border-radius: var(--er-radius-control); }
+.ds-switch-text { display: grid; gap: var(--er-space-1); min-width: 0; }
+.ds-switch-label { font-weight: 600; }
+.ds-switch-description { font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.ds-switch-track { position: relative; display: block; width: 46px; height: 28px; flex-shrink: 0; border-radius: 28px; background: var(--er-surface-soft); border: 1px solid var(--er-border-strong); }
+.ds-switch-track::after { content: ""; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--er-muted-ink); }
+.ds-switch[aria-checked="true"] .ds-switch-track { background: var(--er-teal); border-color: var(--er-teal); }
+.ds-switch[aria-checked="true"] .ds-switch-track::after { transform: translateX(18px); background: var(--er-card); }
+@media (prefers-reduced-motion: no-preference) { .ds-switch-track::after { transition: transform var(--er-duration); } }
 .ds-dialog { width: min(480px,calc(100% - 32px)); padding: var(--er-space-7); border: 0; border-radius: var(--er-radius-card); background: var(--er-card); color: var(--er-ink-navy); box-shadow: var(--er-shadow-overlay); }
 .ds-dialog::backdrop { background: #102e4770; }
 .ds-table, .training-table { width: 100%; border-collapse: collapse; text-align: left; font-variant-numeric: tabular-nums; }

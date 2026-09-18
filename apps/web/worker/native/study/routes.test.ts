@@ -66,8 +66,11 @@ it('runs the complete eight-card flow and rebuilds legacy mastery from original 
       await app.db.prepare("UPDATE Records SET data=json_set(data,'$.canonicalText','Modified after immutable card generation'),revision=revision+1 WHERE kind='source' AND id=?").bind(saved.sourceUnitId).run();
       expect(await (await request(`${base}/next`)).json()).toEqual(card);
     }
-    const result=await (await request(`${base}/attempts`,'POST',value)).json() as {isCorrect:boolean};
+    const result=await (await request(`${base}/attempts`,'POST',value)).json() as {isCorrect:boolean;skillKey:string;skillLabel:string;skillScore:number};
     expect(result.isCorrect).toBe(true);
+    expect(['exactWording','reference','sequence','recognition']).toContain(result.skillKey);
+    expect(result.skillLabel).toBeTruthy();
+    expect(result.skillScore).toBeGreaterThan(0);
     if(n===0) await app.db.prepare("UPDATE Records SET data=json_set(data,'$.algorithmVersion','v1-scaffold','$.exactWording',100,'$.recognition',100,'$.level','Mastered'),revision=revision+1 WHERE kind='mastery' AND json_extract(data,'$.knowledgeUnitId')=?").bind(saved.knowledgeUnitId).run();
   }
   expect(types).toEqual(new Set(['MissingWords','VerseBuilder','ReferenceMatch','TrueFalse','WhatComesNext']));

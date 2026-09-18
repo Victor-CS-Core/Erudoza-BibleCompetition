@@ -120,3 +120,4 @@
   html:not([data-erudoza-coffee-ready="true"]) .command-app:has(.season-planner) .coffee-floating { flex-direction:column; align-items:flex-end; }
   .command-app:has(.season-planner) .coffee-fallback { max-width:112px; white-space:normal; }
 }
+.planner-hint { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin-top: var(--er-space-2); }

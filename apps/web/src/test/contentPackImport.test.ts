@@ -16,7 +16,7 @@ describe("parseContentPackImport", () => {
     expect(() => parseContentPackImport("{")).toThrow(/valid JSON/i);
   });
 
-  it("rejects a pack with no stored verses", () => {
+  it("rejects a pack with no verses", () => {
     expect(() =>
       parseContentPackImport(
         JSON.stringify({

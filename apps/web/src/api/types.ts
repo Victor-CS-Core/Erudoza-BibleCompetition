@@ -25,6 +25,7 @@ export type Season = {
   targetCompetitionDate: string | null;
   scopeUnitCount: number;
   assignmentCount: number;
+  pbeEnabled?: boolean;
 };
 
 export type Student = { userId: string; userName: string; displayName: string; email: string | null; isActive?: boolean };
@@ -145,6 +146,9 @@ export type AttemptResult = {
   sourceText: string;
   masteryLevel: string;
   exactWordingScore: number;
+  skillKey: string;
+  skillLabel: string;
+  skillScore: number;
   reviewDueAtUtc: string | null;
   alreadyProcessed: boolean;
 };

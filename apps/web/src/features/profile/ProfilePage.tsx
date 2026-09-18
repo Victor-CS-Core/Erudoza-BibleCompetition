@@ -192,7 +192,7 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
                       title={honor.title}
                       artwork={<MasteryHonorArtwork honorKey={honor.key} size={208} muted={!honor.earnedAtUtc} />}
                       status={<><Badge tone={honor.earnedAtUtc ? 'info' : 'neutral'}>{honor.earnedAtUtc ? 'Unlocked' : 'Locked'}</Badge>{config.slots.includes(honor.key) && <Badge>On sash</Badge>}{selected && <Badge tone="success">Profile image</Badge>}</>}
-                      detail={close => <><MasteryHonorArtwork honorKey={honor.key} size={192} muted={!honor.earnedAtUtc} /><p>{honor.category}</p><h3>Requirement</h3><p>{honor.requirement}</p>{selected ? <p>Worn as your profile image.</p> : honor.earnedAtUtc ? <Button variant="secondary" aria-label={`Use ${honor.title} as profile image`} onClick={() => { chooseAvatar('honor', honor.key); close(); }}>Use as profile image</Button> : <p>This patch is locked. Meet every requirement to unlock it for your profile.</p>}</>}
+                      detail={close => <><MasteryHonorArtwork honorKey={honor.key} size={192} muted={!honor.earnedAtUtc} /><p>{honor.category}</p><h3>How to unlock</h3><p>{honor.requirement}</p>{selected ? <p>Worn as your profile image.</p> : honor.earnedAtUtc ? <Button variant="secondary" aria-label={`Use ${honor.title} as profile image`} onClick={() => { chooseAvatar('honor', honor.key); close(); }}>Use as profile image</Button> : <p>This patch is locked. Meet every requirement to unlock it for your profile.</p>}</>}
                     />;
                   })}</div></section>)}<p className="help">Practice milestones stay in your history and do not provide profile images.</p>
                 </Panel></>}

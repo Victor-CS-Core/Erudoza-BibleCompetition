@@ -26,6 +26,8 @@
 .training-recap-stats dt { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
 .training-recap-stats dd { margin: 0; font-size: var(--er-text-page); font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .training-recap-actions { display: grid; gap: var(--er-space-2); margin-top: var(--er-space-5); }
+.training-recap-celebrate { display: flex; flex-wrap: wrap; gap: var(--er-space-2); }
+.training-recap-celebrate > * { flex: 1 1 11rem; }
 .training-recap-side { display: grid; gap: var(--er-space-6); min-width: 0; }
 .training-recap-side .training-passage-list { margin-block: var(--er-space-4); }
 .training-recap-side .training-passage-list > li { padding-block: var(--er-space-4); }

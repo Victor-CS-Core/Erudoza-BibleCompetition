@@ -384,7 +384,7 @@ describe("Study submission recovery", () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
     vi.mocked(api.startSession).mockResolvedValue({ id: "session-1", seasonId: "season-1", status: "Active", mode: "Practice", targetCardCount: 2 });
     vi.mocked(api.nextCard).mockResolvedValue({ id: "card-1", sessionId: "session-1", activityType: "MissingWords", citation: "Daniel 1:1", prompt: "____", tokens: [{index:2,display:"____",hidden:true}], sequence: 1, total: 2 });
-    vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt-1", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "answer", citation: "Daniel 1:1", sourceText: "answer", masteryLevel: "Learning", exactWordingScore: 18, reviewDueAtUtc: null, alreadyProcessed: false });
+    vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt-1", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "answer", citation: "Daniel 1:1", sourceText: "answer", masteryLevel: "Learning", exactWordingScore: 18, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 18, reviewDueAtUtc: null, alreadyProcessed: false });
   });
   it("submits adjacent indexed blanks without the separate textarea and shows only accepted slot feedback", async () => {
     const tokens = [{index:0,display:'He',hidden:false},{index:2,display:'____',hidden:true},{index:3,display:'____',hidden:true}];
@@ -418,7 +418,7 @@ describe("Study submission recovery", () => {
     await screen.findByTestId('challenge-feedback'); expect(api.submitAttempt).toHaveBeenCalledWith('session-1',payload);
   });
   it('allows deliberately empty slots and restores only saved feedback after acceptance',async()=>{
-    vi.mocked(api.submitAttempt).mockResolvedValue({attemptId:'empty-result',isCorrect:false,evaluationResult:'Incorrect',canonicalAnswer:'answer',citation:'Daniel 1:1',sourceText:'answer',masteryLevel:'Learning',exactWordingScore:0,reviewDueAtUtc:null,alreadyProcessed:false,missingWordResults:[{index:2,isCorrect:false,expected:'answer'}]});
+    vi.mocked(api.submitAttempt).mockResolvedValue({attemptId:'empty-result',isCorrect:false,evaluationResult:'Incorrect',canonicalAnswer:'answer',citation:'Daniel 1:1',sourceText:'answer',masteryLevel:'Learning',exactWordingScore:0,skillKey:'exactWording',skillLabel:'Exact wording',skillScore:0,reviewDueAtUtc:null,alreadyProcessed:false,missingWordResults:[{index:2,isCorrect:false,expected:'answer'}]});
     renderStudy('/student/study?format=Memory');
     const blank=await screen.findByRole('textbox',{name:'Blank 1 of 1'});
     expect(blank).toHaveValue('');expect(screen.queryByText(/Expected:/)).not.toBeInTheDocument();
@@ -429,7 +429,7 @@ describe("Study submission recovery", () => {
   });
   it('restores the original wrong and empty indexed values on accepted reload',async()=>{
     const card={id:'saved-slots',sessionId:'session-1',activityType:'MissingWords',citation:'Daniel 1:1',prompt:'____ ____',tokens:[{index:2,display:'____',hidden:true},{index:3,display:'____',hidden:true}],sequence:1,total:2};
-    const attempt={attemptId:'saved-result',isCorrect:false,evaluationResult:'Incorrect',canonicalAnswer:'in the',citation:'Daniel 1:1',sourceText:'in the',masteryLevel:'Learning',exactWordingScore:0,reviewDueAtUtc:null,alreadyProcessed:true,missingWordAnswers:[{index:2,text:' IN THE '},{index:3,text:''}],missingWordResults:[{index:2,isCorrect:false,expected:'in'},{index:3,isCorrect:false,expected:'the'}]};
+    const attempt={attemptId:'saved-result',isCorrect:false,evaluationResult:'Incorrect',canonicalAnswer:'in the',citation:'Daniel 1:1',sourceText:'in the',masteryLevel:'Learning',exactWordingScore:0,skillKey:'exactWording',skillLabel:'Exact wording',skillScore:0,reviewDueAtUtc:null,alreadyProcessed:true,missingWordAnswers:[{index:2,text:' IN THE '},{index:3,text:''}],missingWordResults:[{index:2,isCorrect:false,expected:'in'},{index:3,isCorrect:false,expected:'the'}]};
     vi.mocked(api.resumeSession).mockResolvedValue({session:{id:'session-1',seasonId:'season-1',mode:'Practice',status:'Active',targetCardCount:2},card,attempt,summary:null});
     renderStudy('/student/study?sessionId=session-1');
     await screen.findByTestId('challenge-feedback');
@@ -460,7 +460,7 @@ describe("Study submission recovery", () => {
     await waitFor(()=>expect(api.submitAttempt).toHaveBeenCalledWith("session-1",payload));
   });
   it("resumes the final accepted card after refresh without starting another session", async () => {
-    vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: "session-1", seasonId: "season-1", mode: "Practice", status: "Active", targetCardCount: 2, difficulty: "Advanced" }, card: { id: "final", sessionId: "session-1", activityType: "MissingWords", citation: "Daniel 1:1", prompt: "____", tokens: [{index:2,display:"____",hidden:true}], sequence: 2, total: 2 }, attempt: { attemptId: "accepted", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "answer", citation: "Daniel 1:1", sourceText: "answer", masteryLevel: "Learning", exactWordingScore: 18, reviewDueAtUtc: null, alreadyProcessed: true }, summary: null });
+    vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: "session-1", seasonId: "season-1", mode: "Practice", status: "Active", targetCardCount: 2, difficulty: "Advanced" }, card: { id: "final", sessionId: "session-1", activityType: "MissingWords", citation: "Daniel 1:1", prompt: "____", tokens: [{index:2,display:"____",hidden:true}], sequence: 2, total: 2 }, attempt: { attemptId: "accepted", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "answer", citation: "Daniel 1:1", sourceText: "answer", masteryLevel: "Learning", exactWordingScore: 18, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 18, reviewDueAtUtc: null, alreadyProcessed: true }, summary: null });
     renderStudy("/student/study?sessionId=session-1&seasonId=season-1&mode=Practice");
     await screen.findByTestId("challenge-feedback");
     expect(screen.getByTestId("complete-session")).toBeEnabled();
@@ -513,13 +513,23 @@ describe("Study submission recovery", () => {
     const next = screen.getByTestId("next-card");
     expect(feedback.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(next).toHaveClass("ds-button-primary");
-    expect(screen.getByTestId("mastery-impact")).toHaveTextContent("exact wording 18 / 100");
+    expect(screen.getByTestId("mastery-impact")).toHaveTextContent("Exact wording 18 / 100");
     expect(screen.getByTestId("submit-answer")).toBeDisabled();
     // Feedback keeps its status semantics but is no longer a heading; the prompt owns the card heading.
     expect(feedback).toHaveAttribute("role", "status");
     expect(feedback.querySelector("h1,h2,h3")).toBeNull();
     expect(screen.queryByRole("heading", { name: "Well remembered" })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Read it once more" })).not.toBeInTheDocument();
+  });
+  it("reports the evaluated skill for non-writing activities instead of exact wording", async () => {
+    vi.mocked(api.nextCard).mockResolvedValue({ id: "card-tf", sessionId: "session-1", activityType: "TrueFalse", citation: "Daniel 1:1", prompt: "According to Daniel 1:1, is this the verse? one two", tokens: [], sequence: 1, total: 2 });
+    vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt-tf", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "True", citation: "Daniel 1:1", sourceText: "one two", masteryLevel: "Learning", exactWordingScore: 0, skillKey: "recognition", skillLabel: "Recognition", skillScore: 10, reviewDueAtUtc: null, alreadyProcessed: false });
+    renderStudy("/student/study");
+    fireEvent.click(await screen.findByTestId("true-false-true"));
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await screen.findByTestId("challenge-feedback");
+    expect(screen.getByTestId("mastery-impact")).toHaveTextContent("Recognition 10 / 100");
+    expect(screen.getByTestId("mastery-impact")).not.toHaveTextContent("exact wording");
   });
   it("reuses the identical submitted payload after an uncertain response", async () => {
     vi.mocked(api.submitAttempt).mockRejectedValueOnce(new Error("Connection lost"));
@@ -569,7 +579,7 @@ describe("StudyPage assigned Scripture reading", () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
     vi.mocked(api.startSession).mockImplementation(async (_, mode = "Practice") => ({ id: "session-reader", seasonId: "season-1", mode, status: "Active", targetCardCount: 2 }));
     vi.mocked(api.nextCard).mockResolvedValue({ id: "read-card-1", sessionId: "session-reader", activityType: "MissingWords", citation: "Genesis 1:1", prompt: "In the beginning ____ created the heaven and the earth.", tokens: [{index:2,display:"____",hidden:true}], sequence: 1, total: 2 });
-    vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt", isCorrect: true, citation: "Genesis 1:1", sourceText: "In the beginning God created the heaven and the earth.", masteryLevel: "Learning", exactWordingScore: 5, reviewDueAtUtc: "2026-09-11T00:00:00Z", alreadyProcessed: false, evaluationResult: "Correct", canonicalAnswer: "God" });
+    vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt", isCorrect: true, citation: "Genesis 1:1", sourceText: "In the beginning God created the heaven and the earth.", masteryLevel: "Learning", exactWordingScore: 5, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 5, reviewDueAtUtc: "2026-09-11T00:00:00Z", alreadyProcessed: false, evaluationResult: "Correct", canonicalAnswer: "God" });
     vi.mocked(scriptureApi.assigned).mockResolvedValue({ seasonId: "season-1", verses: [
       { id: "source1", citation: "Genesis 1:1", bookKey: "GEN", chapter: 1, verse: 1, ordinal: 1, canonicalText: "In the beginning God created the heaven and the earth." },
       { id: "source2", citation: "Genesis 2:1", bookKey: "GEN", chapter: 2, verse: 1, ordinal: 2, canonicalText: "Thus the heavens and the earth were finished," },

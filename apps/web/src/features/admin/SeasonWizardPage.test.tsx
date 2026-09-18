@@ -4,10 +4,10 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { profileApi } from "../profile/profile";
 import { api } from "../../api/client";
-import { practiceApi } from "../../api/practice";
+import { practiceApi, pbeApi } from "../../api/practice";
 import { lifecycleApi } from "../../api/lifecycle";
 vi.mock("../../api/lifecycle", () => ({ lifecycleApi: { removeAssignment: vi.fn(), correctAssignment: vi.fn(), transitionSeason: vi.fn() } }));
-vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), enabled: vi.fn() } }));
+vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), enabled: vi.fn() }, pbeApi: { enabled: vi.fn() } }));
 import { SeasonAssignmentEditor, SeasonWizardPage } from "./SeasonWizardPage";
 import { ToastProvider } from "../../components/ui";
 import { multiScope } from "./passageRanges";
@@ -145,8 +145,8 @@ describe("Two-step season planner", () => {
 
 it("shows the Team Practice toggle in the season editor and switches it off", async () => {
   renderWizard("/admin/seasons/season-1?step=details");
-  const toggle = await screen.findByRole("checkbox", { name: /Enable Team Practice for your club/ });
-  expect(toggle).toBeChecked();
+  const toggle = await screen.findByRole("switch", { name: /Team Practice for your club/ });
+  expect(toggle).toHaveAttribute("aria-checked", "true");
   const panel = (await screen.findByRole("heading", { name: "Team Practice" })).closest("section")!;
   expect(within(panel).getByText("On")).toBeInTheDocument();
   fireEvent.click(toggle);
@@ -156,8 +156,8 @@ it("shows the Team Practice toggle in the season editor and switches it off", as
 it("switches Team Practice back on from the season editor", async () => {
   vi.mocked(practiceApi.bootstrap).mockResolvedValue({ enabled: false, seasons: [], players: [], rooms: [], invitations: [], achievements: [], questions: [] });
   renderWizard("/admin/seasons/season-1?step=details");
-  const toggle = await screen.findByRole("checkbox", { name: /Enable Team Practice for your club/ });
-  expect(toggle).not.toBeChecked();
+  const toggle = await screen.findByRole("switch", { name: /Team Practice for your club/ });
+  expect(toggle).toHaveAttribute("aria-checked", "false");
   const panel = (await screen.findByRole("heading", { name: "Team Practice" })).closest("section")!;
   expect(within(panel).getByText("Off")).toBeInTheDocument();
   fireEvent.click(toggle);
@@ -166,10 +166,12 @@ it("switches Team Practice back on from the season editor", async () => {
 
 it("shows the Team Practice toggle on the new season page", async () => {
   renderWizard("/admin/seasons/new");
-  const toggle = await screen.findByRole("checkbox", { name: /Enable Team Practice for your club/ });
-  expect(toggle).toBeChecked();
+  const toggle = await screen.findByRole("switch", { name: /Team Practice for your club/ });
+  expect(toggle).toHaveAttribute("aria-checked", "true");
   const panel = (await screen.findByRole("heading", { name: "Team Practice" })).closest("section")!;
   expect(within(panel).getByText("On")).toBeInTheDocument();
+  // A draft has no season yet, so the per-season PBE switch is not offered.
+  expect(screen.queryByRole("switch", { name: /PBE training for this season/ })).not.toBeInTheDocument();
 });
 
 it("preserves unsaved season book selections until saved or cancelled", async () => {
@@ -334,6 +336,7 @@ it("retains confirmed difficulty for subsequent saves while refresh stalls", asy
   expect(screen.getByLabelText("Training difficulty")).toHaveValue("Advanced");
 });
 
+
 it("keeps coach difficulty confirmed by a new chapter when refresh stalls", async () => {
   const existing = { ...assignment, ...{ bookKey: "EPH", startChapter: 1, endChapter: 1, startVerse: 1, endVerse: 3 }, studentUserId: "coach", contentPackId: "eph" };
   vi.mocked(api.myAssignments).mockResolvedValue([existing]);
@@ -348,4 +351,21 @@ it("keeps coach difficulty confirmed by a new chapter when refresh stalls", asyn
   fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
   await screen.findByText("Assignments saved.");
   expect(screen.getByLabelText("Training difficulty")).toHaveValue("Advanced");
+});
+
+describe("TeamPracticePanel", () => {
+  it("renders the club and per-season PBE settings as switches", async () => {
+    renderWizard("/admin/seasons/season-1?step=details");
+    const teamSwitch = await screen.findByRole("switch", { name: /Team Practice for your club/ });
+    const pbeSwitch = await screen.findByRole("switch", { name: /PBE training for this season/ });
+    expect(teamSwitch).toHaveAttribute("aria-checked", "true");
+    expect(pbeSwitch).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByText(/PBE team practice stays locked until PBE training is on for this season/)).toBeInTheDocument();
+  });
+
+  it("turns on PBE training for the season from the season switch", async () => {
+    renderWizard("/admin/seasons/season-1?step=details");
+    fireEvent.click(await screen.findByRole("switch", { name: /PBE training for this season/ }));
+    await waitFor(() => expect(vi.mocked(pbeApi.enabled)).toHaveBeenCalledWith("org-1", "season-1", true));
+  });
 });

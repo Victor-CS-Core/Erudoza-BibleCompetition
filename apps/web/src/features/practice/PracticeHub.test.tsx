@@ -3,14 +3,15 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
-import { practiceApi, type PracticeBootstrap, type PracticeRoom } from "../../api/practice";
+import { practiceApi, pbeApi, type PracticeBootstrap, type PracticeRoom } from "../../api/practice";
+import { ToastProvider } from "../../components/ui/toast";
 import { PracticeHub } from "./PracticeHub";
 import { useMyProfile } from "../profile/profile";
 
 vi.mock("../profile/profile", () => ({ useMyProfile: vi.fn() }));
 const account = vi.hoisted(() => ({ userId: "player", organizationId: "org", kind: "Student" }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: account }) }));
-vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), create: vi.fn(), accept: vi.fn(), enabled: vi.fn(), simulationMaterial:vi.fn(), simulationAvailability:vi.fn() } }));
+vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), create: vi.fn(), accept: vi.fn(), enabled: vi.fn(), simulationMaterial:vi.fn(), simulationAvailability:vi.fn() }, pbeApi: { enabled: vi.fn() } }));
 vi.mock("../../api/client", () => ({ api: { library: vi.fn(), seasonScope: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn() } }));
 
 const data: PracticeBootstrap = {
@@ -21,7 +22,7 @@ const destinationRoom = { id: "created-room" } as PracticeRoom;
 function Destination() { return <output aria-label="Current destination">{useLocation().pathname}</output>; }
 function mount(path = account.kind === "Adult" ? "/admin/practice" : "/student/practice") {
   const cache = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return { cache, ...render(<QueryClientProvider client={cache}><MemoryRouter initialEntries={[path]}><PracticeHub /><Destination /></MemoryRouter></QueryClientProvider>) };
+  return { cache, ...render(<QueryClientProvider client={cache}><ToastProvider><MemoryRouter initialEntries={[path]}><PracticeHub /><Destination /></MemoryRouter></ToastProvider></QueryClientProvider>) };
 }
 beforeEach(() => {
   vi.clearAllMocks();
@@ -35,6 +36,7 @@ beforeEach(() => {
   vi.mocked(practiceApi.create).mockResolvedValue(destinationRoom);
   vi.mocked(practiceApi.accept).mockResolvedValue({ ...destinationRoom, id: "invited-room" });
   vi.mocked(practiceApi.enabled).mockResolvedValue();
+  vi.mocked(pbeApi.enabled).mockResolvedValue();
   vi.mocked(api.library).mockResolvedValue({ translationId: "nkjv", translationName: "NKJV", version: 1, books: [] });
   vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: null, includes: [], excludes: [] });
   vi.mocked(api.contentPacks).mockResolvedValue([]);
@@ -246,3 +248,39 @@ it('keeps coach practice setup on supported PVP and review routes',async()=>{
  expect(screen.queryByRole('button',{name:'Set up simulation'})).not.toBeInTheDocument();
  expect(screen.getByRole('link',{name:'Open PBE answer reviews'})).toBeInTheDocument();
 });
+
+it('explains the PBE lock to a student when the season has no PBE training',async()=>{
+ mount();
+ const panel=(await screen.findByRole('heading',{name:'Full-event team rehearsal'})).closest('div')!.parentElement!;
+ expect(within(panel).getByText('PBE training is off for this season. Ask your coach to turn it on in season settings.')).toBeInTheDocument();
+ expect(within(panel).getByRole('button',{name:'Set up simulation'})).toBeDisabled();
+});
+
+it('unlocks the simulation setup for a student when PBE training is on',async()=>{
+ vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:'daniel',name:'Daniel',pbeEnabled:true}]});
+ mount();
+ const panel=(await screen.findByRole('heading',{name:'Full-event team rehearsal'})).closest('div')!.parentElement!;
+ expect(within(panel).getByRole('button',{name:'Set up simulation'})).toBeEnabled();
+ expect(within(panel).queryByText('PBE training is off for this season.')).not.toBeInTheDocument();
+});
+
+it('lets a coach turn on PBE training from the PVP setup lock notice',async()=>{
+ account.kind='Adult';
+ mount('/admin/practice');
+ fireEvent.click(await screen.findByRole('button',{name:'Set up PVP'}));
+ expect(await screen.findByRole('dialog',{name:'PVP setup'})).toBeInTheDocument();
+ expect(screen.getByText(/PBE rehearsal is locked because PBE training is off for this season/)).toBeInTheDocument();
+ expect(screen.getByRole('option',{name:'PBE rehearsal · rubric points'})).toBeDisabled();
+ fireEvent.click(screen.getByRole('button',{name:'Turn on PBE training'}));
+ await waitFor(()=>expect(pbeApi.enabled).toHaveBeenCalledWith('org','daniel',true));
+});
+
+it('offers an enabled PBE rehearsal option to a coach once PBE training is on',async()=>{
+ account.kind='Adult';vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:'daniel',name:'Daniel',pbeEnabled:true}]});
+ mount('/admin/practice');
+ fireEvent.click(await screen.findByRole('button',{name:'Set up PVP'}));
+ expect(await screen.findByRole('dialog',{name:'PVP setup'})).toBeInTheDocument();
+ expect(screen.getByRole('option',{name:'PBE rehearsal · rubric points'})).toBeEnabled();
+ expect(screen.queryByRole('button',{name:'Turn on PBE training'})).not.toBeInTheDocument();
+});
+

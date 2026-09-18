@@ -94,11 +94,14 @@ export function SessionRecapPage() {
           </dl>
           <p><small>Completed <time dateTime={data.completedAtUtc!}>{evidenceDate(data.completedAtUtc!)}</time></small></p>
           {!data.fullTargetReached && <p>You finished early. Your accepted answers are saved. The full session target was not reached.</p>}
-          <div className="training-recap-actions"><LinkButton to={link("/student")}>Back to Training HQ</LinkButton><LinkButton variant="ghost" to={link("/student/honors")}>View Honors</LinkButton></div>
-          {shareText && <div className="training-recap-share">
-            <Button variant="secondary" onClick={() => void share()}>{shareState === "copied" ? "Copied to clipboard" : "Share your progress"}</Button>
+          <div className="training-recap-actions">
+            <LinkButton to={link("/student")}>Back to Training HQ</LinkButton>
+            <div className="training-recap-celebrate">
+              <LinkButton variant="ghost" to={link("/student/honors")}>View Honors</LinkButton>
+              {shareText && <Button variant="secondary" onClick={() => void share()}>{shareState === "copied" ? "Copied to clipboard" : "Share your progress"}</Button>}
+            </div>
             {shareState === "failed" && <p><small>Copy didn’t work on this device. Your summary: {shareText}</small></p>}
-          </div>}
+          </div>
         </Panel>
         <aside className="training-recap-side" aria-label="Saved practice details">
           {pbeResults}
