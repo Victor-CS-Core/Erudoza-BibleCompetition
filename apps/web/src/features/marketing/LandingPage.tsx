@@ -4,6 +4,7 @@ import { AppIcon } from "../../components/AppIcon";
 import { useAuth } from "../../auth/AuthContext";
 import { LinkButton, PageHeader, Panel } from "../../components/ui";
 import { PatchArtwork } from "../../components/ui/PatchArtwork";
+import { ThemedImage } from "../../components/brand/ThemedImage";
 import { AppFooter } from "../../components/ui/AppFooter";
 import { CoffeeWidget } from "../support/CoffeeWidget";
 import "../../styles/training-public.css";
@@ -30,9 +31,11 @@ export function LandingPage() {
     </header>
     <main id="public-main" className="public-main" data-testid="landing-phone-column" tabIndex={-1}>
       <section className="public-hero ds-inverse-surface" aria-labelledby="public-title">
-        <img className="public-hero-art"
+        <ThemedImage className="public-hero-art"
           src="/assets/landing/expedition-hero-1440.webp"
           srcSet="/assets/landing/expedition-hero-960.webp 960w, /assets/landing/expedition-hero-1440.webp 1440w, /assets/landing/expedition-hero-1920.webp 1920w"
+          darkSrc="/assets/landing/expedition-hero-dark-1440.webp"
+          darkSrcSet="/assets/landing/expedition-hero-dark-960.webp 960w, /assets/landing/expedition-hero-dark-1440.webp 1440w, /assets/landing/expedition-hero-dark-1920.webp 1920w"
           sizes="(max-width: 760px) 760px, 100vw"
           width={1855} height={848} fetchPriority="high"
           alt="An open Bible, compass and Pathfinder neckerchief beside a mountain lake" />
@@ -72,7 +75,7 @@ export function LandingPage() {
           </div>
         </section>
         <Panel className="public-coach" aria-labelledby="coach-title">
-          <img className="public-coach-art" src="/assets/landing/expedition-coach-960.webp" srcSet="/assets/landing/expedition-coach-640.webp 640w, /assets/landing/expedition-coach-960.webp 960w" sizes="(min-width: 761px) 50vw, 100vw" width={2172} height={724} loading="lazy" alt="" />
+          <ThemedImage className="public-coach-art" src="/assets/landing/expedition-coach-960.webp" srcSet="/assets/landing/expedition-coach-640.webp 640w, /assets/landing/expedition-coach-960.webp 960w" darkSrc="/assets/landing/expedition-coach-dark-960.webp" darkSrcSet="/assets/landing/expedition-coach-dark-640.webp 640w, /assets/landing/expedition-coach-dark-960.webp 960w" sizes="(min-width: 761px) 50vw, 100vw" width={2172} height={724} loading="lazy" alt="" />
           <div className="public-coach-copy">
             <h2 id="coach-title" className="ds-section-title">Prepare your PBE team.</h2>
             <p>Assign passages and see where each student needs practice.</p>

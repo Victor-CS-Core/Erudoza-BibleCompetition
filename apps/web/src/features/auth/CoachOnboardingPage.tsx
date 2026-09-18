@@ -6,6 +6,7 @@ import { ApiError } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { ErudozaWordmark } from "../../components/brand/ErudozaWordmark";
 import { PathfinderBackdrop } from "../../components/brand/PathfinderBackdrop";
+import { ThemedImage } from "../../components/brand/ThemedImage";
 import { AppIcon } from "../../components/AppIcon";
 import { Button, Input, LinkButton, LoadingState, Notice, PageHeader } from "../../components/ui";
 import { TurnstileChallenge } from "./TurnstileChallenge";
@@ -146,7 +147,7 @@ export function CoachOnboardingPage({ mode }: { mode: Mode }) {
     <section className={`training-login-hero${isSignup ? " training-login-hero-landscape" : ""}`} aria-label="Erudoza">
       <Link className="training-login-brand" to="/" aria-label="Erudoza home"><ErudozaWordmark inverted /></Link>
       <div className="training-login-message"><h2>Prepare your team<br /><em>for PBE.</em></h2><p>Assign Scripture passages and organize practice for Pathfinder Bible Experience.</p></div>
-      {!isSignup && <img className="training-login-art training-login-coach-art" src="/assets/training/coach-guide-960.webp" width={960} height={640} loading="lazy" alt="" />}
+      {!isSignup && <ThemedImage className="training-login-art training-login-coach-art" src="/assets/training/coach-guide-960.webp" darkSrc="/assets/training/coach-guide-dark-960.webp" width={960} height={640} loading="lazy" alt="" />}
       <p className="training-login-motto">Pathfinder Bible Experience training</p>
     </section>
     <section className="training-login-main pathfinder-canvas" aria-label={titles[mode]}>
