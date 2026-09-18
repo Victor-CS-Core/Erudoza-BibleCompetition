@@ -1,5 +1,11 @@
 # Erudoza progress log
 
+## Theme switch + PBE news + wiki fixes — pushed to main and staged, September 18
+
+- User approval: "Go ahead and push pending changes." Remote main was 9ef42c20 (no drift). Committed locally as cb7d8f7 on practice/remediation; replayed onto remote main via Git Data API safety script as 910ae8d4 (clean replay, all 25 files matched upstream parent versions). main fast-forwarded; remote practice/remediation synced to 910ae8d4.
+- Deploy staging workflow run 35389719053 completed success. staging.erudoza.com root 200 x3, /api/v1/health 200 x3. Live bundle index-BbprGbTn.js contains command-theme-toggle + "In this article"; live CSS index-x6SWG6Aa.css contains .training-app vertical flex, .wiki-header-account .ds-button{white-space:nowrap}, the width<=480px wiki header rule, and zero 224px grid references.
+- Production untouched. Awaiting the user's iPhone verdict.
+
 ## Wiki header/buttons fix + wiki structure pass — built locally, awaiting push approval, September 18
 
 - User report (screenshot): the wiki header account/sign-in buttons rendered as narrow vertical letter stacks.
