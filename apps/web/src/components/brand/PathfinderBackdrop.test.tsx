@@ -46,4 +46,18 @@ describe("approved Pathfinder page artwork", () => {
     expect(backdrop.querySelector("img, a, button, [tabindex]")).toBeNull();
     expect(backdrop.getAttribute("style")).toContain("field-notes-left-v1-960.webp");
   });
+
+  it("swaps to the dark-background variant when the resolved theme is dark", () => {
+    const previous = window.localStorage.getItem("erudoza:theme");
+    window.localStorage.setItem("erudoza:theme", "dark");
+    try {
+      const { container } = render(<MemoryRouter initialEntries={["/student/honors"]}><PathfinderBackdrop /></MemoryRouter>);
+      const backdrop = container.firstElementChild!;
+      expect(backdrop.getAttribute("style")).toContain("field-notes-left-dark-v1-960.webp");
+      expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    } finally {
+      if (previous === null) window.localStorage.removeItem("erudoza:theme");
+      else window.localStorage.setItem("erudoza:theme", previous);
+    }
+  });
 });

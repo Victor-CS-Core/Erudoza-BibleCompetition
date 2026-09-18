@@ -11,8 +11,8 @@
   left:0; right:auto; background-position:left bottom;
   mask-image:linear-gradient(225deg, transparent 18%, #000 85%);
 }
-/* Dark pages keep the warm illustrations but sit them deeper so text stays readable. */
-[data-theme="dark"] .pathfinder-backdrop::after { mix-blend-mode:screen; opacity:.22; }
+/* Dark pages use lamplit dark-background variants so no light rectangle shows. */
+[data-theme="dark"] .pathfinder-backdrop::after { mix-blend-mode:normal; opacity:.34; }
 /* Keep form instructions and all account states on the existing solid paper surface. */
 .training-login-main.pathfinder-canvas > .training-login-form-wrap { background:var(--er-paper); }
 @media(max-width:760px) {
