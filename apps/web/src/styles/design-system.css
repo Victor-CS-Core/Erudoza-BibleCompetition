@@ -50,6 +50,8 @@
 .ds-button > :not(svg), .ds-badge > :not(svg) { min-width: 0; }
 .ds-button > svg, .ds-badge > svg { flex-shrink: 0; }
 .ds-button-primary { color: var(--er-on-navy); background: var(--er-action-blue); }
+/* The forward action lifts off the page: filled teal + a whisper of shadow. */
+.ds-button-primary:not(:disabled) { box-shadow: 0 1px 2px #102e4733, inset 0 1px 0 #ffffff22; }
 .ds-button-secondary { color: var(--er-ink-navy); background: var(--er-card); border-color: var(--er-border-strong); }
 .ds-button-ghost { color: var(--er-action-blue); background: transparent; }
 .ds-button-quiet { padding-inline:var(--er-space-2); color:var(--er-muted-ink); background:transparent; font-size:var(--er-text-xs); font-weight:500; }
@@ -60,9 +62,13 @@
   .ds-button-inverse.ds-button-mobile-icon { color:var(--er-on-navy); background:transparent; border-color:transparent; }
   .ds-button-inverse.ds-button-mobile-icon:hover:not(:disabled) { background:color-mix(in srgb,var(--er-on-navy) 12%,var(--er-ink-navy)); }
 }
+/* Hover washes only apply where a hover pointer exists: on touch screens a tap
+   would otherwise leave ghost/secondary buttons stuck in the highlighted state. */
+@media (hover:hover) {
 .ds-button-primary:hover:not(:disabled) { background: color-mix(in srgb,var(--er-action-blue) 85%,var(--er-ink-navy)); }
 .ds-button-secondary:hover:not(:disabled), .ds-button-ghost:hover:not(:disabled) { background: var(--er-selected); }
 .ds-button-danger:hover:not(:disabled) { background: color-mix(in srgb,var(--er-danger-surface) 85%,var(--er-stamp-red)); }
+}
 .ds-button:active:not(:disabled) { transform: translateY(1px); }
 .ds-button:disabled, fieldset:disabled .ds-button { color: var(--er-muted-ink); background: var(--er-surface-soft); border-color: var(--er-border-strong); }
 .ds-button-compact { min-height:32px; padding:4px var(--er-space-3); font-size:var(--er-text-xs); }

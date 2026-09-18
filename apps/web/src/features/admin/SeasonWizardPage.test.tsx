@@ -10,6 +10,7 @@ vi.mock("../../api/lifecycle", () => ({ lifecycleApi: { removeAssignment: vi.fn(
 vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), enabled: vi.fn() } }));
 import { SeasonAssignmentEditor, SeasonWizardPage } from "./SeasonWizardPage";
 import { ToastProvider } from "../../components/ui";
+import { multiScope } from "./passageRanges";
 
 vi.mock("../../api/client", () => ({ api: { library: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn(), scriptureCatalog: vi.fn(), students: vi.fn(), season: vi.fn(), seasonScope: vi.fn(), assignments: vi.fn(), defineScope: vi.fn(), assign: vi.fn(), setDifficulty: vi.fn(), createSeason: vi.fn(), activate: vi.fn(), deleteSeason: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org-1", userId: "coach", displayName: "Coach", kind: "Adult", role: "Owner" } }) }));
@@ -76,6 +77,27 @@ describe("Two-step season planner", () => {
     expect(screen.getByRole("button", { name: /Daniel Student/ })).toBeInTheDocument();
     expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-1" }), expect.any(AbortSignal));
     expect(document.querySelector(".planner-strip-count")).toHaveTextContent("0 of 1 chapters selected");
+  });
+  it("shows one book at a time in tabs and keeps each book's selection while switching", async () => {
+    vi.mocked(api.seasonScope).mockResolvedValue(multiScope([
+      { contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 3 }], excludes: [] },
+      { contentPackId: "jude", includes: [{ bookKey: "JUD", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3 }], excludes: [] },
+    ]));
+    renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
+    const tabs = await screen.findByRole("tablist", { name: "Season books" });
+    const ephTab = within(tabs).getByRole("tab", { name: /Ephesians/ });
+    const judeTab = within(tabs).getByRole("tab", { name: /Jude/ });
+    expect(ephTab).toHaveAttribute("aria-selected", "true");
+    // Only the active book's strip renders: six Ephesians cells, no Jude cells.
+    expect(screen.getAllByRole("button", { name: /^Chapter \d+$/ }).length).toBe(6);
+    fireEvent.click(screen.getByRole("button", { name: "Chapter 1" }));
+    expect(ephTab).toHaveTextContent("1 selected");
+    expect(screen.getByLabelText("Selection summary")).toHaveTextContent("Ephesians 1");
+    fireEvent.click(judeTab);
+    expect(judeTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getAllByRole("button", { name: /^Chapter \d+$/ }).length).toBe(1);
+    fireEvent.click(ephTab);
+    expect(document.querySelector(".planner-strip-count")).toHaveTextContent("1 of 6 chapters selected");
   });
   it("keeps selection and student on a failed save", async () => {
     vi.mocked(api.assign).mockRejectedValue(new Error("Offline"));

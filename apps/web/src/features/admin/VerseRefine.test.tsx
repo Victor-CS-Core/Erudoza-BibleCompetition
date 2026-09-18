@@ -36,3 +36,14 @@ it("reports a chapter with no remaining verses", () => {
   expect(screen.getByText("All available verses are already assigned.")).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Add verses" })).not.toBeInTheDocument();
 });
+
+it("collapses the panel with Hide even after a verse range is added", () => {
+  const { rerender } = render(<VerseRefine option={option} ranges={[]} onAdd={vi.fn()} onRemove={vi.fn()} />);
+  // Adding the first range auto-opens the panel.
+  rerender(<VerseRefine option={option} ranges={[{ chapter: 3, startVerse: 16, endVerse: 18 }]} onAdd={vi.fn()} onRemove={vi.fn()} />);
+  expect(screen.getByRole("button", { name: "Hide" })).toBeInTheDocument();
+  expect(screen.getByLabelText("From verse in chapter 3")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Hide" }));
+  expect(screen.queryByLabelText("From verse in chapter 3")).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Refine" })).toBeInTheDocument();
+});

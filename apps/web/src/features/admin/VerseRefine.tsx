@@ -14,13 +14,21 @@ export function VerseRefine({ option, ranges, onAdd, onRemove }: {
   onRemove: (range: VerseSelection) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [hadRanges, setHadRanges] = useState(false);
+  const hasRanges = ranges.length > 0;
+  // Auto-open when the first verse range is added. The toggle stays the single
+  // source of truth afterwards, so Hide always collapses the panel again.
+  if (hasRanges !== hadRanges) {
+    setHadRanges(hasRanges);
+    if (hasRanges) setExpanded(true);
+  }
+  const open = expanded;
   const remainingVerses = [...new Set(option.remaining.map(unit => unit.verse))].sort((a, b) => a - b);
   const [fromVerse, setFromVerse] = useState<number | null>(null);
   const [toVerse, setToVerse] = useState<number | null>(null);
   const from = fromVerse ?? remainingVerses[0] ?? null;
   const toOptions = remainingVerses.filter(verse => from === null || verse >= from);
   const to = toVerse !== null && toOptions.includes(toVerse) ? toVerse : toOptions[0] ?? null;
-  const open = expanded || ranges.length > 0;
 
   const add = () => {
     if (from === null || to === null) return;

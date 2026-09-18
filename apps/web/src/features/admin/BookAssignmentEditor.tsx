@@ -43,6 +43,7 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
   const saved = (query.data ?? []).filter(item => item.studentUserId === studentId);
   const [selected, setSelected] = useState<string[]>([]);
   const [verseRanges, setVerseRanges] = useState<({ packId: string } & VerseSelection)[]>([]);
+  const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [role, setRole] = useState("PrimarySpecialist");
   const [difficultyEdit, setDifficulty] = useState<TrainingDifficulty | null>(null);
   const difficulty = difficultyEdit ?? saved[0]?.difficulty ?? "Standard";
@@ -111,6 +112,14 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
   const complete = (book: typeof data.books[number], assignments: Assignment[], type = role) => book.units.length > 0 && chapterOptions(book.units, book.all, assignments, { studentId, contentPackId: book.contentPackId, type }).every(chapter => !chapter.remaining.length);
   if (data.loading || query.isPending) return <LoadingState label="Loading assignments…" />;
   if (data.error || (query.error && !query.data)) return <Notice tone="danger">Assignments could not load. <Button onClick={() => { data.retry(); void query.refetch(); }}>Try again</Button></Notice>;
+  // One book visible at a time: with several season books the editor would
+  // otherwise become a long scroll of strips. Selection state is per book, so
+  // switching tabs never loses work.
+  const activeBook = data.books.find(book => book.contentPackId === activeBookId) ?? data.books[0];
+  const activeOptions = activeBook ? chapterOptions(activeBook.units, activeBook.all, saved, { studentId, contentPackId: activeBook.contentPackId, type: role }) : [];
+  const activeRefined = activeBook ? activeOptions.filter(option => selected.includes(`${activeBook.contentPackId}/${option.chapter}`)) : [];
+  const change = (keys: string[], checked: boolean) => { save.reset(); setSelected(current => checked ? [...new Set([...current, ...keys])] : current.filter(key => !keys.includes(key))); if (!checked) setVerseRanges(current => current.filter(item => !keys.includes(`${item.packId}/${item.chapter}`))); };
+  const chaptersOf = (book: typeof data.books[number]) => selected.filter(key => key.startsWith(`${book.contentPackId}/`)).map(key => Number(key.split("/")[1])).sort((a, b) => a - b);
   return <div className="book-assignment-editor">
     <div className="planner-section-heading"><div><div className="planner-person-heading"><ProfileAvatar userId={studentId} displayName={self ? me!.displayName : name} size={40} /><h2 ref={heading} tabIndex={-1}>{name}</h2></div><p>{self ? "Your assigned chapters power your activities in Student Mode." : "Choose chapters from the season books for this student."}</p></div><Badge>{saved.length ? "Assigned" : "Not assigned yet"}</Badge></div>
     {save.isPending && <Notice>{saveProgress.total ? `Saving chapters · ${saveProgress.completed} of ${saveProgress.total} confirmed. Keep this page open.` : "Saving plan settings…"}</Notice>}
@@ -119,27 +128,36 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
     {!data.books.length && <Notice>Choose the season books first.</Notice>}
     <fieldset className="planner-fields" disabled={closed || pending}>
       <legend>Chapters to assign</legend>
-      <div className="planner-book-list">{data.books.map(book => {
-        const options = chapterOptions(book.units, book.all, saved, { studentId, contentPackId: book.contentPackId, type: role });
-        const change = (keys: string[], checked: boolean) => { save.reset(); setSelected(current => checked ? [...new Set([...current, ...keys])] : current.filter(key => !keys.includes(key))); if (!checked) setVerseRanges(current => current.filter(item => !keys.includes(`${item.packId}/${item.chapter}`))); };
-        const refinedChapters = options.filter(option => selected.includes(`${book.contentPackId}/${option.chapter}`));
-        return <fieldset className="planner-chapter-book" key={book.contentPackId}><legend>{book.name}</legend>
-          {book.restricted && <p className="planner-caption">Only the saved season selection is available.</p>}
-          <ChapterStrip bookName={book.name} options={options}
-            selected={options.filter(option => selected.includes(`${book.contentPackId}/${option.chapter}`)).map(option => option.chapter)}
-            verseRanges={verseRanges.filter(item => item.packId === book.contentPackId)}
-            disabled={closed || pending}
-            onSelect={(chapters, select) => change(chapters.map(chapter => `${book.contentPackId}/${chapter}`), select)}
-            onRemoveChapter={chapter => change([`${book.contentPackId}/${chapter}`], false)} />
-          {!!refinedChapters.length && <div className="planner-verse-refine">
-            <h4>Refine verses <span className="planner-caption">optional</span></h4>
-            {refinedChapters.map(option => <VerseRefine key={option.chapter} option={option}
-              ranges={verseRanges.filter(item => item.packId === book.contentPackId && item.chapter === option.chapter)}
-              onAdd={range => addVerseRange(book.contentPackId, range)}
-              onRemove={range => removeVerseRange(book.contentPackId, range)} />)}
-          </div>}
-        </fieldset>;
-      })}</div>
+      {data.books.length > 1 && <div className="planner-book-tabs" role="tablist" aria-label="Season books">
+        {data.books.map(book => {
+          const count = chaptersOf(book).length;
+          const isActive = book.contentPackId === activeBook?.contentPackId;
+          return <button key={book.contentPackId} type="button" role="tab" aria-selected={isActive} className={`planner-book-tab${isActive ? " is-active" : ""}`} onClick={() => setActiveBookId(book.contentPackId)}>
+            <span className="planner-book-tab-name">{book.name}</span>
+            <span className="planner-book-tab-count">{count ? `${count} selected` : "None yet"}</span>
+          </button>;
+        })}
+      </div>}
+      {data.books.length > 1 && <p className="planner-book-summary" aria-label="Selection summary">{data.books.map((book, index) => {
+        const chapters = chaptersOf(book);
+        return <span key={book.contentPackId}>{index > 0 && " · "}<strong>{book.name}</strong> {chapters.length ? chapters.join(", ") : "—"}</span>;
+      })}</p>}
+      {activeBook && <fieldset className="planner-chapter-book"><legend>{activeBook.name}</legend>
+        {activeBook.restricted && <p className="planner-caption">Only the saved season selection is available.</p>}
+        <ChapterStrip bookName={activeBook.name} options={activeOptions}
+          selected={activeOptions.filter(option => selected.includes(`${activeBook.contentPackId}/${option.chapter}`)).map(option => option.chapter)}
+          verseRanges={verseRanges.filter(item => item.packId === activeBook.contentPackId)}
+          disabled={closed || pending}
+          onSelect={(chapters, select) => change(chapters.map(chapter => `${activeBook.contentPackId}/${chapter}`), select)}
+          onRemoveChapter={chapter => change([`${activeBook.contentPackId}/${chapter}`], false)} />
+        {!!activeRefined.length && <div className="planner-verse-refine">
+          <h4>Refine verses <span className="planner-caption">optional</span></h4>
+          {activeRefined.map(option => <VerseRefine key={option.chapter} option={option}
+            ranges={verseRanges.filter(item => item.packId === activeBook.contentPackId && item.chapter === option.chapter)}
+            onAdd={range => addVerseRange(activeBook.contentPackId, range)}
+            onRemove={range => removeVerseRange(activeBook.contentPackId, range)} />)}
+        </div>}
+      </fieldset>}
       <details className="planner-settings"><summary>Plan settings · {difficulty}</summary><div className="planner-pair">
         <label>Assignment role<Select value={role} onChange={event => { setRole(event.target.value); setSelected([]); setVerseRanges([]); }}><option value="PrimarySpecialist">Specialist study</option><option value="RequiredCoverage">Required coverage</option>{self && <option value="OptionalReview">Optional review</option>}</Select></label>
         <label>Training difficulty<Select value={difficulty} onChange={event => setDifficulty(event.target.value as TrainingDifficulty)}>{["Foundation", "Standard", "Advanced"].map(value => <option key={value}>{value}</option>)}</Select></label>
