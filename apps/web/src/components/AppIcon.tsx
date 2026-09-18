@@ -1,4 +1,4 @@
-export type IconName = "home" | "book" | "review" | "chart" | "users" | "flag" | "arrow" | "logout" | "menu" | "close" | "search" | "pin" | "chevron" | "grid" | "plus" | "check" | "bell" | "flame";
+export type IconName = "home" | "book" | "review" | "chart" | "users" | "flag" | "arrow" | "logout" | "menu" | "close" | "search" | "pin" | "chevron" | "grid" | "plus" | "check" | "bell" | "flame" | "sun" | "moon";
 const paths: Record<IconName, string> = {
   check: "m5 12 4 4L19 6",
   search: "M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
@@ -18,6 +18,8 @@ const paths: Record<IconName, string> = {
   close: "m5 5 14 14M5 19 19 5",
   bell: "M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
   flame: "M12 2s6 5 6 11a6 6 0 0 1-12 0c0-2 1-4 2-5.2.6 1.6 1.6 2.6 3 3.2-.4-3 .1-6 1-9z",
+  sun: "M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-15v2m0 16v2M4.2 4.2l1.4 1.4m13.2 13.2 1.4 1.4M2 12h2m16 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4",
+  moon: "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z",
 };
 export function AppIcon({ name }: { name: IconName }) {
   return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>;

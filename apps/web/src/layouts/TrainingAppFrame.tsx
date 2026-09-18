@@ -1,5 +1,6 @@
 import { ProfileAvatar } from "../features/profile/ProfileAvatar";
 import { NotificationBell } from "../features/profile/NotificationBell";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -130,9 +131,11 @@ function CommandFrame({ coach }: { coach: boolean }) {
       <Link to={home} className="command-brand" aria-label="Erudoza home"><ErudozaWordmark compact inverted /></Link>
       <div className="command-account-cluster">
       <NotificationBell />
+      <ThemeToggle />
       <NavigationMenu key={`account:${route}`} name="Account" label={<><ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? ""} size={48} /><span className="command-account-name">{me?.displayName}</span></>}>
         <div className="command-account-detail"><strong>{me?.displayName}</strong><span>{me?.organizationName}</span><small>{coach ? <><Badge>{me?.role ?? "Coach"}</Badge> mode</> : "Student mode"}</small></div>
         <span className="command-account-notifications"><NotificationBell /></span>
+        <span className="command-account-notifications"><ThemeToggle /></span>
         {!isContentManager && <Link to={coach ? "/admin/profile" : `/student/profile${selectedSeason ? `?seasonId=${encodeURIComponent(selectedSeason)}` : ""}`}><AppIcon name="users" />Your profile</Link>}
         <Link to="/help"><AppIcon name="book" />Help</Link>
         {canSwitch && <Link data-testid="switch-workspace" to={`${coach ? "/student" : "/admin"}${switchSeason ? `?seasonId=${encodeURIComponent(switchSeason)}` : ""}`}><AppIcon name="arrow" />Switch to {coach ? "Student" : "Coach"} mode</Link>}

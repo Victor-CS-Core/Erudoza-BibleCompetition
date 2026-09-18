@@ -62,3 +62,42 @@
   --er-reading-large: 1.5rem;
   --er-reading-larger: 1.75rem;
 }
+
+/* Dark theme: warm charcoal surfaces keep the ivory brand's warmth after dark.
+   Components read these tokens, so flipping them re-skins every page. */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --er-ink-navy: #f0e9d8;
+  --er-teal: #4fb3b6;
+  --er-action-blue: #63b8bb;
+  --er-learning-blue: #7fb0cf;
+  --er-coral: #e4704e;
+  --er-paper: #16140f;
+  --er-card: #201d16;
+  --er-surface-soft: #2a251c;
+  --er-selected: #1e3a38;
+  --er-parchment: #2b2517;
+  --er-kraft: #a8854f;
+  --er-kraft-dark: #d3b586;
+  --er-graphite: #b8b2a4;
+  --er-muted-ink: #9d968a;
+  --er-border: #3b362b;
+  --er-border-strong: #5a5342;
+  --er-deep-table: #0c0b09;
+  --er-success-ink: #82cba0;
+  --er-success-surface: #1b2b21;
+  --er-stamp-red: #e0684f;
+  --er-danger-surface: #331e15;
+  --er-warning-ink: #d9b26a;
+  --er-warning-surface: #2f2617;
+  --er-on-navy: #f7f1e3;
+  --er-on-navy-muted: #b9cdd4;
+  --er-thread-gold: #e3b85e;
+  --er-focus: 0 0 0 3px color-mix(in srgb, var(--er-teal) 45%, transparent);
+  --er-shadow-overlay: 0 12px 32px #00000066;
+  --er-patch-shadow-contact: color-mix(in srgb, #000000 45%, transparent);
+  --er-patch-shadow-soft: color-mix(in srgb, #000000 50%, transparent);
+  --er-highlight-promises: #57491f;
+  --er-highlight-people: #1e443b;
+  --er-highlight-review: #3a3160;
+}

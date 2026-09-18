@@ -163,6 +163,7 @@
 .study-mode-tabs a { padding:10px 18px; border-radius:999px; border:1px solid var(--er-border); color:var(--er-muted-ink); text-decoration:none; font-weight:600; }
 .study-mode-tabs a:hover { color:var(--er-ink-navy); border-color:var(--er-ink-navy); }
 .study-mode-tabs a.is-active { background:var(--er-ink-navy); border-color:var(--er-ink-navy); color:#fff; }
+[data-theme="dark"] .study-mode-tabs a.is-active { color:#16140f; }
 
 .training-assigned-passages ul{list-style:none;margin:var(--er-space-2) 0 0;padding:0;display:grid;gap:var(--er-space-1)}
 .training-assigned-passages li{padding:var(--er-space-1) 0;border-bottom:1px solid var(--er-border);font-size:var(--er-text-sm)}
