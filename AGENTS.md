@@ -21,6 +21,16 @@ Preserve the Erudoza brand, existing workflow semantics, routes, accessibility, 
 New UI patterns should extend the shared system when reused. Verify coach and student screens together on desktop and mobile after shared styling changes.
 <!-- bm-design-system:end -->
 
+## Learner parity (standing rule, 2026-09-18)
+
+Never gate student features away from coaches. Coaches have a student mode and
+sometimes compete themselves, so an Adult Owner/Admin in learner mode must be
+able to reach everything a Student can. Strict `student()` checks on
+learner-facing paths have caused real 403/404 bugs (PBE chapter progress,
+season cooperation). Use `requireLearner()` / `learner()` (Student/Student OR
+Adult Owner/Admin), never a Student-only check, on any learner-facing route,
+query, or capability.
+
 ## Wiki release gate
 
 Before merging any user-facing feature, behavior, or visual change to `main`, review the authenticated wiki at `/wiki`:

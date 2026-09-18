@@ -26,6 +26,8 @@ async function current(scope:VerifiedCooperationScope,s:Snapshot){return !!(awai
 async function own(scope:VerifiedCooperationScope,s:Snapshot){
  if(scope.operation.startsWith('Coach'))return null;
  const row=await scope.ctx.env.DB.prepare("SELECT e.value FROM Records m INDEXED BY Records_training_scope JOIN json_each(m.data,'$.entries') e WHERE m.kind='pbe-cooperation-manifest' AND m.org_id=? AND m.season_id=? AND m.owner_id IS NULL AND json_extract(m.data,'$.generationId')=? AND json_extract(m.data,'$.family')='subjects' AND json_extract(e.value,'$.studentId')=? LIMIT 1").bind(scope.ctx.orgId,scope.seasonId,s.generationId,scope.ctx.actor.userId).first<{value:string}>();
+ // Adult learners aren't on the student roster: show the team summary without a personal entry.
+ if(!row&&scope.ctx.actor.kind!=='Student')return null;
  if(!row)throw cooperationStale();const item=JSON.parse(row.value) as CooperationStudentSummary;return {state:item.state,scripture:item.scripture,introduction:item.introduction};
 }
 async function view(scope:VerifiedCooperationScope,w:CooperationWork|null,validate=true):Promise<CooperationSnapshot>{

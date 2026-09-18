@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
@@ -111,7 +111,9 @@ describe("ProgressPage recorded evidence", () => {
     const data=progress({assignments:[{difficulty:"Standard"} as Progress['assignments'][number]]});
     vi.mocked(api.progress).mockResolvedValue(data);vi.mocked(api.studentProgress).mockResolvedValue(data);
     renderProgress(path);
-    expect(await screen.findByText("Coach-set difficulty: Standard")).toBeInTheDocument();
+    // Scoring detail lives in the HelpTip now, not visible paragraphs.
+    fireEvent.click(await screen.findByRole("button", { name: "About passage scoring" }));
+    expect(screen.getByText(/Coach-set difficulty: Standard/)).toBeVisible();
     expect(screen.getByText(/Foundation wording evidence stops at 40/)).toHaveTextContent("Standard at 70");
     expect(screen.getByText(/Advanced mastery challenges require/)).toHaveTextContent("Your difficulty does not change automatically");
   });
@@ -123,7 +125,7 @@ describe("ProgressPage recorded evidence", () => {
     expect(screen.getByRole("heading", { name: "Your passage progress" })).toBeInTheDocument();
     expect(screen.getByTestId("progress-attempts")).toHaveTextContent("3");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Daniel 1:1");
-    expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Exact wording score: 80 / 100");
+    expect(screen.getByTestId("progress-mastery")).toHaveTextContent("80");
     expect(screen.getByTestId("recent-attempts")).toHaveTextContent("Missing Words");
     expect(screen.getByTestId("progress-recent")).toHaveTextContent("100%");
     expect(screen.queryByTestId("progress-mastery-pathway")).not.toBeInTheDocument();

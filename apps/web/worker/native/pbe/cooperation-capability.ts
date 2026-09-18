@@ -14,7 +14,13 @@ export class VerifiedCooperationScope {
   if(ctx.orgId!==ctx.actor.organizationId)throw new HttpError(403,'Organization access denied.');
   const actor=await ctx.env.DB.prepare('SELECT active,kind,role FROM Users WHERE id=? AND org_id=?').bind(ctx.actor.userId,ctx.orgId).first<{active:number;kind:string;role:string}>();
   if(!actor?.active||actor.kind!==ctx.actor.kind||actor.role!==ctx.actor.role)throw new HttpError(403,'Active account required.');
-  if(operation.startsWith('Coach'))admin(ctx.actor);else if(actor.kind!=='Student'||actor.role!=='Student')throw new HttpError(403,'Student access required.');
+  if(operation.startsWith('Coach'))admin(ctx.actor);else{
+   // Learner parity: Student/Student or Adult Owner/Admin on their own learner view.
+   // (The cooperation roster itself stays Students-only; non-roster learners get
+   // the team summary with no personal entry.)
+   const isLearner=(actor.kind==='Student'&&actor.role==='Student')||(actor.kind==='Adult'&&(actor.role==='Owner'||actor.role==='Admin'));
+   if(!isLearner)throw new HttpError(403,'Learner access required.');
+  }
   const row=await ctx.env.DB.prepare("SELECT s.revision,json_extract(s.data,'$.organizationId') AS organizationId,json_extract(s.data,'$.status') AS status,json_extract(s.data,'$.pbeEnabled') AS enabled,sc.revision AS scopeRevision FROM Records s LEFT JOIN Records sc ON sc.org_id=s.org_id AND sc.kind='scope' AND sc.id=s.id WHERE s.kind='season' AND s.org_id=? AND s.id=?").bind(ctx.orgId,seasonId).first<{revision:number;organizationId:string;status:string;enabled:number;scopeRevision:number|null}>();
   if(!row)throw new HttpError(404,'Season was not found.');if(row.organizationId!==ctx.orgId)throw new HttpError(403,'Organization access denied.');
   const guards:InputGuard[]=[{kind:'season',id:seasonId,revision:row.revision},{kind:'scope',id:seasonId,revision:row.scopeRevision}];

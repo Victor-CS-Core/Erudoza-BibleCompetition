@@ -1,5 +1,19 @@
 # Erudoza progress log
 
+## Progress page redesign + cooperation learner fix — September 18 (uncommitted)
+
+- User request (iPhone screenshots): the "Your progress" page is "a very big scrollable experience" with many chapters/verses assigned. Approved the mockup direction; asked to implement.
+- Redesign (`ProgressPage.tsx`, new `PassageBrowser.tsx`):
+  - New "Needs attention" panel: top 5 due/low-score passages with direct Practice/Review CTAs (student view only).
+  - New passage browser replacing the endless list: search field, filter chips (All / Needs practice / Due / Mastered), passages grouped by book in collapsible `<details>` sections. Each book header shows "X of Y mastered" + thin progress bar; rows are single-line (reference, mini score bar, score, level badge). "Legacy scoring" kept as a small note.
+  - Scoring/difficulty explanation paragraphs moved into a HelpTip beside the section heading (per design system: optional detail in tooltips).
+  - "Recent attempts" collapsed in a `<details>` disclosure (secondary content).
+  - "Recorded activity" summary panel unchanged.
+- Cooperation learner fix (same session): `/api/v1/progress/me/pbe-cooperation` returned 403 for Adult Owner/Admin ("Student access required"). `VerifiedCooperationScope.create` now admits learners (Student/Student or Adult Owner/Admin); `own()` returns null for non-roster learners instead of throwing stale. Frontend already handles `own: null`.
+- Standing rule recorded (user directive): never gate student features from coaches — Adult Owner/Admin in learner mode must reach everything students can. Added to `AGENTS.md` (Learner parity) and `MEMORY.md`.
+- Verification: web `tsc` clean; ESLint clean on touched files; ProgressPage 13/13, PassageBrowser 4/4 (new), router-gates 5/5; cooperation 50/50 (earlier). Full suite not run — targeted gate only.
+- Nothing committed, pushed, or deployed — needs explicit push approval, then staging + iPhone verdict.
+
 ## HelpTip correction — user feedback, September 18 (uncommitted)
 
 - User corrected the interpretation: tooltips were never meant for page headers — only for the optional section-description kind demonstrated by "Simulation patches" / "Team Honors". Page headings keep visible description text.
