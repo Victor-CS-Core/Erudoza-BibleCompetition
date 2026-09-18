@@ -165,7 +165,7 @@ export function MaterialsPage({ initialTab }: { initialTab?: "releases" | "news"
   if (loading) return <LoadingState label="Checking your account…" />;
   if (!allowed) return <div className="training-page"><PageHeader title="PBE materials" /><Notice tone="danger">PBE materials and news management is limited to the club Owner and Content Managers.</Notice><LinkButton to={me?.kind === "Student" ? "/student" : "/login"}>Return to your workspace</LinkButton></div>;
 
-  return <div className="training-page"><PageHeader title={tab === "news" ? "PBE news" : "PBE materials"} help="Review yearly PBE releases and news. Nothing publishes itself — the club Owner approves every release, and publishes or unpublishes every news article." />
+  return <div className="training-page"><PageHeader title={tab === "news" ? "PBE news" : "PBE materials"} description="Review yearly PBE releases and news. Nothing publishes itself — the club Owner approves every release, and publishes or unpublishes every news article." />
     <div role="tablist" aria-label="Materials sections" className="ds-tablist">
       <Button variant={tab === "releases" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "releases"} onClick={() => setTab("releases")}>Releases</Button>
       <Button variant={tab === "news" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "news"} onClick={() => setTab("news")}>News</Button>

@@ -86,7 +86,7 @@ export function CoachesPage() {
   if (loading) return <LoadingState label="Checking your account…" />;
   if (!allowed) return <div className="training-page"><PageHeader title="Coaches" /><Notice tone="danger">Only club owners and coaches can manage coach invitations.</Notice><LinkButton to={me?.kind === "Student" ? "/student" : "/login"}>Return to your workspace</LinkButton></div>;
   return <div className="training-page">
-    <PageHeader title="Coaches" help={`Manage adult access to ${me!.organizationName}. ${isOwner ? "You can invite owners, coaches, and content managers." : "Only the club Owner can invite coaches or manage invitations."}`} />
+    <PageHeader title="Coaches" description={`Manage adult access to ${me!.organizationName}. ${isOwner ? "You can invite owners, coaches, and content managers." : "Only the club Owner can invite coaches or manage invitations."}`} />
     {!options ? <LoadingState label="Checking coach invitations…" />
       : forbidden ? <Notice tone="danger">You do not have permission to manage coaches for this club. Sign in with an authorized coach account.</Notice>
       : coaches.isError || invitations.isError ? <Panel><Notice tone="danger">Unable to load coaches and invitations. Check your connection and try again.</Notice><Button variant="secondary" onClick={() => { void coaches.refetch(); void invitations.refetch(); }}>Try again</Button></Panel>

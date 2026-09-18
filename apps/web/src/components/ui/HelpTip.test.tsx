@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { HelpTip, PageHeader } from "./index";
+import { HelpTip } from "./index";
 
 describe("HelpTip", () => {
   it("hides the detail message until the question-mark trigger is tapped", () => {
@@ -34,10 +34,4 @@ describe("HelpTip", () => {
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
 
-  it("renders a PageHeader help tooltip beside the title instead of a description paragraph", () => {
-    render(<PageHeader title="Team Practice" help="Practice answering questions about your assigned Scripture as a team." />);
-    expect(screen.queryByText("Practice answering questions about your assigned Scripture as a team.")).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "About Team Practice" }));
-    expect(screen.getByText("Practice answering questions about your assigned Scripture as a team.")).toBeVisible();
-  });
 });

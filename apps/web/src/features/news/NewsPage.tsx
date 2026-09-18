@@ -53,7 +53,7 @@ function NewsFeed({ base }: { base: string }) {
   const { me } = useAuth();
   const org = me!.organizationId;
   const feed = useQuery({ queryKey: ["pbe-news", org], queryFn: () => api.pbeNews(org), retry: false });
-  return <div className="training-page news-page"><PageHeader title="PBE news" help="Announcements, new materials, and event updates for Pathfinder Bible Experience." />
+  return <div className="training-page news-page"><PageHeader title="PBE news" description="Announcements, new materials, and event updates for Pathfinder Bible Experience." />
     {feed.isPending ? <LoadingState label="Loading PBE news…" /> : feed.isError ? <Notice tone="danger">The news feed could not load. <Button variant="secondary" onClick={() => void feed.refetch()}>Try again</Button></Notice>
       : feed.data.length === 0 ? <EmptyState title="No PBE news yet" description="Published announcements and material updates will appear here." />
       : <div className="news-feed">

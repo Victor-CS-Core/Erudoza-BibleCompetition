@@ -63,7 +63,7 @@ export function LegalPage({
       </header>
       <main id="public-main" className="public-main" tabIndex={-1}>
         <div className="public-legal-body">
-          <PageHeader titleId={`${testId}-title`} title={title} help={description} />
+          <PageHeader titleId={`${testId}-title`} title={title} description={description} />
           <Notice tone="info" className="public-legal-disclaimer">
             <strong>Independent training tool.</strong> Erudoza is not affiliated with, authorized by,
             sponsored by, or endorsed by the General Conference Corporation of Seventh-day Adventists,

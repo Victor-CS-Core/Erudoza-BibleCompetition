@@ -22,10 +22,10 @@ export function Input({ className = "", ...props }: InputHTMLAttributes<HTMLInpu
 export function Select({ className = "", ...props }: SelectHTMLAttributes<HTMLSelectElement>) { return <select className={`ds-input ds-select ${className}`} {...props} />; }
 export function Textarea({ className = "", ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { ref?: Ref<HTMLTextAreaElement> }) { return <textarea className={`ds-input ds-textarea ${className}`} {...props} />; }
 export function Panel({ as: Tag = "section", className = "", ...props }: HTMLAttributes<HTMLElement> & { as?: "section" | "article" | "div" | "aside" }) { return <Tag className={`ds-panel ${className}`} {...props} />; }
-export function PageHeader({ as: Tag = "header", titleId, title, description, help, helpLabel, action, children, className = "" }: { as?: "header" | "div"; titleId?: string; title: ReactNode; description?: ReactNode; help?: ReactNode; helpLabel?: string; action?: ReactNode; children?: ReactNode; className?: string }) {
-  return <Tag className={`ds-page-header ${className}`}><div><h1 id={titleId}>{title}{help ? <HelpTip label={helpLabel ?? (typeof title === "string" ? `About ${title}` : "About this section")}>{help}</HelpTip> : null}</h1>{description && <p>{description}</p>}{children}</div>{action && <div className="ds-page-action">{action}</div>}</Tag>;
+export function PageHeader({ as: Tag = "header", titleId, title, description, action, children, className = "" }: { as?: "header" | "div"; titleId?: string; title: ReactNode; description?: ReactNode; action?: ReactNode; children?: ReactNode; className?: string }) {
+  return <Tag className={`ds-page-header ${className}`}><div><h1 id={titleId}>{title}</h1>{description && <p>{description}</p>}{children}</div>{action && <div className="ds-page-action">{action}</div>}</Tag>;
 }
-/** Contextual help: a question-mark trigger beside a heading. The section's detail message lives in the tooltip box. Tap/click toggles, Escape and outside presses dismiss. */
+/** Contextual help: a question-mark icon beside a section heading. The section's detail message lives in the tooltip box. Tap/click toggles, Escape and outside presses dismiss. */
 export function HelpTip({ label, children }: { label: string; children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const tipId = useId();
@@ -47,7 +47,11 @@ export function HelpTip({ label, children }: { label: string; children: ReactNod
     <span className="ds-help-tip" ref={wrapRef}>
       <button type="button" className="ds-help-tip-trigger" aria-expanded={open} aria-controls={open ? tipId : undefined} aria-label={label}
         onClick={(event) => { event.preventDefault(); event.stopPropagation(); setOpen((value) => !value); }}>
-        <span aria-hidden="true">?</span>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M9.55 9.45a2.75 2.75 0 1 1 4.05 2.45c-.72.44-1.5.92-1.55 2.05" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" />
+          <circle cx="12.05" cy="16.75" r="1.25" fill="currentColor" stroke="none" />
+        </svg>
       </button>
       {open && <span role="tooltip" id={tipId} className="ds-help-tip-box">{children}</span>}
     </span>

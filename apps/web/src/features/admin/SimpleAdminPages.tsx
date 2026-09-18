@@ -88,7 +88,7 @@ export function StudentsPage() {
   function onSubmit(event: FormEvent) { event.preventDefault(); if (!canCreate || create.isPending) return; setError(null); create.mutate(); }
 
   return <div className="training-page">
-    <PageHeader title="Students" help="Add students and manage their sign-in details." />
+    <PageHeader title="Students" description="Add students and manage their sign-in details." />
 
     {error && !resetStudentId && <Notice tone="danger">{error}</Notice>}
     <div role="tablist" aria-label="Students views" className="ds-tablist">
@@ -152,7 +152,7 @@ export function AssignmentsPage() {
   useEffect(() => { if (!requestedId && season) setParams(previous => { const next = new URLSearchParams(previous); next.set("seasonId", season.id); return next; }, { replace: true }); }, [requestedId, season, setParams]);
   const coverage = useQuery({ queryKey: ["coverage", me?.organizationId, season?.id], queryFn: () => api.coverage(me!.organizationId, season!.id), enabled: !!me && !!season && !studentId });
   return <div className="training-page assignment-overview">
-    <PageHeader title={selectedStudent ? `${selectedStudent.displayName}’s assignments` : "Assignments"} help="Choose a student and season, then assign their books." action={<LinkButton size="compact" variant="secondary" to="/admin/students">Back to students</LinkButton>} />
+    <PageHeader title={selectedStudent ? `${selectedStudent.displayName}’s assignments` : "Assignments"} description="Choose a student and season, then assign their books." action={<LinkButton size="compact" variant="secondary" to="/admin/students">Back to students</LinkButton>} />
     {students.isPending && <p role="status">Loading students…</p>}
     {students.isError && <QueryError retry={() => void students.refetch()}>Unable to load students.</QueryError>}
     <div className="assignment-context">

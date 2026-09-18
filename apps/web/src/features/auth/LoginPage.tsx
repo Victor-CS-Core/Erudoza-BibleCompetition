@@ -48,7 +48,7 @@ export function LoginPage() {
         <Link to="/" className="training-login-back" data-testid="login-join-academy">← Back to home</Link>
         <div className="training-login-form-wrap">
 
-          <div id="login-heading"><PageHeader title="Sign in" help="Sign in to continue your Scripture study and team practice." /></div>
+          <div id="login-heading"><PageHeader title="Sign in" description="Sign in to continue your Scripture study and team practice." /></div>
           <form onSubmit={(event) => void onSubmit(event)} aria-busy={pending}>
             <label htmlFor="login-identifier">Email or username</label>
             <Input id="login-identifier" data-testid="login-identifier" value={identifier} onChange={(event) => setIdentifier(event.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder="Enter your email or username" aria-invalid={!!error} aria-describedby={error ? "login-error" : undefined} disabled={pending} required />

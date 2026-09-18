@@ -21,7 +21,7 @@ export function ContentPage() {
   const units = useQuery({ queryKey: ["library-chapter", org, selectedId, chapter], queryFn: () => api.libraryChapter(org, selectedId, chapter!), enabled: !!selected && !!chapter });
   const choose = (book: string, number: number) => { const next = new URLSearchParams(params); next.set("book", book); next.set("chapter", String(number)); setParams(next, { replace: true }); setBrowserOpen(false); };
   const index = selected?.chapters.findIndex(c => c.number === chapter) ?? -1;
-  return <div className="training-page"><PageHeader title="Scripture library" help="New King James Version" />
+  return <div className="training-page"><PageHeader title="Scripture library" description="New King James Version" />
     {library.isPending ? <Notice>Loading the NKJV library…</Notice> : library.isError ? <Notice tone="danger">{library.error.message} <Button variant="secondary" onClick={() => void library.refetch()}>Retry library</Button></Notice> : <div className="study-library">
       <PbeMaterialsSection org={org} seasonId={seasonId} books={library.data.books} onOpenChapter={choose} />
       <Panel id="library-books"><div className="study-books-heading"><h2>Books of the Bible <Badge>{library.data.books.length}</Badge></h2>{selected && <Button variant="secondary" aria-expanded={browserOpen} aria-controls="study-book-browser" onClick={() => setBrowserOpen(!browserOpen)}>{browserOpen ? 'Hide books' : 'Choose book'}</Button>}</div><div id="study-book-browser" hidden={!!selected && !browserOpen}><p>Explore every book. Read at your own pace.</p>

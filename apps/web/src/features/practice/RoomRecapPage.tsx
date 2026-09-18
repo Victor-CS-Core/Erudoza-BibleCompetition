@@ -54,7 +54,7 @@ export function RoomRecapPage() {
       document.body.removeChild(area);
     }
   };
-  return <div className="training-dashboard training-recap"><PageHeader title="Room recap" help="Your saved team practice result." action={<LinkButton variant="secondary" to={link("/student/practice")}>Back to Team Practice</LinkButton>} />
+  return <div className="training-dashboard training-recap"><PageHeader title="Room recap" description="Your saved team practice result." action={<LinkButton variant="secondary" to={link("/student/practice")}>Back to Team Practice</LinkButton>} />
     {!roomId ? <Notice tone="danger">This recap link is incomplete. Return to Team Practice to find your room.</Notice> : recap.isPending ? <LoadingState label="Loading your room recap…" /> : recap.isError && recap.error instanceof ApiError && recap.error.status === 409 ? <Panel><h2>This room has not completed yet</h2><p>Recaps are available once the match is complete.</p><LinkButton to={link(`/student/practice/${encodeURIComponent(roomId)}`)}>Open room</LinkButton></Panel> : recap.isError ? <Notice tone="danger">This recap is unavailable or you do not have access. <Button variant="secondary" onClick={() => void recap.refetch()}>Try again</Button></Notice> : data && <>
       <div className="training-recap-layout">
         <Panel className="training-recap-main">
