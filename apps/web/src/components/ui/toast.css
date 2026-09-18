@@ -50,6 +50,7 @@
 }
 .er-toast-success .er-toast-icon { background: var(--er-teal); }
 .er-toast-danger .er-toast-icon { background: var(--er-stamp-red); }
+[data-theme="dark"] .er-toast-icon { color: #10181a; }
 
 .er-toast-message {
   flex: 1;

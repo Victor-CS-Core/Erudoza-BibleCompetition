@@ -20,6 +20,7 @@
 .command-theme { color:var(--er-on-navy); }
 .command-theme:hover { background:color-mix(in srgb,var(--er-on-navy) 12%,transparent); }
 .command-bell-badge { position:absolute; top:4px; right:4px; min-width:18px; height:18px; padding:0 5px; border-radius:999px; background:var(--er-coral); color:#fff; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; line-height:1; }
+[data-theme="dark"] .command-bell-badge { color:#10181a; }
 .command-bell-panel { position:absolute; top:calc(100% + 8px); right:0; z-index:45; width:320px; max-width:calc(100vw - 32px); background:var(--er-card); color:var(--er-ink-navy); box-shadow:var(--er-shadow-overlay); border-radius:var(--er-radius-card,12px); overflow:hidden; }
 .command-bell-header { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 12px 8px; border-bottom:1px solid var(--er-border); }
 .command-bell-header strong { font-size:var(--er-text-sm); }

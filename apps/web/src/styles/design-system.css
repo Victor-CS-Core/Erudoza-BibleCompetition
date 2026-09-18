@@ -9,7 +9,7 @@
 .ds-highlight-review { --er-study-highlight:var(--er-highlight-review); }
 .ds-scripture-selected { text-decoration:underline; text-decoration-color:var(--er-teal); text-underline-offset:4px; }
 .ds-scripture-concealed { color:var(--er-muted-ink); background:var(--er-surface-soft); border-radius:3px; letter-spacing:.05em; }
-.ds-highlight-swatch { display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--er-study-highlight); border:1px solid var(--er-border-strong); flex-shrink:0; }
+.ds-highlight-swatch { display:inline-block; width:12px; height:12px; border-radius:50%; background:var(--er-study-highlight, var(--er-selected)); border:1px solid var(--er-border-strong); flex-shrink:0; }
 .ds-study-quote { color:var(--er-ink-navy); font:400 var(--er-text-base)/1.7 var(--er-font-reading); border-left:3px solid var(--er-kraft); margin:var(--er-space-3) 0; padding-left:var(--er-space-3); white-space:pre-wrap; overflow-wrap:anywhere; }
 .ds-study-entry { border-top:1px solid var(--er-border); padding-top:var(--er-space-4); margin-top:var(--er-space-4); }
 .ds-verse-number { align-self:start; font-variant-numeric:tabular-nums; }
@@ -50,6 +50,7 @@
 .ds-button > :not(svg), .ds-badge > :not(svg) { min-width: 0; }
 .ds-button > svg, .ds-badge > svg { flex-shrink: 0; }
 .ds-button-primary { color: var(--er-on-navy); background: var(--er-action-blue); }
+[data-theme="dark"] .ds-button-primary { color: #10181a; }
 /* The forward action lifts off the page: filled teal + a whisper of shadow. */
 .ds-button-primary:not(:disabled) { box-shadow: 0 1px 2px #102e4733, inset 0 1px 0 #ffffff22; }
 .ds-button-secondary { color: var(--er-ink-navy); background: var(--er-card); border-color: var(--er-border-strong); }

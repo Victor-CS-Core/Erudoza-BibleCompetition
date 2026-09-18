@@ -91,6 +91,27 @@
 .training-honor-preview-items > a, .training-honor-preview-items > div { display: grid; justify-items: center; gap: 8px; min-width: 120px; max-width: 220px; text-align: center; }
 .training-passage-journey { display: grid; gap: 20px; }
 .training-passage-list > li { padding: 20px 0; border-bottom: 1px solid var(--er-border); }
+/* Visual chapter progress: stat row + passage card grid (replaces the verse log list). */
+.journey-chapter-stats { display: flex; flex-wrap: wrap; gap: 12px 32px; margin: 4px 0 12px; }
+.journey-chapter-stats > div { display: grid; gap: 2px; }
+.journey-chapter-stats strong { font-size: var(--er-text-title); font-weight: 800; color: var(--er-ink-navy); line-height: 1; }
+.journey-chapter-stats strong span { font-size: var(--er-text-base); font-weight: 600; color: var(--er-muted-ink); }
+.journey-chapter-stats > div > span:last-child { font-size: var(--er-text-xs); color: var(--er-muted-ink); text-transform: uppercase; letter-spacing: .04em; }
+.journey-chapter-stats .is-due strong { color: var(--er-stamp-red); }
+.journey-legacy-note { margin: 12px 0 0; }
+.journey-passage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; list-style: none; padding: 0; margin: 16px 0 0; }
+.journey-passage-card { display: grid; gap: 10px; align-content: start; border: 1px solid var(--er-border); border-top: 3px solid var(--er-border); border-radius: var(--er-radius-card); background: var(--er-card); padding: 14px; }
+.journey-passage-card.journey-tone-success { border-top-color: var(--er-teal); }
+.journey-passage-card.journey-tone-warning { border-top-color: var(--er-coral); }
+.journey-passage-card.is-due { border-color: var(--er-coral); }
+.journey-passage-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.journey-passage-head strong { font-size: var(--er-text-sm); color: var(--er-ink-navy); }
+.journey-passage-hint { margin: 0; font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.journey-skill-details { font-size: var(--er-text-xs); }
+.journey-skill-details summary { cursor: pointer; color: var(--er-muted-ink); font-weight: 600; }
+.journey-skill-details .training-skill-list { margin-top: 8px; }
+.journey-due { margin: 0; font-size: var(--er-text-xs); font-weight: 700; color: var(--er-stamp-red); }
+.journey-practice-link { display: inline-flex; align-items: center; gap: 6px; font-size: var(--er-text-sm); font-weight: 700; color: var(--er-ink-navy); }
 .pbe-chapter-journey > .training-panel-title { align-items: end; }
 .pbe-chapter-card { display: grid; gap: 16px; }
 .pbe-chapter-card h3, .pbe-chapter-card p, .pbe-season-coverage h2, .pbe-season-coverage h3, .pbe-season-coverage p { margin: 0; }
@@ -163,7 +184,6 @@
 .study-mode-tabs a { padding:10px 18px; border-radius:999px; border:1px solid var(--er-border); color:var(--er-muted-ink); text-decoration:none; font-weight:600; }
 .study-mode-tabs a:hover { color:var(--er-ink-navy); border-color:var(--er-ink-navy); }
 .study-mode-tabs a.is-active { background:var(--er-navy-surface); border-color:var(--er-navy-surface); color:#fff; }
-[data-theme="dark"] .study-mode-tabs a.is-active { color:#16140f; }
 
 .training-assigned-passages ul{list-style:none;margin:var(--er-space-2) 0 0;padding:0;display:grid;gap:var(--er-space-1)}
 .training-assigned-passages li{padding:var(--er-space-1) 0;border-bottom:1px solid var(--er-border);font-size:var(--er-text-sm)}
@@ -207,7 +227,7 @@
 .team-activity-copy svg { color: var(--er-teal); flex: none; }
 .team-activity-copy p { margin: 0; font-size: var(--er-text-sm); }
 .team-dots { display: flex; }
-.team-dot { width: 28px; height: 28px; border-radius: 50%; background: color-mix(in srgb, var(--er-teal) 25%, var(--er-surface)); border: 2px solid var(--er-surface); margin-left: -8px; }
+.team-dot { width: 28px; height: 28px; border-radius: 50%; background: color-mix(in srgb, var(--er-teal) 25%, var(--er-card)); border: 2px solid var(--er-card); margin-left: -8px; }
 .team-dot:first-child { margin-left: 0; }
 .leaderboard-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
 .leaderboard-list li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--er-border); }

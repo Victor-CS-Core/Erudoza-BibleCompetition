@@ -202,6 +202,8 @@
 .er-deck-art-card-rehearsal .er-deck-art-ribbon {
   background: var(--er-teal);
 }
+[data-theme="dark"] .er-deck-art-card-reviews .er-deck-art-ribbon,
+[data-theme="dark"] .er-deck-art-card-rehearsal .er-deck-art-ribbon { color: #10181a; }
 
 .er-deck-art-count {
   margin: 0;
@@ -746,7 +748,7 @@
   min-width: 44px;
   min-height: 44px;
   padding: 0.3rem 0.2rem;
-  color: color-mix(in srgb, var(--er-card) 74%, transparent);
+  color: var(--er-on-navy-muted);
   font-size: 0.72rem;
   font-weight: 650;
   line-height: 1;
