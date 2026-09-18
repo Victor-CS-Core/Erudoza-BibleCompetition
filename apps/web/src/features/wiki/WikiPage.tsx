@@ -109,7 +109,7 @@ export function WikiPage({ scope }: { scope: WikiScope }) {
     <main id="wiki-main" className="wiki-main" tabIndex={-1}>
       <PageHeader
         title={isPublic ? "Erudoza wiki" : "Help"}
-        description={isPublic
+        help={isPublic
           ? "Learn what Erudoza is, how Pathfinder Bible Experience training works, and how to start a club."
           : "Search practical explanations for the workspace you are in: features, controls, statuses, and recovery paths."}
       />

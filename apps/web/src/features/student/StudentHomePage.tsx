@@ -46,7 +46,7 @@ export function StudentHomePage() {
     <section className="training-hq-hero ds-inverse-surface" aria-labelledby="training-hq-title">
       <LandscapeBanner className="training-hq-banner" priority />
       <div className="training-hq-hero-copy">
-        <PageHeader as="div" titleId="training-hq-title" title="Training HQ" description="Review your assigned Scripture and prepare for team practice." />
+        <PageHeader as="div" titleId="training-hq-title" title="Training HQ" help="Review your assigned Scripture and prepare for team practice." />
         {data && <div className="training-hq-season" data-testid="current-season"><small className="ds-caption">Current season</small><strong>{data.seasonName || "Not assigned"}</strong><Badge tone={data.seasonStatus === "Active" ? "success" : "neutral"}>{data.seasonStatus === "None" ? "Awaiting assignment" : data.seasonStatus}</Badge></div>}
       </div>
     </section>

@@ -12,7 +12,7 @@ import type {
   PbeNewsArticleType,
 } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { Badge, Button, EmptyState, ExternalLinkButton, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, Textarea } from "../../components/ui";
+import { Badge, Button, EmptyState, ExternalLinkButton, HelpTip, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, Textarea } from "../../components/ui";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { ArticleTypeArt, PBE_NEWS_TYPES, articleTypeLabel, normalizeArticleType } from "../news/articleTypeArt";
 import "./materials.css";
@@ -165,7 +165,7 @@ export function MaterialsPage({ initialTab }: { initialTab?: "releases" | "news"
   if (loading) return <LoadingState label="Checking your account…" />;
   if (!allowed) return <div className="training-page"><PageHeader title="PBE materials" /><Notice tone="danger">PBE materials and news management is limited to the club Owner and Content Managers.</Notice><LinkButton to={me?.kind === "Student" ? "/student" : "/login"}>Return to your workspace</LinkButton></div>;
 
-  return <div className="training-page"><PageHeader title={tab === "news" ? "PBE news" : "PBE materials"} description="Review yearly PBE releases and news. Nothing publishes itself — the club Owner approves every release, and publishes or unpublishes every news article." />
+  return <div className="training-page"><PageHeader title={tab === "news" ? "PBE news" : "PBE materials"} help="Review yearly PBE releases and news. Nothing publishes itself — the club Owner approves every release, and publishes or unpublishes every news article." />
     <div role="tablist" aria-label="Materials sections" className="ds-tablist">
       <Button variant={tab === "releases" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "releases"} onClick={() => setTab("releases")}>Releases</Button>
       <Button variant={tab === "news" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "news"} onClick={() => setTab("news")}>News</Button>
@@ -224,7 +224,7 @@ function ReleasesList({ org, onReview }: { org: string; onReview: (id: string) =
       </li>)}</ul>}
       <p className="materials-hint">Watcher news suggestions appear under the News tab.</p>
     </Notice>}
-    {showNewForm && <Panel><h2>New proposal</h2><p>Draft a yearly release. It stays a draft until the club Owner approves it.</p>
+    {showNewForm && <Panel><h2>New proposal<HelpTip label="About new proposals">Draft a yearly release. It stays a draft until the club Owner approves it.</HelpTip></h2>
       {createError && <Notice tone="danger">{createError}</Notice>}
       <ProposalForm submitLabel="Save draft proposal" pending={createPending} onSubmit={create} onCancel={() => setShowNewForm(false)} />
     </Panel>}

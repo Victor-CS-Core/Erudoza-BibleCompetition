@@ -8,6 +8,8 @@
     "build": "node ./scripts/clean-dist.mjs && tsc --noEmit && vite build && node ./scripts/prepare-sites-output.mjs",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:changed": "vitest run --changed",
+    "test:related": "vitest related",
     "test:wiki": "vitest run src/features/wiki/wikiContent.test.ts src/features/wiki/WikiPage.test.tsx",
     "test:e2e": "playwright test",
     "lint": "eslint .",

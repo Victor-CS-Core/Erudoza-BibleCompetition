@@ -6,7 +6,7 @@ import { practiceApi, pbeApi } from "../../api/practice";
 import { lifecycleApi } from "../../api/lifecycle";
 import type { PackScope, Season } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { Badge, Button, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, Switch } from "../../components/ui";
+import { Badge, Button, HelpTip, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, Switch } from "../../components/ui";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { BookAssignmentEditor, useSeasonBooks } from "./BookAssignmentEditor";
@@ -32,7 +32,7 @@ export function SeasonAssignmentEditor({ seasonId, studentId, onDirtyChange }: {
 }
 function NewPlanner() {
   const { me } = useAuth();
-  return <div className="season-planner"><LinkButton variant="ghost" size="compact" to="/admin/seasons">← All seasons</LinkButton><PageHeader title="New season" description="Choose the books. Assign your students now or later." action={<Badge>Draft</Badge>} /><BookDetails /><TeamPracticePanel org={me!.organizationId} /></div>;
+  return <div className="season-planner"><LinkButton variant="ghost" size="compact" to="/admin/seasons">← All seasons</LinkButton><PageHeader title="New season" help="Choose the books. Assign your students now or later." action={<Badge>Draft</Badge>} /><BookDetails /><TeamPracticePanel org={me!.organizationId} /></div>;
 }
 function BookDetails({ season, initialPacks = [], onDirtyChange }: { season?: Season; initialPacks?: PackScope[]; onDirtyChange?: (dirty: boolean) => void }) {
   const { me } = useAuth();
@@ -61,7 +61,7 @@ function BookDetails({ season, initialPacks = [], onDirtyChange }: { season?: Se
       <div className="planner-section-heading"><h2>01 <span>Season details</span></h2></div>
       <div className="planner-detail-fields"><label>Season name<Input required maxLength={160} value={name} readOnly={!!season || !!created.current} onChange={event => setName(event.target.value)} placeholder="e.g. Autumn Bible Experience" /></label><label>Year<Input required value={year} readOnly={!!season || !!created.current} onChange={event => setYear(event.target.value)} /></label><div><small>Competition format</small><p>Bible Experience</p></div></div>
       <div className="planner-divider" />
-      <div className="planner-section-heading"><div><h2>Books for this season</h2><p>Choose one or more whole books from the library.</p></div></div>
+      <div className="planner-section-heading"><div><h2>Books for this season<HelpTip label="About season books">Choose one or more whole books from the library.</HelpTip></h2></div></div>
       {library.isPending && <LoadingState label="Loading books…" />}
       {library.isError && <Notice tone="danger">The library could not load. <Button onClick={() => void library.refetch()}>Try again</Button></Notice>}
       {locked && <Notice>Season books are locked. You can still manage assignments in an active season.</Notice>}
@@ -94,7 +94,7 @@ function TeamPracticePanel({ org, seasonId }: { org: string; seasonId?: string }
   const teamEnabled = bootstrap.data?.enabled ?? false;
   const pbeEnabled = season.data?.pbeEnabled ?? false;
   return <Panel>
-    <div className="planner-section-heading"><div><h2>Team Practice</h2><p>Head-to-head rooms, simulations, and PBE answer reviews for your club.</p></div>{bootstrap.data && <Badge tone={teamEnabled ? "success" : "neutral"}>{teamEnabled ? "On" : "Off"}</Badge>}</div>
+    <div className="planner-section-heading"><div><h2>Team Practice<HelpTip label="About Team Practice for this season">Head-to-head rooms, simulations, and PBE answer reviews for your club.</HelpTip></h2></div>{bootstrap.data && <Badge tone={teamEnabled ? "success" : "neutral"}>{teamEnabled ? "On" : "Off"}</Badge>}</div>
     {bootstrap.isPending && <LoadingState label="Loading Team Practice setting…" />}
     {bootstrap.isError && <Notice tone="danger">The Team Practice setting could not load. <Button variant="secondary" size="compact" onClick={() => void bootstrap.refetch()}>Try again</Button></Notice>}
     {bootstrap.data && <>
@@ -151,7 +151,7 @@ function SavedPlanner({ seasonId }: { seasonId: string }) {
   const removeSeason = useMutation({ mutationFn: () => api.deleteSeason(org, seasonId), onSuccess: async () => { setConfirmDelete(false); cache.removeQueries({ queryKey: ["season", org, seasonId] }); await Promise.all(["seasons", "assigned-seasons", "assignments", "my-assignments", "season-scope", "coverage", "progress", "training-today", "training-honors", "training-journey"].map(key => cache.invalidateQueries({ queryKey: [key] }))); navigate("/admin/seasons"); } });
   if (season.isPending || students.isPending || assignments.isPending || myAssignments.isPending || data.loading) return <LoadingState label="Loading season…" />;
   if ((season.error && !season.data) || (students.error && !students.data) || (assignments.error && !assignments.data) || (myAssignments.error && !myAssignments.data) || data.error) return <Notice tone="danger">Season information could not load. <Button onClick={() => { void season.refetch(); void students.refetch(); void assignments.refetch(); void myAssignments.refetch(); data.retry(); }}>Try again</Button></Notice>;
-  return <div className="season-planner"><LinkButton variant="ghost" size="compact" to="/admin/seasons">← All seasons</LinkButton><PageHeader title={season.data!.name} description="Your season books and assignments, in one place." action={<Badge tone={active ? "success" : "neutral"}>{season.data!.status === "ContentReady" ? "Books ready" : season.data!.status === "AssignmentsReady" ? "Plans ready" : season.data!.status}</Badge>} />
+  return <div className="season-planner"><LinkButton variant="ghost" size="compact" to="/admin/seasons">← All seasons</LinkButton><PageHeader title={season.data!.name} help="Your season books and assignments, in one place." action={<Badge tone={active ? "success" : "neutral"}>{season.data!.status === "ContentReady" ? "Books ready" : season.data!.status === "AssignmentsReady" ? "Plans ready" : season.data!.status}</Badge>} />
     <nav className="planner-steps" aria-label="Season setup"><Button variant={step === 1 ? "secondary" : "ghost"} disabled={busy || dirty} aria-current={step === 1 ? "step" : undefined} onClick={() => setParams({ step: "details" })}>1 · Season & books</Button><Button variant={step === 2 ? "secondary" : "ghost"} disabled={busy || dirty} aria-current={step === 2 ? "step" : undefined} onClick={() => setParams({ step: "students" })}>2 · Assignments</Button></nav>
     {step === 1 ? <><BookDetails key={seasonId} onDirtyChange={setDirty} season={season.data} initialPacks={data.books.map(({ contentPackId, includes, excludes }) => ({ contentPackId, includes, excludes }))} /><TeamPracticePanel org={org} seasonId={seasonId} /></> : <>
       <Panel className="planner-season-strip"><div><strong>Season books</strong><p>{data.books.map(book => book.name).join(" · ") || "No books selected"}</p></div><Button variant="ghost" size="compact" disabled={busy || dirty} onClick={() => setParams({ step: "details" })}>{active || closed ? "View" : "Edit"} books</Button></Panel>

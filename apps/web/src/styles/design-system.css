@@ -169,6 +169,38 @@
 .ds-page-header h1 { overflow-wrap: anywhere; }
 .ds-page-header p { font-size: var(--er-text-sm); }
 .ds-panel > h2 + p { color: var(--er-muted-ink); font-size: var(--er-text-sm); max-width: 75ch; }
+/* Contextual help: question-mark trigger beside a heading; the section's detail message lives in the tooltip box. */
+.ds-help-tip { position: relative; display: inline-flex; vertical-align: middle; }
+.ds-help-tip-trigger {
+  margin-inline-start: var(--er-space-2); width: 32px; height: 32px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--er-border-strong); border-radius: 50%;
+  background: transparent; color: var(--er-muted-ink);
+  font: 700 var(--er-text-sm)/1 var(--er-font-ui); cursor: pointer; padding: 0;
+}
+.ds-help-tip-trigger:hover { border-color: var(--er-teal); color: var(--er-teal); }
+.ds-help-tip-trigger:focus-visible { outline: 2px solid var(--er-teal); outline-offset: 2px; }
+.ds-help-tip-trigger[aria-expanded="true"] { border-color: var(--er-teal); color: var(--er-teal); background: var(--er-selected); }
+.ds-help-tip-box {
+  position: absolute; top: calc(100% + 10px); inset-inline-start: -8px; z-index: 80;
+  min-width: 200px; max-width: min(320px, calc(100vw - 48px));
+  padding: var(--er-space-3) var(--er-space-4);
+  background: var(--er-card); color: var(--er-ink-navy);
+  border: 1px solid var(--er-border-strong); border-radius: var(--er-radius-control);
+  box-shadow: var(--er-shadow-overlay);
+  font-size: var(--er-text-sm); font-weight: 400; line-height: 1.55; text-align: start;
+}
+.ds-help-tip-box::before {
+  content: ""; position: absolute; top: -6px; inset-inline-start: 16px; width: 10px; height: 10px;
+  background: var(--er-card); border-top: 1px solid var(--er-border-strong); border-inline-start: 1px solid var(--er-border-strong);
+  transform: rotate(45deg);
+}
+@media(pointer:coarse) { .ds-help-tip-trigger { width: 40px; height: 40px; } }
+@media(prefers-reduced-motion:no-preference) {
+  .ds-help-tip-trigger { transition: border-color var(--er-duration), color var(--er-duration), background-color var(--er-duration); }
+  .ds-help-tip-box { animation: ds-help-tip-in var(--er-duration) ease-out; }
+}
+@keyframes ds-help-tip-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 :is(.ds-table,.training-table) :is(th,td) { vertical-align: middle; }
 :is(.ds-table,.training-table) td > p { margin: var(--er-space-1) 0 0; color: var(--er-muted-ink); font-size: var(--er-text-xs); }
 :is(.ds-table,.training-table) tbody tr:hover { background: color-mix(in srgb,var(--er-selected) 35%,transparent); }

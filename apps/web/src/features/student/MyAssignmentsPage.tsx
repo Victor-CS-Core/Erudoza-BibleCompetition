@@ -21,7 +21,7 @@ export function MyAssignmentsPage() {
   useEffect(() => { if (!requested && season) setParams({ seasonId: season.id }, { replace: true }); }, [requested, season, setParams]);
   if (!allowed) return <Navigate to="/student" replace />;
   return <div className="training-page assignment-overview">
-    <PageHeader title="My assignments" description="Choose season books for your activities in Student Mode." action={<LinkButton variant="secondary" to={`/student${season ? `?seasonId=${encodeURIComponent(season.id)}` : ""}`}>Back to Training HQ</LinkButton>} />
+    <PageHeader title="My assignments" help="Choose season books for your activities in Student Mode." action={<LinkButton variant="secondary" to={`/student${season ? `?seasonId=${encodeURIComponent(season.id)}` : ""}`}>Back to Training HQ</LinkButton>} />
     {seasons.isPending && <LoadingState label="Loading seasons…" />}
     {seasons.isError && <Notice tone="danger">Unable to load seasons. <Button onClick={() => void seasons.refetch()}>Try again</Button></Notice>}
     {!!seasons.data?.length && <label>Season<Select disabled={busy} value={season?.id ?? ""} onChange={event => { if (dirty) setPendingSeason(event.target.value); else setParams({ seasonId: event.target.value }); }}>{!season && <option value="">Choose a season</option>}{seasons.data.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></label>}

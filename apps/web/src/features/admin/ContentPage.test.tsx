@@ -18,6 +18,7 @@ it("searches built-in books and previews text without import or deletion control
   expect(screen.queryByRole("button", { name: /Jude/ })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: /Ephesians/ }));
   expect(await screen.findByText("Preview fixture")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "About Scripture library" }));
   expect(screen.getByText("New King James Version")).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: /import|delete|load sample/i })).not.toBeInTheDocument();
   expect(screen.queryByLabelText(/translation/i)).not.toBeInTheDocument();
