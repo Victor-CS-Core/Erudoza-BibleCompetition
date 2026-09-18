@@ -22,7 +22,17 @@
 .study-note-editor textarea{min-height:140px}
 .study-note-text{white-space:pre-wrap;overflow-wrap:anywhere}
 .study-notebook-status{display:grid;gap:var(--er-space-3);margin-top:var(--er-space-3)}
-.study-library .bible-book-options{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.study-library .bible-book-options{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+/* Scripture library: browse the whole canon in the page flow — no nested scroll trap. */
+.study-library .bible-book-groups{max-height:none;overflow:visible;display:grid;gap:var(--er-space-6);padding:var(--er-space-1)}
+.study-library .bible-book-groups section h3{margin:0 0 var(--er-space-3);font-size:var(--er-text-md);display:flex;align-items:baseline;gap:var(--er-space-2)}
+.study-library .bible-book-count{color:var(--er-muted-ink);font-weight:400;font-size:var(--er-text-sm)}
+.study-library .bible-search-count{color:var(--er-muted-ink);font-size:var(--er-text-sm);margin:var(--er-space-2) 0 0}
+.study-library .bible-book-options .ds-button,.study-library .bible-book-options .ds-choice{min-height:4.5rem;align-items:flex-start;padding-block:var(--er-space-3)}
+.study-library .bible-book-options .ds-button:not(.ds-button-primary):hover{border-color:var(--er-action-blue);box-shadow:0 1px 3px #102e4722}
+.study-library .content-pack-label{gap:var(--er-space-1)}
+.study-library .content-pack-label small{color:var(--er-muted-ink)}
+.study-library .content-pack-label .ds-badge{align-self:flex-start;margin-top:var(--er-space-1)}
 @media(max-width:900px){.study-workspace-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:600px){.study-selection-tools{margin-left:0}.study-tools-heading{align-items:start}.study-reader-controls{align-items:start}.study-reader-controls .reader-navigation{min-width:0;flex-basis:100%}.study-books-heading{flex-wrap:wrap}.study-verse{grid-template-columns:32px minmax(0,1fr)}.study-verse .ds-verse-number{padding-inline:4px}}
 .content-library-grid{display:grid;gap:var(--er-space-6);align-items:start}

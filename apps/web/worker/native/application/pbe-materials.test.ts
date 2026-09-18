@@ -119,12 +119,15 @@ it('approves a release atomically: material live, gate written, proposal marked'
   const gate = await libRow('library-version', 'pbe-2025-26');
   expect(gate).toBeTruthy(); expect(JSON.parse(gate!.data)).toEqual({ ready: true });
   // Students can read the live release summary (roster, section headings, source URLs).
+  // The summary shape must match the web client's PbeMaterialSummary contract:
+  // commentary nested as { bookName, title, sectionHeadings } — a flat shape
+  // crashed the library for every student the moment a release went live.
   const list = await asStudent('/pbe-materials');
   expect(list.status).toBe(200);
-  const releases = await list.json() as { yearLabel: string; sectionHeadings: string[]; sourceUrls: { resourcesPage: string } }[];
+  const releases = await list.json() as { yearLabel: string; commentary: { bookName: string; title: string; sectionHeadings: string[] }; sourceUrls: { resourcesPage: string } }[];
   const live = releases.find(r => r.yearLabel === '2025-26');
   expect(live).toBeTruthy();
-  expect(live!.sectionHeadings).toEqual(['Title and Authorship']);
+  expect(live!.commentary).toEqual({ bookName: 'Isaiah', title: 'ISAIAH', sectionHeadings: ['Title and Authorship'] });
   expect(live!.sourceUrls.resourcesPage).toBe('https://nadpbe.org/pbe-resources/');
 });
 
@@ -273,7 +276,14 @@ it('runs news article CRUD with Owner-only publish state changes', async () => {
   expect((await asStudent(`/pbe-news/${article.id}`)).status).toBe(404);
   // Content Managers can list and edit drafts, but only the Owner changes publish state.
   const listed = await asContentManager('/pbe-news/articles');
-  expect((await listed.json() as { status: string }[]).some(a => a.status === 'draft')).toBe(true);
+  const listedBody = await listed.json() as { id: string; status: string; sections: { heading: string; body: string }[] }[];
+  expect(listedBody.some(a => a.status === 'draft')).toBe(true);
+  // The list response must carry sections: the admin News tab previews each article's sections,
+  // and the edit form builds its initial state from them — a missing sections array crashes both.
+  const listedArticle = listedBody.find(a => a.id === article.id)!;
+  expect(Array.isArray(listedArticle.sections)).toBe(true);
+  expect(listedArticle.sections.length).toBeGreaterThan(0);
+  expect(listedArticle.sections[0].heading).toBeTruthy();
   expect((await asContentManager(`/pbe-news/articles/${article.id}/publish`, {})).status).toBe(403);
   expect((await asStudent(`/pbe-news/articles/${article.id}/publish`, {})).status).toBe(403);
   const edited = await asContentManager(`/pbe-news/articles/${article.id}`, { ...validArticle(), title: 'Updated title' }, 'PUT');

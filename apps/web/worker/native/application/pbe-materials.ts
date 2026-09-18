@@ -206,9 +206,8 @@ async function liveMaterialByYear(ctx: RequestContext): Promise<Map<string, PbeM
 
 function materialSummary(m: PbeMaterial) {
   return {
-    id: m.id, yearLabel: m.yearLabel, version: m.version, books: m.books,
-    commentaryTitle: m.commentary.title, commentaryBookName: m.commentary.bookName,
-    sectionHeadings: m.commentary.sections.map(s => s.heading),
+    yearLabel: m.yearLabel, books: m.books,
+    commentary: { bookName: m.commentary.bookName, title: m.commentary.title, sectionHeadings: m.commentary.sections.map(s => s.heading) },
     sourceUrls: m.sourceUrls, approvedAtUtc: m.approvedAtUtc,
   };
 }
@@ -503,7 +502,9 @@ export async function runScheduledWatch(env: Env): Promise<WatcherResult> {
 function articleSummary(a: PbeNewsArticle) {
   return {
     id: a.id, title: a.title, summary: a.summary, status: a.status,
-    publishedAtUtc: a.publishedAtUtc ?? null, sourceUrl: a.sourceUrl ?? null, sourceLabel: a.sourceLabel ?? null,
+    sections: a.sections,
+    publishedAtUtc: a.publishedAtUtc ?? null, publishedBy: a.publishedBy ?? null,
+    sourceUrl: a.sourceUrl ?? null, sourceLabel: a.sourceLabel ?? null,
     createdBy: a.createdBy, createdAtUtc: a.createdAtUtc, updatedAtUtc: a.updatedAtUtc,
   };
 }
