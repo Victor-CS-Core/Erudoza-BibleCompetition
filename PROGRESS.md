@@ -1,6 +1,13 @@
 # Erudoza progress log
 
-## Dark theme — built locally, not pushed, September 18
+## Dark-theme artwork (corners, landing, login, banners) — built locally, pending push, September 18
+
+- The user's iPhone screenshot showed the cream background baked into the Pathfinder corner artwork clashing with dark theme (CSS blending couldn't remove it). Root cause: the light rectangle was part of each image, not a CSS effect.
+- Corner artwork (commit 74a77fc): generated four 960×960 night-time WebP variants preserving the watercolor compositions — `pathfinder-corner-dark-v1-960.webp`, `trail-navigation-left-dark-v1-960.webp`, `campcraft-right-dark-v1-960.webp`, `field-notes-left-dark-v1-960.webp`. `PathfinderBackdrop` gives every artwork a `darkFile` and picks it via `useTheme()` whenever the resolved theme is dark (including Automatic following iOS); dark CSS uses `mix-blend-mode: normal; opacity:.34` instead of screen-blend. New test: dark theme selects the dark variant.
+- Landing/login/banners (commit d0e0499): four more night-time repaints — `expedition-hero-dark` (960/1440/1920, public landing hero), `expedition-coach-dark` (640/960, landing coach section), `journey-hero-dark` (720/1440, student home banner), `coach-guide-dark` (480/960, login page hero art). New `ThemedImage` component swaps src/srcSet in dark mode; wired into `LandingPage`, `CoachOnboardingPage` (login), and `LandscapeBanner`. Honor patches were already dark and untouched.
+- Verification: brand tests 29/29 (26 backdrop + 3 ThemedImage), web tsc clean, eslint clean on touched files, production build succeeds with all 13 dark assets in dist. Production untouched. Staging verification pending the user's iPhone verdict.
+
+## Dark theme — pushed to main and staged, September 18
 
 - At the user's request ("once that's done please go ahead and implement a dark theme"): the app now follows the phone's dark mode automatically, with a manual theme switch beside the notification icon in the top bar, applied across all pages via the token system.
 - `styles/tokens.css`: new `[data-theme="dark"]` block remaps every semantic color token — warm charcoal surfaces (`--er-paper #16140f`, `--er-card #201d16`), warm-paper text tones, brightened teal/blue/coral accents, dark success/warning/danger surfaces, `color-scheme: dark`. Components already read these tokens (and Tailwind `@theme` maps to them), so the whole app re-skins.
@@ -10,7 +17,7 @@
 - Hardcoded light-only colors audited and fixed for dark: season-planner saved stripes (`#4a4436`), planner selected-cell text, study-mode active tab text, dimmed `PathfinderBackdrop` (screen blend, 22% opacity). Patch/confetti artwork untouched.
 - Wiki: accessibility-and-install gained a "Dark theme" section (Automatic follows the device; toggle location; per-device memory). Wiki gate 13/13.
 - Verification: new theme tests 8/8 (preference, system resolution, `<html>` application, persistence, storage failure); web tsc clean; eslint clean on touched files; production build contains the dark token block and the pre-paint script. Full web suite was running at last check.
-- Not pushed — needs the user's explicit approval to push to main (→ staging auto-deploy); the user validates theme beauty on their iPhone before it's called done. Production untouched.
+- Pushed 2026-09-18 ~13:41 EDT with the user's approval ("Yes, push to main and stage it"; lint fix folded in per "Yes fold it into dark theme push"). Replayed via Git Data API safety script as 446cf973 (dark theme) + cf1bf649 (lint fix) on top of 7e818ccd; main fast-forwarded, practice/remediation synced. Local commits: 799b843 (dark theme), 1c48ba3 (lint fix). CI + Deploy staging + Visual screenshots workflows triggered on cf1bf649; staging verification pending. Production untouched. The user validates theme beauty on their iPhone before it's called done.
 
 ## Study-engine improvements (mastery levels, graduated review, partial credit) — pushed to main and staged, September 18
 
