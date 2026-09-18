@@ -35,6 +35,25 @@ it("exposes sanitized recovery reasons only to the owner and an authorized non-p
  expect(()=>view(r,{...coach,userId:"unrelated-coach"},50000)).toThrow("Room access denied");
 });
 
+it('lets an Owner or Admin coach organize a simulation without joining the roster',()=>{
+ const settings={version:1 as const,preset:'Custom' as const,bookKeys:['JHN'],chapters:[{bookKey:'JHN',chapter:1}],includeScripture:true,includeIntroductions:true,timeMultiplier:1 as const,halfTime:false,discussion:'InPerson' as const};
+ for(const role of ['Owner','Admin'] as const){
+  const coach:Actor={...actor('coach'),kind:'Adult',role};
+  const r=makeRoom('room',coach,{seasonId:'season',teamSize:2,teamCount:1,questionCount:10,format:'Pbe',simulation:settings},'epoch',1000);
+  expect(r.simulation).toBeDefined();expect(r.members).toHaveLength(0);expect(r.ownerId).toBe('coach');
+ }
+});
+it('still rejects Content Managers and coached rooms from organizing simulations',()=>{
+ const settings={version:1 as const,preset:'Custom' as const,bookKeys:['JHN'],chapters:[{bookKey:'JHN',chapter:1}],includeScripture:true,includeIntroductions:true,timeMultiplier:1 as const,halfTime:false,discussion:'InPerson' as const};
+ const input={seasonId:'season',teamSize:2,teamCount:1 as const,questionCount:10,format:'Pbe' as const,simulation:settings};
+ const message='Simulation requires one independent team organized by a student or a coach.';
+ const cm:Actor={...actor('cm'),kind:'Adult',role:'Content Manager'};
+ expect(()=>makeRoom('room',cm,input,'epoch',1000)).toThrow(message);
+ const owner:Actor={...actor('owner'),kind:'Adult',role:'Owner'};
+ expect(()=>makeRoom('room',owner,{...input,coached:true},'epoch',1000)).toThrow(message);
+ const student=makeRoom('room',actor('s'),{...input,simulation:{...settings,audioPresenterId:'s'}},'epoch',1000);
+ expect(student.members.map(m=>m.userId)).toEqual(['s']);
+});
 it('rejects invitations to the room judge before creating an unusable invitation',()=>{
  const coach:Actor={...actor('coach'),kind:'Adult',role:'Owner'};
  const r=makeRoom('room',coach,{seasonId:'season',teamSize:1,questionCount:10,coached:true},'epoch',1000);

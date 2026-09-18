@@ -2,6 +2,7 @@ import {simulationMaterial} from './simulation';
 import {honorId,type HonorUnlock} from '../mastery/catalog';
 import {simulationAchievements,simulationCatalog} from './simulation-awards';
 import {resolvePbeSources} from '../pbe/sources';
+import type {Season} from '../application/model';
 import {makeRoom} from './state';
 import {selectPbeRoomBank} from './pbe-material';
 import type {SimulationSettings} from './simulation';
@@ -31,8 +32,12 @@ export async function handlePractice(ctx:RequestContext):Promise<Response|null>{
  if(ctx.path==='/practice/simulation/material'&&ctx.request.method==='GET'){
   const materialUrl=new URL(ctx.request.url),seasonId=materialUrl.searchParams.get('seasonId')??'',roomId=materialUrl.searchParams.get('roomId');
   if(roomId){if(!/^[a-f0-9-]{36}$/i.test(roomId))throw new HttpError(400,'Choose a valid room.');if(!ctx.env.ROOMS)throw new HttpError(503,'Room storage is not configured.');materialUrl.pathname=`/api/v1/organizations/${ctx.orgId}/practice/rooms/${roomId}/simulation-material`;return ctx.env.ROOMS.getByName(`${ctx.orgId}:${roomId}`).fetch(new Request(materialUrl,{headers:ctx.request.headers}) as never) as unknown as Promise<Response>;}
-  await ctx.store.require('membership',`${seasonId}:${ctx.actor.userId}`,ctx.orgId);
-  const scope=await resolvePbeSources(ctx,{organizationId:ctx.orgId,seasonId,studentId:ctx.actor.userId});
+  const coach=ctx.actor.kind==='Adult'&&['Owner','Admin'].includes(ctx.actor.role);
+  if(coach){
+   const season=await ctx.store.require<Season>('season',seasonId,ctx.orgId);
+   if(!season.value.pbeEnabled)throw new HttpError(403,'PBE training is not enabled for this season.');
+  }else await ctx.store.require('membership',`${seasonId}:${ctx.actor.userId}`,ctx.orgId);
+  const scope=await resolvePbeSources(ctx,coach?{organizationId:ctx.orgId,seasonId}:{organizationId:ctx.orgId,seasonId,studentId:ctx.actor.userId});
   return json(simulationMaterial(seasonId,scope.sources));
  }
  if(ctx.path==='/practice/simulation/availability'&&ctx.request.method==='POST'){

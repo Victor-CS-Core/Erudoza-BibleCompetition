@@ -21,11 +21,18 @@ export function selectRoomQuestions(bank:PbeQuestion[],served:Map<string,number>
 export async function authorizePbeRoom(ctx:RequestContext,r:Room,starting=false,unfiltered=false){
  const scope=await resolvePbeRoomSources(ctx,r,!starting&&r.status!=='Lobby');
  if(r.simulation){
-  const rows=await ctx.env.DB.prepare("SELECT kind,id,data,revision FROM Records WHERE org_id=? AND season_id=? AND owner_id IN (SELECT value FROM json_each(?)) AND kind IN ('assignment','pbe-introduction-assignment') LIMIT 10001").bind(ctx.orgId,r.seasonId,JSON.stringify(r.members.map(m=>m.userId))).all<{kind:string;id:string;data:string;revision:number}>();
-  if(rows.results.length>10000)throw new HttpError(413,'Simulation assignment scope is too large.');
-  const assignments=rows.results.filter(x=>x.kind==='assignment').map(x=>JSON.parse(x.data) as Assignment),intros=new Set(rows.results.filter(x=>x.kind==='pbe-introduction-assignment').map(x=>(JSON.parse(x.data) as {contentPackId:string}).contentPackId));
-  scope.sources=scope.sources.filter(s=>s.chapter===null?intros.has(s.contentPackId):assignments.some(a=>a.contentPackId===s.contentPackId&&contains(a,{...s,chapter:s.chapter!,verse:s.verse!,isActive:true})));
-  if(!unfiltered)scope.sources=filterSimulationSources(scope.sources,r.simulation);scope.guards.push(...rows.results.map(({kind,id,revision})=>({kind,id,revision})));
+  // A coach-organized room has no roster yet at estimate time: the pre-room
+  // estimate keeps the season scope instead of intersecting an empty member
+  // list down to zero sources. Once students join, their assignments narrow
+  // the bank as before.
+  if(r.members.length){
+   const rows=await ctx.env.DB.prepare("SELECT kind,id,data,revision FROM Records WHERE org_id=? AND season_id=? AND owner_id IN (SELECT value FROM json_each(?)) AND kind IN ('assignment','pbe-introduction-assignment') LIMIT 10001").bind(ctx.orgId,r.seasonId,JSON.stringify(r.members.map(m=>m.userId))).all<{kind:string;id:string;data:string;revision:number}>();
+   if(rows.results.length>10000)throw new HttpError(413,'Simulation assignment scope is too large.');
+   const assignments=rows.results.filter(x=>x.kind==='assignment').map(x=>JSON.parse(x.data) as Assignment),intros=new Set(rows.results.filter(x=>x.kind==='pbe-introduction-assignment').map(x=>(JSON.parse(x.data) as {contentPackId:string}).contentPackId));
+   scope.sources=scope.sources.filter(s=>s.chapter===null?intros.has(s.contentPackId):assignments.some(a=>a.contentPackId===s.contentPackId&&contains(a,{...s,chapter:s.chapter!,verse:s.verse!,isActive:true})));
+   scope.guards.push(...rows.results.map(({kind,id,revision})=>({kind,id,revision})));
+  }
+  if(!unfiltered)scope.sources=filterSimulationSources(scope.sources,r.simulation);
  }
  if(r.bookKey)scope.sources=scope.sources.filter(s=>s.bookKey===r.bookKey);
  if(!starting&&r.questions.length){const sources=new Map(scope.sources.map(s=>[s.id,s]));for(const q of r.questions as PbeQuestion[]){if(q.sourceUnitIds.some(id=>!sources.has(id))||await sourceProof(q,sources)!==r.sourceProofs?.[q.id])throw new HttpError(403,'Saved room material is no longer approved for this season.');}}
@@ -36,6 +43,7 @@ export async function authorizePbeRoom(ctx:RequestContext,r:Room,starting=false,
 export function selectPbeRoomBank(ctx:RequestContext,r:Room):Promise<PbeQuestion[]>;
 export function selectPbeRoomBank(ctx:RequestContext,r:Room,availability:true):Promise<{eligibleQuestions:number;requestedQuestions:number;canStart:boolean;reason:string|null}>;
 export async function selectPbeRoomBank(ctx:RequestContext,r:Room,availability=false){
+ if(!availability&&r.simulation&&!r.members.length)throw new HttpError(400,'A rehearsal with no team cannot start.');
  const scope=await authorizePbeRoom(ctx,r,true);
  const bank=await loadFromResolvedSources(ctx,{organizationId:ctx.orgId,seasonId:r.seasonId,sourceUnitIds:scope.sources.map(s=>s.id)},scope,true);
  const rows=await ctx.env.DB.prepare("SELECT json_extract(data,'$.subjectId') AS questionId,MAX(json_extract(data,'$.servedCount')) AS served FROM Records INDEXED BY Records_training_scope WHERE org_id=? AND season_id=? AND kind='pbe-question-service' AND owner_id IN (SELECT value FROM json_each(?)) AND json_extract(data,'$.subjectId') IN (SELECT value FROM json_each(?)) GROUP BY json_extract(data,'$.subjectId')").bind(ctx.orgId,r.seasonId,JSON.stringify(r.members.map(m=>m.userId)),JSON.stringify(bank.questions.map(q=>q.id))).all<{questionId:string;served:number}>();

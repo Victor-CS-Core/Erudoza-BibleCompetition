@@ -254,6 +254,16 @@
 
 /* Shared C composition for one-team simulations and opposing-team rooms. */
 .simulation-editor { display:grid; gap:var(--er-space-5); min-width:0; }
+/* Quest stepper: numbered stages with a progress bar through the setup flow. */
+.quest-stage { margin:0; font-size:var(--er-text-sm); font-weight:600; }
+.quest-progress { height:6px; border-radius:999px; background:color-mix(in srgb, var(--er-teal) 18%, transparent); overflow:hidden; }
+.quest-progress > span { display:block; height:100%; background:var(--er-teal); transition:width .2s ease; }
+.simulation-tabs .quest-step { display:inline-grid; place-items:center; width:22px; height:22px; margin-right:var(--er-space-2); border-radius:50%; background:var(--er-navy-surface); color:var(--er-on-navy); font-size:var(--er-text-xs); font-weight:700; }
+.simulation-tabs .ds-button[aria-selected="true"] .quest-step { background:var(--er-on-navy); color:var(--er-navy-surface); }
+.quest-intro { margin:0; font-size:var(--er-text-sm); }
+.quest-rewards { border:1px solid var(--er-border); border-radius:var(--er-radius-card); padding:var(--er-space-4); background:var(--er-card); display:grid; gap:var(--er-space-2); }
+.quest-rewards h4 { margin:0; font-size:var(--er-text-sm); text-transform:uppercase; letter-spacing:.05em; color:var(--er-muted-ink); }
+.quest-rewards p { margin:0; }
 .simulation-tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:var(--er-space-1); }
 .simulation-tabs .ds-button { min-width:0; padding-inline:var(--er-space-2); }
 .simulation-fields { border:0; margin:0; padding:0; display:grid; gap:var(--er-space-4); min-width:0; }

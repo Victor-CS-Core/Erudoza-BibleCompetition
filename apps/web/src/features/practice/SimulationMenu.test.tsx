@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { practiceApi, type PracticeRoom } from '../../api/practice';
 import { SimulationMenu, SimulationEditor } from './SimulationMenu';
+vi.mock('../../auth/AuthContext',()=>({useAuth:()=>({me:{organizationId:'org',userId:'u',kind:'Student'}})}));
 const material={seasonId:'s',translation:'NKJV',books:[{key:'MRK',label:'Mark',chapters:[1,2]}],introductionsAvailable:true};
 describe('Simulation setup',()=>{
  it('keeps integrity settings fixed and saves explicit selected chapters',()=>{
@@ -10,6 +11,17 @@ describe('Simulation setup',()=>{
  fireEvent.click(screen.getByLabelText('Selected chapters')); fireEvent.click(screen.getByLabelText('Mark 2'));
  fireEvent.click(screen.getByRole('tab',{name:'Review'})); fireEvent.click(screen.getByRole('button',{name:'Save setup'}));
  expect(save).toHaveBeenCalledWith(expect.objectContaining({bookKeys:['MRK'],chapters:[{bookKey:'MRK',chapter:2}],preset:'FullEvent',halfTime:true,scope:'SelectedChapters'}),6,90);
+ });
+ it('tells a coach the audio presenter must be a team member once students join',()=>{
+ render(<SimulationEditor material={material} creatorId="coach" onSave={vi.fn()} pending={false}/>);
+ fireEvent.click(screen.getByRole('tab',{name:'Team'}));
+ expect(screen.getByText(/The audio presenter must be a team member/)).toBeInTheDocument();
+ });
+ it('hides the presenter note once the team roster has members',()=>{
+ const cache=new QueryClient();
+ render(<QueryClientProvider client={cache}><SimulationEditor material={material} creatorId="u" members={[{userId:'u',displayName:'You',team:1,captain:true,scribe:true,ready:false}]} onSave={vi.fn()} pending={false}/></QueryClientProvider>);
+ fireEvent.click(screen.getByRole('tab',{name:'Team'}));
+ expect(screen.queryByText(/The audio presenter must be a team member/)).not.toBeInTheDocument();
  });
  it('explains that full-event team rehearsals count toward Simulation honors',()=>{
  const save=vi.fn(); render(<SimulationEditor material={material} creatorId="u" onSave={save} pending={false}/>);

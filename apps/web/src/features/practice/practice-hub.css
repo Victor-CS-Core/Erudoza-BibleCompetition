@@ -96,16 +96,8 @@
 }
 
 /* Mastery Honors reuse shared artwork, controls and semantic text styles. */
-.practice-mastery-honors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--er-space-5); margin-block: var(--er-space-6); }
-.practice-mastery-honors > article { display: flex; flex-direction: column; align-items: center; min-width: 0; gap: var(--er-space-2); text-align: center; }
-.practice-mastery-honors h3 { margin: 0; font-size: var(--er-text-base); }
-.practice-mastery-honors details { width: 100%; text-align: left; font-size: var(--er-text-sm); }
-.practice-mastery-honors details p { margin-block: var(--er-space-3); overflow-wrap: anywhere; }
-.practice-mastery-honors .ds-button { margin-top: auto; width: 100%; white-space: normal; }
 .practice-milestone-history > .practice-awards { margin-top: var(--er-space-4); }
-@media (max-width: 1000px) { .practice-mastery-honors { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 760px) { .practice-mastery-honors { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--er-space-4); } }
-@media (max-width: 359px) { .practice-hub .practice-hub-form-grid { grid-template-columns: minmax(0, 1fr); } .practice-mastery-honors { grid-template-columns: minmax(0, 1fr); } }
+/* Team Practice honors now render through the shared HonorPatchCard (honor-patch-card.css). */
 
 .practice-hub .practice-hub-duel[data-team-count="1"] { grid-template-columns: minmax(0, 1fr); }
 

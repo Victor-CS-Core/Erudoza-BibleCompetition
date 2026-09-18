@@ -208,10 +208,13 @@ it("shows only mastery-qualified Team Honor profile choices", async () => {
     { key: "solo:exact-recall", title: "Exact Recall", category: "Scripture", requirement: "12 passages at 90.", ruleVersion: "mastery-v1", earnedAtUtc: "2026-09-11T12:00:00Z" },
   ] }, isPending: false, isError: false, isSuccess: true, refetch: vi.fn() } as unknown as ReturnType<typeof useMyProfile>);
   mount(); await screen.findByRole("heading", { name: "Team Honors" });
-  expect(screen.getByRole("link", { name: "Use Team Precision as profile image" })).toHaveAttribute("href", "/student/profile");
+  fireEvent.click(screen.getByRole("button", { name: "First Fellowship: view details" }));
+  expect(await screen.findByText("90% personal accuracy across 10 distinct manual answers.")).toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Use First Fellowship as profile image" })).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Close dialog" }));
+  fireEvent.click(screen.getByRole("button", { name: "Team Precision: view details" }));
+  expect(await screen.findByRole("link", { name: "Use Team Precision as profile image" })).toHaveAttribute("href", "/student/profile");
   expect(screen.queryByText("Exact Recall")).not.toBeInTheDocument();
-  expect(screen.getByText("90% personal accuracy across 10 distinct manual answers.")).toBeInTheDocument();
 });
 
 it("renders player controls for an Adult in Student mode", async () => {
@@ -242,10 +245,10 @@ it('keeps setup behind explicit mode actions and puts rooms in the hub',async()=
 
 it('opens setup from existing create-room anchors',async()=>{mount('/student/practice?seasonId=luke#create-room');expect(await screen.findByRole('dialog',{name:'PVP setup'})).toBeInTheDocument();expect(screen.getByLabelText('Season',{exact:true})).toHaveValue('luke');});
 it('creates PBE head-to-head with two teams and the chosen settings',async()=>{vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:'daniel',name:'Daniel',pbeEnabled:true}]});mount();fireEvent.click(await screen.findByRole('button',{name:'Set up PVP'}));fireEvent.change(screen.getByLabelText('Practice mode'),{target:{value:'Pbe'}});fireEvent.change(screen.getByLabelText('Match length'),{target:{value:'30'}});fireEvent.change(screen.getByLabelText('Team size'),{target:{value:'4'}});fireEvent.click(screen.getByRole('button',{name:'Create room'}));await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith('org',expect.objectContaining({format:'Pbe',teamCount:2,teamSize:4,questionCount:30})));expect(screen.queryByRole('dialog',{name:'Simulation menu'})).not.toBeInTheDocument();});
-it('keeps coach practice setup on supported PVP and review routes',async()=>{
+it('shows both practice modes to a coach',async()=>{
  account.kind='Adult';vi.mocked(practiceApi.bootstrap).mockResolvedValue({...data,seasons:[{id:'daniel',name:'Daniel',pbeEnabled:true}]});
  mount('/admin/practice');await screen.findByRole('button',{name:'Set up PVP'});
- expect(screen.queryByRole('button',{name:'Set up simulation'})).not.toBeInTheDocument();
+ expect(screen.getByRole('button',{name:'Set up simulation'})).toBeInTheDocument();
  expect(screen.getByRole('link',{name:'Open PBE answer reviews'})).toBeInTheDocument();
 });
 
@@ -264,14 +267,23 @@ it('unlocks the simulation setup for a student when PBE training is on',async()=
  expect(within(panel).queryByText('PBE training is off for this season.')).not.toBeInTheDocument();
 });
 
+it('lets a coach turn on PBE training from the simulation mode panel',async()=>{
+ account.kind='Adult';
+ mount('/admin/practice');
+ const panel=(await screen.findByRole('heading',{name:'Full-event team rehearsal'})).closest('div')!.parentElement!;
+ fireEvent.click(within(panel).getByRole('button',{name:'Turn on PBE training'}));
+ await waitFor(()=>expect(pbeApi.enabled).toHaveBeenCalledWith('org','daniel',true));
+});
+
 it('lets a coach turn on PBE training from the PVP setup lock notice',async()=>{
  account.kind='Adult';
  mount('/admin/practice');
  fireEvent.click(await screen.findByRole('button',{name:'Set up PVP'}));
- expect(await screen.findByRole('dialog',{name:'PVP setup'})).toBeInTheDocument();
- expect(screen.getByText(/PBE rehearsal is locked because PBE training is off for this season/)).toBeInTheDocument();
- expect(screen.getByRole('option',{name:'PBE rehearsal · rubric points'})).toBeDisabled();
- fireEvent.click(screen.getByRole('button',{name:'Turn on PBE training'}));
+ const dialog=await screen.findByRole('dialog',{name:'PVP setup'});
+ expect(dialog).toBeInTheDocument();
+ expect(within(dialog).getByText(/PBE rehearsal is locked because PBE training is off for this season/)).toBeInTheDocument();
+ expect(within(dialog).getByRole('option',{name:'PBE rehearsal · rubric points'})).toBeDisabled();
+ fireEvent.click(within(dialog).getByRole('button',{name:'Turn on PBE training'}));
  await waitFor(()=>expect(pbeApi.enabled).toHaveBeenCalledWith('org','daniel',true));
 });
 
@@ -283,4 +295,5 @@ it('offers an enabled PBE rehearsal option to a coach once PBE training is on',a
  expect(screen.getByRole('option',{name:'PBE rehearsal · rubric points'})).toBeEnabled();
  expect(screen.queryByRole('button',{name:'Turn on PBE training'})).not.toBeInTheDocument();
 });
+
 
