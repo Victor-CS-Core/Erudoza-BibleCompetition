@@ -1,6 +1,6 @@
 import type { RequestContext } from '../types';
 import { HttpError } from '../types';
-import { contains, rangeSql, student, scopePacks, memberId } from '../application/model';
+import { contains, rangeSql, learner, scopePacks, memberId } from '../application/model';
 import { builtInContentSql } from '../application/library-access';
 import type { Season, Source, Pack, Scope, Assignment } from '../application/model';
 import { guid } from './bank';
@@ -132,8 +132,10 @@ async function resolve(ctx: RequestContext, scope: Omit<BankScope, 'sourceUnitId
     if (studentId) {
         if (!continuation && !season.value.pbeEnabled)
             throw new HttpError(403, 'PBE training is not enabled for this season.');
-        if (!(await student(ctx, studentId)).isActive)
-            throw new HttpError(403, 'Active student required.');
+        // Learner surface parity: chapter scopes admit active learners (students and
+        // Owner/Admin coaches on their own learner view), not just strict students.
+        if (!(await learner(ctx, studentId)).isActive)
+            throw new HttpError(403, 'Active learner required.');
     }
     // Capture the assignment set once and use those exact rows to filter the material.
     // A later insertion must never contribute an unguarded source to this snapshot.

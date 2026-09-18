@@ -44,8 +44,24 @@ async function setup(count = 2, beforeD1Statement?: (sql: string) => Promise<voi
         bindingCalls: number;
         statements: number;
     }; const responseText=await r.clone().text(),responseBody=JSON.parse(responseText) as {scopeVersion?:string|null};const sample={path,...meter,scopeVersion:responseBody.scopeVersion??null,responseBytes:new TextEncoder().encode(responseText).byteLength};meters.push(sample);allMeters.push(sample);if(r.status===503)process.stderr.write(JSON.stringify(sample)+'\n');expect((meter as {maxBoundUtf8Bytes?:number}).maxBoundUtf8Bytes??0).toBeLessThanOrEqual(65536); expect(meter.statements, `${path}: ${JSON.stringify(meter)}`).toBeLessThanOrEqual(50); return r; };
-    return { store, send, cookie, meters };
+    return { app, store, send, cookie, meters };
 }
+it('admits coach learners (Adult/Owner) to chapter views instead of 403', async () => {
+ // Regression: a coach on their own student view (/student/progress honours tab) got
+ // "PBE chapter stamps could not load" because chapterBase required kind/role Student
+ // while the /progress/me routes admit coaches via requireLearner.
+ const {app}=await setup();
+ const login=await app.fetch('/api/v1/auth/login',{method:'POST',headers:{Origin:'https://erudoza.test','Content-Type':'application/json'},body:JSON.stringify({identifier:'coach',password:'Testing!123'})});
+ expect(login.status).toBe(200);
+ const coachCookie=login.headers.get('set-cookie')!.split(';')[0];
+ const asCoach=async(path:string)=>app.fetch('/api/v1'+path,{headers:{Cookie:coachCookie,Origin:'https://erudoza.test'}});
+ const stamps=await asCoach(`/progress/me/chapters?seasonId=${season}&view=Stamps`);
+ expect(stamps.status,await stamps.clone().text()).toBe(200);
+ expect(await stamps.json()).toMatchObject({view:'Stamps',items:[]});
+ const chaptersView=await asCoach(`/progress/me/chapters?seasonId=${season}`);
+ expect(chaptersView.status,await chaptersView.clone().text()).toBe(200);
+ expect(await chaptersView.json()).toMatchObject({view:'Chapters',items:[],work:{state:'Blocked',reason:'NoAssignment'}});
+},30000);
 it('discovers chapter work read-only and bootstraps one owned generation through HTTP', async () => {
  const {send,store}=await setup();
  const before=await send(`/progress/me/chapters?seasonId=${season}`);

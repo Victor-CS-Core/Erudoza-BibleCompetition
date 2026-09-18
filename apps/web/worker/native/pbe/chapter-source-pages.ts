@@ -17,7 +17,11 @@ export async function chapterBase(ctx:RequestContext,seasonId:string):Promise<Ch
  guid(seasonId);
  if(ctx.orgId!==ctx.actor.organizationId)throw new HttpError(403,'Organization access denied.');
  const actor=await ctx.env.DB.prepare('SELECT active,kind,role FROM Users WHERE id=? AND org_id=?').bind(ctx.actor.userId,ctx.orgId).first<{active:number;kind:string;role:string}>();
- if(!actor?.active||actor.kind!=='Student'||actor.role!=='Student')throw new HttpError(403,'Active student required.');
+ // Learner surface parity: /progress/me routes admit active learners (students and
+ // Owner/Admin coaches acting as learners, see learnerSql). Coach accounts on their
+ // own student view were 403ing here while honors/today/journey worked.
+ const isLearner=!!actor?.active&&((actor.kind==='Student'&&actor.role==='Student')||(actor.kind==='Adult'&&(actor.role==='Owner'||actor.role==='Admin')));
+ if(!isLearner)throw new HttpError(403,'Active learner required.');
  const row=await ctx.env.DB.prepare(`SELECT s.revision, json_extract(s.data,'$.organizationId') AS organizationId,json_extract(s.data,'$.status') AS status,json_extract(s.data,'$.pbeEnabled') AS enabled,sc.revision AS scopeRevision,m.revision AS membershipRevision
  FROM Records s LEFT JOIN Records sc ON sc.kind='scope' AND sc.org_id=s.org_id AND sc.id=s.id LEFT JOIN Records m ON m.kind='membership' AND m.org_id=s.org_id AND m.id=?
  WHERE s.kind='season' AND s.org_id=? AND s.id=?`).bind(memberId(seasonId,ctx.actor.userId),ctx.orgId,seasonId).first<{revision:number;organizationId:string;status:string;enabled:number;scopeRevision:number|null;membershipRevision:number|null}>();
