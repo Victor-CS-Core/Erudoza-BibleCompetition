@@ -70,25 +70,25 @@ describe("Two-step season planner", () => {
   });
   it("saves a book and advances inside the persistent student roster", async () => {
     renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
-    fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Select all chapters" }));
     fireEvent.click(screen.getByRole("button", { name: "Save & next student →" }));
     expect(await screen.findByRole("heading", { name: "Sarah Student" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Daniel Student/ })).toBeInTheDocument();
     expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-1" }), expect.any(AbortSignal));
-    expect(screen.getByRole("checkbox", { name: /DAN/ })).not.toBeChecked();
+    expect(document.querySelector(".planner-strip-count")).toHaveTextContent("0 of 1 chapters selected");
   });
   it("keeps selection and student on a failed save", async () => {
     vi.mocked(api.assign).mockRejectedValue(new Error("Offline"));
     renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
-    fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Select all chapters" }));
     fireEvent.click(screen.getByRole("button", { name: "Save & next student →" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Offline");
     expect(screen.getByRole("heading", { name: "Daniel Student" })).toBeInTheDocument();
-    expect(screen.getByRole("checkbox", { name: /DAN/ })).toBeChecked();
+    expect(document.querySelector(".planner-strip-count")).toHaveTextContent("1 of 1 chapters selected");
   });
   it("uses personal assignments for the coach and links to that season in Student Mode", async () => {
     renderWizard("/admin/seasons/season-1?step=students&studentId=coach");
-    fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Select all chapters" }));
     fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
     expect(await screen.findByText("Assignments saved.")).toBeInTheDocument();
     expect(api.assignMyself).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ contentPackId: "pack-1" }), expect.any(AbortSignal));
@@ -106,7 +106,7 @@ describe("Two-step season planner", () => {
   it("keeps archived seasons read-only", async () => {
     vi.mocked(api.season).mockResolvedValue({ ...season, status: "Archived" });
     renderWizard("/admin/seasons/season-1?step=students&studentId=student-1");
-    expect(await screen.findByRole("checkbox", { name: /DAN/ })).toBeDisabled();
+    expect(await screen.findByRole("button", { name: /^Chapter 2/ })).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Start season" })).not.toBeInTheDocument();
   });
   it("does not silently change an unavailable student", async () => {
@@ -115,7 +115,7 @@ describe("Two-step season planner", () => {
   });
   it("reuses the book editor without setup chrome from student management", async () => {
     render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><ToastProvider><SeasonAssignmentEditor seasonId="season-1" studentId="student-1" /></ToastProvider></MemoryRouter></QueryClientProvider>);
-    expect(await screen.findByRole("checkbox", { name: /DAN/ })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /^Chapter 2/ })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Season planner" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText("Start verse")).not.toBeInTheDocument();
   });
@@ -214,8 +214,8 @@ it("cancels deletion without calling the API", async () => {
 it.each(["student-1", "coach"])("assigns only selected season chapters for %s", async studentId => {
   vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 3 }], excludes: [] });
   renderWizard(`/admin/seasons/season-1?step=students&studentId=${studentId}`);
-  fireEvent.click(await screen.findByRole("checkbox", { name: "Chapter 2" }));
-  fireEvent.click(screen.getByRole("checkbox", { name: "Chapter 4" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Chapter 2" }));
+  fireEvent.click(screen.getByRole("button", { name: "Chapter 4" }));
   fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
   await screen.findByText("Assignments saved.");
   const calls = vi.mocked(studentId === "coach" ? api.assignMyself : api.assign).mock.calls;
@@ -232,7 +232,7 @@ it("shows current Honor or initials in the roster and selected assignment identi
 
 it("keeps draft and start actions visible but locked until assignment edits are saved", async () => {
   renderWizard();
-  fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
+  fireEvent.click(await screen.findByRole("button", { name: "Select all chapters" }));
   expect(screen.getByRole("button", { name: "Save as a draft" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Start season" })).toBeDisabled();
   expect(screen.queryByRole("button", { name: "Archive season" })).not.toBeInTheDocument();
@@ -255,7 +255,7 @@ it("retains lifecycle actions for an active season without offering draft save",
 
 it("unlocks draft and start after confirmed saves even when background refresh stalls", async () => {
   renderWizard();
-  fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
+  fireEvent.click(await screen.findByRole("button", { name: "Select all chapters" }));
   vi.mocked(api.assign).mockImplementationOnce(async (_org, _season, input) => {
     vi.mocked(api.assignments).mockImplementation(() => new Promise(() => {}));
     vi.mocked(api.season).mockImplementation(() => new Promise(() => {}));
@@ -265,13 +265,12 @@ it("unlocks draft and start after confirmed saves even when background refresh s
   expect(await screen.findByText("Assignments saved.")).toBeInTheDocument();
   await waitFor(() => expect(screen.getByRole("button", { name: "Save as a draft" })).toBeEnabled());
   expect(screen.getByRole("button", { name: "Start season" })).toBeEnabled();
-  expect(screen.getByRole("checkbox", { name: "Chapter 2" })).toBeChecked();
-  expect(screen.getByRole("checkbox", { name: "Chapter 2" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Chapter 2 (already saved)" })).toBeDisabled();
 });
 
 it("keeps a failed save retryable when reconciliation and background refresh also fail", async () => {
   renderWizard();
-  fireEvent.click(await screen.findByRole("checkbox", { name: /DAN/ }));
+  fireEvent.click(await screen.findByRole("button", { name: "Select all chapters" }));
   vi.mocked(api.assign).mockImplementationOnce(async () => {
     vi.mocked(api.assignments).mockRejectedValue(new Error("Readback offline"));
     vi.mocked(api.season).mockRejectedValue(new Error("Season refresh offline"));
@@ -280,7 +279,7 @@ it("keeps a failed save retryable when reconciliation and background refresh als
   fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Write response lost");
   await waitFor(() => expect(screen.getByRole("button", { name: "Save assignments" })).toBeEnabled());
-  expect(screen.getByRole("checkbox", { name: /DAN/ })).toBeChecked();
+  expect(document.querySelector(".planner-strip-count")).toHaveTextContent("1 of 1 chapters selected");
   expect(screen.getByRole("button", { name: "Start season" })).toBeDisabled();
 });
 
@@ -303,7 +302,7 @@ it("keeps coach difficulty confirmed by a new chapter when refresh stalls", asyn
   vi.mocked(api.myAssignments).mockResolvedValue([existing]);
   vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 3 }], excludes: [] });
   renderWizard("/admin/seasons/season-1?step=students&studentId=coach");
-  fireEvent.click(await screen.findByRole("checkbox", { name: "Chapter 2" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Chapter 2" }));
   fireEvent.change(screen.getByLabelText("Training difficulty"), { target: { value: "Advanced" } });
   vi.mocked(api.assignMyself).mockImplementationOnce(async (_org, _season, input) => {
     vi.mocked(api.myAssignments).mockImplementation(() => new Promise(() => {}));

@@ -43,9 +43,32 @@
 @media(max-width:430px){.planner-actions>.ds-button{flex-basis:100%}}
 
 .planner-chapter-book{border:0;padding:0;margin:0;min-width:0}
-.planner-chapter-grid{max-height:24rem;overflow:auto;padding:var(--er-space-1);display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:var(--er-space-2);margin-top:var(--er-space-3)}
-.planner-chapter-choice{display:flex;align-items:center;gap:var(--er-space-2)}
-.planner-chapter-choice small{display:block}
+
+/* Chapter strip: compact glanceable chapter selection. Tap toggles, drag paints a range. */
+.planner-strip-wrap{display:grid;gap:var(--er-space-2);margin-top:var(--er-space-3);min-width:0}
+.planner-strip-legend{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--er-space-1) var(--er-space-3);font-size:var(--er-text-sm);color:var(--er-muted-ink)}
+.planner-strip-legend li{display:inline-flex;align-items:center;gap:var(--er-space-1)}
+.planner-strip-swatch{position:relative;width:22px;height:22px;border:1px solid var(--er-border-strong);border-radius:var(--er-radius-control);background:var(--er-card)}
+.planner-strip-swatch.is-selected{background:var(--er-teal);border-color:var(--er-teal)}
+.planner-strip-swatch.is-saved{background:repeating-linear-gradient(45deg,var(--er-surface-soft),var(--er-surface-soft) 2px,#d8d3c4 2px,#d8d3c4 4px)}
+.planner-strip-swatch.is-limited{border-style:dashed}
+.planner-strip-swatch.is-refined::after{content:"";position:absolute;left:4px;right:4px;bottom:3px;height:3px;border-radius:2px;background:var(--er-thread-gold)}
+.planner-strip{display:grid;grid-template-columns:repeat(18,1fr);gap:var(--er-space-1);touch-action:pan-y;user-select:none;-webkit-user-select:none}
+@media(max-width:900px){.planner-strip{grid-template-columns:repeat(12,1fr)}}
+@media(max-width:480px){.planner-strip{grid-template-columns:repeat(9,1fr)}}
+.planner-strip-cell{position:relative;min-height:44px;padding:0;border:1px solid var(--er-border-strong);border-radius:var(--er-radius-control);background:var(--er-card);color:var(--er-ink-navy);font:inherit;font-size:var(--er-text-sm);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.planner-strip-cell:hover{border-color:var(--er-teal)}
+.planner-strip-cell:focus-visible{outline:none;box-shadow:var(--er-focus)}
+.planner-strip-cell.is-selected{background:var(--er-teal);border-color:var(--er-teal);color:#fff}
+.planner-strip-cell.is-saved{background:repeating-linear-gradient(45deg,var(--er-surface-soft),var(--er-surface-soft) 3px,#d8d3c4 3px,#d8d3c4 6px);color:var(--er-muted-ink);cursor:not-allowed}
+.planner-strip-cell.is-limited{border-style:dashed}
+.planner-strip-cell.is-refined::after{content:"";position:absolute;left:8px;right:8px;bottom:6px;height:4px;border-radius:2px;background:var(--er-thread-gold)}
+.planner-strip-cell:disabled{cursor:not-allowed}
+.planner-strip-count{margin:0;font-size:var(--er-text-sm)}
+.planner-strip-count strong{font-size:var(--er-text-base)}
+.planner-strip-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--er-space-2)}
+.planner-strip-chip{display:inline-flex;align-items:center;gap:var(--er-space-1);background:var(--er-selected);border:1px solid var(--er-teal);border-radius:999px;padding:var(--er-space-1) var(--er-space-1) var(--er-space-1) var(--er-space-3);font-size:var(--er-text-sm);font-weight:600}
+.planner-strip-actions{display:flex;gap:var(--er-space-2);flex-wrap:wrap}
 
 /* Verse refinement: per-chapter From/To/Add rows shown only for checked chapters. */
 .planner-verse-refine{margin-top:var(--er-space-4);border-top:1px solid var(--er-border);padding-top:var(--er-space-3);display:grid;gap:var(--er-space-2)}
@@ -73,7 +96,7 @@
 /* A phone remains a single-column editor when rotated past the width breakpoint.
    Keep the scrollable choices shorter than the viewport so settings stay reachable. */
 @media (orientation:landscape) and (max-height:500px) and (pointer:coarse) {
-  .season-planner .bible-book-groups,.book-assignment-editor .planner-chapter-grid { max-height:50svh; }
+  .season-planner .bible-book-groups { max-height:50svh; }
   /* Leave a narrow rail for the support launcher and its minimize control. */
   .command-app:has(.coffee-floating) .training-main:has(.season-planner) { padding-right:calc(144px + env(safe-area-inset-right,0px)); }
   html:not([data-erudoza-coffee-ready="true"]) .command-app:has(.season-planner) .coffee-floating { flex-direction:column; align-items:flex-end; }

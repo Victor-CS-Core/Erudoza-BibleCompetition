@@ -24,7 +24,7 @@ function mount() { return render(<QueryClientProvider client={new QueryClient({ 
 it("adds a personal assignment using permitted passages and Standard difficulty", async () => {
  mount();
  const add = await screen.findByRole("button", { name: "Save assignments" });
- fireEvent.click(await screen.findByRole("checkbox", { name: /Daniel/ }));
+ fireEvent.click(await screen.findByRole("button", { name: /^Chapter 1/ }));
  await waitFor(() => expect(add).toBeEnabled());
  expect(screen.getByLabelText("Training difficulty")).toHaveValue("Standard");
  fireEvent.click(add);
@@ -39,7 +39,7 @@ it("shows an empty organization without offering season creation", async () => {
 it("keeps closed season assignments visible without allowing changes", async () => {
  vi.mocked(api.seasons).mockResolvedValue([{ id: "season", name: "Daniel", status: "Completed" }] as never); mount();
  expect(await screen.findByText(/This season is closed/)).toBeInTheDocument();
- expect(screen.getByRole("checkbox", { name: /Daniel/ })).toBeDisabled();
+ expect(screen.getByRole("button", { name: /^Chapter 1/ })).toBeDisabled();
 });
 
 it("removes only the selected personal assignment after confirmation", async () => {
@@ -54,7 +54,7 @@ it("removes only the selected personal assignment after confirmation", async () 
 
 it("refines a checked chapter to specific verses before saving", async () => {
  mount();
- fireEvent.click(await screen.findByRole("checkbox", { name: /Daniel/ }));
+ fireEvent.click(await screen.findByRole("button", { name: /^Chapter 1/ }));
  fireEvent.click(await screen.findByRole("button", { name: "Refine" }));
  fireEvent.change(screen.getByLabelText("From verse in chapter 1"), { target: { value: "1" } });
  fireEvent.change(screen.getByLabelText("To verse in chapter 1"), { target: { value: "2" } });

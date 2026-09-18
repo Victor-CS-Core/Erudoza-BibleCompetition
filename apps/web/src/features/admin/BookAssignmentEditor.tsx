@@ -4,12 +4,13 @@ import type { Assignment, Season, TrainingDifficulty } from "../../api/types";
 import { api } from "../../api/client";
 import { lifecycleApi } from "../../api/lifecycle";
 import { useAuth } from "../../auth/AuthContext";
-import { Badge, Button, Input, LinkButton, LoadingState, Notice, Select, useToast } from "../../components/ui";
+import { Badge, Button, LinkButton, LoadingState, Notice, Select, useToast } from "../../components/ui";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { coordinates, scopePacks, withinRange } from "./passageRanges";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { chapterOptions, describeAssignmentRanges, mergeVerseRanges, saveChapterAssignments, withAssignmentTimeout, type VerseSelection } from "./chapterAssignments";
 import { VerseRefine } from "./VerseRefine";
+import { ChapterStrip } from "./ChapterStrip";
 import "../../styles/season-planner.css";
 
 export function useSeasonBooks(seasonId: string) {
@@ -120,17 +121,16 @@ export function BookAssignmentEditor({ season, studentId, name, nextStudent, onN
       <legend>Chapters to assign</legend>
       <div className="planner-book-list">{data.books.map(book => {
         const options = chapterOptions(book.units, book.all, saved, { studentId, contentPackId: book.contentPackId, type: role });
-        const available = options.filter(option => option.remaining.length).map(option => `${book.contentPackId}/${option.chapter}`);
-        const allSelected = options.length > 0 && available.every(key => selected.includes(key));
         const change = (keys: string[], checked: boolean) => { save.reset(); setSelected(current => checked ? [...new Set([...current, ...keys])] : current.filter(key => !keys.includes(key))); if (!checked) setVerseRanges(current => current.filter(item => !keys.includes(`${item.packId}/${item.chapter}`))); };
         const refinedChapters = options.filter(option => selected.includes(`${book.contentPackId}/${option.chapter}`));
         return <fieldset className="planner-chapter-book" key={book.contentPackId}><legend>{book.name}</legend>
-          <label className="ds-choice planner-book-choice"><Input type="checkbox" checked={allSelected} disabled={!available.length} onChange={event => change(available, event.target.checked)} /><span>Select all chapters in {book.name}</span></label>
           {book.restricted && <p className="planner-caption">Only the saved season selection is available.</p>}
-          <div className="planner-chapter-grid">{options.map(option => {
-            const key = `${book.contentPackId}/${option.chapter}`, assigned = !option.remaining.length;
-            return <label className="ds-choice planner-chapter-choice" key={key}><Input type="checkbox" aria-label={`Chapter ${option.chapter}`} checked={assigned || selected.includes(key)} disabled={assigned} onChange={event => change([key], event.target.checked)} /><span>Chapter {option.chapter}<small>{assigned ? "Assigned" : option.partial ? "Season selection" : option.remaining.length < option.available.length ? "Partly assigned" : ""}</small></span></label>;
-          })}</div>
+          <ChapterStrip bookName={book.name} options={options}
+            selected={options.filter(option => selected.includes(`${book.contentPackId}/${option.chapter}`)).map(option => option.chapter)}
+            verseRanges={verseRanges.filter(item => item.packId === book.contentPackId)}
+            disabled={closed || pending}
+            onSelect={(chapters, select) => change(chapters.map(chapter => `${book.contentPackId}/${chapter}`), select)}
+            onRemoveChapter={chapter => change([`${book.contentPackId}/${chapter}`], false)} />
           {!!refinedChapters.length && <div className="planner-verse-refine">
             <h4>Refine verses <span className="planner-caption">optional</span></h4>
             {refinedChapters.map(option => <VerseRefine key={option.chapter} option={option}

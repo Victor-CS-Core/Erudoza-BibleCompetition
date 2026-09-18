@@ -1,5 +1,15 @@
 # Erudoza progress log
 
+## Chapter-assignment editor: compact chapter strip + verse chips — built on main, September 18
+
+- Per the user's "Go ahead and build it" on the approved mockup: the coach/student assignment editor no longer shows one large checkbox card per chapter (which forced an inner scroll for long books). Each season book now shows its eligible chapters as a compact strip of tappable 44px cells — only chapters inside the saved season scope render, so nonexistent or out-of-scope chapters never appear.
+- Interactions: tap/click toggles a chapter, pointer drag paints a range (skipping already-saved chapters), shift-click extends from the last tapped chapter on desktop, keyboard arrows/Home/End move focus with Enter/Space toggling. Whole selected chapters collapse into chips like `Ch 2–4`; chapters narrowed with Refine verses show a gold underline and chips like `6:1–5`.
+- States in the strip: available (teal when selected), already saved (locked), limited availability (dashed outline when the season scope or partial assignment narrows the verses). Verse-refine controls still derive their From/To options strictly from `option.remaining`, so out-of-range values can't be picked — the user's core requirement. Unselecting a chapter clears its verse refinements.
+- Existing save semantics untouched: assignment timeout, retry reconciliation, idempotency keys, save-progress, draft/start locks, and coach/student self-assignment flows all behave as before.
+- New `ChapterStrip.tsx` + 8/8 tests; `SeasonWizardPage.test.tsx` migrated from checkbox selectors to the strip (27/27); full admin suite 169/169; wiki gate 13/13; web typecheck + eslint clean.
+- Wiki: the `assignments` article now documents the strip, range chips, optional verse refinement, saved/limited states, and the real-values-only guarantee. The stale `assignments.png` screenshot (old checkbox UI) was removed — a fresh screenshot should be captured from staging (sandbox browser cannot render localhost).
+- Staging deploy pending: waiting on the full test-suite result, then push to main → auto-deploy to staging → iPhone test steps for the user. No production deploy.
+
 ## Staging custom domain staging.erudoza.com — live, September 16
 
 - Staging now serves on https://staging.erudoza.com (the old workers.dev subdomain was named after a different project). Root 200; `/api/v1/health` healthy (`database:true`, `runtime:"cloudflare"`); the old workers.dev URL still serves as well.
