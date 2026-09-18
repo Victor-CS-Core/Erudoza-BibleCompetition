@@ -15,6 +15,12 @@ async function showHonors() {
   const nav = await screen.findByRole("navigation", { name: "Profile pages" });
   fireEvent.click(within(nav).getByRole("button", { name: "Honors" }));
 }
+/** Honors are art-first cards now: the details and the "Use as profile image"
+ *  action live in the square modal behind the artwork button. */
+async function openHonorDetail(title: string) {
+  fireEvent.click(await screen.findByRole("button", { name: `${title}: view details` }));
+  return await screen.findByRole("dialog", { name: title });
+}
 function LegacyAvatarControls() {
   const save = useSetProfileAvatar();
   return <><button onClick={() => save.mutate("solo:exact-recall")}>Legacy Honor</button><button onClick={() => save.mutate(null)}>Legacy initials</button></>;
@@ -41,9 +47,13 @@ describe("shared profile identity", () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const view = render(<QueryClientProvider client={client}><ProfileAvatar userId="self" displayName="Anna Reed" /><ToastProvider><ProfilePage /></ToastProvider></QueryClientProvider>);
     await showHonors();
-    expect(await screen.findByRole("button", { name: "Use Full Coverage as profile image" })).toBeDisabled();
-    expect(screen.getByText("Master all 30 assigned passages.")).toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "Use Exact Recall as profile image" }));
+    const coverage = await openHonorDetail("Full Coverage");
+    expect(within(coverage).getByText("Master all 30 assigned passages.")).toBeVisible();
+    expect(within(coverage).getByText("This patch is locked. Meet every requirement to unlock it for your profile.")).toBeVisible();
+    expect(within(coverage).queryByRole("button", { name: "Use Full Coverage as profile image" })).toBeNull();
+    fireEvent.click(within(coverage).getByRole("button", { name: "Close dialog" }));
+    const exact = await openHonorDetail("Exact Recall");
+    fireEvent.click(within(exact).getByRole("button", { name: "Use Exact Recall as profile image" }));
     expect(view.container.querySelectorAll("[data-profile-honor]")).toHaveLength(0);
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() => expect(view.container.querySelectorAll('[data-profile-honor="solo:exact-recall"]')).toHaveLength(1));
@@ -76,7 +86,8 @@ describe("shared profile identity", () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const view = render(<QueryClientProvider client={client}><ToastProvider><ProfilePage /></ToastProvider></QueryClientProvider>);
     await showHonors();
-    fireEvent.click(await screen.findByRole("button", { name: "Use Exact Recall as profile image" }));
+    const exactRecall = await openHonorDetail("Exact Recall");
+    fireEvent.click(within(exactRecall).getByRole("button", { name: "Use Exact Recall as profile image" }));
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() => expect(save).toHaveBeenCalled());
     view.unmount();
@@ -94,7 +105,8 @@ describe("shared profile identity", () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     render(<QueryClientProvider client={client}><ToastProvider><ProfilePage/></ToastProvider></QueryClientProvider>);
     await showHonors();
-    fireEvent.click(await screen.findByRole("button", { name: "Use Exact Recall as profile image" }));
+    const exactRecall = await openHonorDetail("Exact Recall");
+    fireEvent.click(within(exactRecall).getByRole("button", { name: "Use Exact Recall as profile image" }));
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     await waitFor(() => expect(save).toHaveBeenCalled());
     const key = ["profile", "academy", "self"];
@@ -112,7 +124,8 @@ describe("shared profile identity", () => {
     client.setQueryData(["profile", "academy", "self"], { ...catalog, honors: catalog.honors.map(honor => ({ ...honor, earnedAtUtc: null })) });
     render(<QueryClientProvider client={client}><ToastProvider><ProfilePage /></ToastProvider></QueryClientProvider>);
     await showHonors();
-    await waitFor(() => expect(screen.getByRole("button", { name: "Use Exact Recall as profile image" })).toBeEnabled());
+    const exactRecall = await openHonorDetail("Exact Recall");
+    await waitFor(() => expect(within(exactRecall).getByRole("button", { name: "Use Exact Recall as profile image" })).toBeEnabled());
     expect(me).toHaveBeenCalled();
   });
   it("retains initials and reports a server rejection without pretending the image was saved", async () => {
@@ -121,7 +134,8 @@ describe("shared profile identity", () => {
     vi.spyOn(profileApi, "character").mockRejectedValue(new Error("Earn this Honor before selecting it."));
     const view = render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><ToastProvider><ProfilePage /></ToastProvider></QueryClientProvider>);
     await showHonors();
-    fireEvent.click(await screen.findByRole("button", { name: "Use Exact Recall as profile image" }));
+    const exactRecall = await openHonorDetail("Exact Recall");
+    fireEvent.click(within(exactRecall).getByRole("button", { name: "Use Exact Recall as profile image" }));
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Earn this Honor before selecting it.");
     expect(view.container.querySelector("[data-profile-honor]")).toBeNull();
@@ -167,9 +181,15 @@ describe('profile patch publication refresh',()=>{
    await act(async()=>{await vi.advanceTimersByTimeAsync(500);});
    fireEvent.click(within(screen.getByRole('navigation',{name:'Profile pages'})).getByRole('button',{name:'Honors'}));
    await act(async()=>{await vi.advanceTimersByTimeAsync(500);});
-   expect(screen.getByRole('button',{name:'Use First Rehearsal as profile image'})).toBeDisabled();
+   fireEvent.click(screen.getByRole('button',{name:'First Rehearsal: view details'}));
+   const rehearsalLocked = screen.getByRole('dialog',{name:'First Rehearsal'});
+   expect(within(rehearsalLocked).getByText('Complete one simulation.')).toBeVisible();
+   expect(within(rehearsalLocked).queryByRole('button',{name:'Use First Rehearsal as profile image'})).toBeNull();
+   fireEvent.click(within(rehearsalLocked).getByRole('button',{name:'Close dialog'}));
    await act(async()=>{await vi.advanceTimersByTimeAsync(2100);});
-   expect(screen.getByRole('button',{name:'Use First Rehearsal as profile image'})).toBeEnabled();
+   fireEvent.click(screen.getByRole('button',{name:'First Rehearsal: view details'}));
+   const rehearsalEarned = screen.getByRole('dialog',{name:'First Rehearsal'});
+   expect(within(rehearsalEarned).getByRole('button',{name:'Use First Rehearsal as profile image'})).toBeEnabled();
    await act(async()=>{await vi.advanceTimersByTimeAsync(21000);});
    const calls=read.mock.calls.length;
    await act(async()=>{await vi.advanceTimersByTimeAsync(60000);});

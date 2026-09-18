@@ -73,6 +73,18 @@ it("highlights the viewer inside the top five", async () => {
   expect(screen.queryByText(/You’re #/)).not.toBeInTheDocument();
 });
 
+it("labels the gamification tier as Level so Rank means only board position", async () => {
+  vi.mocked(api.leaderboard).mockResolvedValue({
+    weekStartLocalDate: "2026-09-14",
+    entries: [{ userId: "a", displayName: "Ada L.", xp: 500, level: 4, levelName: "Keeper" }],
+    me: { userId: "student", rank: null, xp: 0, optedIn: true },
+  });
+  renderWith(<LeaderboardCard />);
+  const row = await screen.findByTestId("leaderboard-row-1");
+  expect(row).toHaveTextContent("Level 4");
+  expect(row.querySelector(".leaderboard-rank")).toHaveAttribute("aria-label", "Position 1");
+});
+
 it("recovers when the leaderboard fails to load", async () => {
   vi.mocked(api.leaderboard).mockRejectedValueOnce(new Error("offline"));
   renderWith(<LeaderboardCard />);

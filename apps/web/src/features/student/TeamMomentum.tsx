@@ -69,7 +69,7 @@ function BoardRows({ board }: { board: LeaderboardResponse }) {
       <span className="leaderboard-rank" aria-label={`Position ${index + 1}`}>{index + 1}</span>
       <span className="leaderboard-name">{entry.displayName}{board.me?.userId === entry.userId && <Badge tone="info">You</Badge>}</span>
       <span className="leaderboard-xp"><strong>{entry.xp}</strong> XP</span>
-      <Badge tone="neutral">Rank {entry.level}</Badge>
+      <Badge tone="neutral">Level {entry.level}</Badge>
     </li>)}
   </ol>;
 }

@@ -1,10 +1,10 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {renderHook} from '@testing-library/react';
 import {
-  PARALLAX_BG_MAX, PARALLAX_CHAR_MAX,
+  PARALLAX_BG_MAX, PARALLAX_CHAR_MAX, TILT_ROTATION_MAX,
   _resetTiltMotion, enableTiltMotion, isParallaxSettled, isTiltOptedIn, needsMotionPermission,
   orientationNormal, parallaxOffsets, pointerNormal, prefersReducedMotion,
-  requestMotionPermission, requestTiltOnOpen, stepParallax, useStageParallax,
+  requestMotionPermission, requestTiltOnOpen, rotationOffsets, stepParallax, useStageParallax,
 } from './stageParallax';
 
 afterEach(() => {
@@ -92,8 +92,7 @@ describe('stage parallax math', () => {
     expect(parallaxOffsets({x: 0, y: 0})).toEqual({bg: {x: 0, y: 0}, char: {x: 0, y: 0}});
   });
 
-  it('eases toward the target and snaps back to neutral', () => {
-    const target = {x: -10, y: 5};
+  it('eases toward the target and snaps back to neutral', () => {    const target = {x: -10, y: 5};
     let current = {x: 0, y: 0};
     let previous = Math.hypot(target.x, target.y);
     for (let i = 0; i < 200; i++) {
@@ -111,6 +110,34 @@ describe('stage parallax math', () => {
   });
 });
 
+describe('card tilt rotation', () => {
+  it('maps normalized input to degrees with the card-tilt sign convention', () => {
+    // rotateY follows x: input right tips the right edge away (Pokémon-card style).
+    expect(rotationOffsets({x: 1, y: 0})).toEqual({rotateX: 0, rotateY: TILT_ROTATION_MAX});
+    expect(rotationOffsets({x: -1, y: 0})).toEqual({rotateX: 0, rotateY: -TILT_ROTATION_MAX});
+    // rotateX follows -y: input at the top tips the top edge away.
+    expect(rotationOffsets({x: 0, y: -1})).toEqual({rotateX: TILT_ROTATION_MAX, rotateY: 0});
+    expect(rotationOffsets({x: 0, y: 1})).toEqual({rotateX: -TILT_ROTATION_MAX, rotateY: 0});
+    // Amplitudes scale linearly and stay bounded by the max.
+    expect(rotationOffsets({x: 0.5, y: -0.25})).toEqual({rotateX: 2, rotateY: 4});
+    expect(Math.abs(rotationOffsets({x: 1, y: 1}).rotateX)).toBeLessThanOrEqual(TILT_ROTATION_MAX);
+    expect(Math.abs(rotationOffsets({x: 1, y: 1}).rotateY)).toBeLessThanOrEqual(TILT_ROTATION_MAX);
+    // Neutral stays neutral, and -0 normalizes to 0 so settled rotations
+    // compare exactly.
+    expect(rotationOffsets({x: 0, y: 0})).toEqual({rotateX: 0, rotateY: 0});
+    expect(rotationOffsets({x: -0, y: -0})).toEqual({rotateX: 0, rotateY: 0});
+  });
+
+  it('settles through the same easing pipeline so transforms clear', () => {
+    let current = {x: 0.5, y: -0.5};
+    for (let i = 0; i < 200; i++) current = stepParallax(current, {x: 0, y: 0});
+    expect(current).toEqual({x: 0, y: 0});
+    expect(rotationOffsets(current)).toEqual({rotateX: 0, rotateY: 0});
+    expect(isParallaxSettled(current)).toBe(true);
+    expect(isParallaxSettled({x: 0.5, y: 0})).toBe(false);
+  });
+});
+
 describe('motion permission', () => {
   it('needs the opt-in only where the iOS permission gate exists', () => {
     expect(needsMotionPermission()).toBe(false);
@@ -119,22 +146,22 @@ describe('motion permission', () => {
   });
 
   it('allows motion where no permission API exists (Android/desktop)', async () => {
-    await expect(requestMotionPermission()).resolves.toBe(true);
+    await expect(requestMotionPermission()).resolves.toBe('granted');
   });
 
-  it('resolves true only when iOS grants permission', async () => {
+  it('resolves granted only when iOS grants permission', async () => {
     const requestPermission = stubIOSGate('granted');
-    await expect(requestMotionPermission()).resolves.toBe(true);
+    await expect(requestMotionPermission()).resolves.toBe('granted');
     expect(requestPermission).toHaveBeenCalled();
   });
 
-  it('falls back to no tilt when permission is denied or throws', async () => {
+  it('distinguishes an explicit denial from a throw', async () => {
     stubIOSGate('denied');
-    await expect(requestMotionPermission()).resolves.toBe(false);
+    await expect(requestMotionPermission()).resolves.toBe('denied');
     const throwing = {requestPermission: vi.fn().mockRejectedValue(new Error('nope'))};
     vi.stubGlobal('DeviceOrientationEvent', throwing);
     (window as unknown as {DeviceOrientationEvent: unknown}).DeviceOrientationEvent = throwing;
-    await expect(requestMotionPermission()).resolves.toBe(false);
+    await expect(requestMotionPermission()).resolves.toBe('error');
   });
 });
 
@@ -158,17 +185,21 @@ describe('tilt motion (gyroscope)', () => {
     expect(addSpy.mock.calls.filter((c) => c[0] === 'deviceorientation')).toHaveLength(1);
 
     // Gyro now drives the same offsets as the pointer path: gamma 45 (full
-    // right tilt) pushes the background left and the character right.
+    // right tilt) pushes the background left and the character right, and
+    // rotates the character layer like a card. The fill stays flat 2D.
     dispatchTilt(45, 45);
     nextFrame()(0);
     expect(fill.style.transform).toBe('translate3d(-3.36px, 0.00px, 0) scale(1.12)');
-    expect(canvas.style.transform).toBe('translate3d(1.44px, 0.00px, 0)');
+    expect(fill.style.transform).not.toContain('rotate');
+    expect(canvas.style.transform).toBe('perspective(600px) translate3d(1.44px, 0.00px, 0) rotateX(0.00deg) rotateY(0.96deg)');
 
     // Gyro takes precedence over the pointer once live: a pointer hard left
-    // would ease toward +28, but the tilt keeps easing toward -28.
+    // would ease toward +28, but the tilt keeps easing toward -28 — and the
+    // card rotation keeps following the gyro too.
     wrap.dispatchEvent(new MouseEvent('pointermove', {clientX: 0, clientY: 50}));
     nextFrame()(1);
     expect(fill.style.transform).toBe('translate3d(-6.32px, 0.00px, 0) scale(1.12)');
+    expect(canvas.style.transform).toBe('perspective(600px) translate3d(2.71px, 0.00px, 0) rotateX(0.00deg) rotateY(1.80deg)');
     unmount();
   });
 
@@ -281,6 +312,25 @@ describe('requestTiltOnOpen', () => {
     await expect(requestTiltOnOpen()).resolves.toBe(false);
     expect(requestPermission).toHaveBeenCalledTimes(2);
   });
+
+  it('does not remember a thrown permission request as a denial', async () => {
+    stubNoReducedMotion();
+    const throwing = {requestPermission: vi.fn().mockRejectedValue(new Error('nope'))};
+    vi.stubGlobal('DeviceOrientationEvent', throwing);
+    (window as unknown as {DeviceOrientationEvent: unknown}).DeviceOrientationEvent = throwing;
+
+    // The throw fails silently for this open only.
+    await expect(enableTiltMotion()).resolves.toBe(false);
+    expect(isTiltOptedIn()).toBe(false);
+
+    // No denial was recorded, so the next open re-attempts the request
+    // instead of suppressing itself — and a grant then goes live.
+    await expect(requestTiltOnOpen()).resolves.toBe(false);
+    expect(throwing.requestPermission).toHaveBeenCalledTimes(2);
+    throwing.requestPermission.mockResolvedValue('granted');
+    await expect(requestTiltOnOpen()).resolves.toBe(true);
+    expect(isTiltOptedIn()).toBe(true);
+  });
 });
 
 describe('useStageParallax', () => {
@@ -333,12 +383,20 @@ describe('useStageParallax', () => {
     result.current.canvasRef(canvas);
 
     // Pointer (mouse or finger) at the right edge: background drifts left,
-    // character counter-moves right, eased 0.12 toward the target.
+    // character counter-moves right and rotates like a card, eased 0.12
+    // toward the target. The fill keeps its flat 2D translate+scale.
     wrap.dispatchEvent(new MouseEvent('pointermove', {clientX: 200, clientY: 50}));
     expect(frame).not.toBeNull();
     frame!(0);
     expect(fill.style.transform).toBe('translate3d(-3.36px, 0.00px, 0) scale(1.12)');
-    expect(canvas.style.transform).toBe('translate3d(1.44px, 0.00px, 0)');
+    expect(fill.style.transform).not.toContain('rotate');
+    expect(canvas.style.transform).toBe('perspective(600px) translate3d(1.44px, 0.00px, 0) rotateX(0.00deg) rotateY(0.96deg)');
+
+    // Finger at the bottom edge: rotateX tips the bottom edge away (full
+    // deflection is -8°, here eased 0.12 toward it).
+    wrap.dispatchEvent(new MouseEvent('pointermove', {clientX: 100, clientY: 100}));
+    frame!(1);
+    expect(canvas.style.transform).toBe('perspective(600px) translate3d(1.27px, 1.44px, 0) rotateX(-0.96deg) rotateY(0.84deg)');
 
     // Pointer leaves: eases back to neutral and the transforms clear.
     wrap.dispatchEvent(new MouseEvent('pointerleave'));

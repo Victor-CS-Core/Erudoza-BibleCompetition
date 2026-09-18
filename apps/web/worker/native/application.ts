@@ -106,6 +106,15 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     const dashboardMatch = path.match(/^\/students\/([^/]+)\/dashboard$/);
     if (dashboardMatch && method === 'GET')
         return json(await studentDashboard(ctx, dashboardMatch[1]));
+    const sessionHistoryMatch = path.match(/^\/students\/([^/]+)\/sessions$/);
+    if (sessionHistoryMatch && method === 'GET') {
+        const url = new URL(request.url);
+        const limit = Number(url.searchParams.get('limit'));
+        return json(await studentSessionHistory(ctx, sessionHistoryMatch[1], url.searchParams.get('before') ?? undefined, Number.isFinite(limit) ? limit : 30));
+    }
+    const sessionExportMatch = path.match(/^\/students\/([^/]+)\/export\.csv$/);
+    if (sessionExportMatch && method === 'GET')
+        return new Response(await studentExportCsv(ctx, sessionExportMatch[1]), { headers: { 'Content-Type': 'text/csv' } });
     if (studentMatch && (studentMatch[2] === 'password' && method === 'POST' || studentMatch[2] === 'state' && method === 'PUT')) {
         await student(ctx, studentMatch[1]);
         const input = await body<{

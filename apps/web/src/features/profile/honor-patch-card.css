@@ -1,0 +1,26 @@
+/* Art-first honor collection: shared by the student Honors page and the profile
+   Honor collection. The patch artwork dominates the card; details live in the modal. */
+.honor-patch-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--er-space-6); }
+.honor-patch-card { display: grid; gap: var(--er-space-3); justify-items: center; align-content: start; text-align: center; padding: var(--er-space-5); }
+.honor-patch-card__art { appearance: none; background: none; border: 0; padding: 0; margin: 0; width: 100%; display: grid; place-items: center; cursor: pointer; border-radius: var(--er-radius-control); }
+.honor-patch-card__art:focus-visible { outline: 2px solid var(--er-teal); outline-offset: 4px; }
+.honor-patch-card__art .ds-patch-art { width: min(100%, 208px); height: auto; aspect-ratio: 1; }
+.honor-patch-card h2 { margin: 0; font-size: var(--er-text-base); }
+.honor-patch-card__status { display: flex; align-items: center; justify-content: center; gap: var(--er-space-2); flex-wrap: wrap; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.honor-patch-detail { display: grid; justify-items: center; gap: var(--er-space-3); text-align: center; }
+.honor-patch-detail .ds-patch-art { width: min(100%, 192px); height: auto; aspect-ratio: 1; }
+.honor-patch-detail h3 { margin: var(--er-space-2) 0 0; font-size: var(--er-text-sm); text-transform: uppercase; letter-spacing: .05em; color: var(--er-muted-ink); }
+.honor-patch-detail p { margin: 0; }
+.honor-patch-detail .ds-button, .honor-patch-detail .ds-link-button { margin-top: var(--er-space-2); }
+/* The detail modal is a responsive square: 1:1 while the viewport allows it,
+   shrinking to the viewport height on short landscape screens. The body
+   scrolls internally so long requirements never break the square. */
+.honor-patch-dialog { width: min(440px, calc(100vw - 32px)); aspect-ratio: 1 / 1; max-height: calc(100dvh - 32px); display: flex; flex-direction: column; }
+.honor-patch-dialog .ds-training-dialog-body { flex: 1; min-height: 0; overflow-y: auto; }
+@media (max-width: 1100px) {
+  .honor-patch-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--er-space-3); }
+}
+@media (max-width: 560px) {
+  .honor-patch-grid { gap: var(--er-space-2); }
+  .honor-patch-card { padding: var(--er-space-4) var(--er-space-3); }
+}

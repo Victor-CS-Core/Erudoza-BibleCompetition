@@ -43,14 +43,42 @@ it("toggles a chapter on click and reports the selection count", () => {
 });
 
 it("drags to paint a range, skipping saved chapters", () => {
-  const { props } = renderStrip({ options: [option(1, []), option(2, [1, 2]), option(3, []), option(4, [1]), option(5, [1])] });
+  const { props, container } = renderStrip({ options: [option(1, []), option(2, [1, 2]), option(3, []), option(4, [1]), option(5, [1])] });
+  const strip = container.querySelector(".planner-strip")!;
   fireEvent.pointerDown(chapterCell(2));
-  fireEvent.pointerOver(chapterCell(4));
+  // Touch path: the pointer is captured to the start cell, so painting goes
+  // through the container's pointermove with a coordinate hit-test.
+  const restoreHit = mockHitTest(chapterCell(4));
+  fireEvent.pointerMove(strip, { clientX: 120, clientY: 40 });
+  restoreHit();
   expect(props.onSelect).toHaveBeenCalledWith([2, 4], true);
-  // The trailing click after a drag must not toggle the release cell.
+  // The trailing click lands on the capture target (the start cell) after a
+  // touch paint — it must be swallowed, not toggle the cell back off.
+  fireEvent.pointerUp(strip);
+  fireEvent.click(chapterCell(2));
+  expect(props.onSelect).toHaveBeenCalledTimes(1);
+});
+
+it("paints a deselect range on drag without re-toggling the start cell", () => {
+  const { props, container } = renderStrip({ selected: [2, 3, 4] });
+  const strip = container.querySelector(".planner-strip")!;
+  fireEvent.pointerDown(chapterCell(4));
+  const restoreHit = mockHitTest(chapterCell(2));
+  fireEvent.pointerMove(strip, { clientX: 40, clientY: 40 });
+  restoreHit();
+  expect(props.onSelect).toHaveBeenCalledWith([2, 3, 4], false);
+  fireEvent.pointerUp(strip);
   fireEvent.click(chapterCell(4));
   expect(props.onSelect).toHaveBeenCalledTimes(1);
 });
+
+// jsdom does not implement document.elementFromPoint; the strip's touch
+// paint path hit-tests through it, so stub it for drag tests.
+function mockHitTest(cell: HTMLElement) {
+  const original = document.elementFromPoint;
+  document.elementFromPoint = (() => cell) as unknown as typeof document.elementFromPoint;
+  return () => { document.elementFromPoint = original; };
+}
 
 it("shift-click extends the selection from the last tapped chapter", () => {
   const { props } = renderStrip();

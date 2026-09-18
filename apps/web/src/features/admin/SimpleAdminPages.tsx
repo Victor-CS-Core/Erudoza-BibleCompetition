@@ -1,7 +1,7 @@
 import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { useIsMutating, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { lifecycleApi } from "../../api/lifecycle";
 import type { Student } from "../../api/types";
@@ -46,6 +46,27 @@ export function StudentsPage() {
   const [stateStudent, setStateStudent] = useState<Student | null>(null);
   const [dashboardStudent, setDashboardStudent] = useState<Student | null>(null);
   const [tab, setTab] = useState<"directory" | "engagement">("directory");
+  const location = useLocation();
+  // The context links "Student directory" / "Add student" navigate to
+  // #student-directory / #add-student. Those panels only exist on the
+  // Directory tab, so sync the tab when the hash targets them — otherwise
+  // the tap appears to do nothing while the Engagement tab is showing.
+  useEffect(() => {
+    const targetId = location.hash === "#student-directory" || location.hash === "#add-student"
+      ? location.hash.slice(1)
+      : null;
+    if (!targetId) return;
+    setTab("directory");
+    // The tab switch unmounts the Engagement tab and mounts the panels, so
+    // wait a frame before scrolling to the revealed panel.
+    const frame = requestAnimationFrame(() => {
+      const panel = document.getElementById(targetId);
+      if (!panel) return;
+      if (typeof panel.scrollIntoView === "function") panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      panel.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [location.hash]);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
   const students = useQuery({ queryKey: ["students", me?.organizationId], queryFn: () => api.students(me!.organizationId), enabled: !!me });
@@ -75,7 +96,7 @@ export function StudentsPage() {
       <Button variant={tab === "engagement" ? "primary" : "secondary"} size="compact" role="tab" aria-selected={tab === "engagement"} onClick={() => setTab("engagement")}>Engagement</Button>
     </div>
     {tab === "directory" ? <>
-    <Panel id="student-directory"><h2>Student directory</h2>
+    <Panel id="student-directory" tabIndex={-1}><h2>Student directory</h2>
       {students.isPending && <p role="status">Loading students…</p>}
       {students.isError && <QueryError retry={() => void students.refetch()}>Unable to load students.</QueryError>}
       {students.data && <StudentTable students={students.data} renderActions={student => <>
@@ -100,7 +121,7 @@ export function StudentsPage() {
       </ConfirmationDialog>}
       {dashboardStudent && <StudentDashboardPanel student={dashboardStudent} onClose={() => setDashboardStudent(null)} />}
     </Panel>
-    <Panel id="add-student"><h2>Add a student</h2><p>Students sign in with a username. Passwords need at least 8 characters.</p>
+    <Panel id="add-student" tabIndex={-1}><h2>Add a student</h2><p>Students sign in with a username. Passwords need at least 8 characters.</p>
       <form className="training-directory-form" onSubmit={onSubmit}>
         <label>Username<Input data-testid="student-username" autoComplete="off" required value={userName} onChange={e => setUserName(e.target.value)} disabled={create.isPending} /></label>
         <label>Display name<Input data-testid="student-display-name" required value={displayName} onChange={e => setDisplayName(e.target.value)} disabled={create.isPending} /></label>

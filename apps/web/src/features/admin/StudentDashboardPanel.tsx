@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import type { SessionHistoryEntry, Student } from "../../api/types";
@@ -30,29 +30,50 @@ function SessionHistory({ orgId, studentId, onViewRecap }: { orgId: string; stud
   const [nextBefore, setNextBefore] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
+  const alive = useRef(true);
+  // Guards against stale responses when the coach switches students (or orgs)
+  // while a fetch is in flight: only the latest reload/loadMore may write.
+  const generation = useRef(0);
+  // First-page fetch. "Try again" must re-run this — not loadMore, whose
+  // pagination guard (nextBefore/loading) would bail out immediately and
+  // leave the spinner stuck forever after a failed first page.
+  const reload = useCallback(async () => {
+    const gen = ++generation.current;
     setLoading(true); setFailed(false); setSessions([]); setNextBefore(null);
-    api.studentSessionHistory(orgId, studentId).then(page => {
-      if (cancelled) return;
-      setSessions(page.sessions); setNextBefore(page.nextBefore); setLoading(false);
-    }).catch(() => { if (!cancelled) { setFailed(true); setLoading(false); } });
-    return () => { cancelled = true; };
+    try {
+      const page = await api.studentSessionHistory(orgId, studentId);
+      if (!alive.current || generation.current !== gen) return;
+      setSessions(page.sessions); setNextBefore(page.nextBefore);
+    } catch {
+      if (!alive.current || generation.current !== gen) return;
+      setFailed(true);
+    }
+    if (alive.current && generation.current === gen) setLoading(false);
   }, [orgId, studentId]);
+  useEffect(() => {
+    alive.current = true;
+    void reload();
+    return () => { alive.current = false; };
+  }, [reload]);
   async function loadMore() {
     if (!nextBefore || loading) return;
+    const gen = generation.current;
     setLoading(true);
     try {
       const page = await api.studentSessionHistory(orgId, studentId, nextBefore);
+      if (!alive.current || generation.current !== gen) return;
       setSessions(prev => [...prev, ...page.sessions]); setNextBefore(page.nextBefore);
-    } catch { setFailed(true); }
-    setLoading(false);
+    } catch {
+      if (!alive.current || generation.current !== gen) return;
+      setFailed(true);
+    }
+    if (alive.current && generation.current === gen) setLoading(false);
   }
   return <Panel data-testid="student-dashboard-history">
     <h2>Session history</h2>
     <p><a href={api.studentExportCsvUrl(orgId, studentId)} download={`student-history-${studentId}.csv`}>Download full history (CSV)</a></p>
     {loading && sessions.length === 0 && <LoadingState label="Loading session history…" />}
-    {failed && sessions.length === 0 && <Notice tone="danger">Session history could not load. <Button variant="secondary" size="compact" onClick={() => { setFailed(false); setLoading(true); void loadMore(); }}>Try again</Button></Notice>}
+    {failed && sessions.length === 0 && <Notice tone="danger">Session history could not load. <Button variant="secondary" size="compact" onClick={() => void reload()}>Try again</Button></Notice>}
     {sessions.length ? <ul className="ds-student-dashboard-list">{sessions.map(session =>
       <li key={session.sessionId}>{session.format === "Room" ? (
         // Room entries are plain labels: there is no coach-facing room recap

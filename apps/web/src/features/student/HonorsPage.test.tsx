@@ -33,35 +33,40 @@ beforeEach(() => {
 it("shows mastery requirements and only earned profile choices, independently of assignments", async () => {
   vi.mocked(api.assignedSeasons).mockResolvedValue([]); page();
   expect(screen.getByText("1 Honor earned")).toBeInTheDocument();
-  expect(screen.getByText(profile.honors[0].requirement)).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Use Reference Ready as profile image" })).toHaveAttribute("href", "/student/profile");
+  fireEvent.click(screen.getByRole("button", { name: "Reference Ready: view details" }));
+  const earnedDialog = screen.getByRole("dialog");
+  expect(within(earnedDialog).getByText(profile.honors[1].requirement)).toBeInTheDocument();
+  expect(within(earnedDialog).getByRole("link", { name: "Use Reference Ready as profile image" })).toHaveAttribute("href", "/student/profile");
+  fireEvent.click(within(earnedDialog).getByRole("button", { name: "Close dialog" }));
   expect(screen.queryByRole("link", { name: "Use Exact Recall as profile image" })).not.toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "View Exact Recall requirements" }));
+  fireEvent.click(screen.getByRole("button", { name: "Exact Recall: view details" }));
   expect(screen.getByRole("dialog")).toHaveTextContent("This patch is locked");
   expect(within(screen.getByRole("dialog")).queryByRole("link", { name: "Use as profile image" })).not.toBeInTheDocument();
 });
 it("combines category and earned/locked filters without promoting milestone awards", async () => {
   vi.mocked(trainingApi.honors).mockResolvedValue([honorFixture({ earnedAtUtc: "2026-09-10T12:00:00Z" })]); page();
   fireEvent.change(screen.getByLabelText("Honor category"), { target: { value: "Team Practice" } });
-  expect(screen.getByRole("button", { name: "View Team Precision requirements" })).toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "View Reference Ready requirements" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Team Precision: view details" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Reference Ready: view details" })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Earned" }));
   expect(screen.getByText("No earned Honors yet")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Locked" }));
-  expect(screen.getByRole("button", { name: "View Team Precision requirements" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Team Precision: view details" })).toBeInTheDocument();
 });
 it("preserves the original milestone progress and Advanced requirement inside history", async () => {
   page(); fireEvent.click(screen.getByText("Practice milestones", { selector: "summary" }));
   expect(await screen.findByText("4 / 5")).toBeInTheDocument();
-  expect(screen.getByText("Advanced practice: reach 80 in exact wording across 5 passages.")).toBeInTheDocument();
-  fireEvent.click(screen.getByRole("button", { name: "View Exact Recall milestone details" }));
+  const milestones = screen.getByText("Practice milestones", { selector: "summary" }).closest("details")!;
+  fireEvent.click(within(milestones).getByRole("button", { name: "Exact Recall: view details" }));
+  expect(screen.getByRole("dialog")).toHaveTextContent("Reach an exact wording score of 80 in 5 distinct eligible passages.");
   expect(screen.getByRole("dialog")).toHaveTextContent("Requires Advanced practice; Foundation and Standard wording scores are capped at 40 and 70.");
   expect(within(screen.getByRole("dialog")).queryByRole("link", { name: /profile image/ })).not.toBeInTheDocument();
 });
 it("preserves milestone earning date, scope and evidence-session route", async () => {
   vi.mocked(trainingApi.honors).mockResolvedValue([honorFixture({ earnedAtUtc: "2026-09-10T12:00:00Z", evidenceSessionId: "saved" })]); page();
   fireEvent.click(screen.getByText("Practice milestones", { selector: "summary" }));
-  fireEvent.click(await screen.findByRole("button", { name: "View Exact Recall milestone details" }));
+  const milestones = screen.getByText("Practice milestones", { selector: "summary" }).closest("details")!;
+  fireEvent.click(await within(milestones).findByRole("button", { name: "Exact Recall: view details" }));
   expect(screen.getByRole("dialog")).toHaveTextContent("saved historical evidence");
   expect(screen.getByRole("dialog")).toHaveTextContent("Daniel assigned scope");
   expect(screen.getByRole("link", { name: "View evidence session" })).toHaveAttribute("href", "/student/sessions/saved/recap?seasonId=s");
@@ -76,7 +81,8 @@ it("shows a milestone error independently of the mastery collection", async () =
   vi.mocked(trainingApi.honors).mockRejectedValue(new Error("offline")); page();
   fireEvent.click(screen.getByText("Practice milestones", { selector: "summary" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Practice milestones could not load");
-  expect(screen.getByRole("link", { name: "Use Reference Ready as profile image" })).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Reference Ready: view details" }));
+  expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Use Reference Ready as profile image" })).toBeInTheDocument();
 });
 it('keeps dated chapter stamps separate from permanent Honors and legacy milestones', async () => {
   page();
@@ -85,7 +91,9 @@ it('keeps dated chapter stamps separate from permanent Honors and legacy milesto
   expect(screen.getByText('Earned for an earlier assigned scope.')).toBeVisible();
   fireEvent.click(screen.getByText('Practice milestones', { selector: 'summary' }));
   expect(screen.getByText(/Team Practice answers do not establish individual Solo accuracy/)).toBeVisible();
-  expect(screen.queryByRole('link', { name: /profile image/i })).toBeInTheDocument();
+  const milestones = screen.getByText('Practice milestones', { selector: 'summary' }).closest('details')!;
+  fireEvent.click(within(milestones).getByRole('button', { name: 'Exact Recall: view details' }));
+  expect(within(screen.getByRole('dialog')).queryByRole('link', { name: /profile image/i })).not.toBeInTheDocument();
 });
 it('keeps an unverifiable scope match distinct from an unavailable current assignment', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(stampPage(null));

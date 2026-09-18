@@ -10,17 +10,8 @@
 .training-collection-note { margin: 0; }
 .training-collection-filters { display: flex; gap: var(--er-space-1); flex-wrap: wrap; margin-left: auto; }
 .training-collection-filters > .ds-button { padding-inline: var(--er-space-4); }
-.training-collection .training-honors-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--er-space-6); }
-.training-collection .training-honor-card { gap: var(--er-space-2); padding: var(--er-space-6) var(--er-space-5) var(--er-space-4); }
-.training-collection .training-honor-card > .ds-patch-art { margin: 0 auto var(--er-space-2); }
-.training-collection .training-honor-card > h2 { margin: 0 0 var(--er-space-1); font-size: var(--er-text-lg); }
-.training-collection .training-honor-criterion { flex: 1; max-width: 30ch; margin-block: var(--er-space-2) var(--er-space-3); }
-.training-honor-evidence { display: grid; gap: var(--er-space-2); width: 100%; }
-.training-honor-evidence .ds-progress-meter > span { display: none; }
-.training-collection .training-honor-card > .ds-button { margin-top: var(--er-space-1); width: 100%; }
 .training-collection-empty { grid-column: 1 / -1; }
 .training-collection-note { text-align: center; }
-.training-collection .training-honor-detail > .ds-patch-art { justify-self: center; }
 
 .training-recap-layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr); gap: var(--er-space-6); align-items: start; width: 100%; max-width: 1020px; margin-inline: auto; }
 .training-recap .training-recap-main { display: block; padding: var(--er-space-7); text-align: center; }
@@ -55,27 +46,12 @@
 
 @media (max-width: 760px) {
   .training-collection-filters { margin-left: 0; }
-  .training-collection .training-honors-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--er-space-3); }
-  .training-collection .training-honor-card { padding: var(--er-space-5); }
-  .training-collection .training-honor-card > .ds-patch-art { width: 112px; height: 112px; }
-  .training-collection .training-honor-card > h2 { font-size: var(--er-text-base); }
-  .training-collection .training-honor-criterion { max-width: 25ch; }
   .training-recap-layout { grid-template-columns: minmax(0, 1fr); }
   .training-recap .training-recap-main { padding: var(--er-space-6) var(--er-space-4); }
   .training-recap-main > .training-recap-title { font-size: var(--er-text-title); }
   .training-recap-side { gap: var(--er-space-4); }
 }
-@media (max-width: 480px) {
-  .training-collection .training-honors-grid { grid-template-columns: minmax(0, 1fr); }
-}
-@media (max-width: 350px) {
-  .training-collection .training-honors-grid { gap: var(--er-space-2); }
-  .training-collection .training-honor-card > .ds-patch-art { width: 96px; height: 96px; }
-  .training-collection .training-honor-card > .ds-button { padding-inline: var(--er-space-2); }
-}
-
 .training-honor-category { display: grid; gap: var(--er-space-2); min-width: 0; }
-.training-milestone-history > .training-honors-grid { margin-top: var(--er-space-5); }
+.training-milestone-history > .honor-patch-grid { margin-top: var(--er-space-5); }
 .training-milestone-history > .training-season-select { margin-block: var(--er-space-5); }
-.training-collection .training-honor-card > .ds-button { white-space: normal; }
 @media (max-width: 760px) { .training-honor-category { width: 100%; } }

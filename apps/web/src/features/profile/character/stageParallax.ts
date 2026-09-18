@@ -7,10 +7,21 @@ import {useEffect, useMemo} from 'react';
  *  but still a preview garnish, not a ride. */
 export const PARALLAX_BG_MAX = 28;
 export const PARALLAX_CHAR_MAX = 12;
+/** Real 3D card tilt: the character layer also rotates toward the input —
+ *  rotateY follows left/right, rotateX the top-tilt-away convention — so the
+ *  phone gyro reads as tilting a card, not sliding layers. ±8° at full
+ *  deflection: a casual ±15° phone tilt reads clearly, a full tilt is
+ *  dramatic but never nauseating. */
+export const TILT_ROTATION_MAX = 8;
+/** Perspective distance for the character layer's 3D tilt. Applied inline on
+ *  the canvas itself (not the wrap) so the blurred backdrop keeps its flat
+ *  2D translation. */
+export const TILT_PERSPECTIVE_PX = 600;
 /** Lerp factor per animation frame toward the target offset. */
 export const PARALLAX_EASE = 0.12;
 
 export type ParallaxOffset = {x: number; y: number};
+export type RotationOffset = {rotateX: number; rotateY: number};
 const NEUTRAL: ParallaxOffset = {x: 0, y: 0};
 
 const clampUnit = (value: number) => Math.max(-1, Math.min(1, value));
@@ -47,6 +58,15 @@ export function parallaxOffsets(input: ParallaxOffset): {bg: ParallaxOffset; cha
   };
 }
 
+/** Card-tilt rotation in degrees for a normalized input. rotateY follows the
+ *  left/right axis (input right tips the right edge away, Pokémon-card
+ *  style); rotateX follows -y so the edge nearest the input tips away (input
+ *  at the top tips the top edge away). The +0 normalizes -0 to 0 so settled
+ *  rotations compare exactly. */
+export function rotationOffsets(input: ParallaxOffset): RotationOffset {
+  return {rotateX: -input.y*TILT_ROTATION_MAX+0, rotateY: input.x*TILT_ROTATION_MAX+0};
+}
+
 /** One easing step of the smoothed offset toward its target. Snaps to exactly
  *  zero once it settles at neutral so transforms can be cleared. */
 export function stepParallax(current: ParallaxOffset, target: ParallaxOffset, ease = PARALLAX_EASE): ParallaxOffset {
@@ -65,26 +85,31 @@ export function prefersReducedMotion(): boolean {
   return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/** Outcome of the iOS motion permission request. 'denied' is an explicit iOS
+ *  refusal (user tapped Don't Allow, or Motion & Orientation Access is off in
+ *  Settings — iOS never re-prompts after that). 'error' is a throw, which must
+ *  NOT be remembered as a denial: it fails silently for that open only and
+ *  the next open tries again. */
+export type MotionPermissionResult = 'granted' | 'denied' | 'error';
+
 /**
  * iOS requires a user-gesture call to DeviceOrientationEvent.requestPermission
  * before deviceorientation events fire. Call this from the tap that opens the
- * fullscreen preview (the tap IS the gesture). Resolves true when motion data
- * may flow — granted, or no permission API at all (Android/desktop) — and
- * false when denied or the call throws. Either way the preview works; the
- * parallax simply stays off.
+ * fullscreen preview (the tap IS the gesture). Resolves 'granted' when motion
+ * data may flow — granted, or no permission API at all (Android/desktop).
  */
-export async function requestMotionPermission(): Promise<boolean> {
+export async function requestMotionPermission(): Promise<MotionPermissionResult> {
   try {
     const w = typeof window === 'undefined' ? undefined : (window as unknown as {
       DeviceOrientationEvent?: {requestPermission?: () => Promise<string>};
     });
     const request = w?.DeviceOrientationEvent?.requestPermission;
     if (typeof request === 'function') {
-      return (await request.call(w?.DeviceOrientationEvent)) === 'granted';
+      return (await request.call(w?.DeviceOrientationEvent)) === 'granted' ? 'granted' : 'denied';
     }
-    return true;
+    return 'granted';
   } catch {
-    return false;
+    return 'error';
   }
 }
 
@@ -145,23 +170,24 @@ let tiltOptInGranted = loadTiltOptIn();
 /**
  * One-time tilt opt-in for iOS: call directly in the "Enable tilt" tap
  * handler, then the gyro subscribes and drives the tilt. Resolves true when
- * tilt is live. A denial is remembered so later automatic attempts stay
- * silent (the button remains the manual retry); a later grant clears the
- * denial. Either way the preview works; the parallax simply stays off until
- * tilt is live, with the pointer as the fallback.
+ * tilt is live. An explicit denial is remembered so later automatic attempts
+ * stay silent (the button remains the manual retry); a later grant clears
+ * the denial. A throw is NOT remembered — the next open tries again.
+ * Either way the preview works; the parallax simply stays off until tilt is
+ * live, with the pointer as the fallback.
  */
 export async function enableTiltMotion(): Promise<boolean> {
-  const granted = await requestMotionPermission();
-  if (granted) {
+  const result = await requestMotionPermission();
+  if (result === 'granted') {
     tiltOptInGranted = true;
     saveTiltOptIn();
     clearTiltDenied();
     tiltControllers.forEach((controller) => controller.startGyro());
     announceTiltGranted();
-  } else {
-    saveTiltDenied();
+    return true;
   }
-  return granted;
+  if (result === 'denied') saveTiltDenied();
+  return false;
 }
 
 /**
@@ -213,7 +239,18 @@ function createParallaxController(): ParallaxController {
     const {bg, char} = parallaxOffsets(current);
     // The fill keeps its decorative 1.12 scale; parallax is layered on top.
     if (fill) fill.style.transform = isParallaxSettled(current) ? '' : `translate3d(${bg.x.toFixed(2)}px, ${bg.y.toFixed(2)}px, 0) scale(1.12)`;
-    if (canvas) canvas.style.transform = isParallaxSettled(current) ? '' : `translate3d(${char.x.toFixed(2)}px, ${char.y.toFixed(2)}px, 0)`;
+    if (canvas) {
+      if (isParallaxSettled(current)) {
+        canvas.style.transform = '';
+        return;
+      }
+      // The character layer gets the 3D card tilt on top of its 2D drift:
+      // rotate first around the layer center, then drift in screen axes,
+      // then project through the inline perspective. The fill above stays
+      // flat 2D — only the character tilts.
+      const {rotateX, rotateY} = rotationOffsets(current);
+      canvas.style.transform = `perspective(${TILT_PERSPECTIVE_PX}px) translate3d(${char.x.toFixed(2)}px, ${char.y.toFixed(2)}px, 0) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+    }
   };
   const tick = () => {
     raf = 0;
@@ -301,14 +338,17 @@ export type StageParallax = {
 };
 
 /**
- * Eased two-layer parallax for the character stage. Two inputs share one
- * smoothing pipeline: the pointer — mouse crossing the stage on desktop,
- * finger position while touching on mobile — and, where available, the phone
- * gyro (iOS asks once via an "Enable tilt" tap; Android starts on its own).
- * The gyro takes precedence once live; the pointer is always the fallback.
- * Input eases back to neutral when it ends, so the idle planted guarantee is
- * untouched — this is input-driven garnish only, never idle drift. Fully off
- * under prefers-reduced-motion.
+ * Eased two-layer parallax for the character stage, plus a real 3D card tilt
+ * on the character layer. Two inputs share one smoothing pipeline: the
+ * pointer — mouse crossing the stage on desktop, finger position while
+ * touching on mobile — and, where available, the phone gyro (iOS asks once
+ * via an "Enable tilt" tap; Android starts on its own). The gyro takes
+ * precedence once live; the pointer is always the fallback. The character
+ * layer rotates up to ±8° (rotateX/rotateY through a 600px perspective) while
+ * the layers drift in 2D behind it, so tilting the phone feels like tilting
+ * a card. Input eases back to neutral when it ends, so the idle planted
+ * guarantee is untouched — this is input-driven garnish only, never idle
+ * drift. Fully off under prefers-reduced-motion.
  */
 export function useStageParallax(): StageParallax {
   const controller = useMemo(() => (prefersReducedMotion() ? null : createParallaxController()), []);

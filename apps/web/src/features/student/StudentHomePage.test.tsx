@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
@@ -24,6 +24,16 @@ it("shows the quest board rewards and the triple bonus note", async () => {
   expect(await screen.findByRole("heading", { name: "Today’s bonus quests" })).toBeInTheDocument();
   expect(screen.getAllByText("+25 XP")).toHaveLength(3);
   expect(screen.getByText("Finish all three for a +25 XP triple bonus.")).toBeInTheDocument();
+});
+it("collapses a finished quest to one completion signal", async () => {
+  vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ quests: [questFixture({ key: "sharpshooter", title: "Done quest", completed: true, progress: 3, target: 3 }), questFixture({ key: "marathon", title: "Open quest", completed: false, progress: 1, target: 3 })] }));
+  home();
+  expect(await screen.findByRole("heading", { name: "Today’s bonus quests" })).toBeInTheDocument();
+  const doneItem = screen.getByText("Done quest").closest("li")!;
+  expect(within(doneItem).getByText("Completed")).toBeInTheDocument();
+  expect(within(doneItem).queryByText("Done")).not.toBeInTheDocument();
+  expect(within(doneItem).queryByText("3 of 3")).not.toBeInTheDocument();
+  expect(screen.getByText("1 of 3 done")).toBeInTheDocument();
 });
 it("shows the XP rank, not a level", async () => {
   home();

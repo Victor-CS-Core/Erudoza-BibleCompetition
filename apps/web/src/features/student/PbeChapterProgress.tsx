@@ -26,7 +26,6 @@ export function PbeChapterProgress({ progress, onAction, onOpenGroups }: {
     {counts.totalTargets > 0 ? <>
       <ProgressMeter label={`${progress.label} targets practiced`} value={counts.practicedTargets} max={counts.totalTargets} />
       <dl className="pbe-chapter-counts">
-        <div><dt>Practiced</dt><dd>{counts.practicedTargets} of {counts.totalTargets}</dd></div>
         <div><dt>Recalled</dt><dd>{counts.recalledTargets} of {counts.totalTargets}</dd></div>
         <div><dt>Retained</dt><dd>{counts.retainedTargets} of {counts.totalTargets}</dd></div>
         <div><dt>Due or repair</dt><dd>{counts.dueTargets}</dd></div>

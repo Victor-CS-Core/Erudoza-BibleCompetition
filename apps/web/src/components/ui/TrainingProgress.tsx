@@ -1,10 +1,10 @@
 import type { TrainingWeek } from "../../api/trainingTypes";
 import { AppIcon } from "../AppIcon";
 
-export function ProgressMeter({ label, value, max }: { label: string; value: number; max: number }) {
+export function ProgressMeter({ label, value, max, hideCaption = false }: { label: string; value: number; max: number; hideCaption?: boolean }) {
   const safeMax = Number.isFinite(max) && max > 0 ? max : 0;
   const safeValue = Math.min(safeMax, Math.max(0, Number.isFinite(value) ? value : 0));
-  return <div className="ds-progress-meter"><progress aria-label={label} value={safeValue} max={safeMax || 1} /><span>{safeValue} of {safeMax}</span></div>;
+  return <div className="ds-progress-meter"><progress aria-label={label} value={safeValue} max={safeMax || 1} />{!hideCaption && <span>{safeValue} of {safeMax}</span>}</div>;
 }
 
 export function WeeklyProgressStrip({ week }: { week: TrainingWeek }) {

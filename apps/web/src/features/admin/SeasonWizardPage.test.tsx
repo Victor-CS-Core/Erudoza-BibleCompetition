@@ -305,6 +305,21 @@ it("keeps a failed save retryable when reconciliation and background refresh als
   expect(screen.getByRole("button", { name: "Start season" })).toBeDisabled();
 });
 
+it("lets a coach start a season with only their own study plan", async () => {
+  vi.mocked(api.assignments).mockResolvedValue([]);
+  vi.mocked(api.myAssignments).mockResolvedValue([{ ...assignment, id: "self-1", studentUserId: "coach" }]);
+  renderWizard();
+  const start = await screen.findByRole("button", { name: "Start season" });
+  expect(start).toBeEnabled();
+  expect(screen.queryByText(/Assign at least one student/)).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /My assignments/ })).toHaveTextContent("Assigned");
+  fireEvent.click(start);
+  const dialog = await screen.findByRole("dialog");
+  expect(within(dialog).getByText(/Your own study plan is the only assignment/)).toBeInTheDocument();
+  fireEvent.click(within(dialog).getByRole("button", { name: "Start season" }));
+  await waitFor(() => expect(api.activate).toHaveBeenCalled());
+});
+
 it("retains confirmed difficulty for subsequent saves while refresh stalls", async () => {
   vi.mocked(api.assignments).mockResolvedValue([assignment]);
   renderWizard();

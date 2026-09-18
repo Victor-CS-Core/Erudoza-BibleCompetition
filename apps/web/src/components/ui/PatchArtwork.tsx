@@ -18,7 +18,8 @@ export function PatchArtwork({ size = 96, width = size, height = size, className
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const fine = window.matchMedia("(hover: hover) and (pointer: fine)");
     let frame = 0, last = 0, x = 0, y = 0, lift = 0, targetX = 0, targetY = 0, targetLift = 0, travel = 4;
-    const allowed = () => !reduce.matches && fine.matches && !document.hidden;
+    const motionAllowed = () => !reduce.matches && !document.hidden;
+    const allowed = () => motionAllowed() && fine.matches;
     const resetStyles = () => {
       for (const property of ["transform", "will-change", "--patch-shadow-x", "--patch-shadow-y", "--patch-shadow-blur"]) img.style.removeProperty(property);
     };
@@ -28,7 +29,7 @@ export function PatchArtwork({ size = 96, width = size, height = size, className
       resetStyles();
     };
     const tick = (time: number) => {
-      if (!allowed()) { stop(); return; }
+      if (!motionAllowed()) { stop(); return; }
       const blend = 1 - Math.exp(-Math.min(last ? time - last : 16, 64) / 90);
       last = time;
       x += (targetX - x) * blend; y += (targetY - y) * blend; lift += (targetLift - lift) * blend;
@@ -43,24 +44,35 @@ export function PatchArtwork({ size = 96, width = size, height = size, className
       } else frame = requestAnimationFrame(tick);
     };
     const animate = () => { if (!frame) { img.style.willChange = "transform, filter"; frame = requestAnimationFrame(tick); } };
-    const move = (event: PointerEvent) => {
-      if (!allowed() || event.pointerType === "touch") return;
+    const aim = (clientX: number, clientY: number) => {
       const rect = host.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
+      if (!rect.width || !rect.height) return false;
       const clamp = (n: number) => Math.max(-1, Math.min(1, n));
       // The edge under the pointer dips away while the whole patch lifts gently.
-      targetX = -clamp((event.clientY - rect.top) / rect.height * 2 - 1) * 7;
-      targetY = clamp((event.clientX - rect.left) / rect.width * 2 - 1) * 7;
+      targetX = -clamp((clientY - rect.top) / rect.height * 2 - 1) * 7;
+      targetY = clamp((clientX - rect.left) / rect.width * 2 - 1) * 7;
       travel = Math.max(2, Math.min(6, Math.min(rect.width, rect.height) * .04));
       targetLift = 1;
-      animate();
+      return true;
     };
-    const leave = () => { targetX = targetY = targetLift = 0; if (allowed()) animate(); else stop(); };
-    const preferenceChanged = () => { if (!allowed()) stop(); };
+    const move = (event: PointerEvent) => {
+      if (!allowed() || event.pointerType === "touch") return;
+      if (aim(event.clientX, event.clientY)) animate();
+    };
+    // Touch has no hover: pressing the patch plays the same lift/dip toward
+    // the fingertip, and releasing settles it back to rest.
+    const press = (event: PointerEvent) => {
+      if (event.pointerType !== "touch" || !motionAllowed()) return;
+      if (aim(event.clientX, event.clientY)) animate();
+    };
+    const release = () => { targetX = targetY = targetLift = 0; if (motionAllowed()) animate(); else stop(); };
+    const preferenceChanged = () => { if (!motionAllowed()) stop(); };
     host.addEventListener("pointerenter", move);
     host.addEventListener("pointermove", move);
-    host.addEventListener("pointerleave", leave);
-    host.addEventListener("pointercancel", leave);
+    host.addEventListener("pointerdown", press);
+    host.addEventListener("pointerup", release);
+    host.addEventListener("pointerleave", release);
+    host.addEventListener("pointercancel", release);
     reduce.addEventListener("change", preferenceChanged);
     fine.addEventListener("change", preferenceChanged);
     document.addEventListener("visibilitychange", preferenceChanged);
@@ -68,7 +80,8 @@ export function PatchArtwork({ size = 96, width = size, height = size, className
     return () => {
       stop();
       host.removeEventListener("pointerenter", move); host.removeEventListener("pointermove", move);
-      host.removeEventListener("pointerleave", leave); host.removeEventListener("pointercancel", leave);
+      host.removeEventListener("pointerdown", press); host.removeEventListener("pointerup", release);
+      host.removeEventListener("pointerleave", release); host.removeEventListener("pointercancel", release);
       reduce.removeEventListener("change", preferenceChanged); fine.removeEventListener("change", preferenceChanged);
       document.removeEventListener("visibilitychange", preferenceChanged); window.removeEventListener("blur", stop);
     };

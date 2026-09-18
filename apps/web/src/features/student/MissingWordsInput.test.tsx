@@ -47,12 +47,16 @@ it('uses recall-safe input attributes and locks every slot while pending', () =>
   expect(changed).not.toHaveBeenCalled();
 });
 
-it('announces ordered per-blank feedback without relying on color', () => {
+it('announces one summary line instead of per-blank stacked feedback', () => {
   render(<MissingWordsInput tokens={tokens} values={{ 2: 'sent', 3: 'mail' }} disabled={false} onChange={vi.fn()}
     results={[{ index: 3, isCorrect: false, expected: 'letters' }, { index: 2, isCorrect: true, expected: 'sent' }]} />);
 
-  expect(screen.getByText('Blank 1: Correct')).toBeInTheDocument();
-  expect(screen.getByText('Blank 2: Review the source. Expected: letters')).toBeInTheDocument();
+  const summary = screen.getByTestId('missing-words-summary');
+  expect(summary).toHaveAttribute('role', 'status');
+  expect(summary).toHaveTextContent('1 of 4 correct — review blank 2');
+  expect(screen.queryByText('Blank 1: Correct')).not.toBeInTheDocument();
+  expect(screen.getByLabelText('Blank 1 of 4')).toHaveStyle({ borderBottom: '2px solid var(--er-success-ink)' });
+  expect(screen.getByLabelText('Blank 2 of 4')).toHaveStyle({ borderBottom: '2px solid var(--er-coral)' });
 });
 
 it('offers mobile Next and Done navigation without implicit submission or composition interruption', () => {
@@ -77,13 +81,15 @@ it('offers mobile Next and Done navigation without implicit submission or compos
   expect(submitted).not.toHaveBeenCalled();
 });
 
-it('uses semantic Scripture typography and allows narrow long content to wrap', () => {
+it('renders blanks as inline underline fields that keep the scripture rhythm', () => {
   render(<MissingWordsInput tokens={tokens} values={{ 2: 'averylongenteredanswerwithoutbreaks' }} disabled={false} onChange={vi.fn()}
     results={[{ index: 2, isCorrect: false, expected: 'averylongexpectedanswerwithoutbreaks' }]} />);
 
   const passage = screen.getByRole('group', { name: 'Passage with missing words' });
   expect(passage).toHaveClass('er-scripture');
   expect(passage).toHaveStyle({ minWidth: '0', width: '100%' });
-  expect(screen.getByLabelText('Blank 1 of 4').parentElement).toHaveStyle({ minWidth: '0', maxWidth: '100%' });
-  expect(screen.getByText(/averylongexpectedanswerwithoutbreaks/)).toHaveStyle({ overflowWrap: 'anywhere' });
+  const field = screen.getByLabelText('Blank 1 of 4');
+  expect(field).toHaveStyle({ background: 'transparent', font: 'inherit', borderBottom: '2px solid var(--er-coral)' });
+  expect(field).toHaveAttribute('data-missing-word-slot', '');
+  expect(screen.getByTestId('missing-words-summary')).toHaveTextContent('0 of 4 correct — review blank 1');
 });

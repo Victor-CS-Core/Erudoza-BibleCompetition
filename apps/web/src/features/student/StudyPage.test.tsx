@@ -246,6 +246,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
 
     await waitFor(() => expect(screen.getByTestId("academy-activity-name")).toHaveTextContent("Verse Builder"));
     expect(screen.getByTestId("challenge-prompt")).toHaveTextContent("Build the verse");
+    expect(screen.getByTestId("challenge-prompt").tagName).toBe("H2");
     expect(screen.getByTestId("challenge-card")).toHaveTextContent("Daniel 1:2");
     expect(screen.getByTestId("academy-activity-name")).not.toHaveTextContent("VerseBuilder");
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
@@ -424,7 +425,7 @@ describe("Study submission recovery", () => {
     fireEvent.click(screen.getByTestId('submit-answer'));
     await screen.findByTestId('challenge-feedback');
     expect(api.submitAttempt).toHaveBeenCalledWith('session-1',expect.objectContaining({missingWordAnswers:[{index:2,text:''}]}));
-    expect(screen.getByText('Blank 1: Review the source. Expected: answer')).toBeVisible();expect(blank).toBeDisabled();
+    expect(screen.getByTestId('missing-words-summary')).toHaveTextContent('0 of 1 correct — review blank 1');expect(blank).toBeDisabled();
   });
   it('restores the original wrong and empty indexed values on accepted reload',async()=>{
     const card={id:'saved-slots',sessionId:'session-1',activityType:'MissingWords',citation:'Daniel 1:1',prompt:'____ ____',tokens:[{index:2,display:'____',hidden:true},{index:3,display:'____',hidden:true}],sequence:1,total:2};
@@ -435,7 +436,7 @@ describe("Study submission recovery", () => {
     expect(screen.getByRole('textbox',{name:'Blank 1 of 2'})).toHaveValue(' IN THE ');
     expect(screen.getByRole('textbox',{name:'Blank 2 of 2'})).toHaveValue('');
     expect(screen.getByRole('textbox',{name:'Blank 1 of 2'})).toBeDisabled();
-    expect(screen.getByText('Blank 1: Review the source. Expected: in')).toBeVisible();
+    expect(screen.getByTestId('missing-words-summary')).toHaveTextContent('0 of 2 correct — review blank 1, blank 2');
     expect(api.submitAttempt).not.toHaveBeenCalled();
   });
   it("starts Builder empty, submits duplicate IDs once each, and preserves pending text on refresh", async () => {
@@ -514,6 +515,11 @@ describe("Study submission recovery", () => {
     expect(next).toHaveClass("ds-button-primary");
     expect(screen.getByTestId("mastery-impact")).toHaveTextContent("exact wording 18 / 100");
     expect(screen.getByTestId("submit-answer")).toBeDisabled();
+    // Feedback keeps its status semantics but is no longer a heading; the prompt owns the card heading.
+    expect(feedback).toHaveAttribute("role", "status");
+    expect(feedback.querySelector("h1,h2,h3")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Well remembered" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Read it once more" })).not.toBeInTheDocument();
   });
   it("reuses the identical submitted payload after an uncertain response", async () => {
     vi.mocked(api.submitAttempt).mockRejectedValueOnce(new Error("Connection lost"));

@@ -6,11 +6,11 @@ import {type Configuration,loadImage} from './composition';
 import {addPlacement,cardSize,constrainPlacement,paintShareCard,recordShare,redoShare,renderShareBase,undoShare,unlockedPatches,shareFooter,publicLandingURL,type Placement,type ShareHistory,type SharePatch,type ShareOptions,type ShareProfile} from './share';
 
 const patchTransfer='application/x-erudoza-patch';
-type Props={config:Configuration;profile:ShareProfile;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onBackground:(background:Background)=>void;onEdit:()=>void;onError:(message:string)=>void};
+type Props={config:Configuration;profile:ShareProfile;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onBackground:(background:Background)=>void;onEdit:()=>void;onBrowseHonors:()=>void;onError:(message:string)=>void};
 type Drag={pointerId:number;key:string;startX:number;startY:number;original:Placement;before:Placement[];next:Placement[];handle:HTMLButtonElement};
 type PreparedImage={key:string;file:File;nativeShare:boolean};
 
-export function ShareEditor({config,profile,collection,history,setHistory,options,setOptions,onBackground,onEdit,onError}:Props){
+export function ShareEditor({config,profile,collection,history,setHistory,options,setOptions,onBackground,onEdit,onBrowseHonors,onError}:Props){
  const canvasRef=useRef<HTMLCanvasElement>(null),stageRef=useRef<HTMLDivElement>(null),drag=useRef<Drag|null>(null);
  const [selected,setSelected]=useState<string|null>(null),[draft,setDraft]=useState<Placement[]|null>(null);
  const [hovering,setHovering]=useState(false),[message,setMessage]=useState(''),[sharing,setSharing]=useState(false);
@@ -142,7 +142,11 @@ export function ShareEditor({config,profile,collection,history,setHistory,option
     {selection&&selectedArt?<><div className="share-selection"><PatchArtwork src={selectedArt.src} size={52} loading="eager"/><div><h3>{selectedArt.title}</h3><p className="ds-caption">Drag it into place, then make it your own.</p></div></div>
      <div className="share-sliders"><label><span>Size <output>{Math.round(selection.size/12)}%</output></span><Input type="range" aria-label="Patch size" min={12} max={28} step={1} value={selection.size/12} onChange={e=>change({size:Number(e.target.value)*12})}/></label><label><span>Rotation <output>{selection.rotation}°</output></span><Input type="range" aria-label="Patch rotation" min={-180} max={180} step={5} value={selection.rotation} onChange={e=>change({rotation:Number(e.target.value)})}/></label></div>
      <div className="share-layer-tools"><Button variant="secondary" size="compact" disabled={selectedIndex===visible.length-1} onClick={()=>layer(1)}>Bring forward</Button><Button variant="secondary" size="compact" disabled={selectedIndex===0} onClick={()=>layer(-1)}>Send backward</Button><Button variant="ghost" size="compact" onClick={()=>change({size:216,rotation:0})}>Reset size & tilt</Button><Button variant="danger" size="compact" onClick={remove}>Remove patch</Button></div>
-    </>:<p className="help">Add a patch or select one on your card to resize, rotate or layer it.</p>}
+    </>:<div className="share-empty-tools">
+     <h3>No patches yet</h3>
+     <p className="help">Earn Honors in training to unlock patches for your share card.</p>
+     <Button variant="secondary" onClick={onBrowseHonors}>Browse Honors</Button>
+    </div>}
     <p id="share-keyboard-help" className="ds-caption">Keyboard: use arrow keys to move a selected patch. Hold Shift for bigger steps. Delete removes it.</p>
    </Panel>
    <Panel><h2>Set the scene</h2><div className="background-options share-backgrounds">{backgrounds.map(b=><Button key={b.key} variant={config.background===b.key?'primary':'secondary'} aria-pressed={config.background===b.key} onClick={()=>onBackground(b.key)}><img src={b.thumbnail} alt=""/>{b.name}</Button>)}</div></Panel>

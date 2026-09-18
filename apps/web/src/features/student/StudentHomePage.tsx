@@ -99,10 +99,13 @@ export function StudentHomePage() {
           {!!data.quests.length && <Panel className="training-quest-board">
             <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="flag" /><h2>Today’s bonus quests</h2></div></div>
             <p className="training-quest-note">Little extras — no penalty for skipping.</p>
-            <ul className="training-quest-list">{data.quests.map(quest => <li key={quest.key} className={quest.completed ? "is-complete" : ""}>
-              <div className="training-quest-head"><strong>{quest.title}</strong><Badge tone="info">+{quest.xpReward ?? 25} XP</Badge>{quest.completed && <Badge tone="success">Done</Badge>}</div>
+            <ul className="training-quest-list">{data.quests.map(quest => <li key={quest.key}>
+              <div className="training-quest-head"><strong>{quest.title}</strong><span className="training-quest-xp">+{quest.xpReward ?? 25} XP</span></div>
               <p>{quest.description}</p>
-              <ProgressMeter label={`${quest.title}: quest progress`} value={quest.progress} max={quest.target} />
+              <ProgressMeter label={`${quest.title}: quest progress`} value={quest.progress} max={quest.target} hideCaption />
+              {quest.completed
+                ? <p className="training-quest-status is-done"><AppIcon name="check" /> Completed</p>
+                : <p className="training-quest-status">{quest.progress} of {quest.target} done</p>}
             </li>)}</ul>
             <p className="training-quest-note"><small>Finish all three for a +25 XP triple bonus.</small></p>
           </Panel>}

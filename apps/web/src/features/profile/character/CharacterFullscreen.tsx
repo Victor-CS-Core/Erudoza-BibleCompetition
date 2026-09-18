@@ -11,22 +11,33 @@ import {enableTiltMotion, isTiltOptedIn, needsMotionPermission, prefersReducedMo
  * for motion permission on the way in, so this button is the fallback: it
  * only shows where the iOS permission gate exists and tilt is not yet live
  * (e.g. the request was declined earlier and the user changed their mind).
- * A denied or unavailable grant fails silently and the pointer path keeps
- * working.
+ * A denial can't be re-prompted by iOS, so instead of silently hiding the
+ * button it explains how to unblock tilt in Settings; the pointer path keeps
+ * working either way.
  */
 function TiltOptIn() {
-  const [done, setDone] = useState(false);
   const [live, setLive] = useState(isTiltOptedIn);
+  const [blocked, setBlocked] = useState(false);
   useEffect(() => {
-    const onGranted = () => setLive(true);
+    const onGranted = () => { setLive(true); setBlocked(false); };
     window.addEventListener('erudoza:tilt-granted', onGranted);
     return () => window.removeEventListener('erudoza:tilt-granted', onGranted);
   }, []);
-  if (done || live || !needsMotionPermission() || prefersReducedMotion()) return null;
-  return <Button variant="secondary" size="compact"
-    onClick={() => { void enableTiltMotion().then(() => setDone(true)); }}>
-    Enable tilt
-  </Button>;
+  if (live || !needsMotionPermission() || prefersReducedMotion()) return null;
+  const enable = async () => {
+    setBlocked(false);
+    if (await enableTiltMotion()) setLive(true);
+    else setBlocked(true);
+  };
+  return <span className="character-fullscreen-tilt">
+    <Button variant="secondary" size="compact" onClick={() => void enable()}>
+      Enable tilt
+    </Button>
+    {blocked && <span className="character-fullscreen-tilt-help" role="status">
+      Tilt is blocked — your iPhone won’t ask again. Turn on Settings → Safari → Motion &amp; Orientation Access,
+      then remove this site under Settings → Safari → Advanced → Website Data, and tap Enable tilt again.
+    </span>}
+  </span>;
 }
 
 /**

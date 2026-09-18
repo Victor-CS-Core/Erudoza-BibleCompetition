@@ -30,6 +30,12 @@ async function page(name: string) {
   fireEvent.click(within(nav).getByRole('button', { name }));
   await waitFor(() => expect(screen.queryByText('Loading your character editor…')).not.toBeInTheDocument());
 }
+/** Honors are art-first cards: details and the profile-image action live in
+ *  the square modal behind the artwork button. */
+async function openHonorDetail(title: string) {
+  fireEvent.click(await screen.findByRole('button', { name: `${title}: view details` }));
+  return await screen.findByRole('dialog', { name: title });
+}
 beforeEach(() => { vi.restoreAllMocks(); });
 afterEach(() => { vi.unstubAllGlobals(); });
 
@@ -41,7 +47,10 @@ describe('production character profile', () => {
     await page('Character');
     expect(screen.getByRole('button', { name: 'Master Guide · coach' })).toBeDisabled();
     await page('Honors');
-    expect(screen.getByRole('button', { name: 'Use Full Coverage as profile image' })).toBeDisabled();
+    const locked = await openHonorDetail('Full Coverage');
+    expect(within(locked).getByText('This patch is locked. Meet every requirement to unlock it for your profile.')).toBeVisible();
+    expect(within(locked).queryByRole('button', { name: 'Use Full Coverage as profile image' })).toBeNull();
+    fireEvent.click(within(locked).getByRole('button', { name: 'Close dialog' }));
     expect(screen.getAllByRole('option', { name: /Full Coverage/ })[0]).toBeDisabled();
     expect(screen.getAllByLabelText('Empty Honor spot')).toHaveLength(3);
   });
@@ -74,7 +83,9 @@ describe('production character profile', () => {
     await act(async () => { client.setQueryData(['profile', 'academy', 'self'], { ...base, characterVersion: 4, honors: base.honors.map(honor => ({ ...honor, earnedAtUtc: '2026-09-13T00:00:00Z' })) }); });
     expect(screen.getByRole('button', { name: 'Female' })).toHaveAttribute('aria-pressed', 'true');
     await page('Honors');
-    expect(screen.getByRole('button', { name: 'Use Full Coverage as profile image' })).toBeEnabled();
+    const earned = await openHonorDetail('Full Coverage');
+    expect(within(earned).getByRole('button', { name: 'Use Full Coverage as profile image' })).toBeEnabled();
+    fireEvent.click(within(earned).getByRole('button', { name: 'Close dialog' }));
     let received: SaveCharacterProfile | undefined;
     vi.stubGlobal('fetch', vi.fn(async (_url, init: RequestInit) => { received = JSON.parse(String(init.body)); return new Response(JSON.stringify({ detail: 'This profile changed in another session.' }), { status: 409 }); }));
     fireEvent.click(screen.getByRole('button', { name: 'Save changes' }));

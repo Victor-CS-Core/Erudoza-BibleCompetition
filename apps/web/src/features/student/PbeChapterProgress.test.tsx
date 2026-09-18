@@ -100,3 +100,13 @@ it('uses the server action and exposes chapter groups without adding child total
   fireEvent.click(screen.getByRole('button', { name: 'View passage groups' }));
   expect(openGroups).toHaveBeenCalledWith(progress.key);
 });
+
+it('does not repeat the practiced count beside the progress meter', () => {
+  render(<PbeChapterProgress progress={row()} onAction={() => {}} />);
+  expect(screen.getByRole('progressbar', { name: 'Daniel 1 targets practiced' })).toBeInTheDocument();
+  expect(screen.getByText('3 of 4')).toBeInTheDocument();
+  expect(screen.queryByText('Practiced')).not.toBeInTheDocument();
+  expect(screen.getByText('Recalled')).toBeInTheDocument();
+  expect(screen.getByText('Retained')).toBeInTheDocument();
+  expect(screen.getByText('Due or repair')).toBeInTheDocument();
+});

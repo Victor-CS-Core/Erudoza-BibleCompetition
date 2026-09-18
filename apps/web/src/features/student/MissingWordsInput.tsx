@@ -15,20 +15,27 @@ export function MissingWordsInput({ tokens, values, onChange, disabled, results 
   const hidden = tokens.filter(token => token.hidden);
   const ordinalByIndex = new Map(hidden.map((token, ordinal) => [token.index, ordinal + 1]));
   const resultByIndex = new Map(results?.map(result => [result.index, result]));
+  const correctCount = results?.filter(result => result.isCorrect).length ?? 0;
+  const reviewOrdinals = (results ?? [])
+    .filter(result => !result.isCorrect)
+    .map(result => ordinalByIndex.get(result.index))
+    .filter((ordinal): ordinal is number => ordinal !== undefined);
 
-  return <div ref={passage} className="er-scripture" aria-label="Passage with missing words" role="group"
-    style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', minWidth: 0, width: '100%', overflowWrap: 'anywhere' }}>
-    {tokens.map(token => {
-      if (!token.hidden) return <span key={token.index}>{token.display}</span>;
-      const ordinal = ordinalByIndex.get(token.index)!;
-      const value = values[token.index] ?? '';
-      const result = resultByIndex.get(token.index);
-      const resultId = result ? `missing-word-result-${token.index}` : undefined;
-      return <span key={token.index} style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'stretch', fontFamily: 'var(--er-font-ui)', minWidth: 0, maxWidth: '100%', width: `max(5rem, ${Math.max(5, Math.min(32, value.length + 2))}ch)` }}>
-        <Input
+  return <>
+    <div ref={passage} className="er-scripture" aria-label="Passage with missing words" role="group"
+      style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', minWidth: 0, width: '100%', overflowWrap: 'anywhere' }}>
+      {tokens.map(token => {
+        if (!token.hidden) return <span key={token.index}>{token.display}</span>;
+        const ordinal = ordinalByIndex.get(token.index)!;
+        const value = values[token.index] ?? '';
+        const result = resultByIndex.get(token.index);
+        const underline = result
+          ? result.isCorrect ? 'var(--er-success-ink)' : 'var(--er-coral)'
+          : 'var(--er-border-strong)';
+        return <Input
+          key={token.index}
           data-missing-word-slot=""
           aria-label={`Blank ${ordinal} of ${hidden.length}`}
-          aria-describedby={resultId}
           aria-invalid={result ? !result.isCorrect : undefined}
           autoComplete="off"
           autoCorrect="off"
@@ -48,12 +55,28 @@ export function MissingWordsInput({ tokens, values, onChange, disabled, results 
             if (ordinal < hidden.length) fields?.[ordinal]?.focus();
             else event.currentTarget.blur();
           }}
-          style={{ minWidth: 'min(5rem, 100%)', width: '100%', minHeight: '44px', maxWidth: '100%', fontFamily: 'var(--er-font-ui)' }}
-        />
-        {result && <small id={resultId} role="status" style={{ overflowWrap: 'anywhere', maxWidth: '100%' }}>
-          {result.isCorrect ? `Blank ${ordinal}: Correct` : `Blank ${ordinal}: Review the source. Expected: ${result.expected}`}
-        </small>}
-      </span>;
-    })}
-  </div>;
+          style={{
+            display: 'inline-block',
+            minWidth: '5ch',
+            width: `${Math.max(5, Math.min(32, value.length + 2))}ch`,
+            maxWidth: '100%',
+            minHeight: '1.75em',
+            height: '1.75em',
+            padding: '0.1em 0.35em',
+            margin: 0,
+            border: 'none',
+            borderBottom: `2px solid ${underline}`,
+            borderRadius: 0,
+            background: 'transparent',
+            font: 'inherit',
+            color: 'inherit',
+            verticalAlign: 'baseline',
+          }}
+        />;
+      })}
+    </div>
+    {results && <p data-testid="missing-words-summary" role="status" style={{ fontSize: 'var(--er-text-sm)', color: 'var(--er-muted-ink)', marginTop: 'var(--er-space-3)' }}>
+      {correctCount} of {hidden.length} correct{reviewOrdinals.length > 0 && ` — review ${reviewOrdinals.map(ordinal => `blank ${ordinal}`).join(', ')}`}
+    </p>}
+  </>;
 }

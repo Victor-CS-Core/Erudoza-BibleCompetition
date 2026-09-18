@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import { lifecycleApi } from "../../api/lifecycle";
@@ -18,6 +18,11 @@ function season(id: string, name: string, status: string): Season {
 const student = { userId: "student-1", userName: "daniel.student", displayName: "Daniel Student", email: null };
 const coverage: SeasonCoverage = { seasonId: "active", seasonName: "Daniel", seasonStatus: "Active", students: [{ studentUserId: "student-1", displayName: "Daniel Student", userName: "daniel.student", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 4, eligibleUnitCount: 4, masteredCount: 1, reviewDueCount: 0, attemptCount: 2 }] };
 function Location() { return <output data-testid="location">{useLocation().search}</output>; }
+/** Mimics the context nav links "Student directory" / "Add student". */
+function HashJumper({ hash, label }: { hash: string; label: string }) {
+  const navigate = useNavigate();
+  return <button type="button" onClick={() => navigate({ hash })}>{label}</button>;
+}
 function renderPage(ui: ReactNode, route = "/") {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[route]}><ToastProvider>{ui}</ToastProvider><Location /></MemoryRouter></QueryClientProvider>);
@@ -90,6 +95,30 @@ describe("Coach directory pages", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save password" }));
     expect(await screen.findByText("Password updated.")).toBeInTheDocument();
     expect(api.resetStudentPassword).toHaveBeenCalledWith("org-1", "student-1", "ChangedPass123");
+  });
+  it("switches to the Directory tab when a hash link targets a directory panel", async () => {
+    renderPage(<><HashJumper hash="#add-student" label="Add student" /><StudentsPage /></>);
+    fireEvent.click(screen.getByRole("tab", { name: "Engagement" }));
+    expect(screen.getByRole("tab", { name: "Engagement" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("heading", { name: "Add a student" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Add student" }));
+    expect(await screen.findByRole("heading", { name: "Add a student" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Directory" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.queryByRole("heading", { name: "Engagement" })).not.toBeInTheDocument();
+  });
+  it("reveals, scrolls to, and focuses the hash-targeted panel", async () => {
+    const scrollIntoView = vi.fn();
+    window.HTMLElement.prototype.scrollIntoView = scrollIntoView;
+    try {
+      renderPage(<><HashJumper hash="#student-directory" label="Student directory" /><StudentsPage /></>);
+      fireEvent.click(screen.getByRole("tab", { name: "Engagement" }));
+      fireEvent.click(screen.getByRole("button", { name: "Student directory" }));
+      await waitFor(() => expect(document.activeElement).toHaveAttribute("id", "student-directory"));
+      expect(scrollIntoView).toHaveBeenCalled();
+    } finally {
+      // @ts-expect-error restoring the jsdom default (no scrollIntoView)
+      delete window.HTMLElement.prototype.scrollIntoView;
+    }
   });
   it("honors and retains explicit season selection and deep links assignment management", async () => {
     renderPage(<AssignmentsPage />, "/admin/assignments?seasonId=draft");

@@ -89,18 +89,6 @@
 .training-honor-preview { display: grid; grid-template-columns: minmax(160px, .7fr) minmax(0, 2fr); gap: 24px; align-items: center; }
 .training-honor-preview-items { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-around; }
 .training-honor-preview-items > a, .training-honor-preview-items > div { display: grid; justify-items: center; gap: 8px; min-width: 120px; max-width: 220px; text-align: center; }
-.training-honors-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.training-honor-card { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
-.training-honor-card h2 { font-size: var(--er-text-lg); margin: 0; }
-.training-honor-card > small { color: var(--er-muted-ink); }
-.training-honor-criterion { display: grid; gap: 4px; margin: 0; font-size: var(--er-text-sm); }
-.training-honor-criterion-label { font-size: var(--er-text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--er-muted-ink); }
-.training-honor-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin: 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
-.training-honor-status > .ds-progress-meter { flex: 1 1 100%; }
-.training-honor-card > button, .training-honor-card > a { margin-top: auto; }
-.training-honor-card > .ds-progress-meter { width: 100%; }
-.training-honor-detail { display: grid; justify-items: start; gap: 12px; }
-.training-honor-detail > .ds-honor-art { justify-self: center; }
 .training-passage-journey { display: grid; gap: 20px; }
 .training-passage-list > li { padding: 20px 0; border-bottom: 1px solid var(--er-border); }
 .pbe-chapter-journey > .training-panel-title { align-items: end; }
@@ -133,7 +121,6 @@
 .training-recap-skills dd { margin: 4px 0 0; font-variant-numeric: tabular-nums; }
 @media (max-width: 760px) {
   .training-hq-grid, .training-honor-preview { grid-template-columns: minmax(0, 1fr); }
-  .training-honors-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .training-skill-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .training-recap-main { flex-direction: column; align-items: flex-start; gap: 16px; }
   .training-recap-main > .ds-patch-art { width:140px; height:140px; align-self:center; }
@@ -147,7 +134,7 @@
   .pbe-coverage-material + .pbe-coverage-material { border-left: 0; border-top: 1px solid var(--er-border); padding: 16px 0 0; }
 }
 @media (max-width: 440px) {
-  .training-honors-grid, .training-skill-list { grid-template-columns: minmax(0, 1fr); }
+  .training-skill-list { grid-template-columns: minmax(0, 1fr); }
   .pbe-chapter-counts, .pbe-coverage-grid { grid-template-columns: minmax(0, 1fr); }
   .pbe-chapter-stamp { grid-template-columns: minmax(0, 1fr); }
   .pbe-chapter-stamp > span, .pbe-chapter-stamp > small { grid-column: 1; }
@@ -198,9 +185,11 @@
 .training-quest-note { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin: 0 0 12px; }
 .training-quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .training-quest-list li { padding: 12px; border-radius: 12px; border: 1px solid var(--er-border); }
-.training-quest-list li.is-complete { border-color: color-mix(in srgb, var(--er-teal) 35%, transparent); background: color-mix(in srgb, var(--er-teal) 6%, transparent); }
-.training-quest-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-.training-quest-head strong { font-size: var(--er-text-sm); min-width: 0; overflow-wrap: anywhere; }
+.training-quest-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 8px; }
+.training-quest-head strong { font-size: var(--er-text-base); font-weight: 650; color: var(--er-ink-navy); min-width: 0; overflow-wrap: anywhere; }
+.training-quest-xp { font-size: var(--er-text-xs); color: var(--er-muted-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.training-quest-status { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.training-quest-status.is-done { font-weight: 600; color: var(--er-success-ink); }
 .training-quest-list p { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin: 4px 0 8px; }
 .training-streak-heatmap { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 3px; margin: 12px 0; }
 .training-streak-heatmap.is-weekly { grid-template-columns: repeat(7, minmax(0, 1fr)); max-width: 280px; }

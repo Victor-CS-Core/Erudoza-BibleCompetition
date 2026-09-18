@@ -47,7 +47,7 @@
 .training-empty:not(.ds-panel) { padding-block:var(--er-space-6); }.training-empty p { color:var(--er-muted-ink);margin:8px 0; }
 .training-milestones { display:flex;align-items:center;gap:24px;margin-top:24px; }.training-milestones>div { flex:1; }.training-milestones p { color:var(--er-muted-ink);font-size:var(--er-text-xs); }.training-milestones>a { flex:1;display:flex;align-items:center;gap:12px; }.training-milestones strong { font-size:var(--er-text-sm); }.training-milestones small { display:block;color:var(--er-muted-ink);margin-top:4px; }
 .training-badge-art { width:72px;height:72px;flex:0 0 72px;display:block;background:url('/brand/training-badges.webp') 0 0/300% 300% no-repeat; }.training-badge-reference { background-position:50% 0; }
-.training-season-toolbar { display:flex;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px; }.training-season-toolbar label { display:flex;align-items:center;gap:12px; }.training-season-toolbar>a { margin-left:auto;color:var(--er-action-blue); }
+.training-season-toolbar { display:grid;gap:12px;margin-bottom:24px; }.training-season-picker { display:grid;gap:6px;max-width:560px; }.training-season-picker>span { font-size:var(--er-text-sm);font-weight:600;color:var(--er-muted-ink); }.training-season-meta { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }.training-season-meta>a { color:var(--er-action-blue); }
 .training-stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px; }.training-stats>.ds-panel { display:flex;align-items:center;gap:16px; }.training-stats strong { display:block;font-size:var(--er-text-page);font-weight:650;font-variant-numeric:tabular-nums; }.training-stats small { display:block;color:var(--er-muted-ink);margin-top:4px; }
 .training-stats>.ds-panel.training-stat-link { color:inherit;text-decoration:none; }
 .training-stats>.ds-panel.training-stat-link:hover small { text-decoration:underline; }
@@ -87,7 +87,7 @@
   .training-banner { min-height:176px; }.training-banner p { font-size:26px; }.training-banner>div { padding:20px; }
   .training-side-panels { grid-template-columns:1fr; }.training-milestones { gap:20px; }.training-milestones>a { flex-basis:100%; }
   .training-stats { gap:8px; }.training-stats>.ds-panel { padding:16px 12px;gap:12px; }.training-stats .training-icon-tile { width:32px;height:32px;flex-basis:32px; }.training-stats strong { font-size:1.75rem; }.training-stats small { font-size:var(--er-text-xs); }
-  .training-season { text-align:left; }.training-season-toolbar label { flex:1 1 100%;min-width:0; }.training-season-toolbar .ds-input { min-width:0; }.training-season-toolbar>a { margin-left:0; }
+  .training-season { text-align:left; }
   .training-coach-actions { align-items:flex-start; }.training-coach-actions p { display:none; }.training-section-heading { flex-wrap:wrap; }
   .training-directory-form { grid-template-columns:1fr; }.training-season-card { padding:20px;align-items:flex-start; }.training-season-card .ds-badge { flex-shrink:0; }
   .coach-masthead-inner { min-height:76px;padding:16px 20px;gap:12px; }.coach-brand { gap:12px; }.coach-brand>span { padding-left:12px;font-size:var(--er-text-sm); }.coach-brand .er-wordmark-name { font-size:25px; }.coach-brand .er-wordmark-mark { width:32px;height:32px; }.coach-academy,.coach-account>span { display:none; }.coach-account { gap:0; }.coach-account .ds-button { padding:8px;white-space:nowrap; }

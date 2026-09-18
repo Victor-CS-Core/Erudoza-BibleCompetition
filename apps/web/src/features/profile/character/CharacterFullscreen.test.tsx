@@ -135,13 +135,19 @@ describe('TiltOptIn', () => {
     await waitFor(() => expect(screen.queryByRole('button', {name: 'Enable tilt'})).not.toBeInTheDocument());
   });
 
-  it('fails silently when permission is denied', async () => {
+  it('explains how to unblock tilt when permission is denied instead of hiding the button', async () => {
     stubIOSGate('denied');
     openDialog();
     fireEvent.click(screen.getByRole('button', {name: 'Enable tilt'}));
-    // No prompt retry, no error surface: the button just goes away and the
-    // pointer path keeps working.
-    await waitFor(() => expect(screen.queryByRole('button', {name: 'Enable tilt'})).not.toBeInTheDocument());
+    // iOS never re-prompts after a denial, so the button stays and says how
+    // to fix it (Settings → Safari → Motion & Orientation Access) instead of
+    // silently disappearing; the pointer path keeps working.
+    expect(await screen.findByRole('status')).toHaveTextContent(/Motion & Orientation Access/);
+    expect(screen.getByRole('button', {name: 'Enable tilt'})).toBeInTheDocument();
+    // Retrying still reaches iOS — the denial is only remembered by the
+    // automatic open-tap, never by the manual button.
+    fireEvent.click(screen.getByRole('button', {name: 'Enable tilt'}));
+    await waitFor(() => expect(screen.getByRole('button', {name: 'Enable tilt'})).toBeInTheDocument());
   });
 
   it('hides the tilt button under prefers-reduced-motion', () => {

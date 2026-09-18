@@ -11,6 +11,16 @@ afterAll(async () => { await app?.runtime.dispose(); });
 const call = (path: string, method = 'GET', data?: unknown, auth = cookie) => path === '/content-packs/import' ? app.importFixture(data, auth) : app.fetch(`/api/v1/organizations/${TEST_ORG}${path}`, { method, headers: { Cookie: auth, Origin: 'https://erudoza.test', 'Content-Type': 'application/json' }, ...(data === undefined ? {} : { body: JSON.stringify(data) }) });
 const passage = { bookKey: 'DAN', startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 };
 const payload = (packKey: string) => ({ packKey, version: 1, locale: 'en', sourceType: 'Scripture', documents: [{ name: 'Daniel', units: [1, 2, 3].map(n => ({ citation: `Daniel 1:${n}`, bookKey: 'DAN', chapter: 1, verse: n, ordinal: n, text: `This is canonical verse number ${n} for ${packKey}.` })) }] });
+it('serves a student session history page and CSV export instead of 404',async()=>{
+ const {student}=await setup('session-history-route');
+ const history=await call(`/students/${student.userId}/sessions?limit=30`);
+ expect(history.status).toBe(200);
+ expect(await history.json()).toEqual({sessions:[],nextBefore:null});
+ const csv=await call(`/students/${student.userId}/export.csv`);
+ expect(csv.status).toBe(200);
+ expect(csv.headers.get('content-type')).toContain('text/csv');
+ expect((await csv.text()).length).toBeGreaterThan(0);
+});
 it('excludes legacy mastery from current coverage without dropping review evidence',async()=>{
  const {season,pack,student}=await setup('legacy-mastery');await call(`/seasons/${season.id}/assignments`,'POST',{studentUserId:student.userId,contentPackId:pack.id,type:'PrimarySpecialist',range:passage});
  const sources=await (await call(`/content-packs/${pack.id}/source-units`)).json() as {id:string;verse:number}[];const source=sources.find(s=>s.verse===1)!;

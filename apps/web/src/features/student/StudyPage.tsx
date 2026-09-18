@@ -292,9 +292,9 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           </div>
         </div>
         {current && <progress className="training-session-progress" value={current.sequence} max={current.total || 1} aria-label="Study session progress" />}
-        {current?.activityType !== "MissingWords" && <p className="er-scripture mt-6 text-2xl leading-relaxed" data-testid="challenge-prompt">
+        {current?.activityType !== "MissingWords" && <h2 className="er-scripture mt-6 text-2xl leading-relaxed" data-testid="challenge-prompt">
           {current?.prompt ?? "Loading your next practice question…"}
-        </p>}
+        </h2>}
         {current ? (
           current.activityType === 'MissingWords' ? <MissingWordsInput
             key={current.id} tokens={current.tokens} values={result?.missingWordAnswers ? Object.fromEntries(result.missingWordAnswers.map(slot => [slot.index,slot.text])) : slotValues} onChange={setSlotValues}
@@ -319,7 +319,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       {result ? (
         <div className="student-feedback" data-testid="challenge-feedback" role="status" aria-live="polite">
           {result.isCorrect ? <Badge tone="success">Correct</Badge> : <Badge tone="warning">Needs another pass</Badge>}
-          <h2 className="mt-3">{result.isCorrect ? "Well remembered" : "Read it once more"}</h2>
+          <p className="mt-3 text-lg font-semibold text-[var(--er-ink-navy)]">{result.isCorrect ? "Well remembered" : "Read it once more"}</p>
           <p className="mt-2 text-sm" data-testid="feedback-citation">
             {result.citation}
           </p>

@@ -1,5 +1,8 @@
 /* Composition only; controls and surfaces inherit the shared design system. */
 .news-feed{display:grid;gap:var(--er-space-5)}
+.news-card,.news-hero{position:relative}
+.news-hero h2 a::after,.news-card h3 a::after{content:"";position:absolute;inset:0}
+.news-source-chip{position:relative;z-index:1}
 .news-hero{border-left:4px solid var(--er-teal)}
 .news-hero h2{margin:0 0 var(--er-space-2);font-size:var(--er-text-title);line-height:1.3}
 .news-hero h2 a,.news-card h3 a{color:inherit;text-decoration:none}

@@ -28,6 +28,10 @@ export function ChapterStrip({ bookName, options, selected, verseRanges, disable
   const gridRef = useRef<HTMLDivElement>(null);
   const gesture = useRef<{ start: number; value: boolean; moved: boolean } | null>(null);
   const anchor = useRef<number | null>(null);
+  // Set when a drag painted at least one cell. Survives endGesture clearing
+  // `gesture` on pointerup, so the click that follows a touch paint can be
+  // swallowed instead of re-toggling the start cell.
+  const painted = useRef(false);
 
   const inRange = (from: number, to: number) => {
     const low = Math.min(from, to), high = Math.max(from, to);
@@ -37,20 +41,36 @@ export function ChapterStrip({ bookName, options, selected, verseRanges, disable
 
   const handlePointerDown = (chapter: number) => () => {
     if (disabled) return;
+    painted.current = false;
     gesture.current = { start: chapter, value: !selectedSet.has(chapter), moved: false };
   };
-  const handlePointerOver = (chapter: number) => () => {
+  const paintTo = (chapter: number) => {
     const current = gesture.current;
     if (!current || disabled || chapter === current.start) return;
     current.moved = true;
+    painted.current = true;
     onSelect(inRange(current.start, chapter), current.value);
+  };
+  // Container-level move handler. On touch the pointer is implicitly captured
+  // to the pointerdown target, so per-cell pointerover never fires on the
+  // cells the finger slides across — hit-test from the pointer coordinates
+  // instead. pointermove bubbles to the container even under capture.
+  const handleStripPointerMove = (event: { clientX: number; clientY: number }) => {
+    if (!gesture.current || disabled) return;
+    const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest?.("button[data-chapter]");
+    const chapter = cell?.getAttribute("data-chapter");
+    if (chapter) paintTo(Number(chapter));
   };
   const endGesture = () => { gesture.current = null; };
   const handleClick = (chapter: number) => (event: { shiftKey: boolean }) => {
     if (disabled) return;
-    const current = gesture.current;
+    const wasPaint = painted.current;
+    painted.current = false;
     gesture.current = null;
-    if (current?.moved) { anchor.current = chapter; return; }
+    // After a paint, touch fires click on the capture target (the start
+    // cell). Swallow it — the range is already painted — instead of
+    // toggling the start cell back off.
+    if (wasPaint) { anchor.current = chapter; return; }
     if (event.shiftKey && anchor.current !== null && anchor.current !== chapter) {
       onSelect(inRange(anchor.current, chapter), true);
     } else {
@@ -94,7 +114,7 @@ export function ChapterStrip({ bookName, options, selected, verseRanges, disable
       <li><span className="planner-strip-swatch is-limited" aria-hidden="true" />Limited availability</li>
       <li><span className="planner-strip-swatch is-refined" aria-hidden="true" />Verse ranges</li>
     </ul>
-    <div ref={gridRef} className="planner-strip" role="group" onPointerUp={endGesture} onPointerCancel={endGesture} onPointerLeave={endGesture} onKeyDown={handleKeyDown}
+    <div ref={gridRef} className="planner-strip" role="group" onPointerUp={endGesture} onPointerCancel={endGesture} onPointerLeave={endGesture} onPointerMove={handleStripPointerMove} onKeyDown={handleKeyDown}
       aria-label={`${bookName} chapters. Activate a chapter to select it, or drag across chapters to select a range.`}>
       {options.map(option => {
         const saved = option.remaining.length === 0;
@@ -105,7 +125,7 @@ export function ChapterStrip({ bookName, options, selected, verseRanges, disable
         return <button key={option.chapter} type="button" data-chapter={option.chapter}
           className={`planner-strip-cell${isSelected ? " is-selected" : ""}${saved ? " is-saved" : ""}${limited ? " is-limited" : ""}${isRefined ? " is-refined" : ""}`}
           aria-pressed={isSelected} aria-label={label} disabled={saved || disabled}
-          onPointerDown={handlePointerDown(option.chapter)} onPointerOver={handlePointerOver(option.chapter)} onClick={handleClick(option.chapter)}>
+          onPointerDown={handlePointerDown(option.chapter)} onClick={handleClick(option.chapter)}>
           {option.chapter}
         </button>;
       })}

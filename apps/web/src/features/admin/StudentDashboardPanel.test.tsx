@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
-import type { Student, StudentDashboard } from "../../api/types";
+import type { SessionHistoryEntry, Student, StudentDashboard } from "../../api/types";
 import { StudentDashboardPanel } from "./StudentDashboardPanel";
 
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "coach", organizationId: "org", kind: "Adult", role: "Admin" } }) }));
@@ -191,4 +191,51 @@ it("shows an empty team awards state when the student has none", async () => {
   mount();
   const mastery = await screen.findByTestId("student-dashboard-mastery");
   expect(within(mastery).getByText("No team awards yet.")).toBeInTheDocument();
+});
+
+it("re-fetches the first page when session history retry is activated after a failure", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue(dashboard);
+  const history = vi.mocked(api.studentSessionHistory);
+  history.mockRejectedValueOnce(new Error("boom"));
+  history.mockResolvedValueOnce({
+    sessions: [{ sessionId: "s1", mode: "Practice", format: "Memory", completedAtUtc: "2026-09-15T10:20:00Z", attempted: 8, correct: 6, xpEarned: 42 }],
+    nextBefore: null,
+  });
+  mount();
+  expect(await screen.findByText(/Session history could not load/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  // Retry must re-issue the first-page fetch (not loadMore, whose pagination
+  // guard would bail out and spin forever) and resolve.
+  expect(await screen.findByText("6 / 8 correct · +42 XP")).toBeInTheDocument();
+  expect(history).toHaveBeenCalledTimes(2);
+  expect(history).toHaveBeenLastCalledWith("org", "student-1");
+});
+
+it("ignores a stale session-history response when the coach switches students", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue(dashboard);
+  const history = vi.mocked(api.studentSessionHistory);
+  let resolveStale!: (page: { sessions: SessionHistoryEntry[]; nextBefore: string | null }) => void;
+  const stale = new Promise<{ sessions: SessionHistoryEntry[]; nextBefore: string | null }>((res) => { resolveStale = res; });
+  history.mockImplementation(async (_org, id) => {
+    if (id === "student-2") {
+      return { sessions: [{ sessionId: "s2", mode: "Quiz", format: "Memory", completedAtUtc: "2026-09-16T10:20:00Z", attempted: 10, correct: 9, xpEarned: 50 }], nextBefore: null };
+    }
+    return stale;
+  });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const frame = (next: Student) => (
+    <QueryClientProvider client={client}><StudentDashboardPanel student={next} onClose={() => {}} /></QueryClientProvider>
+  );
+  const view = render(frame(student));
+  // student-1's first-page fetch is still in flight when the coach switches.
+  await waitFor(() => expect(history).toHaveBeenCalledWith("org", "student-1"));
+  view.rerender(frame({ ...student, userId: "student-2", displayName: "John Doe" }));
+  // The fresh student's page resolves first and renders.
+  expect(await screen.findByText("9 / 10 correct · +50 XP")).toBeInTheDocument();
+  // The stale student-1 response arriving late must not overwrite it.
+  resolveStale({ sessions: [{ sessionId: "s9", mode: "Practice", format: "Memory", completedAtUtc: "2026-09-01T10:20:00Z", attempted: 4, correct: 1, xpEarned: 5 }], nextBefore: null });
+  await waitFor(() => expect(history).toHaveBeenCalledTimes(2));
+  await new Promise((r) => setTimeout(r, 50));
+  expect(screen.queryByText("1 / 4 correct · +5 XP")).not.toBeInTheDocument();
+  expect(screen.getByText("9 / 10 correct · +50 XP")).toBeInTheDocument();
 });
