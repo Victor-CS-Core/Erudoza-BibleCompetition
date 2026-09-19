@@ -35,7 +35,7 @@ async function setup(n=1){
  return {ctx,store,intro,reads};
 }
 it('reauthorizes the actual student and guards missing scope/member without reading source bodies',async()=>{
- const {ctx}=await setup();const base=await chapterBase(ctx,season);expect(base.reason).toBe(null);expect(base.guards).toContainEqual({kind:'@active-user',id:student,revision:0});
+ const {ctx}=await setup();const base=await chapterBase(ctx,season);expect(base.reason).toBe(null);expect(base.guards).toContainEqual({kind:'@active-learner',id:student,revision:0});
  await app.db.prepare("DELETE FROM Records WHERE kind='membership'").run();const missing=await chapterBase(ctx,season);expect(missing.reason).toBe('NoAssignment');expect(missing.guards).toContainEqual({kind:'membership',id:`${season}:${student}`,revision:null});expect(missing.signature).not.toBe(base.signature);
  await app.db.prepare("UPDATE Records SET data=json_set(data,'$.pbeEnabled',0) WHERE kind='season'").run();expect((await chapterBase(ctx,season)).reason).toBe('PbeDisabled');
  await app.db.prepare('UPDATE Users SET active=0 WHERE id=?').bind(student).run();await expect(chapterBase(ctx,season)).rejects.toMatchObject({status:403});

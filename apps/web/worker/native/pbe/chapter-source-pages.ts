@@ -27,7 +27,7 @@ export async function chapterBase(ctx:RequestContext,seasonId:string):Promise<Ch
  WHERE s.kind='season' AND s.org_id=? AND s.id=?`).bind(memberId(seasonId,ctx.actor.userId),ctx.orgId,seasonId).first<{revision:number;organizationId:string;status:string;enabled:number;scopeRevision:number|null;membershipRevision:number|null}>();
  if(!row)throw new HttpError(404,'Season was not found.');
  if(row.organizationId!==ctx.orgId)throw new HttpError(403,'Organization access denied.');
- const guards:InputGuard[]=[{kind:'season',id:seasonId,revision:row.revision},{kind:'scope',id:seasonId,revision:row.scopeRevision},{kind:'membership',id:memberId(seasonId,ctx.actor.userId),revision:row.membershipRevision},{kind:'@active-user',id:ctx.actor.userId,revision:0}];
+ const guards:InputGuard[]=[{kind:'season',id:seasonId,revision:row.revision},{kind:'scope',id:seasonId,revision:row.scopeRevision},{kind:'membership',id:memberId(seasonId,ctx.actor.userId),revision:row.membershipRevision},{kind:'@active-learner',id:ctx.actor.userId,revision:0}];
  const reason=row.status!=='Active'?'SeasonClosed':!row.enabled?'PbeDisabled':row.scopeRevision===null||row.membershipRevision===null?'NoAssignment':null;
  return {reason,guards,signature:await chapterHash([ctx.orgId,seasonId,ctx.actor.userId,actor,row,guards])};
 }

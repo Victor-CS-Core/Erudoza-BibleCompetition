@@ -55,6 +55,38 @@ it('renders PBE chapter progress while preserving Memory coverage', async () => 
   expect(trainingApi.journey).toHaveBeenCalledWith('s', undefined);
 });
 
+it('hides the PBE tile in preview when the chapter bank has no progress', async () => {
+  vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage({ items: [] }));
+  page(true, 'Pbe');
+  await waitFor(() => expect(trainingApi.chapters).toHaveBeenCalled());
+  await waitFor(() => {
+    expect(screen.queryByRole('heading', { name: 'Your PBE chapter progress' })).not.toBeInTheDocument();
+    expect(screen.queryByText('No chapter progress yet')).not.toBeInTheDocument();
+  });
+});
+
+it('shows the PBE tile in preview once chapter progress exists', async () => {
+  vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage());
+  page(true, 'Pbe');
+  expect(await screen.findByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
+  expect(screen.getByText('2 of 3 assigned passages have questions')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'View full PBE chapter progress' })).toHaveAttribute('href', '/student/progress?seasonId=s');
+});
+
+it('keeps the chapters load error honest in preview', async () => {
+  vi.mocked(trainingApi.chapters).mockRejectedValue(new Error('offline'));
+  page(true, 'Pbe');
+  expect(await screen.findByText('Chapter progress could not load.')).toBeVisible();
+});
+
+it('keeps the automatic chapter check running in preview', async () => {
+  vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage({ snapshotId: null, scopeVersion: null, items: [], work: { id: 'work-1', state: 'Working', stage: 'Replaying', reason: null } }));
+  vi.mocked(trainingApi.continueChapters).mockReturnValue(new Promise(() => {}));
+  page(true, 'Pbe');
+  expect(await screen.findByText('Checking chapter progress…')).toBeVisible();
+  await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledWith({ seasonId: 's', workId: 'work-1' }));
+});
+
 it('forwards the full guarded chapter selection through the study route', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage());
   const router = createMemoryRouter([{ path: '*', element: <PassageJourney seasonId="s" format="Pbe" /> }], { initialEntries: ['/student/progress?seasonId=s'] });

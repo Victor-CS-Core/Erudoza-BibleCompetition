@@ -95,8 +95,27 @@ it("offers solo timed PBE rehearsal", async () => {
   expect(await screen.findByTestId("start-simulation")).toHaveAttribute("href", expect.stringContaining("mode=Simulation"));
   expect(screen.getByTestId("start-simulation")).toHaveTextContent("Start solo timed rehearsal");
   expect(screen.getByRole("link", { name: "Practice another drill" })).toHaveAttribute("href", expect.stringContaining("format=Pbe"));
+  // An empty chapter bank hides the HQ PBE tile instead of showing its jargon empty state;
+  // the Season cooperation panel still renders.
+  await waitFor(() => {
+    expect(screen.getByRole('heading', { name: 'Season cooperation' })).toBeVisible();
+    expect(screen.queryByRole('heading', { name: 'Your PBE chapter progress' })).not.toBeInTheDocument();
+    expect(screen.queryByText('No chapter progress yet')).not.toBeInTheDocument();
+  });
+});
+
+it("shows the HQ PBE chapter tile once chapter progress exists", async () => {
+  vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ format: "Pbe" }));
+  vi.mocked(trainingApi.chapters).mockResolvedValue({ seasonId: 's', ruleVersion: 'r', scopeVersion: 'v', snapshotId: 'snap', chapterKey: null, work: { id: null, state: 'Complete', stage: null, reason: null }, currentAvailable: true, historyAvailable: false, asOfUtc: '2026-09-12T00:00:00Z', dueRefreshAtUtc: '2099-09-12T00:00:00Z', nextCursor: null, view: 'Chapters', items: [{
+    key: 'chapter:pack:Daniel:1', parentChapterKey: null, kind: 'Chapter', label: 'Daniel 1', scopeLabel: 'Daniel 1:1–3', contentPackId: 'pack', bookKey: 'Daniel', chapter: 1, wholeChapterAssigned: false,
+    counts: { assignedPassages: 3, questionCoveredPassages: 2, totalTargets: 4, practicedTargets: 3, recalledTargets: 2, retainedTargets: 1, dueTargets: 2, missingVariantTargets: 1 },
+    currentReadiness: 'Incomplete', stamp: null, hasHistoricalStamps: false,
+    actions: [{ mode: 'Practice', label: 'Practice this chapter', progressScope: { key: 'chapter:pack:Daniel:1', scopeVersion: 'scope-v1' } }],
+  }] });
+  home();
   expect(await screen.findByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
-  expect(screen.getByRole('heading', { name: 'Season cooperation' })).toBeVisible();
+  expect(screen.getByText('2 of 3 assigned passages have questions')).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'View full PBE chapter progress' })).toHaveAttribute('href', '/student/progress?seasonId=s');
 });
 
 it("offers the saved PBE mission resume action after its published bank becomes unavailable", async () => {

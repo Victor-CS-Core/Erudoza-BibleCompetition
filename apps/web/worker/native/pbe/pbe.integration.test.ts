@@ -78,7 +78,7 @@ it('rejects scope changes between pages and rechecks active students and season 
  const {ctx,scope,store}=await setup();const original=store.require.bind(store);let calls=0;
  const spy=vi.spyOn(store,'require').mockImplementation(async(kind,id,org)=>{if(kind==='season'&&++calls===2){const sc=await original('scope',season,TEST_ORG);await store.put('scope',season,TEST_ORG,{...(sc.value as object),excludes:[{bookKey:'GEN',startChapter:1,startVerse:1,endChapter:1,endVerse:1}]},sc.revision);}return await original(kind,id,org) as never;});
  await expect(loadPbeBank(ctx,scope)).rejects.toThrow(/changed/);spy.mockRestore();
- await app.db.prepare('UPDATE Users SET active=0 WHERE id=?').bind(student).run();await expect(loadPbeBank(ctx,scope)).rejects.toThrow(/Active student/);
+ await app.db.prepare('UPDATE Users SET active=0 WHERE id=?').bind(student).run();await expect(loadPbeBank(ctx,scope)).rejects.toThrow(/Active learner/);
  await app.db.prepare('UPDATE Users SET active=1 WHERE id=?').bind(student).run();const s=await store.require<Record<string,unknown>>('season',season,TEST_ORG);await store.put('season',season,TEST_ORG,{...s.value,pbeEnabled:false},s.revision);await expect(loadPbeBank(ctx,scope)).rejects.toThrow(/not enabled/);
 });
 it('keeps the latest published head across primary-source moves and out-of-order publication',async()=>{

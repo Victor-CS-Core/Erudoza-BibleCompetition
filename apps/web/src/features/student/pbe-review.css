@@ -1,0 +1,311 @@
+/* PBE Review entry and empty states — layout only.
+   Colors, type scale and controls come from styles/tokens.css and components/ui. */
+.pbe-review {
+  max-width: 790px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Navy hero: the surface stays navy in both themes via --er-navy-surface. */
+.pbe-review-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--er-navy-surface);
+  color: var(--er-on-navy);
+  border-radius: 20px;
+  padding: var(--er-space-6);
+}
+.pbe-review-hero::after {
+  content: "";
+  position: absolute;
+  right: -70px;
+  top: -80px;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  border: 36px solid rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+.pbe-review-hero > * {
+  position: relative;
+}
+.pbe-review-crumb {
+  display: flex;
+  align-items: center;
+  gap: var(--er-space-2);
+  margin: 0 0 var(--er-space-2);
+  font-size: var(--er-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--er-thread-gold);
+}
+.pbe-review-crumb svg {
+  width: 18px;
+  height: 18px;
+}
+.pbe-review-hero h1 {
+  margin: 0 0 var(--er-space-2);
+  color: var(--er-on-navy);
+  font-size: var(--er-text-section);
+  line-height: 1.05;
+}
+.pbe-review-hero > p {
+  margin: 0;
+  max-width: 34rem;
+  color: var(--er-on-navy-muted);
+  font-size: var(--er-text-base);
+}
+.pbe-review-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--er-space-2);
+  margin: var(--er-space-4) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pbe-review-rules li {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--er-on-navy);
+  font-size: var(--er-text-xs);
+  font-weight: 800;
+}
+
+.pbe-review-body {
+  display: grid;
+  gap: var(--er-space-4);
+  margin-top: var(--er-space-5);
+}
+
+.pbe-review-queue-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--er-space-3);
+  margin-bottom: var(--er-space-3);
+}
+.pbe-review-queue-head h2 {
+  margin: 0;
+  font-size: var(--er-text-title);
+}
+.pbe-review-queue-head p {
+  margin: 4px 0 0;
+  color: var(--er-muted-ink);
+  font-size: var(--er-text-sm);
+}
+.pbe-review-count {
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
+}
+.pbe-review-count strong {
+  display: block;
+  font-size: var(--er-text-section);
+  line-height: 1;
+}
+.pbe-review-count span {
+  font-size: var(--er-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--er-muted-ink);
+}
+
+.pbe-review-queue {
+  display: grid;
+  gap: var(--er-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pbe-review-due-card {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: var(--er-space-3);
+  align-items: center;
+  background: var(--er-card);
+  border: 1px solid var(--er-border);
+  border-radius: var(--er-radius-card);
+  padding: var(--er-space-3) var(--er-space-4);
+}
+.pbe-review-due-number {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--er-warning-surface);
+  color: var(--er-warning-ink);
+  font-size: var(--er-text-lg);
+  font-weight: 800;
+}
+.pbe-review-due-copy {
+  min-width: 0;
+}
+.pbe-review-due-copy h3 {
+  margin: 0 0 2px;
+  font-size: var(--er-text-base);
+}
+.pbe-review-reason {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 0;
+  color: var(--er-muted-ink);
+  font-size: var(--er-text-sm);
+}
+.pbe-review-reason svg {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  color: var(--er-teal);
+}
+
+/* Primary start card: one dominant action, not three equal buttons. */
+.pbe-review-start {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--er-space-4);
+  background: var(--er-navy-surface);
+  color: var(--er-on-navy);
+  border-radius: var(--er-radius-card);
+  padding: var(--er-space-5);
+}
+.pbe-review-start::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--er-thread-gold);
+}
+.pbe-review-start h2 {
+  margin: 0 0 var(--er-space-1);
+  color: var(--er-on-navy);
+  font-size: var(--er-text-title);
+}
+.pbe-review-start p {
+  margin: 0;
+  color: var(--er-on-navy-muted);
+  font-size: var(--er-text-sm);
+}
+.pbe-review-start .ds-button-primary {
+  flex: none;
+}
+
+.pbe-review-quiet {
+  display: flex;
+  gap: var(--er-space-2);
+  align-items: flex-start;
+  margin: 0;
+  color: var(--er-muted-ink);
+  font-size: var(--er-text-sm);
+}
+.pbe-review-quiet svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--er-teal);
+}
+.pbe-review-foot {
+  display: flex;
+}
+
+/* Empty states: caught up / no questions. */
+.pbe-review-empty {
+  text-align: center;
+  background: var(--er-card);
+  border: 1px solid var(--er-border);
+  border-radius: 20px;
+  padding: var(--er-space-8) var(--er-space-5);
+}
+.pbe-review-empty-art {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  margin: 0 auto var(--er-space-4);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--er-teal) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--er-teal) 30%, var(--er-border));
+  color: var(--er-teal);
+}
+.pbe-review-empty-art::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border-radius: 50%;
+  border: 2px dashed color-mix(in srgb, var(--er-teal) 45%, transparent);
+}
+.pbe-review-empty-art svg {
+  width: 40px;
+  height: 40px;
+}
+.pbe-review-empty h2 {
+  margin: 0 0 var(--er-space-2);
+  font-size: var(--er-text-section);
+  line-height: 1.05;
+}
+.pbe-review-empty > p {
+  max-width: 30rem;
+  margin: 0 auto;
+  color: var(--er-muted-ink);
+}
+.pbe-review-next {
+  max-width: 32rem;
+  margin: var(--er-space-5) auto 0;
+  text-align: left;
+  background: var(--er-surface-soft);
+  border-radius: var(--er-radius-control);
+  padding: var(--er-space-4);
+}
+.pbe-review-next strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: var(--er-text-sm);
+}
+.pbe-review-next span {
+  font-size: var(--er-text-sm);
+  color: var(--er-muted-ink);
+}
+.pbe-review-empty-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--er-space-3);
+  margin-top: var(--er-space-5);
+}
+.pbe-review-disabled-start {
+  width: min(100%, 340px);
+}
+
+@media (max-width: 640px) {
+  .pbe-review-hero {
+    padding: var(--er-space-5) var(--er-space-4);
+    border-radius: 16px;
+  }
+  .pbe-review-start {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pbe-review-due-card {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+  .pbe-review-due-number {
+    width: 40px;
+    height: 40px;
+  }
+  .pbe-review-due-card .ds-badge {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .pbe-review-empty {
+    padding: var(--er-space-6) var(--er-space-4);
+  }
+}

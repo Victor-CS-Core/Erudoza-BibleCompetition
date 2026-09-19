@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { api, ApiError } from '../../api/client';
@@ -145,4 +145,110 @@ it('starts PBE practice from the Learn card when PBE is the season default', asy
     fireEvent.click(screen.getByTestId('start-learn'));
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'Practice', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
     expect(api.nextCard).not.toHaveBeenCalled();
+});
+
+// --- PBE Review entry redesign ---
+function mockSuggestedToday() {
+    vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);
+}
+function dueProgress() {
+    const yesterday = new Date(Date.now() - 86400000).toISOString();
+    return {
+        seasonId: 'season', seasonName: 'Season', seasonStatus: 'Active', pbeEnabled: true, assignments: [],
+        masteredCount: 0, reviewDueCount: 2, attemptCount: 2,
+        mastery: [
+            { knowledgeUnitId: 'k1', title: 'John 3:16', level: 'Strong', exactWordingScore: 90, recognitionScore: 80, reviewDueAtUtc: yesterday },
+            { knowledgeUnitId: 'k2', title: 'John 4:1', level: 'Mastered', exactWordingScore: 100, recognitionScore: 100, reviewDueAtUtc: new Date().toISOString() },
+        ],
+        recentAttempts: [
+            { id: 'a1', title: 'John 3:16', activityType: 'MissingWords', isCorrect: false, submittedAnswer: 'x', evaluationResult: 'Miss', createdAtUtc: yesterday },
+        ],
+    };
+}
+it('opens the review entry with the due-practice identity and visible review rules', async () => {
+    mockSuggestedToday();
+    vi.mocked(api.progress).mockResolvedValue(dueProgress() as never);
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    expect(await screen.findByText('Review · due practice')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Protect what you’ve learned' })).toBeInTheDocument();
+    const rules = within(screen.getByRole('list', { name: 'Review rules' })).getAllByRole('listitem');
+    expect(rules.map(rule => rule.textContent)).toEqual(['Untimed', 'Immediate feedback', 'PBE questions']);
+    expect(screen.getByText(/there is no timer/i)).toBeInTheDocument();
+    expect(screen.getByText(/feedback right after each answer/i)).toBeInTheDocument();
+    expect(api.startSession).not.toHaveBeenCalled();
+});
+it('lists each due passage with its plain-language return reason', async () => {
+    mockSuggestedToday();
+    vi.mocked(api.progress).mockResolvedValue(dueProgress() as never);
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    const queue = await screen.findByRole('list', { name: 'Due passages' });
+    const items = within(queue).getAllByRole('listitem');
+    expect(items).toHaveLength(2);
+    const count = document.querySelector('.pbe-review-count');
+    expect(count).toHaveTextContent('2');
+    expect(count).toHaveTextContent('passages due');
+    expect(within(items[0]).getByText('John 3:16')).toBeInTheDocument();
+    expect(within(items[0]).getByText('Recent miss')).toBeInTheDocument();
+    expect(within(items[0]).getByText(/last practiced yesterday · last score 90%/)).toBeInTheDocument();
+    expect(within(items[0]).getByText('Retry')).toBeInTheDocument();
+    expect(within(items[1]).getByText('John 4:1')).toBeInTheDocument();
+    expect(within(items[1]).getByText('Review window reached')).toBeInTheDocument();
+    expect(within(items[1]).getByText(/last score 100%/)).toBeInTheDocument();
+    expect(within(items[1]).getByText('Scheduled')).toBeInTheDocument();
+});
+it('starts due reviews from the single entry action instead of on mount', async () => {
+    mockSuggestedToday();
+    vi.mocked(api.progress).mockResolvedValue(dueProgress() as never);
+    vi.mocked(api.startSession).mockResolvedValue(saved.session);
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    const start = await screen.findByRole('button', { name: 'Start due reviews' });
+    expect(api.startSession).not.toHaveBeenCalled();
+    fireEvent.click(start);
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'Review', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
+    expect(await screen.findByTestId('challenge-card')).toBeVisible();
+});
+it('shows the honest caught-up state with a disabled start when nothing is due', async () => {
+    mockSuggestedToday();
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    expect(await screen.findByRole('heading', { name: 'You’ve all caught up' })).toBeInTheDocument();
+    const start = screen.getByRole('button', { name: 'Nothing due to review' });
+    expect(start).toBeDisabled();
+    fireEvent.click(start);
+    expect(api.startSession).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Start due reviews' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Review will become available again when a passage reaches its next review window/)).toBeInTheDocument();
+    expect(screen.getByText(/Choose Learn for today’s assigned material/)).toBeInTheDocument();
+});
+it('explains when no PBE questions are published instead of offering a start', async () => {
+    vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Unavailable', explanation: 'No eligible published questions are available.' } } as never);
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    expect(await screen.findByRole('heading', { name: 'No PBE questions to review' })).toBeInTheDocument();
+    expect(screen.getByText(/No eligible published questions are available/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Start due reviews' })).not.toBeInTheDocument();
+    expect(api.startSession).not.toHaveBeenCalled();
+    expect(screen.getByRole('link', { name: 'Choose Memory' })).toHaveAttribute('href', expect.stringContaining('format=Memory'));
+});
+it('falls back to the caught-up state when the server reports nothing due at start', async () => {
+    mockSuggestedToday();
+    vi.mocked(api.progress).mockResolvedValue(dueProgress() as never);
+    vi.mocked(api.startSession).mockRejectedValue(new ApiError('No targets are due. Choose Practice.', 409, undefined, 'PBE_NOTHING_DUE'));
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    fireEvent.click(await screen.findByRole('button', { name: 'Start due reviews' }));
+    expect(await screen.findByRole('heading', { name: 'You’ve all caught up' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Nothing due to review' })).toBeDisabled();
+});
+it('shows the no-questions state when the server reports no published questions at start', async () => {
+    mockSuggestedToday();
+    vi.mocked(api.progress).mockResolvedValue(dueProgress() as never);
+    vi.mocked(api.startSession).mockRejectedValue(new ApiError('No published questions are available for your assignment.', 409, undefined, 'PBE_COVERAGE_UNAVAILABLE'));
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    fireEvent.click(await screen.findByRole('button', { name: 'Start due reviews' }));
+    expect(await screen.findByRole('heading', { name: 'No PBE questions to review' })).toBeInTheDocument();
+});
+it('still starts rehearsal automatically without a review entry screen', async () => {
+    mockSuggestedToday();
+    vi.mocked(api.startSession).mockResolvedValue(saved.session);
+    mount('/student/study?seasonId=season&format=Pbe&mode=Simulation');
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'Simulation', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
+    expect(screen.queryByRole('heading', { name: 'Protect what you’ve learned' })).not.toBeInTheDocument();
 });

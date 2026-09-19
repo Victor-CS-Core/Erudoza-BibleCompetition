@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthContext';
 import { api, ApiError } from '../../api/client';
-import type { Session } from '../../api/types';
+import type { Progress, Session } from '../../api/types';
 import type { PbeAttemptResult, PbePresentationState, PbeResumedSession, PbeSessionCard, PbeSubmission, PbeTimedReceipt } from '../../api/pbeTypes';
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from '../../components/ui';
 import { AppIcon } from '../../components/AppIcon';
@@ -10,6 +11,7 @@ import { academyModeRules, studySessionFraming } from './academyTracks';
 import { PbeAnswerInput } from './PbeAnswerInput';
 import { PbePresentation } from '../study/PbePresentation';
 import './student.css';
+import './pbe-review.css';
 function pending(sessionId: string, cardId: string): PbeSubmission | null {
     try {
         const value = JSON.parse(sessionStorage.getItem(`erudoza:pbe-attempt:${sessionId}`) ?? 'null') as PbeSubmission | null;
@@ -19,6 +21,54 @@ function pending(sessionId: string, cardId: string): PbeSubmission | null {
         return null;
     }
 }
+/** Moved from StudyPage.tsx: shared by the review-return banner on both study pages. */
+function relativeDays(iso: string): string {
+  const days = Math.floor((Date.now() - Date.parse(iso)) / 86_400_000);
+  if (!Number.isFinite(days)) return '';
+  if (days <= 0) return 'today';
+  if (days === 1) return 'yesterday';
+  return `${days} days ago`;
+}
+/** The most recent attempt whose passage title matches a due review item. */
+function latestMatchingAttempt(progress: Progress | undefined, citation: string) {
+  const normalized = citation.trim().toLowerCase();
+  if (!normalized) return null;
+  const attempts = progress?.recentAttempts ?? [];
+  const exact = attempts.filter((attempt) => attempt.title.trim().toLowerCase() === normalized);
+  const loose = exact.length === 0
+    ? attempts.filter((attempt) => {
+      const title = attempt.title.trim().toLowerCase();
+      return title.includes(normalized) || normalized.includes(title);
+    })
+    : [];
+  return [...exact, ...loose].sort((a, b) => b.createdAtUtc.localeCompare(a.createdAtUtc))[0] ?? null;
+}
+/** Plain-language reason a passage returned to the due queue. */
+export function reviewReturnDetail(progress: Progress | undefined, citation: string): string | null {
+  const normalized = citation.trim().toLowerCase();
+  if (!normalized) return null;
+  const mastery = progress?.mastery?.find((entry) => entry.title.trim().toLowerCase() === normalized);
+  const last = latestMatchingAttempt(progress, citation);
+  const parts: string[] = [];
+  const practiced = last ? relativeDays(last.createdAtUtc) : '';
+  if (practiced) parts.push(`last practiced ${practiced}`);
+  if (mastery) parts.push(`last score ${mastery.exactWordingScore}%`);
+  else if (last) parts.push(last.isCorrect ? 'last attempt correct' : 'last attempt needs another pass');
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+type DueKind = 'Scheduled' | 'Refresh' | 'Retry';
+const DUE_KIND_COPY: Record<DueKind, { lead: string; fallback: string; tone: 'info' | 'warning' }> = {
+  Scheduled: { lead: 'Review window reached', fallback: 'ready for a scheduled check-in', tone: 'info' },
+  Refresh: { lead: 'Recall needs attention', fallback: 'the latest practice result slipped', tone: 'warning' },
+  Retry: { lead: 'Recent miss', fallback: 'one question is ready for another try', tone: 'warning' },
+};
+/** Why a due mastery entry is in the review queue. */
+function dueItemKind(progress: Progress | undefined, entry: Progress['mastery'][number]): DueKind {
+  const last = latestMatchingAttempt(progress, entry.title);
+  if (last && !last.isCorrect) return 'Retry';
+  if (entry.level === 'Learning' || entry.level === 'Review') return 'Refresh';
+  return 'Scheduled';
+}
 export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     saved?: PbeResumedSession;
     seasonId: string;
@@ -26,10 +76,16 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     unavailable?: string;
 }) {
     const [params, setParams] = useSearchParams(), navigate = useNavigate(), queries = useQueryClient();
+    const { me } = useAuth();
     const mode = saved?.session.mode ?? params.get('mode') ?? 'Practice';
+    const isReviewMode = mode === 'Review';
     const progressScopeKey = params.get('progressScopeKey'), progressScopeVersion = params.get('progressScopeVersion');
     const progressScopeIncomplete = !saved && (!!progressScopeKey !== !!progressScopeVersion);
     const selection = !saved && progressScopeKey && progressScopeVersion ? { progressScope: { key: progressScopeKey, scopeVersion: progressScopeVersion } } : undefined;
+    const needsReviewEntry = isReviewMode && !selection && !saved;
+    // The due queue is derived from stored progress; the server's 409 codes stay authoritative at start.
+    const reviewProgress = useQuery({ queryKey: ['progress', seasonId, me?.organizationId, me?.userId], queryFn: () => api.progress(seasonId), enabled: isReviewMode, retry: false });
+    const [entryOverride, setEntryOverride] = useState<'caughtUp' | 'noQuestions' | null>(null);
     const [session, setSession] = useState<Session | null>(saved?.session ?? null), [card, setCard] = useState<PbeSessionCard | null>(saved?.card ?? null), [result, setResult] = useState<PbeAttemptResult | null>(saved?.attempt && 'earnedPoints' in saved.attempt ? saved.attempt : null);
     const [answers, setAnswers] = useState<string[]>(() => saved?.card ? pending(saved.session.id, saved.card.id)?.answers ?? saved.card.question.partPoints.map(() => '') : []);
     const [presentation,setPresentation]=useState<PbePresentationState|null>(null),[timedReceipt,setTimedReceipt]=useState<PbeTimedReceipt|null>(saved?.attempt && 'feedbackDeferred' in saved.attempt && saved.attempt.questionId===saved.card?.id ? saved.attempt : null),[interruptionSummary,setInterruptionSummary]=useState(saved?.interruption?saved.summary:null),[timingError,setTimingError]=useState(''),[tick,setTick]=useState(0);
@@ -42,7 +98,13 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     const start = useMutation({ mutationFn: () => {
             const training = { clientStartId: startId.current, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
             return selection ? api.startSession(seasonId, mode as 'Practice' | 'Review' | 'Simulation', training, 'Pbe', undefined, selection) : api.startSession(seasonId, mode as 'Practice' | 'Review' | 'Simulation', training, 'Pbe');
-        }, onSuccess: s => { setSession(s); setParams({ sessionId: s.id, seasonId: s.seasonId, mode: s.mode, format: 'Pbe' }, { replace: true }); } });
+        }, onSuccess: s => { setSession(s); setParams({ sessionId: s.id, seasonId: s.seasonId, mode: s.mode, format: 'Pbe' }, { replace: true }); },
+        onError: error => {
+            if (error instanceof ApiError && error.status === 409) {
+                if (error.code === 'PBE_NOTHING_DUE') setEntryOverride('caughtUp');
+                else if (error.code === 'PBE_COVERAGE_UNAVAILABLE') setEntryOverride('noQuestions');
+            }
+        } });
     const aid = useMutation({ mutationFn: () => api.pbeSource(session!.id, card!.id), onSuccess: () => setCard(c => c ? { ...c, assisted: true } : c) });
     const submit = useMutation<PbeAttemptResult | PbeTimedReceipt | PbePresentationState>({ mutationFn: () => {
             frozen.current ??= { clientSubmissionId: crypto.randomUUID(), challengeCardId: card!.id, answers: [...answers], hintsUsed: card!.assisted };
@@ -70,7 +132,7 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
                 next.mutate(saved.session.id);
             return;
         }
-        if (unavailable || progressScopeIncomplete)
+        if (unavailable || progressScopeIncomplete || needsReviewEntry)
             return;
         if (!params.get('startId')) {
             const p = new URLSearchParams(params);
@@ -81,6 +143,16 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
         // This component is keyed by the server session or a new-session intent.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+    /** Review starts from the entry screen's single action, so the intent is retried with one startId. */
+    const beginReview = () => {
+        if (!params.get('startId')) {
+            const nextParams = new URLSearchParams(params);
+            nextParams.set('startId', startId.current);
+            setParams(nextParams, { replace: true });
+        }
+        start.mutate();
+    };
+    const showReviewEntry = needsReviewEntry && !session;
     useEffect(() => { if (mode !== 'Simulation' || !presentation?.responseEndsAtMs) return; const timer = window.setInterval(() => setTick(value => value + 1), 250); return () => window.clearInterval(timer); }, [mode, presentation?.responseEndsAtMs]);
     useEffect(() => { if (mode !== 'Simulation' || !presentation || !card || !session || !answers.length) return; const timer = window.setTimeout(() => { void api.pbeTimed(session.id, { action: 'draft', questionId: card.id, revision: presentation.revision, answers }).catch(() => {}); }, 300); return () => window.clearTimeout(timer); }, [answers, mode, presentation, card, session]);
     void tick;
@@ -124,11 +196,100 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     const error = start.error ?? next.error ?? submit.error ?? aid.error ?? complete.error;
     const staleScope = start.error instanceof ApiError && ['PBE_CHAPTER_SCOPE_STALE', 'PBE_CHAPTER_CURSOR_STALE'].includes(start.error.code ?? '');
     const locked = !!result || submit.isPending || !!frozen.current;
+    if (showReviewEntry) {
+        const progressData = reviewProgress.data;
+        const dueItems = (progressData?.mastery ?? [])
+            .filter((entry) => entry.reviewDueAtUtc && Date.parse(entry.reviewDueAtUtc) <= Date.now())
+            .sort((a, b) => Date.parse(a.reviewDueAtUtc!) - Date.parse(b.reviewDueAtUtc!) || a.title.localeCompare(b.title));
+        const hero = <header className="pbe-review-hero">
+            <p className="pbe-review-crumb"><AppIcon name="review" />{framing.eyebrow}</p>
+            <h1>Protect what you’ve learned</h1>
+            <p>Only passages ready for another pass appear here. Work through them without a clock — there is no timer, and you’ll see feedback right after each answer.</p>
+            <ul className="pbe-review-rules" aria-label="Review rules">
+                <li>Untimed</li>
+                <li>Immediate feedback</li>
+                <li>PBE questions</li>
+            </ul>
+        </header>;
+        const startError = start.isError && !entryOverride ? <Notice tone="danger" role="alert">{start.error instanceof Error ? start.error.message : 'Review could not start.'}<Button variant="secondary" onClick={beginReview}>Retry start</Button></Notice> : null;
+        if (unavailable || entryOverride === 'noQuestions')
+            return <div className="er-study-stage space-y-4 pbe-review">{hero}
+                <div className="pbe-review-empty">
+                    <div className="pbe-review-empty-art" aria-hidden="true"><AppIcon name="book" /></div>
+                    <h2>No PBE questions to review</h2>
+                    <p>{unavailable ?? 'No eligible published questions are available.'} Ask your coach to publish questions for this season’s assignments — or choose Memory to keep practicing.</p>
+                    <div className="pbe-review-empty-actions">
+                        <LinkButton to={memory}>Choose Memory</LinkButton>
+                        <LinkButton variant="ghost" to={entryHref}>Back to training</LinkButton>
+                    </div>
+                </div>
+            </div>;
+        if (progressScopeIncomplete)
+            return <div className="er-study-stage space-y-4 pbe-review">{hero}<Panel><Notice tone="danger">This chapter-practice link is incomplete. Return to chapter progress and choose Practice or Review again.</Notice></Panel></div>;
+        if (reviewProgress.isPending)
+            return <div className="er-study-stage space-y-4 pbe-review">{hero}<LoadingState label="Loading your due reviews…" /></div>;
+        if (reviewProgress.isError)
+            return <div className="er-study-stage space-y-4 pbe-review">{hero}<Notice tone="danger" role="alert">Your due reviews could not load.<Button variant="secondary" onClick={() => void reviewProgress.refetch()}>Try again</Button></Notice></div>;
+        if (entryOverride === 'caughtUp' || dueItems.length === 0)
+            return <div className="er-study-stage space-y-4 pbe-review">{hero}
+                <div className="pbe-review-empty">
+                    <div className="pbe-review-empty-art" aria-hidden="true"><AppIcon name="check" /></div>
+                    <h2>You’ve all caught up</h2>
+                    <p>{progressData?.seasonStatus === 'Active' ? 'Nothing is due for another pass right now. Review will become available again when a passage reaches its next review window.' : 'Reviews open when this season is Active.'}</p>
+                    <div className="pbe-review-next">
+                        <strong>What can I do now?</strong>
+                        <span>Choose Learn for today’s assigned material or Rehearse for competition-style practice.</span>
+                    </div>
+                    <div className="pbe-review-empty-actions">
+                        <Button disabled className="pbe-review-disabled-start">Nothing due to review</Button>
+                        <LinkButton variant="ghost" to={entryHref}>Back to training</LinkButton>
+                    </div>
+                </div>
+            </div>;
+        const dueCount = dueItems.length;
+        return <div className="er-study-stage space-y-4 pbe-review">{hero}
+            {startError}
+            <div className="pbe-review-body">
+                <section aria-label="Due passages">
+                    <div className="pbe-review-queue-head">
+                        <div>
+                            <h2>Due for review</h2>
+                            <p>A short, focused queue — not another assignment list.</p>
+                        </div>
+                        <p className="pbe-review-count"><strong>{dueCount}</strong><span>{dueCount === 1 ? 'passage' : 'passages'} due</span></p>
+                    </div>
+                    <ul className="pbe-review-queue" aria-label="Due passages">
+                        {dueItems.map((item, index) => {
+                            const kind = dueItemKind(progressData, item);
+                            const copy = DUE_KIND_COPY[kind];
+                            return <li key={item.knowledgeUnitId} className="pbe-review-due-card">
+                                <span className="pbe-review-due-number" aria-hidden="true">{index + 1}</span>
+                                <div className="pbe-review-due-copy">
+                                    <h3>{item.title}</h3>
+                                    <p className="pbe-review-reason"><AppIcon name="review" /><span><b>{copy.lead}</b>{' · '}{reviewReturnDetail(progressData, item.title) ?? copy.fallback}</span></p>
+                                </div>
+                                <Badge tone={copy.tone}>{kind}</Badge>
+                            </li>;
+                        })}
+                    </ul>
+                </section>
+                <div className="pbe-review-start">
+                    <div>
+                        <h2>Ready for a quick review?</h2>
+                        <p>{dueCount} due {dueCount === 1 ? 'passage' : 'passages'}. No timer. Feedback appears after every answer.</p>
+                    </div>
+                    <Button data-testid="start-due-reviews" disabled={start.isPending} onClick={beginReview}>{start.isPending ? 'Starting…' : 'Start due reviews'}</Button>
+                </div>
+                <p className="pbe-review-quiet"><AppIcon name="check" /><span>Review never adds unrelated assignments. When the due queue is empty, starting is disabled.</span></p>
+                <div className="pbe-review-foot"><LinkButton variant="ghost" to={entryHref}>Back to training</LinkButton></div>
+            </div>
+        </div>;
+    }
     return <div className="er-study-stage space-y-4">
     <p className="study-eyebrow">{framing.eyebrow}</p>
     <PageHeader title={framingMode === 'Simulation' ? 'PBE rehearsal' : framingMode === 'Review' ? 'PBE review' : 'PBE practice'} description={<span><span>{seasonName}</span><span className="study-blurb">{framing.blurb}</span></span>} action={<span className="study-cover-actions"><Badge>{mode === 'Simulation' ? 'Shortened timed practice' : `Untimed ${mode.toLowerCase()}`}</Badge><LinkButton variant="ghost" to={entryHref}>Back to training</LinkButton></span>}/>
     {framingMode === 'Simulation' && <div className="study-exam-banner" data-testid="exam-mode-banner"><AppIcon name="flag" /><div><strong>Exam mode</strong><p>Shortened timed practice. Answers freeze when time ends and feedback waits until the finish.</p><ul className="study-rules" aria-label="Exam rules">{academyModeRules('rehearsal', 'Pbe').map(rule => <li key={rule}>{rule}</li>)}</ul></div></div>}
-    {framingMode === 'Review' && card && <div className="study-return-banner" data-testid="review-return-banner"><AppIcon name="review" /><div><strong>Back for another pass</strong><span>{card.question.reference} · due for review · no source aid in Review</span></div></div>}
+    {framingMode === 'Review' && card && <div className="study-return-banner" data-testid="review-return-banner"><AppIcon name="review" /><div><strong>Back for another pass</strong><span>{card.question.reference} · {reviewReturnDetail(reviewProgress.data, card.question.reference) ?? 'due for review'} · no source aid in Review</span></div></div>}
   {unavailable || progressScopeIncomplete ? <Panel><Notice tone={progressScopeIncomplete ? 'danger' : 'info'}>{progressScopeIncomplete ? 'This chapter-practice link is incomplete. Return to chapter progress and choose Practice or Review again.' : unavailable}</Notice></Panel> : <>
    {error && <Notice tone="danger">{staleScope ? <>This chapter action is out of date. Load current progress and choose Practice or Review again.<LinkButton variant="secondary" to={`/student/progress?seasonId=${encodeURIComponent(seasonId)}`}>Return to chapter progress</LinkButton></> : <>{error.message}{start.isError && <Button variant="secondary" onClick={() => start.mutate()}>Retry start</Button>}{next.isError && session && <Button variant="secondary" onClick={() => next.mutate(session.id)}>Retry next card</Button>}</>}</Notice>}
    {timingError && <Notice tone="danger">{timingError}<Button variant="secondary" onClick={() => { setTimingError(''); setPresentation(null); }}>Retry presentation</Button></Notice>}

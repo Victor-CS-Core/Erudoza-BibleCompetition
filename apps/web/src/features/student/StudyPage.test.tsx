@@ -700,8 +700,13 @@ describe("StudyPage mode select", () => {
   });
   it("explains the mode rules without starting a session", async () => {
     renderStudy("/student/study?seasonId=season-1&format=Memory");
-    expect(await screen.findByRole("heading", { name: "How training works" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Which mode should I pick?" })).toBeInTheDocument();
     expect(screen.getByText("Competition conditions — no aids, timed answers, results at the end. Like the real event.")).toBeInTheDocument();
+    expect(screen.getByText(/use it when a passage is new/)).toBeInTheDocument();
+    expect(screen.getByText(/use it when passages come due/)).toBeInTheDocument();
+    expect(screen.getByText(/use it when you want competition conditions/)).toBeInTheDocument();
+    expect(screen.getByText("Reading in the Scripture Library never starts a session and is never scored.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "More detail in the Help Center" })).toHaveAttribute("href", "/help#wiki-study-and-practice");
   });
   it("starts today's drill from the Learn card in the chosen format", async () => {
     vi.mocked(api.startSession).mockResolvedValue({ id: "session-1", seasonId: "season-1", status: "Active", mode: "Practice", targetCardCount: 8 });

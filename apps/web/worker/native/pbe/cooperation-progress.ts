@@ -13,7 +13,7 @@ import {COOPERATION_RULE,COOPERATION_STEP_ROWS,prepareCooperationPage,cooperatio
 import type {CooperationSnapshot,CooperationStudentSummary,CooperationStudentPage,ContinueCooperationRequest,MaterialSummary,OwnMaterialSummary} from '../../../src/api/pbeTypes';
 type Snapshot=SavedCooperationSnapshot&{inputs:CooperationGuardInputs};
 const key=(r:{sourceKind:string;contentPackId:string;sourceUnitId:string})=>JSON.stringify([r.sourceKind,r.contentPackId,r.sourceUnitId]);
-const authGuard=(scope:VerifiedCooperationScope)=>({kind:scope.operation.startsWith('Coach')?'@active-admin':'@active-user',id:scope.ctx.actor.userId,revision:0});
+const authGuard=(scope:VerifiedCooperationScope)=>({kind:scope.operation.startsWith('Coach')?'@active-admin':'@active-learner',id:scope.ctx.actor.userId,revision:0});
 async function save(scope:VerifiedCooperationScope,w:CooperationWork,old:Stored<CooperationWork>|null,statements:import('@cloudflare/workers-types').D1PreparedStatement[]=[]){
  const {ctx}=scope;
  if(utf8Bytes(w)>65536)throw new HttpError(413,'PBE_COOPERATION_INPUT_TOO_LARGE');

@@ -10,7 +10,6 @@ import {
   academyUnavailableCopy,
   canStartAcademyTrack,
   resolveStudyFormat,
-  STUDY_BEHAVIOR_MATRIX,
   STUDY_MODE_CARDS,
   type StudyFormat,
   type StudyModeCard,
@@ -208,37 +207,26 @@ export function StudyModeSelect() {
         <span>Read and explore the source text — the library is unchanged.</span>
       </p>
 
-      <section className="study-why" aria-labelledby="study-why-heading">
-        <h2 id="study-why-heading">How training works</h2>
-        <p>Three modes, one engine. The rules below are the actual behavior, not labels.</p>
-        <div className="study-why-table-wrap">
-          <table className="study-why-table">
-            <thead>
-              <tr>
-                <th scope="col">Behavior</th>
-                <th scope="col">Learn</th>
-                <th scope="col">Review</th>
-                <th scope="col">Rehearse</th>
-              </tr>
-            </thead>
-            <tbody>
-              {STUDY_BEHAVIOR_MATRIX.map((row) => (
-                <tr key={row.behavior}>
-                  <th scope="row">{row.behavior}</th>
-                  <td>{row.learn}</td>
-                  <td>{row.review}</td>
-                  <td>{row.rehearse}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <h3>What stays the same</h3>
+      <section className="study-why" aria-labelledby="study-which-heading">
+        <h2 id="study-which-heading">Which mode should I pick?</h2>
         <ul className="study-why-list">
-          <li>The Scripture Library is unchanged — reading and exploration, never scored.</li>
-          <li>Your active season supplies assignments and the format default.</li>
-          <li>Coaches in student mode see the same training.</li>
+          <li>
+            <strong>Learn</strong> — use it when a passage is new. All aids are available, nothing is timed, and
+            feedback is immediate.
+          </li>
+          <li>
+            <strong>Review</strong> — use it when passages come due. It shows only what needs review and explains
+            why it returned.
+          </li>
+          <li>
+            <strong>Rehearse</strong> — use it when you want competition conditions. Memory removes the aids; PBE
+            runs a shortened timed round and waits until the end to show feedback.
+          </li>
         </ul>
+        <p>Reading in the Scripture Library never starts a session and is never scored.</p>
+        <p>
+          <Link to="/help#wiki-study-and-practice">More detail in the Help Center</Link>
+        </p>
       </section>
     </div>
   );

@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
-import type { ChallengeCard, AttemptResult, Progress, Session } from "../../api/types";
+import type { ChallengeCard, AttemptResult, Session } from "../../api/types";
 import type { StartTrainingContext } from "../../api/trainingTypes";
 import { Badge, Button, Input, LinkButton, Notice, PageHeader, Panel, Textarea } from "../../components/ui";
 import { AppIcon } from "../../components/AppIcon";
@@ -21,7 +21,7 @@ import "./student.css";
 import { MissingWordsInput } from './MissingWordsInput';
 import { VerseBuilderInput } from "./VerseBuilderInput";
 import { ScriptureReader } from "./ScriptureReader";
-import { PbeStudyPage } from './PbeStudyPage';
+import { PbeStudyPage, reviewReturnDetail } from './PbeStudyPage';
 import { StudyModeSelect } from './StudyModeSelect';
 import { trainingApi } from '../../api/training';
 import { LoadingState } from '../../components/ui';
@@ -509,41 +509,6 @@ function ChallengeInput({
       />}
     </label>
   );
-}
-
-function relativeDays(iso: string): string {
-  const then = new Date(iso).getTime();
-  if (Number.isNaN(then)) return "";
-  const days = Math.floor((Date.now() - then) / 86_400_000);
-  if (days <= 0) return "today";
-  if (days === 1) return "yesterday";
-  return `${days} days ago`;
-}
-
-/**
- * Explains why a passage returned for review, using stored progress only.
- * Returns null when no stored history matches the citation — the banner
- * then falls back to the honest "due for review" reason.
- */
-function reviewReturnDetail(progress: Progress | undefined, citation: string): string | null {
-  const normalized = citation.trim().toLowerCase();
-  if (!normalized) return null;
-  const mastery = progress?.mastery?.find((entry) => entry.title.trim().toLowerCase() === normalized);
-  const exact = (progress?.recentAttempts ?? []).filter((attempt) => attempt.title.trim().toLowerCase() === normalized);
-  const loose =
-    exact.length === 0
-      ? (progress?.recentAttempts ?? []).filter((attempt) => {
-          const title = attempt.title.trim().toLowerCase();
-          return title.includes(normalized) || normalized.includes(title);
-        })
-      : [];
-  const last = [...exact, ...loose].sort((a, b) => b.createdAtUtc.localeCompare(a.createdAtUtc))[0];
-  const parts: string[] = [];
-  const practiced = last ? relativeDays(last.createdAtUtc) : "";
-  if (practiced) parts.push(`last practiced ${practiced}`);
-  if (mastery) parts.push(`last score ${mastery.exactWordingScore}%`);
-  else if (last) parts.push(last.isCorrect ? "last attempt correct" : "last attempt needs another pass");
-  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 function readPendingAttempt(sessionId: string, card: ChallengeCard): Parameters<typeof api.submitAttempt>[1] | null {

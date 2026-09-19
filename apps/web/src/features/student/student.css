@@ -11,6 +11,11 @@
 .student-builder-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: var(--er-space-2); align-items: center; }
 .student-builder-row .student-builder-phrase { overflow-wrap: anywhere; }
 .student-progress-next { display: flex; flex-wrap: wrap; align-items: center; gap: var(--er-space-3); margin-top: var(--er-space-5, 20px); }
+/* Progress page Overview/Honors tabs: pill tabs with the active tab in the must-stay-navy surface. */
+.study-mode-tabs { display: flex; flex-wrap: wrap; gap: var(--er-space-2); margin-bottom: var(--er-space-4); }
+.study-mode-tabs a { padding: 10px 18px; border-radius: 999px; border: 1px solid var(--er-border); color: var(--er-muted-ink); text-decoration: none; font-weight: 600; }
+.study-mode-tabs a:hover { color: var(--er-ink-navy); border-color: var(--er-ink-navy); }
+.study-mode-tabs a.is-active { background: var(--er-navy-surface); border-color: var(--er-navy-surface); color: var(--er-on-navy); }
 @media(max-width: 640px) {
   .student-home .training-banner { min-height: 112px; }
   .student-home .training-banner > div { padding-block: var(--er-space-3); }

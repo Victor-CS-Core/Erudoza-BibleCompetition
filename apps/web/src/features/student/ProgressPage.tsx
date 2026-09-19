@@ -6,7 +6,7 @@ import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } fr
 import { academyActivityName, academyRecentExactPercent, canStartAcademyTrack } from "./academyTracks";
 import { HonorsPage } from "./HonorsPage";
 import { PassageBrowser } from "./PassageBrowser";
-import { PassageJourney } from "./PassageJourney";
+import { PbeJourney } from "./PassageJourney";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
 import "./student.css";
 
@@ -51,7 +51,7 @@ export function ProgressPage() {
     {progress.isPending && <Panel aria-busy="true"><LoadingState label="Loading progress…" /></Panel>}
     {progress.isError && <Notice tone="danger">Progress could not load. <Button variant="secondary" onClick={() => void progress.refetch()}>Try again</Button></Notice>}
     {data && <>
-      {!coachView && !!data.seasonId && <PassageJourney seasonId={data.seasonId} format={data.pbeEnabled ? 'Pbe' : 'Memory'} />}
+      {!coachView && !!data.seasonId && data.pbeEnabled && <PbeJourney seasonId={data.seasonId} preview={false} />}
       {!!data.seasonId && data.pbeEnabled && <SeasonCoveragePanel seasonId={data.seasonId} audience={coachView ? 'coach' : 'student'} organizationId={coachView ? me?.organizationId : undefined} />}
       <Panel data-testid="progress-top-folio"><h2>Recorded activity</h2><dl className="student-progress-metrics">
         <div><dt>Attempts</dt><dd data-testid="progress-attempts">{data.attemptCount}</dd></div>

@@ -16,7 +16,7 @@ type ChapterContinuationInput = {
   scopeId: number;
 };
 
-function PbeJourney({ seasonId, preview }: { seasonId: string; preview: boolean }) {
+export function PbeJourney({ seasonId, preview }: { seasonId: string; preview: boolean }) {
   const { me } = useAuth();
   const navigate = useNavigate();
   const queries = useQueryClient();
@@ -99,6 +99,11 @@ function PbeJourney({ seasonId, preview }: { seasonId: string; preview: boolean 
   const rows = chapters.data?.pages.flatMap(page => page.view === 'Chapters' ? page.items : []) ?? [];
   const groupRows = groups.data?.pages.flatMap(page => page.view === 'Groups' ? page.items : []) ?? [];
   const working = continuation.isPending || firstPage?.work.state === 'Working';
+  // Training HQ preview hides the tile entirely when the chapter bank holds no progress:
+  // an empty preview would otherwise show jargon ("No chapter progress yet / …question bank
+  // is checked") with no news value. Loading, working, and error states stay honest; the full
+  // Progress page (preview=false) keeps the empty-state panel. All hooks are above this return.
+  if (preview && !chapters.isPending && !chapters.isError && !continuation.isError && !working && !!firstPage?.currentAvailable && rows.length === 0) return null;
   return <section className="training-passage-journey pbe-chapter-journey">
     <div className="training-panel-title"><div><h2>Your PBE chapter progress</h2><p>Current Solo practice, recall and retention for your assigned questions.</p></div>{firstPage?.asOfUtc && <small>Counts checked <time dateTime={firstPage.asOfUtc}>{new Date(firstPage.asOfUtc).toLocaleDateString()}</time></small>}</div>
     {chapters.isPending ? <LoadingState label="Loading chapter progress…" /> : chapters.isError && !chapters.data ? <Notice tone="danger">Chapter progress could not load. <Button variant="secondary" onClick={() => void chapters.refetch()}>Retry chapter progress</Button></Notice> : <>

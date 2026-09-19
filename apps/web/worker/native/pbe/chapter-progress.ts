@@ -180,7 +180,7 @@ export async function continueChapters(ctx:RequestContext,input:ContinueChapters
   try{
    if(changed){
     if(work?.abandoned){await step(ctx,work,prior!);return {seasonId,scopeVersion:null,work:{...workDto(work),stage:'Cleanup'},next:'Continue'};}
-    work=newWork(ctx,seasonId,admitted,work);await save(ctx,work,prior,[],admitted.guards.filter(g=>['season','membership','@active-user'].includes(g.kind)));
+    work=newWork(ctx,seasonId,admitted,work);await save(ctx,work,prior,[],admitted.guards.filter(g=>['season','membership','@active-learner'].includes(g.kind)));
    }else if(work&&!work.reason&&work.stage!=='Complete')await step(ctx,work,prior!);
    return {seasonId,scopeVersion:work!.scopeVersion,work:workDto(work),next:work!.reason?'None':work!.stage==='Complete'?'Reload':'Continue'};
   }catch(error){

@@ -42,7 +42,7 @@ export function chapterInputGuard(ctx:RequestContext,seasonId:string,generationI
  ${readOnly?'SELECT CASE WHEN':"INSERT INTO Records(kind,id,org_id,data) SELECT 'audit',?,?,CASE WHEN"}
  (SELECT count(*) FROM Records WHERE kind='pbe-chapter-manifest' AND org_id=? AND season_id=? AND owner_id=? AND json_extract(data,'$.generationId')=?)=?
  AND NOT EXISTS(SELECT 1 FROM allGuards g WHERE CASE WHEN json_extract(g.value,'$.kind') LIKE '@active-%' THEN
- NOT EXISTS(SELECT 1 FROM Users u WHERE u.org_id=? AND u.id=json_extract(g.value,'$.id') AND u.active=1 AND u.kind='Student' AND u.role='Student')
+ NOT EXISTS(SELECT 1 FROM Users u WHERE u.org_id=? AND u.id=json_extract(g.value,'$.id') AND u.active=1 AND ((u.kind='Student' AND u.role='Student') OR (json_extract(g.value,'$.kind')='@active-learner' AND u.kind='Adult' AND u.role IN ('Owner','Admin'))))
  WHEN json_extract(g.value,'$.revision') IS NULL THEN EXISTS(SELECT 1 FROM Records r WHERE r.org_id=? AND r.kind=json_extract(g.value,'$.kind') AND r.id=json_extract(g.value,'$.id'))
  ELSE NOT EXISTS(SELECT 1 FROM Records r WHERE (r.org_id=? OR ${builtInContentSql('r')}) AND r.kind=json_extract(g.value,'$.kind') AND r.id=json_extract(g.value,'$.id') AND r.revision=json_extract(g.value,'$.revision')) END)
  AND NOT EXISTS(SELECT id FROM currentSources EXCEPT SELECT json_extract(value,'$.id') FROM sourceInputs)

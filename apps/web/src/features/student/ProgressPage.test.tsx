@@ -122,7 +122,10 @@ describe("ProgressPage recorded evidence", () => {
     expect(screen.getByRole("heading", { name: "Your progress" })).toBeInTheDocument();
     await waitFor(() => expect(screen.getByTestId("progress-student")).toHaveTextContent("Daniel 2026"));
     expect(screen.queryByTestId("session-summary")).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Your passage progress" })).toBeInTheDocument();
+    // Memory passages live in the compact PassageBrowser now; the old verbose Memory journey
+    // (full verse grids) no longer renders or fetches on the Progress page.
+    expect(screen.getByRole("heading", { name: "Passage progress" })).toBeInTheDocument();
+    expect(trainingApi.journey).not.toHaveBeenCalled();
     expect(screen.getByTestId("progress-attempts")).toHaveTextContent("3");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Daniel 1:1");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("80");
