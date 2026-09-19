@@ -122,7 +122,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
     if (target.pathname !== location.pathname) return false;
     return location.hash ? target.hash === location.hash : item.id === contextItems.find(entry => new URL(entry.to, "https://erudoza.local").pathname === location.pathname)?.id;
   };
-  const searchLabel = coach ? "Search sections, students, or actions" : "Search sections, seasons, or actions";
+  const searchLabel = "Search sections, seasons, or actions";
   return <div className={`training-app command-app ${coach ? "training-coach" : "training-learner"} ${focused ? "training-focused" : ""}`} data-testid={coach ? "coach-app-shell" : "learner-app-shell"}>
     <CoffeeWidget enabled={coach && me?.kind === "Adult"} accountKey={`${me?.organizationId}:${me?.userId}`} />
     <a className="training-skip" href="#training-main">Skip to content</a>
@@ -166,6 +166,6 @@ function CommandFrame({ coach }: { coach: boolean }) {
       {mobileItems.map(item => <Link key={item.id} to={item.to} aria-current={mobileActive === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.id === "home" ? "HQ" : item.label}</span></Link>)}
       <Button variant="ghost" aria-label="More" aria-current={!mobileIds.includes(mobileActive ?? "") ? "page" : undefined} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>More</span></Button>
     </nav>
-    {commandOpen && <CommandCenter items={searchItems} coach={coach} selectedSeason={coach ? switchSeason : selectedSeason} pinned={pinned} togglePin={togglePin} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
+    {commandOpen && <CommandCenter items={searchItems} coach={coach} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
   </div>;
 }

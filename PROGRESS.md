@@ -1,5 +1,18 @@
 # Erudoza progress log
 
+## Command Center redesign (Option A: Compass Hub) — September 18 (uncommitted)
+
+- User picked Option A from the "Command Center Navigation Options" mockup ("I meant go with A") and asked that student mode be covered; asked "Push so it is staged."
+- Implementation (`apps/web/src/components/navigation/CommandCenter.tsx`, `TrainingAppFrame.tsx`, `styles/command-center.css`):
+  - Removed the individual-student query and all individual student results from the Command Center; removed the Students search category; search placeholder now "Search sections, seasons, or actions."
+  - Coach grouping: Manage / Team practice / Resources / You. Student-mode grouping: Train / Resources / You (student mode explicitly covered).
+  - New Quick access row remembering the 5 most recently opened root sections (`erudoza:recent-sections:{org}:{user}:{coach|student}`); pin/unpin controls removed from inside the Command Center (the existing persistent desktop shortcut/pin strip in TrainingAppFrame is untouched).
+  - Expandable nested destination options and keyboard navigation preserved; mobile bottom navigation unchanged.
+- Wiki gate: no wiki article covers the Command Center (grep, zero hits), so no wiki update; `test:wiki` 17/17.
+- Verification: web `tsc` clean; ESLint clean on touched files; AppShell 41/41 (with new regression tests: no individual-student query, student-mode groupings, recent-sections memory); related suites 59/59.
+- Full web suite at the gate: 184 files, 172 passed / 10 failed / 2 skipped; 1559 passed / 18 failed. All 18 failures proven pre-existing: 16 reproduced identically on a pristine `2684f39` worktree, 1 is the known date-dependent `progression.test.ts` Monday/Sunday failure, 1 (`pbe-room-storage-http.test.ts`) also fails on pristine. No failing file imports any touched module.
+- Nothing committed, pushed, or deployed — user approved "Push so it is staged."
+
 ## Progress page redesign + cooperation learner fix — September 18 (uncommitted)
 
 - User request (iPhone screenshots): the "Your progress" page is "a very big scrollable experience" with many chapters/verses assigned. Approved the mockup direction; asked to implement.

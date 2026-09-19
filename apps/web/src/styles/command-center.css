@@ -201,3 +201,9 @@
   .command-app:has(.practice-page) :is(.command-masthead-inner,.training-main) { padding-inline:12px; }
 }
 @media(forced-colors:active) { .command-bottom-nav [aria-current=page] { outline:2px solid Highlight; } }
+
+/* Compass Hub: quick-access row of recently visited sections. */
+.command-quick { display:flex; gap:8px; overflow-x:auto; padding:4px 8px 12px; }
+.command-quick-item { display:flex; align-items:center; gap:8px; flex-shrink:0; min-height:44px; padding:10px 14px; border:1px solid var(--er-border); border-radius:var(--er-radius-control); font-size:var(--er-text-sm); color:var(--er-ink-navy); white-space:nowrap; }
+.command-quick-item:hover,.command-quick-item:focus-visible { background:var(--er-selected); color:var(--er-action-blue); border-color:var(--er-teal); }
+.command-quick-item svg { width:18px; height:18px; flex-shrink:0; }
