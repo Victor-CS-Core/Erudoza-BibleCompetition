@@ -1,23 +1,28 @@
 import { useAuth } from "../../auth/AuthContext";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api, ApiError } from "../../api/client";
-import type { ChallengeCard, AttemptResult, Session } from "../../api/types";
+import type { ChallengeCard, AttemptResult, Progress, Session } from "../../api/types";
 import type { StartTrainingContext } from "../../api/trainingTypes";
 import { Badge, Button, Input, LinkButton, Notice, PageHeader, Panel, Textarea } from "../../components/ui";
+import { AppIcon } from "../../components/AppIcon";
 import {
   academyActivityName,
+  academyModeRules,
   academySessionKicker,
   academyTrackForMode,
   academyUnavailableCopy,
   canStartAcademyTrack,
+  resolveStudyFormat,
+  studySessionFraming,
 } from "./academyTracks";
 import "./student.css";
 import { MissingWordsInput } from './MissingWordsInput';
 import { VerseBuilderInput } from "./VerseBuilderInput";
 import { ScriptureReader } from "./ScriptureReader";
 import { PbeStudyPage } from './PbeStudyPage';
+import { StudyModeSelect } from './StudyModeSelect';
 import { trainingApi } from '../../api/training';
 import { LoadingState } from '../../components/ui';
 import { ContentPage } from "../admin/ContentPage";
@@ -29,41 +34,19 @@ export function parseStudyMode(value: string | null): StudyMode {
   return value === "Review" || value === "Simulation" || value === "Library" ? value : "Practice";
 }
 
-const STUDY_MODE_TABS: { mode: StudyMode; label: string; testId: string }[] = [
-  { mode: "Practice", label: "Practice", testId: "study-tab-practice" },
-  { mode: "Review", label: "Review", testId: "study-tab-review" },
-  { mode: "Simulation", label: "Simulation", testId: "study-tab-simulation" },
-  { mode: "Library", label: "Library", testId: "study-tab-library" },
-];
-
-/** In-page mode switcher: Practice / Review / Simulation / Library live under one Study destination. */
-function StudyModeTabs({ mode }: { mode: StudyMode }) {
-  const [params] = useSearchParams();
-  const seasonId = params.get("seasonId");
-  const format = params.get("format");
-  const href = (target: StudyMode) => {
-    const next = new URLSearchParams();
-    next.set("mode", target);
-    if (seasonId) next.set("seasonId", seasonId);
-    if (format) next.set("format", format);
-    return `/student/study?${next}`;
-  };
-  return <nav className="study-mode-tabs" aria-label="Study modes">
-    {STUDY_MODE_TABS.map(tab => <Link key={tab.mode} to={href(tab.mode)} data-testid={tab.testId} aria-current={tab.mode === mode ? "page" : undefined} className={tab.mode === mode ? "is-active" : undefined}>{tab.label}</Link>)}
-  </nav>;
-}
-
 export function StudyPage() {
   const { me } = useAuth();
   const [params, setParams] = useSearchParams();
-  const mode = parseStudyMode(params.get("mode"));
-  const libraryMode = mode === "Library";
+  const modeParam = params.get("mode");
+  const sessionMode = modeParam === "Practice" || modeParam === "Review" || modeParam === "Simulation" ? modeParam : null;
+  const libraryMode = modeParam === "Library";
   const sessionId = params.get('sessionId'), seasonId = params.get('seasonId') || undefined;
+  const formatParam = params.get('format');
   const saved = useQuery({queryKey:['study-resume-format',sessionId,me?.organizationId,me?.userId],queryFn:()=>api.resumeSession(sessionId!),enabled:!!sessionId,retry:false,staleTime:Infinity,gcTime:0});
-  const progress = useQuery({queryKey:['progress',seasonId,me?.organizationId,me?.userId],queryFn:()=>api.progress(seasonId),enabled:!sessionId&&params.get('format')!=='Memory'&&!libraryMode});
-  const candidate = !libraryMode && !sessionId && (params.get('format')==='Pbe'||params.get('format')!=='Memory'&&progress.data?.pbeEnabled);
+  const progress = useQuery({queryKey:['progress',seasonId,me?.organizationId,me?.userId],queryFn:()=>api.progress(seasonId),enabled:!!sessionMode&&!sessionId&&formatParam!=='Memory'});
+  const format = resolveStudyFormat(formatParam, progress.data?.pbeEnabled);
+  const candidate = !!sessionMode && !sessionId && format === 'Pbe';
   const today = useQuery({queryKey:['training-today',seasonId,me?.organizationId,me?.userId],queryFn:()=>trainingApi.today(seasonId),enabled:!!candidate,retry:false});
-  const tabs = <StudyModeTabs mode={mode} />;
   let body: ReactNode;
   if (libraryMode) {
     body = <ContentPage />;
@@ -72,14 +55,19 @@ export function StudyPage() {
     else if(saved.isError)body=<Notice tone="danger">Your saved session is unavailable. <Button onClick={()=>void saved.refetch()}>Retry saved session</Button><Button variant="secondary" onClick={()=>setParams(seasonId?{seasonId}:{})}>Start a new session</Button></Notice>;
     else body=saved.data.session.format==='Pbe'?<PbeStudyPage key={sessionId} saved={saved.data as unknown as PbeResumedSession} seasonId={saved.data.session.seasonId} seasonName="Saved PBE session"/>:<MemoryStudyPage initialSaved={saved.data}/>;
   }
-  else if(candidate){
-    if(today.isPending)body=<LoadingState label="Loading your PBE assignment…"/>;
-    else if(today.isError)body=<Notice tone="danger">Your PBE assignment could not load. <Button onClick={()=>void today.refetch()}>Try again</Button><LinkButton to={`/student/study?seasonId=${encodeURIComponent(seasonId??'')}&format=Memory`}>Choose Memory</LinkButton></Notice>;
-    else body=<PbeStudyPage key={`${today.data.seasonId}:${params.get('mode')??'Practice'}:Pbe`} seasonId={today.data.seasonId??seasonId??''} seasonName={today.data.seasonName} unavailable={today.data.mission.status==='Unavailable'?today.data.mission.explanation??'No eligible published questions are available.':undefined}/>;
+  else if(sessionMode){
+    if(candidate){
+      if(today.isPending)body=<LoadingState label="Loading your PBE assignment…"/>;
+      else if(today.isError)body=<Notice tone="danger">Your PBE assignment could not load. <Button onClick={()=>void today.refetch()}>Try again</Button><LinkButton to={`/student/study?seasonId=${encodeURIComponent(seasonId??'')}&format=Memory`}>Choose Memory</LinkButton></Notice>;
+      else body=<PbeStudyPage key={`${today.data.seasonId}:${sessionMode}:Pbe`} seasonId={today.data.seasonId??seasonId??''} seasonName={today.data.seasonName} unavailable={today.data.mission.status==='Unavailable'?today.data.mission.explanation??'No eligible published questions are available.':undefined}/>;
+    }
+    else if(formatParam!=='Memory'&&progress.isPending)body=<LoadingState label="Loading your season…"/>;
+    else body=<MemoryStudyPage/>;
   }
-  else if(params.get('format')!=='Memory'&&progress.isPending)body=<LoadingState label="Loading your season…"/>;
-  else body=<MemoryStudyPage/>;
-  return <>{tabs}{body}</>;
+  else {
+    body = <StudyModeSelect />;
+  }
+  return <>{body}</>;
 }
 function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const { me } = useAuth();
@@ -89,15 +77,23 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const requested = params.get("mode");
   const mode = requested === "Simulation" || requested === "Review" ? requested : "Practice";
   const track = academyTrackForMode(mode);
+  const framing = studySessionFraming(mode);
   const queryClient = useQueryClient();
   const selectedSeasonId = params.get("seasonId") || undefined;
-  const missionId = params.get("missionId") || undefined;
-  const missionRevision = params.get("missionRevision");
+  const missionId = params.get("missionId") || undefined;  const missionRevision = params.get("missionRevision");
   const requestedStep = params.get("step");
+  const entryHref = (() => {
+    const entryParams = new URLSearchParams();
+    if (selectedSeasonId) entryParams.set("seasonId", selectedSeasonId);
+    const formatParam = params.get("format");
+    if (formatParam) entryParams.set("format", formatParam);
+    return `/student/study${entryParams.toString() ? `?${entryParams}` : ""}`;
+  })();
   const step = requestedStep === "Review" || requestedStep === "Practice" ? requestedStep : undefined;
   const missionReview = step === "Review" && mode === "Review" && !!missionId;
   const startIntent = useRef<{ key: string; context: StartTrainingContext } | null>(null);
   const progress = useQuery({ queryKey: ["progress", selectedSeasonId, me?.organizationId, me?.userId], queryFn: () => api.progress(selectedSeasonId) });
+  const game = useQuery({ queryKey: ["training-today", selectedSeasonId, me?.organizationId, me?.userId], queryFn: () => trainingApi.today(selectedSeasonId), retry: false, staleTime: 60_000 });
   const [purposeChoice,setPurposeChoice]=useState<{seasonId:string;purpose:"Warmup"|"Advanced"}|null>(null);
   const memoryChallenge=purposeChoice?.seasonId===progress.data?.seasonId?purposeChoice?.purpose:undefined;
   const choosePurpose=!!progress.data?.pbeEnabled&&!requestedSessionId&&!memoryChallenge;
@@ -111,6 +107,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const [answer, setAnswer] = useState("");
   const [slotValues, setSlotValues] = useState<Record<number, string>>({});
   const [chunks, setChunks] = useState<number[]>([]);
+  const [readerOpened, setReaderOpened] = useState(false);
   const startedAt = useRef(Date.now());
   const pendingAttempt = useRef<Parameters<typeof api.submitAttempt>[1] | null>(null);
 
@@ -156,6 +153,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     setChunks([]);
     setAnswer(pendingAttempt.current?.submittedAnswer ?? "");
     setSlotValues(Object.fromEntries(pendingAttempt.current?.missingWordAnswers?.map(slot => [slot.index, slot.text]) ?? []));
+    setReaderOpened(sessionStorage.getItem(`erudoza:attempt:read:${sessionId}:${card.data.id}`) === "true");
     // Reset from the newly drawn card identity only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.data?.id]);
@@ -233,6 +231,39 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const result = submit.data ?? (restoredAttempt?.cardId === card.data?.id ? restoredAttempt?.result : undefined);
   const accepted = !!result;
   const current = card.data;
+  const quest = game.data?.quests?.find((item) => !item.completed);
+  const returnDetail = mode === "Review" && current ? reviewReturnDetail(progress.data, current.citation) : null;
+  const sessionMeta = game.data?.streak && game.data?.xp ? (
+    <div className="study-session-meta" aria-label="Training progress">
+      <span className="study-meta-chip"><AppIcon name="flame" />{game.data.streak.current}-day streak</span>
+      <span className="study-meta-chip">Rank {game.data.xp.level} · {game.data.xp.levelName}</span>
+      {quest && <span className="study-meta-chip">Quest: {quest.title} · +{quest.xpReward ?? 25} XP</span>}
+    </div>
+  ) : null;
+  const dueLabel = mode === "Review" && current ? (
+    <p className="study-due-label" data-testid="study-due-label">Due passage {current.sequence} of {current.total}</p>
+  ) : null;
+  const returnBanner = mode === "Review" && current ? (
+    <div className="study-return-banner" data-testid="review-return-banner">
+      <AppIcon name="review" />
+      <div>
+        <strong>Back for another pass</strong>
+        <span>{current.citation}{returnDetail ? ` · ${returnDetail}` : " · due for review"}</span>
+      </div>
+    </div>
+  ) : null;
+  const examBanner = mode === "Simulation" ? (
+    <div className="study-exam-banner" data-testid="exam-mode-banner">
+      <AppIcon name="flag" />
+      <div>
+        <strong>Exam mode</strong>
+        <p>Typed answers only — no choices, reader, recitation, or hints. Each answer is checked as you go.</p>
+        <ul className="study-rules" aria-label="Exam rules">
+          {academyModeRules("rehearsal", "Memory").map((rule) => <li key={rule}>{rule}</li>)}
+        </ul>
+      </div>
+    </div>
+  ) : null;
 
   const chooseChunks = (ids: number[]) => {
     setChunks(ids);
@@ -240,14 +271,17 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   };
 
   const cover = (
-    <div data-testid="study-page-title"><PageHeader title={current ? academyActivityName(current.activityType) : "Study"}
-      description={<span data-testid="current-season">{progress.isPending ? "Loading your season…" : progress.data?.seasonName || "Your study section has not been assigned yet."}</span>}
-      action={<Badge data-testid="academy-session-kicker">{academySessionKicker(mode)}</Badge>}>
-      {sessionSnapshot?.difficulty && <p>Session difficulty: {sessionSnapshot.difficulty}</p>}
-      <p>Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.</p>
-      {sessionSnapshot?.memoryChallenge && <p>{sessionSnapshot.memoryChallenge === 'Warmup' ? 'Varied-gap warmup · supported wording evidence up to 70, within your difficulty ceiling.' : 'Advanced mastery challenge · recall from memory with fewer clues.'}</p>}
-      {progress.isSuccess && !trackReady && <p data-testid="academy-track-unavailable">{academyUnavailableCopy(track, progress.data)}</p>}
-    </PageHeader></div>
+    <div data-testid="study-page-title">
+      <p className="study-eyebrow">{framing.eyebrow}</p>
+      <PageHeader title={current ? academyActivityName(current.activityType) : "Study"}
+        description={<span><span data-testid="current-season">{progress.isPending ? "Loading your season…" : progress.data?.seasonName || "Your study section has not been assigned yet."}</span><span className="study-blurb">{framing.blurb}</span></span>}
+        action={<span className="study-cover-actions"><Badge data-testid="academy-session-kicker">{academySessionKicker(mode)}</Badge><LinkButton variant="ghost" to={entryHref}>Back to training</LinkButton></span>}>
+        {sessionSnapshot?.difficulty && <p>Session difficulty: {sessionSnapshot.difficulty}</p>}
+        <p>Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.</p>
+        {sessionSnapshot?.memoryChallenge && <p>{sessionSnapshot.memoryChallenge === 'Warmup' ? 'Varied-gap warmup · supported wording evidence up to 70, within your difficulty ceiling.' : 'Advanced mastery challenge · recall from memory with fewer clues.'}</p>}
+        {progress.isSuccess && !trackReady && <p data-testid="academy-track-unavailable">{academyUnavailableCopy(track, progress.data)}</p>}
+      </PageHeader>
+    </div>
   );
 
   if ([start.error, card.error, submit.error, resume.error, complete.error].some(error => error instanceof ApiError && error.status === 409)) {
@@ -276,6 +310,10 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   return (
     <div className="er-study-stage space-y-4">
       {cover}
+      {dueLabel}
+      {returnBanner}
+      {examBanner}
+      {sessionMeta}
       {resume.isError && <Notice tone="danger">Your saved session is unavailable. <Button variant="secondary" onClick={() => setStartRetry((value) => value + 1)}>Retry saved session</Button><Button variant="secondary" onClick={() => { loadedSession.current = null; resume.reset(); setParams({ mode, ...(selectedSeasonId ? { seasonId: selectedSeasonId } : {}) }); }}>Start a new session</Button></Notice>}
       {(progress.isError || start.isError || card.isError) && <Notice tone="danger">This study session could not load. <Button variant="secondary" onClick={() => { if (progress.isError) void progress.refetch(); else if (start.isError) setStartRetry((value) => value + 1); else void card.refetch(); }}>Try again</Button></Notice>}
       <Panel className="student-challenge" data-testid="challenge-card">
@@ -329,6 +367,11 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           <p className="mt-3 text-sm text-[var(--er-success-ink)]" data-testid="mastery-impact">
             Mastery {result.masteryLevel} · {result.skillLabel ?? "Exact wording"} {result.skillScore ?? result.exactWordingScore} / 100
           </p>
+          <p className="mt-2 text-sm" data-testid="assistance-note">
+            {readerOpened
+              ? "Assisted attempt — the passage reader was opened, so this does not establish unaided recall."
+              : "No reader assistance used on this attempt."}
+          </p>
         </div>
       ) : null}
         <div className="student-study-actions">
@@ -365,16 +408,19 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
         </div>
         {(submit.isError || complete.isError) && <p role="alert">{submit.isError ? "Your answer could not be saved. Please try again." : "The session could not be finished. Please try again."}</p>}
       </Panel>
-      {current && mode !== "Simulation" && <Panel><details key={current.id}><summary>Optional full-verse recitation</summary><p>Recite aloud or type from memory, then compare with the passage reader. This private practice is not scored and does not earn mastery evidence.</p><label>Your private recitation practice<Textarea rows={4} className="mt-2 w-full" /></label></details></Panel>}
-      {current && sessionSnapshot && mode !== "Simulation" && <ScriptureReader
-        key={sessionSnapshot.seasonId}
-        seasonId={sessionSnapshot.seasonId}
-        citation={current.citation}
-        onRead={() => {
-          if (!accepted && !submit.isPending && pendingAttempt.current?.challengeCardId !== current.id)
-            sessionStorage.setItem(`erudoza:attempt:read:${sessionId}:${current.id}`, "true");
-        }}
-      />}
+      {current && mode !== "Simulation" && <section aria-label="Learning aids" className="study-aids">
+        <Panel><details key={current.id}><summary>Optional full-verse recitation</summary><p>Recite aloud or type from memory, then compare with the passage reader. This private practice is not scored and does not earn mastery evidence.</p><label>Your private recitation practice<Textarea rows={4} className="mt-2 w-full" /></label></details></Panel>
+        {sessionSnapshot && <ScriptureReader
+          key={sessionSnapshot.seasonId}
+          seasonId={sessionSnapshot.seasonId}
+          citation={current.citation}
+          onRead={() => {
+            setReaderOpened(true);
+            if (!accepted && !submit.isPending && pendingAttempt.current?.challengeCardId !== current.id)
+              sessionStorage.setItem(`erudoza:attempt:read:${sessionId}:${current.id}`, "true");
+          }}
+        />}
+      </section>}
     </div>
   );
 }
@@ -463,6 +509,41 @@ function ChallengeInput({
       />}
     </label>
   );
+}
+
+function relativeDays(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const days = Math.floor((Date.now() - then) / 86_400_000);
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  return `${days} days ago`;
+}
+
+/**
+ * Explains why a passage returned for review, using stored progress only.
+ * Returns null when no stored history matches the citation — the banner
+ * then falls back to the honest "due for review" reason.
+ */
+function reviewReturnDetail(progress: Progress | undefined, citation: string): string | null {
+  const normalized = citation.trim().toLowerCase();
+  if (!normalized) return null;
+  const mastery = progress?.mastery?.find((entry) => entry.title.trim().toLowerCase() === normalized);
+  const exact = (progress?.recentAttempts ?? []).filter((attempt) => attempt.title.trim().toLowerCase() === normalized);
+  const loose =
+    exact.length === 0
+      ? (progress?.recentAttempts ?? []).filter((attempt) => {
+          const title = attempt.title.trim().toLowerCase();
+          return title.includes(normalized) || normalized.includes(title);
+        })
+      : [];
+  const last = [...exact, ...loose].sort((a, b) => b.createdAtUtc.localeCompare(a.createdAtUtc))[0];
+  const parts: string[] = [];
+  const practiced = last ? relativeDays(last.createdAtUtc) : "";
+  if (practiced) parts.push(`last practiced ${practiced}`);
+  if (mastery) parts.push(`last score ${mastery.exactWordingScore}%`);
+  else if (last) parts.push(last.isCorrect ? "last attempt correct" : "last attempt needs another pass");
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 function readPendingAttempt(sessionId: string, card: ChallengeCard): Parameters<typeof api.submitAttempt>[1] | null {

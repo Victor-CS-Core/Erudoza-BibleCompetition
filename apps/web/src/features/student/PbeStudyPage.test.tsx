@@ -137,10 +137,12 @@ it('keeps polling Settled, NotPresented and transient failures until the final-c
     await act(async()=>{await vi.advanceTimersByTimeAsync(2500);});
     expect(api.completeSession).toHaveBeenCalledWith('pbe-session');expect(api.nextPbeCard).not.toHaveBeenCalled();
 });
-it('defaults an eligible new season to PBE and does not run Memory start or next', async () => {
+it('starts PBE practice from the Learn card when PBE is the season default', async () => {
     vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);
     vi.mocked(api.startSession).mockResolvedValue(saved.session);
     mount('/student/study?seasonId=season');
+    expect(await screen.findByRole('heading', { name: 'Choose your training' })).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('start-learn'));
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'Practice', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
     expect(api.nextCard).not.toHaveBeenCalled();
 });

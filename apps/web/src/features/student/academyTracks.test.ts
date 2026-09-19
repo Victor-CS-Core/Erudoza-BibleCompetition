@@ -1,12 +1,16 @@
 import {
   ACADEMY_TRACKS,
   academyActivityName,
+  academyModeRules,
   academyRecentExactPercent,
   academySessionKicker,
   academySessionSummaryCopy,
   academyTrackForMode,
   academyUnavailableCopy,
   canStartAcademyTrack,
+  resolveStudyFormat,
+  STUDY_MODE_CARDS,
+  studySessionFraming,
   visibleAcademyTracks,
 } from "./academyTracks";
 
@@ -153,5 +157,54 @@ describe("academyRecentExactPercent", () => {
       ]),
     ).toBe("75%");
     expect(academyRecentExactPercent([{ isCorrect: true }])).toBe("100%");
+  });
+});
+
+describe("resolveStudyFormat", () => {
+  it("prefers an explicit Memory request even when the season enables PBE", () => {
+    expect(resolveStudyFormat("Memory", true)).toBe("Memory");
+    expect(resolveStudyFormat("Memory", false)).toBe("Memory");
+  });
+
+  it("uses PBE when explicitly requested or when the season enables it", () => {
+    expect(resolveStudyFormat("Pbe", false)).toBe("Pbe");
+    expect(resolveStudyFormat(null, true)).toBe("Pbe");
+  });
+
+  it("falls back to Memory when the season does not enable PBE", () => {
+    expect(resolveStudyFormat(null, false)).toBe("Memory");
+    expect(resolveStudyFormat(null, undefined)).toBe("Memory");
+  });
+});
+
+describe("academyModeRules", () => {
+  it("lists Learn aids per format", () => {
+    expect(academyModeRules("learner", "Pbe")).toEqual(["Read source with assistance", "Immediate feedback", "Untimed"]);
+    expect(academyModeRules("learner", "Memory")).toEqual(["Multiple choice", "Scripture reader", "Recitation panel"]);
+  });
+
+  it("keeps Review untimed with immediate feedback and no source aid in PBE", () => {
+    expect(academyModeRules("review", "Pbe")).toContain("No source aid in Review");
+    expect(academyModeRules("review", "Memory")).toEqual(["Due passages only", "Immediate feedback", "Untimed"]);
+  });
+
+  it("describes Rehearse as exam conditions", () => {
+    expect(academyModeRules("rehearsal", "Pbe")).toEqual(["Shortened timed practice", "Answers freeze", "Feedback at end"]);
+    expect(academyModeRules("rehearsal", "Memory")).toEqual(["Typed answers only", "No reader", "No recitation"]);
+  });
+});
+
+describe("studySessionFraming", () => {
+  it("gives each mode a distinct identity", () => {
+    expect(studySessionFraming("Practice").eyebrow).toBe("Learn · coached practice");
+    expect(studySessionFraming("Review").eyebrow).toBe("Review · due practice");
+    expect(studySessionFraming("Simulation").eyebrow).toBe("Rehearse · exam mode");
+  });
+});
+
+describe("STUDY_MODE_CARDS", () => {
+  it("covers the three modes with distinct calls to action", () => {
+    expect(STUDY_MODE_CARDS.map((card) => card.mode)).toEqual(["Practice", "Review", "Simulation"]);
+    expect(STUDY_MODE_CARDS.map((card) => card.title)).toEqual(["Learn", "Review", "Rehearse"]);
   });
 });

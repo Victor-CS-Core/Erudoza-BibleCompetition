@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api, ApiError } from "../../api/client";
 import { scriptureApi } from "../../api/scripture";
+import { trainingApi } from "../../api/training";
 import type { Progress } from "../../api/types";
 import { StudyPage } from "./StudyPage";
 
@@ -23,6 +24,7 @@ const studyClients = new Set<QueryClient>();
 const studyRouters = new Set<ReturnType<typeof createMemoryRouter>>();
 
 vi.mock("../admin/ContentPage", () => ({ ContentPage: () => <div data-testid="library-embed">Scripture library</div> }));
+vi.mock("../../api/training", () => ({ trainingApi: { today: vi.fn() } }));
 
 beforeEach(() => {
   vi.mocked(api.resumeSession).mockImplementation(async (id) => ({session:{id,seasonId:"season-1",status:"Created",mode:"Practice",targetCardCount:8},card:null,attempt:null,summary:null}));
@@ -53,8 +55,15 @@ function progress(overrides: Partial<Progress> = {}): Progress {
   };
 }
 
-function renderStudy(path: string) {
-  const client = new QueryClient({
+function today() {
+  return {
+    streak: { current: 5, best: 9, state: "active" as const },
+    xp: { total: 240, level: 3, levelName: "Disciple", xpIntoLevel: 40, xpForNext: 100 },
+    quests: [{ key: "warmup" as const, title: "Answer 5 questions", description: "", target: 5, progress: 2, completed: false, xpReward: 25 }],
+  } as never;
+}
+
+function renderStudy(path: string) {  const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   const router = createMemoryRouter([{ path: "/student/study", element: <StudyPage /> }, { path: "/student/sessions/:sessionId/recap", element: <p>Saved session summary</p> }], {
@@ -94,7 +103,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
 
   it("offers enabled Memory purposes without promoting coach difficulty", async()=>{
     vi.mocked(api.progress).mockResolvedValue(progress({seasonStatus:"Active",pbeEnabled:true,assignments:[{difficulty:"Standard"} as Progress['assignments'][number]]}));
-    renderStudy("/student/study?format=Memory");
+    renderStudy("/student/study?mode=Practice&format=Memory");
     const warmup=await screen.findByRole("button",{name:"Start Memory warmup"});
     expect(api.startSession).not.toHaveBeenCalled();
     expect(screen.queryByRole("button",{name:"Start Advanced mastery challenge"})).not.toBeInTheDocument();
@@ -103,7 +112,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
   });
   it("keeps an explicit Advanced mastery challenge available with optional unscored recitation",async()=>{
     vi.mocked(api.progress).mockResolvedValue(progress({seasonStatus:"Active",pbeEnabled:true,assignments:[{difficulty:"Advanced"} as Progress['assignments'][number]]}));
-    renderStudy("/student/study?format=Memory");
+    renderStudy("/student/study?mode=Practice&format=Memory");
     fireEvent.click(await screen.findByRole("button",{name:"Start Advanced mastery challenge"}));
     await waitFor(()=>expect(api.startSession).toHaveBeenCalledWith("season-1","Practice",expect.any(Object),"Memory","Advanced"));
     expect(await screen.findByText("Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.")).toBeInTheDocument();
@@ -132,7 +141,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
   it("reuses its start intent after a lost response", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
     vi.mocked(api.startSession).mockRejectedValueOnce(new Error("offline"));
-    const router = renderStudy("/student/study?startId=retry-intent&step=Practice");
+    const router = renderStudy("/student/study?mode=Practice&startId=retry-intent&step=Practice");
     fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
     await screen.findByRole("group",{name:"Passage with missing words"});
     await waitFor(() => expect(router.state.location.search).toContain("sessionId=session-1"));
@@ -161,7 +170,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     if (stage === "start") vi.mocked(api.startSession).mockRejectedValueOnce(conflict);
     if (stage === "card") vi.mocked(api.nextCard).mockRejectedValueOnce(conflict);
     if (stage === "answer") vi.mocked(api.submitAttempt).mockRejectedValueOnce(conflict);
-    renderStudy("/student/study?seasonId=season-1");
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
     if (stage === "answer") {
       fireEvent.change(await screen.findByRole("textbox",{name:"Blank 1 of 1"}), { target: { value: "answer" } });
       fireEvent.click(screen.getByTestId("submit-answer"));
@@ -172,7 +181,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
 
   it("does not start learner drill until the season is Active", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Draft" }));
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
 
     expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent(
       "Learner drill opens when this season is Active.",
@@ -196,7 +205,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
 
   it("starts learner drill from the existing session API", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
 
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
   });
@@ -217,7 +226,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
 
   it("opens learner drill with the activity heading", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", seasonName: "Daniel 2026" }));
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
 
     expect(await screen.findByTestId("study-page-title")).toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "Missing Words" })).toBeInTheDocument();
@@ -242,7 +251,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
       sequence: 1,
       total: 8,
     });
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
 
     await waitFor(() => expect(screen.getByTestId("academy-activity-name")).toHaveTextContent("Verse Builder"));
     expect(screen.getByTestId("challenge-prompt")).toHaveTextContent("Build the verse");
@@ -256,7 +265,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     vi.mocked(api.progress).mockResolvedValue(
       progress({ seasonStatus: "Active", reviewDueCount: 2, seasonName: "Daniel 2026" }),
     );
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
 
     await waitFor(() => expect(screen.getByTestId("current-season")).toHaveTextContent("Daniel 2026"));
     expect(screen.getByTestId("study-page-title")).toBeInTheDocument();
@@ -277,7 +286,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
 
   it("starts a new rehearsal session after switching from learner on the same page", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 0 }));
-    const router = renderStudy("/student/study");
+    const router = renderStudy("/student/study?mode=Practice");
 
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
     vi.mocked(api.startSession).mockClear();
@@ -307,7 +316,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
       });
     });
 
-    const router = renderStudy("/student/study");
+    const router = renderStudy("/student/study?mode=Practice");
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
     await act(async () => { await router.navigate("/student/study?mode=Simulation"); });
     await waitFor(() => expect(api.nextCard).toHaveBeenCalledWith("session-rehearsal"));
@@ -349,7 +358,7 @@ describe("StudyPage Bible Challenge density", () => {
 
   it("shows focused answer controls without mastery metrics", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", seasonName: "Daniel 2026" }));
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
 
     const card = await screen.findByTestId("challenge-card");
     expect(card).toHaveClass("ds-panel");
@@ -369,7 +378,7 @@ describe("StudyPage Bible Challenge density", () => {
 
   it("shows session progress without decorative distractions", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
 
     expect(await screen.findByRole("progressbar", { name: "Study session progress" })).toHaveAttribute("value", "1");
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Learner drill");
@@ -390,7 +399,7 @@ describe("Study submission recovery", () => {
     const tokens = [{index:0,display:'He',hidden:false},{index:2,display:'____',hidden:true},{index:3,display:'____',hidden:true}];
     vi.mocked(api.nextCard).mockResolvedValue({id:'card-1',sessionId:'session-1',activityType:'MissingWords',citation:'Esther 1:22',prompt:'He ____ ____',tokens,sequence:1,total:2});
     vi.mocked(api.submitAttempt).mockRejectedValueOnce(new Error('lost'));
-    renderStudy('/student/study?format=Memory');
+    renderStudy('/student/study?mode=Practice&format=Memory');
     const first = await screen.findByRole('textbox',{name:'Blank 1 of 2'}), second = screen.getByRole('textbox',{name:'Blank 2 of 2'});
     expect(screen.queryByLabelText('Type the missing phrase')).not.toBeInTheDocument();
     expect(screen.queryByTestId('challenge-prompt')).not.toBeInTheDocument();
@@ -419,7 +428,7 @@ describe("Study submission recovery", () => {
   });
   it('allows deliberately empty slots and restores only saved feedback after acceptance',async()=>{
     vi.mocked(api.submitAttempt).mockResolvedValue({attemptId:'empty-result',isCorrect:false,evaluationResult:'Incorrect',canonicalAnswer:'answer',citation:'Daniel 1:1',sourceText:'answer',masteryLevel:'Learning',exactWordingScore:0,skillKey:'exactWording',skillLabel:'Exact wording',skillScore:0,reviewDueAtUtc:null,alreadyProcessed:false,missingWordResults:[{index:2,isCorrect:false,expected:'answer'}]});
-    renderStudy('/student/study?format=Memory');
+    renderStudy('/student/study?mode=Practice&format=Memory');
     const blank=await screen.findByRole('textbox',{name:'Blank 1 of 1'});
     expect(blank).toHaveValue('');expect(screen.queryByText(/Expected:/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId('submit-answer'));
@@ -442,7 +451,7 @@ describe("Study submission recovery", () => {
   it("starts Builder empty, submits duplicate IDs once each, and preserves pending text on refresh", async () => {
     const card = { id:"builder",sessionId:"session-1",activityType:"VerseBuilder",citation:"Daniel 1:1",prompt:"Build the verse",tokens:[{index:4,display:"one",hidden:false},{index:9,display:"two",hidden:false},{index:12,display:"one",hidden:false}],sequence:1,total:2 };
     vi.mocked(api.nextCard).mockResolvedValue(card);
-    renderStudy("/student/study?format=Memory");
+    renderStudy("/student/study?mode=Practice&format=Memory");
     fireEvent.click((await screen.findAllByRole("button",{name:"Add one"}))[1]);
     expect(screen.getByLabelText("Your verse")).toHaveTextContent(/^one$/);
     fireEvent.click(screen.getByRole("button",{name:"Add two"}));
@@ -502,7 +511,7 @@ describe("Study submission recovery", () => {
     fireEvent.click(screen.getByTestId("submit-answer"));
   }
   it("uses an inline blank and presents feedback before the next decision", async () => {
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
     const answer = await screen.findByRole("textbox",{name:"Blank 1 of 1"});
     expect(answer.tagName).toBe("INPUT");
     expect(screen.getByTestId("submit-answer")).toBeVisible();
@@ -524,7 +533,7 @@ describe("Study submission recovery", () => {
   it("reports the evaluated skill for non-writing activities instead of exact wording", async () => {
     vi.mocked(api.nextCard).mockResolvedValue({ id: "card-tf", sessionId: "session-1", activityType: "TrueFalse", citation: "Daniel 1:1", prompt: "According to Daniel 1:1, is this the verse? one two", tokens: [], sequence: 1, total: 2 });
     vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt-tf", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "True", citation: "Daniel 1:1", sourceText: "one two", masteryLevel: "Learning", exactWordingScore: 0, skillKey: "recognition", skillLabel: "Recognition", skillScore: 10, reviewDueAtUtc: null, alreadyProcessed: false });
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
     fireEvent.click(await screen.findByTestId("true-false-true"));
     fireEvent.click(screen.getByTestId("submit-answer"));
     await screen.findByTestId("challenge-feedback");
@@ -533,7 +542,7 @@ describe("Study submission recovery", () => {
   });
   it("reuses the identical submitted payload after an uncertain response", async () => {
     vi.mocked(api.submitAttempt).mockRejectedValueOnce(new Error("Connection lost"));
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
     await answerCard();
     await screen.findByRole("alert");
     expect(screen.getByRole("textbox",{name:"Blank 1 of 1"})).toBeDisabled();
@@ -545,7 +554,7 @@ describe("Study submission recovery", () => {
     const summary = { sessionId: "session-1", mode: "Practice", attempted: 2, correct: 2, targetCardCount: 2, status: "Completed" };
     vi.mocked(api.completeSession).mockResolvedValue(summary);
     vi.mocked(api.nextCard).mockResolvedValue({ id: "last", sessionId: "session-1", activityType: "MissingWords", citation: "Daniel 1:1", prompt: "____", tokens: [{index:2,display:"____",hidden:true}], sequence: 2, total: 2 });
-    const router = renderStudy("/student/study");
+    const router = renderStudy("/student/study?mode=Practice");
     await answerCard();
     await screen.findByTestId("challenge-feedback");
     expect(screen.queryByTestId("next-card")).not.toBeInTheDocument();
@@ -556,7 +565,7 @@ describe("Study submission recovery", () => {
     expect(router.state.location.pathname).toBe("/student/sessions/session-1/recap");
   });
   it("retains accepted feedback and Finish when loading the next card fails", async () => {
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
     await answerCard();
     await screen.findByTestId("challenge-feedback");
     vi.mocked(api.nextCard).mockRejectedValueOnce(new Error("Offline"));
@@ -587,7 +596,7 @@ describe("StudyPage assigned Scripture reading", () => {
   });
 
   it("preserves the draft answer and card while browsing, then records the existing hint flag", async () => {
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
     const answer = await screen.findByRole("textbox",{name:"Blank 1 of 1"});
     fireEvent.change(answer, { target: { value: "God" } });
     expect(scriptureApi.assigned).not.toHaveBeenCalled();
@@ -604,7 +613,7 @@ describe("StudyPage assigned Scripture reading", () => {
   });
 
   it("counts an open reader for the next card without resetting its search", async () => {
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
     fireEvent.change(await screen.findByRole("textbox",{name:"Blank 1 of 1"}), { target: { value: "God" } });
     fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
     const search = await screen.findByLabelText("Search assigned Scripture");
@@ -622,7 +631,7 @@ describe("StudyPage assigned Scripture reading", () => {
 
   it("preserves an uncertain submission's exact payload after opening the reader", async () => {
     vi.mocked(api.submitAttempt).mockRejectedValueOnce(new Error("Network lost"));
-    renderStudy("/student/study");
+    renderStudy("/student/study?mode=Practice");
     fireEvent.change(await screen.findByRole("textbox",{name:"Blank 1 of 1"}), { target: { value: "God" } });
     fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
     await screen.findByRole("alert");
@@ -643,35 +652,138 @@ describe("StudyPage assigned Scripture reading", () => {
   });
 });
 
-describe("StudyPage mode tabs", () => {
+describe("StudyPage mode select", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", pbeEnabled: false }));
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", pbeEnabled: false, reviewDueCount: 0 }));
+    vi.mocked(trainingApi.today).mockResolvedValue(today());
   });
-  it("shows Practice, Review, Simulation and Library tabs with the season preserved", () => {
+  it("renders the Learn, Review, and Rehearse cards without starting a session", async () => {
     renderStudy("/student/study?seasonId=season-1&format=Memory");
-    const nav = screen.getByRole("navigation", { name: "Study modes" });
-    expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual(["Practice", "Review", "Simulation", "Library"]);
-    expect(screen.getByTestId("study-tab-practice")).toHaveAttribute("aria-current", "page");
-    expect(screen.getByTestId("study-tab-review")).toHaveAttribute("href", "/student/study?mode=Review&seasonId=season-1&format=Memory");
-    expect(screen.getByTestId("study-tab-simulation")).toHaveAttribute("href", "/student/study?mode=Simulation&seasonId=season-1&format=Memory");
-    expect(screen.getByTestId("study-tab-library")).toHaveAttribute("href", "/student/study?mode=Library&seasonId=season-1&format=Memory");
+    expect(await screen.findByRole("heading", { name: "Choose your training" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Learn" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Review" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Rehearse" })).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Training format" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Browse the Scripture library" })).toHaveAttribute("href", "/student/study?mode=Library&seasonId=season-1&format=Memory");
+    expect(api.startSession).not.toHaveBeenCalled();
   });
-  it("marks the active tab for Review and Simulation modes", () => {
-    renderStudy("/student/study?mode=Review&seasonId=season-1&format=Memory");
-    expect(screen.getByTestId("study-tab-review")).toHaveAttribute("aria-current", "page");
-    expect(screen.getByTestId("study-tab-practice")).not.toHaveAttribute("aria-current", "page");
-    cleanup();
-    for (const router of studyRouters) router.dispose();
-    studyRouters.clear();
-    renderStudy("/student/study?mode=Simulation&seasonId=season-1&format=Memory");
-    expect(screen.getByTestId("study-tab-simulation")).toHaveAttribute("aria-current", "page");
+  it("defaults the format to PBE for PBE seasons and lets the learner switch to Memory", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", pbeEnabled: true }));
+    renderStudy("/student/study?seasonId=season-1");
+    expect(await screen.findByRole("button", { name: /PBE.*Season default/ })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Memory" }));
+    expect(screen.getByRole("button", { name: "Memory" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("start-learn")).toHaveAttribute("href", expect.stringContaining("format=Memory"));
+  });
+  it("disables Review with an honest reason when no passages are due", async () => {
+    renderStudy("/student/study?seasonId=season-1&format=Memory");
+    await screen.findByRole("heading", { name: "Review" });
+    const reviewCta = screen.getByTestId("start-review");
+    expect(reviewCta).toBeDisabled();
+    expect(reviewCta).toHaveAttribute("aria-describedby", "study-blocked-review");
+    expect(screen.getByText("No passages are due for review.", { selector: "#study-blocked-review" })).toBeInTheDocument();
+    expect(api.startSession).not.toHaveBeenCalled();
+  });
+  it("enables Review with the due count when passages are due", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 3 }));
+    renderStudy("/student/study?seasonId=season-1&format=Memory");
+    const cta = await screen.findByTestId("start-review");
+    expect(cta).not.toBeDisabled();
+    expect(cta).toHaveAttribute("href", expect.stringContaining("mode=Review"));
+    expect(screen.getByText("3 passages due for another pass")).toBeInTheDocument();
+  });
+  it("shows the streak and XP ticker from the game layer", async () => {
+    renderStudy("/student/study?seasonId=season-1&format=Memory");
+    expect(await screen.findByTestId("study-ticker-streak")).toHaveTextContent("5");
+    expect(screen.getByTestId("study-ticker-xp")).toHaveTextContent("Rank 3");
+  });
+  it("explains the mode rules without starting a session", async () => {
+    renderStudy("/student/study?seasonId=season-1&format=Memory");
+    expect(await screen.findByRole("heading", { name: "How training works" })).toBeInTheDocument();
+    expect(screen.getByText("Competition conditions — no aids, timed answers, results at the end. Like the real event.")).toBeInTheDocument();
+  });
+  it("starts today's drill from the Learn card in the chosen format", async () => {
+    vi.mocked(api.startSession).mockResolvedValue({ id: "session-1", seasonId: "season-1", status: "Active", mode: "Practice", targetCardCount: 8 });
+    vi.mocked(api.nextCard).mockResolvedValue({ id: "card-1", sessionId: "session-1", activityType: "MissingWords", prompt: "____", citation: "Daniel 1:1", tokens: [{ index: 2, display: "____", hidden: true }], sequence: 1, total: 8 });
+    const router = renderStudy("/student/study?seasonId=season-1&format=Memory");
+    fireEvent.click(await screen.findByTestId("start-learn"));
+    await waitFor(() => expect(vi.mocked(api.startSession)).toHaveBeenCalledWith("season-1", "Practice", expect.anything()));
+    expect(router.state.location.search).toContain("mode=Practice");
   });
   it("renders the Scripture library without starting a training session", () => {
     renderStudy("/student/study?mode=Library&seasonId=season-1");
-    expect(screen.getByTestId("study-tab-library")).toHaveAttribute("aria-current", "page");
     expect(screen.getByTestId("library-embed")).toBeInTheDocument();
     expect(api.progress).not.toHaveBeenCalled();
     expect(api.startSession).not.toHaveBeenCalled();
+  });
+});
+describe("StudyPage session framing", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", reviewDueCount: 2 }));
+    vi.mocked(api.startSession).mockImplementation(async (_seasonId, mode = "Practice") => ({ id: "session-1", seasonId: "season-1", status: "Active", mode, targetCardCount: 8 }));
+    vi.mocked(api.nextCard).mockResolvedValue({ id: "card-1", sessionId: "session-1", activityType: "MissingWords", prompt: "____", citation: "Daniel 1:1", tokens: [{ index: 2, display: "____", hidden: true }], sequence: 1, total: 8 });
+    vi.mocked(trainingApi.today).mockResolvedValue(today());
+    vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt-1", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "answer", citation: "Daniel 1:1", sourceText: "answer", masteryLevel: "Learning", exactWordingScore: 18, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 18, reviewDueAtUtc: null, alreadyProcessed: false });
+  });
+
+  it("frames Learn as coached practice with labeled aids and a way back", async () => {
+    renderStudy("/student/study?mode=Practice");
+    await screen.findByRole("heading", { name: "Missing Words" });
+    expect(screen.getByText("Learn · coached practice")).toBeInTheDocument();
+    expect(screen.getByLabelText("Learning aids")).toBeInTheDocument();
+    const back = screen.getByRole("link", { name: "Back to training" });
+    expect(back.getAttribute("href")).toContain("/student/study");
+    expect(back.getAttribute("href")).not.toContain("mode=");
+  });
+
+  it("explains why a passage returned for Review with stored history", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({
+      seasonStatus: "Active",
+      reviewDueCount: 2,
+      mastery: [{ knowledgeUnitId: "ku-1", title: "Daniel 1:1", level: "Learning", exactWordingScore: 72, recognitionScore: 80, reviewDueAtUtc: null }],
+      recentAttempts: [{ id: "a-1", title: "Daniel 1:1", activityType: "MissingWords", isCorrect: false, submittedAnswer: "", evaluationResult: "", createdAtUtc: new Date(Date.now() - 86_400_000).toISOString() }],
+    }));
+    renderStudy("/student/study?mode=Review&format=Memory&seasonId=season-1");
+    const banner = await screen.findByTestId("review-return-banner");
+    expect(banner).toHaveTextContent("Back for another pass");
+    expect(banner).toHaveTextContent("last practiced yesterday");
+    expect(banner).toHaveTextContent("last score 72%");
+    expect(screen.getByTestId("study-due-label")).toHaveTextContent("Due passage 1 of 8");
+  });
+
+  it("falls back to an honest due reason when no history matches the passage", async () => {
+    renderStudy("/student/study?mode=Review&format=Memory&seasonId=season-1");
+    const banner = await screen.findByTestId("review-return-banner");
+    expect(banner).toHaveTextContent("due for review");
+    expect(banner).not.toHaveTextContent("last practiced");
+  });
+
+  it("frames Simulation as exam mode without learning aids", async () => {
+    renderStudy("/student/study?mode=Simulation");
+    await screen.findByTestId("exam-mode-banner");
+    expect(screen.getByText("Rehearse · exam mode")).toBeInTheDocument();
+    expect(screen.getByTestId("exam-mode-banner")).toHaveTextContent("Typed answers only");
+    expect(screen.queryByLabelText("Learning aids")).not.toBeInTheDocument();
+  });
+
+  it("labels feedback as assisted only when the reader was opened", async () => {
+    renderStudy("/student/study?mode=Practice");
+    const answer = await screen.findByRole("textbox", { name: "Blank 1 of 1" });
+    fireEvent.change(answer, { target: { value: "Daniel" } });
+    fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
+    await screen.findByTestId("challenge-feedback");
+    expect(screen.getByTestId("assistance-note")).toHaveTextContent("Assisted attempt");
+  });
+
+  it("labels feedback as unaided when the reader stayed closed", async () => {
+    renderStudy("/student/study?mode=Practice");
+    const answer = await screen.findByRole("textbox", { name: "Blank 1 of 1" });
+    fireEvent.change(answer, { target: { value: "Daniel" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
+    await screen.findByTestId("challenge-feedback");
+    expect(screen.getByTestId("assistance-note")).toHaveTextContent("No reader assistance used");
   });
 });

@@ -5,6 +5,8 @@ import { api, ApiError } from '../../api/client';
 import type { Session } from '../../api/types';
 import type { PbeAttemptResult, PbePresentationState, PbeResumedSession, PbeSessionCard, PbeSubmission, PbeTimedReceipt } from '../../api/pbeTypes';
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from '../../components/ui';
+import { AppIcon } from '../../components/AppIcon';
+import { academyModeRules, studySessionFraming } from './academyTracks';
 import { PbeAnswerInput } from './PbeAnswerInput';
 import { PbePresentation } from '../study/PbePresentation';
 import './student.css';
@@ -116,10 +118,17 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     },[remaining,mode,session,card,timedReceipt]);
     if (card && remaining !== null && remaining <= 10 && warned.current !== card.id) warned.current = card.id;
     const home = `/student?seasonId=${encodeURIComponent(session?.seasonId ?? seasonId)}`, practice = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Pbe`, memory = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Memory`;
+    const framingMode = mode === 'Review' ? 'Review' : mode === 'Simulation' ? 'Simulation' : 'Practice';
+    const framing = studySessionFraming(framingMode);
+    const entryHref = `/student/study?seasonId=${encodeURIComponent(seasonId)}&format=Pbe`;
     const error = start.error ?? next.error ?? submit.error ?? aid.error ?? complete.error;
     const staleScope = start.error instanceof ApiError && ['PBE_CHAPTER_SCOPE_STALE', 'PBE_CHAPTER_CURSOR_STALE'].includes(start.error.code ?? '');
     const locked = !!result || submit.isPending || !!frozen.current;
-    return <div className="er-study-stage space-y-4"><PageHeader title="PBE practice" description={seasonName} action={<Badge>{mode === 'Simulation' ? 'Shortened timed practice' : `Untimed ${mode.toLowerCase()}`}</Badge>}/>
+    return <div className="er-study-stage space-y-4">
+    <p className="study-eyebrow">{framing.eyebrow}</p>
+    <PageHeader title={framingMode === 'Simulation' ? 'PBE rehearsal' : framingMode === 'Review' ? 'PBE review' : 'PBE practice'} description={<span><span>{seasonName}</span><span className="study-blurb">{framing.blurb}</span></span>} action={<span className="study-cover-actions"><Badge>{mode === 'Simulation' ? 'Shortened timed practice' : `Untimed ${mode.toLowerCase()}`}</Badge><LinkButton variant="ghost" to={entryHref}>Back to training</LinkButton></span>}/>
+    {framingMode === 'Simulation' && <div className="study-exam-banner" data-testid="exam-mode-banner"><AppIcon name="flag" /><div><strong>Exam mode</strong><p>Shortened timed practice. Answers freeze when time ends and feedback waits until the finish.</p><ul className="study-rules" aria-label="Exam rules">{academyModeRules('rehearsal', 'Pbe').map(rule => <li key={rule}>{rule}</li>)}</ul></div></div>}
+    {framingMode === 'Review' && card && <div className="study-return-banner" data-testid="review-return-banner"><AppIcon name="review" /><div><strong>Back for another pass</strong><span>{card.question.reference} · due for review · no source aid in Review</span></div></div>}
   {unavailable || progressScopeIncomplete ? <Panel><Notice tone={progressScopeIncomplete ? 'danger' : 'info'}>{progressScopeIncomplete ? 'This chapter-practice link is incomplete. Return to chapter progress and choose Practice or Review again.' : unavailable}</Notice></Panel> : <>
    {error && <Notice tone="danger">{staleScope ? <>This chapter action is out of date. Load current progress and choose Practice or Review again.<LinkButton variant="secondary" to={`/student/progress?seasonId=${encodeURIComponent(seasonId)}`}>Return to chapter progress</LinkButton></> : <>{error.message}{start.isError && <Button variant="secondary" onClick={() => start.mutate()}>Retry start</Button>}{next.isError && session && <Button variant="secondary" onClick={() => next.mutate(session.id)}>Retry next card</Button>}</>}</Notice>}
    {timingError && <Notice tone="danger">{timingError}<Button variant="secondary" onClick={() => { setTimingError(''); setPresentation(null); }}>Retry presentation</Button></Notice>}

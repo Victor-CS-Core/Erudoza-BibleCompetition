@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { AppIcon } from "../AppIcon";
-import { Button, Input, Notice } from "../ui";
+import { Button, Input } from "../ui";
 import type { Destination } from "./destinations";
 
 type Props = { items: Destination[]; coach: boolean; onClose: () => void; expanded: string[]; toggleExpanded: (id: string) => void };
@@ -12,8 +10,8 @@ type Props = { items: Destination[]; coach: boolean; onClose: () => void; expand
 /**
  * Compass Hub: the command center groups destinations by purpose and offers a
  * quick-access row of recently visited sections instead of a pin system.
- * Individual students are never listed here; the same hub serves the coach
- * workspace and the learner (student-mode) workspace.
+ * Individual students and individual seasons are never listed here; the same
+ * hub serves the coach workspace and the learner (student-mode) workspace.
  */
 type HubGroup = { id: string; label: string; ids: string[] };
 const COACH_GROUPS: HubGroup[] = [
@@ -43,7 +41,6 @@ export function CommandCenter({ items, coach, onClose, expanded, toggleExpanded 
   const { me } = useAuth();
   const dialog = useRef<HTMLDialogElement>(null);
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("All");
   const groups = coach ? COACH_GROUPS : STUDENT_GROUPS;
   const groupOf = (id: string) => groups.find(group => group.ids.includes(id)) ?? groups[groups.length - 1]!;
   const org = me?.organizationId;
@@ -56,7 +53,6 @@ export function CommandCenter({ items, coach, onClose, expanded, toggleExpanded 
       return next;
     });
   };
-  const seasons = useQuery({ queryKey: [coach ? "seasons" : "assigned-seasons", org, me?.userId], queryFn: () => coach ? api.seasons(org!) : api.assignedSeasons(), enabled: !!me, staleTime: 30_000 });
   useEffect(() => {
     const node = dialog.current!;
     node.showModal(); node.querySelector<HTMLInputElement>("input")?.focus();
@@ -68,9 +64,7 @@ export function CommandCenter({ items, coach, onClose, expanded, toggleExpanded 
     const hub = groupOf(item.id).id;
     return [{ ...item, hub }, ...(item.children ?? []).map(sub => ({ ...sub, category: item.label, hub }))];
   }).filter(item => matches(item.label + (item.category ? ` ${item.category}` : "")));
-  const seasonMatches = seasons.data?.filter(season => matches(season.name)) ?? [];
-  const show = (type: string) => filter === "All" || filter === type;
-  const hasResults = show("Sections") && sections.length > 0 || show("Seasons") && seasonMatches.length > 0;
+  const hasResults = sections.length > 0;
   const keyboard = (event: KeyboardEvent) => {
     if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); onClose(); return; }
     if (!["ArrowDown", "ArrowUp", "Enter"].includes(event.key)) return;
@@ -89,16 +83,12 @@ export function CommandCenter({ items, coach, onClose, expanded, toggleExpanded 
   const searchGroups = groups.map(group => ({ group, items: sections.filter(item => item.hub === group.id) })).filter(entry => entry.items.length > 0);
   return <dialog className="command-dialog" ref={dialog} aria-labelledby="command-title" onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === dialog.current) { const rect = dialog.current.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose(); } }} onKeyDown={keyboard}>
     <div className="command-dialog-heading"><h2 id="command-title">Command center</h2><Button variant="ghost" size="compact" aria-label="Close command center" onClick={onClose}><AppIcon name="close" /></Button></div>
-    <div className="command-search-field"><AppIcon name="search" /><Input type="search" aria-label="Search navigation" placeholder="Search sections, seasons, or actions…" value={query} onChange={event => setQuery(event.target.value)} /><kbd>Esc</kbd></div>
-    <div className="command-filter" role="group" aria-label="Search categories">{["All", "Sections", "Seasons"].map(type => <Button key={type} variant="ghost" size="compact" aria-pressed={filter === type} onClick={() => setFilter(type)}>{type}</Button>)}</div>
+    <div className="command-search-field"><AppIcon name="search" /><Input type="search" aria-label="Search navigation" placeholder="Search sections or actions…" value={query} onChange={event => setQuery(event.target.value)} /><kbd>Esc</kbd></div>
     <div className="command-results">
-      {seasons.isError && <Notice tone="danger">Season results could not load. Sections are still available. <Button size="compact" variant="secondary" onClick={() => { void seasons.refetch(); }}>Retry results</Button></Notice>}
-      {show("Sections") && !needle && recentItems.length > 0 && <section aria-label="Quick access"><h3>Quick access</h3><div className="command-quick">{recentItems.map(item => <Link key={item.id} data-command-result to={item.to} className="command-quick-item" onClick={() => { recordRecent(item.id); onClose(); }}><AppIcon name={item.icon} /><span>{item.label}</span></Link>)}</div></section>}
-      {show("Sections") && !needle && browseGroups.map(({ group, items: groupItems }) => <section key={group.id} aria-label={group.label}><h3>{group.label}</h3>{groupItems.map(item => <div className="command-group" key={item.id}>{destination(item, undefined, true)}{item.children && <><Button className="command-expand" variant="ghost" size="compact" aria-label={`${expanded.includes(item.id) ? "Hide" : "Show"} ${item.label} options`} aria-expanded={expanded.includes(item.id)} onClick={() => toggleExpanded(item.id)}><AppIcon name="chevron" />{expanded.includes(item.id) ? "Hide options" : "Show options"}</Button>{expanded.includes(item.id) && <div className="command-nested">{item.children.map(sub => destination(sub, undefined, true))}</div>}</>}</div>)}</section>)}
-      {show("Sections") && needle && searchGroups.map(({ group, items: groupItems }) => <section key={group.id} aria-label={group.label}><h3>{group.label}</h3>{groupItems.map(item => destination(item, item.category ?? "Section", true))}</section>)}
-      {show("Seasons") && <section aria-label="Season results"><h3>{needle ? "Matching seasons" : "Your seasons"}</h3>{seasons.isPending ? <p role="status">Loading seasons…</p> : seasonMatches.length ? seasonMatches.slice(0, 20).map(season => destination({ id: season.id, label: season.name, to: coach ? `/admin/seasons/${season.id}` : `/student?seasonId=${encodeURIComponent(season.id)}`, icon: "flag" }, "Season")) : !seasons.isError && <p>No matching seasons.</p>}</section>}
-      {!hasResults && needle && !seasons.isPending && <p className="command-empty">No results for “{query}”. Try a section or season name.</p>}
-      {seasonMatches.length > 20 && <p>Showing the first 20 matching seasons. Refine your search for more specific results.</p>}
+      {!needle && recentItems.length > 0 && <section aria-label="Quick access"><h3>Quick access</h3><div className="command-quick">{recentItems.map(item => <Link key={item.id} data-command-result to={item.to} className="command-quick-item" onClick={() => { recordRecent(item.id); onClose(); }}><AppIcon name={item.icon} /><span>{item.label}</span></Link>)}</div></section>}
+      {!needle && browseGroups.map(({ group, items: groupItems }) => <section key={group.id} aria-label={group.label}><h3>{group.label}</h3>{groupItems.map(item => <div className="command-group" key={item.id}>{destination(item, undefined, true)}{item.children && <><Button className="command-expand" variant="ghost" size="compact" aria-label={`${expanded.includes(item.id) ? "Hide" : "Show"} ${item.label} options`} aria-expanded={expanded.includes(item.id)} onClick={() => toggleExpanded(item.id)}><AppIcon name="chevron" />{expanded.includes(item.id) ? "Hide options" : "Show options"}</Button>{expanded.includes(item.id) && <div className="command-nested">{item.children.map(sub => destination(sub, undefined, true))}</div>}</>}</div>)}</section>)}
+      {needle && searchGroups.map(({ group, items: groupItems }) => <section key={group.id} aria-label={group.label}><h3>{group.label}</h3>{groupItems.map(item => destination(item, item.category ?? "Section", true))}</section>)}
+      {!hasResults && needle && <p className="command-empty">No results for “{query}”. Try a section or action name.</p>}
     </div>
     <footer className="command-dialog-foot"><span>Quick access remembers the sections you visit.</span><span>↑ ↓ Navigate <kbd>Enter</kbd> Open</span></footer>
   </dialog>;

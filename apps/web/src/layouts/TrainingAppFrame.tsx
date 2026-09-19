@@ -122,7 +122,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
     if (target.pathname !== location.pathname) return false;
     return location.hash ? target.hash === location.hash : item.id === contextItems.find(entry => new URL(entry.to, "https://erudoza.local").pathname === location.pathname)?.id;
   };
-  const searchLabel = "Search sections, seasons, or actions";
+  const searchLabel = "Search sections or actions";
   return <div className={`training-app command-app ${coach ? "training-coach" : "training-learner"} ${focused ? "training-focused" : ""}`} data-testid={coach ? "coach-app-shell" : "learner-app-shell"}>
     <CoffeeWidget enabled={coach && me?.kind === "Adult"} accountKey={`${me?.organizationId}:${me?.userId}`} />
     <a className="training-skip" href="#training-main">Skip to content</a>

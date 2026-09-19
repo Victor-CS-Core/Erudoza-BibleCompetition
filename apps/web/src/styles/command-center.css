@@ -77,8 +77,6 @@
 .command-search-field { display:flex; align-items:center; gap:12px; margin:12px 20px; }
 .command-search-field>.ds-input { min-width:0; flex:1; }
 .command-dialog kbd,.command-trigger kbd { font:var(--er-text-xs)/1.5 var(--er-font-ui); border-radius:6px; padding:2px 6px; background:var(--er-surface-soft); color:var(--er-muted-ink); }
-.command-filter { display:flex; flex-wrap:wrap; gap:8px; padding:0 20px 12px; border-bottom:1px solid var(--er-border); }
-.command-filter .ds-button[aria-pressed=true] { color:var(--er-action-blue); background:var(--er-selected); }
 .command-results { overflow-y:auto; overscroll-behavior:contain; padding:8px 16px 16px; min-height:0; }
 .command-results section { padding-top:8px; }
 .command-results h3 { font-size:var(--er-text-xs); color:var(--er-muted-ink); margin:8px 8px; font-weight:600; }
