@@ -43,7 +43,7 @@ it("shows the XP rank, not a level", async () => {
 
 it("shows the practiced-today state and a weekly heatmap on the streak panel", async () => {
   home();
-  expect(await screen.findByRole("heading", { name: "Practice streak" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "This week" })).toBeInTheDocument();
   expect(screen.getByText("Practiced today")).toBeInTheDocument();
   expect(screen.getByRole("img", { name: "This week: 1 of 1 days practiced" })).toBeInTheDocument();
 });
@@ -51,7 +51,7 @@ it("shows the practiced-today state and a weekly heatmap on the streak panel", a
 it("shows a not-yet-today state when today is not credited", async () => {
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ week: { weekStartLocalDate: "2026-09-07", timeZone: "America/New_York", target: 5, completedDays: 0, days: [{ localDate: "2026-09-11", credited: false, isToday: true }] } }));
   home();
-  expect(await screen.findByRole("heading", { name: "Practice streak" })).toBeInTheDocument();
+  expect(await screen.findByRole("heading", { name: "This week" })).toBeInTheDocument();
   expect(screen.getByText("Not yet today")).toBeInTheDocument();
 });
 
@@ -94,7 +94,7 @@ it("offers solo timed PBE rehearsal", async () => {
   home();
   expect(await screen.findByTestId("start-simulation")).toHaveAttribute("href", expect.stringContaining("mode=Simulation"));
   expect(screen.getByTestId("start-simulation")).toHaveTextContent("Start solo timed rehearsal");
-  expect(screen.getByRole("link", { name: "Practice another drill" })).toHaveAttribute("href", expect.stringContaining("format=Pbe"));
+  expect(screen.getByRole("link", { name: "Choose your training" })).toHaveAttribute("href", "/student/study?seasonId=s");
   // An empty chapter bank hides the HQ PBE tile instead of showing its jargon empty state;
   // the Season cooperation panel still renders.
   await waitFor(() => {

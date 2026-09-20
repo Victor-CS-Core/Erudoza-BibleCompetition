@@ -45,6 +45,23 @@
 .training-mission-main > .ds-notice { margin: 16px 0; }
 .training-mission-note { color: var(--er-muted-ink); font-size: var(--er-text-xs); margin: 12px 0 0; }
 .training-hq-aside h2, .training-journey-preview h2 { font-size: var(--er-text-lg); margin: 0; }
+.training-this-week > .training-panel-title { margin-bottom: 4px; }
+.training-this-week > section { padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--er-border); }
+.training-this-week > section:first-of-type { border-top: 0; margin-top: 12px; padding-top: 0; }
+.training-this-week h3 { font-size: var(--er-text-base); margin: 0; }
+.training-this-week .training-panel-title { gap: 8px; margin-bottom: 12px; }
+.training-this-week .training-panel-title > .ds-button { padding-inline: 0; }
+.training-this-week .training-week-count { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.training-this-week .training-week-footer { margin-top: 14px; }
+.training-this-week .training-next-honor-content { margin: 12px 0; }
+.training-this-week .training-next-honor-content h4 { font-size: var(--er-text-base); margin: 0 0 4px; }
+.training-this-week .training-next-honor-content p { color: var(--er-muted-ink); font-size: var(--er-text-xs); margin-bottom: 8px; }
+.training-this-week > section > a { display: inline-flex; align-items: center; gap: 7px; font-size: var(--er-text-sm); font-weight: 600; }
+.training-format-switch { font-size: var(--er-text-sm); font-weight: 600; }
+.training-practice-paths { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.training-practice-paths h2 { font-size: var(--er-text-lg); margin: 0 0 4px; }
+.training-practice-paths p { color: var(--er-muted-ink); font-size: var(--er-text-sm); margin: 0; max-width: 62ch; }
+.training-practice-paths .training-controls { display: flex; gap: 12px; flex-wrap: wrap; margin: 0; }
 .training-week-panel > .training-panel-title { margin-bottom: 16px; gap: 8px; }
 .training-week-panel > .training-panel-title > .ds-button { padding-inline: 0; }
 .training-week-panel .training-week-count { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
