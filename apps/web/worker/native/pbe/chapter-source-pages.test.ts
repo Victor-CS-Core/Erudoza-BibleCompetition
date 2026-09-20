@@ -47,7 +47,8 @@ it('seeks 128 actual sources and resumes the remaining source without duplicate 
  expect(first.items[0].guards).toEqual(expect.arrayContaining([{kind:'source',id:'s00001',revision:1},{kind:'pack',id:pack,revision:1}]));
  expect(await chapterSelectedSources(ctx,season,['s00001','s00129','unknown'])).toHaveLength(2);
  expect(reads.every(r=>r.rows<=129&&r.payloads<=128&&r.payloadBytes<=65536)).toBe(true);
- expect(reads[1].plan.some(p=>/SEARCH u USING PRIMARY KEY \(kind=\? AND id>\?\)/.test(p))).toBe(true);
+ expect(reads[1].plan.some(p=>/SEARCH u USING INDEX Records_owner \(org_id=\? AND kind=\? AND owner_id=\? AND id>\?\)/.test(p))).toBe(true);
+ expect(reads[1].plan.some(p=>/SEARCH u USING PRIMARY KEY/.test(p))).toBe(false);
  process.stdout.write('source-page-query-evidence '+JSON.stringify(reads.map(({plan,...r})=>({...r,sourceSeek:plan.filter(p=>p.includes('SEARCH u'))})))+'\n');
 },30000);
 it('preserves personal ranges, excluded gaps and approved introduction organization/book/license membership',async()=>{

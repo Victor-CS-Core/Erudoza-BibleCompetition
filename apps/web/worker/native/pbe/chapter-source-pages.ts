@@ -33,15 +33,20 @@ export async function chapterBase(ctx:RequestContext,seasonId:string):Promise<Ch
 }
 const contextSql='context(org,season,student) AS (VALUES(?,?,?))';
 // These predicates intentionally match resolvePbeSources, including case-sensitive introduction licenses/books.
-const scriptureFrom=`FROM context c CROSS JOIN Records u CROSS JOIN Records p ON p.kind='pack' AND p.id=u.owner_id AND p.org_id=u.org_id
- WHERE u.kind='source' AND (p.org_id=c.org OR ${builtInContentSql('p')}) AND json_extract(p.data,'$.isActive')=1
+// Drive from the season scope's packs (PK + owner-index probes) instead of scanning every
+// source row in the database; the per-row scope EXISTS keeps exact include/exclude semantics.
+const scriptureFrom=`FROM context c
+ JOIN (SELECT DISTINCT c2.org AS org,json_extract(selected.value,'$.contentPackId') AS packId FROM context c2 JOIN Records sc ON sc.kind='scope' AND sc.org_id=c2.org AND sc.id=c2.season JOIN json_each(${scopeEntriesSql('sc')}) selected) AS packs ON packs.org=c.org
+ JOIN Records p ON p.kind='pack' AND p.id=packs.packId AND (p.org_id=c.org OR ${builtInContentSql('p')})
+ JOIN Records u INDEXED BY Records_owner ON u.kind='source' AND u.org_id=p.org_id AND u.owner_id=p.id
+ WHERE json_extract(p.data,'$.isActive')=1
  AND lower(json_extract(p.data,'$.licensingStatus')) IN ('development-sample','public-domain','approved','creative-commons')
  AND json_extract(u.data,'$.isActive')=1 AND coalesce(json_extract(u.data,'$.isRetired'),0)=0
  AND EXISTS(SELECT 1 FROM Records sc JOIN json_each(${scopeEntriesSql('sc')}) selected WHERE sc.kind='scope' AND sc.org_id=c.org AND sc.id=c.season AND json_extract(selected.value,'$.contentPackId')=p.id
  AND EXISTS(SELECT 1 FROM json_each(selected.value,'$.includes') inc WHERE ${rangeSql('inc')}) AND NOT EXISTS(SELECT 1 FROM json_each(selected.value,'$.excludes') exc WHERE ${rangeSql('exc')}))`;
 const personallyAssigned=`AND EXISTS(SELECT 1 FROM Records a INDEXED BY Records_training_scope JOIN json_each(json_array(json(a.data))) ar
  WHERE a.kind='assignment' AND a.org_id=c.org AND a.season_id=c.season AND a.owner_id=c.student AND json_extract(a.data,'$.contentPackId')=json_extract(u.data,'$.contentPackId') AND ${rangeSql('ar')})`;
-const introductionFrom=`FROM context c CROSS JOIN Records intro JOIN json_each(intro.data,'$.units') unit
+const introductionFrom=`FROM context c CROSS JOIN Records intro INDEXED BY Records_scope JOIN json_each(intro.data,'$.units') unit
  WHERE intro.kind='pbe-introduction' AND intro.org_id=c.org AND intro.season_id=c.season
  AND json_extract(intro.data,'$.organizationId')=c.org AND json_extract(intro.data,'$.seasonId')=c.season AND json_extract(intro.data,'$.reviewed')=1
  AND json_extract(intro.data,'$.licensingStatus') IN ('approved','public-domain','creative-commons')
