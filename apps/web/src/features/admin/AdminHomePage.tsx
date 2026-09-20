@@ -11,9 +11,10 @@ import { Badge, Button, LinkButton, Notice, PageHeader, Panel, Select } from "..
 import { SeasonStatusBadge } from "./SeasonStatusBadge";
 import { formatPassageCitation } from "./passageRanges";
 
-const localDayKey = () => {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+const startOfLocalDayMs = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
 };
 
 type AttentionItem = { key: string; icon: IconName; text: string };
@@ -38,13 +39,18 @@ export function AdminHomePage() {
   });
   const seasonEngagement = (engagement.data ?? []).filter((row) => seasonStudentIds.has(row.studentId));
   const idleStudents = seasonEngagement.filter((row) => row.practiceDaysThisWeek === 0);
-  const today = localDayKey();
-  const practicedToday = seasonEngagement.filter((row) => row.lastActiveAtUtc?.slice(0, 10) === today).length;
+  const todayStartMs = startOfLocalDayMs();
+  // Compare the UTC activity timestamp against the coach's local day start:
+  // a UTC-date prefix would be off by one near local midnight.
+  const practicedToday = seasonEngagement.filter((row) => row.lastActiveAtUtc != null && Date.parse(row.lastActiveAtUtc) >= todayStartMs).length;
   const practicedThisWeek = seasonEngagement.filter((row) => row.practiceDaysThisWeek > 0).length;
   const training = useQuery({ queryKey: ["coach-training", orgId, me?.userId], queryFn: () => trainingApi.today(), enabled: !!me, staleTime: 60_000 });
   const myStreak = training.data?.streak;
   const myXp = training.data?.xp;
-  const formatName = !selected || selected.pbeEnabled ? "PBE" : "Memory";
+  // Missing pbeEnabled means Memory everywhere else in the app
+  // (server treats only pbeEnabled === true as PBE), so no-season and
+  // no-flag both fall through to "Memory" here.
+  const formatName = selected?.pbeEnabled ? "PBE" : "Memory";
 
   const attention: AttentionItem[] = [];
   if (reviewStudentIds.size) attention.push({ key: "review", icon: "review", text: `${reviewStudentIds.size} of ${studentCount} ${studentCount === 1 ? "student has" : "students have"} passages due for review.` });
