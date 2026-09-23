@@ -733,14 +733,15 @@ describe("StudyPage session framing", () => {
     vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt-1", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "answer", citation: "Daniel 1:1", sourceText: "answer", masteryLevel: "Learning", exactWordingScore: 18, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 18, reviewDueAtUtc: null, alreadyProcessed: false });
   });
 
-  it("frames Learn as coached practice with labeled aids and a way back", async () => {
+  it("frames Learn as coached practice with labeled aids and a single way back", async () => {
     renderStudy("/student/study?mode=Practice");
     await screen.findByRole("heading", { name: "Missing Words" });
     expect(screen.getByText("Learn · coached practice")).toBeInTheDocument();
     expect(screen.getByLabelText("Learning aids")).toBeInTheDocument();
-    const back = screen.getByRole("link", { name: "Back to training" });
-    expect(back.getAttribute("href")).toContain("/student/study");
-    expect(back.getAttribute("href")).not.toContain("mode=");
+    expect(screen.getByTestId("academy-session-kicker")).toBeInTheDocument();
+    // The app frame's breadcrumb provides the one "Back to training" exit;
+    // the session header must not duplicate it.
+    expect(screen.queryByRole("link", { name: "Back to training" })).not.toBeInTheDocument();
   });
 
   it("explains why a passage returned for Review with stored history", async () => {

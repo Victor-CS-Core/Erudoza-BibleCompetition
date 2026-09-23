@@ -31,7 +31,7 @@ export function MissingWordsInput({ tokens, values, onChange, disabled, results 
         const result = resultByIndex.get(token.index);
         const underline = result
           ? result.isCorrect ? 'var(--er-success-ink)' : 'var(--er-coral)'
-          : 'var(--er-border-strong)';
+          : 'var(--er-blank-underline)';
         return <Input
           key={token.index}
           data-missing-word-slot=""

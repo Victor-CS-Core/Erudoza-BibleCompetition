@@ -20,6 +20,7 @@
   --er-muted-ink: #596c79;
   --er-border: #dce0dc;
   --er-border-strong: #b8c4c3;
+  --er-blank-underline: #b8c4c3;
   --er-deep-table: #102e47;
   --er-success-ink: #216b51;
   --er-success-surface: #eaf3e9;
@@ -87,6 +88,7 @@
   --er-muted-ink: #9d968a;
   --er-border: #3b362b;
   --er-border-strong: #5a5342;
+  --er-blank-underline: #b8b2a4;
   --er-deep-table: #0c0b09;
   --er-success-ink: #82cba0;
   --er-success-surface: #1b2b21;

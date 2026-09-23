@@ -82,13 +82,6 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const selectedSeasonId = params.get("seasonId") || undefined;
   const missionId = params.get("missionId") || undefined;  const missionRevision = params.get("missionRevision");
   const requestedStep = params.get("step");
-  const entryHref = (() => {
-    const entryParams = new URLSearchParams();
-    if (selectedSeasonId) entryParams.set("seasonId", selectedSeasonId);
-    const formatParam = params.get("format");
-    if (formatParam) entryParams.set("format", formatParam);
-    return `/student/study${entryParams.toString() ? `?${entryParams}` : ""}`;
-  })();
   const step = requestedStep === "Review" || requestedStep === "Practice" ? requestedStep : undefined;
   const missionReview = step === "Review" && mode === "Review" && !!missionId;
   const startIntent = useRef<{ key: string; context: StartTrainingContext } | null>(null);
@@ -275,7 +268,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       <p className="study-eyebrow">{framing.eyebrow}</p>
       <PageHeader title={current ? academyActivityName(current.activityType) : "Study"}
         description={<span><span data-testid="current-season">{progress.isPending ? "Loading your season…" : progress.data?.seasonName || "Your study section has not been assigned yet."}</span><span className="study-blurb">{framing.blurb}</span></span>}
-        action={<span className="study-cover-actions"><Badge data-testid="academy-session-kicker">{academySessionKicker(mode)}</Badge><LinkButton variant="ghost" to={entryHref}>Back to training</LinkButton></span>}>
+        action={<span className="study-cover-actions"><Badge data-testid="academy-session-kicker">{academySessionKicker(mode)}</Badge></span>}>
         {sessionSnapshot?.difficulty && <p>Session difficulty: {sessionSnapshot.difficulty}</p>}
         <p>Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.</p>
         {sessionSnapshot?.memoryChallenge && <p>{sessionSnapshot.memoryChallenge === 'Warmup' ? 'Varied-gap warmup · supported wording evidence up to 70, within your difficulty ceiling.' : 'Advanced mastery challenge · recall from memory with fewer clues.'}</p>}
@@ -294,7 +287,6 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     return (
       <div className="er-study-stage space-y-4">
         {cover}
-        <LinkButton variant="secondary" to={`/student${selectedSeasonId ? `?seasonId=${encodeURIComponent(selectedSeasonId)}` : ""}`}>Back to training</LinkButton>
       </div>
     );
   }
