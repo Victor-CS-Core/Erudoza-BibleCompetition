@@ -85,10 +85,11 @@ function learnerCtx(env: Env, orgId: string, userId: string): RequestContext {
 
 /** Team/simulation `mastery-honor` rows in this org+season. */
 async function teamHonorRows(env: Env, orgId: string, seasonId: string): Promise<{ id: string; owner_id: string }[]> {
-    // instr() substring matching instead of LIKE: D1 rejects multi-wildcard
-    // LIKE patterns as too complex.
+    // instr() on the id: honor ids embed the key after the rule version, and
+    // older rows may not carry data.key, so the id is the reliable signal.
+    // (D1 rejects multi-wildcard LIKE as too complex.)
     const rows = await env.DB.prepare(
-        `SELECT id,owner_id FROM Records WHERE kind='mastery-honor' AND org_id=? AND season_id=? AND (instr(id,':mastery-v1:team:')>0 OR instr(id,':simulation-v1:simulation:')>0)`
+        `SELECT id,owner_id FROM Records INDEXED BY Records_scope WHERE kind='mastery-honor' AND org_id=? AND season_id=? AND (instr(id,':mastery-v1:team:')>0 OR instr(id,':simulation-v1:simulation:')>0) LIMIT 5001`
     ).bind(orgId, seasonId).all<{ id: string; owner_id: string }>();
     return rows.results;
 }

@@ -106,7 +106,9 @@ function PracticeRoomPage({ org, roomId, base }: { org: string; roomId: string; 
   useEffect(() => {
     if (room?.serverNow && !connected) setServerClock({ now: Date.parse(room.serverNow), observed: performance.now() });
   }, [room?.serverNow, connected]);
-  useEffect(() => { const timer = window.setInterval(() => setTick(t => t + 1), 250); return () => clearInterval(timer); }, []);
+  // The countdown displays whole seconds; ticking once per second (not 4x) is
+  // enough and avoids re-rendering the entire room on every tick.
+  useEffect(() => { const timer = window.setInterval(() => setTick(t => t + 1), 1000); return () => clearInterval(timer); }, []);
   const mine = room?.members.find(m => m.userId === me?.userId);
   useEffect(() => {
     if (room?.format !== "Pbe" && room?.phase === "Scheduled" && room.scheduleId && mine?.scribe && acknowledged.current !== room.scheduleId) {

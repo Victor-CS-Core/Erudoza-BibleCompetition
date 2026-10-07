@@ -2,33 +2,37 @@ import { Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from "../
 import { Navigate, createBrowserRouter, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { lazy, Suspense, type ReactNode } from "react";
-import { AdminHomePage } from "../features/admin/AdminHomePage";
-import { SeasonWizardPage } from "../features/admin/SeasonWizardPage";
-import { ContentPage } from "../features/admin/ContentPage";
-import {
-  AssignmentsPage,
-  SeasonsListPage,
-  StudentsPage,
-} from "../features/admin/SimpleAdminPages";
 import { LoginPage } from "../features/auth/LoginPage";
 import { CoachOnboardingPage } from "../features/auth/CoachOnboardingPage";
-import { CoachesPage } from "../features/admin/CoachesPage";
-import { MaterialsPage } from "../features/admin/MaterialsPage";
-import { NewsPage } from "../features/news/NewsPage";
 import { LandingPage } from "../features/marketing/LandingPage";
-import { PrivacyPage } from "../features/legal/PrivacyPage";
-import { TermsPage } from "../features/legal/TermsPage";
-import { ProgressPage } from "../features/student/ProgressPage";
-import { MyAssignmentsPage } from "../features/student/MyAssignmentsPage";
-import { StudentHomePage } from "../features/student/StudentHomePage";
-import { ProfilePage } from "../features/profile/ProfilePage";
-import { SessionRecapPage } from "../features/student/SessionRecapPage";
-import { RoomRecapPage } from "../features/practice/RoomRecapPage";
-import { StudyPage } from "../features/student/StudyPage";
 import { AppShell } from "../layouts/AppShell";
 import { RouteProblemPage } from "./RouteProblemPage";
-import { DesignSystemPage } from "../components/design-system/DesignSystemPage";
-import { WikiPage } from "../features/wiki/WikiPage";
+// Route pages below are lazy-loaded so visitors only download the pages they
+// actually open. Landing/login/onboarding stay in the main bundle for first paint.
+const AdminHomePage = lazy(() => import("../features/admin/AdminHomePage").then(m => ({ default: m.AdminHomePage })));
+const SeasonWizardPage = lazy(() => import("../features/admin/SeasonWizardPage").then(m => ({ default: m.SeasonWizardPage })));
+const ContentPage = lazy(() => import("../features/admin/ContentPage").then(m => ({ default: m.ContentPage })));
+const AssignmentsPage = lazy(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.AssignmentsPage })));
+const SeasonsListPage = lazy(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.SeasonsListPage })));
+const StudentsPage = lazy(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.StudentsPage })));
+const CoachesPage = lazy(() => import("../features/admin/CoachesPage").then(m => ({ default: m.CoachesPage })));
+const MaterialsPage = lazy(() => import("../features/admin/MaterialsPage").then(m => ({ default: m.MaterialsPage })));
+const NewsPage = lazy(() => import("../features/news/NewsPage").then(m => ({ default: m.NewsPage })));
+const PrivacyPage = lazy(() => import("../features/legal/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
+const TermsPage = lazy(() => import("../features/legal/TermsPage").then(m => ({ default: m.TermsPage })));
+const ProgressPage = lazy(() => import("../features/student/ProgressPage").then(m => ({ default: m.ProgressPage })));
+const MyAssignmentsPage = lazy(() => import("../features/student/MyAssignmentsPage").then(m => ({ default: m.MyAssignmentsPage })));
+const StudentHomePage = lazy(() => import("../features/student/StudentHomePage").then(m => ({ default: m.StudentHomePage })));
+const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then(m => ({ default: m.ProfilePage })));
+const SessionRecapPage = lazy(() => import("../features/student/SessionRecapPage").then(m => ({ default: m.SessionRecapPage })));
+const RoomRecapPage = lazy(() => import("../features/practice/RoomRecapPage").then(m => ({ default: m.RoomRecapPage })));
+const StudyPage = lazy(() => import("../features/student/StudyPage").then(m => ({ default: m.StudyPage })));
+const DesignSystemPage = lazy(() => import("../components/design-system/DesignSystemPage").then(m => ({ default: m.DesignSystemPage })));
+const WikiPage = lazy(() => import("../features/wiki/WikiPage").then(m => ({ default: m.WikiPage })));
+/** Suspense boundary for a lazily-loaded route page. */
+function LazyPage({ label, children }: { label: string; children: ReactNode }) {
+  return <Suspense fallback={<LoadingState label={label} />}>{children}</Suspense>;
+}
 const DisputeQueue = lazy(() => import("../features/practice/DisputeQueue").then(module=>({default:module.DisputeQueue})));
 const PracticePage = lazy(() => import("../features/practice/PracticePage").then(module => ({ default: module.PracticePage })));
 function PracticeRoute() {
@@ -97,10 +101,10 @@ export const router = createBrowserRouter([
   { path: "/signup", element: <CoachOnboardingPage key="signup" mode="signup" />, errorElement: <RouteProblemPage /> },
   { path: "/forgot-password", element: <CoachOnboardingPage key="recovery" mode="recovery" />, errorElement: <RouteProblemPage /> },
   { path: "/join-coach", element: <CoachOnboardingPage key="invitation" mode="invitation" />, errorElement: <RouteProblemPage /> },
-  { path: "/wiki", element: <WikiPage scope="public" />, errorElement: <RouteProblemPage /> },
-  { path: "/help", element: <WikiPage scope="app" />, errorElement: <RouteProblemPage /> },
-  { path: "/privacy", element: <PrivacyPage />, errorElement: <RouteProblemPage /> },
-  { path: "/terms", element: <TermsPage />, errorElement: <RouteProblemPage /> },
+  { path: "/wiki", element: <LazyPage label="Loading wiki…"><WikiPage scope="public" /></LazyPage>, errorElement: <RouteProblemPage /> },
+  { path: "/help", element: <LazyPage label="Loading help…"><WikiPage scope="app" /></LazyPage>, errorElement: <RouteProblemPage /> },
+  { path: "/privacy", element: <LazyPage label="Loading…"><PrivacyPage /></LazyPage>, errorElement: <RouteProblemPage /> },
+  { path: "/terms", element: <LazyPage label="Loading…"><TermsPage /></LazyPage>, errorElement: <RouteProblemPage /> },
   { path: "*", element: <RouteProblemPage notFound /> },
   {
     path: "/admin",
@@ -111,19 +115,19 @@ export const router = createBrowserRouter([
       </Guard>
     ),
     children: [
-      { index: true, element: <Restricted><AdminHomePage /></Restricted> },
-      { path: "seasons", element: <Restricted><SeasonsListPage /></Restricted> },
-      { path: "seasons/new", element: <Restricted><SeasonWizardPage /></Restricted> },
-      { path: "seasons/:seasonId", element: <Restricted><SeasonWizardPage /></Restricted> },
-      { path: "students", element: <Restricted><StudentsPage /></Restricted> },
-      { path: "coaches", element: <Restricted><CoachesPage /></Restricted> },
-      { path: "assignments", element: <Restricted><AssignmentsPage /></Restricted> },
-      { path: "seasons/:seasonId/students/:studentId/progress", element: <Restricted><ProgressPage /></Restricted> },
-      { path: "content", element: <Restricted><ContentPage /></Restricted> },
-      { path: "materials", element: <MaterialsNewsGate><MaterialsPage /></MaterialsNewsGate> },
-      { path: "news", element: <MaterialsNewsGate><MaterialsPage initialTab="news" /></MaterialsNewsGate> },
-      { path: "design-system", element: <Restricted><DesignSystemPage /></Restricted> },
-      { path: "profile", element: <Restricted><ProfilePage /></Restricted> },
+      { index: true, element: <Restricted><LazyPage label="Loading overview…"><AdminHomePage /></LazyPage></Restricted> },
+      { path: "seasons", element: <Restricted><LazyPage label="Loading seasons…"><SeasonsListPage /></LazyPage></Restricted> },
+      { path: "seasons/new", element: <Restricted><LazyPage label="Loading season…"><SeasonWizardPage /></LazyPage></Restricted> },
+      { path: "seasons/:seasonId", element: <Restricted><LazyPage label="Loading season…"><SeasonWizardPage /></LazyPage></Restricted> },
+      { path: "students", element: <Restricted><LazyPage label="Loading students…"><StudentsPage /></LazyPage></Restricted> },
+      { path: "coaches", element: <Restricted><LazyPage label="Loading coaches…"><CoachesPage /></LazyPage></Restricted> },
+      { path: "assignments", element: <Restricted><LazyPage label="Loading assignments…"><AssignmentsPage /></LazyPage></Restricted> },
+      { path: "seasons/:seasonId/students/:studentId/progress", element: <Restricted><LazyPage label="Loading progress…"><ProgressPage /></LazyPage></Restricted> },
+      { path: "content", element: <Restricted><LazyPage label="Loading content…"><ContentPage /></LazyPage></Restricted> },
+      { path: "materials", element: <MaterialsNewsGate><LazyPage label="Loading materials…"><MaterialsPage /></LazyPage></MaterialsNewsGate> },
+      { path: "news", element: <MaterialsNewsGate><LazyPage label="Loading news…"><MaterialsPage initialTab="news" /></LazyPage></MaterialsNewsGate> },
+      { path: "design-system", element: <Restricted><LazyPage label="Loading design system…"><DesignSystemPage /></LazyPage></Restricted> },
+      { path: "profile", element: <Restricted><LazyPage label="Loading profile…"><ProfilePage /></LazyPage></Restricted> },
       { path: "practice/reviews", element: <Restricted><Suspense fallback={<LoadingState label="Loading answer reviews…"/>}><DisputeQueue/></Suspense></Restricted> },
       { path: "practice", element: <Restricted><PracticeRoute /></Restricted> },
       { path: "practice/:roomId", element: <Restricted><PracticeRoute /></Restricted> },
@@ -138,19 +142,19 @@ export const router = createBrowserRouter([
       </Guard>
     ),
     children: [
-      { index: true, element: <StudentHomePage /> },
-      { path: "assignments", element: <MyAssignmentsPage /> },
-      { path: "news", element: <NewsPage base="/student/news" /> },
-      { path: "news/:id", element: <NewsPage base="/student/news" /> },
+      { index: true, element: <LazyPage label="Loading home…"><StudentHomePage /></LazyPage> },
+      { path: "assignments", element: <LazyPage label="Loading assignments…"><MyAssignmentsPage /></LazyPage> },
+      { path: "news", element: <LazyPage label="Loading news…"><NewsPage base="/student/news" /></LazyPage> },
+      { path: "news/:id", element: <LazyPage label="Loading news…"><NewsPage base="/student/news" /></LazyPage> },
       { path: "library", element: <LibraryRedirect /> },
-      { path: "study", element: <StudyPage /> },
-      { path: "sessions/:sessionId/recap", element: <SessionRecapPage /> },
+      { path: "study", element: <LazyPage label="Loading study…"><StudyPage /></LazyPage> },
+      { path: "sessions/:sessionId/recap", element: <LazyPage label="Loading recap…"><SessionRecapPage /></LazyPage> },
       { path: "honors", element: <HonorsRedirect /> },
-      { path: "progress", element: <ProgressPage /> },
-      { path: "profile", element: <ProfilePage /> },
+      { path: "progress", element: <LazyPage label="Loading progress…"><ProgressPage /></LazyPage> },
+      { path: "profile", element: <LazyPage label="Loading profile…"><ProfilePage /></LazyPage> },
       { path: "practice", element: <PracticeRoute /> },
       { path: "practice/:roomId", element: <PracticeRoute /> },
-      { path: "practice/rooms/:roomId/recap", element: <RoomRecapPage /> },
+      { path: "practice/rooms/:roomId/recap", element: <LazyPage label="Loading recap…"><RoomRecapPage /></LazyPage> },
     ],
   },
 ]);

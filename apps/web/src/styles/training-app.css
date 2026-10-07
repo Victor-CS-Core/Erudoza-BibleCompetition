@@ -30,7 +30,7 @@
 .training-main { flex:1;width:100%;max-width:1280px;margin:0 auto;padding:40px 32px;min-width:0; }
 .training-page { display:grid;gap:24px; }.training-page>.ds-page-header { margin-bottom:0; }
 .training-season { text-align:right;min-width:140px; }.training-season small { display:block;color:var(--er-muted-ink); }.training-season strong { display:block;margin:4px 0 8px; }
-.training-banner { min-height:208px;display:grid;place-items:center;background:var(--er-parchment) url('/brand/training-landscape.webp') center 60%/cover;border-radius:var(--er-radius-card);overflow:hidden;text-align:center;margin-bottom:24px; }
+.training-banner { min-height:208px;display:grid;place-items:center;background:var(--er-parchment) url('/brand/training-landscape-1280.webp') center 60%/cover;border-radius:var(--er-radius-card);overflow:hidden;text-align:center;margin-bottom:24px; }
 .training-banner>div { padding:24px 40px;background:radial-gradient(ellipse,var(--er-card),color-mix(in srgb,var(--er-card) 75%,transparent) 45%,transparent 75%); }
 .training-banner p { font:italic 30px/1.35 var(--er-font-reading);margin:0;color:var(--er-ink-navy); }
 .training-banner span { display:block;font-size:var(--er-text-xs);margin-top:12px; }
@@ -48,7 +48,7 @@
 .training-action-note { color:var(--er-muted-ink);font-size:var(--er-text-xs);margin-left:auto;text-align:right;max-width:110px; }
 .training-empty:not(.ds-panel) { padding-block:var(--er-space-6); }.training-empty p { color:var(--er-muted-ink);margin:8px 0; }
 .training-milestones { display:flex;align-items:center;gap:24px;margin-top:24px; }.training-milestones>div { flex:1; }.training-milestones p { color:var(--er-muted-ink);font-size:var(--er-text-xs); }.training-milestones>a { flex:1;display:flex;align-items:center;gap:12px; }.training-milestones strong { font-size:var(--er-text-sm); }.training-milestones small { display:block;color:var(--er-muted-ink);margin-top:4px; }
-.training-badge-art { width:72px;height:72px;flex:0 0 72px;display:block;background:url('/brand/training-badges.webp') 0 0/300% 300% no-repeat; }.training-badge-reference { background-position:50% 0; }
+.training-badge-art { width:72px;height:72px;flex:0 0 72px;display:block;background:url('/brand/training-badges-432.webp') 0 0/300% 300% no-repeat; }.training-badge-reference { background-position:50% 0; }
 .training-season-toolbar { display:grid;gap:12px;margin-bottom:24px; }.training-season-picker { display:grid;gap:6px;max-width:560px; }.training-season-picker>span { font-size:var(--er-text-sm);font-weight:600;color:var(--er-muted-ink); }.training-season-meta { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }.training-season-meta>a { color:var(--er-action-blue); }
 .training-stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:24px; }.training-stats>.ds-panel { display:flex;align-items:center;gap:16px; }.training-stats strong { display:block;font-size:var(--er-text-page);font-weight:650;font-variant-numeric:tabular-nums; }.training-stats small { display:block;color:var(--er-muted-ink);margin-top:4px; }
 .training-stats>.ds-panel.training-stat-link { color:inherit;text-decoration:none; }

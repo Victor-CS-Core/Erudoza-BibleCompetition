@@ -110,7 +110,7 @@ export type PortraitHead={head:HTMLCanvasElement;extent:number;cx:number;cy:numb
 /** Recolor the head sprite and measure its tight alpha-bounds crop. */
 export async function portraitHead(config:PortraitConfig):Promise<PortraitHead>{
  const name=`${config.bodyType}-${config.style}`;
- const [head,mask]=await Promise.all([loadImage(characterAsset(`heads/${name}.png`)),loadImage(characterAsset(`heads/${name}-mask.png`))]);
+ const [head,mask]=await Promise.all([loadImage(characterAsset(`heads/${name}.webp`)),loadImage(characterAsset(`heads/${name}-mask.png`))]);
  const colored=appearanceHead(head,mask,name,config.skin,config.eyes,config.hairColor);
  const pixels=colored.getContext('2d')!.getImageData(0,0,512,512).data;
  let left=512,top=512,right=0,bottom=0;

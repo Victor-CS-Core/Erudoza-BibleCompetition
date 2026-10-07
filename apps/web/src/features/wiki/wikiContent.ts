@@ -2,6 +2,9 @@ export type WikiAudience = "Shared" | "Student" | "Coach";
 
 export type WikiScreenshot = {
   src: string;
+  srcSet?: string;
+  width?: number;
+  height?: number;
   alt: string;
   caption: string;
 };
@@ -59,7 +62,12 @@ export type WikiSearchResult = {
   score: number;
 };
 
-const screenshot = (src: string, alt: string, caption: string): WikiScreenshot => ({ src, alt, caption });
+const screenshot = (src: string, alt: string, caption: string): WikiScreenshot => {
+  // Screenshots ship as WebP with an 800px variant (all modern browsers support WebP).
+  const webp = src.replace(/\.png$/, '.webp');
+  const small = src.replace(/\.png$/, '-800.webp');
+  return { src: webp, srcSet: `${small} 800w, ${webp} 1440w`, width: 1440, height: 900, alt, caption };
+};
 
 export const wikiArticles: WikiArticle[] = [
   {

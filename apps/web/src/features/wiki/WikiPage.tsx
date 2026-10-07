@@ -61,7 +61,7 @@ function WikiArticleView({ article, scopeArticles, openSignal }: { article: Wiki
         {article.troubleshooting?.length ? <div><h3>Errors and recovery</h3><ul>{article.troubleshooting.map(item => <li key={item}>{item}</li>)}</ul></div> : null}
         {article.glossary?.length ? <div><h3>Key terms</h3><ul>{article.glossary.map(item => <li key={item}>{item}</li>)}</ul></div> : null}
       </section>}
-      {article.screenshot && <figure className="wiki-screenshot"><img src={article.screenshot.src} alt={article.screenshot.alt} loading="lazy" /><figcaption>{article.screenshot.caption}</figcaption></figure>}
+      {article.screenshot && <figure className="wiki-screenshot"><img src={article.screenshot.src} srcSet={article.screenshot.srcSet} sizes="(max-width: 800px) 100vw, 800px" width={article.screenshot.width} height={article.screenshot.height} alt={article.screenshot.alt} loading="lazy" /><figcaption>{article.screenshot.caption}</figcaption></figure>}
       {article.steps && <section className="wiki-steps"><h3>How to use it</h3><ol>{article.steps.map(step => <li key={step}>{step}</li>)}</ol></section>}
       <div className="wiki-article-sections">{article.sections.map(section => <section key={section.heading}><h3>{section.heading}</h3>{section.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}{section.bullets && <ul>{section.bullets.map(bullet => <li key={bullet}>{bullet}</li>)}</ul>}</section>)}</div>
       {article.faqs && <section className="wiki-faq"><h3>Common questions</h3>{article.faqs.map(faq => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}</section>}

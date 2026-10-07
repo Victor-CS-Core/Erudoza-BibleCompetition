@@ -61,7 +61,8 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
     if (m.level === 'Mastered') row.masteredCount += 1;
   }
   const chapters = [...chapterRows.values()].sort((a, b) => a.bookKey.localeCompare(b.bookKey) || a.chapter - b.chapter);
-  const attempts = season ? (await listAll<{ id: string; at: string; isLegacyDuplicate?: boolean }>(learner, 'attempt', { seasonId: season.id, ownerId: s.userId })).filter(a => !a.isLegacyDuplicate) : [];
+  // Only the count is displayed; count in SQL instead of downloading every attempt.
+  const attemptCount = season ? (await learner.env.DB.prepare(`SELECT count(*) AS n FROM Records INDEXED BY Records_training_scope WHERE kind='attempt' AND org_id=? AND season_id=? AND owner_id=? AND coalesce(json_extract(data,'$.isLegacyDuplicate'),0)=0`).bind(learner.orgId, season.id, s.userId).first<{ n: number }>())?.n ?? 0 : 0;
 
   // --- Mastery: earned badges + level distribution. ---
   const allBadges = await honors(learner, season?.id ?? null, streak.current);
@@ -125,7 +126,7 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
       strongCount: chapters.reduce((n, c) => n + c.strongCount, 0),
       masteredCount: relevant.filter(m => m.level === 'Mastered').length,
       reviewDueCount: relevant.filter(m => Date.parse(m.reviewDueAt) <= Date.parse(now)).length,
-      attemptCount: attempts.length,
+      attemptCount,
       chapters,
     },
     mastery: {
@@ -140,7 +141,7 @@ export async function studentDashboard(ctx: RequestContext, studentId: string): 
       // Match history is stored two ways: the new storage envelope keeps the
       // room summary at data.summary, legacy records keep it at data root.
       teamPracticeSessions: season ? await ctx.env.DB.prepare(
-        `SELECT COUNT(*) AS n FROM Records WHERE kind='match' AND org_id=? AND season_id=?
+        `SELECT COUNT(*) AS n FROM Records INDEXED BY Records_scope WHERE kind='match' AND org_id=? AND season_id=?
          AND COALESCE(json_extract(data,'$.summary.status'), json_extract(data,'$.status'))='Completed'
          AND EXISTS (SELECT 1 FROM json_each(COALESCE(json_extract(data,'$.summary.members'), json_extract(data,'$.members'))) m
                      WHERE json_extract(m.value,'$.userId')=?)`

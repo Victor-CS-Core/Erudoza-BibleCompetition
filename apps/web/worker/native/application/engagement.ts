@@ -1,7 +1,7 @@
 import type { RequestContext } from '../types';
 import { HttpError } from '../types';
 import { student, students } from './model';
-import { identity, preference, resolvePreference, type DayRecord } from '../training/store';
+import { resolvePreference, type DayRecord, type PreferenceRecord } from '../training/store';
 import { levelForXp, XP_VALUES, type XpRecord } from '../training/xp';
 import { creditedDates, streakCount } from '../training/streak';
 import { addDays, resolveTrainingCalendar } from '../training/calendar';
@@ -35,24 +35,38 @@ export interface EngagementRow {
   quests: { completedThisWeek: number; totalThisWeek: number; rate: number };
 }
 
-/** Coach/admin-only engagement overview: one row per student. No writes. */
+/** Coach/admin-only engagement overview: one row per student. No writes.
+ *  The per-student reads are batched (one preferences getMany, one xp getMany,
+ *  one honors GROUP BY) and the remaining per-student work runs in parallel
+ *  instead of sequentially, so the round-trip count no longer grows 5x with
+ *  the roster size. */
 export async function engagementOverview(ctx: RequestContext): Promise<EngagementRow[]> {
   const now = trainingNow();
   const list = await students(ctx);
-  const rows: EngagementRow[] = [];
-  for (const s of list) {
+  if (!list.length) return [];
+  const userIds = list.map(s => s.userId);
+  const [prefRows, xpRows, honorCounts] = await Promise.all([
+    ctx.store.getMany<PreferenceRecord>('training-preferences', userIds.map(id => `${ctx.orgId}:${id}`), ctx.orgId),
+    ctx.store.getMany<XpRecord>('training-xp', userIds.map(id => `${ctx.orgId}:${id}`), ctx.orgId),
+    ctx.env.DB.prepare(`SELECT owner_id AS userId, count(*) AS n FROM Records WHERE kind='mastery-honor' AND org_id=? AND owner_id IN (SELECT value FROM json_each(?)) GROUP BY owner_id`).bind(ctx.orgId, JSON.stringify(userIds)).all<{ userId: string; n: number }>(),
+  ]);
+  const prefById = new Map(prefRows.map(r => [r.value.id, r]));
+  const xpById = new Map(xpRows.map(r => [r.value.id, r]));
+  const honorsByUser = new Map(honorCounts.results.map(r => [r.userId, r.n]));
+  return Promise.all(list.map(async (s) => {
     const learner = learnerCtx(ctx, s.userId);
-    const pref = await preference(learner);
+    const pref = prefById.get(`${ctx.orgId}:${s.userId}`) ?? null;
     const resolved = resolvePreference(learner, pref, now);
     const calendar = resolveTrainingCalendar(now, resolved);
-    const credited = await creditedDates(learner);
+    const [credited, quests] = await Promise.all([
+      creditedDates(learner),
+      questWeek(learner, calendar.weekStartLocalDate),
+    ]);
     const weekDays = Array.from({ length: 7 }, (_, i) => addDays(calendar.localDate, -i));
-    const xpRec = (await learner.store.get<XpRecord>('training-xp', identity(learner), learner.orgId))?.value ?? null;
+    const xpRec = xpById.get(`${ctx.orgId}:${s.userId}`)?.value ?? null;
     const xpThisWeek = weekDays.reduce((n, d) => n + (xpRec?.xpByDay[d] ?? 0), 0);
     const level = levelForXp(xpRec?.totalXp ?? 0);
-    const honors = await listAll<HonorUnlock>(learner, 'mastery-honor', { ownerId: s.userId });
-    const quests = await questWeek(learner, calendar.weekStartLocalDate);
-    rows.push({
+    return {
       studentId: s.userId,
       name: s.displayName,
       streak: streakCount(credited, calendar.localDate),
@@ -61,11 +75,10 @@ export async function engagementOverview(ctx: RequestContext): Promise<Engagemen
       lastActiveAtUtc: pref?.value.lastEventAtUtc ?? null,
       level: level.level,
       levelName: level.levelName,
-      honorsEarned: honors.length,
+      honorsEarned: honorsByUser.get(s.userId) ?? 0,
       quests,
-    });
-  }
-  return rows;
+    };
+  }));
 }
 
 /** Room-completion hook participation record (written by another agent's hook; may be absent). */
@@ -111,8 +124,11 @@ export interface CompletedRoom {
  * and XP is treated as 0. No writes.
  */
 export async function completedRooms(ctx: RequestContext, userId: string): Promise<CompletedRoom[]> {
+  // Only completed rooms are ever used; filter in SQL so abandoned/lobby
+  // match blobs are never downloaded. Both the new storage envelope
+  // (data.summary) and legacy raw records (data root) are covered.
   const rows = await ctx.env.DB.prepare(
-    `SELECT id, season_id, data FROM Records WHERE kind='match' AND org_id=? LIMIT 5001`
+    `SELECT id, season_id, data FROM Records INDEXED BY Records_scope WHERE kind='match' AND org_id=? AND (json_extract(data,'$.summary.status')='Completed' OR json_extract(data,'$.status')='Completed') LIMIT 5001`
   ).bind(ctx.orgId).all<{ id: string; season_id: string | null; data: string }>();
   // Pilot query limit, matching store.list: never silently truncate a coach's history.
   if (rows.results.length > 5000) throw new HttpError(413, "This collection exceeds the pilot query limit. Use a narrower scope or paginated export.");

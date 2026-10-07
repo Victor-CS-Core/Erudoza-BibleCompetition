@@ -65,7 +65,7 @@ export class PracticeReports extends DurableObject<Env>{
   statements.push(this.env.DB.prepare(`DELETE FROM Records WHERE kind='award' AND org_id=? AND season_id=? AND (json_extract(data,'$.key') LIKE 'pbe-team-v1:%')=?`).bind(r.orgId,r.seasonId,pbe?1:0));
   statements.push(this.env.DB.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) SELECT 'award',json_extract(value,'$.key')||':'||json_extract(value,'$.userId')||':'||?, ?, ?,json_extract(value,'$.userId'),value FROM json_each(?)").bind(r.seasonId,r.orgId,r.seasonId,JSON.stringify(selectedAwards)));
   if(r.format!=='Pbe'){
-   const legacy=await this.env.DB.prepare("SELECT data FROM Records WHERE kind='match' AND org_id=? AND season_id=? AND coalesce(json_extract(data,'$.format'),'Arcade')='Arcade'").bind(r.orgId,r.seasonId).all<{data:string}>();
+   const legacy=await this.env.DB.prepare("SELECT data FROM Records INDEXED BY Records_scope WHERE kind='match' AND org_id=? AND season_id=? AND coalesce(json_extract(data,'$.format'),'Arcade')='Arcade' LIMIT 5001").bind(r.orgId,r.seasonId).all<{data:string}>();
    const rooms=legacy.results.map(x=>JSON.parse(x.data) as Room).filter(x=>x.id!==r.id);rooms.push(raw as Room);statements.push(...prepareTeamHonors(store,r.orgId,rooms,raw as Room));
   }
   if(r.simulation)statements.push(...simulationHonorStatements(this.env.DB,r.orgId,r.seasonId,all.map(x=>overlayRoom(x,byId.get(`Team:${x.id}`)))));

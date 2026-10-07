@@ -98,7 +98,7 @@ export async function buildRoomRecap(ctx:RequestContext,roomId:string):Promise<R
   availableHundredths:teamSubmissions.reduce((n,s)=>n+(availableByQuestion.get(s.questionId)??0),0),
  };
  const mySubmissions=summary.submissions.filter(s=>s.scribeId===ctx.actor.userId&&!s.deadlineDraft);
- const awards=(await ctx.store.list<{key:string;title:string;seasonId:string;userId:string}>('award',ctx.orgId))
+ const awards=(await ctx.store.list<{key:string;title:string;seasonId:string;userId:string}>('award',ctx.orgId,{seasonId:summary.seasonId,ownerId:ctx.actor.userId}))
   .filter(a=>a.userId===ctx.actor.userId&&a.seasonId===summary.seasonId)
   .map(a=>({key:a.key,title:a.title}));
  const questKey=(key:string):key is QuestKey=>key in QUEST_DEFS;

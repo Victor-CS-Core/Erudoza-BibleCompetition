@@ -3,6 +3,7 @@ import { HttpError, requiredString } from '../types';
 import type { D1PreparedStatement } from '@cloudflare/workers-types';
 import { builtInContentSql, scopeEntriesSql } from './library-access';
 import type { LibraryChapter } from './library';
+import type { Stored } from '../store';
 export interface Range {
     bookKey: string;
     startChapter: number;
@@ -145,8 +146,36 @@ export async function validatePackRanges(ctx: RequestContext, entries: PackScope
         }
     }
 }
+/** Per-isolate cache of scopeSources() results. A season's scope sources are
+ *  identical for every student, so one entry serves the whole cohort. The key
+ *  folds in the scope revision plus every selected pack's revision, so scope or
+ *  pack edits invalidate. This removes the up-to-5000 source-row re-read behind
+ *  every study card, progress view, and Training HQ load when nothing changed.
+ *  Bounded to keep isolate memory in check. */
+const scopeSourcesCache = new Map<string, { key: string; sources: Source[] }>();
+const SCOPE_SOURCES_CACHE_MAX = 10;
+/** Test hook: clear the per-isolate scope-sources cache. */
+export function clearScopeSourcesCache() { scopeSourcesCache.clear(); }
+
+async function cachedScopeSources(ctx: RequestContext, seasonId: string, scope: Stored<Scope>): Promise<Source[]> {
+    const packs = scopePacks(scope.value);
+    if (!packs.length) return [];
+    const ids = [...new Set(packs.map(p => p.contentPackId))];
+    const packRows = await ctx.store.getMany<Pack>('pack', ids, ctx.orgId);
+    const key = [`scope:${scope.revision}`, ...packRows.map(r => `pack:${r.value.id}:${r.revision}`).sort()].join('|');
+    const cacheKey = `${ctx.orgId}:${seasonId}`;
+    const hit = scopeSourcesCache.get(cacheKey);
+    if (hit && hit.key === key) return hit.sources;
+    const sources = await scopeSources(ctx, scope.value);
+    if (scopeSourcesCache.size >= SCOPE_SOURCES_CACHE_MAX) {
+        const oldest = scopeSourcesCache.keys().next();
+        if (!oldest.done) scopeSourcesCache.delete(oldest.value);
+    }
+    scopeSourcesCache.set(cacheKey, { key, sources });
+    return sources;
+}
 export async function effectiveSources(ctx: RequestContext, seasonId: string, studentId?: string): Promise<Source[]> { await ctx.store.require<Season>('season', seasonId, ctx.orgId); const scope = await ctx.store.get<Scope>('scope', seasonId, ctx.orgId); if (!scope)
-    return []; const all = await scopeSources(ctx, scope.value); if (studentId === undefined)
+    return []; const all = await cachedScopeSources(ctx, seasonId, scope); if (studentId === undefined)
     return all; await learner(ctx, studentId); const assignments = await ctx.store.list<Assignment>('assignment', ctx.orgId, { seasonId, ownerId: studentId }); return all.filter(s => assignments.some(a => a.contentPackId === s.contentPackId && contains(a, s))); }
 /** Guard checks execute inside the same D1 transaction as every mutation. Invalid JSON
  * deliberately violates Records' CHECK constraint to roll back a stale multi-record write. */

@@ -14,7 +14,7 @@ export async function coverage(ctx: RequestContext, season: Season) {
         algorithmVersion?: string;
         reviewDueAt?: string | null;
     }>('mastery', orgId, { seasonId });
-    const counts = await ctx.env.DB.prepare("SELECT owner_id AS studentUserId,count(*) AS count FROM Records WHERE kind='attempt' AND org_id=? AND season_id=? AND coalesce(json_extract(data,'$.isLegacyDuplicate'),0)=0 GROUP BY owner_id").bind(orgId, seasonId).all<{
+    const counts = await ctx.env.DB.prepare("SELECT owner_id AS studentUserId,count(*) AS count FROM Records INDEXED BY Records_scope WHERE kind='attempt' AND org_id=? AND season_id=? AND coalesce(json_extract(data,'$.isLegacyDuplicate'),0)=0 GROUP BY owner_id").bind(orgId, seasonId).all<{
         studentUserId: string;
         count: number;
     }>();
