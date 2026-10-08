@@ -51,6 +51,8 @@
 .profile-page .profile-honor-badges { display: flex; flex-wrap: wrap; gap: var(--er-space-2); }
 .profile-page .profile-save-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--er-space-3); }
 .profile-page .profile-save-actions p { flex: 1; margin: 0; min-width: 180px; color: var(--er-muted-ink); }
+/* Force equal heights: variant styles (shadow, border) can shift rendered height by a few px. */
+.profile-page .profile-save-actions .ds-button { height: var(--er-control-height); }
 .profile-page .ds-notice p { margin-block: var(--er-space-2); }
 @media (max-width: 1050px) and (min-width: 761px) {
   .profile-page .creator-layout { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: var(--er-space-4); }
