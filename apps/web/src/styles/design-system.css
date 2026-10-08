@@ -29,6 +29,19 @@
 .ds-patch-art { display:inline-grid; flex:none; place-items:center; width:var(--patch-width); height:var(--patch-height); perspective:650px; }
 .ds-patch-art img { display:block; width:100%; height:100%; object-fit:contain; transform-origin:center; pointer-events:none; filter:saturate(var(--patch-saturation,1)) drop-shadow(0 1px 1px var(--er-patch-shadow-contact)) drop-shadow(var(--patch-shadow-x,0px) var(--patch-shadow-y,2px) var(--patch-shadow-blur,3px) var(--er-patch-shadow-soft)); }
 .ds-patch-art-unearned { --patch-saturation:.4; }
+/* SpinnablePatch: achievement patches spin around their vertical axis on drag,
+   swipe, or arrow keys to reveal the back art. Stacked gold edge slices give
+   the patch real thickness so it never reads as a flat card mid-spin. */
+.ds-spin-patch { position:relative; width:100%; aspect-ratio:1/1; perspective:1000px; touch-action:pan-y; cursor:grab; }
+.ds-spin-patch:active { cursor:grabbing; }
+.ds-spin-patch__coin { position:absolute; inset:0; transform-style:preserve-3d; transition:transform .45s cubic-bezier(.2,.8,.3,1); }
+.ds-spin-patch[data-dragging] .ds-spin-patch__coin { transition:none; }
+.ds-spin-patch__face { position:absolute; inset:0; display:grid; place-items:center; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+.ds-spin-patch__face--front { transform:translateZ(5px); }
+.ds-spin-patch__face--back { transform:rotateY(180deg) translateZ(5px); }
+.ds-spin-patch__face img { width:100%; height:100%; object-fit:contain; pointer-events:none; }
+.ds-spin-patch__face--front .ds-patch-art { width:100%; height:100%; }
+.ds-spin-patch__edge { position:absolute; left:50%; top:50%; width:84%; aspect-ratio:1/1; border-radius:50%; background:var(--er-thread-gold); }
 .ds-training-dialog { margin:auto; inset:0; width:min(520px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); }
 .ds-training-dialog>header { display:flex; align-items:center; justify-content:space-between; gap:var(--er-space-4); }
 .ds-training-dialog-body { padding-top:var(--er-space-4); overflow-wrap:anywhere; }

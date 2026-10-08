@@ -5,6 +5,9 @@
 .honor-patch-card__art { appearance: none; background: none; border: 0; padding: 0; margin: 0; width: 100%; display: grid; place-items: center; cursor: pointer; border-radius: var(--er-radius-control); }
 .honor-patch-card__art:focus-visible { outline: 2px solid var(--er-teal); outline-offset: 4px; }
 .honor-patch-card__art .ds-patch-art { width: min(100%, 208px); height: auto; aspect-ratio: 1; }
+.honor-patch-card__art .ds-spin-patch { width: min(100%, 208px); }
+/* Reduced-motion fallback renders the front PatchArtwork directly. */
+.honor-patch-card__art .ds-spin-patch > .ds-patch-art { width: 100%; }
 .honor-patch-card h2 { margin: 0; font-size: var(--er-text-base); }
 .honor-patch-card__status { display: flex; align-items: center; justify-content: center; gap: var(--er-space-2); flex-wrap: wrap; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
 .honor-patch-detail { display: grid; justify-items: center; gap: var(--er-space-3); text-align: center; }

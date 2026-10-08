@@ -1,7 +1,11 @@
 import { useState, type ReactNode } from "react";
-import { Panel } from "../../components/ui";
+import { Panel, SpinnablePatch } from "../../components/ui";
 import { TrainingDialog } from "../../components/ui/TrainingDialog";
 import "./honor-patch-card.css";
+
+/** Shared Laurel Honor back art revealed when an achievement patch spins. */
+const PATCH_BACK_SRC = "/brand/honors/patch-back-256.webp";
+const PATCH_BACK_SRCSET = "/brand/honors/patch-back-256.webp 256w, /brand/honors/patch-back-512.webp 512w";
 
 /**
  * Art-first honor card shared by every honor collection in the app.
@@ -20,7 +24,7 @@ export function HonorPatchCard({ title, artwork, status, detail }: {
   return <>
     <Panel as="article" className="honor-patch-card">
       <button type="button" className="honor-patch-card__art" onClick={() => setOpen(true)} aria-label={`${title}: view details`}>
-        {artwork}
+        <SpinnablePatch front={artwork} back={<img src={PATCH_BACK_SRC} srcSet={PATCH_BACK_SRCSET} alt="" width={208} height={208} loading="lazy" decoding="async" draggable={false} />} />
       </button>
       <h2>{title}</h2>
       {status ? <div className="honor-patch-card__status">{status}</div> : null}

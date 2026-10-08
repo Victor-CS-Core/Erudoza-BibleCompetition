@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { Link, type LinkProps } from "react-router-dom";
 export { ProgressMeter, WeeklyProgressStrip } from "./TrainingProgress";
 export { HonorArtwork } from "./HonorArtwork";
+export { SpinnablePatch } from "./SpinnablePatch";
 export { ToastProvider, useToast, type ToastTone, type ToastAction, type ToastOptions, type ToastApi } from "./toast";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger" | "inverse";
