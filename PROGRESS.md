@@ -5,7 +5,7 @@
 - Replayed the `feature/delete-path-hygiene` branch (`97d932d7`, 11 files) onto current main `32875d57` (was parented on `a9598063`). The one overlap with the Oct 7 perf batch (`practice/reports.ts`) three-way merged cleanly: delete-path's ReportsDO `/wipe` endpoint + `ensureSchema()` refactor kept alongside the perf batch's `LIMIT 5001` + index hint on the legacy Arcade honors scan.
 - Verification on the merged tree: native `tsc` clean; delete-path tests 12/12 (retention, practice wipe, solo-round wipe, reports); related suites 24/25 with the single failure ("excludes legacy mastery from current coverage") also failing on clean main `32875d57` — pre-existing, not from this merge.
 - Wiki gate: no wiki update — backend-only retention/cleanup changes, no workflow or UI change (same determination as the Sept 28 verification).
-- Status: verified locally; push to remote main + staging deploy pending (user approved "take care of the pending items"). Production untouched (separate approval required).
+- Status: pushed to remote main as `ab23ed14` (delete-path `fb17a254` + log `ab23ed14`); staging auto-deployed successfully and verified healthy (root 200, `/api/v1/health` 200, database:true). Production untouched (separate approval required).
 
 ## Five fixes — production deploy, September 19
 
