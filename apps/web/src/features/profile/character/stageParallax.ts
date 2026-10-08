@@ -7,21 +7,10 @@ import {useEffect, useMemo} from 'react';
  *  but still a preview garnish, not a ride. */
 export const PARALLAX_BG_MAX = 28;
 export const PARALLAX_CHAR_MAX = 12;
-/** Real 3D card tilt: the character layer also rotates toward the input —
- *  rotateY follows left/right, rotateX the top-tilt-away convention — so the
- *  phone gyro reads as tilting a card, not sliding layers. ±8° at full
- *  deflection: a casual ±15° phone tilt reads clearly, a full tilt is
- *  dramatic but never nauseating. */
-export const TILT_ROTATION_MAX = 8;
-/** Perspective distance for the character layer's 3D tilt. Applied inline on
- *  the canvas itself (not the wrap) so the blurred backdrop keeps its flat
- *  2D translation. */
-export const TILT_PERSPECTIVE_PX = 600;
 /** Lerp factor per animation frame toward the target offset. */
 export const PARALLAX_EASE = 0.12;
 
 export type ParallaxOffset = {x: number; y: number};
-export type RotationOffset = {rotateX: number; rotateY: number};
 const NEUTRAL: ParallaxOffset = {x: 0, y: 0};
 
 const clampUnit = (value: number) => Math.max(-1, Math.min(1, value));
@@ -56,15 +45,6 @@ export function parallaxOffsets(input: ParallaxOffset): {bg: ParallaxOffset; cha
     bg: {x: -input.x*PARALLAX_BG_MAX+0, y: -input.y*PARALLAX_BG_MAX+0},
     char: {x: input.x*PARALLAX_CHAR_MAX+0, y: input.y*PARALLAX_CHAR_MAX+0},
   };
-}
-
-/** Card-tilt rotation in degrees for a normalized input. rotateY follows the
- *  left/right axis (input right tips the right edge away, Pokémon-card
- *  style); rotateX follows -y so the edge nearest the input tips away (input
- *  at the top tips the top edge away). The +0 normalizes -0 to 0 so settled
- *  rotations compare exactly. */
-export function rotationOffsets(input: ParallaxOffset): RotationOffset {
-  return {rotateX: -input.y*TILT_ROTATION_MAX+0, rotateY: input.x*TILT_ROTATION_MAX+0};
 }
 
 /** One easing step of the smoothed offset toward its target. Snaps to exactly
@@ -244,12 +224,9 @@ function createParallaxController(): ParallaxController {
         canvas.style.transform = '';
         return;
       }
-      // The character layer gets the 3D card tilt on top of its 2D drift:
-      // rotate first around the layer center, then drift in screen axes,
-      // then project through the inline perspective. The fill above stays
-      // flat 2D — only the character tilts.
-      const {rotateX, rotateY} = rotationOffsets(current);
-      canvas.style.transform = `perspective(${TILT_PERSPECTIVE_PX}px) translate3d(${char.x.toFixed(2)}px, ${char.y.toFixed(2)}px, 0) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg)`;
+      // 2D drift only — the 3D card tilt was removed (2026-10-08). The fill
+      // above stays flat 2D as before.
+      canvas.style.transform = `translate3d(${char.x.toFixed(2)}px, ${char.y.toFixed(2)}px, 0)`;
     }
   };
   const tick = () => {
@@ -338,17 +315,15 @@ export type StageParallax = {
 };
 
 /**
- * Eased two-layer parallax for the character stage, plus a real 3D card tilt
- * on the character layer. Two inputs share one smoothing pipeline: the
- * pointer — mouse crossing the stage on desktop, finger position while
- * touching on mobile — and, where available, the phone gyro (iOS asks once
- * via an "Enable tilt" tap; Android starts on its own). The gyro takes
- * precedence once live; the pointer is always the fallback. The character
- * layer rotates up to ±8° (rotateX/rotateY through a 600px perspective) while
- * the layers drift in 2D behind it, so tilting the phone feels like tilting
- * a card. Input eases back to neutral when it ends, so the idle planted
- * guarantee is untouched — this is input-driven garnish only, never idle
- * drift. Fully off under prefers-reduced-motion.
+ * Eased two-layer parallax for the character stage. Two inputs share one
+ * smoothing pipeline: the pointer — mouse crossing the stage on desktop,
+ * finger position while touching on mobile — and, where available, the phone
+ * gyro (iOS asks once via an "Enable tilt" tap; Android starts on its own).
+ * The gyro takes precedence once live; the pointer is always the fallback.
+ * Both layers drift in 2D only (the 3D card tilt was removed 2026-10-08).
+ * Input eases back to neutral when it ends, so the idle planted guarantee is
+ * untouched — this is input-driven garnish only, never idle drift. Fully off
+ * under prefers-reduced-motion.
  */
 export function useStageParallax(): StageParallax {
   const controller = useMemo(() => (prefersReducedMotion() ? null : createParallaxController()), []);

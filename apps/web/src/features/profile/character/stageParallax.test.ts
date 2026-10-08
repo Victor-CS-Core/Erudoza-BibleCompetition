@@ -1,10 +1,10 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {renderHook} from '@testing-library/react';
 import {
-  PARALLAX_BG_MAX, PARALLAX_CHAR_MAX, TILT_ROTATION_MAX,
+  PARALLAX_BG_MAX, PARALLAX_CHAR_MAX,
   _resetTiltMotion, enableTiltMotion, isParallaxSettled, isTiltOptedIn, needsMotionPermission,
   orientationNormal, parallaxOffsets, pointerNormal, prefersReducedMotion,
-  requestMotionPermission, requestTiltOnOpen, rotationOffsets, stepParallax, useStageParallax,
+  requestMotionPermission, requestTiltOnOpen, stepParallax, useStageParallax,
 } from './stageParallax';
 
 afterEach(() => {
@@ -110,34 +110,6 @@ describe('stage parallax math', () => {
   });
 });
 
-describe('card tilt rotation', () => {
-  it('maps normalized input to degrees with the card-tilt sign convention', () => {
-    // rotateY follows x: input right tips the right edge away (Pokémon-card style).
-    expect(rotationOffsets({x: 1, y: 0})).toEqual({rotateX: 0, rotateY: TILT_ROTATION_MAX});
-    expect(rotationOffsets({x: -1, y: 0})).toEqual({rotateX: 0, rotateY: -TILT_ROTATION_MAX});
-    // rotateX follows -y: input at the top tips the top edge away.
-    expect(rotationOffsets({x: 0, y: -1})).toEqual({rotateX: TILT_ROTATION_MAX, rotateY: 0});
-    expect(rotationOffsets({x: 0, y: 1})).toEqual({rotateX: -TILT_ROTATION_MAX, rotateY: 0});
-    // Amplitudes scale linearly and stay bounded by the max.
-    expect(rotationOffsets({x: 0.5, y: -0.25})).toEqual({rotateX: 2, rotateY: 4});
-    expect(Math.abs(rotationOffsets({x: 1, y: 1}).rotateX)).toBeLessThanOrEqual(TILT_ROTATION_MAX);
-    expect(Math.abs(rotationOffsets({x: 1, y: 1}).rotateY)).toBeLessThanOrEqual(TILT_ROTATION_MAX);
-    // Neutral stays neutral, and -0 normalizes to 0 so settled rotations
-    // compare exactly.
-    expect(rotationOffsets({x: 0, y: 0})).toEqual({rotateX: 0, rotateY: 0});
-    expect(rotationOffsets({x: -0, y: -0})).toEqual({rotateX: 0, rotateY: 0});
-  });
-
-  it('settles through the same easing pipeline so transforms clear', () => {
-    let current = {x: 0.5, y: -0.5};
-    for (let i = 0; i < 200; i++) current = stepParallax(current, {x: 0, y: 0});
-    expect(current).toEqual({x: 0, y: 0});
-    expect(rotationOffsets(current)).toEqual({rotateX: 0, rotateY: 0});
-    expect(isParallaxSettled(current)).toBe(true);
-    expect(isParallaxSettled({x: 0.5, y: 0})).toBe(false);
-  });
-});
-
 describe('motion permission', () => {
   it('needs the opt-in only where the iOS permission gate exists', () => {
     expect(needsMotionPermission()).toBe(false);
@@ -191,7 +163,7 @@ describe('tilt motion (gyroscope)', () => {
     nextFrame()(0);
     expect(fill.style.transform).toBe('translate3d(-3.36px, 0.00px, 0) scale(1.12)');
     expect(fill.style.transform).not.toContain('rotate');
-    expect(canvas.style.transform).toBe('perspective(600px) translate3d(1.44px, 0.00px, 0) rotateX(0.00deg) rotateY(0.96deg)');
+    expect(canvas.style.transform).toBe('translate3d(1.44px, 0.00px, 0)');
 
     // Gyro takes precedence over the pointer once live: a pointer hard left
     // would ease toward +28, but the tilt keeps easing toward -28 — and the
@@ -199,7 +171,7 @@ describe('tilt motion (gyroscope)', () => {
     wrap.dispatchEvent(new MouseEvent('pointermove', {clientX: 0, clientY: 50}));
     nextFrame()(1);
     expect(fill.style.transform).toBe('translate3d(-6.32px, 0.00px, 0) scale(1.12)');
-    expect(canvas.style.transform).toBe('perspective(600px) translate3d(2.71px, 0.00px, 0) rotateX(0.00deg) rotateY(1.80deg)');
+    expect(canvas.style.transform).toBe('translate3d(2.71px, 0.00px, 0)');
     unmount();
   });
 
@@ -390,13 +362,13 @@ describe('useStageParallax', () => {
     frame!(0);
     expect(fill.style.transform).toBe('translate3d(-3.36px, 0.00px, 0) scale(1.12)');
     expect(fill.style.transform).not.toContain('rotate');
-    expect(canvas.style.transform).toBe('perspective(600px) translate3d(1.44px, 0.00px, 0) rotateX(0.00deg) rotateY(0.96deg)');
+    expect(canvas.style.transform).toBe('translate3d(1.44px, 0.00px, 0)');
 
     // Finger at the bottom edge: rotateX tips the bottom edge away (full
     // deflection is -8°, here eased 0.12 toward it).
     wrap.dispatchEvent(new MouseEvent('pointermove', {clientX: 100, clientY: 100}));
     frame!(1);
-    expect(canvas.style.transform).toBe('perspective(600px) translate3d(1.27px, 1.44px, 0) rotateX(-0.96deg) rotateY(0.84deg)');
+    expect(canvas.style.transform).toBe('translate3d(1.27px, 1.44px, 0)');
 
     // Pointer leaves: eases back to neutral and the transforms clear.
     wrap.dispatchEvent(new MouseEvent('pointerleave'));
