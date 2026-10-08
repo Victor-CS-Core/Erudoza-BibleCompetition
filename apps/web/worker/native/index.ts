@@ -12,6 +12,7 @@ import { handleScripture } from "./study/scripture";
 import { handleOnboarding } from "./onboarding/routes";
 import { handleCoachManagement } from "./onboarding/invitations";
 import { runScheduledWatch } from "./application/pbe-materials";
+import { runRetentionPurge } from "./retention";
 import { enforcePerimeter } from "./perimeter";
 export { PracticeRoom } from "./practice/room";
 export { PracticeReports } from "./practice/reports";
@@ -73,6 +74,15 @@ export default {
       console.log(`NAD watcher scheduled run: checked ${result.mediaChecked} media items, drafted ${result.drafted.length} proposals + ${result.newsDrafted.length} news articles.`);
     } catch (error) {
       console.error("NAD watcher scheduled run failed", error instanceof Error ? error.message : "UnknownError");
+    }
+    // Weekly Records retention: purge audit rows older than 90 days and cap
+    // notifications per user. Independent of the watcher so one failure
+    // never suppresses the other.
+    try {
+      const purged = await runRetentionPurge(env);
+      console.log(`Retention purge scheduled run: deleted ${purged.audit} audit rows and ${purged.notifications} notification rows.`);
+    } catch (error) {
+      console.error("Retention purge scheduled run failed", error instanceof Error ? error.message : "UnknownError");
     }
   }
 };

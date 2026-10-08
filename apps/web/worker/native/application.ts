@@ -14,6 +14,7 @@ import { leaderboard } from './training/social';
 import { studentDashboard } from './application/student-dashboard';
 import { engagementOverview, studentExportCsv, studentSessionHistory } from './application/engagement';
 import { buildRoomRecap } from './practice/room-history';
+import { listSeasonRoomIds, wipeSeasonObjects } from './practice/wipe';
 import { pbeMaterials } from './application/pbe-materials';
 export { effectiveSources } from './application/model';
 async function mapSeason(ctx: RequestContext, s: Season) { return { ...s, scopeUnitCount: (await effectiveSources(ctx, s.id)).length, assignmentCount: (await studentAssignments(ctx,s.id)).length }; }
@@ -159,11 +160,18 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         return null;
     const seasonId = seasonMatch[1], suffix = seasonMatch[2], saved = await store.require<Season>('season', seasonId, orgId), s = saved.value, guard = { kind: 'season', id: seasonId, revision: saved.revision };
     if (suffix === '' && method === 'DELETE') {
+        // Durable Object room/report storage is invisible to D1: collect the
+        // room ids first (the delete below removes the rows the lookup needs),
+        // then wipe after the D1 delete succeeds. A failed revision guard
+        // therefore never orphans object storage, and a failed wipe never
+        // blocks the season delete — wipeSeasonObjects logs and swallows.
+        const roomIds = await listSeasonRoomIds(ctx.env, orgId, seasonId);
         await atomic(ctx, 'season.delete', [
             ctx.env.DB.prepare('DELETE FROM PracticeRoomComponents WHERE org_id=? AND season_id=?').bind(orgId, seasonId),
             ctx.env.DB.prepare('DELETE FROM Records WHERE org_id=? AND season_id=?').bind(orgId, seasonId),
             deletion(ctx, 'season', seasonId),
         ], [guard]);
+        await wipeSeasonObjects(ctx.env, orgId, seasonId, roomIds);
         return noContent();
     }
     const updateSeason = () => store.update('season', seasonId, orgId, s, saved.revision);

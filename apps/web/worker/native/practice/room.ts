@@ -16,7 +16,9 @@ import type {Room,Command} from "./state";
 export class PracticeRoom extends DurableObject<Env> {
  private codec=new RoomCodec();
  private epoch=crypto.randomUUID();private pending=0;private tail:Promise<unknown>=Promise.resolve();private keepAlive:ReturnType<typeof setInterval>|undefined;
- constructor(ctx:DurableObjectState,env:Env){super(ctx,env);if(maintenanceOffline(env))return;ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS state(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)");ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS outbox(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)");ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS room_components(hash TEXT PRIMARY KEY,data TEXT NOT NULL)");ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS room_uploaded(hash TEXT PRIMARY KEY)");}
+ constructor(ctx:DurableObjectState,env:Env){super(ctx,env);if(maintenanceOffline(env))return;this.ensureSchema();}
+ /** Recreate empty tables after a storage wipe so the object stays functional. */
+ private ensureSchema(){this.ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS state(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)");this.ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS outbox(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)");this.ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS room_components(hash TEXT PRIMARY KEY,data TEXT NOT NULL)");this.ctx.storage.sql.exec("CREATE TABLE IF NOT EXISTS room_uploaded(hash TEXT PRIMARY KEY)");}
  private readNode=(hash:string):string|null=>this.ctx.storage.sql.exec<{data:string}>("SELECT data FROM room_components WHERE hash=?",hash).toArray()[0]?.data??null;
  private async load():Promise<Room|null>{const row=this.ctx.storage.sql.exec<{data:string}>("SELECT data FROM state WHERE id=1").toArray()[0];if(!row)return null;const data=JSON.parse(row.data);if(!isRoomManifest(data)&&data.format!==undefined&&data.format!=='Pbe'&&data.format!=='Arcade')throw new Error('Unsupported stored room format.');return isRoomManifest(data)?this.codec.decode(data,this.readNode):data as Room;}
  private async save(r:Room){
@@ -77,6 +79,11 @@ export class PracticeRoom extends DurableObject<Env> {
  private async publicView(r:Room,actor:RequestContext["actor"],now:number,materialUnavailable=false){return view(materialUnavailable?r:(await overlayRooms(new Store(this.env.DB),r.orgId,[r]))[0],actor,now,materialUnavailable);}
  private broadcast(){if(maintenanceOffline(this.env))return;for(const socket of this.ctx.getWebSockets()){try{socket.send(JSON.stringify({type:"Changed"}));}catch{socket.close(1011,"Reconnect");}}}
  async fetch(request:Request):Promise<Response>{
+  // Internal storage wipe issued by season deletion via this object's stub.
+  // External routing never produces a bare /wipe path, so this is reachable
+  // only from the worker itself. Runs outside maintenance dispatch because
+  // the D1 season delete it accompanies does too. Best effort.
+  if(new URL(request.url).pathname==='/wipe'){await this.ctx.storage.deleteAll();this.ensureSchema();return json({wiped:true});}
   if(maintenanceOffline(this.env))return dispatchMaintenance(request,this.ctx.storage,this.env,'room',this.ctx.id.toString());
   if(new URL(request.url).pathname.startsWith(MAINTENANCE_PREFIX))return new Response(null,{status:404});
   try{

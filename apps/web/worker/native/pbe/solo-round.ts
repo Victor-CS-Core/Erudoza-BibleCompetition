@@ -4,6 +4,7 @@ import { authenticate, checkOrigin } from '../auth';
 import { Store } from '../store';
 import { body, HttpError, json, requiredString, type Actor, type Env, type RequestContext } from '../types';
 import { acknowledgePresentation, type PresentationState } from './presentation';
+import { SOLO_STORAGE_WIPE_TTL_MS, soloWipeDue } from './solo-wipe';
 import { reviewedPbeSummary, submitTimedPbeSession, type PbeSession } from './sessions';
 
 interface SubmissionInput { clientSubmissionId:string;challengeCardId:string;answers:string[];hintsUsed:false }
@@ -20,7 +21,9 @@ export class PbeSoloRound extends DurableObject<Env>{
   private readonly epoch=crypto.randomUUID();
   private tail:Promise<unknown>=Promise.resolve();
   private pending=0;
-  constructor(ctx:DurableObjectState,env:Env){super(ctx,env);if(maintenanceOffline(env))return;ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS state(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)');}
+  constructor(ctx:DurableObjectState,env:Env){super(ctx,env);if(maintenanceOffline(env))return;this.ensureSchema();}
+  /** Recreate the empty state table after a storage wipe so later fetches keep working. */
+  private ensureSchema(){this.ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS state(id INTEGER PRIMARY KEY CHECK(id=1),data TEXT NOT NULL)');}
   private load():SoloState|null{
     const row=this.ctx.storage.sql.exec<{data:string}>('SELECT data FROM state WHERE id=1').toArray()[0];
     if(!row)return null;
@@ -59,6 +62,13 @@ export class PbeSoloRound extends DurableObject<Env>{
     if(maintenanceOffline(this.env))throw new Error('Offline maintenance.');
     const store=new Store(this.env.DB),prior=await store.get('pbe-solo-interruption',state.sessionId,state.actor.organizationId);
     if(!prior)await store.insert('pbe-solo-interruption',state.sessionId,state.actor.organizationId,{sessionId:state.sessionId,questionId:state.questionId,status:'Interrupted',restartAllowed:true},{ownerId:state.actor.userId});
+    await this.scheduleStorageWipe();
+  }
+  /** Arm the post-terminal storage wipe. Called once a session settles or is interrupted. */
+  private async scheduleStorageWipe(){
+    const deadline=Date.now()+SOLO_STORAGE_WIPE_TTL_MS;
+    await this.ctx.storage.put('wipeAfter',deadline);
+    await this.ctx.storage.setAlarm(deadline);
   }
   private async settle(state:SoloState,request:Request){
     if(maintenanceOffline(this.env))throw new Error('Offline maintenance.');
@@ -68,7 +78,7 @@ export class PbeSoloRound extends DurableObject<Env>{
     const response=await submitTimedPbeSession(this.context(request,state.actor),state.sessionId,state.frozen.input,state.frozen.elapsedMs,state.frozen.lockedAtMs);
     if(!response)throw new HttpError(404,'Timed rehearsal was not found.');
     if(!response.ok){await this.ctx.storage.setAlarm(Date.now()+1000);return response;}
-    state.response=await response.json();state.status='Settled';this.save(state);return state.response;
+    state.response=await response.json();state.status='Settled';this.save(state);await this.scheduleStorageWipe();return state.response;
   }
   private exact(frozen:FrozenSubmission,input:Input){return input.clientSubmissionId===frozen.input.clientSubmissionId&&Array.isArray(input.answers)&&JSON.stringify(input.answers)===JSON.stringify(frozen.retryAnswers);}
   async fetch(request:Request):Promise<Response>{
@@ -111,7 +121,7 @@ export class PbeSoloRound extends DurableObject<Env>{
         if(!state||state.questionId!==card.id){
           if(input.action!=='present')throw new HttpError(409,'Present the active question first.');
           const history=state?.status==='Settled'&&state.frozen&&state.response?[...state.history,{questionId:state.questionId,revision:state.revision,frozen:state.frozen,response:state.response}].slice(-10):state?.history??[];
-          state={sessionId:session.id,questionId:card.id,revision:1,delivery:input.delivery==='TextFallback'?'TextFallback':'Audio',requiredScribeIds:[actor.userId],readyScribeIds:[],responseStartsAtMs:null,responseEndsAtMs:null,epoch:this.epoch,status:'Presenting',points:card.question.parts.reduce((n,p)=>n+p.points,0),draft:null,frozen:null,actor,history};this.save(state);return json(this.view(state));
+          state={sessionId:session.id,questionId:card.id,revision:1,delivery:input.delivery==='TextFallback'?'TextFallback':'Audio',requiredScribeIds:[actor.userId],readyScribeIds:[],responseStartsAtMs:null,responseEndsAtMs:null,epoch:this.epoch,status:'Presenting',points:card.question.parts.reduce((n,p)=>n+p.points,0),draft:null,frozen:null,actor,history};await this.ctx.storage.delete('wipeAfter');this.save(state);return json(this.view(state));
         }
         if(input.action==='present')return json(this.view(state));
         if(input.questionId!==state.questionId||input.revision!==state.revision)throw new HttpError(409,'This action is for another presentation revision.');
@@ -131,6 +141,11 @@ export class PbeSoloRound extends DurableObject<Env>{
   }
   async alarm(){
     if(maintenanceOffline(this.env))return;
-    await this.serialize(async()=>{const state=this.load();if(!state)return;const session=await this.session(state.actor,state.sessionId),card=session.cards[session.attempts.length];await this.recover(state,card?.question.parts.length??0);if(state.status==='Interrupted'){await this.recordInterruption(state);return;}if(state.status==='Armed'){if(!card||card.id!==state.questionId){state.status='Interrupted';this.save(state);await this.recordInterruption(state);return;}this.freezeDraft(state,card.question.parts.length);}if(state.status==='Settling')await this.settle(state,new Request(`https://internal/api/v1/study/sessions/${state.sessionId}/timed`));});
+    await this.serialize(async()=>{
+      const wipeAfter=await this.ctx.storage.get<number>('wipeAfter'),state=this.load();
+      // Post-terminal storage TTL: wipe this object's SQLite once the deadline
+      // passes, then recreate the empty schema so later fetches keep working.
+      if(soloWipeDue(state,wipeAfter,Date.now())){await this.ctx.storage.deleteAll();this.ensureSchema();return;}
+      if(!state)return;const session=await this.session(state.actor,state.sessionId),card=session.cards[session.attempts.length];await this.recover(state,card?.question.parts.length??0);if(state.status==='Interrupted'){await this.recordInterruption(state);return;}if(state.status==='Armed'){if(!card||card.id!==state.questionId){state.status='Interrupted';this.save(state);await this.recordInterruption(state);return;}this.freezeDraft(state,card.question.parts.length);}if(state.status==='Settling')await this.settle(state,new Request(`https://internal/api/v1/study/sessions/${state.sessionId}/timed`));});
   }
 }

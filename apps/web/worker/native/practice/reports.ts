@@ -18,7 +18,9 @@ interface Stage extends Scope {nodes:{hash:string;data:string}[]}
 interface Publication {manifest:RoomManifest;summary:RoomHistorySummary}
 /** One projection authority per organization/season prevents cross-room award races. */
 export class PracticeReports extends DurableObject<Env>{
- constructor(ctx:DurableObjectState,env:Env){super(ctx,env);if(maintenanceOffline(env))return;ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS verification(root TEXT,hash TEXT,done INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(root,hash))');ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS publications(root TEXT PRIMARY KEY,data TEXT NOT NULL)');ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS scope(id INTEGER PRIMARY KEY,data TEXT NOT NULL)');}
+ constructor(ctx:DurableObjectState,env:Env){super(ctx,env);if(maintenanceOffline(env))return;this.ensureSchema();}
+ /** Recreate empty tables after a storage wipe so the object stays functional. */
+ private ensureSchema(){this.ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS verification(root TEXT,hash TEXT,done INTEGER NOT NULL DEFAULT 0,PRIMARY KEY(root,hash))');this.ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS publications(root TEXT PRIMARY KEY,data TEXT NOT NULL)');this.ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS scope(id INTEGER PRIMARY KEY,data TEXT NOT NULL)');}
  private tail:Promise<void>=Promise.resolve();
  private bindScope(s:Scope){if(![s.id,s.orgId,s.seasonId].every(x=>typeof x==='string'&&x.length>0&&x.length<=100))throw new Error('Invalid history scope.');const value=JSON.stringify([s.orgId,s.seasonId]),old=this.ctx.storage.sql.exec<{data:string}>('SELECT data FROM scope WHERE id=1').toArray()[0];if(old&&old.data!==value)throw new Error('History scope conflict.');if(!old)this.ctx.storage.sql.exec('INSERT INTO scope(id,data) VALUES(1,?)',value);}
  private async stage(input:Stage){
@@ -82,6 +84,10 @@ export class PracticeReports extends DurableObject<Env>{
   return json({projected:true});
  }
  async fetch(request:Request):Promise<Response>{
+  // Internal storage wipe issued by season deletion via this object's stub.
+  // Checked before body parsing and maintenance dispatch for the same
+  // reasons as the room object's wipe endpoint.
+  if(new URL(request.url).pathname==='/wipe'){await this.ctx.storage.deleteAll();this.ensureSchema();return json({wiped:true});}
   if(maintenanceOffline(this.env))return dispatchMaintenance(request,this.ctx.storage,this.env,'reports',this.ctx.id.toString());
   if(new URL(request.url).pathname.startsWith(MAINTENANCE_PREFIX))return new Response(null,{status:404});
   const input=await body<Stage|Publication|Scope|Room>(request,ROOM_STAGE_BYTES),previous=this.tail;let release!:()=>void;this.tail=new Promise<void>(resolve=>release=resolve);await previous;
