@@ -22,7 +22,12 @@ async function providerRequest(url:string,init:RequestInit):Promise<Response> {
 export async function verifyTurnstile(request:Request,env:Env,value:unknown,action:string):Promise<void> {
   requireConfigured(env);
   const token=requiredString(value,"Bot verification",2048);
-  const response=await providerRequest("https://challenges.cloudflare.com/turnstile/v0/siteverify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({secret:env.TURNSTILE_SECRET_KEY,response:token,remoteip:clientIp(request),idempotency_key:crypto.randomUUID()})});
+  // Turnstile siteverify: form-encoded; omit remoteip (optional, and
+  // clientIp() placeholders like "unknown-ingress" can trigger 400).
+  const form=new URLSearchParams();
+  form.set("secret", env.TURNSTILE_SECRET_KEY!);
+  form.set("response", token);
+  const response=await providerRequest("https://challenges.cloudflare.com/turnstile/v0/siteverify",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:form.toString()});
   if(!response.ok)throw unavailable();
   let result:{success?:boolean;hostname?:string;action?:string};
   try {result=await response.json();} catch {throw unavailable();}
