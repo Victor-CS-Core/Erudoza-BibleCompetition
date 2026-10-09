@@ -8,9 +8,11 @@ import {
   type ReactNode,
 } from "react";
 
-/** Total simulated thickness of the patch, in px — half sits on each face. */
-const THICKNESS_PX = 10;
-/** One 1px gold slice per px of thickness, forming the coin edge mid-spin. */
+/** Total simulated thickness of the patch, in px — half sits on each face.
+ *  Kept thin (3px) like a real embroidered patch so the edge never reads as
+ *  a thick coin mid-spin. */
+const THICKNESS_PX = 3;
+/** One 1px dark-bronze slice per px of thickness, forming the patch edge mid-spin. */
 const EDGE_SLICES = THICKNESS_PX;
 /** A press shorter than this is a click (opens details); beyond it is a spin drag. */
 const DRAG_THRESHOLD_PX = 6;
@@ -27,9 +29,9 @@ type Props = {
  * A 3D-spinnable achievement patch. Drag horizontally (or swipe on touch, or
  * use the arrow keys) to spin the patch around its vertical axis and reveal
  * the back face; a plain click or tap still reaches the parent control.
- * Stacked gold edge slices give the patch real thickness so it never reads
- * as a flat card mid-spin. Renders the front statically when the user prefers
- * reduced motion.
+ * Thin dark edge slices give the patch just enough thickness to read as a
+ * real embroidered patch mid-spin, never as a flat card or a thick coin.
+ * Renders the front statically when the user prefers reduced motion.
  */
 export function SpinnablePatch({ front, back, className = "" }: Props) {
   const root = useRef<HTMLDivElement>(null);

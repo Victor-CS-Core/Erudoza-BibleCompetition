@@ -46,7 +46,7 @@ describe("SpinnablePatch", () => {
     const { container } = render(<SpinnablePatch front={front} back={back} />);
     expect(container.querySelector(".ds-spin-patch__face--front")).not.toBeNull();
     expect(container.querySelector(".ds-spin-patch__face--back")).not.toBeNull();
-    expect(container.querySelectorAll(".ds-spin-patch__edge")).toHaveLength(10);
+    expect(container.querySelectorAll(".ds-spin-patch__edge")).toHaveLength(3);
   });
 
   it("spins while dragging and snaps to the nearest face on release", () => {
