@@ -41,7 +41,7 @@
 .ds-spin-patch__face--back { transform:rotateY(180deg) translateZ(1.5px); }
 .ds-spin-patch__face img { width:100%; height:100%; object-fit:contain; pointer-events:none; }
 .ds-spin-patch__face--front .ds-patch-art { width:100%; height:100%; }
-.ds-spin-patch__edge { position:absolute; left:50%; top:50%; width:100%; aspect-ratio:1/1; border-radius:50%; background:color-mix(in srgb, var(--er-thread-gold) 32%, #14100b); }
+.ds-spin-patch__edge { position:absolute; left:50%; top:50%; width:93%; aspect-ratio:1/1; border-radius:50%; background:radial-gradient(circle, transparent 0 90%, color-mix(in srgb, var(--er-thread-gold) 32%, #14100b) 90% 100%); }
 .ds-training-dialog { margin:auto; inset:0; width:min(520px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); }
 .ds-training-dialog>header { display:flex; align-items:center; justify-content:space-between; gap:var(--er-space-4); }
 .ds-training-dialog-body { padding-top:var(--er-space-4); overflow-wrap:anywhere; }

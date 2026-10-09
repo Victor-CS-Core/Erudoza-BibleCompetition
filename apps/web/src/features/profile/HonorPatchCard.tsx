@@ -24,7 +24,11 @@ export function HonorPatchCard({ title, artwork, status, detail }: {
   return <>
     <Panel as="article" className="honor-patch-card">
       <button type="button" className="honor-patch-card__art" onClick={() => setOpen(true)} aria-label={`${title}: view details`}>
-        <SpinnablePatch front={artwork} back={<img src={PATCH_BACK_SRC} srcSet={PATCH_BACK_SRCSET} alt="" width={208} height={208} loading="lazy" decoding="async" draggable={false} />} />
+        <SpinnablePatch front={artwork} back={<img src={PATCH_BACK_SRC} srcSet={PATCH_BACK_SRCSET} alt="" width={208} height={208} loading="lazy" decoding="async" draggable={false} style={{ width: "97%", height: "97%" }} />} />{/*
+          The back art's visible circle (97.7% of its image) is slightly larger than the
+          front honor artwork's (95%), so it is scaled to 97% to keep both faces the
+          same apparent size — otherwise the patch looks like it grows when flipped.
+        */}
       </button>
       <h2>{title}</h2>
       {status ? <div className="honor-patch-card__status">{status}</div> : null}
