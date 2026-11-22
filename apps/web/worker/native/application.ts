@@ -10,7 +10,7 @@ import { notebook } from './application/notebook';
 import { atomic, contains, deletion, difficulty, editable, effectiveSources, fail, id, memberId, range, scopeDto, scopePacks, scopeSources, seasonSummaries, student, students, learner, requireLearner, studentAssignments, validatePackRanges } from './application/model';
 import type { Assignment, Membership, Pack, Scope, Season } from './application/model';
 import { buildAssignmentNotification } from './application/notifications';
-import { leaderboard } from './training/social';
+import { leaderboard, seasonLeaderboard } from './training/social';
 import { studentDashboard } from './application/student-dashboard';
 import { engagementOverview, studentExportCsv, studentSessionHistory } from './application/engagement';
 import { buildRoomRecap } from './practice/room-history';
@@ -35,6 +35,13 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     if (path === '/leaderboard' && method === 'GET') {
         await requireLearner(ctx);
         return json(await leaderboard(ctx, new URL(request.url)));
+    }
+    // Season-scoped leaderboard: membership, privacy and ranking are scoped
+    // by the handler (season members only; students see opt-in teammates).
+    const seasonBoardMatch = path.match(/^\/seasons\/([^/]+)\/leaderboard$/);
+    if (seasonBoardMatch && method === 'GET') {
+        await requireLearner(ctx);
+        return json(await seasonLeaderboard(ctx, seasonBoardMatch[1], new URL(request.url)));
     }
     // Completed-room recap for the requesting member; 404 unless they were in the room, 409 unless completed.
     const roomRecapMatch = path.match(/^\/practice\/rooms\/([a-f0-9-]{36})\/recap$/i);

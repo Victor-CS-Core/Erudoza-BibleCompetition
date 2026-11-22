@@ -57,9 +57,9 @@ function OwnMaterial({ kind, summary }: { kind: 'passages' | 'introduction units
 }
 
 const blockedReason: Record<string, string> = {
-  PbeDisabled: 'PBE progress is unavailable while new PBE practice is disabled.',
-  SeasonClosed: 'This season is closed. Current cooperation progress is unavailable.',
-  ScopeTooLarge: 'This season is larger than the current cooperation-progress limit.',
+  PbeDisabled: 'PBE is paused for this season right now, so team progress is on hold too.',
+  SeasonClosed: 'This season has ended, so team progress is closed too.',
+  ScopeTooLarge: 'This season is too big to show team progress right now.',
   InputTooLarge: 'This season has more saved progress than can be checked at once.',
   DataGap: 'Some required progress data could not be checked.',
 };
@@ -71,7 +71,7 @@ export function SeasonCoverage({ snapshot, audience, students = [], onContinue, 
     <div className="training-panel-title"><div><h2 id="pbe-season-coverage-title">Season cooperation</h2><p>Independent Solo progress across assigned material. Team answers do not count as Solo recall.{snapshot.checkedAtUtc && <> Checked <time dateTime={snapshot.checkedAtUtc}>{evidenceDate(snapshot.checkedAtUtc)}</time>; maintenance counts are as of this check.</>}</p></div><Badge tone={snapshot.state === 'Snapshot' ? 'success' : snapshot.state === 'Provisional' ? 'warning' : 'neutral'}>{snapshot.state === 'Snapshot' ? 'Checked snapshot' : snapshot.state}</Badge></div>
     {snapshot.state === 'NotStarted' && <><p>Season progress has not been checked yet.</p>{onContinue && <Button disabled={busy} onClick={onContinue}>{busy ? 'Starting…' : 'Check season progress'}</Button>}</>}
     {snapshot.state === 'Updating' && <><p role="status">Checking assigned material and saved Solo progress.</p>{snapshot.work.next === 'Continue' && onContinue && <Button disabled={busy} onClick={onContinue}>{busy ? 'Checking…' : 'Continue checking progress'}</Button>}{snapshot.work.next === 'Reload' && onContinue && <Button variant="secondary" disabled={busy} onClick={onContinue}>Refresh checked progress</Button>}</>}
-    {snapshot.state === 'Blocked' && <><p>{blockedReason[snapshot.reason ?? ''] ?? 'Season cooperation progress is unavailable.'}</p>{onRetry && <Button variant="secondary" disabled={busy} onClick={onRetry}>Try again</Button>}</>}
+    {snapshot.state === 'Blocked' && <><p>{blockedReason[snapshot.reason ?? ''] ?? 'Team progress is not available right now.'}</p>{onRetry && <Button variant="secondary" disabled={busy} onClick={onRetry}>Try again</Button>}</>}
     {published && <>
       {snapshot.state === 'Provisional' && <p>{snapshot.unknownStudents} of {snapshot.rosterStudents} student records are still unknown. Possible values are labeled separately.</p>}
       {empty ? <p>No eligible material is assigned for this season.</p> : <div className="pbe-coverage-grid">{snapshot.scripture && <TeamMaterial kind="Scripture" summary={snapshot.scripture} />}{snapshot.introduction && <TeamMaterial kind="Introduction" summary={snapshot.introduction} />}</div>}

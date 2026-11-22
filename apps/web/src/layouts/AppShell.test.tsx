@@ -22,7 +22,7 @@ it("keeps the selected season when switching student activities", () => {
  expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Team Practice" })).toHaveAttribute("href", "/student/practice?seasonId=season-two");
  expect(screen.getByTestId("study-back")).toHaveAttribute("href", "/student?seasonId=season-two");
 });
-it.each([["/student", "Training HQ"], ["/student/study", "Study"], ["/student/study?mode=Review", "Study"], ["/student/study?mode=Simulation", "Study"], ["/student/study?mode=Library", "Study"], ["/student/library", "Study"], ["/student/progress", "Progress"], ["/student/progress?tab=honors", "Progress"], ["/student/honors", "Progress"]])("marks only the correct navigation entry active for %s", (path, name) => {
+it.each([["/student", "Training HQ"], ["/student/study", "Study"], ["/student/study?mode=Review", "Study"], ["/student/study?mode=Simulation", "Study"], ["/student/study?mode=Library", "Study"], ["/student/library", "Study"], ["/student/progress", "Training HQ"], ["/student/honors", "Training HQ"]])("marks only the correct navigation entry active for %s", (path, name) => {
  shell(path); const nav = screen.getByRole("navigation", { name: "Learner" });
  expect(within(nav).getByRole("link", { name })).toHaveAttribute("aria-current", "page");
  expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
@@ -32,17 +32,17 @@ it("offers student navigation during focused study without hiding it in a mobile
  expect(screen.getByRole("button", { name: /^Search sections or actions$/ })).toBeInTheDocument();
  expect(within(screen.getByRole("navigation", { name: "Learner" })).getByRole("link", { name: "Study" })).toHaveAttribute("href", "/student/study");
  fireEvent.click(screen.getByRole("button", { name: /^Search sections or actions$/ }));
- expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Progress" })).toHaveAttribute("href", "/student/progress");
+ expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Your profile" })).toHaveAttribute("href", "/student/profile");
 });
 it("starts with the approved three student shortcuts and preserves saved pin choices", () => {
  const view = shell();
  const nav = screen.getByRole("navigation", { name: "Learner" });
- expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Study", "Progress"]);
+ expect(within(nav).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Study", "Team Practice"]);
  expect(screen.queryByRole("navigation", { name: "Breadcrumb" })).not.toBeInTheDocument();
  view.unmount();
  localStorage.setItem("erudoza:pins:org:user:student", JSON.stringify(["home", "practice", "honors"]));
  shell("/student/progress");
- expect(within(screen.getByRole("navigation", { name: "Learner" })).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Team Practice", "Progress"]);
+ expect(within(screen.getByRole("navigation", { name: "Learner" })).getAllByRole("link").map(link => link.textContent)).toEqual(["Training HQ", "Team Practice"]);
 });
 it("shows five focused coach shortcuts by default with the rest grouped in Search", () => {
  account.kind = "Adult"; account.role = "Owner";
@@ -101,13 +101,13 @@ it.each([
  ["/student/study?mode=Review&seasonId=season-two", "Study"],
  ["/student/study?mode=Simulation&seasonId=season-two", "Study"],
  ["/student/sessions/session-one/recap?seasonId=season-two", "Study"],
- ["/student/honors?seasonId=season-two", "Progress"],
- ["/student/practice/room-one?seasonId=season-two", "More"],
+ ["/student/honors?seasonId=season-two", "HQ"],
+ ["/student/practice/room-one?seasonId=season-two", "Team Practice"],
 ] as const)("keeps student mobile navigation and season context at %s", (path, selected) => {
  localStorage.setItem("erudoza:pins:org:user:student", JSON.stringify(["practice", "progress"]));
  shell(path);
  const mobile = screen.getByRole("navigation", { name: "Mobile navigation" });
- expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["HQ", "Study", "Progress"]);
+ expect(within(mobile).getAllByRole("link").map(link => link.textContent)).toEqual(["HQ", "Study", "Team Practice"]);
  for (const link of within(mobile).getAllByRole("link")) expect(link.getAttribute("href")).toContain("seasonId=season-two");
  expect(mobile.querySelector('[aria-current="page"]')).toHaveTextContent(selected);
  expect(mobile.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
@@ -122,7 +122,7 @@ it("opens all sections from More and restores focus when closed", async () => {
 });
 it.each([
  ["/admin/coaches", "admin", "Coach", "Coaches"],
- ["/student/progress", "student", "Learner", "Progress"],
+ ["/student", "student", "Learner", "Training HQ"],
 ] as const)("reveals the active shortcut after resize without overriding manual scrolling: %s", (path, variant, navName, activeName) => {
  const view = shell(path, variant);
  const nav = screen.getByRole("navigation", { name: navName });
@@ -255,7 +255,7 @@ it("groups learner destinations for student mode without coach sections", () => 
  fireEvent.click(screen.getByRole("button", { name: /^Search sections or actions$/ }));
  const dialog = screen.getByRole("dialog");
  const train = within(dialog).getByRole("region", { name: "Train" });
- for (const name of ["Training HQ", "Study", "Progress", "Team Practice"]) expect(within(train).getByRole("link", { name })).toBeInTheDocument();
+ for (const name of ["Training HQ", "Study", "Team Practice"]) expect(within(train).getByRole("link", { name })).toBeInTheDocument();
  expect(within(dialog).getByRole("region", { name: "Resources" })).toBeInTheDocument();
  expect(within(dialog).queryByRole("link", { name: "Students" })).not.toBeInTheDocument();
  expect(within(dialog).queryByRole("link", { name: "Assignments" })).not.toBeInTheDocument();

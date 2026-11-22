@@ -21,7 +21,7 @@ const COACH_GROUPS: HubGroup[] = [
   { id: "you", label: "You", ids: ["overview", "profile"] },
 ];
 const STUDENT_GROUPS: HubGroup[] = [
-  { id: "train", label: "Train", ids: ["home", "study", "practice", "progress"] },
+  { id: "train", label: "Train", ids: ["home", "study", "practice"] },
   { id: "resources", label: "Resources", ids: ["news"] },
   { id: "you", label: "You", ids: ["profile", "my-assignments"] },
 ];

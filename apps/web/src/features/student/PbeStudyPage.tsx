@@ -69,9 +69,11 @@ function dueItemKind(progress: Progress | undefined, entry: Progress['mastery'][
   if (entry.level === 'Learning' || entry.level === 'Review') return 'Refresh';
   return 'Scheduled';
 }
-export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
+export function PbeStudyPage({ saved, seasonId, unavailable }: {
     saved?: PbeResumedSession;
     seasonId: string;
+    /** Accepted for call-site compatibility; season details are not shown on
+     * activity screens (the header carries the mode framing only). */
     seasonName: string;
     unavailable?: string;
 }) {
@@ -127,7 +129,7 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
                     if ('attemptId' in value) { if(value.questionId===saved.card!.id){setTimedReceipt(value); if (saved.card!.sequence === saved.card!.total) complete.mutate(); else next.mutate(saved.session.id);} }
                     else if (value.status === 'Interrupted') setInterruptionSummary(value.summary??null);
                     else if ('questionId' in value && value.status !== 'NotPresented') { serverClock.current={server:Date.parse(value.serverNow),observed:performance.now()}; setPresentation(value); }
-                }).catch(error => setTimingError(error instanceof Error ? error.message : 'Timed rehearsal unavailable.'));
+                }).catch(error => setTimingError(error instanceof Error ? error.message : 'The timed rehearsal could not start.'));
             } else if (!saved.card)
                 next.mutate(saved.session.id);
             return;
@@ -179,7 +181,7 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
                 timer=window.setTimeout(()=>void poll(),500);
             } catch(error) {
                 if(!active)return;
-                setTimingError(error instanceof Error?error.message:'Timed rehearsal unavailable.');
+                setTimingError(error instanceof Error?error.message:'The timed rehearsal could not start.');
                 timer=window.setTimeout(()=>void poll(),500);
             }
         };
@@ -217,7 +219,7 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
                 <div className="pbe-review-empty">
                     <div className="pbe-review-empty-art" aria-hidden="true"><AppIcon name="book" /></div>
                     <h2>No PBE questions to review</h2>
-                    <p>{unavailable ?? 'No eligible published questions are available.'} Ask your coach to publish questions for this season’s assignments — or choose Memory to keep practicing.</p>
+                    <p>{unavailable ?? 'No questions are ready for this yet.'} Ask your coach to add questions for this season — or switch to Memory to keep practicing.</p>
                     <div className="pbe-review-empty-actions">
                         <LinkButton to={memory}>Choose Memory</LinkButton>
                         <LinkButton variant="ghost" to={entryHref}>Back to training</LinkButton>
@@ -287,15 +289,15 @@ export function PbeStudyPage({ saved, seasonId, seasonName, unavailable }: {
     }
     return <div className="er-study-stage space-y-4">
     <p className="study-eyebrow">{framing.eyebrow}</p>
-    <PageHeader title={framingMode === 'Simulation' ? 'PBE rehearsal' : framingMode === 'Review' ? 'PBE review' : 'PBE practice'} description={<span><span>{seasonName}</span><span className="study-blurb">{framing.blurb}</span></span>} action={<span className="study-cover-actions"><Badge>{mode === 'Simulation' ? 'Shortened timed practice' : `Untimed ${mode.toLowerCase()}`}</Badge></span>}/>
+    <PageHeader title={framingMode === 'Simulation' ? 'PBE rehearsal' : framingMode === 'Review' ? 'PBE review' : 'PBE practice'} description={<span className="study-blurb">{framing.blurb}</span>} action={<span className="study-cover-actions"><Badge>{mode === 'Simulation' ? 'Shortened timed practice' : `Untimed ${mode.toLowerCase()}`}</Badge></span>}/>
     {framingMode === 'Simulation' && <div className="study-exam-banner" data-testid="exam-mode-banner"><AppIcon name="flag" /><div><strong>Exam mode</strong><p>Shortened timed practice. Answers freeze when time ends and feedback waits until the finish.</p><ul className="study-rules" aria-label="Exam rules">{academyModeRules('rehearsal', 'Pbe').map(rule => <li key={rule}>{rule}</li>)}</ul></div></div>}
     {framingMode === 'Review' && card && <div className="study-return-banner" data-testid="review-return-banner"><AppIcon name="review" /><div><strong>Back for another pass</strong><span>{card.question.reference} · {reviewReturnDetail(reviewProgress.data, card.question.reference) ?? 'due for review'} · no source aid in Review</span></div></div>}
-  {unavailable || progressScopeIncomplete ? <Panel><Notice tone={progressScopeIncomplete ? 'danger' : 'info'}>{progressScopeIncomplete ? 'This chapter-practice link is incomplete. Return to chapter progress and choose Practice or Review again.' : unavailable}</Notice></Panel> : <>
-   {error && <Notice tone="danger">{staleScope ? <>This chapter action is out of date. Load current progress and choose Practice or Review again.<LinkButton variant="secondary" to={`/student/progress?seasonId=${encodeURIComponent(seasonId)}`}>Return to chapter progress</LinkButton></> : <>{error.message}{start.isError && <Button variant="secondary" onClick={() => start.mutate()}>Retry start</Button>}{next.isError && session && <Button variant="secondary" onClick={() => next.mutate(session.id)}>Retry next card</Button>}</>}</Notice>}
+  {unavailable || progressScopeIncomplete ? <Panel><Notice tone={progressScopeIncomplete ? 'danger' : 'info'}>{progressScopeIncomplete ? 'This link is missing a piece. Head back to your chapter progress and tap Practice or Review again.' : unavailable}</Notice></Panel> : <>
+   {error && <Notice tone="danger">{staleScope ? <>This chapter action is out of date. Load current progress and choose Practice or Review again.<LinkButton variant="secondary" to={`/student?seasonId=${encodeURIComponent(seasonId)}`}>Return to chapter progress</LinkButton></> : <>{error.message}{start.isError && <Button variant="secondary" onClick={() => start.mutate()}>Retry start</Button>}{next.isError && session && <Button variant="secondary" onClick={() => next.mutate(session.id)}>Retry next card</Button>}</>}</Notice>}
    {timingError && <Notice tone="danger">{timingError}<Button variant="secondary" onClick={() => { setTimingError(''); setPresentation(null); }}>Retry presentation</Button></Notice>}
    {interruptionSummary && <Panel><Notice tone="info">This shortened timed practice was interrupted. Earlier accepted answers are retained.</Notice>{interruptionSummary.results?.map(savedResult=><p key={savedResult.attemptId}>{savedResult.earnedPoints} / {savedResult.availablePoints} points</p>)}<LinkButton variant="secondary" to={`/student/sessions/${session?.id??saved?.session.id}/recap?seasonId=${encodeURIComponent(session?.seasonId??seasonId)}`}>View partial recap</LinkButton><LinkButton variant="primary" to={practice.replace('mode=Practice','mode=Simulation')}>Start another shortened timed practice</LinkButton></Panel>}
    {!card && !start.isError && !next.isError && <LoadingState label="Loading your saved PBE questions…"/>}
-   {card && !interruptionSummary && mode === 'Simulation' && !presentation && <PbePresentation key={card.id} text={`For ${card.question.points} ${card.question.points === 1 ? 'point' : 'points'}. ${card.question.reference}. ${card.question.prompt}`} onReady={async delivery => { try { const shown = await api.pbeTimed(session!.id, { action: 'present', delivery }) as PbePresentationState; const armed = await api.pbeTimed(session!.id, { action: 'ack', questionId: card.id, revision: shown.revision, delivery }) as PbePresentationState; serverClock.current={server:Date.parse(armed.serverNow),observed:performance.now()}; setPresentation(armed); } catch(error) { setTimingError(error instanceof Error ? error.message : 'Timed rehearsal unavailable.'); throw error; } }}/>}
+   {card && !interruptionSummary && mode === 'Simulation' && !presentation && <PbePresentation key={card.id} text={`For ${card.question.points} ${card.question.points === 1 ? 'point' : 'points'}. ${card.question.reference}. ${card.question.prompt}`} onReady={async delivery => { try { const shown = await api.pbeTimed(session!.id, { action: 'present', delivery }) as PbePresentationState; const armed = await api.pbeTimed(session!.id, { action: 'ack', questionId: card.id, revision: shown.revision, delivery }) as PbePresentationState; serverClock.current={server:Date.parse(armed.serverNow),observed:performance.now()}; setPresentation(armed); } catch(error) { setTimingError(error instanceof Error ? error.message : 'The timed rehearsal could not start.'); throw error; } }}/>}
    {card && (mode !== 'Simulation' || presentation) && <Panel className="student-challenge" data-testid="challenge-card"><div className="flex flex-wrap items-center justify-between gap-3"><p>{card.question.reference}</p><Badge>{card.question.points} points</Badge><p data-testid="card-progress">{card.sequence} / {card.total}</p></div><progress className="training-session-progress" aria-label="Study session progress" value={card.sequence} max={card.total}/><h2 className="mt-6" data-testid="challenge-prompt">{card.question.prompt}</h2>
     {mode === 'Simulation' && presentation && <><p role="timer">{presentation.responseStartsAtMs && displayedNow < presentation.responseStartsAtMs ? 'Response starts shortly' : `${remaining} seconds remaining`}</p>{warned.current === card.id && remaining !== null && remaining <= 10 && <Notice>Ten seconds remain.</Notice>}</>}
     {card.question.kind === 'TrueFalse' ? <div className="mt-6 flex flex-wrap gap-3" aria-label="True or false">{['True', 'False'].map(value => <Button key={value} aria-pressed={answers[0] === value} variant={answers[0] === value ? 'primary' : 'secondary'} disabled={locked} onClick={() => setAnswers([value])}>{value}</Button>)}</div> : <PbeAnswerInput partPoints={card.question.partPoints} answers={answers} onChange={setAnswers} disabled={locked}/>}

@@ -1,16 +1,16 @@
 import {useEffect,useLayoutEffect,useRef,useState,type Dispatch,type SetStateAction,type PointerEvent as ReactPointerEvent} from 'react';
 import {Button,Panel,Badge,Input} from '../../../apps/web/src/components/ui/index';
 import {PatchArtwork} from '../../../apps/web/src/components/ui/PatchArtwork';
-import {backgrounds,type Background} from './appearance';
+import {backgrounds} from './appearance';
 import {type Configuration,loadImage} from './composition';
 import {addPlacement,cardSize,constrainPlacement,paintShareCard,recordShare,redoShare,renderShareBase,undoShare,unlockedPatches,shareFooter,publicLandingURL,type Placement,type ShareHistory,type SharePatch,type ShareOptions,type ShareProfile} from './share';
 
 const patchTransfer='application/x-erudoza-patch';
-type Props={config:Configuration;profile:ShareProfile;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onBackground:(background:Background)=>void;onEdit:()=>void;onError:(message:string)=>void};
+type Props={config:Configuration;profile:ShareProfile;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onEdit:()=>void;onError:(message:string)=>void};
 type Drag={pointerId:number;key:string;startX:number;startY:number;original:Placement;before:Placement[];next:Placement[];handle:HTMLButtonElement};
 type PreparedImage={key:string;file:File;nativeShare:boolean};
 
-export function ShareEditor({config,profile,collection,history,setHistory,options,setOptions,onBackground,onEdit,onError}:Props){
+export function ShareEditor({config,profile,collection,history,setHistory,options,setOptions,onEdit,onError}:Props){
  const canvasRef=useRef<HTMLCanvasElement>(null),stageRef=useRef<HTMLDivElement>(null),drag=useRef<Drag|null>(null);
  const [selected,setSelected]=useState<string|null>(null),[draft,setDraft]=useState<Placement[]|null>(null);
  const [hovering,setHovering]=useState(false),[message,setMessage]=useState(''),[sharing,setSharing]=useState(false);
@@ -145,8 +145,7 @@ export function ShareEditor({config,profile,collection,history,setHistory,option
     </>:<p className="help">Add a patch or select one on your card to resize, rotate or layer it.</p>}
     <p id="share-keyboard-help" className="ds-caption">Keyboard: use arrow keys to move a selected patch. Hold Shift for bigger steps. Delete removes it.</p>
    </Panel>
-   <Panel><h2>Set the scene</h2><div className="background-options share-backgrounds">{backgrounds.map(b=><Button key={b.key} variant={config.background===b.key?'primary':'secondary'} aria-pressed={config.background===b.key} onClick={()=>onBackground(b.key)}><img src={b.thumbnail} alt=""/>{b.name}</Button>)}</div></Panel>
-   <Panel><div className="share-export-actions">{offerNativeShare&&<Button className="wide-action" disabled={sharing||!fileReady} onClick={shareImage}>{sharing?'Sharing…':'Share image'}</Button>}<Button className="wide-action" variant={offerNativeShare?'secondary':'primary'} disabled={sharing||!fileReady} onClick={download}>Download review image</Button></div><p className="help">{offerNativeShare?'Choose an app or nearby device from your device’s sharing menu.':'Download your card to share it from your photos or files.'}</p><Button variant="ghost" className="wide-action" disabled={sharing} onClick={onEdit}>Edit character</Button><p className="help">Card decorations don’t change your profile image or the three Honors on your sash.</p><p className="share-status help" role="status" aria-live="polite">{message}</p></Panel>
+   <Panel><div className="share-export-actions">{offerNativeShare&&<Button className="wide-action" disabled={sharing||!fileReady} onClick={shareImage}>{sharing?'Sharing…':'Share image'}</Button>}<Button className="wide-action" variant={offerNativeShare?'secondary':'primary'} disabled={sharing||!fileReady} onClick={download}>Download review image</Button></div><p className="help">{offerNativeShare?'Choose an app or nearby device from your device’s sharing menu.':'Download your card to share it from your photos or files.'}</p><Button variant="ghost" className="wide-action" disabled={sharing} onClick={onEdit}>Edit character</Button><p className="help">Card decorations don’t change your profile image or the three Achievement patches on your sash.</p><p className="share-status help" role="status" aria-live="polite">{message}</p></Panel>
   </div>
  </div>;
 }

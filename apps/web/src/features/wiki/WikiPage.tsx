@@ -79,7 +79,7 @@ export function WikiPage({ scope }: { scope: WikiScope }) {
   const groups = useMemo(() => wikiGroups(scope), [scope]);
   const isPublic = scope === "public";
   const searchLabel = isPublic ? "Search the wiki" : "Search help";
-  const searchPlaceholder = isPublic ? "Try “PBE”, “Honors”, or “create a club”" : "Try “save assignments”, “PBE”, or “profile”";
+  const searchPlaceholder = isPublic ? "Try “PBE”, “Achievement patches”, or “create a club”" : "Try “save assignments”, “PBE”, or “profile”";
   const coach = me?.kind === "Adult";
   const home = coach ? "/admin" : "/student";
   const roleLabel = coach ? "Coach workspace" : "Student workspace";

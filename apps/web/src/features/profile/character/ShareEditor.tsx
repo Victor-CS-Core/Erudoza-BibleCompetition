@@ -1,16 +1,16 @@
 import {useEffect,useLayoutEffect,useRef,useState,type Dispatch,type SetStateAction,type PointerEvent as ReactPointerEvent} from 'react';
 import {Button,Panel,Badge,Input} from '../../../components/ui/index';
 import {PatchArtwork} from '../../../components/ui/PatchArtwork';
-import {backgrounds,type Background} from './appearance';
+import {backgrounds} from './appearance';
 import {type Configuration,loadImage} from './composition';
 import {addPlacement,cardSize,constrainPlacement,paintShareCard,recordShare,redoShare,renderShareBase,undoShare,unlockedPatches,shareFooter,publicLandingURL,type Placement,type ShareHistory,type SharePatch,type ShareOptions,type ShareProfile} from './share';
 
 const patchTransfer='application/x-erudoza-patch';
-type Props={config:Configuration;profile:ShareProfile;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onBackground:(background:Background)=>void;onEdit:()=>void;onBrowseHonors:()=>void;onError:(message:string)=>void};
+type Props={config:Configuration;profile:ShareProfile;collection:readonly SharePatch[];history:ShareHistory;setHistory:Dispatch<SetStateAction<ShareHistory>>;options:ShareOptions;setOptions:Dispatch<SetStateAction<ShareOptions>>;onEdit:()=>void;onBrowseHonors:()=>void;onError:(message:string)=>void};
 type Drag={pointerId:number;key:string;startX:number;startY:number;original:Placement;before:Placement[];next:Placement[];handle:HTMLButtonElement};
 type PreparedImage={key:string;file:File;nativeShare:boolean};
 
-export function ShareEditor({config,profile,collection,history,setHistory,options,setOptions,onBackground,onEdit,onBrowseHonors,onError}:Props){
+export function ShareEditor({config,profile,collection,history,setHistory,options,setOptions,onEdit,onBrowseHonors,onError}:Props){
  const canvasRef=useRef<HTMLCanvasElement>(null),stageRef=useRef<HTMLDivElement>(null),drag=useRef<Drag|null>(null);
  const [selected,setSelected]=useState<string|null>(null),[draft,setDraft]=useState<Placement[]|null>(null);
  const [hovering,setHovering]=useState(false),[message,setMessage]=useState(''),[sharing,setSharing]=useState(false);
@@ -144,13 +144,12 @@ export function ShareEditor({config,profile,collection,history,setHistory,option
      <div className="share-layer-tools"><Button variant="secondary" size="compact" disabled={selectedIndex===visible.length-1} onClick={()=>layer(1)}>Bring forward</Button><Button variant="secondary" size="compact" disabled={selectedIndex===0} onClick={()=>layer(-1)}>Send backward</Button><Button variant="ghost" size="compact" onClick={()=>change({size:216,rotation:0})}>Reset size & tilt</Button><Button variant="danger" size="compact" onClick={remove}>Remove patch</Button></div>
     </>:<div className="share-empty-tools">
      <h3>No patches yet</h3>
-     <p className="help">Earn Honors in training to unlock patches for your share card.</p>
-     <Button variant="secondary" onClick={onBrowseHonors}>Browse Honors</Button>
+     <p className="help">Earn Achievement patches in training to unlock them for your share card.</p>
+     <Button variant="secondary" onClick={onBrowseHonors}>Browse Achievement patches</Button>
     </div>}
     <p id="share-keyboard-help" className="ds-caption">Keyboard: use arrow keys to move a selected patch. Hold Shift for bigger steps. Delete removes it.</p>
    </Panel>
-   <Panel><h2>Set the scene</h2><div className="background-options share-backgrounds">{backgrounds.map(b=><Button key={b.key} variant={config.background===b.key?'primary':'secondary'} aria-pressed={config.background===b.key} onClick={()=>onBackground(b.key)}><img src={b.thumbnail} alt=""/>{b.name}</Button>)}</div></Panel>
-   <Panel><div className="share-export-actions">{offerNativeShare&&<Button className="wide-action" disabled={sharing||!fileReady} onClick={shareImage}>{sharing?'Sharing…':'Share image'}</Button>}<Button className="wide-action" variant={offerNativeShare?'secondary':'primary'} disabled={sharing||!fileReady} onClick={download}>Download image</Button></div><p className="help">{offerNativeShare?'Choose an app or nearby device from your device’s sharing menu.':'Download your card to share it from your photos or files.'}</p><Button variant="ghost" className="wide-action" disabled={sharing} onClick={onEdit}>Edit character</Button><p className="help">Card decorations don’t change your profile image or the three Honors on your sash.</p><p className="share-status help" role="status" aria-live="polite">{message}</p></Panel>
+   <Panel><div className="share-export-actions">{offerNativeShare&&<Button className="wide-action" disabled={sharing||!fileReady} onClick={shareImage}>{sharing?'Sharing…':'Share image'}</Button>}<Button className="wide-action" variant={offerNativeShare?'secondary':'primary'} disabled={sharing||!fileReady} onClick={download}>Download image</Button></div><p className="help">{offerNativeShare?'Choose an app or nearby device from your device’s sharing menu.':'Download your card to share it from your photos or files.'}</p><Button variant="ghost" className="wide-action" disabled={sharing} onClick={onEdit}>Edit character</Button><p className="help">Card decorations don’t change your profile image or the three Achievement patches on your sash.</p><p className="share-status help" role="status" aria-live="polite">{message}</p></Panel>
   </div>
  </div>;
 }

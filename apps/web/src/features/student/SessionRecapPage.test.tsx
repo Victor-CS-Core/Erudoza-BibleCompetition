@@ -23,8 +23,8 @@ it("shows XP earned without a level-up line on ordinary sessions", async () => {
   expect(await screen.findByText("+80")).toBeInTheDocument();
   expect(screen.queryByText("Rank up!")).not.toBeInTheDocument();
 });
-it("loads persisted recap without route state and explains interleaved evidence and date crossing", async () => { page(); expect(await screen.findByText(/6 correct from 8/)).toBeInTheDocument(); expect(trainingApi.recap).toHaveBeenCalledWith("session"); expect(screen.getByText(/Mission date: 2026-09-10/)).toBeInTheDocument(); expect(screen.getByText("+5 contributed")).toBeInTheDocument(); fireEvent.click(screen.getByText("View saved answer evidence")); expect(screen.getByText("20 → 25")).toBeInTheDocument(); expect(screen.queryByText("Honors earned in this session")).not.toBeInTheDocument(); });
-it("legacy counts never claim skill improvement", async () => { vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ version: "legacy-counts" })); page(); expect(await screen.findByText(/saved counts only/)).toBeInTheDocument(); expect(screen.queryByText("+5 contributed")).not.toBeInTheDocument(); });
+it("loads persisted recap without route state and explains interleaved evidence and date crossing", async () => { page(); expect(await screen.findByText(/You got 6 of 8 right/)).toBeInTheDocument(); expect(trainingApi.recap).toHaveBeenCalledWith("session"); expect(screen.getByText(/Planned for 2026-09-10/)).toBeInTheDocument(); expect(screen.getByText("+5 contributed")).toBeInTheDocument(); fireEvent.click(screen.getByText("See your saved answers")); expect(screen.getByText("20 → 25")).toBeInTheDocument(); expect(screen.queryByText("Honors earned in this session")).not.toBeInTheDocument(); });
+it("legacy counts never claim skill improvement", async () => { vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ version: "legacy-counts" })); page(); expect(await screen.findByText(/only saved the totals/)).toBeInTheDocument(); expect(screen.queryByText("+5 contributed")).not.toBeInTheDocument(); });
 it("incomplete sessions offer resume with saved season", async () => { vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ completedAtUtc: null })); page(); expect(await screen.findByRole("link", { name: "Resume session" })).toHaveAttribute("href", "/student/study?sessionId=session&mode=Practice&seasonId=s"); });
 it("celebrates completed quests with their XP and includes them in the share text", async () => {
   const writeText = vi.fn().mockResolvedValue(undefined);
@@ -39,7 +39,7 @@ it("celebrates completed quests with their XP and includes them in the share tex
   expect(writeText).toHaveBeenCalledWith(expect.stringContaining("Completed quests: Sharpshooter, Marathon (+50 XP)"));
 });
 it("shows accepted partial points and independent restart for an interrupted rehearsal",async()=>{vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({mode:"Simulation",completedAtUtc:null,attempted:1,correct:0,interrupted:true,results:[{attemptId:"a",earnedPoints:1,availablePoints:2,acceptedAtUtc:"2026-09-12T00:00:00Z"}]}));page();expect(await screen.findByText("1 / 2 points")).toBeVisible();expect(screen.getByRole("link",{name:"Start another solo timed rehearsal"})).toHaveAttribute("href","/student/study?mode=Simulation&format=Pbe&seasonId=s");});
-it("missing and denied recap has safe recovery", async () => { vi.mocked(trainingApi.recap).mockRejectedValue(new Error("not found")); page(); expect(await screen.findByRole("alert")).toHaveTextContent("unavailable or you do not have access"); expect(screen.getByRole("link", { name: "Back to training" })).toBeInTheDocument(); });
+it("missing and denied recap has safe recovery", async () => { vi.mocked(trainingApi.recap).mockRejectedValue(new Error("not found")); page(); expect(await screen.findByRole("alert")).toHaveTextContent("not available — it may belong to someone else"); expect(screen.getByRole("link", { name: "Back to training" })).toBeInTheDocument(); });
 
 it("conflict from incomplete persisted session offers resume", async () => { const { ApiError } = await import("../../api/client"); vi.mocked(trainingApi.recap).mockRejectedValue(new ApiError("Incomplete", 409)); page(); expect(await screen.findByRole("link", { name: "Resume session" })).toHaveAttribute("href", "/student/study?sessionId=session"); });
 it("an early frozen review can still have an actual credited day", async () => { vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ fullTargetReached: false, attempted: 3, targetCardCount: 8, newlyCreditedDay: true })); page(); expect(await screen.findByText("Practice day credited: 2026-09-11.")).toBeInTheDocument(); expect(screen.queryByText(/did not reach the full target for a practice day/)).not.toBeInTheDocument(); });
@@ -72,12 +72,12 @@ it('sends a finished PBE session back to current chapter progress without claimi
   vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ version: 'pbe-daily-v2', results: [], attempted: 1, correct: 1 }));
   page();
   expect(await screen.findByRole('link', { name: 'See current PBE chapter progress' })).toHaveAttribute('href', '/student/progress?seasonId=s');
-  expect(screen.getByText(/A session result does not by itself earn a chapter stamp/)).toBeVisible();
+  expect(screen.getByText(/One session alone does not earn a chapter stamp/)).toBeVisible();
 });
-it("keeps View Honors and Share your progress in one responsive celebration group", async () => {
+it("keeps View Achievement patches and Share your progress in one responsive celebration group", async () => {
   vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ levelUp: { from: 2, to: 3, fromName: "Seeker", toName: "Reader" } }));
   page();
-  const honors = await screen.findByRole("link", { name: "View Honors" });
+  const honors = await screen.findByRole("link", { name: "View Achievement patches" });
   const share = screen.getByRole("button", { name: "Share your progress" });
   const group = honors.closest(".training-recap-celebrate");
   expect(group).not.toBeNull();

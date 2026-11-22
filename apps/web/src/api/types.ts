@@ -97,11 +97,14 @@ export type UserNotification = {
   studentUserId: string;
   actorUserId: string;
   actorDisplayName: string;
-  action: "added" | "removed" | "updated";
+  action: "added" | "removed" | "updated" | "assigned" | "rescheduled" | "cancelled";
   citation: string;
   summary: string;
   readAtUtc: string | null;
   createdAtUtc: string;
+  /** Team Practice notifications deep-link to the student's event card. */
+  type?: "team-practice";
+  eventId?: string;
 };
 
 export type NotificationList = {
@@ -138,6 +141,7 @@ export type SubmitAttemptBody = {
 } & ({ submittedAnswer: string; missingWordAnswers?: never } | { submittedAnswer?: never; missingWordAnswers: MissingWordAnswer[] });
 
 export type AttemptResult = {
+  submittedAnswer?: string;
   missingWordAnswers?: MissingWordAnswer[];
   missingWordResults?: MissingWordResult[];
   attemptId: string;
@@ -348,6 +352,40 @@ export type LeaderboardResponse = {
   weekStartLocalDate: string;
   entries: LeaderboardEntry[];
   me: { userId: string; rank: number | null; xp: number; optedIn: boolean } | null;
+};
+
+/** Season leaderboard row: season XP ranks the board; week XP powers the toggle. */
+export type SeasonLeaderboardEntry = {
+  userId: string;
+  displayName: string;
+  xp: number;
+  seasonXp: number;
+  weekXp: number;
+  streak: number;
+  level: number;
+  levelName: string;
+};
+
+/** Season leaderboard response — members are the students assigned in the season. */
+export type SeasonLeaderboardResponse = {
+  seasonId: string;
+  seasonName: string;
+  seasonStatus: string;
+  weekStartLocalDate: string;
+  entries: SeasonLeaderboardEntry[];
+  me: {
+    userId: string;
+    optedIn: boolean;
+    seasonXp: number;
+    weekXp: number;
+    streak: number;
+    totalXp: number;
+    level: number;
+    levelName: string;
+    nextLevelName: string | null;
+    xpIntoLevel: number;
+    xpForNext: number;
+  } | null;
 };
 
 /** One entry in a student's paginated session history (gamification §7c). */

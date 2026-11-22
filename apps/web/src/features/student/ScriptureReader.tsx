@@ -22,13 +22,20 @@ export function searchScripture(verses: SourceUnit[], query: string): SourceUnit
   return verses.filter(verse => normalize(`${verse.citation} ${verse.canonicalText}`).includes(text));
 }
 
-export function ScriptureReader({ seasonId, citation, onRead }: {
+export function ScriptureReader({ seasonId, citation, onRead, open: openProp, onOpenChange }: {
   seasonId: string;
   citation?: string;
   onRead: () => void;
+  /** Controlled open state (StudyPage lifts it so navigation to a
+   * from-memory activity can hide the passage automatically). When omitted
+   * the reader manages its own state. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const { me } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (next: boolean) => { if (onOpenChange) onOpenChange(next); else setInternalOpen(next); };
   const regionId = useId();
   const assigned = useQuery({
     queryKey: ["assigned-scripture", seasonId, me?.organizationId, me?.userId],
@@ -43,7 +50,7 @@ export function ScriptureReader({ seasonId, citation, onRead }: {
   return <Panel aria-label="Assigned Scripture" className="scripture-reader">
     <div className="scripture-reader-heading">
       <div><h2>Assigned Scripture</h2><p className="text-sm">Read and search your passages while you study.</p></div>
-      <Button variant="secondary" aria-expanded={open} aria-controls={regionId} onClick={() => setOpen(value => !value)}>
+      <Button variant="secondary" aria-expanded={open} aria-controls={regionId} onClick={() => setOpen(!open)}>
         {open ? "Hide passage" : "Read passage"}
       </Button>
     </div>

@@ -32,7 +32,7 @@ beforeEach(() => {
 });
 it("shows mastery requirements and only earned profile choices, independently of assignments", async () => {
   vi.mocked(api.assignedSeasons).mockResolvedValue([]); page();
-  expect(screen.getByText("1 Honor earned")).toBeInTheDocument();
+  expect(screen.getByText("1 Achievement patch earned")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Reference Ready: view details" }));
   const earnedDialog = screen.getByRole("dialog");
   expect(within(earnedDialog).getByText(profile.honors[1].requirement)).toBeInTheDocument();
@@ -45,11 +45,11 @@ it("shows mastery requirements and only earned profile choices, independently of
 });
 it("combines category and earned/locked filters without promoting milestone awards", async () => {
   vi.mocked(trainingApi.honors).mockResolvedValue([honorFixture({ earnedAtUtc: "2026-09-10T12:00:00Z" })]); page();
-  fireEvent.change(screen.getByLabelText("Honor category"), { target: { value: "Team Practice" } });
+  fireEvent.change(screen.getByLabelText("Achievement patch category"), { target: { value: "Team Practice" } });
   expect(screen.getByRole("button", { name: "Team Precision: view details" })).toBeInTheDocument();
   expect(screen.queryByRole("button", { name: "Reference Ready: view details" })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Earned" }));
-  expect(screen.getByText("No earned Honors yet")).toBeInTheDocument();
+  expect(screen.getByText("No earned Achievement patches yet")).toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Locked" }));
   expect(screen.getByRole("button", { name: "Team Precision: view details" })).toBeInTheDocument();
 });
@@ -58,8 +58,8 @@ it("preserves the original milestone progress and Advanced requirement inside hi
   expect(await screen.findByText("4 / 5")).toBeInTheDocument();
   const milestones = screen.getByText("Practice milestones", { selector: "summary" }).closest("details")!;
   fireEvent.click(within(milestones).getByRole("button", { name: "Exact Recall: view details" }));
-  expect(screen.getByRole("dialog")).toHaveTextContent("Reach an exact wording score of 80 in 5 distinct eligible passages.");
-  expect(screen.getByRole("dialog")).toHaveTextContent("Requires Advanced practice; Foundation and Standard wording scores are capped at 40 and 70.");
+  expect(screen.getByRole("dialog")).toHaveTextContent("Get a wording score of 80 or more on 5 different passages.");
+  expect(screen.getByRole("dialog")).toHaveTextContent("Foundation caps wording scores at 40 and Standard at 70.");
   expect(within(screen.getByRole("dialog")).queryByRole("link", { name: /profile image/ })).not.toBeInTheDocument();
 });
 it("preserves milestone earning date, scope and evidence-session route", async () => {
@@ -67,13 +67,13 @@ it("preserves milestone earning date, scope and evidence-session route", async (
   fireEvent.click(screen.getByText("Practice milestones", { selector: "summary" }));
   const milestones = screen.getByText("Practice milestones", { selector: "summary" }).closest("details")!;
   fireEvent.click(await within(milestones).findByRole("button", { name: "Exact Recall: view details" }));
-  expect(screen.getByRole("dialog")).toHaveTextContent("saved historical evidence");
+  expect(screen.getByRole("dialog")).toHaveTextContent("from earlier work");
   expect(screen.getByRole("dialog")).toHaveTextContent("Daniel assigned scope");
-  expect(screen.getByRole("link", { name: "View evidence session" })).toHaveAttribute("href", "/student/sessions/saved/recap?seasonId=s");
+  expect(screen.getByRole("link", { name: "See the session" })).toHaveAttribute("href", "/student/sessions/saved/recap?seasonId=s");
 });
 it("keeps mastery failure recoverable without rendering an empty or unlocked collection", () => {
   const refetch=vi.fn(); vi.mocked(useMyProfile).mockReturnValue(profileResult({ data: undefined, isError: true, isSuccess: false, refetch })); page();
-  expect(screen.getByRole("alert")).toHaveTextContent("Honors could not load");
+  expect(screen.getByRole("alert")).toHaveTextContent("Achievement patches could not load");
   fireEvent.click(screen.getByRole("button", { name: "Try again" })); expect(refetch).toHaveBeenCalledOnce();
   expect(screen.queryByRole("link", { name: /as profile image/ })).not.toBeInTheDocument();
 });
@@ -88,9 +88,9 @@ it('keeps dated chapter stamps separate from permanent Honors and legacy milesto
   page();
   expect(await screen.findByRole('heading', { name: 'PBE chapter stamps' })).toBeVisible();
   expect(await screen.findByText('Assigned passages retained')).toBeVisible();
-  expect(screen.getByText('Earned for an earlier assigned scope.')).toBeVisible();
+  expect(screen.getByText('Earned for an earlier assignment.')).toBeVisible();
   fireEvent.click(screen.getByText('Practice milestones', { selector: 'summary' }));
-  expect(screen.getByText(/Team Practice answers do not establish individual Solo accuracy/)).toBeVisible();
+  expect(screen.getByText(/Team Practice answers don't count toward milestones/)).toBeVisible();
   const milestones = screen.getByText('Practice milestones', { selector: 'summary' }).closest('details')!;
   fireEvent.click(within(milestones).getByRole('button', { name: 'Exact Recall: view details' }));
   expect(within(screen.getByRole('dialog')).queryByRole('link', { name: /profile image/i })).not.toBeInTheDocument();
@@ -99,18 +99,18 @@ it('keeps an unverifiable scope match distinct from an unavailable current assig
   vi.mocked(trainingApi.chapters).mockResolvedValue(stampPage(null));
   page();
   expect(await screen.findByText('Assigned passages retained')).toBeVisible();
-  expect(screen.getByText('Its match to your current assignment is not yet verified; this dated stamp remains saved.')).toBeVisible();
+  expect(screen.getByText('We are still matching this to your current assignment — the stamp stays saved either way.')).toBeVisible();
   expect(screen.queryByText(/Current assignment is unavailable/)).not.toBeInTheDocument();
   expect(screen.getByText('Sep 10, 2026')).toBeVisible();
 });
 it('keeps simulation patches separate while preserving the original Honor collection',()=>{
  vi.mocked(useMyProfile).mockReturnValue(profileResult({data:{...profile,honors:[...profile.honors,{key:'simulation:first-rehearsal',title:'First Rehearsal',category:'Simulation',ruleVersion:'simulation-v1',requirement:'Complete one versioned simulation.',earnedAtUtc:'2026-09-13T00:00:00Z'}]}}));
- page();fireEvent.change(screen.getByLabelText('Honor category'),{target:{value:'Simulation'}});
+ page();fireEvent.change(screen.getByLabelText('Achievement patch category'),{target:{value:'Simulation'}});
  expect(screen.getByRole('heading',{name:'First Rehearsal'})).toBeInTheDocument();
  expect(screen.queryByRole('heading',{name:'Exact Recall'})).not.toBeInTheDocument();
  const card=screen.getByRole('heading',{name:'First Rehearsal'}).closest('article')!;
  expect(card.querySelector('img')).toHaveAttribute('src','/brand/simulation/first-rehearsal-256.webp');
  expect(card.querySelector('img')?.getAttribute('srcset')).toContain('/brand/simulation/first-rehearsal-512.webp');
- fireEvent.change(screen.getByLabelText('Honor category'),{target:{value:'Scripture'}});
+ fireEvent.change(screen.getByLabelText('Achievement patch category'),{target:{value:'Scripture'}});
  expect(screen.getByRole('heading',{name:'Exact Recall'})).toBeInTheDocument();
 });

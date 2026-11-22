@@ -81,7 +81,7 @@ it.each(['PBE_CHAPTER_SCOPE_STALE', 'PBE_CHAPTER_CURSOR_STALE'])('returns a %s g
     mount('/student/study?seasonId=season&format=Pbe&mode=Practice&startId=stale-start&progressScopeKey=chapter%3Apack%3ADaniel%3A1&progressScopeVersion=old-scope');
     expect(await screen.findByRole('alert')).toHaveTextContent('This chapter action is out of date');
     expect(screen.queryByRole('button', { name: 'Retry start' })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Return to chapter progress' })).toHaveAttribute('href', '/student/progress?seasonId=season');
+    expect(screen.getByRole('link', { name: 'Return to chapter progress' })).toHaveAttribute('href', '/student?seasonId=season');
 });
 it('shows a terminal interrupted rehearsal with an independent restart instead of requesting the old card',async()=>{
     vi.mocked(api.resumeSession).mockResolvedValue({...saved,session:{...saved.session,mode:'Simulation',status:'Interrupted'},card:null,summary:{sessionId:'pbe-session',format:'Pbe',mode:'Simulation',attempted:1,status:'Interrupted',earnedPoints:1,availablePoints:2,results:[result]},interruption:{status:'Interrupted',restartAllowed:true}} as never);

@@ -24,11 +24,11 @@ export interface QuestDef {
 }
 
 export const QUEST_DEFS: Record<QuestKey, QuestDef> = {
-    warmup: { key: 'warmup', title: 'Warm-up', description: "Complete today's Review step", target: 1 },
+    warmup: { key: 'warmup', title: 'Warm-up', description: "Finish today's reviews", target: 1 },
     sharpshooter: { key: 'sharpshooter', title: 'Sharpshooter', description: 'Score 90% or better in one Practice session', target: 1 },
-    explorer: { key: 'explorer', title: 'Explorer', description: 'Practice a chapter you have seen less than half of', target: 1 },
+    explorer: { key: 'explorer', title: 'Explorer', description: 'Practice a chapter you have barely started', target: 1 },
     comeback: { key: 'comeback', title: 'Comeback', description: 'Practice 3 of your weakest passages', target: 3 },
-    marathon: { key: 'marathon', title: 'Marathon', description: 'Reach the full session target', target: 1 },
+    marathon: { key: 'marathon', title: 'Marathon', description: 'Finish a whole practice session', target: 1 },
     teammate: { key: 'teammate', title: 'Teammate', description: 'Play a full match in a Team Practice room', target: 1 },
 };
 

@@ -14,13 +14,16 @@ import {
   academyTrackForMode,
   academyUnavailableCopy,
   canStartAcademyTrack,
+  readerRestrictedActivity,
   resolveStudyFormat,
   studySessionFraming,
 } from "./academyTracks";
 import "./student.css";
+import { diffWords, type DiffToken } from "./wordDiff";
 import { MissingWordsInput } from './MissingWordsInput';
 import { VerseBuilderInput } from "./VerseBuilderInput";
 import { ScriptureReader } from "./ScriptureReader";
+import { RecitationPanel } from "./RecitationPanel";
 import { PbeStudyPage, reviewReturnDetail } from './PbeStudyPage';
 import { StudyModeSelect } from './StudyModeSelect';
 import { trainingApi } from '../../api/training';
@@ -32,6 +35,10 @@ import type { ResumedSession } from '../../api/types';
 export type StudyMode = "Practice" | "Review" | "Simulation" | "Library";
 export function parseStudyMode(value: string | null): StudyMode {
   return value === "Review" || value === "Simulation" || value === "Library" ? value : "Practice";
+}
+
+function DiffTokens({ tokens }: { tokens: DiffToken[] }) {
+  return <>{tokens.map((token, index) => <span key={index}>{index > 0 ? " " : ""}<span className={`diff-token diff-${token.status}`}>{token.text}</span></span>)}</>;
 }
 
 export function StudyPage() {
@@ -52,7 +59,7 @@ export function StudyPage() {
     body = <ContentPage />;
   } else if(sessionId){
     if(saved.isPending)body=<LoadingState label="Loading your saved session…"/>;
-    else if(saved.isError)body=<Notice tone="danger">Your saved session is unavailable. <Button onClick={()=>void saved.refetch()}>Retry saved session</Button><Button variant="secondary" onClick={()=>setParams(seasonId?{seasonId}:{})}>Start a new session</Button></Notice>;
+    else if(saved.isError)body=<Notice tone="danger">We couldn't reopen your saved session. <Button onClick={()=>void saved.refetch()}>Retry saved session</Button><Button variant="secondary" onClick={()=>setParams(seasonId?{seasonId}:{})}>Start a new session</Button></Notice>;
     else body=saved.data.session.format==='Pbe'?<PbeStudyPage key={sessionId} saved={saved.data as unknown as PbeResumedSession} seasonId={saved.data.session.seasonId} seasonName="Saved PBE session"/>:<MemoryStudyPage initialSaved={saved.data}/>;
   }
   else if(sessionMode){
@@ -101,6 +108,10 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const [slotValues, setSlotValues] = useState<Record<number, string>>({});
   const [chunks, setChunks] = useState<number[]>([]);
   const [readerOpened, setReaderOpened] = useState(false);
+  const [readerOpen, setReaderOpen] = useState(false);
+  const readerOpenRef = useRef(false);
+  const [readerAutoHiddenFor, setReaderAutoHiddenFor] = useState<string | null>(null);
+  const [attemptResetFor, setAttemptResetFor] = useState<string | null>(null);
   const startedAt = useRef(Date.now());
   const pendingAttempt = useRef<Parameters<typeof api.submitAttempt>[1] | null>(null);
 
@@ -143,10 +154,23 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     startedAt.current = Date.now();
     pendingAttempt.current = readPendingAttempt(sessionId!, card.data);
     submit.reset();
+    setShuffleNote(false);
     setChunks([]);
     setAnswer(pendingAttempt.current?.submittedAnswer ?? "");
     setSlotValues(Object.fromEntries(pendingAttempt.current?.missingWordAnswers?.map(slot => [slot.index, slot.text]) ?? []));
     setReaderOpened(sessionStorage.getItem(`erudoza:attempt:read:${sessionId}:${card.data.id}`) === "true");
+    // Assured-answers guard: a from-memory card must never arrive while the
+    // Assigned Scripture is open. Hide it automatically and say why. The
+    // reader state is not persisted, so resume/deep-link arrivals start
+    // closed and are covered by the same check.
+    if (readerRestrictedActivity(card.data.activityType) && readerOpenRef.current) {
+      readerOpenRef.current = false;
+      setReaderOpen(false);
+      setReaderAutoHiddenFor(card.data.id);
+    } else {
+      setReaderAutoHiddenFor(null);
+    }
+    setAttemptResetFor(null);
     // Reset from the newly drawn card identity only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card.data?.id]);
@@ -175,6 +199,12 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       for (const key of ["progress", "training-today", "training-honors", "training-journey"]) void queryClient.invalidateQueries({ queryKey: [key] });
       navigate("/student/sessions/" + encodeURIComponent(summary.sessionId) + "/recap?seasonId=" + encodeURIComponent(sessionSnapshot?.seasonId ?? progress.data!.seasonId));
     },
+  });
+
+  const [shuffleNote, setShuffleNote] = useState(false);
+  const shuffle = useMutation({
+    mutationFn: () => api.shuffleSession(sessionId!),
+    onSuccess: () => setShuffleNote(true),
   });
 
   useEffect(() => {
@@ -224,6 +254,10 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const result = submit.data ?? (restoredAttempt?.cardId === card.data?.id ? restoredAttempt?.result : undefined);
   const accepted = !!result;
   const current = card.data;
+  const submittedText = result?.submittedAnswer ?? answer;
+  const answerDiff = result && current && !result.isCorrect && (current.activityType === "WhatComesNext" || current.activityType === "VerseBuilder") && submittedText.trim()
+    ? diffWords(result.canonicalAnswer, submittedText)
+    : null;
   const quest = game.data?.quests?.find((item) => !item.completed);
   const returnDetail = mode === "Review" && current ? reviewReturnDetail(progress.data, current.citation) : null;
   const sessionMeta = game.data?.streak && game.data?.xp ? (
@@ -233,15 +267,12 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       {quest && <span className="study-meta-chip">Quest: {quest.title} · +{quest.xpReward ?? 25} XP</span>}
     </div>
   ) : null;
-  const dueLabel = mode === "Review" && current ? (
-    <p className="study-due-label" data-testid="study-due-label">Due passage {current.sequence} of {current.total}</p>
-  ) : null;
   const returnBanner = mode === "Review" && current ? (
     <div className="study-return-banner" data-testid="review-return-banner">
       <AppIcon name="review" />
       <div>
         <strong>Back for another pass</strong>
-        <span>{current.citation}{returnDetail ? ` · ${returnDetail}` : " · due for review"}</span>
+        <span>{returnDetail ?? "due for review"}</span>
       </div>
     </div>
   ) : null;
@@ -267,11 +298,8 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     <div data-testid="study-page-title">
       <p className="study-eyebrow">{framing.eyebrow}</p>
       <PageHeader title={current ? academyActivityName(current.activityType) : "Study"}
-        description={<span><span data-testid="current-season">{progress.isPending ? "Loading your season…" : progress.data?.seasonName || "Your study section has not been assigned yet."}</span><span className="study-blurb">{framing.blurb}</span></span>}
+        description={<span className="study-blurb">{framing.blurb}</span>}
         action={<span className="study-cover-actions"><Badge data-testid="academy-session-kicker">{academySessionKicker(mode)}</Badge></span>}>
-        {sessionSnapshot?.difficulty && <p>Session difficulty: {sessionSnapshot.difficulty}</p>}
-        <p>Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.</p>
-        {sessionSnapshot?.memoryChallenge && <p>{sessionSnapshot.memoryChallenge === 'Warmup' ? 'Varied-gap warmup · supported wording evidence up to 70, within your difficulty ceiling.' : 'Advanced mastery challenge · recall from memory with fewer clues.'}</p>}
         {progress.isSuccess && !trackReady && <p data-testid="academy-track-unavailable">{academyUnavailableCopy(track, progress.data)}</p>}
       </PageHeader>
     </div>
@@ -302,19 +330,17 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   return (
     <div className="er-study-stage space-y-4">
       {cover}
-      {dueLabel}
       {returnBanner}
       {examBanner}
       {sessionMeta}
-      {resume.isError && <Notice tone="danger">Your saved session is unavailable. <Button variant="secondary" onClick={() => setStartRetry((value) => value + 1)}>Retry saved session</Button><Button variant="secondary" onClick={() => { loadedSession.current = null; resume.reset(); setParams({ mode, ...(selectedSeasonId ? { seasonId: selectedSeasonId } : {}) }); }}>Start a new session</Button></Notice>}
+      {readerAutoHiddenFor && current?.id === readerAutoHiddenFor && <Notice tone="info" data-testid="reader-auto-hidden-note">The Assigned Scripture was hidden for this card — this activity is answered from memory. Opening the passage during it marks the attempt as assisted, so it does not establish unaided recall.</Notice>}
+      {attemptResetFor && current?.id === attemptResetFor && <Notice tone="info" data-testid="attempt-reset-note">Reading the passage restarted this activity — your draft was cleared because this activity is answered from memory. Your new attempt will be marked as assisted.</Notice>}
+      {resume.isError && <Notice tone="danger">We couldn't reopen your saved session. <Button variant="secondary" onClick={() => setStartRetry((value) => value + 1)}>Retry saved session</Button><Button variant="secondary" onClick={() => { loadedSession.current = null; resume.reset(); setParams({ mode, ...(selectedSeasonId ? { seasonId: selectedSeasonId } : {}) }); }}>Start a new session</Button></Notice>}
+
       {(progress.isError || start.isError || card.isError) && <Notice tone="danger">This study session could not load. <Button variant="secondary" onClick={() => { if (progress.isError) void progress.refetch(); else if (start.isError) setStartRetry((value) => value + 1); else void card.refetch(); }}>Try again</Button></Notice>}
       <Panel className="student-challenge" data-testid="challenge-card">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm">
-            <span data-testid="academy-activity-name">
-              {current ? academyActivityName(current.activityType) : "Loading"}
-            </span>
-            {" · "}
             {current ? current.citation : "Loading"}
           </p>
           <div className="flex items-center gap-2">
@@ -340,7 +366,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             allowChoices={mode !== "Simulation"}
           />
         ) : null}
-        {pendingAttempt.current && !accepted && <Notice className="mt-4" data-testid="pending-answer"><p className="font-medium">Saved answer awaiting confirmation</p><p className="mt-2 whitespace-pre-wrap">{pendingAttempt.current.submittedAnswer ?? pendingAttempt.current.missingWordAnswers?.map((slot, index) => `Blank ${index + 1}: ${slot.text || '(empty)'}`).join('\n')}</p><p className="mt-2 text-sm">Retry sends this exact saved answer.</p></Notice>}
+        {pendingAttempt.current && !accepted && <Notice className="mt-4" data-testid="pending-answer"><p className="font-medium">Your answer is saved — we just couldn't confirm it yet</p><p className="mt-2 whitespace-pre-wrap">{pendingAttempt.current.submittedAnswer ?? pendingAttempt.current.missingWordAnswers?.map((slot, index) => `Blank ${index + 1}: ${slot.text || '(empty)'}`).join('\n')}</p><p className="mt-2 text-sm">Retrying sends this same answer.</p></Notice>}
         {current?.debugAnswer ? (
           <p className="sr-only" data-testid="debug-answer">
             {current.debugAnswer}
@@ -348,25 +374,54 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
         ) : null}
       {result ? (
         <div className="student-feedback" data-testid="challenge-feedback" role="status" aria-live="polite">
-          {result.isCorrect ? <Badge tone="success">Correct</Badge> : <Badge tone="warning">Needs another pass</Badge>}
-          <p className="mt-3 text-lg font-semibold text-[var(--er-ink-navy)]">{result.isCorrect ? "Well remembered" : "Read it once more"}</p>
-          <p className="mt-2 text-sm" data-testid="feedback-citation">
+          {result.isCorrect ? <Badge tone="success">Correct</Badge> : <Badge tone="warning">Not quite yet</Badge>}
+          <p className="mt-3 text-lg font-semibold text-[var(--er-ink-navy)]">{result.isCorrect ? "Well remembered" : "Take another look"}</p>
+          {result.citation !== current?.citation && <p className="mt-2 text-sm" data-testid="feedback-citation">
+
             {result.citation}
-          </p>
-          <p className="er-scripture mt-2" data-testid="feedback-source">
-            {result.sourceText}
-          </p>
+          </p>}
+          {answerDiff ? (
+            <div className="student-answer-diff" data-testid="answer-diff">
+              <p className="er-scripture mt-2" data-testid="feedback-source">
+                <DiffTokens tokens={answerDiff.expected} />
+              </p>
+              <p className="mt-2 text-sm">
+                <span className="font-semibold">Your answer: </span>
+                <DiffTokens tokens={answerDiff.submitted} />
+              </p>
+              <p className="mt-2 text-sm" data-testid="answer-diff-summary">
+                {[
+                  answerDiff.missed ? `${answerDiff.missed} missed ${answerDiff.missed === 1 ? "word is" : "words are"} underlined in the verse.` : "",
+                  answerDiff.extra ? `${answerDiff.extra} extra ${answerDiff.extra === 1 ? "word is" : "words are"} struck through in your answer.` : "",
+                  ...answerDiff.spellingPairs.map(pair => `Spelling: you wrote “${pair.submitted}” for “${pair.expected}” — a spelling slip, not a wrong word; in PBE a misspelling can still earn credit.`),
+                ].filter(Boolean).join(" ")}
+              </p>
+            </div>
+          ) : (
+            <p className="er-scripture mt-2" data-testid="feedback-source">
+              {result.sourceText}
+            </p>
+          )}
           <p className="mt-3 text-sm text-[var(--er-success-ink)]" data-testid="mastery-impact">
-            Mastery {result.masteryLevel} · {result.skillLabel ?? "Exact wording"} {result.skillScore ?? result.exactWordingScore} / 100
+            Your {result.skillLabel ?? "wording"} score: {result.skillScore ?? result.exactWordingScore} / 100 · Level: {result.masteryLevel}
           </p>
           <p className="mt-2 text-sm" data-testid="assistance-note">
             {readerOpened
-              ? "Assisted attempt — the passage reader was opened, so this does not establish unaided recall."
-              : "No reader assistance used on this attempt."}
+              ? "You opened the reader on this one, so it counts as practice — not as remembering it on your own."
+              : "You did this one from memory — no reader help."}
           </p>
         </div>
       ) : null}
         <div className="student-study-actions">
+          {mode === "Practice" && current && current.sequence < current.total && <Button
+            data-testid="shuffle-deck"
+            type="button"
+            variant="secondary"
+            onClick={() => shuffle.mutate()}
+            disabled={shuffle.isPending || complete.isPending || card.isFetching}
+          >
+            {shuffle.isPending ? "Shuffling…" : "Shuffle"}
+          </Button>}
           <Button
             data-testid="submit-answer"
             type="button"
@@ -398,14 +453,32 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             {complete.isPending ? "Finishing…" : "Finish session"}
           </Button>
         </div>
-        {(submit.isError || complete.isError) && <p role="alert">{submit.isError ? "Your answer could not be saved. Please try again." : "The session could not be finished. Please try again."}</p>}
+        {(submit.isError || complete.isError || shuffle.isError) && <p role="alert">{submit.isError ? "Your answer could not be saved. Please try again." : complete.isError ? "The session could not be finished. Please try again." : "The remaining cards could not be shuffled. Please try again."}</p>}
+        {shuffleNote && !shuffle.isPending && <p className="text-sm" data-testid="shuffle-note">Remaining cards shuffled — the order of what comes next has changed. This card stays as it is.</p>}
       </Panel>
       {current && mode !== "Simulation" && <section aria-label="Learning aids" className="study-aids">
-        <Panel><details key={current.id}><summary>Optional full-verse recitation</summary><p>Recite aloud or type from memory, then compare with the passage reader. This private practice is not scored and does not earn mastery evidence.</p><label>Your private recitation practice<Textarea rows={4} className="mt-2 w-full" /></label></details></Panel>
+        <RecitationPanel key={current.id} />
+
         {sessionSnapshot && <ScriptureReader
           key={sessionSnapshot.seasonId}
           seasonId={sessionSnapshot.seasonId}
           citation={current.citation}
+          open={readerOpen}
+          onOpenChange={(next) => {
+            readerOpenRef.current = next; setReaderOpen(next);
+            // Read-passage reset: opening the passage mid-attempt on a
+            // from-memory activity clears the in-progress draft, so the
+            // student restarts the card clean (and the re-attempt is marked
+            // assisted by the existing read flag). A pending, already-sent
+            // attempt is never rewritten — its saved payload stays exact.
+            if (next && current && readerRestrictedActivity(current.activityType) && !accepted && pendingAttempt.current?.challengeCardId !== current.id
+              && (answer.trim() || chunks.length > 0 || Object.values(slotValues).some(value => value.trim()))) {
+              setAnswer("");
+              setChunks([]);
+              setSlotValues({});
+              setAttemptResetFor(current.id);
+            }
+          }}
           onRead={() => {
             setReaderOpened(true);
             if (!accepted && !submit.isPending && pendingAttempt.current?.challengeCardId !== current.id)

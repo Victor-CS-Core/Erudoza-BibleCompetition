@@ -150,12 +150,15 @@ export const api = {
   ) => request<AttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`, { method: "POST", body: JSON.stringify(body) }),
   completeSession: (sessionId: string) =>
     request<SessionSummary>(`/api/v1/study/sessions/${sessionId}/complete`, { method: "POST" }),
+  shuffleSession: (sessionId: string) =>
+    request<{ sessionId: string; remaining: number }>(`/api/v1/study/sessions/${sessionId}/shuffle`, { method: "POST" }),
   setDifficulty: (orgId: string, seasonId: string, studentId: string, difficulty: TrainingDifficulty, signal?: AbortSignal) =>
     request<{ difficulty: TrainingDifficulty }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/difficulty`, { method: "PUT", body: JSON.stringify({ difficulty }), signal }),
   assignedSeasons: () => request<{ id: string; name: string }[]>("/api/v1/progress/me/seasons"),
   progress: (seasonId?: string) => request<Progress>(`/api/v1/progress/me${seasonId ? `?seasonId=${encodeURIComponent(seasonId)}` : ""}`),
   teamActivity: () => request<import("./types").TeamActivity>("/api/v1/progress/me/team-activity"),
   leaderboard: (orgId: string, weekStart?: string) => request<import("./types").LeaderboardResponse>(`/api/v1/organizations/${orgId}/leaderboard${weekStart ? `?weekStart=${encodeURIComponent(weekStart)}` : ""}`),
+  seasonLeaderboard: (orgId: string, seasonId: string) => request<import("./types").SeasonLeaderboardResponse>(`/api/v1/organizations/${orgId}/seasons/${encodeURIComponent(seasonId)}/leaderboard`),
   setLeaderboardOptIn: (optIn: boolean) => request<{ leaderboardOptIn: boolean }>("/api/v1/progress/me/preferences/leaderboard", { method: "PUT", body: JSON.stringify({ optIn }) }),
   studentProgress: (orgId: string, seasonId: string, studentId: string) =>
     request<Progress>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/progress`),

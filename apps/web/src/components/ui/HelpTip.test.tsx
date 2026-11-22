@@ -11,8 +11,8 @@ describe("HelpTip", () => {
   });
 
   it("exposes the tooltip relationship and toggles on repeat taps", () => {
-    render(<HelpTip label="About Team Honors">Arcade mastery Honors use finalized personal accuracy.</HelpTip>);
-    const trigger = screen.getByRole("button", { name: "About Team Honors" });
+    render(<HelpTip label="About Team Achievement patches">Arcade mastery Achievement patches use finalized personal accuracy.</HelpTip>);
+    const trigger = screen.getByRole("button", { name: "About Team Achievement patches" });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(trigger);
     const tip = screen.getByRole("tooltip");

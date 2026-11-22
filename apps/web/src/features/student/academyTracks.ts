@@ -37,7 +37,7 @@ export const STUDY_MODE_CARDS: StudyModeCard[] = [
     track: "learner",
     mode: "Practice",
     title: "Learn",
-    description: "Drill the assigned passage with memorization games.",
+    description: "Learn your passage with memory games and drills.",
     ctaLabel: "Start today's drill",
     ctaTestId: "start-learn",
   },
@@ -45,7 +45,7 @@ export const STUDY_MODE_CARDS: StudyModeCard[] = [
     track: "review",
     mode: "Review",
     title: "Review",
-    description: "Revisit passages due for another pass — keep them from fading.",
+    description: "Passages you learned before, brought back before you forget them.",
     ctaLabel: "Start due reviews",
     ctaTestId: "start-review",
   },
@@ -63,13 +63,13 @@ export const STUDY_MODE_CARDS: StudyModeCard[] = [
 export function academyModeRules(track: AcademyTrackId, format: StudyFormat): string[] {
   if (track === "learner") {
     return format === "Pbe"
-      ? ["Read source with assistance", "Immediate feedback", "Untimed"]
+      ? ["Reader help allowed", "Feedback right away", "Untimed"]
       : ["Multiple choice", "Scripture reader", "Recitation panel"];
   }
   if (track === "review") {
     return format === "Pbe"
-      ? ["Due passages only", "Immediate feedback", "Untimed", "No source aid in Review"]
-      : ["Due passages only", "Immediate feedback", "Untimed"];
+      ? ["Due passages only", "Feedback right away", "Untimed", "No reader help"]
+      : ["Due passages only", "Feedback right away", "Untimed"];
   }
   return format === "Pbe"
     ? ["Shortened timed practice", "Answers freeze", "Feedback at end"]
@@ -84,18 +84,18 @@ export function studySessionFraming(mode: "Practice" | "Review" | "Simulation"):
   if (mode === "Review") {
     return {
       eyebrow: "Review · due practice",
-      blurb: "Review is not a second assignment list — it only brings back passages when they are due for another pass.",
+      blurb: "Passages you've learned before, coming back right when you're about to forget them.",
     };
   }
   if (mode === "Simulation") {
     return {
       eyebrow: "Rehearse · exam mode",
-      blurb: "Competition conditions. Answers are final and feedback waits until the finish.",
+      blurb: "Just like the real competition: answers are final, and you'll see how you did at the end.",
     };
   }
   return {
     eyebrow: "Learn · coached practice",
-    blurb: "Assistance is part of learning. Use the aids when you need them — your feedback shows what was truly unaided.",
+    blurb: "Help is part of learning. Use the reader and hints whenever you need them — your feedback will honestly show what you remembered on your own.",
   };
 }
 
@@ -105,14 +105,14 @@ export const STUDY_BEHAVIOR_MATRIX: { behavior: string; learn: string; review: s
   { behavior: "Memory aids", learn: "All on", review: "Review set", rehearse: "None" },
   { behavior: "PBE feedback", learn: "Immediate", review: "Immediate", rehearse: "At end" },
   { behavior: "Timing", learn: "Untimed", review: "Untimed", rehearse: "Countdown" },
-  { behavior: "Start gate", learn: "Active season", review: "Active season + due passages", rehearse: "Active season" },
+  { behavior: "You need", learn: "Your season started", review: "Your season started + passages due", rehearse: "Your season started" },
 ];
 
 export const ACADEMY_TRACKS: Record<AcademyTrackId, AcademyTrack> = {
   learner: {
     id: "learner",
     label: "Learner",
-    description: "Drill the assigned passage with memorization games.",
+    description: "Learn your passage with memory games and drills.",
     ctaLabel: "Start today's deck",
     href: "/student/study",
     ctaTestId: "start-todays-deck",
@@ -120,7 +120,7 @@ export const ACADEMY_TRACKS: Record<AcademyTrackId, AcademyTrack> = {
   review: {
     id: "review",
     label: "Reviews",
-    description: "Revisit passages that are due for another pass.",
+    description: "Passages due for another look, before they fade.",
     ctaLabel: "Start due reviews",
     href: "/student/study?mode=Review",
     ctaTestId: "start-reviews",
@@ -184,18 +184,18 @@ export function canStartAcademyTrack(track: AcademyTrackId, progress?: AcademyPr
 export function academyUnavailableCopy(track: AcademyTrackId, progress?: AcademyProgress | null): string {
   if (track === "review") {
     if ((progress?.reviewDueCount ?? 0) > 0 && progress?.seasonStatus !== "Active") {
-      return "Reviews open when this season is Active.";
+      return "Review opens once your season starts.";
     }
-    return "No passages are due for review.";
+    return "Nothing is due for review right now.";
   }
   if (track === "rehearsal") {
-    return "Rehearsal opens when this season is Active.";
+    return "Rehearse opens once your season starts.";
   }
-  return "Learner drill opens when this season is Active.";
+  return "Learn opens once your season starts.";
 }
 
 const ACADEMY_ACTIVITY_NAMES: Record<string, string> = {
-  MissingWords: "Missing Words",
+  MissingWords: "Fill in the Blank",
   VerseBuilder: "Verse Builder",
   ReferenceMatch: "Reference Match",
   WhatComesNext: "What Comes Next",
@@ -204,6 +204,20 @@ const ACADEMY_ACTIVITY_NAMES: Record<string, string> = {
 
 export function academyActivityName(activityType: string): string {
   return ACADEMY_ACTIVITY_NAMES[activityType] ?? activityType;
+}
+
+/**
+ * Activities answered from memory whose verbatim answer is exactly what the
+ * Assigned Scripture reader displays (fill-in-the-blank passage, verse
+ * building, what-comes-next). The reader must never be open when one of
+ * these cards arrives: StudyPage hides it automatically on navigation.
+ * Recognition activities (ReferenceMatch, TrueFalse) judge material already
+ * in the prompt, so the reader may stay open for them; opening it still
+ * marks the attempt as assisted, as it does for every activity.
+ */
+const READER_RESTRICTED_ACTIVITIES = new Set(["MissingWords", "VerseBuilder", "WhatComesNext"]);
+export function readerRestrictedActivity(activityType: string): boolean {
+  return READER_RESTRICTED_ACTIVITIES.has(activityType);
 }
 
 export function academySessionSummaryCopy(summary: {

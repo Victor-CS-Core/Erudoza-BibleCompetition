@@ -97,9 +97,9 @@ export async function renderCharacter(canvas: HTMLCanvasElement, config: Configu
 }
 
 export function setSlot(slots: Slots, index: number, value: string | null): Slots {
-  if (!Number.isInteger(index) || index<0 || index>2) throw new Error('Invalid Honor slot');
-  if (value && !honorImageSrc(value)) throw new Error('Unknown Honor');
-  if (value && slots.some((s,i)=>i!==index && s===value)) throw new Error('That Honor is already displayed');
+  if (!Number.isInteger(index) || index<0 || index>2) throw new Error('Invalid Achievement patch slot');
+  if (value && !honorImageSrc(value)) throw new Error('Unknown Achievement patch');
+  if (value && slots.some((s,i)=>i!==index && s===value)) throw new Error('That Achievement patch is already displayed');
   const next: Slots=[...slots]; next[index]=value; return next;
 }
 

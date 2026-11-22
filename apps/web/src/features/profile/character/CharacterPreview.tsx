@@ -54,6 +54,6 @@ export function CharacterPreview({config,onError,onActivate}:{config:Configurati
   if(active&&ref.current){ref.current.width=buffer.width;ref.current.height=buffer.height;ref.current.getContext('2d')!.drawImage(buffer,0,0);setReadyKey(key);}
  },()=>{if(active)error.current?.('Unable to load your character. Please try again.');});return()=>{active=false;};},[key]);
  const hairstyle=hairStyles[config.bodyType].find(h=>h.key===config.style)?.name;
- const label=`${config.bodyType} body, ${config.hairColor} hair, ${hairstyle}, ${config.attire==='coach'?'Master Guide':'Pathfinder'}, ${config.skin} skin, ${config.eyes} eyes, sash with ${config.slots.filter(Boolean).length} of 3 Honors`;
+ const label=`${config.bodyType} body, ${config.hairColor} hair, ${hairstyle}, ${config.attire==='coach'?'Master Guide':'Pathfinder'}, ${config.skin} skin, ${config.eyes} eyes, sash with ${config.slots.filter(Boolean).length} of 3 Achievement patches`;
  return <CharacterStage background={config.background} wrapRef={parallax.wrapRef} fillRef={parallax.fillRef} onActivate={onActivate}><canvas ref={setCanvas} width={1536} height={1536} className="character-canvas" role="img" aria-label={label} aria-busy={readyKey!==key} data-ready={readyKey===key}>{label}</canvas></CharacterStage>;
 }

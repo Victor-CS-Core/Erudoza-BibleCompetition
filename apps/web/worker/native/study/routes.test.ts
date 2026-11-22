@@ -56,6 +56,13 @@ it('persists immutable cards, concurrent original attempts and resumable summari
 });
 it('runs the complete eight-card flow and rebuilds legacy mastery from original evidence',async()=>{
   const session=await (await request('/api/v1/study/sessions','POST',{seasonId:season,mode:'Practice'})).json() as {id:string};
+  // Pin this session's deck to the old sequential draw for the full session
+  // (the deck refills with a fresh shuffle when it empties, so the pin lists
+  // all eight draws). Practice decks are shuffled by default now (see
+  // practice-shuffle.test.ts); this test verifies mastery rebuilding, which
+  // needs the tampered unit re-credited inside the session — a property of
+  // the sequential draw it was written against.
+  await app.db.prepare("UPDATE Records SET data=json_set(data,'$.deckOrder',json(?)),revision=revision+1 WHERE kind='session' AND id=?").bind(JSON.stringify([...sourceIds,...sourceIds,sourceIds[0],sourceIds[1]]),session.id).run();
   const base=`/api/v1/study/sessions/${session.id}`, types=new Set<string>();
   expect((await request(`${base}/complete`,'POST')).status).toBe(400);
   for(let n=0;n<8;n++) {
@@ -105,7 +112,7 @@ it('replays standalone migrated duplicates by original submission ID without gra
   const saved=await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND json_array_length(data,'$.attempts')>0 ORDER BY id LIMIT 1").first<{data:string}>();
   const session=JSON.parse(saved!.data) as Session,original=session.attempts[0];
   const duplicateId=crypto.randomUUID();
-  const duplicate:Attempt={...original,id:duplicateId,clientSubmissionId:'migrated-duplicate',submittedAnswer:'original legacy payload',responseTimeMs:432,hintsUsed:true,isLegacyDuplicate:true,result:{...original.result,attemptId:duplicateId,canonicalAnswer:'original legacy feedback',exactWordingScore:7}};
+  const duplicate:Attempt={...original,id:duplicateId,clientSubmissionId:'migrated-duplicate',submittedAnswer:'original legacy payload',responseTimeMs:432,hintsUsed:true,clientHintsUsed:undefined,isLegacyDuplicate:true,result:{...original.result,attemptId:duplicateId,canonicalAnswer:'original legacy feedback',exactWordingScore:7}};
   await record('attempt',duplicate.id,duplicate,season,TEST_USER);
   const beforeProgress=await (await request(`/api/v1/progress/me?seasonId=${season}`)).json();
   const beforeMastery=await app.db.prepare("SELECT data,revision FROM Records WHERE kind='mastery' ORDER BY id").all();
@@ -172,6 +179,13 @@ it('admits versioned Memory only for enabled seasons and preserves saved generat
  const saved=JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(started.id).first<{data:string}>())!.data) as Session;
  const generated=saved.cards[0];
  await app.db.prepare("UPDATE Records SET data=json_set(data,'$.exactWording',69,'$.algorithmVersion','v2-skill-evidence'),revision=revision+1 WHERE kind='mastery' AND json_extract(data,'$.knowledgeUnitId')=?").bind(generated.knowledgeUnitId).run();
+ // Isolate this unit's rebuild evidence: earlier tests in this file share one
+ // attempt history, and the Practice draw is random now, so which unit this
+ // session draws — and how much legacy exact-wording evidence it carries —
+ // varies run to run. Marking its prior attempts as legacy duplicates
+ // (excluded from rebuilds by design) makes the ceiling assertion below
+ // deterministic: the rebuild starts from zero for this unit.
+ await app.db.prepare("UPDATE Records SET data=json_set(data,'$.isLegacyDuplicate',json('true')),revision=revision+1 WHERE kind='attempt' AND json_extract(data,'$.knowledgeUnitId')=?").bind(generated.knowledgeUnitId).run();
  const accepted=await (await request(`${base}/attempts`,'POST',{clientSubmissionId:'b3-answer',challengeCardId:card.id,submittedAnswer:generated.answerKey.canonicalAnswer,responseTimeMs:20,hintsUsed:false})).json() as {exactWordingScore:number};
  expect(accepted.exactWordingScore).toBeLessThanOrEqual(70);
  expect((await request(endpoint,'POST',{seasonId:season,format:'Memory',memoryChallenge:'Advanced',training:{clientStartId:'b3-purpose',timeZone:'UTC'}})).status).toBe(400);

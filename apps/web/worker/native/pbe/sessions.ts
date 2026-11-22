@@ -163,7 +163,7 @@ export async function startPbeSession(ctx: RequestContext, input: Start) {
     }
     const bank = await loadFromResolvedSources(ctx, { organizationId: ctx.orgId, seasonId, studentId: ctx.actor.userId, sourceUnitIds: sources.map(s => s.id) }, scope, true);
     const selectedTargets=prepared?.targetIds??input.targetIds;
-    if(prepared&&!selectedTargets?.length)return json({code:'PBE_COVERAGE_UNAVAILABLE',message:'No eligible published questions are available for this progress group.',format:'Pbe'},409);
+    if(prepared&&!selectedTargets?.length)return json({code:'PBE_COVERAGE_UNAVAILABLE',message:'No questions are ready for this group yet.',format:'Pbe'},409);
     if (selectedTargets !== undefined) {
         if (!Array.isArray(selectedTargets) || !selectedTargets.length)
             throw new HttpError(400, 'Choose assigned targets.');

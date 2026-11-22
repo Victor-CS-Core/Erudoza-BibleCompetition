@@ -32,3 +32,18 @@ it("explains an empty assignment list and retries after a failure", async () => 
   mount();
   expect(await screen.findByText(/No passages assigned yet/)).toBeInTheDocument();
 });
+
+it("shows the season state and weaves per-range mastery progress into each assignment", async () => {
+  vi.mocked(api.myAssignments).mockResolvedValue([
+    assignment({ bookKey: "Daniel", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3 }),
+  ] as never);
+  const mastery = [
+    { knowledgeUnitId: "ku-1", title: "Daniel 1:1", level: "Strong", exactWordingScore: 95, recognitionScore: 95, bookKey: "Daniel", chapter: 1, verse: 1, reviewDueAtUtc: null },
+    { knowledgeUnitId: "ku-2", title: "Daniel 1:2", level: "Learning", exactWordingScore: 40, recognitionScore: 40, bookKey: "Daniel", chapter: 1, verse: 2, reviewDueAtUtc: null },
+    { knowledgeUnitId: "ku-9", title: "Daniel 2:1", level: "Mastered", exactWordingScore: 100, recognitionScore: 100, bookKey: "Daniel", chapter: 2, verse: 1, reviewDueAtUtc: null },
+  ] as never;
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><AssignedPassages seasonId="season" seasonName="Daniel 2026" seasonStatus="Active" mastery={mastery} /></QueryClientProvider>);
+  expect(await screen.findByText("1 of 2 verses strong or mastered")).toBeInTheDocument();
+  expect(screen.getByText(/Ready to study/)).toBeInTheDocument();
+  expect(screen.getByText("Daniel 2026")).toBeInTheDocument();
+});

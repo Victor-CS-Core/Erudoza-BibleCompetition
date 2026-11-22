@@ -25,10 +25,10 @@ it("keeps the HQ preview compact and links legacy evidence to its full passage",
   vi.mocked(trainingApi.journey).mockResolvedValue(data);
   page(true);
   const passage = await screen.findByRole("link", { name: "Daniel 1:1 Legacy scoring" });
-  expect(passage).toHaveAttribute("href", "/student/progress?seasonId=s#passage-k");
+  expect(passage).toHaveAttribute("href", "/student?seasonId=s#passage-k");
   expect(screen.queryByText("Mastered")).not.toBeInTheDocument();
   expect(screen.queryByRole("progressbar", { name: "Wording" })).not.toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "View full passage progress" })).toHaveAttribute("href", "/student/progress?seasonId=s");
+  expect(screen.getByRole("link", { name: "View full passage progress" })).toHaveAttribute("href", "/student?seasonId=s");
 });
 
 type ChapterOverviewPage = Omit<ChapterPage, 'view' | 'items'> & { view: 'Chapters'; items: ProgressRow[] };
@@ -70,7 +70,7 @@ it('shows the PBE tile in preview once chapter progress exists', async () => {
   page(true, 'Pbe');
   expect(await screen.findByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
   expect(screen.getByText('2 of 3 assigned passages have questions')).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: 'View full PBE chapter progress' })).toHaveAttribute('href', '/student/progress?seasonId=s');
+  expect(screen.getByRole('link', { name: 'View full PBE chapter progress' })).toHaveAttribute('href', '/student?seasonId=s');
 });
 
 it('keeps the chapters load error honest in preview', async () => {
@@ -89,7 +89,7 @@ it('keeps the automatic chapter check running in preview', async () => {
 
 it('forwards the full guarded chapter selection through the study route', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage());
-  const router = createMemoryRouter([{ path: '*', element: <PassageJourney seasonId="s" format="Pbe" /> }], { initialEntries: ['/student/progress?seasonId=s'] });
+  const router = createMemoryRouter([{ path: '*', element: <PassageJourney seasonId="s" format="Pbe" /> }], { initialEntries: ['/student?seasonId=s'] });
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><RouterProvider router={router} /></QueryClientProvider>);
   fireEvent.click(await screen.findByRole('button', { name: 'Practice this chapter' }));
   expect(router.state.location.pathname).toBe('/student/study');

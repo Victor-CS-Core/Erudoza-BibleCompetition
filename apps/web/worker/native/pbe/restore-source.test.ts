@@ -30,14 +30,14 @@ it.each(['ordinary','large-answer'] as const)('retains a stopped native full90 %
 
 async function ordinary(run:Awaited<ReturnType<typeof sourceRun>>){
  const f=await probeFixture({d1Persist:run.d1Persist,durableObjectsPersist:run.durableObjectsPersist}),base=`/organizations/${TEST_ORG}/practice`;
- const created=await f.call(0,base+'/rooms',{seasonId:f.season,format:'Pbe',teamCount:1,teamSize:6,questionCount:90});expect(created.status).toBe(200);let room=await created.json() as PracticeRoom;
+ const created=await f.call(-1,base+'/rooms',{seasonId:f.season,format:'Pbe',teamCount:1,teamSize:6,questionCount:90});expect(created.status).toBe(200);let room=await created.json() as PracticeRoom;
  const path=()=>`${base}/rooms/${room.id}`;
  const command=async(actor:number,action:string,extra:Record<string,unknown>={})=>{const input={commandId:crypto.randomUUID(),revision:room.revision,action,...extra};const response=await f.call(actor,path()+'/commands',input);expect(response.status,await response.clone().text()).toBe(200);room=await response.json() as PracticeRoom;return input;};
  const refresh=async()=>{const response=await f.call(0,path());expect(response.status,await response.clone().text()).toBe(200);room=await response.json() as PracticeRoom;};
  const snapshot=async()=>await(await f.call(0,path(),undefined,{'x-test-room-snapshot':'1'})).json() as Room;
  const diagnose=async()=>await(await f.call(0,path(),undefined,{'x-test-room-storage':'1'})).json() as {outbox:unknown};
  try{
-  for(let n=1;n<6;n++){await command(0,'invite',{targetUserId:f.players[n].id});const inbox=await(await f.call(n,base+'/bootstrap')).json() as PracticeBootstrap;const response=await f.call(n,`${base}/invitations/${inbox.invitations[0].id}/accept`,{team:1});expect(response.status).toBe(200);room=await response.json() as PracticeRoom;}
+  for(let n=0;n<6;n++){await command(-1,'invite',{targetUserId:f.players[n].id});const inbox=await(await f.call(n,base+'/bootstrap')).json() as PracticeBootstrap;const response=await f.call(n,`${base}/invitations/${inbox.invitations[0].id}/accept`,{team:1});expect(response.status).toBe(200);room=await response.json() as PracticeRoom;}
   for(let n=0;n<6;n++)await command(n,'ready');await command(0,'start');let terminalInput:Record<string,unknown>={};
   for(let q=0;q<90;q++){
    if(q){f.advance(10000);await refresh();if(room.phase==='Break'){expect(q).toBe(45);f.advance(300000);await refresh();}}

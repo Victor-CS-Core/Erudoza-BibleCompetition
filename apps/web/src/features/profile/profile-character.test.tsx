@@ -43,16 +43,16 @@ describe('production character profile', () => {
   it('provides all four account pages and blocks unearned Honors and Student Master Guide', async () => {
     mount();
     const nav = await screen.findByRole('navigation', { name: 'Profile pages' });
-    expect(within(nav).getAllByRole('button').map(button => button.textContent)).toEqual(['Profile', 'Character', 'Honors', 'Share']);
+    expect(within(nav).getAllByRole('button').map(button => button.textContent)).toEqual(['Profile', 'Character', 'Achievement patches', 'Share']);
     await page('Character');
     expect(screen.getByRole('button', { name: 'Master Guide · coach' })).toBeDisabled();
-    await page('Honors');
+    await page('Achievement patches');
     const locked = await openHonorDetail('Full Coverage');
     expect(within(locked).getByText('This patch is locked. Meet every requirement to unlock it for your profile.')).toBeVisible();
     expect(within(locked).queryByRole('button', { name: 'Use Full Coverage as profile image' })).toBeNull();
     fireEvent.click(within(locked).getByRole('button', { name: 'Close dialog' }));
     expect(screen.getAllByRole('option', { name: /Full Coverage/ })[0]).toBeDisabled();
-    expect(screen.getAllByLabelText('Empty Honor spot')).toHaveLength(3);
+    expect(screen.getAllByLabelText('Empty Achievement patch spot')).toHaveLength(3);
   });
 
   it('saves the real account appearance and separate avatar only on explicit Save changes', async () => {
@@ -82,7 +82,7 @@ describe('production character profile', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Female' }));
     await act(async () => { client.setQueryData(['profile', 'academy', 'self'], { ...base, characterVersion: 4, honors: base.honors.map(honor => ({ ...honor, earnedAtUtc: '2026-09-13T00:00:00Z' })) }); });
     expect(screen.getByRole('button', { name: 'Female' })).toHaveAttribute('aria-pressed', 'true');
-    await page('Honors');
+    await page('Achievement patches');
     const earned = await openHonorDetail('Full Coverage');
     expect(within(earned).getByRole('button', { name: 'Use Full Coverage as profile image' })).toBeEnabled();
     fireEvent.click(within(earned).getByRole('button', { name: 'Close dialog' }));

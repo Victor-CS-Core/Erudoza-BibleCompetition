@@ -13,7 +13,7 @@ const catalog: MyProfile = { userId: "self", displayName: "Anna Reed", avatarHon
 beforeEach(() => { vi.restoreAllMocks(); });
 async function showHonors() {
   const nav = await screen.findByRole("navigation", { name: "Profile pages" });
-  fireEvent.click(within(nav).getByRole("button", { name: "Honors" }));
+  fireEvent.click(within(nav).getByRole("button", { name: "Achievement patches" }));
 }
 /** Honors are art-first cards now: the details and the "Use as profile image"
  *  action live in the square modal behind the artwork button. */
@@ -179,7 +179,7 @@ describe('profile patch publication refresh',()=>{
   const view=render(<QueryClientProvider client={client}><ToastProvider><ProfilePage/></ToastProvider></QueryClientProvider>);
   try{
    await act(async()=>{await vi.advanceTimersByTimeAsync(500);});
-   fireEvent.click(within(screen.getByRole('navigation',{name:'Profile pages'})).getByRole('button',{name:'Honors'}));
+   fireEvent.click(within(screen.getByRole('navigation',{name:'Profile pages'})).getByRole('button',{name:'Achievement patches'}));
    await act(async()=>{await vi.advanceTimersByTimeAsync(500);});
    fireEvent.click(screen.getByRole('button',{name:'First Rehearsal: view details'}));
    const rehearsalLocked = screen.getByRole('dialog',{name:'First Rehearsal'});

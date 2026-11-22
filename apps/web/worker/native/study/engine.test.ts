@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateActivity, eligibleActivities, chooseActivity, evaluateAnswer, applyMastery, normalizeText, stableSeed, DotNetRandom, evaluateOrderedTokens, toCardDto, scoredSkill, nextReview, type ActivityRequest, type MasteryScores } from './engine';
+import { generateActivity, eligibleActivities, chooseActivity, evaluateAnswer, applyMastery, normalizeText, stableSeed, DotNetRandom, evaluateOrderedTokens, toCardDto, scoredSkill, nextReview, shuffleRandom, type ActivityRequest, type MasteryScores } from './engine';
 const unit = {id:'00112233-4455-6677-8899-aabbccddeeff', citationLabel:'Daniel 1:1', canonicalText:'one two three four five six seven eight nine ten eleven twelve'};
 const zero: MasteryScores = {recognition:0,exactWording:0,reference:0,sequence:0,factualRecall:0,level:'Unseen' as const};
 const exact = {isCorrect:true,score:100};
@@ -19,6 +19,13 @@ describe('C# activity parity',()=>{
  it('normalizes configured punctuation only and preserves word order',()=>{expect(normalizeText(' “Defile”  Himself. ')).toBe('defile himself');expect(evaluateAnswer('himself defile','defile himself').isCorrect).toBe(false);expect(normalizeText('well-being / yes')).toBe('well-being / yes');});
  it('awards skill evidence only and applies difficulty ceilings',()=>{expect(applyMastery(zero,exact,false,'VerseBuilder','OrderedSequence',3).sequence).toBe(18);expect(applyMastery(zero,exact,false,'ReferenceMatch','SelectedChoice',3).reference).toBe(0);expect(applyMastery({...zero,exactWording:39},exact,false,'MissingWords','ExactText',1).exactWording).toBe(40);expect(applyMastery({...zero,exactWording:90},exact,false,'MissingWords','ExactText',1).exactWording).toBe(90);});
  it('names the skill each attempt actually moves',()=>{expect(scoredSkill('MissingWords','ExactText')).toEqual({key:'exactWording',label:'Exact wording'});expect(scoredSkill('ReferenceMatch','ShortFact').key).toBe('reference');expect(scoredSkill('WhatComesNext','ExactText').key).toBe('sequence');expect(scoredSkill('VerseBuilder','OrderedSequence').key).toBe('sequence');expect(scoredSkill('TrueFalse','ShortFact').key).toBe('recognition');expect(scoredSkill('ReferenceMatch','SelectedChoice').key).toBe('recognition');});
+});
+
+describe('practice deck shuffle',()=>{
+ it('is a permutation of the input and does not mutate it',()=>{const input=[1,2,3,4,5,6,7,8];const out=shuffleRandom(input,()=>0.42);expect([...out].sort((a,b)=>a-b)).toEqual(input);expect(input).toEqual([1,2,3,4,5,6,7,8]);expect(out).not.toBe(input);});
+ it('with a zero random source rotates deterministically instead of keeping verse order',()=>{expect(shuffleRandom([1,2,3,4,5,6],()=>0)).toEqual([2,3,4,5,6,1]);});
+ it('with a near-one random source keeps the input order',()=>{expect(shuffleRandom([1,2,3,4,5,6],()=>0.999999)).toEqual([1,2,3,4,5,6]);});
+ it('seeded permutations vary and stay permutations',()=>{let state=12345;const lcg=()=>{state=(Math.imul(state,1103515245)+12345)>>>0;return state/4294967296;};const orders=new Set<string>();for(let n=0;n<12;n++){const out=shuffleRandom([1,2,3,4,5,6],lcg);expect([...out].sort((a,b)=>a-b)).toEqual([1,2,3,4,5,6]);orders.add(out.join(','));}expect(orders.size).toBeGreaterThan(6);});
 });
 
 describe('partial credit, skill-weighted levels, graduated review',()=>{

@@ -5,14 +5,15 @@ it("offers coach management only in coach navigation", () => {
  expect(JSON.stringify(navigation(false))).not.toContain("/admin/coaches");
 });
 
-it("keeps six student destinations with study modes consolidated under Study", () => {
+it("keeps five student destinations with study modes consolidated under Study", () => {
   const items = navigation(false, "season with spaces");
-  expect(items.map(item => item.id)).toEqual(["home", "study", "news", "practice", "progress", "profile"]);
+  expect(items.map(item => item.id)).toEqual(["home", "study", "news", "practice", "profile"]);
   expect(items.find(item => item.id === "study")?.to).toBe("/student/study?seasonId=season%20with%20spaces");
   expect(currentDestination(items, "/student/sessions/saved/recap")?.id).toBe("study");
   // Legacy library/honors routes and every study mode resolve to the consolidated destinations.
   expect(currentDestination(items, "/student/library")?.id).toBe("study");
-  expect(currentDestination(items, "/student/honors")?.id).toBe("progress");
+  expect(currentDestination(items, "/student/honors")?.id).toBe("home");
+  expect(currentDestination(items, "/student/progress")?.id).toBe("home");
   expect(currentDestination(items, "/student/study")?.id).toBe("study");
   expect(navigation(true).some(item => item.id === "honors")).toBe(false);
 });
@@ -24,8 +25,8 @@ it("keeps ten focused coach destinations with five default shortcuts", () => {
   expect(items.some(item => item.id === "wiki")).toBe(false);
   // Students no longer duplicates the Assignments destination as a child link.
   expect(items.find(item => item.id === "students")?.children?.map(child => child.id)).toEqual(["directory", "add-student"]);
-  // Team Practice keeps room and invitation actions; bank, honors and progress are page sections.
-  expect(items.find(item => item.id === "practice")?.children?.map(child => child.id)).toEqual(["rooms", "create-room", "invitations"]);
+  // Team Practice is coach-led now: events and invitations are the coach actions.
+  expect(items.find(item => item.id === "practice")?.children?.map(child => child.id)).toEqual(["events", "create-event", "rooms", "invitations"]);
 });
 
 it("offers the shared Scripture reader in both modes with season context", () => {

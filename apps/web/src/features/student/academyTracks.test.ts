@@ -84,22 +84,22 @@ describe("canStartAcademyTrack", () => {
 
 describe("academyUnavailableCopy", () => {
   it("explains hidden tracks without inventing scores", () => {
-    expect(academyUnavailableCopy("review")).toBe("No passages are due for review.");
+    expect(academyUnavailableCopy("review")).toBe("Nothing is due for review right now.");
     expect(academyUnavailableCopy("review", { seasonStatus: "Draft", reviewDueCount: 2 })).toBe(
-      "Reviews open when this season is Active.",
+      "Review opens once your season starts.",
     );
     expect(academyUnavailableCopy("review", { seasonStatus: "Active", reviewDueCount: 0 })).toBe(
-      "No passages are due for review.",
+      "Nothing is due for review right now.",
     );
-    expect(academyUnavailableCopy("rehearsal")).toBe("Rehearsal opens when this season is Active.");
-    expect(academyUnavailableCopy("learner")).toBe("Learner drill opens when this season is Active.");
+    expect(academyUnavailableCopy("rehearsal")).toBe("Rehearse opens once your season starts.");
+    expect(academyUnavailableCopy("learner")).toBe("Learn opens once your season starts.");
   });
 });
 
 describe("ACADEMY_TRACKS leftover verbs", () => {
   it("names learner and rehearsal copy without practice or simulation", () => {
     expect(ACADEMY_TRACKS.learner.description).toBe(
-      "Drill the assigned passage with memorization games.",
+      "Learn your passage with memory games and drills.",
     );
     expect(ACADEMY_TRACKS.rehearsal.description).toBe(
       "Run a PBE-style rehearsal from the assigned Scripture.",
@@ -112,7 +112,7 @@ describe("ACADEMY_TRACKS leftover verbs", () => {
 
 describe("academyActivityName", () => {
   it("names existing study activities from the games spec", () => {
-    expect(academyActivityName("MissingWords")).toBe("Missing Words");
+    expect(academyActivityName("MissingWords")).toBe("Fill in the Blank");
     expect(academyActivityName("VerseBuilder")).toBe("Verse Builder");
     expect(academyActivityName("ReferenceMatch")).toBe("Reference Match");
     expect(academyActivityName("WhatComesNext")).toBe("What Comes Next");
@@ -179,13 +179,13 @@ describe("resolveStudyFormat", () => {
 
 describe("academyModeRules", () => {
   it("lists Learn aids per format", () => {
-    expect(academyModeRules("learner", "Pbe")).toEqual(["Read source with assistance", "Immediate feedback", "Untimed"]);
+    expect(academyModeRules("learner", "Pbe")).toEqual(["Reader help allowed", "Feedback right away", "Untimed"]);
     expect(academyModeRules("learner", "Memory")).toEqual(["Multiple choice", "Scripture reader", "Recitation panel"]);
   });
 
   it("keeps Review untimed with immediate feedback and no source aid in PBE", () => {
-    expect(academyModeRules("review", "Pbe")).toContain("No source aid in Review");
-    expect(academyModeRules("review", "Memory")).toEqual(["Due passages only", "Immediate feedback", "Untimed"]);
+    expect(academyModeRules("review", "Pbe")).toContain("No reader help");
+    expect(academyModeRules("review", "Memory")).toEqual(["Due passages only", "Feedback right away", "Untimed"]);
   });
 
   it("describes Rehearse as exam conditions", () => {

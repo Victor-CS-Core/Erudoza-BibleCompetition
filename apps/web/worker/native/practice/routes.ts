@@ -7,6 +7,7 @@ import {makeRoom} from './state';
 import {selectPbeRoomBank} from './pbe-material';
 import type {SimulationSettings} from './simulation';
 import {pbeRoutes} from "../pbe/routes";
+import {practiceEventRoutes} from "./events";
 import type {RequestContext} from "../types";
 import {body,HttpError,json} from "../types";
 import {questionRoutes,setEnabled,enabled,isLegacyQuestion} from "./questions";
@@ -34,6 +35,7 @@ export async function handlePractice(ctx:RequestContext):Promise<Response|null>{
   return json({simulationAchievements:simulationAchievements(reviewed,ctx.orgId,ctx.actor.userId,[...new Set(memberships.map(m=>m.seasonId))].filter(id=>!new URL(ctx.request.url).searchParams.has('seasonId')||new URL(ctx.request.url).searchParams.get('seasonId')===id)).map(a=>({...a,earnedAtUtc:a.earnedAtUtc?(simulationUnlocks.find(u=>u.value.key===a.key&&u.value.userId===ctx.actor.userId&&u.value.ruleVersion==='simulation-v1')?.value.earnedAtUtc??a.earnedAtUtc):null})),enabled:true,seasons:seasons.filter(s=>s.status==="Active"),players:players.results,rooms:rooms.map(({invitations:_inv,memberIds:_ids,...summary})=>{void _inv;void _ids;return summary;}),invitations:rooms.flatMap(r=>r.invitations.filter(i=>i.userId===ctx.actor.userId&&!i.accepted&&Date.parse(i.expiresAt)>Date.now()).map(i=>({...i,teamCount:r.teamCount??2}))),achievements:awards,questions:questions.filter(r=>isLegacyQuestion(r.question)),trends:trends(reviewed,ctx.actor.userId)});
  }
  await enabled(ctx);
+ const events=await practiceEventRoutes(ctx);if(events)return events;
  if(ctx.path==='/practice/simulation/material'&&ctx.request.method==='GET'){
   const materialUrl=new URL(ctx.request.url),seasonId=materialUrl.searchParams.get('seasonId')??'',roomId=materialUrl.searchParams.get('roomId');
   if(roomId){if(!/^[a-f0-9-]{36}$/i.test(roomId))throw new HttpError(400,'Choose a valid room.');if(!ctx.env.ROOMS)throw new HttpError(503,'Room storage is not configured.');materialUrl.pathname=`/api/v1/organizations/${ctx.orgId}/practice/rooms/${roomId}/simulation-material`;return ctx.env.ROOMS.getByName(`${ctx.orgId}:${roomId}`).fetch(new Request(materialUrl,{headers:ctx.request.headers}) as never) as unknown as Promise<Response>;}
@@ -48,11 +50,18 @@ export async function handlePractice(ctx:RequestContext):Promise<Response|null>{
  if(ctx.path==='/practice/simulation/availability'&&ctx.request.method==='POST'){
   const input=await body<{seasonId:string;questionCount:number;teamSize:number;simulation:SimulationSettings;roomId?:string}>(ctx.request,16384);
   if(input.roomId){if(!/^[a-f0-9-]{36}$/i.test(input.roomId))throw new HttpError(400,'Choose a valid room.');if(!ctx.env.ROOMS)throw new HttpError(503,'Room storage is not configured.');const url=new URL(ctx.request.url);url.pathname=`/api/v1/organizations/${ctx.orgId}/practice/rooms/${input.roomId}/simulation-availability`;return ctx.env.ROOMS.getByName(`${ctx.orgId}:${input.roomId}`).fetch(new Request(url,{method:'POST',headers:ctx.request.headers,body:JSON.stringify(input)}) as never) as unknown as Promise<Response>;}
+  // Availability without a room is a creation pre-check: coaches only, like
+  // room creation itself. (With a roomId it previews an existing room and is
+  // participant-checked inside the room object above.)
+  if(!(ctx.actor.kind==="Adult"&&["Owner","Admin"].includes(ctx.actor.role)))throw new HttpError(403,"Only a coach can create team practice events.");
   const room=makeRoom(crypto.randomUUID(),ctx.actor,{...input,format:'Pbe',teamCount:1},'estimate',Date.now());if(!room.simulation)throw new HttpError(400,'Provide simulation settings.');return json(await selectPbeRoomBank(ctx,room,true));
  }
  const questions=await questionRoutes(ctx);if(questions)return questions;
  if(!ctx.env.ROOMS)throw new HttpError(503,"Room storage is not configured.");
  if(ctx.path==="/practice/rooms"&&ctx.request.method==="POST"){
+  // Rooms are created by coaches (directly or, normally, by opening a team
+  // practice event). Students join assigned events; they cannot create rooms.
+  if(!(ctx.actor.kind==="Adult"&&["Owner","Admin"].includes(ctx.actor.role)))throw new HttpError(403,"Only a coach can create team practice events.");
   const id=crypto.randomUUID(),url=new URL(ctx.request.url);url.pathname+=`/${id}`;return ctx.env.ROOMS.getByName(`${ctx.orgId}:${id}`).fetch(new Request(url,ctx.request) as never) as unknown as Promise<Response>;
  }
  const accept=ctx.path.match(/^\/practice\/invitations\/([^/]+)\/accept$/);

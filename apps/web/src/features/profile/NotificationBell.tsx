@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { AppIcon } from "../../components/AppIcon";
 import { Button } from "../../components/ui";
@@ -58,7 +59,7 @@ export function NotificationBell() {
         : list.isError ? <p className="command-bell-empty">Could not load notifications. <Button variant="secondary" size="compact" onClick={() => void list.refetch()}>Retry</Button></p>
         : !notifications.length ? <p className="command-bell-empty">You're all caught up.</p>
         : <ul className="command-bell-list">{notifications.map(item => <li key={item.id} className={item.readAtUtc ? "is-read" : "is-unread"}>
-          <p>{item.summary}</p>
+          {item.type === "team-practice" && item.eventId ? <p><Link to={`/student/practice#event-${item.eventId}`} onClick={() => setOpen(false)}>{item.summary}</Link></p> : <p>{item.summary}</p>}
           <small>{item.seasonName} · {timeAgo(item.createdAtUtc)}</small>
         </li>)}</ul>}
     </div>}

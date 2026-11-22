@@ -21,8 +21,10 @@ const NewsPage = lazy(() => import("../features/news/NewsPage").then(m => ({ def
 const PrivacyPage = lazy(() => import("../features/legal/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("../features/legal/TermsPage").then(m => ({ default: m.TermsPage })));
 const ProgressPage = lazy(() => import("../features/student/ProgressPage").then(m => ({ default: m.ProgressPage })));
+const HonorsPage = lazy(() => import("../features/student/HonorsPage").then(m => ({ default: m.HonorsPage })));
 const MyAssignmentsPage = lazy(() => import("../features/student/MyAssignmentsPage").then(m => ({ default: m.MyAssignmentsPage })));
 const StudentHomePage = lazy(() => import("../features/student/StudentHomePage").then(m => ({ default: m.StudentHomePage })));
+const SeasonLeaderboardPage = lazy(() => import("../features/student/SeasonLeaderboardPage").then(m => ({ default: m.SeasonLeaderboardPage })));
 const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then(m => ({ default: m.ProfilePage })));
 const SessionRecapPage = lazy(() => import("../features/student/SessionRecapPage").then(m => ({ default: m.SessionRecapPage })));
 const RoomRecapPage = lazy(() => import("../features/practice/RoomRecapPage").then(m => ({ default: m.RoomRecapPage })));
@@ -88,11 +90,15 @@ function LibraryRedirect() {
   return <Navigate to={`/student/study?mode=Library${seasonId ? `&seasonId=${encodeURIComponent(seasonId)}` : ""}`} replace />;
 }
 
-/** Legacy /student/honors now lives as a tab inside Progress. */
-function HonorsRedirect() {
+/** The standalone student Progress page was retired (2026-11-21): its contents
+ *  live on Training HQ. Old /student/progress links land on HQ, and the old
+ *  honors tab link lands on the standalone Honors page. */
+export function ProgressRedirect() {
   const [params] = useSearchParams();
   const seasonId = params.get("seasonId");
-  return <Navigate to={`/student/progress?tab=honors${seasonId ? `&seasonId=${encodeURIComponent(seasonId)}` : ""}`} replace />;
+  const query = seasonId ? `?seasonId=${encodeURIComponent(seasonId)}` : "";
+  if (params.get("tab") === "honors") return <Navigate to={`/student/honors${query}`} replace />;
+  return <Navigate to={`/student${query}`} replace />;
 }
 
 export const router = createBrowserRouter([
@@ -143,14 +149,15 @@ export const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <LazyPage label="Loading home…"><StudentHomePage /></LazyPage> },
+      { path: "leaderboard", element: <LazyPage label="Loading leaderboard…"><SeasonLeaderboardPage /></LazyPage> },
       { path: "assignments", element: <LazyPage label="Loading assignments…"><MyAssignmentsPage /></LazyPage> },
       { path: "news", element: <LazyPage label="Loading news…"><NewsPage base="/student/news" /></LazyPage> },
       { path: "news/:id", element: <LazyPage label="Loading news…"><NewsPage base="/student/news" /></LazyPage> },
       { path: "library", element: <LibraryRedirect /> },
       { path: "study", element: <LazyPage label="Loading study…"><StudyPage /></LazyPage> },
       { path: "sessions/:sessionId/recap", element: <LazyPage label="Loading recap…"><SessionRecapPage /></LazyPage> },
-      { path: "honors", element: <HonorsRedirect /> },
-      { path: "progress", element: <LazyPage label="Loading progress…"><ProgressPage /></LazyPage> },
+      { path: "honors", element: <LazyPage label="Loading achievement patches…"><HonorsPage /></LazyPage> },
+      { path: "progress", element: <ProgressRedirect /> },
       { path: "profile", element: <LazyPage label="Loading profile…"><ProfilePage /></LazyPage> },
       { path: "practice", element: <PracticeRoute /> },
       { path: "practice/:roomId", element: <PracticeRoute /> },

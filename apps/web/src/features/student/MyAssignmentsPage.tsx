@@ -26,7 +26,7 @@ export function MyAssignmentsPage() {
     {seasons.isError && <Notice tone="danger">Unable to load seasons. <Button onClick={() => void seasons.refetch()}>Try again</Button></Notice>}
     {!!seasons.data?.length && <label>Season<Select disabled={busy} value={season?.id ?? ""} onChange={event => { if (dirty) setPendingSeason(event.target.value); else setParams({ seasonId: event.target.value }); }}>{!season && <option value="">Choose a season</option>}{seasons.data.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></label>}
     {seasons.data?.length === 0 && <Panel><p>No seasons are available. Set up a season in Coach mode, then return here to choose your passages.</p></Panel>}
-    {!!seasons.data?.length && requested && !season && <Notice tone="danger">This season is unavailable. Choose another season.</Notice>}
+    {!!seasons.data?.length && requested && !season && <Notice tone="danger">That season is not available anymore. Pick another one.</Notice>}
     {season && <Panel><BookAssignmentEditor key={season.id} season={season} studentId={me!.userId} name="My study books" showTrainingLink={false} onDirtyChange={setDirty} /></Panel>}
     {pendingSeason && <ConfirmationDialog title="Discard unsaved assignments?" description="Saved assignments are preserved. Unsaved book choices will be cleared." confirmLabel="Discard changes" onCancel={() => setPendingSeason(null)} onConfirm={() => { setDirty(false); setParams({ seasonId: pendingSeason }); setPendingSeason(null); }} />}
   </div>;

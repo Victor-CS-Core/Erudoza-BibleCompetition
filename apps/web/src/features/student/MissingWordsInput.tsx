@@ -22,7 +22,7 @@ export function MissingWordsInput({ tokens, values, onChange, disabled, results 
     .filter((ordinal): ordinal is number => ordinal !== undefined);
 
   return <>
-    <div ref={passage} className="er-scripture" aria-label="Passage with missing words" role="group"
+    <div ref={passage} className="er-scripture" aria-label="Fill-in-the-blank passage" role="group"
       style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', minWidth: 0, width: '100%', overflowWrap: 'anywhere' }}>
       {tokens.map(token => {
         if (!token.hidden) return <span key={token.index}>{token.display}</span>;

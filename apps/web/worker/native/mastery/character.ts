@@ -16,8 +16,8 @@ export const SET_TWO_STYLES = ['buzz', 'waves', 'locs', 'braids', 'natural-curls
 export const COSMETIC_REQUIREMENTS: Record<string, string> = {
   'background:starlight': 'Reach a 7-day practice streak',
   ...Object.fromEntries(SET_TWO_STYLES.map(s => [`style:${s}`, 'Reach level 4 (Keeper)'])),
-  'sash:2': 'Earn any Team Practice Honor',
-  'sash:3': 'Earn any Simulation Honor',
+  'sash:2': 'Earn any Team Practice Achievement patch',
+  'sash:3': 'Earn any Simulation Achievement patch',
 };
 /** Cosmetic IDs selected by a character config (sash entries only when filled). */
 export function cosmeticIdsFor(config: Pick<CharacterConfig, 'background' | 'hairColor' | 'style' | 'slots'>): string[] {
@@ -60,9 +60,9 @@ export function validateCharacterSave(value: unknown, earned: ReadonlySet<string
   const config = character(value.character), options = shareOptions(value.shareOptions);
   if (!Number.isSafeInteger(value.version) || ((value.version as number) < 0 || (value.version as number) >= Number.MAX_SAFE_INTEGER) || !config || !options || !oneOf(value.avatarKind, ['initials', 'honor', 'character']) || (value.avatarHonorKey !== null && !isHonorKey(value.avatarHonorKey)) || (value.avatarKind === 'honor' && value.avatarHonorKey === null) || !Array.isArray(value.sharePatches) || value.sharePatches.length > honorCatalog.length) throw new HttpError(400, 'Choose valid character, avatar and sharing options.');
   const patches = value.sharePatches.map(placement);
-  if (patches.some(p => !p) || new Set(patches.map(p => p!.key)).size !== patches.length) throw new HttpError(400, 'Choose distinct Honors and valid patch positions.');
+  if (patches.some(p => !p) || new Set(patches.map(p => p!.key)).size !== patches.length) throw new HttpError(400, 'Choose distinct Achievement patches and valid patch positions.');
   if (config.attire === 'coach' && !canUseMasterGuide) throw new HttpError(403, 'Master Guide attire is available to coaches.');
-  if ([value.avatarHonorKey, ...config.slots, ...patches.map(p => p!.key)].some(key => key !== null && !earned.has(key))) throw new HttpError(403, 'Earn each Honor before using it in your profile.');
+  if ([value.avatarHonorKey, ...config.slots, ...patches.map(p => p!.key)].some(key => key !== null && !earned.has(key))) throw new HttpError(403, 'Earn each Achievement patch before using it in your profile.');
   assertCosmeticsUnlocked(config, unlockedCosmetics);
   return { version: value.version as number, character: config, avatarKind: value.avatarKind, avatarHonorKey: value.avatarHonorKey, shareOptions: options, sharePatches: patches as SharePlacement[] };
 }

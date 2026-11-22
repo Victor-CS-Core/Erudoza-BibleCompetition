@@ -78,13 +78,11 @@ export function StudyModeSelect() {
       </Notice>
     );
 
-  const seasonName = progress.data?.seasonName;
-
   return (
     <div className="er-study-select space-y-5">
       <PageHeader
         title="Choose your training"
-        description="One destination, three clear purposes: learn the passage, protect what you know, or rehearse under competition conditions."
+        description="Three ways to train: learn a passage, keep it fresh, or rehearse like the real competition."
       />
 
       {gameLayer && (
@@ -118,7 +116,7 @@ export function StudyModeSelect() {
       <section aria-label="Training format" className="study-format">
         <div>
           <p className="study-format-label">Training format</p>
-          <p className="study-format-hint">Your active season chooses the default; you can switch here.</p>
+          <p className="study-format-hint">Your season sets the default — switch anytime.</p>
         </div>
         <div className="study-format-segment" role="group" aria-label="Training format">
           <button
@@ -155,16 +153,6 @@ export function StudyModeSelect() {
               : card.track === "learner"
                 ? "Aids on"
                 : "Exam mode";
-          const stateLine =
-            card.track === "review"
-              ? reviewDueCount && reviewDueCount > 0
-                ? `${reviewDueCount} passage${reviewDueCount === 1 ? "" : "s"} due for another pass`
-                : "No passages are due for review."
-              : card.track === "learner"
-                ? seasonName
-                  ? `Season: ${seasonName}`
-                  : "Today's assigned passage"
-                : "Ready when you are";
           return (
             <Panel key={card.track} className={`study-mode-card study-mode-card--${card.track}`}>
               <div className="study-mode-card-head">
@@ -182,7 +170,6 @@ export function StudyModeSelect() {
                   <li key={rule}>{rule}</li>
                 ))}
               </ul>
-              <p className="study-mode-card-state">{stateLine}</p>
               {canStart ? (
                 <LinkButton to={modeHref(seasonId, format, card)} data-testid={card.ctaTestId}>
                   {card.ctaLabel}
@@ -204,30 +191,12 @@ export function StudyModeSelect() {
 
       <p className="study-library-link">
         <Link to={libraryHref}>Browse the Scripture library</Link>
-        <span>Read and explore the source text — the library is unchanged.</span>
+        <span>Just read and explore — no session, no score.</span>
       </p>
 
-      <section className="study-why" aria-labelledby="study-which-heading">
-        <h2 id="study-which-heading">Which mode should I pick?</h2>
-        <ul className="study-why-list">
-          <li>
-            <strong>Learn</strong> — use it when a passage is new. All aids are available, nothing is timed, and
-            feedback is immediate.
-          </li>
-          <li>
-            <strong>Review</strong> — use it when passages come due. It shows only what needs review and explains
-            why it returned.
-          </li>
-          <li>
-            <strong>Rehearse</strong> — use it when you want competition conditions. Memory removes the aids; PBE
-            runs a shortened timed round and waits until the end to show feedback.
-          </li>
-        </ul>
-        <p>Reading in the Scripture Library never starts a session and is never scored.</p>
-        <p>
-          <Link to="/help#wiki-study-and-practice">More detail in the Help Center</Link>
-        </p>
-      </section>
+      <p className="study-why-more">
+        Not sure which to pick? <Link to="/help#wiki-study-and-practice">See how each mode works in the Help Center</Link>
+      </p>
     </div>
   );
 }

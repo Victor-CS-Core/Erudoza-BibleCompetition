@@ -52,10 +52,10 @@ export async function storageFixture(parts:number,aliases:number,aliasLength:num
  }
  const measurements:{path:string;operation:string;statements:number;bindingCalls:number;elapsedMs:number}[]=[];
  const call=async(n:number,path:string,data?:unknown,headers:Record<string,string>={})=>{meters.length=0;const start=performance.now();const response=await app.fetch(path.startsWith('/pbe/')?'/api/v1'+path:base+path,{method:data===undefined?'GET':'POST',headers:{Cookie:n===-1?coachCookie:players[n].cookie,Origin:'https://erudoza.test',...headers},body:data===undefined?undefined:JSON.stringify(data)});const sum=meters.reduce((a,b)=>({statements:a.statements+b.statements,bindingCalls:a.bindingCalls+b.bindingCalls}),{statements:0,bindingCalls:0});measurements.push({path,operation:(data as {action?:string}|undefined)?.action??(headers['x-test-room-alarm']?'alarm':path.includes('/pbe/')?'dispute':path.endsWith('/bootstrap')?'bootstrap':path.endsWith('/accept')?'accept':data?'create':'read'),...sum,elapsedMs:performance.now()-start});expect(sum.statements,path).toBeLessThanOrEqual(50);return response;};
- const created=await call(0,'/rooms',{seasonId:season,teamSize:6,teamCount:teams,questionCount:90,format:'Pbe'});expect(created.status,await created.clone().text()).toBe(200);let room=await created.json() as PracticeRoom;
+ const created=await call(-1,'/rooms',{seasonId:season,teamSize:6,teamCount:teams,questionCount:90,format:'Pbe'});expect(created.status,await created.clone().text()).toBe(200);let room=await created.json() as PracticeRoom;
  const command=async(n:number,action:string,extra:Record<string,unknown>={})=>{const input={commandId:crypto.randomUUID(),revision:room.revision,action,...extra};const response=await call(n,`/rooms/${room.id}/commands`,input);expect(response.status,`${action}: ${await response.clone().text()}`).toBe(200);room=await response.json() as PracticeRoom;return {response,input};};
- for(let n=1;n<players.length;n++){
-  await command(0,'invite',{targetUserId:players[n].userId,team:Math.floor(n/6)+1});
+ for(let n=0;n<players.length;n++){
+  await command(-1,'invite',{targetUserId:players[n].userId,team:Math.floor(n/6)+1});
   const inbox=await (await call(n,'/bootstrap')).json() as PracticeBootstrap;
   const invitation=inbox.invitations.find(i=>i.roomId===room.id);expect(invitation).toBeDefined();
   const response=await call(n,`/invitations/${invitation!.id}/accept`,{team:Math.floor(n/6)+1});expect(response.status,await response.clone().text()).toBe(200);room=await response.json() as PracticeRoom;

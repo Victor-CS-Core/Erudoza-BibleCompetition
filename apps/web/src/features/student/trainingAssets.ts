@@ -5,15 +5,15 @@ export const honorAsset = (key: BadgeKey) => key.startsWith("streak-")
   ? { src: `/assets/training/${key}.svg` }
   : asset(key, 160, 320);
 export const honorCriteria: Record<BadgeKey, string> = {
-  "exact-recall": "Reach an exact wording score of 80 in 5 distinct eligible passages. Requires Advanced practice; Foundation and Standard wording scores are capped at 40 and 70.",
-  "reference-ready": "Reach a reference score of 70 in 10 distinct eligible passages with written reference evidence. Selected choices do not earn reference evidence.",
-  "chapter-strong": "Bring every eligible assigned verse in one chapter to Strong or Mastered. This covers your assigned verses, not necessarily the whole chapter.",
-  "review-complete": "Make an accepted attempt for every passage in one nonempty daily review set. Incorrect answers still need review.",
-  "steady-study": "Meet your saved weekly practice goal in 4 recorded weeks. The weeks do not need to be consecutive; practice across seasons in this academy counts.",
-  "full-coverage": "Make an accepted attempt for every eligible passage in an assigned season scope. Participation counts separately from mastery.",
-  "streak-7": "Practice on 7 days in a row (one missed day only pauses the streak). Earned at the moment your current streak reaches 7 days.",
-  "streak-14": "Practice on 14 days in a row (one missed day only pauses the streak). Earned at the moment your current streak reaches 14 days.",
-  "streak-30": "Practice on 30 days in a row (one missed day only pauses the streak). Earned at the moment your current streak reaches 30 days.",
+  "exact-recall": "Get a wording score of 80 or more on 5 different passages. You'll need Advanced practice for this — Foundation caps wording scores at 40 and Standard at 70.",
+  "reference-ready": "Get a reference score of 70 or more on 10 different passages by typing the reference yourself. Picking from choices doesn't count for this one.",
+  "chapter-strong": "Get every verse your coach assigned in one chapter up to Strong or Mastered. That's your assigned verses — not always the whole chapter.",
+  "review-complete": "Answer every passage in one day's review set. Wrong answers still count — they'll just come back for more review.",
+  "steady-study": "Hit your weekly practice goal in 4 different weeks. They don't have to be in a row, and practice from any season counts.",
+  "full-coverage": "Try every passage in your season's assignment at least once. This one is about covering all of it — mastery is tracked separately.",
+  "streak-7": "Practice 7 days in a row. Miss a day and your streak pauses instead of ending. You earn this the day your streak reaches 7.",
+  "streak-14": "Practice 14 days in a row. Miss a day and your streak pauses instead of ending. You earn this the day your streak reaches 14.",
+  "streak-30": "Practice 30 days in a row. Miss a day and your streak pauses instead of ending. You earn this the day your streak reaches 30.",
 };
 export const trainingLink = (path: string, seasonId?: string | null) => seasonId ? `${path}${path.includes("?") ? "&" : "?"}seasonId=${encodeURIComponent(seasonId)}` : path;
 export const evidenceDate = (date: string, timeZone?: string) => new Date(date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric", ...(timeZone ? { timeZone } : {}) });

@@ -31,7 +31,7 @@ export function PbeChapterProgress({ progress, onAction, onOpenGroups }: {
         <div><dt>Due or repair</dt><dd>{counts.dueTargets}</dd></div>
       </dl>
     </> : <p>No eligible targets yet</p>}
-    {counts.missingVariantTargets > 0 && <p><small>{counts.missingVariantTargets} {counts.missingVariantTargets === 1 ? 'target needs' : 'targets need'} another current recall-question variant before retention can be established.</small></p>}
+    {counts.missingVariantTargets > 0 && <p><small>{counts.missingVariantTargets} {counts.missingVariantTargets === 1 ? 'target needs' : 'targets need'} one more recall question before they count as remembered for good.</small></p>}
     {progress.stamp && <div className="pbe-chapter-stamp" data-testid="chapter-stamp">
       <Badge tone="success">Dated stamp</Badge>
       <strong>{progress.stamp.label}</strong>
@@ -39,7 +39,7 @@ export function PbeChapterProgress({ progress, onAction, onOpenGroups }: {
       <time dateTime={progress.stamp.earnedAtUtc}>{evidenceDate(progress.stamp.earnedAtUtc)}</time>
       {progress.stamp.matchesCurrentScope === false && <small>Earned for an earlier assigned scope.</small>}
     </div>}
-    {progress.hasHistoricalStamps && !progress.stamp && <p><small>A dated stamp exists for an earlier assignment or rule. See stamp history for its saved scope.</small></p>}
+    {progress.hasHistoricalStamps && !progress.stamp && <p><small>You earned a stamp for an earlier assignment. See stamp history for the details.</small></p>}
     <div className="training-controls">
       {progress.actions.map(action => <Button key={`${action.mode}:${action.progressScope.key}`} variant={action.mode === 'Practice' ? 'primary' : 'secondary'} onClick={() => onAction(action)}>{action.label}</Button>)}
       {progress.kind === 'Chapter' && onOpenGroups && <Button variant="ghost" onClick={() => onOpenGroups(progress.key)}>View passage groups</Button>}

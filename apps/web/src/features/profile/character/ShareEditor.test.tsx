@@ -25,7 +25,6 @@ function renderEditor() {
     setHistory={() => {}}
     options={defaultShareOptions}
     setOptions={() => {}}
-    onBackground={() => {}}
     onEdit={() => {}}
     onBrowseHonors={onBrowseHonors}
     onError={() => {}}
@@ -33,11 +32,11 @@ function renderEditor() {
   return { onBrowseHonors };
 }
 
-it('shows a real empty state with a Browse Honors action when no patch is selected', () => {
+it('shows a real empty state with a Browse Achievement patches action when no patch is selected', () => {
   const { onBrowseHonors } = renderEditor();
   expect(screen.getByRole('heading', { name: 'No patches yet' })).toBeInTheDocument();
-  expect(screen.getByText('Earn Honors in training to unlock patches for your share card.')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('button', { name: 'Browse Honors' }));
+  expect(screen.getByText('Earn Achievement patches in training to unlock them for your share card.')).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Browse Achievement patches' }));
   expect(onBrowseHonors).toHaveBeenCalledTimes(1);
   expect(screen.queryByText('Add a patch or select one on your card to resize, rotate or layer it.')).not.toBeInTheDocument();
 });

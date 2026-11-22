@@ -21,6 +21,6 @@ export function AnimatedCharacterView({config,onError,onActivate}:{config:Config
   return ()=>{active=false;stop?.();};
  },[key]);
  const hairstyle=hairStyles[config.bodyType].find(h=>h.key===config.style)?.name;
- const label=`Animated preview of your ${config.bodyType} Pathfinder: ${config.hairColor} hair, ${hairstyle}, ${config.skin} skin, ${config.eyes} eyes, sash with ${config.slots.filter(Boolean).length} of 3 Honors`;
+ const label=`Animated preview of your ${config.bodyType} Pathfinder: ${config.hairColor} hair, ${hairstyle}, ${config.skin} skin, ${config.eyes} eyes, sash with ${config.slots.filter(Boolean).length} of 3 Achievement patches`;
  return <CharacterStage background={config.background} wrapRef={parallax.wrapRef} fillRef={parallax.fillRef} onActivate={onActivate}><canvas ref={setCanvas} width={1536} height={1536} className="character-canvas" role="img" aria-label={label} aria-busy={!ready} data-ready={ready}>{label}</canvas></CharacterStage>;
 }

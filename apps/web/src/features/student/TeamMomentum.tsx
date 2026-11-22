@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../auth/AuthContext";
 import { api } from "../../api/client";
-import { Badge, Button, LoadingState, Notice, Panel } from "../../components/ui";
+import { Badge, Button, LinkButton, LoadingState, Notice, Panel } from "../../components/ui";
 import { AppIcon } from "../../components/AppIcon";
+import { trainingLink } from "./trainingAssets";
 import type { LeaderboardResponse } from "../../api/types";
 
 /**
@@ -56,7 +57,7 @@ function useOptInMutation() {
 function OptInPrompt() {
   const optIn = useOptInMutation();
   return <div className="leaderboard-optin">
-    <p>See how your team’s week is going. Only first names show — joining is your choice, and you can hide yourself anytime.</p>
+    <p>See how your team’s week is going. Names show as first name + last initial — joining is your choice, and you can hide yourself anytime.</p>
     <Button onClick={() => optIn.mutate(true)} disabled={optIn.isPending}>{optIn.isPending ? "Joining…" : "Show me on the team board"}</Button>
     {optIn.isError && <Notice tone="danger">Couldn’t update your choice. Try again.</Notice>}
   </div>;
@@ -74,19 +75,22 @@ function BoardRows({ board }: { board: LeaderboardResponse }) {
   </ol>;
 }
 
-export function LeaderboardCard() {
+export function LeaderboardCard({ seasonId }: { seasonId?: string | null } = {}) {
   const board = useLeaderboard();
   const optIn = useOptInMutation();
+  const fullBoard = seasonId ? <LinkButton variant="ghost" size="compact" to={trainingLink("/student/leaderboard", seasonId)}>See full board<AppIcon name="arrow" /></LinkButton> : null;
   return <Panel className="leaderboard-card" data-testid="leaderboard-card">
     <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="chart" /><h2>Team leaderboard</h2></div>{board.data && <Badge tone="neutral">This week</Badge>}</div>
     {board.isPending ? <LoadingState label="Loading the leaderboard…" /> : board.isError || !board.data ? <Notice tone="danger">The leaderboard couldn’t load. <Button variant="secondary" size="compact" onClick={() => void board.refetch()}>Try again</Button></Notice> :
       board.data.me === null ? <>
         {/* Coach view: full board, full names. */}
         {board.data.entries.length === 0 ? <p>No practice recorded this week yet.</p> : <BoardRows board={board.data} />}
+        {fullBoard}
       </> : !board.data.me.optedIn ? <OptInPrompt /> : <>
         {board.data.entries.length === 0 ? <p>No teammates have joined the board yet — you’re first.</p> : <BoardRows board={board.data} />}
         {board.data.me.rank !== null && board.data.me.rank > 5 && <p className="leaderboard-own-rank">You’re <strong>#{board.data.me.rank}</strong> with {board.data.me.xp} XP this week.</p>}
         {board.data.me.rank === null && <p className="leaderboard-own-rank">You have {board.data.me.xp} XP this week.</p>}
+        {fullBoard}
         <Button variant="ghost" size="compact" onClick={() => optIn.mutate(false)} disabled={optIn.isPending}>{optIn.isPending ? "Updating…" : "Hide me from the board"}</Button>
         {optIn.isError && <Notice tone="danger">Couldn’t update your choice. Try again.</Notice>}
       </>}

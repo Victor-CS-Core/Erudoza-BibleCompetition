@@ -115,7 +115,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     renderStudy("/student/study?mode=Practice&format=Memory");
     fireEvent.click(await screen.findByRole("button",{name:"Start Advanced mastery challenge"}));
     await waitFor(()=>expect(api.startSession).toHaveBeenCalledWith("season-1","Practice",expect.any(Object),"Memory","Advanced"));
-    expect(await screen.findByText("Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.")).toBeInTheDocument();
+    expect(screen.queryByText("Memory activities are study aids. Verse Builder practices sequence, not exact-word recall.")).not.toBeInTheDocument();
     fireEvent.click(screen.getByText("Optional full-verse recitation"));
     expect(screen.getByLabelText("Your private recitation practice")).toBeInTheDocument();
   });
@@ -124,7 +124,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     renderStudy("/student/study?mode=Review");
 
     expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent(
-      "No passages are due for review.",
+      "Nothing is due for review right now.",
     );
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Due review");
     expect(api.startSession).not.toHaveBeenCalled();
@@ -143,7 +143,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     vi.mocked(api.startSession).mockRejectedValueOnce(new Error("offline"));
     const router = renderStudy("/student/study?mode=Practice&startId=retry-intent&step=Practice");
     fireEvent.click(await screen.findByRole("button", { name: "Try again" }));
-    await screen.findByRole("group",{name:"Passage with missing words"});
+    await screen.findByRole("group",{name:"Fill-in-the-blank passage"});
     await waitFor(() => expect(router.state.location.search).toContain("sessionId=session-1"));
     const calls = vi.mocked(api.startSession).mock.calls;
     expect(calls).toHaveLength(2);
@@ -156,7 +156,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     renderStudy("/student/study?mode=Review");
 
     expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent(
-      "Reviews open when this season is Active.",
+      "Review opens once your season starts.",
     );
     expect(screen.getByTestId("study-page-title")).toBeInTheDocument();
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Due review");
@@ -184,7 +184,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     renderStudy("/student/study?mode=Practice");
 
     expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent(
-      "Learner drill opens when this season is Active.",
+      "Learn opens once your season starts.",
     );
     expect(screen.getByTestId("study-page-title")).toBeInTheDocument();
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Learner drill");
@@ -197,7 +197,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     renderStudy("/student/study?mode=Simulation");
 
     expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent(
-      "Rehearsal opens when this season is Active.",
+      "Rehearse opens once your season starts.",
     );
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Rehearsal");
     expect(api.startSession).not.toHaveBeenCalled();
@@ -229,8 +229,10 @@ describe("StudyPage Field Guide Academy honesty", () => {
     renderStudy("/student/study?mode=Practice");
 
     expect(await screen.findByTestId("study-page-title")).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: "Missing Words" })).toBeInTheDocument();
-    await waitFor(() => expect(screen.getByTestId("current-season")).toHaveTextContent("Daniel 2026"));
+    expect(await screen.findByRole("heading", { name: "Fill in the Blank" })).toBeInTheDocument();
+    // Season details stay off the activity screen (Task B): no season name in the header.
+    expect(screen.queryByTestId("current-season")).not.toBeInTheDocument();
+    expect(screen.queryByText("Daniel 2026")).not.toBeInTheDocument();
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Learner drill");
     expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
@@ -253,22 +255,26 @@ describe("StudyPage Field Guide Academy honesty", () => {
     });
     renderStudy("/student/study?mode=Practice");
 
-    await waitFor(() => expect(screen.getByTestId("academy-activity-name")).toHaveTextContent("Verse Builder"));
+    // The activity name lives in the page heading only (not repeated in the card header).
+    expect(await screen.findByRole("heading", { name: "Verse Builder" })).toBeInTheDocument();
     expect(screen.getByTestId("challenge-prompt")).toHaveTextContent("Build the verse");
     expect(screen.getByTestId("challenge-prompt").tagName).toBe("H2");
     expect(screen.getByTestId("challenge-card")).toHaveTextContent("Daniel 1:2");
-    expect(screen.getByTestId("academy-activity-name")).not.toHaveTextContent("VerseBuilder");
+    expect(screen.queryByTestId("academy-activity-name")).not.toBeInTheDocument();
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith("season-1", "Practice", expect.objectContaining({ clientStartId: expect.any(String), timeZone: expect.any(String) })));
   });
 
-  it("keeps season context in a focused study header", async () => {
+  it("keeps season details off the activity screen", async () => {
     vi.mocked(api.progress).mockResolvedValue(
       progress({ seasonStatus: "Active", reviewDueCount: 2, seasonName: "Daniel 2026" }),
     );
     renderStudy("/student/study?mode=Practice");
 
-    await waitFor(() => expect(screen.getByTestId("current-season")).toHaveTextContent("Daniel 2026"));
-    expect(screen.getByTestId("study-page-title")).toBeInTheDocument();
+    expect(await screen.findByTestId("study-page-title")).toBeInTheDocument();
+    await screen.findByTestId("challenge-card");
+    expect(screen.queryByTestId("current-season")).not.toBeInTheDocument();
+    expect(screen.queryByText("Daniel 2026")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Session difficulty/)).not.toBeInTheDocument();
   });
 
   it("keeps unavailable review copy on the Field Guide cover", async () => {
@@ -276,7 +282,7 @@ describe("StudyPage Field Guide Academy honesty", () => {
     renderStudy("/student/study?mode=Review");
 
     expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent(
-      "No passages are due for review.",
+      "Nothing is due for review right now.",
     );
     expect(screen.getByTestId("study-page-title")).toBeInTheDocument();
     expect(screen.getByTestId("academy-session-kicker")).toHaveTextContent("Due review");
@@ -363,9 +369,9 @@ describe("StudyPage Bible Challenge density", () => {
     const card = await screen.findByTestId("challenge-card");
     expect(card).toHaveClass("ds-panel");
     expect(screen.queryByTestId("challenge-ribbon")).not.toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: "Missing Words" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Fill in the Blank" })).toBeInTheDocument();
     await waitFor(() =>
-      expect(screen.getByRole("group",{name:"Passage with missing words"})).toHaveTextContent("In the Sermon on the Mount"),
+      expect(screen.getByRole("group",{name:"Fill-in-the-blank passage"})).toHaveTextContent("In the Sermon on the Mount"),
     );
     expect(screen.getByRole("button", { name: "Check answer" })).toBeInTheDocument();
     expect(screen.getByTestId("complete-session")).toBeInTheDocument();
@@ -476,7 +482,7 @@ describe("Study submission recovery", () => {
     expect(screen.queryByTestId("next-card")).not.toBeInTheDocument();
     expect(api.startSession).not.toHaveBeenCalled();
     expect(api.nextCard).not.toHaveBeenCalled();
-    expect(screen.getByText("Session difficulty: Advanced")).toBeInTheDocument();
+    expect(screen.queryByText(/Session difficulty/)).not.toBeInTheDocument();
   });
   it("retries a pending answer from before refresh with the original payload", async () => {
     const payload = { clientSubmissionId: "original", challengeCardId: "pending", submittedAnswer: "answer", responseTimeMs: 123, hintsUsed: false };
@@ -522,7 +528,7 @@ describe("Study submission recovery", () => {
     const next = screen.getByTestId("next-card");
     expect(feedback.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(next).toHaveClass("ds-button-primary");
-    expect(screen.getByTestId("mastery-impact")).toHaveTextContent("Exact wording 18 / 100");
+    expect(screen.getByTestId("mastery-impact")).toHaveTextContent("Exact wording score: 18 / 100");
     expect(screen.getByTestId("submit-answer")).toBeDisabled();
     // Feedback keeps its status semantics but is no longer a heading; the prompt owns the card heading.
     expect(feedback).toHaveAttribute("role", "status");
@@ -537,7 +543,7 @@ describe("Study submission recovery", () => {
     fireEvent.click(await screen.findByTestId("true-false-true"));
     fireEvent.click(screen.getByTestId("submit-answer"));
     await screen.findByTestId("challenge-feedback");
-    expect(screen.getByTestId("mastery-impact")).toHaveTextContent("Recognition 10 / 100");
+    expect(screen.getByTestId("mastery-impact")).toHaveTextContent("Recognition score: 10 / 100");
     expect(screen.getByTestId("mastery-impact")).not.toHaveTextContent("exact wording");
   });
   it("reuses the identical submitted payload after an uncertain response", async () => {
@@ -595,24 +601,41 @@ describe("StudyPage assigned Scripture reading", () => {
     ] });
   });
 
-  it("preserves the draft answer and card while browsing, then records the existing hint flag", async () => {
+  it("resets the in-progress draft when the passage is opened during a from-memory activity", async () => {
     renderStudy("/student/study?mode=Practice");
     const answer = await screen.findByRole("textbox",{name:"Blank 1 of 1"});
     fireEvent.change(answer, { target: { value: "God" } });
     expect(scriptureApi.assigned).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
     await screen.findByLabelText("Chapter");
+    // The draft was cleared the moment the passage opened, with the warning.
+    expect(answer).toHaveValue("");
+    expect(screen.getByTestId("attempt-reset-note")).toHaveTextContent("restarted this activity");
     fireEvent.change(screen.getByLabelText("Chapter"), { target: { value: "2" } });
     fireEvent.change(screen.getByLabelText("Search assigned Scripture"), { target: { value: "Genesis 1:1" } });
     fireEvent.click(screen.getByRole("button", { name: "Hide passage" }));
-    expect(answer).toHaveValue("God");
     expect(api.startSession).toHaveBeenCalledTimes(1);
     expect(api.nextCard).toHaveBeenCalledTimes(1);
+    // Re-answer from scratch; the read flag still marks the attempt assisted.
+    fireEvent.change(answer, { target: { value: "God" } });
     fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
     await waitFor(() => expect(api.submitAttempt).toHaveBeenCalledWith("session-reader", expect.objectContaining({ missingWordAnswers: [{index:2,text:"God"}], challengeCardId: "read-card-1", hintsUsed: true })));
   });
 
-  it("counts an open reader for the next card without resetting its search", async () => {
+  it("does not reset a recognition activity when the passage is opened", async () => {
+    vi.mocked(api.nextCard).mockResolvedValue({ id: "read-card-tf", sessionId: "session-reader", activityType: "TrueFalse", citation: "Genesis 1:1", prompt: "According to Genesis 1:1, is this the verse? In the beginning God created", tokens: [], sequence: 1, total: 2 });
+    renderStudy("/student/study?mode=Practice");
+    fireEvent.click(await screen.findByTestId("true-false-true"));
+    fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+    await screen.findByLabelText("Chapter");
+    expect(screen.queryByTestId("attempt-reset-note")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Hide passage" }));
+    // The selection survived browsing; the attempt is still marked assisted.
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
+    await waitFor(() => expect(api.submitAttempt).toHaveBeenCalledWith("session-reader", expect.objectContaining({ submittedAnswer: "True", challengeCardId: "read-card-tf", hintsUsed: true })));
+  });
+
+  it("hides the scripture automatically when the next card is a from-memory activity", async () => {
     renderStudy("/student/study?mode=Practice");
     fireEvent.change(await screen.findByRole("textbox",{name:"Blank 1 of 1"}), { target: { value: "God" } });
     fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
@@ -623,10 +646,45 @@ describe("StudyPage assigned Scripture reading", () => {
     vi.mocked(api.nextCard).mockResolvedValueOnce({ id: "read-card-2", sessionId: "session-reader", activityType: "MissingWords", citation: "Genesis 2:1", prompt: "Thus the ____", tokens: [{index:2,display:"____",hidden:true}], sequence: 2, total: 2 });
     fireEvent.click(screen.getByRole("button", { name: "Next card" }));
     await waitFor(() => expect(screen.getByTestId("card-progress")).toHaveTextContent("2 / 2"));
-    expect(search).toHaveValue("Genesis 2:1");
+    // The passage hid itself on arrival, with the warning shown.
+    expect(screen.getByRole("button", { name: "Read passage" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Hide passage" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("reader-auto-hidden-note")).toHaveTextContent("answered from memory");
+    // The new card was never exposed to the open reader, so it is not assisted.
     fireEvent.change(screen.getByRole("textbox",{name:"Blank 1 of 1"}), { target: { value: "heavens" } });
     fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
+    await waitFor(() => expect(api.submitAttempt).toHaveBeenLastCalledWith("session-reader", expect.objectContaining({ challengeCardId: "read-card-2", hintsUsed: false })));
+  });
+
+  it("keeps the scripture open when the next card is a recognition activity", async () => {
+    renderStudy("/student/study?mode=Practice");
+    fireEvent.change(await screen.findByRole("textbox",{name:"Blank 1 of 1"}), { target: { value: "God" } });
+    fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+    const search = await screen.findByLabelText("Search assigned Scripture");
+    fireEvent.change(search, { target: { value: "Genesis 2:1" } });
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
+    await screen.findByTestId("challenge-feedback");
+    vi.mocked(api.nextCard).mockResolvedValueOnce({ id: "read-card-2", sessionId: "session-reader", activityType: "TrueFalse", citation: "Genesis 2:1", prompt: "According to Genesis 2:1, is this the verse? Thus the heavens", tokens: [], sequence: 2, total: 2 });
+    fireEvent.click(screen.getByRole("button", { name: "Next card" }));
+    await waitFor(() => expect(screen.getByTestId("card-progress")).toHaveTextContent("2 / 2"));
+    // Non-restricted: reader stays open, search preserved, no auto-hide note,
+    // and the open reader counts as assistance for this card as before.
+    expect(screen.getByRole("button", { name: "Hide passage" })).toBeInTheDocument();
+    expect(screen.queryByTestId("reader-auto-hidden-note")).not.toBeInTheDocument();
+    expect(search).toHaveValue("Genesis 2:1");
+    fireEvent.click(screen.getByTestId("true-false-true"));
+    fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
     await waitFor(() => expect(api.submitAttempt).toHaveBeenLastCalledWith("session-reader", expect.objectContaining({ challengeCardId: "read-card-2", hintsUsed: true })));
+  });
+
+  it("starts a resumed from-memory card with the scripture closed", async () => {
+    vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: "session-reader", seasonId: "season-1", mode: "Practice", status: "Active", targetCardCount: 2 }, card: { id: "read-card-1", sessionId: "session-reader", activityType: "MissingWords", citation: "Genesis 1:1", prompt: "In the beginning ____", tokens: [{index:2,display:"____",hidden:true}], sequence: 1, total: 2 }, attempt: null, summary: null });
+    renderStudy("/student/study?sessionId=session-reader&seasonId=season-1&mode=Practice");
+    await screen.findByTestId("challenge-card");
+    // Reader open state is never persisted, so a resumed restricted card
+    // cannot arrive with the passage open.
+    expect(screen.getByRole("button", { name: "Read passage" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Hide passage" })).not.toBeInTheDocument();
   });
 
   it("preserves an uncertain submission's exact payload after opening the reader", async () => {
@@ -682,7 +740,7 @@ describe("StudyPage mode select", () => {
     const reviewCta = screen.getByTestId("start-review");
     expect(reviewCta).toBeDisabled();
     expect(reviewCta).toHaveAttribute("aria-describedby", "study-blocked-review");
-    expect(screen.getByText("No passages are due for review.", { selector: "#study-blocked-review" })).toBeInTheDocument();
+    expect(screen.getByText("Nothing is due for review right now.", { selector: "#study-blocked-review" })).toBeInTheDocument();
     expect(api.startSession).not.toHaveBeenCalled();
   });
   it("enables Review with the due count when passages are due", async () => {
@@ -691,7 +749,7 @@ describe("StudyPage mode select", () => {
     const cta = await screen.findByTestId("start-review");
     expect(cta).not.toBeDisabled();
     expect(cta).toHaveAttribute("href", expect.stringContaining("mode=Review"));
-    expect(screen.getByText("3 passages due for another pass")).toBeInTheDocument();
+    expect(screen.getByText("3 due")).toBeInTheDocument();
   });
   it("shows the streak and XP ticker from the game layer", async () => {
     renderStudy("/student/study?seasonId=season-1&format=Memory");
@@ -700,13 +758,12 @@ describe("StudyPage mode select", () => {
   });
   it("explains the mode rules without starting a session", async () => {
     renderStudy("/student/study?seasonId=season-1&format=Memory");
-    expect(await screen.findByRole("heading", { name: "Which mode should I pick?" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Choose your training" })).toBeInTheDocument();
     expect(screen.getByText("Competition conditions — no aids, timed answers, results at the end. Like the real event.")).toBeInTheDocument();
-    expect(screen.getByText(/use it when a passage is new/)).toBeInTheDocument();
-    expect(screen.getByText(/use it when passages come due/)).toBeInTheDocument();
-    expect(screen.getByText(/use it when you want competition conditions/)).toBeInTheDocument();
-    expect(screen.getByText("Reading in the Scripture Library never starts a session and is never scored.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "More detail in the Help Center" })).toHaveAttribute("href", "/help#wiki-study-and-practice");
+    expect(screen.getByText("Learn your passage with memory games and drills.")).toBeInTheDocument();
+    expect(screen.getByText(/See how each mode works in the Help Center/)).toBeInTheDocument();
+    expect(screen.getByText("Just read and explore — no session, no score.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "See how each mode works in the Help Center" })).toHaveAttribute("href", "/help#wiki-study-and-practice");
   });
   it("starts today's drill from the Learn card in the chosen format", async () => {
     vi.mocked(api.startSession).mockResolvedValue({ id: "session-1", seasonId: "season-1", status: "Active", mode: "Practice", targetCardCount: 8 });
@@ -735,7 +792,7 @@ describe("StudyPage session framing", () => {
 
   it("frames Learn as coached practice with labeled aids and a single way back", async () => {
     renderStudy("/student/study?mode=Practice");
-    await screen.findByRole("heading", { name: "Missing Words" });
+    await screen.findByRole("heading", { name: "Fill in the Blank" });
     expect(screen.getByText("Learn · coached practice")).toBeInTheDocument();
     expect(screen.getByLabelText("Learning aids")).toBeInTheDocument();
     expect(screen.getByTestId("academy-session-kicker")).toBeInTheDocument();
@@ -756,7 +813,9 @@ describe("StudyPage session framing", () => {
     expect(banner).toHaveTextContent("Back for another pass");
     expect(banner).toHaveTextContent("last practiced yesterday");
     expect(banner).toHaveTextContent("last score 72%");
-    expect(screen.getByTestId("study-due-label")).toHaveTextContent("Due passage 1 of 8");
+    // The due-position line duplicated the card progress ("1 / 8") and was removed.
+    expect(screen.queryByTestId("study-due-label")).not.toBeInTheDocument();
+    expect(banner).not.toHaveTextContent("Daniel 1:1");
   });
 
   it("falls back to an honest due reason when no history matches the passage", async () => {
@@ -781,7 +840,7 @@ describe("StudyPage session framing", () => {
     fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
     fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
     await screen.findByTestId("challenge-feedback");
-    expect(screen.getByTestId("assistance-note")).toHaveTextContent("Assisted attempt");
+    expect(screen.getByTestId("assistance-note")).toHaveTextContent("You opened the reader on this one");
   });
 
   it("labels feedback as unaided when the reader stayed closed", async () => {
@@ -790,6 +849,59 @@ describe("StudyPage session framing", () => {
     fireEvent.change(answer, { target: { value: "Daniel" } });
     fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
     await screen.findByTestId("challenge-feedback");
-    expect(screen.getByTestId("assistance-note")).toHaveTextContent("No reader assistance used");
+    expect(screen.getByTestId("assistance-note")).toHaveTextContent("You did this one from memory");
+  });
+});
+
+describe("StudyPage word-level answer diff", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+    vi.mocked(trainingApi.today).mockResolvedValue(today());
+    vi.mocked(api.startSession).mockResolvedValue({ id: "session-1", seasonId: "season-1", status: "Created", mode: "Practice", targetCardCount: 8 });
+    vi.mocked(api.nextCard).mockResolvedValue({
+      id: "card-wcn", sessionId: "session-1", activityType: "WhatComesNext",
+      prompt: "What comes next after Mark 1:4? Write the full next verse.",
+      citation: "Mark 1:5", tokens: [], sequence: 1, total: 8,
+    });
+  });
+
+  it("highlights the missed word in the correct verse and explains it in words", async () => {
+    vi.mocked(api.submitAttempt).mockResolvedValue({
+      attemptId: "a1", isCorrect: false, score: 82, evaluationResult: "Partial",
+      canonicalAnswer: "went out to him and were baptized",
+      citation: "Mark 1:5", sourceText: "went out to him and were baptized",
+      submittedAnswer: "went to him and were baptized",
+      masteryLevel: "Learning", exactWordingScore: 10, skillKey: "sequence", skillLabel: "Sequence", skillScore: 82,
+      reviewDueAtUtc: "2026-11-22T00:00:00.000Z", alreadyProcessed: false,
+    });
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    fireEvent.change(await screen.findByRole("textbox", { name: "Type the next verse" }), { target: { value: "went to him and were baptized" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    const diff = await screen.findByTestId("answer-diff");
+    const missed = diff.querySelector(".diff-missed");
+    expect(missed?.textContent).toBe("out");
+    expect(diff.querySelectorAll(".diff-extra")).toHaveLength(0);
+    expect(screen.getByTestId("answer-diff-summary")).toHaveTextContent("1 missed word is underlined");
+    // The highlighted verse replaces the plain correct-text block.
+    expect(screen.getByTestId("feedback-source").querySelector(".diff-missed")?.textContent).toBe("out");
+  });
+
+  it("calls out a spelling slip by name instead of missed+extra", async () => {
+    vi.mocked(api.submitAttempt).mockResolvedValue({
+      attemptId: "a2", isCorrect: false, score: 90, evaluationResult: "Partial",
+      canonicalAnswer: "went out to him and were baptized",
+      citation: "Mark 1:5", sourceText: "went out to him and were baptized",
+      submittedAnswer: "went out to him and were baptised",
+      masteryLevel: "Learning", exactWordingScore: 10, skillKey: "sequence", skillLabel: "Sequence", skillScore: 90,
+      reviewDueAtUtc: "2026-11-22T00:00:00.000Z", alreadyProcessed: false,
+    });
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    fireEvent.change(await screen.findByRole("textbox", { name: "Type the next verse" }), { target: { value: "went out to him and were baptised" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    const diff = await screen.findByTestId("answer-diff");
+    expect(diff.querySelector(".diff-spelling")?.textContent).toBe("baptized");
+    expect(diff.querySelectorAll(".diff-missed")).toHaveLength(0);
+    expect(screen.getByTestId("answer-diff-summary")).toHaveTextContent("Spelling: you wrote “baptised” for “baptized”");
   });
 });

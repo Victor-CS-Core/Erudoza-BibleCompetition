@@ -4,8 +4,8 @@ import { honorCatalog, honorId, isHonorKey, ruleVersionFor } from './catalog';
 import type { HonorUnlock, ProfileSelection } from './catalog';
 import { characterFields, defaultCharacter, defaultShareOptions, portraitIdentity, validateCharacterSave } from './character';
 import { lockedCosmetics, unlockedCosmetics } from '../training/cosmetics';
-import type { AssignmentNotification } from '../application/notifications';
-import { notificationSummary } from '../application/notifications';
+import type { AssignmentNotification, TeamPracticeNotification } from '../application/notifications';
+import { anyNotificationSummary } from '../application/notifications';
 const guid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function validUnlock(award: HonorUnlock | undefined, orgId: string, userId: string, key: string, eligible=false) {
   return !!award && isHonorKey(key) && award.userId === userId && award.key === key && award.ruleVersion === ruleVersionFor(key) && (!key.startsWith('simulation:') || eligible) && award.id === honorId(orgId, userId, key) && Number.isFinite(Date.parse(award.earnedAtUtc));
@@ -37,8 +37,8 @@ export async function handleProfile(ctx: RequestContext): Promise<Response | nul
   if (ctx.path === '/api/v1/profile/me/notifications' && ctx.request.method === 'GET') {
     const rows = await ctx.env.DB.prepare("SELECT data FROM Records WHERE kind='notification' AND org_id=? AND owner_id=? ORDER BY json_extract(data,'$.createdAtUtc') DESC LIMIT 50").bind(ctx.orgId, ctx.actor.userId).all<{ data: string }>();
     const notifications = rows.results.map(row => {
-      const notification = JSON.parse(row.data) as AssignmentNotification;
-      return { ...notification, summary: notificationSummary(notification) };
+      const notification = JSON.parse(row.data) as AssignmentNotification | TeamPracticeNotification;
+      return { ...notification, summary: anyNotificationSummary(notification) };
     });
     return json({ notifications, unreadCount: notifications.filter(n => !n.readAtUtc).length });
   }
@@ -63,11 +63,11 @@ export async function handleProfile(ctx: RequestContext): Promise<Response | nul
   }
   if (ctx.path === '/api/v1/profile/me/avatar' && ctx.request.method === 'PUT') {
     const input = await body<{ honorKey: unknown }>(ctx.request, 1024);
-    if (!input || typeof input !== 'object' || !('honorKey' in input) || input.honorKey !== null && !isHonorKey(input.honorKey)) throw new HttpError(400, 'Choose a recognized Honor or reset to initials.');
+    if (!input || typeof input !== 'object' || !('honorKey' in input) || input.honorKey !== null && !isHonorKey(input.honorKey)) throw new HttpError(400, 'Choose a recognized Achievement patch or reset to initials.');
     const key = input.honorKey;
     if (key !== null) {
       const award = (await profileAwards(ctx)).find(r=>r.value.key===key);
-      if (!validUnlock(award?.value, ctx.orgId, ctx.actor.userId, key,award?.eligible)) throw new HttpError(403, 'Earn this mastery Honor before using it as your profile image.');
+      if (!validUnlock(award?.value, ctx.orgId, ctx.actor.userId, key,award?.eligible)) throw new HttpError(403, 'Earn this Achievement patch before using it as your profile image.');
     }
     const value = selection(ctx, key), avatarKind = key ? 'honor' : 'initials', operationId = crypto.randomUUID();
     const defaults = { userId: ctx.actor.userId, avatarKind, character: defaultCharacter(), shareOptions: defaultShareOptions(), sharePatches: [], operationId };

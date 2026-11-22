@@ -29,6 +29,7 @@ export function SessionRecapPage() {
     }
   }, [data?.seasonId, params, setParams]);
   const link = (path: string) => trainingLink(path, seasonId);
+  const firstName = me?.displayName?.trim().split(/\s+/)[0];
   const [shareState, setShareState] = useState<"idle" | "copied" | "failed">("idle");
   const personalBest = data?.personalBest ?? null;
   const weeklyGoalComplete = !!data?.weeklyGoalComplete;
@@ -56,28 +57,28 @@ export function SessionRecapPage() {
       document.body.removeChild(area);
     }
   };
-  const pbeResults = data?.version === "pbe-daily-v2" && <Panel><h2>Saved answer reviews</h2>
-    {data.provisional && <Notice>{data.pendingCount} answer{data.pendingCount === 1 ? " is" : "s are"} awaiting review. Scores remain provisional; you can keep practicing.</Notice>}
-    {data.finalizedAvailablePoints !== undefined && <p>Finalized accuracy: {data.finalizedEarnedPoints} / {data.finalizedAvailablePoints} points. Pending answers are excluded.</p>}
+  const pbeResults = data?.version === "pbe-daily-v2" && <Panel><h2>Your checked answers</h2>
+    {data.provisional && <Notice>{data.pendingCount} answer{data.pendingCount === 1 ? " is" : "s are"} awaiting review. These scores are not final yet; you can keep practicing.</Notice>}
+    {data.finalizedAvailablePoints !== undefined && <p>Final score so far: {data.finalizedEarnedPoints} / {data.finalizedAvailablePoints} points. Answers still being checked do not count yet.</p>}
     {data.results?.map((result, index) => <div key={result.attemptId}><h3>Answer {index + 1}</h3><p>{result.earnedPoints} / {result.availablePoints} points</p>{result.dispute?.status === "Resolved" && <p>Originally {result.originalEarnedPoints} points; the coach’s correction is saved separately.</p>}<PbeFlagAnswer activity="Solo" sessionId={data.sessionId} attemptId={result.attemptId} review={result.dispute}/></div>)}
     <Button variant="secondary" onClick={() => void recap.refetch()}>Refresh reviewed scores</Button>
-    <p>A session result does not by itself earn a chapter stamp. Current retention uses saved Solo evidence, question readiness and delayed recall.</p>
+    <p>One session alone does not earn a chapter stamp — stamps come from remembering the passages again later, on your own.</p>
     <LinkButton variant="secondary" to={link('/student/progress')}>See current PBE chapter progress</LinkButton>
   </Panel>;
-  return <div className="training-dashboard training-recap"><PageHeader title="Session recap" description={data?.version==="pbe-daily-v2"?"Your saved PBE accuracy and daily effort.":"Your saved practice, passage by passage."} action={<LinkButton variant="secondary" to={link("/student")}>Back to training</LinkButton>} />
-    {!sessionId ? <Notice tone="danger">This recap link is incomplete. Return to training to find your session.</Notice> : recap.isPending ? <LoadingState label="Loading your saved recap…" /> : recap.isError && recap.error instanceof ApiError && recap.error.status === 409 ? <Panel><h2>This session is still in progress</h2><LinkButton to={link(`/student/study?sessionId=${encodeURIComponent(sessionId)}`)}>Resume session</LinkButton></Panel> : recap.isError ? <Notice tone="danger">This recap is unavailable or you do not have access. <Button variant="secondary" onClick={() => void recap.refetch()}>Try again</Button></Notice> : data?.interrupted ? <><Panel><Badge>Interrupted rehearsal</Badge><h2>Earlier answers are saved</h2><p>{data.correct} fully correct from {data.attempted} accepted attempts.</p>{data.version !== "pbe-daily-v2" && data.results?.map(result=><p key={result.attemptId}>{result.earnedPoints} / {result.availablePoints} points</p>)}<LinkButton to={link('/student/study?mode=Simulation&format=Pbe')}>Start another solo timed rehearsal</LinkButton></Panel>{pbeResults}</> : data && !data.completedAtUtc ? <Panel><h2>This session is still in progress</h2><p>Complete your session to save its recap.</p><LinkButton to={link(`/student/study?sessionId=${encodeURIComponent(data.sessionId)}&mode=${encodeURIComponent(data.mode)}`)}>Resume session</LinkButton></Panel> : data && <>
+  return <div className="training-dashboard training-recap"><PageHeader title="Session recap" description={data?.version==="pbe-daily-v2"?"How you did — your PBE answers and today's effort.":"How you did, passage by passage."} action={<LinkButton variant="secondary" to={link("/student")}>Back to training</LinkButton>} />
+    {!sessionId ? <Notice tone="danger">This recap link is incomplete. Return to training to find your session.</Notice> : recap.isPending ? <LoadingState label="Loading your saved recap…" /> : recap.isError && recap.error instanceof ApiError && recap.error.status === 409 ? <Panel><h2>This session is still in progress</h2><LinkButton to={link(`/student/study?sessionId=${encodeURIComponent(sessionId)}`)}>Resume session</LinkButton></Panel> : recap.isError ? <Notice tone="danger">This recap is not available — it may belong to someone else. <Button variant="secondary" onClick={() => void recap.refetch()}>Try again</Button></Notice> : data?.interrupted ? <><Panel><Badge>Interrupted rehearsal</Badge><h2>Earlier answers are saved</h2><p>{data.correct} fully correct from {data.attempted} accepted attempts.</p>{data.version !== "pbe-daily-v2" && data.results?.map(result=><p key={result.attemptId}>{result.earnedPoints} / {result.availablePoints} points</p>)}<LinkButton to={link('/student/study?mode=Simulation&format=Pbe')}>Start another solo timed rehearsal</LinkButton></Panel>{pbeResults}</> : data && !data.completedAtUtc ? <Panel><h2>This session is still in progress</h2><p>Complete your session to save its recap.</p><LinkButton to={link(`/student/study?sessionId=${encodeURIComponent(data.sessionId)}&mode=${encodeURIComponent(data.mode)}`)}>Resume session</LinkButton></Panel> : data && <>
       <div className="training-recap-layout">
         <Panel className="training-recap-main">
           {hasCelebration && <CelebrationBurst celebrate />}
           <Badge tone={data.fullTargetReached ? "success" : "neutral"}>{data.mode} · {data.fullTargetReached ? "Complete" : "Saved"}</Badge>
-          <h2 className="training-recap-title">{data.fullTargetReached ? "Practice complete." : "Your practice is saved."}</h2>
+          <h2 className="training-recap-title">{data.fullTargetReached ? (firstName ? `Nice work, ${firstName} — practice complete.` : "Practice complete.") : "Your practice is saved."}</h2>
           {hasCelebration && <div className="training-recap-celebrations" role="status">
             {personalBest && (personalBest.accuracyBeaten || personalBest.correctBeaten) && <p className="training-celebration"><AppIcon name="flag" /><span><strong>New personal best!</strong> {personalBest.accuracyBeaten && personalBest.correctBeaten ? "Your best accuracy and most correct answers in one session." : personalBest.accuracyBeaten ? "Your best accuracy in a single session." : "Your most correct answers in a single session."}</span></p>}
             {weeklyGoalComplete && <p className="training-celebration"><AppIcon name="check" /><span><strong>Weekly goal complete!</strong> You hit your practice target for this week.</span></p>}
             {data.levelUp && <p className="training-celebration"><AppIcon name="flag" /><span><strong>Rank up!</strong> {data.levelUp.fromName} → {data.levelUp.toName}</span></p>}
             {questsCompleted.map(quest => <p key={quest.key} className="training-celebration"><AppIcon name="check" /><span><strong>Quest complete: {quest.title}!</strong> +25 XP</span></p>)}
           </div>}
-          <p>{data.correct} correct from {data.attempted} accepted attempts.</p>
+          <p>You got {data.correct} of {data.attempted} right.</p>
           <div className="training-recap-award">
             {featuredMilestone ? <>
               <HonorArtwork {...honorAsset(featuredMilestone.key)} size={176} />
@@ -88,16 +89,16 @@ export function SessionRecapPage() {
           </div>
           <dl className="training-recap-stats" aria-label="Saved session counts">
             <div><dt>Correct answers</dt><dd>{data.correct}</dd></div>
-            <div><dt>Accepted attempts</dt><dd>{data.attempted}</dd></div>
-            <div><dt>Full session target</dt><dd>{data.targetCardCount}</dd></div>
+            <div><dt>Answers given</dt><dd>{data.attempted}</dd></div>
+            <div><dt>Session goal (cards)</dt><dd>{data.targetCardCount}</dd></div>
             <div><dt>XP earned</dt><dd>+{data.xp.earned}</dd></div>
           </dl>
           <p><small>Completed <time dateTime={data.completedAtUtc!}>{evidenceDate(data.completedAtUtc!)}</time></small></p>
-          {!data.fullTargetReached && <p>You finished early. Your accepted answers are saved. The full session target was not reached.</p>}
+          {!data.fullTargetReached && <p>You wrapped up early — everything you answered is saved.</p>}
           <div className="training-recap-actions">
             <LinkButton to={link("/student")}>Back to Training HQ</LinkButton>
             <div className="training-recap-celebrate">
-              <LinkButton variant="ghost" to={link("/student/honors")}>View Honors</LinkButton>
+              <LinkButton variant="ghost" to={link("/student/honors")}>View Achievement patches</LinkButton>
               {shareText && <Button variant="secondary" onClick={() => void share()}>{shareState === "copied" ? "Copied to clipboard" : "Share your progress"}</Button>}
             </div>
             {shareState === "failed" && <p><small>Copy didn’t work on this device. Your summary: {shareText}</small></p>}
@@ -105,8 +106,8 @@ export function SessionRecapPage() {
         </Panel>
         <aside className="training-recap-side" aria-label="Saved practice details">
           {pbeResults}
-          {data.version === "legacy-counts" ? <Notice>This earlier session has saved counts only. Passage improvement and milestone evidence are unavailable.</Notice> : <>
-            <Panel><h2>What you practiced</h2><p>{data.version==="pbe-daily-v2"?"Daily completion records effort. Unaided target recall is tracked separately; missed targets remain due.":"These are this session’s saved contributions. Later practice may change current scores."}</p>
+          {data.version === "legacy-counts" ? <Notice>This is an older session — back then we only saved the totals, so there is no passage-by-passage detail.</Notice> : <>
+            <Panel><h2>What you practiced</h2><p>{data.version==="pbe-daily-v2"?"Finishing today counts your effort. Passages you missed will come back for review.":"These are this session’s saved contributions. Later practice may change current scores."}</p>
               {!data.passageChanges.length && data.version!=="pbe-daily-v2" && <p>No passage skill changes were recorded.</p>}
               <ul className="training-passage-list">{data.passageChanges.map((passage, index) => <li key={`${data.sessionId}:${passage.knowledgeUnitId}`}>
                 <details className="ds-disclosure training-recap-passage" open={index === 0}>
@@ -115,21 +116,21 @@ export function SessionRecapPage() {
                   <dt>{label}</dt><dd>{passage.before && passage.after ? `${passage.before[key]} → ${passage.after[key]}` : `${passage.delta[key] > 0 ? "+" : ""}${passage.delta[key]} contributed`}</dd>
                   {passage.after && <dd className="training-recap-skill-meter"><ProgressMeter label={`${passage.title}: saved ${label.toLowerCase()} score`} value={passage.after[key]} max={100} /></dd>}
                 </div>)}</dl>
-                {(!passage.before || !passage.after) && <details className="ds-disclosure"><summary>View saved answer evidence</summary><p>You may have practiced in another session between these answers. Each answer shows its own before and after scores.</p>{passage.events.map(event => <div key={event.attemptId}><time dateTime={event.acceptedAtUtc}>{new Date(event.acceptedAtUtc).toLocaleString()}</time><dl className="training-recap-skills">{skillNames.map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{event.before[key]} → {event.after[key]}</dd></div>)}</dl></div>)}</details>}
+                {(!passage.before || !passage.after) && <details className="ds-disclosure"><summary>See your saved answers</summary><p>You may have practiced other sessions in between — each answer shows its own before-and-after scores.</p>{passage.events.map(event => <div key={event.attemptId}><time dateTime={event.acceptedAtUtc}>{new Date(event.acceptedAtUtc).toLocaleString()}</time><dl className="training-recap-skills">{skillNames.map(([key, label]) => <div key={key}><dt>{label}</dt><dd>{event.before[key]} → {event.after[key]}</dd></div>)}</dl></div>)}</details>}
                 </details>
               </li>)}</ul>
-              <LinkButton variant="secondary" to={link("/student/progress")}>View current progress</LinkButton>
+              <LinkButton variant="secondary" to={link("/student")}>View current progress</LinkButton>
             </Panel>
-            {!!data.missionSteps.length && <Panel><h2>Daily training evidence</h2><ul className="training-mission-steps">{data.missionSteps.map(step => <li key={step.kind}><strong>{step.kind === "Practice" ? "Daily drill" : "Review"}</strong><span>{step.completed} / {step.target}</span><Badge>{step.status}</Badge></li>)}</ul></Panel>}
+            {!!data.missionSteps.length && <Panel><h2>Today's training</h2><ul className="training-mission-steps">{data.missionSteps.map(step => <li key={step.kind}><strong>{step.kind === "Practice" ? "Daily drill" : "Review"}</strong><span>{step.completed} / {step.target}</span><Badge>{step.status}</Badge></li>)}</ul></Panel>}
             {earnedMilestones.length > 1 && <Panel><h2>More milestones recorded in this session</h2><div className="training-honor-preview-items">{earnedMilestones.slice(1).map((honor, index) => <div key={`${honor.key}:${index}`}><HonorArtwork {...honorAsset(honor.key)} /><h3>{honor.title}</h3><p>{honor.scopeLabel}</p><time dateTime={honor.earnedAtUtc!}>{evidenceDate(honor.earnedAtUtc!)}</time></div>)}</div></Panel>}
           </>}
-          <Panel><h2>Your weekly practice credit</h2>
+          <Panel><h2>Your week</h2>
             {data.newlyCreditedDay && <p>Practice day credited: {data.creditedLocalDate}.</p>}
-            {!data.newlyCreditedDay && data.fullTargetReached && <p>No additional practice day was added by this session. A calendar day counts at most once.</p>}
-            {data.missionLocalDate && data.creditedLocalDate && data.missionLocalDate !== data.creditedLocalDate && <p>Mission date: {data.missionLocalDate}. Practice credited on {data.creditedLocalDate}, when the qualifying answer was accepted.</p>}
-            <p><small>Your accepted answers are saved. Return when you’re ready for your next practice.</small></p>
+            {!data.newlyCreditedDay && data.fullTargetReached && <p>Today already counted toward your week — one practice day per day, max.</p>}
+            {data.missionLocalDate && data.creditedLocalDate && data.missionLocalDate !== data.creditedLocalDate && <p>Planned for {data.missionLocalDate}; counted on {data.creditedLocalDate}, the day you finished it.</p>}
+            <p><small>Everything you answered is saved. Come back whenever you are ready for more.</small></p>
             <LinkButton variant="secondary" to={link(`/student/study?mode=Practice&format=${data.version==="pbe-daily-v2"?"Pbe":"Memory"}`)}>Practice again</LinkButton>
-            {data.version === "legacy-counts" && <LinkButton variant="ghost" to={link("/student/progress")}>View current progress</LinkButton>}
+            {data.version === "legacy-counts" && <LinkButton variant="ghost" to={link("/student")}>View current progress</LinkButton>}
           </Panel>
         </aside>
       </div>

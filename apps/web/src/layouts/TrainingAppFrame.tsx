@@ -52,10 +52,10 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const storageKey = `erudoza:pins:${me?.organizationId}:${me?.userId}:${coach ? "coach" : "student"}`;
   const [pinned, setPinned] = useState<string[]>(() => {
     try { const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? "null"); if (Array.isArray(saved)) return [...new Set(saved.filter((id): id is string => typeof id === "string" && items.some(item => item.id === id)))]; } catch { /* Browser storage can be unavailable. */ }
-    return isContentManager ? ["materials", "news"] : coach ? ["overview", "seasons", "students", "assignments", "practice"] : ["home", "study", "progress"];
+    return isContentManager ? ["materials", "news"] : coach ? ["overview", "seasons", "students", "assignments", "practice"] : ["home", "study", "practice"];
   });
   const visibleShortcuts = active && !pinned.includes(active.id) ? [...pinned, active.id] : pinned;
-  const mobileIds = isContentManager ? ["materials", "news"] : coach ? ["overview", "seasons", "students"] : ["home", "study", "progress"];
+  const mobileIds = isContentManager ? ["materials", "news"] : coach ? ["overview", "seasons", "students"] : ["home", "study", "practice"];
   const mobileActive = active?.id;
   const mobileItems = mobileIds.map(id => items.find(item => item.id === id)!);
   useEffect(() => {

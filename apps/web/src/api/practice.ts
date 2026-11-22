@@ -6,7 +6,27 @@ export type SimulationAchievement = {key:string;title:string;requirement:string;
 export type PracticeCommand = { simulation?:SimulationConfig;teamSize?:number;questionCount?:number; commandId: string; revision: number; action: string; targetUserId?: string; otherUserId?: string; team?: number; text?: string; answers?: string[]; scheduleId?: string; questionId?: string; points?: number; delivery?: 'Audio' | 'TextFallback' | 'Coach' };
 export type PracticeQuestion = { id?: string; contentPackId: string; sourceUnitId: string; prompt: string; kind: string; parts: { acceptedAnswers: string[]; points: number }[]; ordered: boolean; evidence: string; reference: string; version: number };
 export type PracticeAward = { key: string; title: string; seasonId: string };
-export type RoomSummary = { simulation?:SimulationConfig; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; id: string; seasonId: string; teamSize: number; questionCount: number; coached: boolean; status: string; memberCount: number; ownerId: string };
+export type RoomSummary = { simulation?:SimulationConfig; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; id: string; seasonId: string; teamSize: number; questionCount: number; coached: boolean; status: string; memberCount: number; ownerId: string; eventId?: string | null; members?: { userId: string; displayName: string; team: number; ready: boolean; captain: boolean; scribe: boolean }[] };
+export type PracticeEventMember = { userId: string; displayName: string; team: number; ready: boolean; captain: boolean; scribe: boolean };
+export type PracticeEventStatus = 'Scheduled' | 'Open' | 'Playing' | 'Completed' | 'Cancelled' | 'Expired';
+export type PracticeEvent = {
+  id: string; seasonId: string; seasonName: string; name: string;
+  activity: 'Simulation' | 'HeadToHead'; format: 'Arcade' | 'Pbe'; teamCount: 1 | 2;
+  teamSize: number; questionCount: number; coached: boolean; bookKey: string | null;
+  simulation: SimulationConfig | null; createdByUserId: string;
+  roster: { userId: string; displayName: string; team: 1 | 2 }[];
+  captainStartUserId: string | null; startsAtUtc: string | null;
+  status: PracticeEventStatus; roomId: string | null; myTeam: number | null;
+  room: { id: string; status: string; memberCount: number; members: PracticeEventMember[] } | null;
+  createdAtUtc: string; updatedAtUtc: string;
+};
+export type PracticeEventInput = {
+  seasonId: string; name?: string; activity: 'Simulation' | 'HeadToHead';
+  format?: 'Arcade' | 'Pbe'; teamSize: number; questionCount: number; coached?: boolean; bookKey?: string;
+  simulation?: SimulationConfig; roster: { userId: string; team: 1 | 2 }[];
+  captainStartUserId?: string | null; startsAtUtc?: string | null; openNow?: boolean;
+};
+export type PracticeEventRosterMember = { userId: string; displayName: string; kind: string; role: string };
 export type PracticeTrend = { pendingCount?: number; provisional?: boolean; scoringVersion?: string; format?: 'Arcade' | 'Pbe'; teamCount?: 1 | 2; seasonId: string; teamSize: number; bookKey: string | null; ruleVersion: string; matches: number; wins: number; draws: number; accuracyHundredths: number; speedHundredths: number; availableHundredths: number; unansweredQuestions: number; averageResponseMs: number; distinctQuestions: number; distinctPassages: number; participatedQuestions: number };
 export type RoomRecap = {
   roomId: string; seasonId: string; format: 'Arcade' | 'Pbe'; status: string;
@@ -35,6 +55,7 @@ export type PracticeRoom = {
   scores: { team: number; accuracyHundredths: number; speedHundredths: number; totalHundredths: number; availableHundredths?: number }[];
   results: { responseLockedAtMs?:number;responseLockedAtUtc?:string;attemptId?:string;dispute?:PbeResultReview;originalAccuracyHundredths?:number;questionId: string; prompt: string; reference: string; evidence: string; acceptedAnswers: string[][]; team: number; answers: string[]; accuracyHundredths: number; speedHundredths: number; availableHundredths?: number; elapsedMs: number; appealed: boolean; resolved: boolean }[];
   achievements: PracticeAward[]; isCoach: boolean;
+  eventId?: string | null; canStart?: boolean;
   timingAnomalies?: { at: number; reason: string }[];
 };
 const base = (org: string) => `/api/v1/organizations/${encodeURIComponent(org)}/practice`;
@@ -49,6 +70,14 @@ export const practiceApi = {
   roomRecap: (org: string, id: string) => request<RoomRecap>(`${base(org)}/rooms/${encodeURIComponent(id)}/recap`),
   command: (org: string, id: string, command: PracticeCommand) => post<PracticeRoom>(`${base(org)}/rooms/${encodeURIComponent(id)}/commands`, command),
   accept: (org: string, id: string, team?: number) => post<PracticeRoom>(`${base(org)}/invitations/${encodeURIComponent(id)}/accept`, { team }),
+  events: (org: string) => request<{ events: PracticeEvent[] }>(`${base(org)}/events`),
+  event: (org: string, id: string) => request<PracticeEvent>(`${base(org)}/events/${encodeURIComponent(id)}`),
+  createEvent: (org: string, body: PracticeEventInput) => post<PracticeEvent>(`${base(org)}/events`, body),
+  updateEvent: (org: string, id: string, body: PracticeEventInput) => request<PracticeEvent>(`${base(org)}/events/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(body) }),
+  openEvent: (org: string, id: string) => post<PracticeEvent>(`${base(org)}/events/${encodeURIComponent(id)}/open`, {}),
+  cancelEvent: (org: string, id: string) => post<PracticeEvent>(`${base(org)}/events/${encodeURIComponent(id)}/cancel`, {}),
+  duplicateEvent: (org: string, id: string, body: { startsAtUtc?: string | null; name?: string } = {}) => post<PracticeEvent>(`${base(org)}/events/${encodeURIComponent(id)}/duplicate`, body),
+  eventRoster: (org: string, seasonId: string) => request<{ members: PracticeEventRosterMember[] }>(`${base(org)}/events/roster?seasonId=${encodeURIComponent(seasonId)}`),
   import: (org: string, seasonId: string, questions: PracticeQuestion[]) => post<void>(`${base(org)}/questions/import`, { seasonId, questions }),
   publish: (org: string, id: string) => post<void>(`${base(org)}/questions/${encodeURIComponent(id)}/publish`, {}),
 };

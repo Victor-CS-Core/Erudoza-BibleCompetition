@@ -10,7 +10,7 @@ export function navigation(coach: boolean, selectedSeason?: string | null, perso
     { id: "students", label: "Students", to: "/admin/students", icon: "users", testId: "coach-tab-students", children: [child("directory", "Student directory", "/admin/students#student-directory"), child("add-student", "Add student", "/admin/students#add-student", "plus")] },
     { id: "coaches", label: "Coaches", to: "/admin/coaches", icon: "users", testId: "coach-tab-coaches", children: [child("coach-directory", "Coach directory", "/admin/coaches#coach-directory"), child("invite-coach", "Invite a coach", "/admin/coaches#invite-coach", "plus")] },
     { id: "assignments", label: "Assignments", to: "/admin/assignments", icon: "book", testId: "nav-assignments", children: [child("student-assignments", "Student assignments", student("/admin/assignments")), ...(personalAssignments ? [child("coach-assignments", "My assignments", student("/student/assignments"), "book")] : [])] },
-    { id: "practice", label: "Team Practice", to: "/admin/practice", icon: "users", testId: "nav-team-practice", children: [child("rooms", "Your rooms", "/admin/practice#rooms"), child("create-room", "Create a room", "/admin/practice#create-room", "plus"), child("invitations", "Invitations", "/admin/practice#invitations")] },
+    { id: "practice", label: "Team Practice", to: "/admin/practice", icon: "users", testId: "nav-team-practice", children: [child("events", "Your events", "/admin/practice#events"), child("create-event", "Create event", "/admin/practice#create-event", "plus"), child("rooms", "Your rooms", "/admin/practice#rooms"), child("invitations", "Invitations", "/admin/practice#invitations")] },
     { id: "profile", label: "Your profile", to: "/admin/profile", icon: "users" },
     { id: "library", label: "Scripture library", to: student("/admin/content"), icon: "book", testId: "nav-content", children: [child("books", "Books of the Bible", student("/admin/content") + "#library-books"), child("preview", "Read Scripture", student("/admin/content") + "#library-preview", "book")] },
     { id: "materials", label: "PBE materials", to: "/admin/materials", icon: "book", testId: "nav-pbe-materials" },
@@ -19,8 +19,7 @@ export function navigation(coach: boolean, selectedSeason?: string | null, perso
     { id: "home", label: "Training HQ", to: student("/student"), icon: "home", testId: "learner-tab-home" },
     { id: "study", label: "Study", to: student("/student/study"), icon: "book", testId: "nav-academy-learner" },
     { id: "news", label: "PBE news", to: student("/student/news"), icon: "bell", testId: "nav-pbe-news" },
-    { id: "practice", label: "Team Practice", to: student("/student/practice"), icon: "users", testId: "nav-team-practice", children: [child("rooms", "Your rooms", student("/student/practice") + "#rooms"), child("invitations", "Invitations", student("/student/practice") + "#invitations")] },
-    { id: "progress", label: "Progress", to: student("/student/progress"), icon: "chart", testId: "learner-tab-progress" },
+    { id: "practice", label: "Team Practice", to: student("/student/practice"), icon: "users", testId: "nav-team-practice", children: [child("events", "Your events", student("/student/practice") + "#events"), child("invitations", "Invitations", student("/student/practice") + "#invitations")] },
     { id: "profile", label: "Your profile", to: student("/student/profile"), icon: "users" },
   ];
   /** Content Managers see only PBE materials and PBE news. Regular Admins (and
@@ -43,7 +42,8 @@ export function currentDestination(items: Destination[], pathname: string) {  if
   // Study modes (Practice / Review / Simulation / Library) and the legacy
   // library route all live under the single Study destination now.
   if (pathname === "/student/study" || pathname === "/student/library" || pathname === "/student/assignments") return items.find(item => item.id === "study");
-  // Honors now lives as a tab inside Progress.
-  if (pathname === "/student/honors") return items.find(item => item.id === "progress");
+  // Your progress lives on Training HQ now, and Honors is reached from HQ:
+  // both routes resolve to the home destination.
+  if (pathname === "/student/honors" || pathname === "/student/progress") return items.find(item => item.id === "home");
   return [...items].sort((a, b) => b.to.length - a.to.length).find(item => pathname === item.to.split("?")[0] || (item.to.split("?")[0] !== "/admin" && item.to.split("?")[0] !== "/student" && pathname.startsWith(item.to.split("?")[0] + "/")));
 }

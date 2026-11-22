@@ -129,7 +129,7 @@ describe("ProgressPage recorded evidence", () => {
     expect(screen.getByTestId("progress-attempts")).toHaveTextContent("3");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("Daniel 1:1");
     expect(screen.getByTestId("progress-mastery")).toHaveTextContent("80");
-    expect(screen.getByTestId("recent-attempts")).toHaveTextContent("Missing Words");
+    expect(screen.getByTestId("recent-attempts")).toHaveTextContent("Fill in the Blank");
     expect(screen.getByTestId("progress-recent")).toHaveTextContent("100%");
     expect(screen.queryByTestId("progress-mastery-pathway")).not.toBeInTheDocument();
     expect(screen.queryByTestId("progress-field-guide-chrome")).not.toBeInTheDocument();
@@ -181,7 +181,7 @@ describe("ProgressPage recorded evidence", () => {
   it("shows empty evidence honestly", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ recentAttempts: [], mastery: [], attemptCount: 0 }));
     renderProgress("/student/progress");
-    expect(await screen.findByText("No attempts yet.")).toBeInTheDocument();
+    expect(await screen.findByText("Nothing here yet — your answers show up after your first session.")).toBeInTheDocument();
     expect(screen.getByText(/No passage progress yet/)).toBeInTheDocument();
     expect(screen.getByTestId("progress-recent")).toHaveTextContent("—");
   });

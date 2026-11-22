@@ -85,7 +85,7 @@ it('renders blanks as inline underline fields that keep the scripture rhythm', (
   render(<MissingWordsInput tokens={tokens} values={{ 2: 'averylongenteredanswerwithoutbreaks' }} disabled={false} onChange={vi.fn()}
     results={[{ index: 2, isCorrect: false, expected: 'averylongexpectedanswerwithoutbreaks' }]} />);
 
-  const passage = screen.getByRole('group', { name: 'Passage with missing words' });
+  const passage = screen.getByRole('group', { name: 'Fill-in-the-blank passage' });
   expect(passage).toHaveClass('er-scripture');
   expect(passage).toHaveStyle({ minWidth: '0', width: '100%' });
   const field = screen.getByLabelText('Blank 1 of 4');

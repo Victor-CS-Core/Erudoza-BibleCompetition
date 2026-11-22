@@ -22,6 +22,10 @@ export class DotNetRandom {
 function guidBytes(id:string){if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))throw new Error('A GUID is required for the deterministic seed.');const bytes=id.replaceAll('-','').match(/../g)!.map(x=>parseInt(x,16));return [3,2,1,0,5,4,7,6,8,9,10,11,12,13,14,15].map(i=>bytes[i]);}
 export function stableSeed(sourceUnitId:string,sessionId:string,sequence:number){let hash=2166136261;for(const value of [...guidBytes(sourceUnitId),...guidBytes(sessionId)])hash=Math.imul(hash^value,16777619);return Math.imul(hash^sequence,16777619);}
 function shuffle<T>(items:T[],seed:number){const random=new DotNetRandom(seed);return items.map((value,index)=>({value,index,key:random.next()})).sort((a,b)=>a.key-b.key||a.index-b.index).map(x=>x.value);}
+/** Fisher-Yates shuffle with an injectable random source (crypto randomness by
+ * default) so Practice decks can be drawn in random, PBE-style order while
+ * tests seed deterministic permutations. Returns a new array. */
+export function shuffleRandom<T>(items:readonly T[],random:()=>number=()=>{const b=new Uint32Array(1);crypto.getRandomValues(b);return b[0]/4294967296;}):T[]{const out=[...items];for(let i=out.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[out[i],out[j]]=[out[j],out[i]];}return out;}
 function trimDotNet(text:string){return text.replace(/^[\u0009-\u000d\u0085\p{Z}]+|[\u0009-\u000d\u0085\p{Z}]+$/gu,'');}
 function words(text:string,trim=true){return text.split(' ').map(x=>trim?trimDotNet(x):x).filter(Boolean);}
 export function normalizeDifficulty(value:unknown):1|3|5 {if(value===1||value==='Foundation')return 1;if(value===3||value==='Standard')return 3;if(value===5||value==='Advanced')return 5;throw new Error('Choose Foundation, Standard, or Advanced.');}

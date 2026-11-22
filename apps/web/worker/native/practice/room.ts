@@ -10,7 +10,7 @@ import {overlayRooms} from "../pbe/result-overlays";
 import {validateSimulation,simulationMaterial} from './simulation';
 import {eligibleQuestions} from './questions';
 import {authorizePbeRoom,selectPbeRoomBank,roomExposureStatements} from './pbe-material';
-import {advance,applyCommand,isTerminatedPbePlay,canCoach,teamAttemptId,reviewedQuestion,join,makeRoom,participant,recover,view} from "./state";
+import {advance,applyCommand,isTerminatedPbePlay,canCoach,teamAttemptId,reviewedQuestion,join,makeRoom,participant,recover,seedEventRoster,view} from "./state";
 import type {Room,Command} from "./state";
 /** Room ingress owns the clock. Edge Worker timestamps are never accepted. */
 export class PracticeRoom extends DurableObject<Env> {
@@ -42,7 +42,7 @@ export class PracticeRoom extends DurableObject<Env> {
  private async project(){
   if(maintenanceOffline(this.env))return;
   const row=this.ctx.storage.sql.exec<{data:string}>("SELECT data FROM outbox WHERE id=1").toArray()[0];if(!row)return;
-  const stored=JSON.parse(row.data),r=isRoomManifest(stored)?await this.codec.decode(stored,this.readNode):stored as Room,summary={simulation:r.simulation,id:r.id,seasonId:r.seasonId,ownerId:r.ownerId,coachId:r.coachId,format:r.format??'Arcade',teamCount:r.teamCount??2,teamSize:r.teamSize,questionCount:r.questionCount,coached:r.coached,status:r.status,memberCount:r.members.length,memberIds:r.members.map(m=>m.userId),hasAppeals:r.submissions.some(s=>s.appealed),invitations:r.invitations};
+  const stored=JSON.parse(row.data),r=isRoomManifest(stored)?await this.codec.decode(stored,this.readNode):stored as Room,summary={simulation:r.simulation,eventId:r.eventId??null,id:r.id,seasonId:r.seasonId,ownerId:r.ownerId,coachId:r.coachId,format:r.format??'Arcade',teamCount:r.teamCount??2,teamSize:r.teamSize,questionCount:r.questionCount,coached:r.coached,status:r.status,memberCount:r.members.length,memberIds:r.members.map(m=>m.userId),members:r.members.map(m=>({userId:m.userId,displayName:m.displayName,team:m.team,ready:m.ready,captain:m.captain,scribe:m.scribe})),hasAppeals:r.submissions.some(s=>s.appealed),invitations:r.invitations};
   const projection={...r,messages:[],drafts:{},applied:{}};
   const upsert=(kind:string,data:unknown)=>this.env.DB.prepare("INSERT INTO Records(kind,id,org_id,season_id,data,revision) VALUES(?,?,?,?,?,?) ON CONFLICT(kind,id,org_id) DO UPDATE SET data=excluded.data,revision=excluded.revision WHERE excluded.revision>Records.revision").bind(kind,r.id,r.orgId,r.seasonId,JSON.stringify(data),r.revision);
   const writes=[upsert('room',summary),...(r.format==='Pbe'?roomExposureStatements(this.env.DB,r):[])];
@@ -78,6 +78,39 @@ export class PracticeRoom extends DurableObject<Env> {
  private async projectSafely(){if(maintenanceOffline(this.env))return;try{await this.project();}catch{const existing=await this.ctx.storage.getAlarm();await this.ctx.storage.setAlarm(Math.min(existing??Infinity,Date.now()+5000));}}
  private async publicView(r:Room,actor:RequestContext["actor"],now:number,materialUnavailable=false){return view(materialUnavailable?r:(await overlayRooms(new Store(this.env.DB),r.orgId,[r]))[0],actor,now,materialUnavailable);}
  private broadcast(){if(maintenanceOffline(this.env))return;for(const socket of this.ctx.getWebSockets()){try{socket.send(JSON.stringify({type:"Changed"}));}catch{socket.close(1011,"Reconnect");}}}
+ /** Worker-internal event materialization: the events layer (coach HTTP open
+  *  or the scheduled scan) asks this object to create the room for an event
+  *  with its roster pre-seeded. External routing never produces this header
+  *  (same trust model as /wipe above); the acting coach is re-resolved from
+  *  the Users table and must be an active Adult Owner/Admin. */
+ private async internalCreate(orgId:string,roomId:string,input:Record<string,unknown>|null):Promise<Response>{
+  const existing=await this.load();if(existing)return json({id:existing.id,status:existing.status,eventId:existing.eventId??null});
+  const creation=input?.creation as (Parameters<typeof makeRoom>[2]&{roster?:{userId:string;team:number}[]})|undefined;
+  if(!creation||typeof input?.actorUserId!=="string")throw new HttpError(400,"Event creation payload is required.");
+  const row=await this.env.DB.prepare("SELECT id,display_name,user_name,kind,role,credential_version FROM Users WHERE id=? AND org_id=? AND active=1").bind(input.actorUserId,orgId).first<{id:string;display_name:string;user_name:string;kind:"Student"|"Adult";role:"Student"|"Admin"|"Owner"|"Content Manager";credential_version:string}>();
+  if(!row||row.kind!=="Adult"||!["Owner","Admin"].includes(row.role))throw new HttpError(403,"Only a coach can create team practice events.");
+  const actor:RequestContext["actor"]={userId:row.id,organizationId:orgId,organizationName:"",displayName:row.display_name,userName:row.user_name,email:null,kind:row.kind,role:row.role,credentialVersion:row.credential_version};
+  const context:RequestContext={request:new Request("https://internal/event-open"),env:this.env,actor,orgId,path:"",store:new Store(this.env.DB)};
+  const season=await context.store.require<{status:string}>("season",creation.seasonId,orgId);if(season.value.status!=="Active")throw new HttpError(400,"Choose an active season.");
+  const roster=Array.isArray(creation.roster)?creation.roster:[];
+  const now=Date.now(),r=makeRoom(roomId,actor,creation,this.epoch,now,{simulationMembers:roster.map(entry=>entry.userId)});
+  const entries:{actor:RequestContext["actor"];team:number}[]=[];
+  for(const entry of roster){
+   const member=await this.env.DB.prepare("SELECT id,display_name,user_name,kind,role,credential_version FROM Users WHERE id=? AND org_id=? AND active=1").bind(entry.userId,orgId).first<{id:string;display_name:string;user_name:string;kind:"Student"|"Adult";role:"Student"|"Admin"|"Owner"|"Content Manager";credential_version:string}>();
+   if(!member)throw new HttpError(400,"An assigned player is no longer available.");
+   entries.push({actor:{userId:member.id,organizationId:orgId,organizationName:"",displayName:member.display_name,userName:member.user_name,email:null,kind:member.kind,role:member.role,credentialVersion:member.credential_version},team:entry.team});
+  }
+  seedEventRoster(r,entries);
+  if(r.format==='Pbe')await authorizePbeRoom(context,r,true);
+  await this.save(r);await this.arm(r);this.ctx.waitUntil(this.projectSafely());
+  return json({id:r.id,status:r.status,eventId:r.eventId??null});
+ }
+ /** Worker-internal abandon for event cancellation/expiry (see above). */
+ private async internalAbandon():Promise<Response>{
+  const r=await this.load();if(!r)return json({abandoned:false,status:null});
+  if(r.status==="Lobby"){r.status="Abandoned";r.phaseEndsAt=null;r.revision++;await this.save(r);await this.arm(r);this.broadcast();await this.projectSafely();}
+  return json({abandoned:r.status==="Abandoned",status:r.status});
+ }
  async fetch(request:Request):Promise<Response>{
   // Internal storage wipe issued by season deletion via this object's stub.
   // External routing never produces a bare /wipe path, so this is reachable
@@ -95,10 +128,15 @@ export class PracticeRoom extends DurableObject<Env> {
    if(sensitive&&this.pending>=16)throw new HttpError(429,"Too many pending submissions.");if(sensitive)this.pending++;
    try{
     const response=await this.serialize(async()=>{
+    if(request.headers.get("x-erudoza-event-internal")==="1"){
+     if(match[3]===""&&request.method==="POST")return await this.internalCreate(match[1],match[2],input);
+     if(match[3]==="/abandon"&&request.method==="POST")return await this.internalAbandon();
+     throw new HttpError(404,"Room route not found.");
+    }
     checkOrigin(request,this.env);const actor=await authenticate(request,this.env,match[1]);
     const context:RequestContext={request,env:this.env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(this.env.DB)};
      const now=Date.now();let r=await this.load();
-     if(!r){if(request.method!=="POST"||match[3]!=="")throw new HttpError(404,"Room not found.");const creation=input as unknown as Parameters<typeof makeRoom>[2];const season=await context.store.require<{status:string}>("season",creation.seasonId,context.orgId);if(season.value.status!=="Active")throw new HttpError(400,"Choose an active season.");r=makeRoom(match[2],actor,creation,this.epoch,now);if(r.format==='Pbe')await authorizePbeRoom(context,r,true);await this.save(r);await this.arm(r);this.ctx.waitUntil(this.projectSafely());return json(await this.publicView(r,actor,now));}
+     if(!r){if(request.method!=="POST"||match[3]!=="")throw new HttpError(404,"Room not found.");if(!(actor.kind==="Adult"&&["Owner","Admin"].includes(actor.role)))throw new HttpError(403,"Only a coach can create team practice events.");const creation=input as unknown as Parameters<typeof makeRoom>[2];const season=await context.store.require<{status:string}>("season",creation.seasonId,context.orgId);if(season.value.status!=="Active")throw new HttpError(400,"Choose an active season.");r=makeRoom(match[2],actor,creation,this.epoch,now);if(r.format==='Pbe')await authorizePbeRoom(context,r,true);await this.save(r);await this.arm(r);this.ctx.waitUntil(this.projectSafely());return json(await this.publicView(r,actor,now));}
      if(r.orgId!==actor.organizationId||r.id!==match[2])throw new HttpError(403,"Room access denied.");
      if(match[3]==='/simulation-material'&&request.method==='GET'){
       if(!r.simulation||!participant(r,actor))throw new HttpError(403,'Simulation room access denied.');

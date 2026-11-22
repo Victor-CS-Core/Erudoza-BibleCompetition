@@ -164,7 +164,7 @@ it('starts a full six-student PBE team without an opponent',async()=>{
 it('retains mixed-team interrupted evidence with earned/available points and independent restart',async()=>{
  mount(room({format:'Pbe',teamCount:2,teamSize:6,status:'Interrupted',phase:'Interrupted',results:[{...result(1),speedHundredths:0,availableHundredths:200}],scores:[{team:1,accuracyHundredths:100,speedHundredths:0,totalHundredths:100,availableHundredths:200},{team:2,accuracyHundredths:0,speedHundredths:0,totalHundredths:0,availableHundredths:0}]}));
  expect(await screen.findByRole('heading',{name:'Rehearsal interrupted'})).toBeInTheDocument();
- expect(screen.getByRole('link',{name:'Start a new rehearsal'})).toHaveAttribute('href','/student/practice#create-room');
+ expect(screen.getByRole('link',{name:'Back to Team Practice'})).toHaveAttribute('href','/student/practice?seasonId=season');
  expect(screen.getByText(/one or more teams did not have a trusted response/i)).toBeInTheDocument();
  expect(screen.queryByText(/wins on points|Speed bonus/)).not.toBeInTheDocument();
  expect(screen.getByText('Submitted:').parentElement).toHaveTextContent('Daniel');
@@ -259,10 +259,12 @@ it('reopens the prior simulation settings for another rehearsal and creates a ne
  const simulation={version:1 as const,scope:'SelectedChapters' as const,preset:'Custom' as const,bookKeys:['MRK'],chapters:[{bookKey:'MRK',chapter:2}],includeScripture:true,includeIntroductions:false,timeMultiplier:2 as const,halfTime:false,discussion:'Chat' as const,audioPresenterId:'old-presenter'};
  vi.mocked(practiceApi.simulationMaterial).mockResolvedValue({seasonId:'season',translation:'NKJV',books:[{key:'MRK',label:'Mark',chapters:[1]}],introductionsAvailable:false});
  vi.mocked(practiceApi.create).mockResolvedValue(room({id:'new-room'}));
- mount(room({status:'Completed',format:'Pbe',teamCount:1,simulation,teamSize:3,questionCount:30,results:[result(1)]}));
+ // Practice again is a coach flow now: students cannot create rooms.
+ auth.me={...auth.me,userId:'coach',kind:'Adult'};
+ mount(room({status:'Completed',format:'Pbe',teamCount:1,simulation,teamSize:3,questionCount:30,results:[result(1)]}),'/admin/practice/room');
  fireEvent.click(await screen.findByRole('button',{name:'Practice again'}));
  await screen.findByRole('button',{name:'Save setup'});expect(practiceApi.simulationMaterial).toHaveBeenCalledWith('org','season',undefined);expect(screen.getByLabelText('Remove unavailable MRK 2')).toBeInTheDocument();expect(screen.getByRole('button',{name:'Save setup'})).toBeDisabled();fireEvent.click(screen.getByRole('button',{name:'Remove unavailable MRK 2'}));expect(screen.getByRole('button',{name:'Save setup'})).toBeDisabled();fireEvent.click(screen.getByLabelText('Mark 1'));fireEvent.click(screen.getByRole('tab',{name:'Timers'}));
  expect(screen.getByLabelText('Preset')).toHaveValue('Custom');expect(screen.getByLabelText('Response time')).toHaveValue('2');expect(screen.getByLabelText('Number of questions')).toHaveValue('30');
  fireEvent.click(screen.getByRole('button',{name:'Save setup'}));
- await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith('org',expect.objectContaining({teamSize:3,questionCount:30,simulation:expect.objectContaining({preset:'Custom',timeMultiplier:2,discussion:'Chat',audioPresenterId:'player',scope:'SelectedChapters',chapters:[{bookKey:'MRK',chapter:1}]})})));
+ await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith('org',expect.objectContaining({teamSize:3,questionCount:30,simulation:expect.objectContaining({preset:'Custom',timeMultiplier:2,discussion:'Chat',audioPresenterId:'coach',scope:'SelectedChapters',chapters:[{bookKey:'MRK',chapter:1}]})})));
 });

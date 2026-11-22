@@ -160,8 +160,9 @@ export function AssignmentsPage() {
     {seasons.isPending && <p role="status">Loading seasons…</p>}
     {seasons.isError && <QueryError retry={() => void seasons.refetch()}>Unable to load seasons.</QueryError>}
     {!!seasons.data?.length && <label>Season <Select disabled={saving} value={season?.id ?? ""} onChange={event => changeContext("seasonId", event.target.value)}>
-      {!season && <option value="" disabled>Choose a season</option>}{seasons.data.map(item => <option value={item.id} key={item.id}>{item.name}{item.status === "Completed" || item.status === "Archived" ? " · Read-only" : ""}</option>)}</Select></label>}
+      {!season && <option value="" disabled>Choose a season</option>}{seasons.data.map(item => <option value={item.id} key={item.id}>{item.name}{item.status === "Completed" || item.status === "Archived" ? " · Read-only" : item.status !== "Active" ? " · Not started" : ""}</option>)}</Select></label>}
     </div>
+    {season && season.status !== "Active" && season.status !== "Completed" && season.status !== "Archived" && <Notice tone="info">This season hasn’t started yet. Students can’t see these assignments or study until the season is started. <LinkButton size="compact" variant="secondary" to={`/admin/seasons/${encodeURIComponent(season.id)}?step=students`}>Open the season planner to start it</LinkButton></Notice>}
     {studentId && students.isSuccess && !selectedStudent && <Notice tone="danger">This student is unavailable. Choose another student.</Notice>}
     {students.data?.length === 0 && <Panel><p>No students yet.</p><LinkButton to="/admin/students">Add a student</LinkButton></Panel>}
     {requestedId && seasons.isSuccess && !season && <Notice tone="danger">This season is unavailable. Choose another season.</Notice>}
