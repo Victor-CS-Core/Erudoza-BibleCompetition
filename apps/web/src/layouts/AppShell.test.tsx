@@ -120,6 +120,21 @@ it("opens all sections from More and restores focus when closed", async () => {
  fireEvent.click(screen.getByRole("button", { name: "Close command center" }));
  await waitFor(() => expect(more).toHaveFocus());
 });
+it("does not focus or select the search field when opening from More", async () => {
+ shell("/student/practice");
+ const more = within(screen.getByRole("navigation", { name: "Mobile navigation" })).getByRole("button", { name: "More" });
+ fireEvent.click(more);
+ const dialog = screen.getByRole("dialog", { name: "Command center" });
+ const input = within(dialog).getByRole("searchbox", { name: "Search navigation" }) as HTMLInputElement;
+ // More is for browsing sections: focus lands on the dialog itself, never in
+ // the search field, and no search text is selected (no keyboard pop-up).
+ expect(input).not.toHaveFocus();
+ expect(document.activeElement).toBe(dialog);
+ expect(input.selectionStart).toBe(input.selectionEnd);
+ // The search field still works normally when used directly.
+ fireEvent.change(input, { target: { value: "team" } });
+ expect(await within(dialog).findByRole("link", { name: "Team Practice" })).toBeInTheDocument();
+});
 it.each([
  ["/admin/coaches", "admin", "Coach", "Coaches"],
  ["/student", "student", "Learner", "Training HQ"],

@@ -5,7 +5,7 @@ import { AppIcon } from "../AppIcon";
 import { Button, Input } from "../ui";
 import type { Destination } from "./destinations";
 
-type Props = { items: Destination[]; coach: boolean; onClose: () => void; expanded: string[]; toggleExpanded: (id: string) => void };
+type Props = { items: Destination[]; coach: boolean; onClose: () => void; expanded: string[]; toggleExpanded: (id: string) => void; /** Whether opening the hub focuses the search field. The mobile "More" button passes false so tapping it never pops the keyboard or selects the search text; the search trigger and Ctrl/Cmd+K keep the default. */ focusSearch?: boolean };
 
 /**
  * Compass Hub: the command center groups destinations by purpose and offers a
@@ -37,9 +37,10 @@ function readRecent(key: string): string[] {
 
 type SectionHit = Destination & { category?: string; hub: string };
 
-export function CommandCenter({ items, coach, onClose, expanded, toggleExpanded }: Props) {
+export function CommandCenter({ items, coach, onClose, expanded, toggleExpanded, focusSearch = true }: Props) {
   const { me } = useAuth();
   const dialog = useRef<HTMLDialogElement>(null);
+  const focusSearchOnOpen = useRef(focusSearch);
   const [query, setQuery] = useState("");
   const groups = coach ? COACH_GROUPS : STUDENT_GROUPS;
   const groupOf = (id: string) => groups.find(group => group.ids.includes(id)) ?? groups[groups.length - 1]!;
@@ -55,7 +56,12 @@ export function CommandCenter({ items, coach, onClose, expanded, toggleExpanded 
   };
   useEffect(() => {
     const node = dialog.current!;
-    node.showModal(); node.querySelector<HTMLInputElement>("input")?.focus();
+    node.showModal();
+    // Only the search-first openings (masthead search, Ctrl/Cmd+K) move focus
+    // into the search field. Opening from the mobile "More" button focuses the
+    // dialog itself so the keyboard stays down and no search text is selected.
+    if (focusSearchOnOpen.current) node.querySelector<HTMLInputElement>("input")?.focus();
+    else node.focus();
     return () => { node.close(); };
   }, []);
   const needle = query.trim().toLocaleLowerCase();
@@ -81,7 +87,7 @@ export function CommandCenter({ items, coach, onClose, expanded, toggleExpanded 
   const recentItems = recent.map(id => items.find(item => item.id === id)).filter((item): item is Destination => !!item);
   const browseGroups = groups.map(group => ({ group, items: items.filter(item => groupOf(item.id).id === group.id) })).filter(entry => entry.items.length > 0);
   const searchGroups = groups.map(group => ({ group, items: sections.filter(item => item.hub === group.id) })).filter(entry => entry.items.length > 0);
-  return <dialog className="command-dialog" ref={dialog} aria-labelledby="command-title" onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === dialog.current) { const rect = dialog.current.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose(); } }} onKeyDown={keyboard}>
+  return <dialog className="command-dialog" ref={dialog} tabIndex={-1} aria-labelledby="command-title" onCancel={event => { event.preventDefault(); onClose(); }} onClick={event => { if (event.target === dialog.current) { const rect = dialog.current.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose(); } }} onKeyDown={keyboard}>
     <div className="command-dialog-heading"><h2 id="command-title">Command center</h2><Button variant="ghost" size="compact" aria-label="Close command center" onClick={onClose}><AppIcon name="close" /></Button></div>
     <div className="command-search-field"><AppIcon name="search" /><Input type="search" aria-label="Search navigation" placeholder="Search sections or actions…" value={query} onChange={event => setQuery(event.target.value)} /><kbd>Esc</kbd></div>
     <div className="command-results">

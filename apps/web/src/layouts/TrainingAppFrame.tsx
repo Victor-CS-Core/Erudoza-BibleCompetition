@@ -42,7 +42,11 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const [commandRoute, setCommandRoute] = useState<string | null>(null);
   const commandOpen = commandRoute === route;
   const commandOpener = useRef<HTMLElement | null>(null);
-  const openCommand = (opener: HTMLElement) => { commandOpener.current = opener; setCommandRoute(route); };
+  // The mobile "More" button opens the hub to browse, not to search: it must
+  // not focus (or select text in) the search field. The masthead search
+  // trigger and Ctrl/Cmd+K open it search-first.
+  const [commandFocusSearch, setCommandFocusSearch] = useState(true);
+  const openCommand = (opener: HTMLElement, focusSearch = true) => { commandOpener.current = opener; setCommandFocusSearch(focusSearch); setCommandRoute(route); };
   const closeCommand = useCallback(() => {
     setCommandRoute(null);
     requestAnimationFrame(() => { if (commandOpener.current?.isConnected) commandOpener.current.focus(); });
@@ -90,7 +94,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
     return next;
   });
   useEffect(() => {
-    const shortcut = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); if (commandRoute === route) closeCommand(); else { commandOpener.current = document.activeElement as HTMLElement | null; setCommandRoute(route); } } };
+    const shortcut = (event: KeyboardEvent) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") { event.preventDefault(); if (commandRoute === route) closeCommand(); else { commandOpener.current = document.activeElement as HTMLElement | null; setCommandFocusSearch(true); setCommandRoute(route); } } };
     window.addEventListener("keydown", shortcut); return () => window.removeEventListener("keydown", shortcut);
   }, [route, commandRoute, closeCommand]);
   useEffect(() => {
@@ -164,8 +168,8 @@ function CommandFrame({ coach }: { coach: boolean }) {
     <div className="training-workspace pathfinder-canvas"><PathfinderBackdrop /><main id="training-main" className="training-main" data-testid={coach ? "coach-main" : "learner-main"}><Outlet /></main><AppFooter supportEnabled={coach && me?.kind === "Adult"} /></div>
     <nav className="command-bottom-nav" aria-label="Mobile navigation">
       {mobileItems.map(item => <Link key={item.id} to={item.to} aria-current={mobileActive === item.id ? "page" : undefined}><AppIcon name={item.icon} /><span>{item.id === "home" ? "HQ" : item.label}</span></Link>)}
-      <Button variant="ghost" aria-label="More" aria-current={!mobileIds.includes(mobileActive ?? "") ? "page" : undefined} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget)}><AppIcon name="grid" /><span>More</span></Button>
+      <Button variant="ghost" aria-label="More" aria-current={!mobileIds.includes(mobileActive ?? "") ? "page" : undefined} aria-haspopup="dialog" onClick={event => openCommand(event.currentTarget, false)}><AppIcon name="grid" /><span>More</span></Button>
     </nav>
-    {commandOpen && <CommandCenter items={searchItems} coach={coach} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} />}
+    {commandOpen && <CommandCenter items={searchItems} coach={coach} expanded={expanded} toggleExpanded={id => setExpanded(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} onClose={closeCommand} focusSearch={commandFocusSearch} />}
   </div>;
 }

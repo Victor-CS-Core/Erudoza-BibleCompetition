@@ -6,6 +6,7 @@ import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } fr
 import { academyActivityName, academyRecentExactPercent, canStartAcademyTrack } from "./academyTracks";
 import { HonorsPage } from "./HonorsPage";
 import { PassageBrowser } from "./PassageBrowser";
+import { rankWorthAnotherLook } from "./worthAnotherLook";
 import { PbeJourney } from "./PassageJourney";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
 import "./student.css";
@@ -29,16 +30,9 @@ export function ProgressPage() {
     queryFn: () => coachView ? api.studentProgress(me!.organizationId, seasonId!, studentId!) : api.progress(selectedSeasonId), enabled: (!coachView || !!me) && tab !== "honors" });
   const data = progress.data;
   const recent = data?.recentAttempts ?? [];
-  const now = Date.now();
-  // Needs attention: due reviews first, then the lowest-scoring unmastered passages.
-  const needsAttention = (data?.mastery ?? [])
-    .map(item => {
-      const due = item.level === "Review" || (item.reviewDueAtUtc != null && Date.parse(item.reviewDueAtUtc) <= now);
-      return { item, due };
-    })
-    .filter(({ item, due }) => due || (item.level !== "Mastered" && item.level !== "Strong"))
-    .sort((a, b) => Number(b.due) - Number(a.due) || a.item.exactWordingScore - b.item.exactWordingScore)
-    .slice(0, 5);
+  // Needs attention: the shared "worth another look" ranking (due reviews
+  // first, then the lowest-scoring unmastered passages).
+  const needsAttention = rankWorthAnotherLook(data?.mastery, Date.now(), 5);
   const studyHref = (mode: "Practice" | "Review") => `/student/study?mode=${mode}${data?.seasonId ? `&seasonId=${encodeURIComponent(data.seasonId)}` : ""}`;
   return <div className="training-dashboard student-progress">
     <PageHeader title={coachView ? "Student progress" : "Your progress"} description={<span data-testid="progress-student">{data?.studentDisplayName ? `${data.studentDisplayName} · ` : ""}{data?.seasonName || "How you are doing, passage by passage"}</span>}

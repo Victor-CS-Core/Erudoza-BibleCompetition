@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { expect, it, vi } from "vitest";
 import { trainingApi } from "../../api/training";
@@ -54,6 +54,8 @@ it("reports saved weekly and passage evidence without inventing readiness", asyn
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>);
   expect(await screen.findByRole("link", { name: "Continue review" })).toHaveAttribute("href", expect.stringContaining("seasonId=s"));
   expect(screen.getByLabelText("2 of 5 practice days")).toBeVisible();
+  // Chapter passage evidence now lives in the passage picker's chapter details.
+  fireEvent.click(await screen.findByText("Passage details for Daniel 1"));
   expect(await screen.findByLabelText("DAN 1 assigned passages practiced")).toBeVisible();
   expect(screen.queryByText("72%")).not.toBeInTheDocument();
 });

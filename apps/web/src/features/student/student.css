@@ -57,7 +57,7 @@
 .training-mission-main > .ds-button { margin: 4px 0 18px; }
 .training-mission-main > .ds-notice { margin: 16px 0; }
 .training-mission-note { color: var(--er-muted-ink); font-size: var(--er-text-xs); margin: 12px 0 0; }
-.training-hq-aside h2, .training-journey-preview h2 { font-size: var(--er-text-lg); margin: 0; }
+.training-hq-aside h2 { font-size: var(--er-text-lg); margin: 0; }
 .training-this-week > .training-panel-title { margin-bottom: 4px; }
 .training-this-week > section { padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--er-border); }
 .training-this-week > section:first-of-type { border-top: 0; margin-top: 12px; padding-top: 0; }
@@ -90,7 +90,7 @@
 .training-next-honor-content > div { flex: 1; min-width: 0; }
 .training-next-honor-content h3 { font-size: var(--er-text-base); margin: 0 0 4px; }
 .training-next-honor-content p { color: var(--er-muted-ink); font-size: var(--er-text-xs); margin-bottom: 8px; }
-.training-next-honor > a, .training-journey-footer > a { display: inline-flex; align-items: center; gap: 7px; font-size: var(--er-text-sm); font-weight: 600; }
+.training-next-honor > a { display: inline-flex; align-items: center; gap: 7px; font-size: var(--er-text-sm); font-weight: 600; }
 .training-season { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .training-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .training-passage-list { list-style: none; padding: 0; margin: 16px 0; }
@@ -103,18 +103,6 @@
 .training-step-dot.is-complete { background: var(--er-selected); color: var(--er-teal); }
 .training-step-dot.is-next { background: var(--er-navy-surface); color: var(--er-on-navy); }
 .training-step-state { margin-left: auto; color: var(--er-muted-ink); font-size: var(--er-text-xs); text-align: right; }
-.training-journey-preview > .training-panel-title { margin-bottom: 18px; }
-.training-journey-preview > .training-panel-title > span { color: var(--er-muted-ink); font-size: var(--er-text-xs); }
-.training-passage-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; list-style: none; padding: 0; margin: 0; }
-.training-passage-tile { display: block; border-top: 3px solid var(--er-border); padding-top: 14px; color: var(--er-ink-navy); }
-.training-passage-tile strong { display: block; font-size: var(--er-text-sm); }
-.training-passage-tile span { display: block; margin-top: 6px; font-size: var(--er-text-xs); color: var(--er-muted-ink); }
-.training-passage-tile.is-strong { border-color: var(--er-teal); }
-.training-passage-tile.needs-review { border-color: var(--er-coral); }
-.training-passage-tile.needs-review span { color: var(--er-stamp-red); }
-.training-passage-tile:hover strong { text-decoration: underline; text-underline-offset: 3px; }
-.training-journey-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 18px; color: var(--er-muted-ink); font-size: var(--er-text-xs); }
-.training-journey-footer p { margin: 0; }
 .training-more { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
 .training-more h2 { font-size: var(--er-text-lg); margin-bottom: 4px; }
 .training-more p, .training-more .training-controls { margin: 0; }
@@ -147,6 +135,45 @@
 .journey-skill-details .training-skill-list { margin-top: 8px; }
 .journey-due { margin: 0; font-size: var(--er-text-xs); font-weight: 700; color: var(--er-stamp-red); }
 .journey-practice-link { display: inline-flex; align-items: center; gap: 6px; font-size: var(--er-text-sm); font-weight: 700; color: var(--er-ink-navy); }
+/* Passage picker: Up next + book/chapter/verse two-step tiles — HQ's single passage surface. */
+.passage-picker { display: grid; gap: 16px; }
+.passage-picker-upnext { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; background: var(--er-navy-surface); color: var(--er-on-navy); border-radius: var(--er-radius-card); padding: 16px; }
+.passage-picker-upnext-copy { display: grid; gap: 2px; min-width: 0; }
+.passage-picker-upnext-copy small { font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--er-on-navy-muted); }
+.passage-picker-upnext-copy strong { font-size: var(--er-text-lg); }
+.passage-picker-upnext-copy span { font-size: var(--er-text-sm); color: var(--er-on-navy-muted); }
+.passage-picker-books { display: flex; flex-wrap: wrap; gap: 8px; }
+.passage-picker-book { display: inline-flex; align-items: baseline; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--er-border); border-radius: 999px; background: var(--er-card); color: var(--er-ink-navy); font: inherit; font-size: var(--er-text-sm); font-weight: 600; cursor: pointer; }
+.passage-picker-book span { font-size: var(--er-text-xs); font-weight: 500; color: var(--er-muted-ink); font-variant-numeric: tabular-nums; }
+.passage-picker-book.is-active { background: var(--er-selected); border-color: var(--er-teal); }
+.passage-picker-chapters { display: flex; flex-wrap: wrap; gap: 8px; }
+.passage-picker-chapter { position: relative; display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); color: var(--er-ink-navy); font: inherit; cursor: pointer; }
+.passage-picker-chapter-number { font-size: var(--er-text-base); font-weight: 700; font-variant-numeric: tabular-nums; }
+.passage-picker-chapter-progress { position: absolute; left: 8px; right: 8px; bottom: 6px; height: 3px; border-radius: 2px; background: var(--er-border); overflow: hidden; }
+.passage-picker-chapter-progress > span { display: block; height: 100%; background: var(--er-teal); }
+.passage-picker-chapter.is-active { background: var(--er-selected); border-color: var(--er-teal); }
+.passage-picker-due-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--er-coral); }
+.passage-picker-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0; max-height: 244px; overflow-y: auto; }
+.passage-picker-grid > li { min-width: 0; }
+.passage-picker-tile { position: relative; display: grid; place-items: center; min-height: 52px; border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); color: var(--er-ink-navy); text-decoration: none; }
+.passage-picker-tile:hover .passage-picker-verse { text-decoration: underline; text-underline-offset: 3px; }
+.passage-picker-verse { font-size: var(--er-text-base); font-weight: 700; font-variant-numeric: tabular-nums; }
+.passage-picker-tile.is-mastered { background: var(--er-teal); border-color: var(--er-teal); color: var(--er-on-navy); }
+[data-theme="dark"] .passage-picker-tile.is-mastered { color: #10181a; }
+.passage-picker-tile.is-strong { background: var(--er-selected); border-color: var(--er-teal); }
+.passage-picker-tile.is-unseen .passage-picker-verse { color: var(--er-muted-ink); }
+.passage-picker-tile.is-due { box-shadow: inset 0 0 0 2px var(--er-coral); }
+.passage-picker-tile .passage-picker-due-dot { top: 4px; right: 4px; }
+.passage-picker-check { position: absolute; top: 4px; left: 5px; display: grid; place-items: center; }
+.passage-picker-check svg { width: 13px; height: 13px; }
+.passage-picker-sliver { position: absolute; left: 8px; right: 8px; bottom: 6px; height: 3px; border-radius: 2px; background: var(--er-border); overflow: hidden; }
+.passage-picker-sliver > span { display: block; height: 100%; background: var(--er-teal); }
+.passage-picker-legend { margin: 0; font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.passage-picker-loading { margin: 0; font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.passage-picker-details { border-top: 1px solid var(--er-border); padding-top: 12px; }
+.passage-picker-details > summary { cursor: pointer; font-size: var(--er-text-sm); font-weight: 600; color: var(--er-ink-navy); min-height: 44px; align-content: center; }
+.passage-picker-details .journey-chapter-stats { margin-top: 12px; }
+.passage-picker-details-scope { margin: 12px 0 0; }
 .pbe-chapter-journey > .training-panel-title { align-items: end; }
 .pbe-chapter-card { display: grid; gap: 16px; }
 .pbe-chapter-card h3, .pbe-chapter-card p, .pbe-season-coverage h2, .pbe-season-coverage h3, .pbe-season-coverage p { margin: 0; }

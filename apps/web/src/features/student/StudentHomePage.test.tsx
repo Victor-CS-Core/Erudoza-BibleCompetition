@@ -132,20 +132,23 @@ it("offers the saved PBE mission resume action after its published bank becomes 
   expect(screen.queryByTestId("academy-track-unavailable")).not.toBeInTheDocument();
 });
 
-it("shows the retired Progress page's contents on HQ: activity totals, worth another look, recent attempts, and per-assignment progress", async () => {
+it("shows the retired Progress page's contents on HQ: activity totals, the picker's Up-next card, recent attempts, and per-assignment progress", async () => {
   home();
   // Activity totals (formerly the Progress page's top folio)
   expect(await screen.findByTestId("progress-attempts")).toHaveTextContent("5");
   expect(screen.getByTestId("progress-reviews")).toHaveTextContent("2");
   expect(screen.getByTestId("progress-recent")).toHaveTextContent("100%");
-  // Worth another look: the due passage with a Review action
-  const attention = await screen.findByTestId("progress-needs-attention");
-  expect(within(attention).getByText("Daniel 1:1")).toBeInTheDocument();
-  expect(within(attention).getByRole("link", { name: "Review" })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=s");
+  // The passage picker is HQ's only passage surface now: its Up-next card
+  // carries the old "Worth another look" ranking — the due passage, with a
+  // Review action — and the retired panels are gone.
+  const upNext = await screen.findByTestId("passage-picker-upnext");
+  expect(within(upNext).getByText("Daniel 1:1")).toBeInTheDocument();
+  expect(within(upNext).getByRole("link", { name: /Review this passage/ })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=s");
+  expect(screen.getByTestId("passage-picker")).toBeInTheDocument();
+  expect(screen.queryByTestId("progress-needs-attention")).not.toBeInTheDocument();
+  expect(screen.queryByTestId("progress-mastery")).not.toBeInTheDocument();
   // Recent attempts (collapsed disclosure, content present)
   expect(screen.getByTestId("recent-attempts")).toHaveTextContent("Daniel 1:1");
-  // Passage browser (formerly on the Progress page)
-  expect(screen.getByTestId("progress-mastery")).toBeInTheDocument();
   // Assigned passages notice carries per-range progress woven in
   expect(await screen.findByText("1 of 2 verses strong or mastered")).toBeInTheDocument();
   expect(screen.getByText(/Ready to study — these are your passages for this season\./)).toBeInTheDocument();

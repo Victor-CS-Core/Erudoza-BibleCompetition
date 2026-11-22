@@ -3,10 +3,9 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { Link, useNavigate } from "react-router-dom";
 import { ApiError } from "../../api/client";
 import type { ContinueChaptersRequest, ProgressAction } from "../../api/pbeTypes";
-import type { PassageJourneyPage } from "../../api/trainingTypes";
 import { trainingApi } from "../../api/training";
 import { useAuth } from "../../auth/AuthContext";
-import { Badge, Button, LinkButton, LoadingState, Notice, Panel, ProgressMeter } from "../../components/ui";
+import { Button, LoadingState, Notice, Panel } from "../../components/ui";
 import { trainingLink } from "./trainingAssets";
 import { AppIcon } from "../../components/AppIcon";
 import { PbeChapterProgress } from "./PbeChapterProgress";
@@ -121,86 +120,4 @@ export function PbeJourney({ seasonId, preview }: { seasonId: string; preview: b
       {groups.isPending ? <LoadingState label="Loading passage groups…" /> : groups.isError ? <Notice tone="danger">Passage groups could not load. <Button variant="secondary" onClick={() => void groups.refetch()}>Retry groups</Button></Notice> : <>{groupRows.map(progress => <PbeChapterProgress key={progress.key} progress={progress} onAction={startAction} />)}{!groupRows.length && <p>No smaller passage groups are available.</p>}{groups.hasNextPage && <Button variant="secondary" disabled={groups.isFetchingNextPage} onClick={() => void groups.fetchNextPage()}>{groups.isFetchingNextPage ? 'Loading…' : 'Load more groups'}</Button>}</>}
     </section>}
   </section>;
-}
-
-type JourneyChapter = PassageJourneyPage["chapters"][number];
-type JourneyPassage = JourneyChapter["passages"][number];
-
-function passageLevelTone(level: string): "success" | "warning" | "neutral" {
-  if (level === "Mastered" || level === "Strong") return "success";
-  if (level === "Review") return "warning";
-  return "neutral";
-}
-
-const JOURNEY_SKILLS = [
-  ["Wording", "exactWording"],
-  ["Reference", "reference"],
-  ["Sequence", "sequence"],
-  ["Recognition", "recognition"],
-  ["Factual recall", "factualRecall"],
-] as const;
-
-function PassageCard({ passage, seasonId }: { passage: JourneyPassage; seasonId: string }) {
-  const isV2 = passage.algorithmVersion === "v2-skill-evidence";
-  const unseen = (passage.level === "Unseen" || passage.level === "Unknown") && !isV2;
-  const average = isV2 ? Math.round(JOURNEY_SKILLS.reduce((sum, [, key]) => sum + passage.skills[key], 0) / JOURNEY_SKILLS.length) : null;
-  const tone = passageLevelTone(passage.level);
-  return <li id={`passage-${passage.knowledgeUnitId}`} className={`journey-passage-card journey-tone-${tone}${passage.dueAtUtc ? " is-due" : ""}`}>
-    <div className="journey-passage-head"><strong>{passage.title}</strong><Badge tone={tone}>{passage.level}</Badge></div>
-    {average !== null
-      ? <ProgressMeter label={`${passage.title} average skill score`} value={average} max={100} />
-      : <p className="journey-passage-hint">{unseen ? "Not practiced yet." : "No scores yet for this one."}</p>}
-    {isV2 && <details className="journey-skill-details"><summary>Skill breakdown</summary>
-      <div className="training-skill-list">{JOURNEY_SKILLS.map(([label, key]) => <div key={key}><span>{label}</span><ProgressMeter label={`${passage.title}: ${label}`} value={passage.skills[key]} max={100} /></div>)}</div>
-    </details>}
-    {passage.dueAtUtc && <p className="journey-due">Review due <time dateTime={passage.dueAtUtc}>{new Date(passage.dueAtUtc).toLocaleDateString()}</time></p>}
-    <Link className="journey-practice-link" to={trainingLink(`/student/study?mode=${passage.dueAtUtc ? "Review" : "Practice"}`, seasonId)}>Practice<AppIcon name="arrow" /></Link>
-  </li>;
-}
-
-function ChapterProgressPanel({ chapter, seasonId }: { chapter: JourneyChapter; seasonId: string }) {
-  const dueCount = chapter.passages.filter(passage => passage.dueAtUtc).length;
-  const hasLegacy = chapter.passages.some(passage => passage.algorithmVersion !== "v2-skill-evidence" && passage.algorithmVersion !== "unknown");
-  return <Panel className="journey-chapter-panel">
-    <div className="training-panel-title"><h3>{chapter.bookKey} {chapter.chapter}</h3><Badge>{chapter.scopeLabel}</Badge></div>
-    <div className="journey-chapter-stats">
-      <div><strong>{chapter.seenCount}<span>/{chapter.eligibleCount}</span></strong><span>practiced</span></div>
-      <div><strong>{chapter.strongCount}</strong><span>strong / mastered</span></div>
-      {dueCount > 0 && <div className="is-due"><strong>{dueCount}</strong><span>due for review</span></div>}
-    </div>
-    <ProgressMeter label={`${chapter.bookKey} ${chapter.chapter} assigned passages practiced`} value={chapter.seenCount} max={chapter.eligibleCount} />
-    {chapter.eligibleCount === 0 && <p>No eligible assigned passages in this chapter.</p>}
-    {hasLegacy && <Notice className="journey-legacy-note">Earlier scoring — detailed skill scores aren't available for these passages.</Notice>}
-    <ul className="journey-passage-grid">
-      {chapter.passages.map(passage => <PassageCard key={passage.knowledgeUnitId} passage={passage} seasonId={seasonId} />)}
-    </ul>
-  </Panel>;
-}
-
-function MemoryPassageJourney({ seasonId, preview = false, title = 'Your passage progress' }: { seasonId: string; preview?: boolean; title?: string }) {
-  const { me } = useAuth();
-  const journey = useInfiniteQuery({ queryKey: ["training-journey", seasonId, me?.organizationId, me?.userId], initialPageParam: undefined as string | undefined, queryFn: ({ pageParam }) => trainingApi.journey(seasonId, pageParam), getNextPageParam: page => page.after ?? undefined });
-  if (preview) {
-    const chapter = journey.data?.pages.flatMap(page => page.chapters).find(item => item.eligibleCount > 0);
-    return <Panel className="training-journey-preview">
-      <div className="training-panel-title"><h2>Your passage progress</h2>{chapter && <span>{chapter.bookKey} {chapter.chapter} · Assigned scope</span>}</div>
-      {journey.isPending ? <LoadingState label="Loading passage progress…" /> : journey.isError && !journey.data ? <Notice tone="danger">Passages could not load. <Button variant="secondary" onClick={() => void journey.refetch()}>Retry passages</Button></Notice> : chapter ? <>
-        <ul className="training-passage-tiles">{chapter.passages.slice(0, 5).map(passage => {
-          const unseen = (passage.level === "Unseen" || passage.level === "Unknown") && (passage.algorithmVersion === "unknown" || passage.algorithmVersion === "v2-skill-evidence");
-          const legacy = !unseen && passage.algorithmVersion !== "v2-skill-evidence";
-          const strong = !legacy && (passage.level === "Strong" || passage.level === "Mastered");
-          return <li key={passage.knowledgeUnitId}><Link className={`training-passage-tile${strong ? " is-strong" : passage.level === "Review" && !legacy ? " needs-review" : ""}`} to={`${trainingLink("/student", seasonId)}#passage-${encodeURIComponent(passage.knowledgeUnitId)}`}>
-            <strong>{passage.title}</strong><span>{unseen ? "Ready to begin" : legacy ? "Legacy scoring" : passage.level}</span>
-          </Link></li>;
-        })}</ul>
-        <div className="training-journey-footer"><p>{chapter.seenCount} of {chapter.eligibleCount} assigned passages practiced · {chapter.strongCount} Strong or Mastered</p><Link to={trainingLink("/student", seasonId)}>View full passage progress<AppIcon name="arrow" /></Link></div>
-      </> : <><h3>No eligible passages yet</h3><p>Your coach will add your study assignment here.</p></>}
-    </Panel>;
-  }
-  return <section className="training-passage-journey"><h2>{title}</h2><p>Choose an assigned passage to practice.</p>{journey.isPending ? <LoadingState label="Loading passage progress…" /> : journey.isError && !journey.data ? <Notice tone="danger">Passages could not load. <Button variant="secondary" onClick={() => void journey.refetch()}>Retry passages</Button></Notice> : <>{journey.data?.pages.flatMap((page, pageIndex) => page.chapters.slice(0, preview ? 1 : undefined).map((chapter, index) => <ChapterProgressPanel key={`${pageIndex}:${index}`} chapter={chapter} seasonId={seasonId} />))}{!journey.data?.pages.some(page => page.chapters.some(chapter => chapter.eligibleCount > 0)) && <Panel><h3>No eligible passages yet</h3><p>Your coach will add your study assignment here.</p></Panel>}{journey.isFetchNextPageError && <Notice tone="danger">The next passages could not load. Try loading more again.</Notice>}{!preview && journey.hasNextPage && <Button variant="secondary" disabled={journey.isFetchingNextPage} onClick={() => void journey.fetchNextPage()}>{journey.isFetchingNextPage ? "Loading…" : "Load more passages"}</Button>}<div className="training-controls">{preview && <LinkButton variant="secondary" to={trainingLink("/student", seasonId)}>View full passage progress</LinkButton>}<LinkButton variant="secondary" to={trainingLink("/student/study?mode=Review", seasonId)}>Review due passages</LinkButton><LinkButton variant="secondary" to={trainingLink("/student/study?mode=Practice", seasonId)}>Practice passages</LinkButton></div></>}</section>;
-}
-
-export function PassageJourney({ seasonId, preview = false, format = 'Memory' }: { seasonId: string; preview?: boolean; format?: 'Memory' | 'Pbe' }) {
-  if (format === 'Pbe') return <><PbeJourney seasonId={seasonId} preview={preview} />{!preview && <MemoryPassageJourney seasonId={seasonId} title="Your Memory passage progress" />}</>;
-  return <MemoryPassageJourney seasonId={seasonId} preview={preview} />;
 }

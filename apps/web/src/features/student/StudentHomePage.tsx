@@ -7,9 +7,9 @@ import { trainingApi } from "../../api/training";
 import { AppIcon } from "../../components/AppIcon";
 import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
 import { Badge, Button, HonorArtwork, LinkButton, LoadingState, Notice, PageHeader, Panel, ProgressMeter, Select, WeeklyProgressStrip } from "../../components/ui";
-import { PassageJourney } from "./PassageJourney";
+import { PbeJourney } from "./PassageJourney";
+import { PassagePicker } from "./PassagePicker";
 import { AssignedPassages } from "./AssignedPassages";
-import { PassageBrowser } from "./PassageBrowser";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
 import { WeeklyGoalDialog } from "./WeeklyGoalDialog";
 import { TeamActivityStrip, LeaderboardCard } from "./TeamMomentum";
@@ -49,17 +49,6 @@ export function StudentHomePage() {
     }
     return link(`/student/study?${search}`);
   };
-  // Worth another look: due reviews first, then the lowest-scoring unmastered passages.
-  const now = Date.now();
-  const needsAttention = (progressData?.mastery ?? [])
-    .map(item => {
-      const due = item.level === "Review" || (item.reviewDueAtUtc != null && Date.parse(item.reviewDueAtUtc) <= now);
-      return { item, due };
-    })
-    .filter(({ item, due }) => due || (item.level !== "Mastered" && item.level !== "Strong"))
-    .sort((a, b) => Number(b.due) - Number(a.due) || a.item.exactWordingScore - b.item.exactWordingScore)
-    .slice(0, 5);
-  const progressStudyHref = (mode: "Practice" | "Review") => `/student/study?mode=${mode}${progressData?.seasonId ? `&seasonId=${encodeURIComponent(progressData.seasonId)}` : ""}`;
   const recent = progressData?.recentAttempts ?? [];
   return <div className="training-dashboard student-home">
     <section className="training-hq-hero ds-inverse-surface" aria-labelledby="training-hq-title">
@@ -127,12 +116,10 @@ export function StudentHomePage() {
           <div><dt>Recent correct</dt><dd data-testid="progress-recent">{academyRecentExactPercent(progressData.recentAttempts)}</dd></div>
         </dl>{progressData.reviewDueCount > 0 && <div className="student-progress-next"><Badge tone="warning" aria-label="DUE">{progressData.reviewDueCount} {progressData.reviewDueCount === 1 ? "review" : "reviews"} due</Badge>{canStartAcademyTrack("review", progressData) && <LinkButton size="compact" to={`/student/study?mode=Review&seasonId=${encodeURIComponent(progressData.seasonId)}`}>Start due reviews</LinkButton>}</div>}</Panel>
       </>}
-      {seasonId && <PassageJourney key={`${seasonId}:${data.format ?? 'Memory'}`} seasonId={seasonId} format={data.format ?? 'Memory'} />}
+      {seasonId && data.format === 'Pbe' && <PbeJourney key={`pbe:${seasonId}`} seasonId={seasonId} preview={false} />}
+      {seasonId && <PassagePicker key={`picker:${seasonId}`} seasonId={seasonId} mastery={progressData?.mastery} difficulty={progressData?.assignments.find(a => a.difficulty)?.difficulty} />}
       {seasonId && data.format === 'Pbe' && <SeasonCoveragePanel key={`cooperation:${seasonId}`} seasonId={seasonId} audience="student" />}
       {progressData && <>
-        <Panel>
-          <PassageBrowser mastery={progressData.mastery} difficulty={progressData.assignments.find(a => a.difficulty)?.difficulty} />
-        </Panel>
         <Panel>
           <details className="progress-disclosure">
             <summary><h2>Recent attempts</h2></summary>
@@ -142,21 +129,6 @@ export function StudentHomePage() {
             </li>) : <li><div><p>Nothing here yet — your answers show up after your first session.</p>{canStartAcademyTrack("learner", progressData) && progressData.assignments.length > 0 && <LinkButton size="compact" to={`/student/study?seasonId=${encodeURIComponent(progressData.seasonId)}`}>Start your first study session</LinkButton>}</div></li>}</ul>
           </details>
         </Panel>
-        {needsAttention.length > 0 && <Panel data-testid="progress-needs-attention">
-          <h2>Worth another look</h2>
-          <p>Passages that are due, or could use a little more practice.</p>
-          <ul className="training-list student-progress-records">
-            {needsAttention.map(({ item, due }) => (
-              <li key={item.knowledgeUnitId}>
-                <div>
-                  <h3>{item.title}</h3>
-                  <p>{due ? "Review due" : "Needs practice"} · Wording score: {item.exactWordingScore} / 100</p>
-                </div>
-                <LinkButton size="compact" to={progressStudyHref(due ? "Review" : "Practice")}>{due ? "Review" : "Practice"}</LinkButton>
-              </li>
-            ))}
-          </ul>
-        </Panel>}
       </>}
       <Panel className="training-mission">
         <div className="training-mission-main">

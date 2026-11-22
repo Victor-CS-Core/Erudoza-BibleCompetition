@@ -5,32 +5,11 @@ import { beforeEach, expect, it, vi } from "vitest";
 import type { ChapterPage, ProgressRow } from "../../api/pbeTypes";
 import { ApiError } from "../../api/client";
 import { trainingApi } from "../../api/training";
-import { PassageJourney } from "./PassageJourney";
-import { journeyFixture } from "./trainingFixtures";
+import { PbeJourney } from "./PassageJourney";
 vi.mock("../../api/training", () => ({ trainingApi: { journey: vi.fn(), chapters: vi.fn(), continueChapters: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
-function page(preview = false, format: 'Memory' | 'Pbe' = 'Memory', client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) { return { ...render(<QueryClientProvider client={client}><MemoryRouter><PassageJourney seasonId="s" preview={preview} format={format} /></MemoryRouter></QueryClientProvider>), client }; }
-beforeEach(() => { vi.resetAllMocks(); vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture()); });
-it("labels partial assignment and distinct skill evidence", async () => { page(); expect(await screen.findByText("Assigned scope")).toBeInTheDocument(); expect(screen.getByText(/1 of 2 assigned passages practiced/)).toBeInTheDocument(); expect(screen.getByRole("progressbar", { name: "Wording" })).toHaveAttribute("value", "20"); expect(screen.getByRole("progressbar", { name: "Reference" })).toHaveAttribute("value", "70"); });
-it("fetches the next server cursor only on request", async () => { vi.mocked(trainingApi.journey).mockResolvedValueOnce(journeyFixture({ after: "cursor" })).mockResolvedValueOnce(journeyFixture({ chapters: [] })); page(); fireEvent.click(await screen.findByRole("button", { name: "Load more passages" })); await screen.findByText("Assigned scope"); expect(trainingApi.journey).toHaveBeenLastCalledWith("s", "cursor"); });
-it("shows empty assignment honestly", async () => { vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture({ chapters: [] })); page(); expect(await screen.findByText("No eligible passages yet")).toBeInTheDocument(); });
-it.each(["Learning", "Unknown"])("does not treat legacy %s skill values as current or missing evidence", async level => { const data = journeyFixture(); data.chapters[0].passages[0].level = level; data.chapters[0].passages[0].algorithmVersion = "v1-scaffold"; vi.mocked(trainingApi.journey).mockResolvedValue(data); page(); expect(await screen.findByText(/Earlier scoring/)).toBeInTheDocument(); expect(screen.queryByRole("progressbar", { name: "Wording" })).not.toBeInTheDocument(); });
-
-it("unseen passages have a useful start state instead of legacy scoring", async () => { const data = journeyFixture(); data.chapters[0].passages[0].level = "Unseen"; data.chapters[0].passages[0].algorithmVersion = "unknown"; vi.mocked(trainingApi.journey).mockResolvedValue(data); page(); expect(await screen.findByText(/No practice recorded yet/)).toBeInTheDocument(); expect(screen.queryByText(/Earlier scoring/)).not.toBeInTheDocument(); });
-
-it("keeps the HQ preview compact and links legacy evidence to its full passage", async () => {
-  const data = journeyFixture();
-  data.chapters[0].passages[0].level = "Mastered";
-  data.chapters[0].passages[0].algorithmVersion = "v1-scaffold";
-  vi.mocked(trainingApi.journey).mockResolvedValue(data);
-  page(true);
-  const passage = await screen.findByRole("link", { name: "Daniel 1:1 Legacy scoring" });
-  expect(passage).toHaveAttribute("href", "/student?seasonId=s#passage-k");
-  expect(screen.queryByText("Mastered")).not.toBeInTheDocument();
-  expect(screen.queryByRole("progressbar", { name: "Wording" })).not.toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "View full passage progress" })).toHaveAttribute("href", "/student?seasonId=s");
-});
-
+function page(preview = false, client = new QueryClient({ defaultOptions: { queries: { retry: false } } })) { return { ...render(<QueryClientProvider client={client}><MemoryRouter><PbeJourney seasonId="s" preview={preview} /></MemoryRouter></QueryClientProvider>), client }; }
+beforeEach(() => { vi.resetAllMocks(); });
 type ChapterOverviewPage = Omit<ChapterPage, 'view' | 'items'> & { view: 'Chapters'; items: ProgressRow[] };
 function chapterPage(overrides: Partial<ChapterOverviewPage> = {}): ChapterOverviewPage {
   const page: ChapterOverviewPage = {
@@ -46,18 +25,16 @@ function chapterPage(overrides: Partial<ChapterOverviewPage> = {}): ChapterOverv
   return { ...page, ...overrides };
 }
 
-it('renders PBE chapter progress while preserving Memory coverage', async () => {
+it('renders PBE chapter progress', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage());
-  page(false, 'Pbe');
+  page(false);
   expect(await screen.findByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
   expect(await screen.findByText('2 of 3 assigned passages have questions')).toBeVisible();
-  expect(screen.getByRole('heading', { name: 'Your Memory passage progress' })).toBeVisible();
-  expect(trainingApi.journey).toHaveBeenCalledWith('s', undefined);
 });
 
 it('hides the PBE tile in preview when the chapter bank has no progress', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage({ items: [] }));
-  page(true, 'Pbe');
+  page(true);
   await waitFor(() => expect(trainingApi.chapters).toHaveBeenCalled());
   await waitFor(() => {
     expect(screen.queryByRole('heading', { name: 'Your PBE chapter progress' })).not.toBeInTheDocument();
@@ -67,7 +44,7 @@ it('hides the PBE tile in preview when the chapter bank has no progress', async 
 
 it('shows the PBE tile in preview once chapter progress exists', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage());
-  page(true, 'Pbe');
+  page(true);
   expect(await screen.findByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
   expect(screen.getByText('2 of 3 assigned passages have questions')).toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'View full PBE chapter progress' })).toHaveAttribute('href', '/student?seasonId=s');
@@ -75,21 +52,21 @@ it('shows the PBE tile in preview once chapter progress exists', async () => {
 
 it('keeps the chapters load error honest in preview', async () => {
   vi.mocked(trainingApi.chapters).mockRejectedValue(new Error('offline'));
-  page(true, 'Pbe');
+  page(true);
   expect(await screen.findByText('Chapter progress could not load.')).toBeVisible();
 });
 
 it('keeps the automatic chapter check running in preview', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage({ snapshotId: null, scopeVersion: null, items: [], work: { id: 'work-1', state: 'Working', stage: 'Replaying', reason: null } }));
   vi.mocked(trainingApi.continueChapters).mockReturnValue(new Promise(() => {}));
-  page(true, 'Pbe');
+  page(true);
   expect(await screen.findByText('Checking chapter progress…')).toBeVisible();
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledWith({ seasonId: 's', workId: 'work-1' }));
 });
 
 it('forwards the full guarded chapter selection through the study route', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage());
-  const router = createMemoryRouter([{ path: '*', element: <PassageJourney seasonId="s" format="Pbe" /> }], { initialEntries: ['/student?seasonId=s'] });
+  const router = createMemoryRouter([{ path: '*', element: <PbeJourney seasonId="s" preview={false} /> }], { initialEntries: ['/student?seasonId=s'] });
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><RouterProvider router={router} /></QueryClientProvider>);
   fireEvent.click(await screen.findByRole('button', { name: 'Practice this chapter' }));
   expect(router.state.location.pathname).toBe('/student/study');
@@ -103,7 +80,7 @@ it('loads only the selected chapter groups and keeps their counters nonadditive'
     }],
   };
   vi.mocked(trainingApi.chapters).mockImplementation(async (_seasonId, options) => options?.view === 'Groups' ? groupPage : chapterPage());
-  page(false, 'Pbe');
+  page(false);
   fireEvent.click(await screen.findByRole('button', { name: 'View passage groups' }));
   expect(await screen.findByRole('heading', { name: 'Passage groups in Daniel 1' })).toBeVisible();
   expect(trainingApi.chapters).toHaveBeenCalledWith('s', expect.objectContaining({ view: 'Groups', chapterKey: 'chapter:pack:Daniel:1' }));
@@ -114,7 +91,7 @@ it('continues an existing bounded projection only while the screen is active', a
   vi.mocked(trainingApi.chapters).mockResolvedValueOnce(chapterPage({ snapshotId: null, scopeVersion: null, items: [], work: { id: 'work-1', state: 'Working', stage: 'Replaying', reason: null } })).mockResolvedValue(chapterPage());
   let finish!: (value: Awaited<ReturnType<typeof trainingApi.continueChapters>>) => void;
   vi.mocked(trainingApi.continueChapters).mockReturnValue(new Promise(resolve => { finish = resolve; }));
-  page(false, 'Pbe');
+  page(false);
   expect(await screen.findByText('Checking chapter progress…')).toBeVisible();
   finish({ seasonId: 's', scopeVersion: 'scope-v1', work: { id: 'work-1', state: 'Complete', stage: null, reason: null }, next: 'Reload' });
   await screen.findByText('2 of 3 assigned passages have questions');
@@ -125,7 +102,7 @@ it('continues an existing bounded projection only while the screen is active', a
 it('requests one bounded refresh when due counts have expired', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage({ dueRefreshAtUtc: '2020-01-01T00:00:00Z' }));
   vi.mocked(trainingApi.continueChapters).mockResolvedValue({ seasonId: 's', scopeVersion: 'scope-v1', work: { id: null, state: 'Complete', stage: null, reason: null }, next: 'Reload' });
-  page(false, 'Pbe');
+  page(false);
   await screen.findByText('2 of 3 assigned passages have questions');
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledOnce());
   expect(trainingApi.continueChapters).toHaveBeenCalledWith({ seasonId: 's' });
@@ -140,7 +117,7 @@ it('bootstraps a replacement projection when a completed snapshot exposes updati
   vi.mocked(trainingApi.continueChapters).mockResolvedValue({ seasonId: 's', scopeVersion: 'scope-v2', work: { id: 'work-2', state: 'Complete', stage: null, reason: null }, next: 'Reload' });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const invalidate = vi.spyOn(client, 'invalidateQueries');
-  page(false, 'Pbe', client);
+  page(false, client);
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledOnce());
   expect(trainingApi.continueChapters).toHaveBeenCalledWith({ seasonId: 's' });
   expect(await screen.findByText('2 of 3 assigned passages have questions')).toBeVisible();
@@ -152,7 +129,7 @@ it.each([true, false])('bootstraps once when completed work has no current publi
   const invalidated = chapterPage({ snapshotId: null, scopeVersion: null, currentAvailable, items: [], work: { id: 'work-complete', state: 'Complete', stage: null, reason: null } });
   vi.mocked(trainingApi.chapters).mockResolvedValue(invalidated);
   vi.mocked(trainingApi.continueChapters).mockResolvedValue({ seasonId: 's', scopeVersion: 'scope-v2', work: { id: 'work-replacement', state: 'Complete', stage: null, reason: null }, next: 'Reload' });
-  page(false, 'Pbe');
+  page(false);
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledOnce());
   expect(trainingApi.continueChapters).toHaveBeenCalledWith({ seasonId: 's' });
   await waitFor(() => expect(trainingApi.chapters).toHaveBeenCalledTimes(2));
@@ -165,7 +142,7 @@ it('does not invalidate cooperation when an old chapter continuation finishes af
   vi.mocked(trainingApi.continueChapters).mockReturnValue(new Promise(resolve => { finish = resolve; }));
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const invalidate = vi.spyOn(client, 'invalidateQueries');
-  const view = page(false, 'Pbe', client);
+  const view = page(false, client);
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledOnce());
   view.unmount();
   finish({ seasonId: 's', scopeVersion: 'scope-v2', work: { id: 'work-1', state: 'Complete', stage: null, reason: null }, next: 'Reload' });
@@ -180,9 +157,9 @@ it('does not invalidate cooperation when an old chapter continuation finishes af
   vi.mocked(trainingApi.continueChapters).mockReturnValue(new Promise(resolve => { finish = resolve; }));
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const invalidate = vi.spyOn(client, 'invalidateQueries');
-  const view = render(<QueryClientProvider client={client}><MemoryRouter><PassageJourney seasonId="s" format="Pbe" /></MemoryRouter></QueryClientProvider>);
+  const view = render(<QueryClientProvider client={client}><MemoryRouter><PbeJourney seasonId="s" preview={false} /></MemoryRouter></QueryClientProvider>);
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledOnce());
-  view.rerender(<QueryClientProvider client={client}><MemoryRouter><PassageJourney seasonId="season-2" format="Pbe" /></MemoryRouter></QueryClientProvider>);
+  view.rerender(<QueryClientProvider client={client}><MemoryRouter><PbeJourney seasonId="season-2" preview={false} /></MemoryRouter></QueryClientProvider>);
   finish({ seasonId: 's', scopeVersion: 'scope-v2', work: { id: 'work-1', state: 'Complete', stage: null, reason: null }, next: 'Reload' });
   await screen.findByText('2 of 3 assigned passages have questions');
   expect(invalidate).not.toHaveBeenCalled();
@@ -199,10 +176,10 @@ it('ignores an old-season stale rejection without consuming the current season r
     return Promise.resolve({ seasonId: input.seasonId, scopeVersion: 'scope-current', work: { id: 'replacement-work', state: 'Complete', stage: null, reason: null }, next: 'Reload' });
   });
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  const view = render(<QueryClientProvider client={client}><MemoryRouter><PassageJourney seasonId="s" format="Pbe" /></MemoryRouter></QueryClientProvider>);
+  const view = render(<QueryClientProvider client={client}><MemoryRouter><PbeJourney seasonId="s" preview={false} /></MemoryRouter></QueryClientProvider>);
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledWith({ seasonId: 's', workId: 'old-work' }));
 
-  view.rerender(<QueryClientProvider client={client}><MemoryRouter><PassageJourney seasonId="season-2" format="Pbe" /></MemoryRouter></QueryClientProvider>);
+  view.rerender(<QueryClientProvider client={client}><MemoryRouter><PbeJourney seasonId="season-2" preview={false} /></MemoryRouter></QueryClientProvider>);
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledWith({ seasonId: 'season-2', workId: 'current-work' }));
   await act(async () => {
     rejectOld(new ApiError('PBE_CHAPTER_WORK_STALE', 409, undefined, 'PBE_CHAPTER_WORK_STALE'));
@@ -218,7 +195,7 @@ it('ignores an old-season stale rejection without consuming the current season r
 it('attempts one bounded bootstrap and leaves an actionable error when stale recovery also fails', async () => {
   vi.mocked(trainingApi.chapters).mockResolvedValue(chapterPage({ snapshotId: null, scopeVersion: null, items: [], work: { id: 'work-stale', state: 'Working', stage: 'Replaying', reason: null } }));
   vi.mocked(trainingApi.continueChapters).mockRejectedValue(new ApiError('PBE_CHAPTER_WORK_STALE', 409, undefined, 'PBE_CHAPTER_WORK_STALE'));
-  page(false, 'Pbe');
+  page(false);
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledTimes(2));
   expect(trainingApi.continueChapters).toHaveBeenNthCalledWith(2, { seasonId: 's' });
   await waitFor(() => expect(trainingApi.chapters).toHaveBeenCalledTimes(2));
@@ -234,7 +211,7 @@ it.each(['PBE_CHAPTER_WORK_STALE', 'PBE_CHAPTER_SCOPE_STALE'] as const)('bootstr
   vi.mocked(trainingApi.continueChapters)
     .mockRejectedValueOnce(new ApiError(code, 409, undefined, code))
     .mockResolvedValueOnce({ seasonId: 's', scopeVersion: 'scope-v1', work: { id: 'work-replacement', state: 'Complete', stage: null, reason: null }, next: 'Reload' });
-  page(false, 'Pbe');
+  page(false);
   await waitFor(() => expect(trainingApi.continueChapters).toHaveBeenCalledTimes(2));
   expect(trainingApi.continueChapters).toHaveBeenNthCalledWith(2, { seasonId: 's' });
   expect(await screen.findByText('2 of 3 assigned passages have questions')).toBeVisible();
