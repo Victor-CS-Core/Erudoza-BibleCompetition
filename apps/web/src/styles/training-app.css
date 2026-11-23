@@ -74,7 +74,13 @@
 .training-coach .training-main { max-width:1232px; }.training-coach .training-workspace { flex:1; }
 .training-focused .training-main { max-width:810px; }
 .training-study-heading { margin-bottom:24px; }.training-study-heading>p { color:var(--er-muted-ink);font-size:var(--er-text-sm);margin-top:8px; }
-.training-session-progress { width:100%;height:6px;margin-top:20px; }
+.training-session-progress { width:100%;height:10px;margin-top:20px;appearance:none;border:0;border-radius:999px;background:var(--er-border); }
+.training-session-progress::-webkit-progress-bar { background:var(--er-border);border-radius:999px; }
+.training-session-progress::-webkit-progress-value { background:var(--er-gold-fill);border-radius:999px; }
+.training-session-progress::-moz-progress-bar { background:var(--er-gold-fill);border-radius:999px; }
+/* Session card reference: the mockup's gold small-caps citation. The verse
+   itself stays calm; only the chrome gains the accent. */
+.study-card-reference { font-size:var(--er-text-sm);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--er-warning-ink); }
 .student-challenge [data-testid=challenge-prompt] { font:1.625rem/1.6 var(--er-font-reading);margin:28px 0;max-width:65ch; }
 .student-challenge [data-testid=submit-answer] { flex:1 1 100%; }
 .student-challenge [data-testid=challenge-feedback] { margin-top:20px; }

@@ -1,5 +1,6 @@
 import type { ProgressAction, ProgressRow } from '../../api/pbeTypes';
 import { Badge, Button, Panel, ProgressMeter } from '../../components/ui';
+import { StatTile } from '../../components/game/GameLayer';
 import { evidenceDate } from './trainingAssets';
 
 function readinessLabel(progress: ProgressRow) {
@@ -25,10 +26,10 @@ export function PbeChapterProgress({ progress, onAction, onOpenGroups }: {
     <p>{counts.questionCoveredPassages} of {counts.assignedPassages} {units} have questions</p>
     {counts.totalTargets > 0 ? <>
       <ProgressMeter label={`${progress.label} targets practiced`} value={counts.practicedTargets} max={counts.totalTargets} />
-      <dl className="pbe-chapter-counts">
-        <div><dt>Recalled</dt><dd>{counts.recalledTargets} of {counts.totalTargets}</dd></div>
-        <div><dt>Retained</dt><dd>{counts.retainedTargets} of {counts.totalTargets}</dd></div>
-        <div><dt>Due or repair</dt><dd>{counts.dueTargets}</dd></div>
+      <dl className="game-stat-grid pbe-chapter-stats">
+        <StatTile label="Recalled" value={counts.recalledTargets} context={`of ${counts.totalTargets}`} />
+        <StatTile label="Retained" value={counts.retainedTargets} context={`of ${counts.totalTargets}`} />
+        <StatTile label="Due or repair" value={counts.dueTargets} />
       </dl>
     </> : <p>No eligible targets yet</p>}
     {counts.missingVariantTargets > 0 && <p><small>{counts.missingVariantTargets} {counts.missingVariantTargets === 1 ? 'target needs' : 'targets need'} one more recall question before they count as remembered for good.</small></p>}

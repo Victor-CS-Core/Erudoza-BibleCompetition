@@ -134,6 +134,13 @@
 .practice-event-roster-list li { display:flex; align-items:center; justify-content:space-between; gap:var(--er-space-4); }
 .practice-event-roster-list select { min-width:160px; }
 .practice-event-card { min-width:0; }
+/* Game-card treatment for inbox event cards: status accent edge + rhythm.
+   Teal = live/action, gold = a result on record, plain edge = scheduled. */
+.game-event-card { display:grid; gap:var(--er-space-2); border-left:3px solid var(--er-border); }
+.game-event-card p { margin:0; }
+.game-event-card.is-live { border-left-color:var(--er-teal); }
+.game-event-card.is-completed { border-left-color:color-mix(in srgb, var(--er-thread-gold) 70%, var(--er-border)); }
+.game-event-card .ds-button { justify-self:start; }
 .practice-event-live ul { list-style:none; margin:var(--er-space-2) 0 0; padding:0; display:grid; gap:var(--er-space-1); }
 .practice-event-live li { display:flex; align-items:center; justify-content:space-between; gap:var(--er-space-3); }
 .practice-inbox-list { display:grid; gap:var(--er-space-4); margin-bottom:var(--er-space-5); }

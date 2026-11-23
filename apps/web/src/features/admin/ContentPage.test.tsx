@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import { ContentPage } from "./ContentPage";
 vi.mock("../../api/client", () => ({ api: { notebook: vi.fn().mockResolvedValue({ version: 0, entries: [] }), library: vi.fn(), libraryChapter: vi.fn(), progress: vi.fn(), contentPacks: vi.fn(), scriptureCatalog: vi.fn(), scriptureBooks: vi.fn(), scriptureChapters: vi.fn(), pbeMaterials: vi.fn().mockResolvedValue([]), pbeMaterialCurrent: vi.fn().mockResolvedValue({ material: null }) } }));
@@ -60,4 +60,27 @@ it("marks saved study books without limiting reading to the plan", async () => {
   await screen.findByText("Preview fixture");
   expect(api.libraryChapter).toHaveBeenLastCalledWith("org-1", "jude", 1);
   expect(api.progress).toHaveBeenCalledWith("season-1");
+});
+
+describe("ContentPage phone layout (Option D)", () => {
+  beforeEach(() => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(max-width: 760px)", media: query, onchange: null, addEventListener: vi.fn(), removeEventListener: vi.fn(), addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn() }));
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
+  });
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it("opens the book browser as a bottom sheet once a book is selected", async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole("button", { name: /Ephesians/ }));
+    await screen.findByText("Preview fixture");
+    // With a book selected, the browser leaves the panel on phones.
+    expect(document.querySelector(".library-books-panel #study-book-browser")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Choose book" }));
+    const dialog = document.querySelector("dialog.library-book-dialog");
+    expect(dialog).not.toBeNull();
+    expect(dialog!.querySelector("#study-book-browser")).not.toBeNull();
+    fireEvent.click(within(dialog as HTMLElement).getByRole("button", { name: /Jude/ }));
+    expect(await screen.findByText("Ephesians 1".replace("Ephesians", "Jude"))).toBeInTheDocument();
+  });
 });

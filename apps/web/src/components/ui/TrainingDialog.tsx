@@ -1,13 +1,20 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { Button } from "./index";
 import { useScrollLock } from "./scrollLock";
+import { useSheetDrag } from "./sheetDrag";
+import { usePhoneLayout } from "../../hooks/useMediaQuery";
 
 export function TrainingDialog({ open, title, onClose, children, pending = false, className = "" }: {
   open: boolean; title: string; onClose(): void; children: ReactNode; pending?: boolean; className?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const phone = usePhoneLayout();
   useScrollLock(open);
+  // On phones the dialog is a bottom sheet: dragging its handle/header
+  // down dismisses it through the same onClose path as Escape and the
+  // Close button. A pending dialog never drags away.
+  useSheetDrag(dialog, { enabled: open && phone && !pending, onDismiss: onClose });
   useEffect(() => {
     if (!open) return;
     const trigger = document.activeElement as HTMLElement | null;
@@ -18,6 +25,7 @@ export function TrainingDialog({ open, title, onClose, children, pending = false
   }, [open]);
   if (!open) return null;
   return <dialog className={`ds-dialog ds-training-dialog ${className}`} ref={dialog} aria-labelledby={titleId} aria-busy={pending} onCancel={event => { event.preventDefault(); if (!pending) onClose(); }}>
+    <span className="ds-sheet-handle" aria-hidden="true" />
     <header><h2 id={titleId}>{title}</h2><Button variant="ghost" aria-label="Close dialog" disabled={pending} onClick={onClose}>Close</Button></header>
     <div className="ds-training-dialog-body">{children}</div>
   </dialog>;

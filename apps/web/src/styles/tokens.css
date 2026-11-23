@@ -56,6 +56,14 @@
   --er-control-height: 44px;
   --er-focus: 0 0 0 3px color-mix(in srgb, var(--er-teal) 24%, transparent);
   --er-shadow-overlay: 0 12px 32px #102e4714;
+  /* Fidelity pass: a real depth standard. Cards lift off the page with a
+     soft warm-navy shadow instead of relying on hairline borders alone;
+     the dock/nav shadow anchors the bottom chrome; gold-fill is the
+     saturated gold used for achievement fills and quest-start actions
+     (thread-gold stays the paler ring/highlight gold). */
+  --er-shadow-card: 0 1px 2px #102e4714, 0 10px 28px #102e4712;
+  --er-shadow-dock: 0 -8px 28px #102e4722;
+  --er-gold-fill: #e9b44c;
   --er-patch-shadow-contact: color-mix(in srgb, var(--er-ink-navy) 22%, transparent);
   --er-patch-shadow-soft: color-mix(in srgb, var(--er-ink-navy) 24%, transparent);
   --er-duration: 180ms;
@@ -101,6 +109,9 @@
   --er-thread-gold: #e3b85e;
   --er-focus: 0 0 0 3px color-mix(in srgb, var(--er-teal) 45%, transparent);
   --er-shadow-overlay: 0 12px 32px #00000066;
+  --er-shadow-card: 0 1px 2px #00000059, 0 10px 28px #0000004d;
+  --er-shadow-dock: 0 -8px 28px #00000080;
+  --er-gold-fill: #e3b85e;
   --er-patch-shadow-contact: color-mix(in srgb, #000000 45%, transparent);
   --er-patch-shadow-soft: color-mix(in srgb, #000000 50%, transparent);
   --er-highlight-promises: #57491f;

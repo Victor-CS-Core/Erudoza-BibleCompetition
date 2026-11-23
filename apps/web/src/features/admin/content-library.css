@@ -3,18 +3,21 @@
 .study-books-heading,.study-reader-heading,.study-tools-heading,.study-entry-heading{display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-3)}
 .study-books-heading h2,.study-reader-heading h2{margin:0}
 .study-books-heading+div:not([hidden]){margin-top:var(--er-space-4)}
-.study-workspace-actions{display:flex;justify-content:flex-end;margin-bottom:var(--er-space-3)}
 .study-workspace-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:var(--er-space-5);align-items:start}
 .study-workspace-focus .study-workspace-grid{grid-template-columns:minmax(0,1fr)}
 .study-workspace-focus .content-verses{width:100%;max-width:850px;margin-inline:auto}
 .study-workspace-grid>*{min-width:0}
-.study-reader-controls{display:flex;align-items:end;justify-content:space-between;gap:var(--er-space-4);flex-wrap:wrap;margin-bottom:var(--er-space-6)}
-.study-reader-controls .reader-navigation{margin:0;gap:var(--er-space-2);flex:1;min-width:180px}
-.study-tools-row{display:flex;align-items:center;flex-wrap:wrap;gap:var(--er-space-2)}
-.study-text-size,.study-verse-jump{display:grid;gap:var(--er-space-2)}
-.study-reader-heading{margin-bottom:var(--er-space-5);flex-wrap:wrap}
+/* Reader toolbar: one grouped cluster — chapter/verse navigation first,
+   then a tidy tools row (text size, Focus, Notebook). Nothing floats. */
+.study-reader-controls{display:grid;gap:var(--er-space-3);margin-bottom:var(--er-space-4)}
+.study-nav-cluster{display:flex;align-items:end;gap:var(--er-space-2);flex-wrap:wrap}
+.study-nav-cluster .reader-navigation{margin:0;gap:var(--er-space-2);flex:1;min-width:180px}
+.study-tools-row{display:flex;align-items:end;flex-wrap:wrap;gap:var(--er-space-2)}
+.study-text-size,.study-verse-jump{display:grid;gap:var(--er-space-1)}
+.study-reader-heading{margin-bottom:var(--er-space-3);flex-wrap:wrap}
+.library-books-panel{padding-block:var(--er-space-4)}
 .study-verse{display:grid;grid-template-columns:40px minmax(0,1fr);align-items:start;gap:var(--er-space-2);margin-bottom:var(--er-space-3)}
-.study-verse-block{margin-block:var(--er-space-5)}
+.study-verse-block{margin-block:var(--er-space-4)}
 .study-selection-tools{margin:var(--er-space-3) 0 var(--er-space-5) 48px;display:grid;gap:var(--er-space-2);padding:var(--er-space-3)}
 .study-note-link{margin-left:48px}
 .study-notebook-filters{display:flex;flex-wrap:wrap;gap:var(--er-space-1);margin-block:var(--er-space-4)}
@@ -34,9 +37,10 @@
 .study-library .content-pack-label small{color:var(--er-muted-ink)}
 .study-library .content-pack-label .ds-badge{align-self:flex-start;margin-top:var(--er-space-1)}
 @media(max-width:900px){.study-workspace-grid{grid-template-columns:minmax(0,1fr)}}
-@media(max-width:600px){.study-selection-tools{margin-left:0}.study-tools-heading{align-items:start}.study-reader-controls{align-items:start}.study-reader-controls .reader-navigation{min-width:0;flex-basis:100%}.study-books-heading{flex-wrap:wrap}.study-verse{grid-template-columns:32px minmax(0,1fr)}.study-verse .ds-verse-number{padding-inline:4px}}
+@media(max-width:600px){.study-selection-tools{margin-left:0}.study-tools-heading{align-items:start}.study-nav-cluster .reader-navigation{min-width:0;flex-basis:100%}.study-books-heading{flex-wrap:wrap}.study-verse{grid-template-columns:32px minmax(0,1fr)}.study-verse .ds-verse-number{padding-inline:4px}}
 .content-library-grid{display:grid;gap:var(--er-space-6);align-items:start}
-.content-library-search,.reader-navigation label{display:grid;gap:var(--er-space-2)}
+.content-library-search{display:grid;gap:var(--er-space-2)}
+.reader-navigation label{display:grid;gap:var(--er-space-1)}
 /* Continue vertical gestures onto the page at either end of the book list. */
 .bible-book-groups{max-height:34rem;overflow:auto;overscroll-behavior:auto;padding:var(--er-space-1)}
 .bible-book-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-2)}
@@ -49,6 +53,10 @@
 .content-verses sup{margin-right:var(--er-space-1)}
 @media(min-width:960px){.content-library-grid{grid-template-columns:minmax(18rem,1fr) minmax(0,1.8fr)}.content-library-grid>#library-books{position:sticky;top:var(--er-space-6)}}
 /* PBE materials section (student + coach library). */
+/* Unreleased-year banner: one status line in a slim row, sized to content. */
+.pbe-materials-banner{display:flex;align-items:baseline;flex-wrap:wrap;gap:var(--er-space-2) var(--er-space-3);border:1px solid var(--er-border);border-radius:var(--er-radius-card);background:var(--er-surface-soft);padding:var(--er-space-3) var(--er-space-4)}
+.pbe-materials-banner h2{margin:0;font-size:var(--er-text-md)}
+.pbe-materials-banner p{margin:0;color:var(--er-muted-ink);font-size:var(--er-text-sm)}
 #pbe-materials .materials-hint{color:var(--er-muted-ink);font-size:var(--er-text-sm)}
 #pbe-materials .materials-sources{display:flex;flex-wrap:wrap;gap:var(--er-space-2);margin-top:var(--er-space-3)}
 #pbe-materials .materials-commentary-title{margin:0 0 var(--er-space-3)}

@@ -26,6 +26,8 @@ afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); sessionStorage.clear
 it('uses the saved PBE format despite a Memory URL and preserves server-recorded aid and partial feedback', async () => {
     mount('/student/study?sessionId=pbe-session&format=Memory');
     await screen.findByLabelText('Answer 1');
+    // R1: the live PBE session stage carries the session-active marker.
+    expect(screen.getByTestId('submit-answer').closest('.er-study-stage')).toHaveAttribute('data-session-active', 'true');
     expect(api.startSession).not.toHaveBeenCalled();
     expect(api.nextCard).not.toHaveBeenCalled();
     expect(screen.queryByText('Alpha')).not.toBeInTheDocument();
@@ -170,6 +172,9 @@ it('opens the review entry with the due-practice identity and visible review rul
     vi.mocked(api.progress).mockResolvedValue(dueProgress() as never);
     mount('/student/study?seasonId=season&format=Pbe&mode=Review');
     expect(await screen.findByText('Review · due practice')).toBeInTheDocument();
+    // R1: the review entry is pre-session — the single-bar session chrome
+    // must not engage until a session actually starts.
+    expect(document.querySelector('[data-session-active]')).toBeNull();
     expect(screen.getByRole('heading', { name: 'Protect what you’ve learned' })).toBeInTheDocument();
     const rules = within(screen.getByRole('list', { name: 'Review rules' })).getAllByRole('listitem');
     expect(rules.map(rule => rule.textContent)).toEqual(['Untimed', 'Immediate feedback', 'PBE questions']);

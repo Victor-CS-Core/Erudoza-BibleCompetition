@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router-dom";
-import { beforeEach, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import { trainingApi } from "../../api/training";
 import { StudentHomePage } from "./StudentHomePage";
@@ -14,7 +14,7 @@ function Location() { return <output aria-label="Current search">{useLocation().
 function home() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /><Location /></MemoryRouter></QueryClientProvider>); }
 beforeEach(() => { account.kind = "Student"; vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture()); vi.mocked(trainingApi.today).mockResolvedValue(todayFixture()); vi.mocked(api.assignedSeasons).mockResolvedValue([{ id: "s", name: "Daniel" }, { id: "other", name: "Joshua" }]); vi.mocked(api.teamActivity).mockResolvedValue({ practicedToday: 2, practicedThisWeek: 4, memberCount: 6 }); vi.mocked(api.leaderboard).mockResolvedValue({ weekStartLocalDate: "2026-09-14", entries: [], me: { userId: "student", rank: null, xp: 0, optedIn: false } }); vi.mocked(api.setLeaderboardOptIn).mockResolvedValue({ leaderboardOptIn: true }); vi.mocked(api.progress).mockResolvedValue(hqProgressFixture()); vi.mocked(api.myAssignments).mockResolvedValue([{ id: 'a1', studentUserId: 'student', type: 'Primary', bookKey: 'Daniel', startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3 }] as never); });
 function hqProgressFixture() { return { seasonId: 's', seasonName: 'Daniel', seasonStatus: 'Active', assignments: [{ id: 'a1', studentUserId: 'student', type: 'Primary', bookKey: 'Daniel', startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3, difficulty: 'Standard' }], masteredCount: 1, reviewDueCount: 2, attemptCount: 5, mastery: [{ knowledgeUnitId: 'ku-1', title: 'Daniel 1:1', level: 'Review', exactWordingScore: 60, recognitionScore: 60, bookKey: 'Daniel', chapter: 1, verse: 1, reviewDueAtUtc: '2026-09-01T00:00:00Z' }, { knowledgeUnitId: 'ku-2', title: 'Daniel 1:2', level: 'Strong', exactWordingScore: 95, recognitionScore: 95, bookKey: 'Daniel', chapter: 1, verse: 2, reviewDueAtUtc: null }], recentAttempts: [{ id: 'att-1', title: 'Daniel 1:1', activityType: 'MissingWords', isCorrect: true, submittedAnswer: 'In the third year', evaluationResult: 'Correct', createdAtUtc: '2026-09-10T00:00:00Z' }] } as never; }
-it("uses bounded today and carries frozen mission and selected season into review", async () => { home(); expect(await screen.findByRole("link", { name: "Continue review" })).toHaveAttribute("href", "/student/study?mode=Review&sessionId=r&step=Review&missionId=m&missionRevision=3&seasonId=s"); expect(await screen.findByTestId("progress-attempts")).toHaveTextContent("5"); expect(screen.getByText("2 of 4 passages completed")).toBeInTheDocument(); expect(screen.getByTestId("start-simulation")).toHaveAttribute("href", "/student/study?mode=Simulation&seasonId=s"); });
+it("uses bounded today and carries frozen mission and selected season into review", async () => { home(); expect(await screen.findByRole("link", { name: "Continue review" })).toHaveAttribute("href", "/student/study?mode=Review&sessionId=r&step=Review&missionId=m&missionRevision=3&seasonId=s"); expect(await screen.findByTestId("progress-attempts")).toHaveTextContent("5"); expect(screen.getByText("2 of 4 passages completed")).toBeInTheDocument(); expect(screen.getByTestId("start-simulation")).toHaveAttribute("href", "/student/study?mode=Simulation&seasonId=s"); expect(screen.queryByTestId("hq-identity-strip")).not.toBeInTheDocument(); });
 it("invalidated missions explain scope changes and do not start study", async () => { const data = todayFixture(); vi.mocked(trainingApi.today).mockResolvedValue({ ...data, mission: { ...data.mission, status: "Invalidated" } }); home(); expect(await screen.findByTestId("academy-track-unavailable")).toHaveTextContent("passages changed"); expect(screen.queryByTestId("start-todays-deck")).not.toBeInTheDocument(); });
 it("unassigned students receive honest recovery", async () => { vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ seasonId: null, seasonStatus: "None", mission: { id: null, revision: null, status: "Unavailable", scopeVersion: null, explanation: null, steps: [] }, nextAction: null })); home(); expect(await screen.findByText("Your coach will add your study assignment here.")).toBeInTheDocument(); expect(screen.getByText("Nothing assigned yet. When your coach adds passages, they will show up here.")).toBeInTheDocument(); });
 it("retries failures without showing zero progress", async () => { vi.mocked(trainingApi.today).mockRejectedValueOnce(new Error("offline")); home(); expect(await screen.findByRole("alert")).toHaveTextContent("could not load"); fireEvent.click(screen.getByRole("button", { name: "Try again" })); expect(await screen.findByRole("link", { name: "Continue review" })).toBeInTheDocument(); });
@@ -199,4 +199,43 @@ it("folds the choose-passages notice into the assignment card for an adult with 
   expect(screen.getByRole("link", { name: "Start due reviews" })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=s");
   expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
   expect(screen.getByText("0 of 0 cards completed")).toBeInTheDocument();
+});
+
+describe("StudentHomePage phone layout (Option D)", () => {
+  beforeEach(() => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(max-width: 760px)", media: query, onchange: null, addEventListener: vi.fn(), removeEventListener: vi.fn(), addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn() }));
+    HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
+    HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
+  });
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it("docks the mission's primary action above the tab bar instead of duplicating it in the card", async () => {
+    home();
+    const dockAction = await screen.findByTestId("start-todays-deck");
+    expect(dockAction).toHaveAttribute("href", "/student/study?mode=Review&sessionId=r&step=Review&missionId=m&missionRevision=3&seasonId=s");
+    expect(dockAction.closest(".mobile-action-dock")).not.toBeNull();
+    expect(dockAction.closest(".mobile-action-dock")).toHaveAttribute("aria-label", "Today's practice");
+    // Exactly one primary action in the document: the dock replaces the card's.
+    expect(screen.getAllByTestId("start-todays-deck")).toHaveLength(1);
+    expect(document.querySelector(".training-mission [data-testid='start-todays-deck']")).toBeNull();
+  });
+
+  it("presents the passage picker as a sheet opened from a compact trigger", async () => {
+    home();
+    expect(await screen.findByTestId("passage-picker-trigger")).toBeInTheDocument();
+    expect(screen.queryByTestId("passage-picker")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Browse passages" }));
+    const picker = await screen.findByTestId("passage-picker");
+    expect(picker.closest("dialog")).not.toBeNull();
+  });
+
+  it("mounts the collapsing-hero identity strip on phones (R2), hidden until the hero scrolls away", async () => {
+    home();
+    const strip = await screen.findByTestId("hq-identity-strip");
+    // jsdom has no IntersectionObserver, so the strip stays in its
+    // scroll-top state; the observer behavior is pinned in
+    // HqIdentityStrip.test.tsx.
+    expect(strip).not.toHaveClass("is-visible");
+    expect(within(strip).getByText("Level 2 · Seeker")).toBeInTheDocument();
+  });
 });

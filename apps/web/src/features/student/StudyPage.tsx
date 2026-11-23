@@ -25,6 +25,7 @@ import { VerseBuilderInput } from "./VerseBuilderInput";
 import { ScriptureReader } from "./ScriptureReader";
 import { RecitationPanel } from "./RecitationPanel";
 import { useProfileIdentity } from "../profile/profile";
+import { usePhoneLayout } from "../../hooks/useMediaQuery";
 import { XpRewardOverlay, useXpReward } from "../../components/game/XpReward";
 import type { BoardAvatar } from "../../api/types";
 import { PbeStudyPage, reviewReturnDetail } from './PbeStudyPage';
@@ -81,6 +82,7 @@ export function StudyPage() {
 }
 function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const { me } = useAuth();
+  const phone = usePhoneLayout();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const requestedSessionId = params.get("sessionId");
@@ -332,6 +334,63 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     setAnswer(ids.map(id => current?.tokens.find(token => token.index === id)?.display ?? "").join(" "));
   };
 
+  // Session actions, defined once: the secondary practice tools (shuffle
+  // blanks / deck) stay in flow; the primary trio (check / next / finish)
+  // rides the bottom action dock on phones and sits in the same in-flow row
+  // on desktop. Identical elements either way — the dock replaces the
+  // in-flow primary row, never duplicates it.
+  const shuffleBlanksButton = current?.activityType === "MissingWords" && mode !== "Simulation" && !accepted ? <Button
+    data-testid="shuffle-blanks"
+    type="button"
+    variant="secondary"
+    onClick={() => reblank.mutate(current.id)}
+    disabled={reblank.isPending || submit.isPending || card.isFetching || !!pendingAttempt.current || (current.blankShuffles ?? 0) >= (current.blankShuffleLimit ?? 3)}
+  >
+    {reblank.isPending ? "Shuffling blanks…" : "Shuffle blanks"}
+  </Button> : null;
+  const shuffleDeckButton = mode === "Practice" && current && current.sequence < current.total ? <Button
+    data-testid="shuffle-deck"
+    type="button"
+    variant="secondary"
+    aria-label="Shuffle deck"
+    onClick={() => shuffle.mutate()}
+    disabled={shuffle.isPending || complete.isPending || card.isFetching}
+  >
+    {shuffle.isPending ? "Shuffling deck…" : "Shuffle deck"}
+  </Button> : null;
+  const sessionPrimaryActions = <>
+    <Button
+      data-testid="submit-answer"
+      type="button"
+      variant={accepted ? "secondary" : "primary"}
+      size={accepted ? "compact" : "default"}
+      onClick={() => submit.mutate()}
+      disabled={!current || submit.isPending || accepted || (current?.activityType !== 'MissingWords' && !answer.trim())}
+    >
+      {submit.isPending ? "Checking…" : accepted ? "Answer checked" : pendingAttempt.current ? "Retry saved answer" : "Check answer"}
+    </Button>
+    {accepted && current && current.sequence < current.total && <Button
+      data-testid="next-card"
+      type="button"
+      variant={accepted ? "primary" : "secondary"}
+      onClick={() => {
+        void card.refetch();
+      }}
+      disabled={!accepted || complete.isPending || card.isFetching}
+    >
+      {card.isFetching ? "Loading…" : card.isError ? "Retry next card" : "Next card"}
+    </Button>}
+    <Button
+      data-testid="complete-session"
+      type="button"
+      variant={accepted && current?.sequence === current?.total ? "primary" : "ghost"}
+      onClick={() => complete.mutate()}
+      disabled={!accepted || complete.isPending}
+    >
+      {complete.isPending ? "Finishing…" : "Finish session"}
+    </Button>
+  </>;
+
   const cover = (
     <div data-testid="study-page-title">
       <p className="study-eyebrow">{framing.eyebrow}</p>
@@ -366,7 +425,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   </Panel></div>;
 
   return (
-    <div className="er-study-stage space-y-4">
+    <div className="er-study-stage space-y-4" data-session-active="true">
       {cover}
       {returnBanner}
       {examBanner}
@@ -378,7 +437,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       {(progress.isError || start.isError || card.isError) && <Notice tone="danger">This study session could not load. <Button variant="secondary" onClick={() => { if (progress.isError) void progress.refetch(); else if (start.isError) setStartRetry((value) => value + 1); else void card.refetch(); }}>Try again</Button></Notice>}
       <Panel className="student-challenge" data-testid="challenge-card">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm">
+          <p className="text-sm study-card-reference">
             {current ? current.citation : "Loading"}
           </p>
           <div className="flex items-center gap-2">
@@ -454,57 +513,14 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           </p>
         </div>
       ) : null}
-        <div className="student-study-actions">
-          {current?.activityType === "MissingWords" && mode !== "Simulation" && !accepted && <Button
-            data-testid="shuffle-blanks"
-            type="button"
-            variant="secondary"
-            onClick={() => reblank.mutate(current.id)}
-            disabled={reblank.isPending || submit.isPending || card.isFetching || !!pendingAttempt.current || (current.blankShuffles ?? 0) >= (current.blankShuffleLimit ?? 3)}
-          >
-            {reblank.isPending ? "Shuffling blanks…" : "Shuffle blanks"}
-          </Button>}
-          {mode === "Practice" && current && current.sequence < current.total && <Button
-            data-testid="shuffle-deck"
-            type="button"
-            variant="secondary"
-            aria-label="Shuffle deck"
-            onClick={() => shuffle.mutate()}
-            disabled={shuffle.isPending || complete.isPending || card.isFetching}
-          >
-            {shuffle.isPending ? "Shuffling deck…" : "Shuffle deck"}
-          </Button>}
-          <Button
-            data-testid="submit-answer"
-            type="button"
-            variant={accepted ? "secondary" : "primary"}
-            size={accepted ? "compact" : "default"}
-            onClick={() => submit.mutate()}
-            disabled={!current || submit.isPending || accepted || (current.activityType !== 'MissingWords' && !answer.trim())}
-          >
-            {submit.isPending ? "Checking…" : accepted ? "Answer checked" : pendingAttempt.current ? "Retry saved answer" : "Check answer"}
-          </Button>
-          {accepted && current && current.sequence < current.total && <Button
-            data-testid="next-card"
-            type="button"
-            variant={accepted ? "primary" : "secondary"}
-            onClick={() => {
-              void card.refetch();
-            }}
-            disabled={!accepted || complete.isPending || card.isFetching}
-          >
-            {card.isFetching ? "Loading…" : card.isError ? "Retry next card" : "Next card"}
-          </Button>}
-          <Button
-            data-testid="complete-session"
-            type="button"
-            variant={accepted && current?.sequence === current?.total ? "primary" : "ghost"}
-            onClick={() => complete.mutate()}
-            disabled={!accepted || complete.isPending}
-          >
-            {complete.isPending ? "Finishing…" : "Finish session"}
-          </Button>
-        </div>
+        {phone ? <>
+          {(shuffleBlanksButton || shuffleDeckButton) && <div className="student-study-actions student-study-actions--secondary">{shuffleBlanksButton}{shuffleDeckButton}</div>}
+          <div className="student-study-actions mobile-action-dock" role="region" aria-label="Session actions">{sessionPrimaryActions}</div>
+        </> : <div className="student-study-actions">
+          {shuffleBlanksButton}
+          {shuffleDeckButton}
+          {sessionPrimaryActions}
+        </div>}
         {(submit.isError || complete.isError || shuffle.isError || reblank.isError) && <p role="alert" className="study-action-note">{submit.isError ? "Your answer could not be saved. Please try again." : complete.isError ? "The session could not be finished. Please try again." : reblank.isError ? "The blanks could not be shuffled. Please try again." : "The remaining cards could not be shuffled. Please try again."}</p>}
         {shuffleNote && !shuffle.isPending && <p className="text-sm study-action-note" data-testid="shuffle-note">Deck shuffled — the order of the remaining cards has changed. This card stays as it is.</p>}
         {reblankNote && !reblank.isPending && <p className="text-sm study-action-note" data-testid="reblank-note">Blanks shuffled — same verse, new pattern, and your draft was cleared so this pattern starts fresh. Shuffling blanks is practice, not help: it never marks your attempt as assisted.</p>}

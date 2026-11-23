@@ -108,6 +108,8 @@ describe("StudyPage Field Guide Academy honesty", () => {
     renderStudy("/student/study?mode=Practice&format=Memory");
     const warmup=await screen.findByRole("button",{name:"Start Memory warmup"});
     expect(api.startSession).not.toHaveBeenCalled();
+    // R1: choosing a purpose is pre-session — no session-active marker.
+    expect(document.querySelector("[data-session-active]")).toBeNull();
     expect(screen.queryByRole("button",{name:"Start Advanced mastery challenge"})).not.toBeInTheDocument();
     fireEvent.click(warmup);
     await waitFor(()=>expect(api.startSession).toHaveBeenCalledWith("season-1","Practice",expect.any(Object),"Memory","Warmup"));
@@ -1090,5 +1092,71 @@ describe("StudyPage activity improvements (Q1-Q4, B1)", () => {
     const items = screen.getAllByTestId("chunk-placement");
     expect(items.map(item => item.getAttribute("data-placement"))).toEqual(["correct-position", "wrong-position", "wrong-position"]);
     expect(items[0]).toHaveTextContent("Right place");
+  });
+});
+
+describe("StudyPage phone layout (Option D)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: query === "(max-width: 760px)", media: query, onchange: null, addEventListener: vi.fn(), removeEventListener: vi.fn(), addListener: vi.fn(), removeListener: vi.fn(), dispatchEvent: vi.fn() }));
+    vi.mocked(api.startSession).mockResolvedValue({
+      id: "session-1",
+      seasonId: "season-1",
+      status: "Created",
+      mode: "Practice",
+      targetCardCount: 8,
+    });
+    vi.mocked(api.nextCard).mockResolvedValue({
+      id: "card-1",
+      sessionId: "session-1",
+      activityType: "MissingWords",
+      prompt: "____",
+      citation: "Daniel 1:1",
+      tokens: [{ index: 2, display: "____", hidden: true }],
+      sequence: 1,
+      total: 8,
+    });
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+  });
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it("docks check/finish in the bottom action dock and keeps shuffle tools in flow", async () => {
+    renderStudy("/student/study?mode=Practice");
+    // Wait for the card itself (the action row renders before it loads;
+    // Shuffle blanks only exists once the Fill in the Blank card is in).
+    const shuffle = await screen.findByTestId("shuffle-blanks");
+    const submit = screen.getByTestId("submit-answer");
+    const dock = submit.closest(".mobile-action-dock");
+    expect(dock).not.toBeNull();
+    expect(dock).toHaveAttribute("aria-label", "Session actions");
+    expect(screen.getByTestId("complete-session").closest(".mobile-action-dock")).toBe(dock);
+    // Secondary practice tools stay in the in-flow row, out of the dock.
+    expect(shuffle.closest(".mobile-action-dock")).toBeNull();
+    expect(shuffle.closest(".student-study-actions--secondary")).not.toBeNull();
+    // The dock mirrors the in-flow button states exactly (no answer yet = enabled for MissingWords).
+    expect(submit).not.toBeDisabled();
+    expect(screen.getByTestId("complete-session")).toBeDisabled();
+  });
+
+  it("marks the live session stage so the tab bar hides and the dock owns the bottom (R1)", async () => {
+    renderStudy("/student/study?mode=Practice");
+    const submit = await screen.findByTestId("submit-answer");
+    const stage = submit.closest(".er-study-stage");
+    expect(stage).toHaveAttribute("data-session-active", "true");
+    // The dock lives inside the marked stage, so the :has() chrome rules
+    // engage for exactly the session's lifetime.
+    expect(submit.closest(".mobile-action-dock")?.closest(".er-study-stage")).toBe(stage);
+  });
+});
+
+describe("session chrome CSS pins (R1)", () => {
+  it("hides the tab bar in-session, re-anchors the dock to the true bottom, and shrinks the shell padding", async () => {
+    const nodeFs = "node:" + "fs";
+    const { readFileSync } = (await import(/* @vite-ignore */ nodeFs)) as { readFileSync(path: string, encoding: string): string };
+    const cwd = (globalThis as { process?: { cwd(): string } }).process?.cwd() ?? ".";
+    const css = readFileSync(`${cwd}/src/styles/command-center.css`, "utf8");
+    expect(css).toContain('.command-app:has(.er-study-stage[data-session-active="true"]) .command-bottom-nav { display:none; }');
+    expect(css).toContain('.er-study-stage[data-session-active="true"] .mobile-action-dock { bottom:0; padding-bottom:calc(var(--er-space-2) + env(safe-area-inset-bottom,0px)); }');
+    expect(css).toContain('.command-app.training-app:has(.er-study-stage[data-session-active="true"]) { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }');
   });
 });

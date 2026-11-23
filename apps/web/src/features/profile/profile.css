@@ -116,3 +116,24 @@
 .profile-page .share-empty-tools { display: grid; gap: var(--er-space-3); justify-items: start; padding: var(--er-space-2) 0; }
 .profile-page .share-empty-tools h3 { margin: 0; font-size: var(--er-text-base); color: var(--er-ink-navy); }
 .profile-page .share-empty-tools .help { margin: 0; }
+
+/* Refinement R4 — Profile phone pass: deliberate compact density below
+   the PlayerCard header. First-screen composition: the breadcrumb text
+   retires on phones (the Profile pages nav directly beneath it carries
+   the same wayfinding, one tap closer), and the section rhythm below the
+   header tightens to the compact token end — editor panels, fieldsets,
+   categories and option grids all sit one step closer. Touch targets:
+   the design system's coarse-pointer rules already lift compact buttons
+   to 44px; the page nav pins 44px explicitly. */
+@media (max-width: 760px) {
+  .profile-page .breadcrumb { display: none; }
+  .profile-page .profile-navigation nav { flex: 1; }
+  .profile-page .profile-navigation nav .ds-button { min-height: 44px; }
+  .profile-page .character-panel { margin-bottom: var(--er-space-3); }
+  .profile-page .editor-panels { gap: var(--er-space-3); }
+  .profile-page fieldset { margin-top: var(--er-space-4); }
+  .profile-page .profile-category { margin-top: var(--er-space-5); gap: var(--er-space-2); }
+  .profile-page .slot-grid { margin-block: var(--er-space-4); }
+  .profile-page .avatar-options { margin-block: var(--er-space-4); }
+  .profile-page .review-note { margin-top: var(--er-space-4); }
+}

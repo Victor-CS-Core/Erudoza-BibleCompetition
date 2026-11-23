@@ -7,6 +7,25 @@ import { nativeCloudflare } from "../../api/practiceTransport";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LinkButton, LoadingState, Notice, Panel } from "../../components/ui";
 
+/** One assigned team-practice event, presented as a game card: a status
+ *  accent edge (teal while the room is live, gold once the result is in),
+ *  the event name with its status chip, and one action. Presentation only —
+ *  the inbox computes every string and link exactly as before. */
+export function PracticeEventCard({ event, meUserId }: { event: PracticeEvent; meUserId: string }) {
+  const roomLink = (e: PracticeEvent) => `/student/practice/${e.roomId}?seasonId=${encodeURIComponent(e.seasonId)}`;
+  const recapLink = (e: PracticeEvent) => `/student/practice/rooms/${e.roomId}/recap?seasonId=${encodeURIComponent(e.seasonId)}`;
+  const state = event.status === "Open" || event.status === "Playing" ? "is-live" : event.status === "Completed" ? "is-completed" : "is-scheduled";
+  return <Panel id={`event-${event.id}`} className={`practice-event-card game-event-card ${state}`} aria-label={event.name}>
+    <div className="practice-hub-list-title"><strong>{event.name}</strong><Badge tone={event.status === "Playing" ? "success" : event.status === "Open" || event.status === "Scheduled" ? "info" : "neutral"}>{event.status === "Open" ? "Open now" : event.status}</Badge></div>
+    <p>{event.activity === "Simulation" ? "Full-event team rehearsal" : "Head-to-head practice"} · {event.seasonName}</p>
+    <p>{event.status === "Scheduled" && event.startsAtUtc ? `Starts ${new Date(event.startsAtUtc).toLocaleString()}` : event.status === "Open" ? "Your room is open — join your team." : event.status === "Playing" ? "Your match is in progress." : "Completed"}</p>
+    <p>{event.teamCount === 1 ? <>Your team: {event.roster.filter(entry => entry.team === 1).map(entry => entry.userId === meUserId ? "You" : entry.displayName).join(", ")}</> : <>You are on <strong>Team {event.myTeam}</strong> · Team 1: {event.roster.filter(entry => entry.team === 1).map(entry => entry.displayName).join(", ")} · Team 2: {event.roster.filter(entry => entry.team === 2).map(entry => entry.displayName).join(", ")}</>}</p>
+    {event.captainStartUserId === meUserId && event.status === "Open" && <p>You are the designated captain — you can start this event once your team is ready.</p>}
+    {(event.status === "Open" || event.status === "Playing") && event.roomId && <LinkButton to={roomLink(event)}>{event.status === "Playing" ? "Return to match" : "Join your team"}</LinkButton>}
+    {event.status === "Completed" && event.roomId && <LinkButton variant="secondary" to={recapLink(event)}>View results</LinkButton>}
+  </Panel>;
+}
+
 /** The student Team Practice page: an inbox of the events the coach assigned
  *  to this student — happening now, coming up, and recent results. There is
  *  no create surface and no season selector; rooms arrive pre-assigned. */
@@ -38,17 +57,7 @@ export function StudentPracticeInbox({ org, data }: { org: string; data: Practic
     finally { setPending(false); }
   }
 
-  const roomLink = (event: PracticeEvent) => `/student/practice/${event.roomId}?seasonId=${encodeURIComponent(event.seasonId)}`;
-  const recapLink = (event: PracticeEvent) => `/student/practice/rooms/${event.roomId}/recap?seasonId=${encodeURIComponent(event.seasonId)}`;
-  const card = (event: PracticeEvent) => <Panel key={event.id} id={`event-${event.id}`} className="practice-event-card" aria-label={event.name}>
-    <div className="practice-hub-list-title"><strong>{event.name}</strong><Badge tone={event.status === "Playing" ? "success" : event.status === "Open" || event.status === "Scheduled" ? "info" : "neutral"}>{event.status === "Open" ? "Open now" : event.status}</Badge></div>
-    <p>{event.activity === "Simulation" ? "Full-event team rehearsal" : "Head-to-head practice"} · {event.seasonName}</p>
-    <p>{event.status === "Scheduled" && event.startsAtUtc ? `Starts ${new Date(event.startsAtUtc).toLocaleString()}` : event.status === "Open" ? "Your room is open — join your team." : event.status === "Playing" ? "Your match is in progress." : "Completed"}</p>
-    <p>{event.teamCount === 1 ? <>Your team: {event.roster.filter(entry => entry.team === 1).map(entry => entry.userId === me!.userId ? "You" : entry.displayName).join(", ")}</> : <>You are on <strong>Team {event.myTeam}</strong> · Team 1: {event.roster.filter(entry => entry.team === 1).map(entry => entry.displayName).join(", ")} · Team 2: {event.roster.filter(entry => entry.team === 2).map(entry => entry.displayName).join(", ")}</>}</p>
-    {event.captainStartUserId === me!.userId && event.status === "Open" && <p>You are the designated captain — you can start this event once your team is ready.</p>}
-    {(event.status === "Open" || event.status === "Playing") && event.roomId && <LinkButton to={roomLink(event)}>{event.status === "Playing" ? "Return to match" : "Join your team"}</LinkButton>}
-    {event.status === "Completed" && event.roomId && <LinkButton variant="secondary" to={recapLink(event)}>View results</LinkButton>}
-  </Panel>;
+  const card = (event: PracticeEvent) => <PracticeEventCard key={event.id} event={event} meUserId={me!.userId} />;
 
   return <section id="events" aria-labelledby="student-events-title">
     <h2 id="student-events-title" className="practice-inbox-heading">Your team practice</h2>

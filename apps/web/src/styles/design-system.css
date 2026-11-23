@@ -96,7 +96,7 @@
 .ds-input:disabled, fieldset:disabled .ds-input { background: var(--er-surface-soft); color: var(--er-muted-ink); }
 .ds-input[aria-invalid=true] { border-color: var(--er-stamp-red); }
 .ds-input:is([type=radio],[type=checkbox]) { width: 18px; min-height: 18px; padding: 0; }
-.ds-panel { padding: var(--er-space-6); border: 1px solid var(--er-border); border-radius: var(--er-radius-card); background: var(--er-card); min-width: 0; }
+.ds-panel { padding: var(--er-space-6); border: 1px solid var(--er-border); border-radius: var(--er-radius-card); background: var(--er-card); min-width: 0; box-shadow: var(--er-shadow-card); }
 .ds-page-header { display: flex; justify-content: space-between; align-items: center; gap: var(--er-space-6); margin-bottom: var(--er-space-6); }
 .ds-page-header p { margin: var(--er-space-2) 0 0; color: var(--er-muted-ink); max-width: 70ch; overflow-wrap: anywhere; }
 .ds-page-action { display: flex; align-items: center; gap: var(--er-space-3); flex-shrink: 0; }
@@ -304,3 +304,26 @@
 .ds-panel-roster-heading[class] h2 { color:var(--er-ink-navy);font-size:var(--er-text-lg); }
 .ds-panel-roster-heading[class] p { color:var(--er-muted-ink); }
 .ds-panel-roster-heading[class] .ds-patch-art { width:64px;height:64px;flex-basis:64px; }
+
+/* Option D mobile-first: compact panel density + dialogs as bottom sheets.
+   On phones every .ds-dialog (TrainingDialog, ConfirmationDialog, the
+   passage/book/goal sheets) anchors to the bottom edge as a sheet: full
+   width, top corners rounded, safe-area padded, body scrolls inside the
+   sheet. The full-screen workspace dialog keeps its own treatment (its
+   two-class selector outranks these rules). Desktop presentation is
+   unchanged. */
+@media(max-width:760px) {
+  .ds-panel { padding: var(--er-space-4); }
+  .ds-dialog { inset:auto 0 0 0; margin:0; width:100%; max-width:none; max-height:calc(100dvh - 24px); overflow-y:auto; border-radius:var(--er-radius-card) var(--er-radius-card) 0 0; padding:var(--er-space-5) var(--er-space-5) max(var(--er-space-5), env(safe-area-inset-bottom,0px)); }
+  .ds-training-dialog { width:100%; max-height:calc(100dvh - 24px); }
+  /* Refinement R3: the sheet's grab handle + header are the drag region
+     for drag-to-dismiss (sheetDrag.ts). touch-action:none keeps the
+     sheet's own scroll from taking the gesture over mid-drag. */
+  .ds-sheet-handle { display:block; width:48px; height:5px; margin:0 auto var(--er-space-3); border-radius:999px; background:var(--er-border-strong); touch-action:none; }
+  .ds-training-dialog > header { touch-action:none; cursor:grab; border-bottom:1px solid var(--er-border); padding-bottom:var(--er-space-3); }
+}
+.ds-sheet-handle { display:none; }
+@media(max-width:760px) and (prefers-reduced-motion:no-preference) {
+  .ds-dialog { animation: er-sheet-rise var(--er-duration) ease-out; }
+}
+@keyframes er-sheet-rise { from { transform:translateY(16px); opacity:0; } to { transform:translateY(0); opacity:1; } }

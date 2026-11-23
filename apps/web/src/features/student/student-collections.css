@@ -59,3 +59,15 @@
 @media (max-width: 760px) { .training-honor-category { width: 100%; } }
 .training-recap-main-col { display: grid; gap: var(--er-space-5); min-width: 0; align-content: start; }
 .training-collection-section-title { margin: var(--er-space-6) 0 var(--er-space-3); }
+
+/* Refinement R4 — Honors phone pass: the collection's section rhythm
+   tightens to the compact token end (the dashboard grid gap and panel
+   padding already compact globally at this width, and the patch grid
+   compacts at 560px in honor-patch-card.css). The summary row stacks
+   tighter and the milestone history loses its desktop breathing room. */
+@media (max-width: 760px) {
+  .training-collection-summary { gap: var(--er-space-3); }
+  .training-collection-section-title { margin: var(--er-space-4) 0 var(--er-space-2); }
+  .training-milestone-history > .honor-patch-grid { margin-top: var(--er-space-4); }
+  .training-milestone-history > .training-season-select { margin-block: var(--er-space-4); }
+}

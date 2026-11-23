@@ -185,7 +185,7 @@
 @media(max-width:760px) {
   .command-app.training-app { padding-bottom:calc(76px + env(safe-area-inset-bottom,0px)); }
   .command-app .command-shortcut-bar { display:none; }
-  .command-bottom-nav { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); position:fixed; bottom:0; left:0; right:0; z-index:30; gap:4px; padding:5px max(10px,env(safe-area-inset-right,0px)) calc(5px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px)); background:var(--er-card); border-top:1px solid var(--er-border); box-shadow:0 -5px 20px color-mix(in srgb,var(--er-ink-navy) 3%,transparent); }
+  .command-bottom-nav { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); position:fixed; bottom:0; left:0; right:0; z-index:30; gap:4px; padding:5px max(10px,env(safe-area-inset-right,0px)) calc(5px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px)); background:var(--er-card); border-top:1px solid var(--er-border); box-shadow:var(--er-shadow-dock); }
   .command-bottom-nav>a,.command-bottom-nav>.ds-button { display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:0; min-height:56px; padding:5px 2px; gap:3px; font-size:10px; font-weight:500; line-height:1.5; color:var(--er-muted-ink); border:0; border-radius:10px; }
   .command-bottom-nav svg { width:21px; height:21px; flex:none; }
   .command-bottom-nav [aria-current=page],.command-bottom-nav>a:hover { background:var(--er-selected); color:var(--er-action-blue); }
@@ -206,3 +206,30 @@
 .command-quick-item { display:flex; align-items:center; gap:8px; flex-shrink:0; min-height:44px; padding:10px 14px; border:1px solid var(--er-border); border-radius:var(--er-radius-control); font-size:var(--er-text-sm); color:var(--er-ink-navy); white-space:nowrap; }
 .command-quick-item:hover,.command-quick-item:focus-visible { background:var(--er-selected); color:var(--er-action-blue); border-color:var(--er-teal); }
 .command-quick-item svg { width:18px; height:18px; flex-shrink:0; }
+
+/* Option D mobile-first: the bottom action dock. Pages render
+   .mobile-action-dock only in phone layout (usePhoneLayout); it carries the
+   flow's primary action directly above the tab bar (tab bar = 66px + the
+   bottom safe-area inset), and the app shell grows its bottom padding by the
+   dock's height so the dock never covers the last card. */
+.mobile-action-dock { display:none; }
+@media(max-width:760px) {
+  .mobile-action-dock { display:flex; align-items:stretch; gap:var(--er-space-2); position:fixed; left:0; right:0; bottom:calc(66px + env(safe-area-inset-bottom,0px)); z-index:29; padding:var(--er-space-2) var(--er-space-3); background:var(--er-card); border-top:1px solid var(--er-border); box-shadow:var(--er-shadow-dock); }
+  .mobile-action-dock .ds-button { min-height:48px; }
+  .mobile-action-dock > .ds-button, .mobile-action-dock > a { flex:1 1 auto; }
+  .command-app.training-app:has(.mobile-action-dock) { padding-bottom:calc(140px + env(safe-area-inset-bottom,0px)); }
+}
+
+/* Refinement R1 — one bar in sessions: while a Study or PBE session is
+   active (the session stage carries data-session-active), the bottom tab
+   bar hides — the same treatment Team Practice rooms use while Playing —
+   and the session's action dock re-anchors to the true bottom edge (safe
+   area only, no 66px tab-bar offset) so it owns the bottom alone. The
+   marker exists only on the live session stage, so the tab bar returns
+   the moment the session ends, the recap opens, or the route changes.
+   The shell's bottom padding shrinks to the lone dock (64px + margin). */
+@media(max-width:760px) {
+  .command-app:has(.er-study-stage[data-session-active="true"]) .command-bottom-nav { display:none; }
+  .er-study-stage[data-session-active="true"] .mobile-action-dock { bottom:0; padding-bottom:calc(var(--er-space-2) + env(safe-area-inset-bottom,0px)); }
+  .command-app.training-app:has(.er-study-stage[data-session-active="true"]) { padding-bottom:calc(72px + env(safe-area-inset-bottom,0px)); }
+}

@@ -67,12 +67,20 @@ export function PbeMaterialsSection({ org, seasonId, books, onOpenChapter }: {
     retry: false,
   });
 
+  // Unreleased year: a slim banner row, not a full card — one status line
+  // should not push the reader down the page. Released years keep the card.
+  if (!current.isPending && !current.isError && !current.data) {
+    return <div className="pbe-materials-banner">
+      <h2>This year's PBE materials</h2>
+      <p>This year's materials haven't been released yet.</p>
+    </div>;
+  }
+
   return <Panel id="pbe-materials">
     <div className="study-books-heading"><h2>This year's PBE materials</h2>{current.data && <Badge>{formatPbeYearLabel(current.data.yearLabel)}</Badge>}</div>
     {current.isPending ? <LoadingState label="Loading this year's PBE materials…" />
       : current.isError ? <Notice tone="danger">This year's PBE materials could not load. <Button variant="secondary" size="compact" onClick={() => void current.refetch()}>Try again</Button></Notice>
-      : !current.data ? <p>This year's materials haven't been released yet.</p>
-      : <PbeMaterialBody material={current.data} seasonId={seasonId} books={books} onOpenChapter={onOpenChapter} />}
+      : current.data ? <PbeMaterialBody material={current.data} seasonId={seasonId} books={books} onOpenChapter={onOpenChapter} /> : null}
   </Panel>;
 }
 

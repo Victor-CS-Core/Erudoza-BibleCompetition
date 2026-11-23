@@ -107,7 +107,7 @@ export function PassageBrowser({ mastery, difficulty }: { mastery: MasteryItem[]
                 <span className="passage-book-name">{group.book}</span>
                 <span className="passage-book-count">{group.mastered} of {group.items.length} mastered</span>
                 <span className="passage-book-bar" aria-hidden="true">
-                  <span style={{ width: `${group.items.length ? Math.round((group.mastered / group.items.length) * 100) : 0}%` }} />
+                  <span className={group.items.length > 0 && group.mastered === group.items.length ? "is-complete" : undefined} style={{ width: `${group.items.length ? Math.round((group.mastered / group.items.length) * 100) : 0}%` }} />
                 </span>
               </summary>
               <ul className="training-list passage-compact-rows">
@@ -115,7 +115,7 @@ export function PassageBrowser({ mastery, difficulty }: { mastery: MasteryItem[]
                   <li key={item.knowledgeUnitId}>
                     <span className="passage-row-title">{item.title}</span>
                     <span className="passage-row-bar" aria-hidden="true" title={`Exact wording score: ${item.exactWordingScore} / 100`}>
-                      <span style={{ width: `${Math.max(0, Math.min(100, item.exactWordingScore))}%` }} />
+                      <span className={MASTERED_LEVELS.has(item.level) ? "is-mastered" : undefined} style={{ width: `${Math.max(0, Math.min(100, item.exactWordingScore))}%` }} />
                     </span>
                     <span className="passage-row-score">{item.exactWordingScore}</span>
                     <Badge tone={MASTERED_LEVELS.has(item.level) ? "success" : item.level === "Review" ? "warning" : "neutral"}>{item.level}</Badge>

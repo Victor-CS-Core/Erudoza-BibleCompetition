@@ -1026,8 +1026,8 @@
   margin-top: 0.35rem;
 }
 
-.er-study-stage > *:not(.er-field-guide-chrome),
-.er-progress-stage > *:not(.er-field-guide-chrome) {
+.er-study-stage > *:not(.er-field-guide-chrome):not(.mobile-action-dock),
+.er-progress-stage > *:not(.er-field-guide-chrome):not(.mobile-action-dock) {
   position: relative;
   z-index: 1;
 }

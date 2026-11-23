@@ -28,10 +28,10 @@
 .game-xp-bar__caption > span:last-child { color: var(--er-muted-ink); font-size: var(--er-text-xs); white-space: nowrap; }
 .game-xp-bar__track { appearance: none; display: block; width: 100%; height: 8px; border: 0; border-radius: 999px; overflow: hidden; background: var(--er-border); }
 .game-xp-bar__track::-webkit-progress-bar { background: var(--er-border); }
-.game-xp-bar__track::-webkit-progress-value { background: var(--er-teal); border-radius: 999px; transition: width var(--er-duration) ease; }
-.game-xp-bar__track::-moz-progress-bar { background: var(--er-teal); border-radius: 999px; }
-.game-xp-bar.is-final-stretch .game-xp-bar__track::-webkit-progress-value { background: var(--er-thread-gold); }
-.game-xp-bar.is-final-stretch .game-xp-bar__track::-moz-progress-bar { background: var(--er-thread-gold); }
+.game-xp-bar__track::-webkit-progress-value { background: var(--er-gold-fill); border-radius: 999px; transition: width var(--er-duration) ease; }
+.game-xp-bar__track::-moz-progress-bar { background: var(--er-gold-fill); border-radius: 999px; }
+.game-xp-bar.is-final-stretch .game-xp-bar__track::-webkit-progress-value { background: linear-gradient(90deg, var(--er-gold-fill), var(--er-thread-gold)); }
+.game-xp-bar.is-final-stretch .game-xp-bar__track::-moz-progress-bar { background: linear-gradient(90deg, var(--er-gold-fill), var(--er-thread-gold)); }
 .game-player-card .game-xp-bar__track { background: color-mix(in srgb, var(--er-on-navy) 20%, transparent); }
 .game-player-card .game-xp-bar__caption > span:last-child { color: var(--er-on-navy-muted); }
 
@@ -60,15 +60,31 @@
 .game-player-card--banner .training-hq-banner { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right center; }
 .game-player-card--banner::after { content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none; background: linear-gradient(90deg, var(--er-navy-surface) 0%, var(--er-navy-surface) 34%, transparent 82%); }
 .game-player-card--banner .game-player-card__content { padding: var(--er-space-8); width: 62%; }
+/* The HQ hero's crest carries the identity moment (the mockup's large
+   gold-ring disc): one size up from the standard card crest, hero only. */
+.training-hq-hero .game-level-crest--card { width: 56px; height: 56px; font-size: var(--er-text-lg); }
 @media (max-width: 760px) {
   .game-player-card--banner { aspect-ratio: auto; min-height: 344px; align-items: flex-start; }
   .game-player-card--banner .game-player-card__content { width: 100%; padding: var(--er-space-6); padding-bottom: var(--er-space-8); }
-  .game-player-card--banner::after { background: linear-gradient(180deg, var(--er-navy-surface) 0%, var(--er-navy-surface) 52%, color-mix(in srgb, var(--er-navy-surface) 62%, transparent) 82%, transparent 100%); }
+  .game-player-card--banner::after { background: linear-gradient(180deg, var(--er-navy-surface) 0%, var(--er-navy-surface) 52%, color-mix(in srgb, var(--er-navy-surface) 62%, transparent) 72%, color-mix(in srgb, var(--er-navy-surface) 88%, transparent) 100%); }
+  /* On phones the banner artwork runs bright under the chips and the XP
+     caption: the chips get a darker glass and the caption a navy halo so
+     both stay legible over the day scene (the mockup's dark glass pills). */
+  .game-player-card--banner .game-player-chip { background: color-mix(in srgb, var(--er-navy-surface) 42%, transparent); border-color: color-mix(in srgb, var(--er-on-navy) 40%, transparent); }
+  .game-player-card--banner .game-xp-bar__caption { text-shadow: 0 1px 10px #102e47a6, 0 0 3px #102e4780; }
   .game-player-card__title { font-size: var(--er-text-title); }
+  /* Option D: the HQ hero compacts on phones (~250px) so the day's quests
+     surface on the first screen; other banner cards keep the tall frame.
+     The trim is spacing + chip size only — every hero element still shows;
+     min-height is a floor, and longer names simply grow the card. */
+  .training-hq-hero.game-player-card--banner { min-height: 248px; }
+  .training-hq-hero .game-player-card__content { gap: var(--er-space-2); padding: var(--er-space-4); }
+  .training-hq-hero .game-player-card__description { font-size: var(--er-text-sm); }
+  .training-hq-hero .game-player-chip { min-height: 26px; padding: 2px 8px; font-size: var(--er-text-xs); }
 }
 @media (forced-colors: active) { .game-player-card--banner .training-hq-banner, .game-player-card--banner::after { display: none; } }
 
-.game-quest-card { padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); display: grid; gap: 6px; }
+.game-quest-card { padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); display: grid; gap: 6px; box-shadow: var(--er-shadow-card); }
 .game-quest-card.is-complete { border-color: color-mix(in srgb, var(--er-teal) 45%, transparent); background: color-mix(in srgb, var(--er-teal) 6%, var(--er-card)); }
 .game-quest-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--er-space-2); }
 .game-quest-card__head strong { color: var(--er-ink-navy); overflow-wrap: anywhere; }
@@ -88,6 +104,31 @@
 .game-mission-due__count { flex: 1; min-width: 0; font-size: var(--er-text-base); white-space: nowrap; }
 .game-mission-due .ds-button { flex: none; }
 .game-quest-card__status.is-done svg { width: 16px; height: 16px; }
+
+/* Assigned passages as quests: citation title, state chip, shared meter,
+   one practice action. Gold is reserved for the Mastered achievement state. */
+.game-passage-quests { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--er-space-2); }
+.game-passage-quest { padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); display: grid; gap: var(--er-space-2); box-shadow: var(--er-shadow-card); }
+.game-passage-quest.is-mastered { border-color: color-mix(in srgb, var(--er-thread-gold) 55%, var(--er-border)); background: color-mix(in srgb, var(--er-thread-gold) 5%, var(--er-card)); }
+.game-passage-quest__head { display: flex; justify-content: space-between; align-items: center; gap: var(--er-space-2); }
+/* Gold-tinted icon tile leading the quest row, echoing the mockup's
+   document tile: gold is the quest/achievement accent. */
+.game-passage-quest__tile { display: inline-grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 10px; background: color-mix(in srgb, var(--er-thread-gold) 18%, var(--er-card)); color: var(--er-kraft-dark); }
+.game-passage-quest__tile svg { width: 19px; height: 19px; }
+.game-passage-quest__title { flex: 1; min-width: 0; color: var(--er-ink-navy); font-size: var(--er-text-base); overflow-wrap: anywhere; }
+.game-passage-chip { flex: none; font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--er-border); color: var(--er-muted-ink); white-space: nowrap; }
+.game-passage-chip.is-in-progress { border-color: color-mix(in srgb, var(--er-teal) 55%, transparent); color: var(--er-teal); }
+.game-passage-chip.is-strong { background: color-mix(in srgb, var(--er-teal) 14%, transparent); border-color: transparent; color: var(--er-teal); }
+.game-passage-chip.is-mastered { background: color-mix(in srgb, var(--er-thread-gold) 20%, transparent); border-color: color-mix(in srgb, var(--er-thread-gold) 60%, transparent); color: var(--er-ink-navy); }
+.game-passage-quest__invite { margin: 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.game-passage-quest__foot { display: flex; align-items: center; justify-content: space-between; gap: var(--er-space-3); flex-wrap: wrap; }
+.game-passage-quest__count { font-size: var(--er-text-sm); color: var(--er-muted-ink); font-variant-numeric: tabular-nums; }
+/* The quest action is a real filled button, not a text link: teal for
+   practice/review (progress/action), gold for starting a fresh quest
+   (the mockup's gold Start), both at the shared 44px control height. */
+.game-passage-quest__action { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin-left: auto; padding: 0 var(--er-space-4); border-radius: var(--er-radius-control); background: var(--er-action-blue); color: #fff; font-size: var(--er-text-sm); font-weight: 700; text-decoration: none; touch-action: manipulation; white-space: nowrap; }
+.game-passage-quest.is-not-started .game-passage-quest__action { background: var(--er-gold-fill); color: var(--er-navy-surface); }
+.game-passage-quest__action svg { width: 16px; height: 16px; flex: none; }
 
 .game-stat-tile { min-width: 0; padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-surface-soft); }
 .game-stat-tile dt { font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--er-muted-ink); }

@@ -12,6 +12,10 @@ import { PbeJourney } from "./PassageJourney";
 import { PassagePicker } from "./PassagePicker";
 import { AssignedPassages } from "./AssignedPassages";
 import { TrainingMissionCard } from "./TrainingMissionCard";
+import { ActionDock } from "../../components/ui/ActionDock";
+import { HqIdentityStrip } from "./HqIdentityStrip";
+import { TrainingDialog } from "../../components/ui/TrainingDialog";
+import { usePhoneLayout } from "../../hooks/useMediaQuery";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
 import { WeeklyGoalDialog } from "./WeeklyGoalDialog";
 import { LeaderboardCard } from "./TeamMomentum";
@@ -22,6 +26,8 @@ export function StudentHomePage() {
   const { me } = useAuth();
   const [params, setParams] = useSearchParams();
   const [goalOpen, setGoalOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const phone = usePhoneLayout();
   const selected = params.get("seasonId") || undefined;
   const identity = [me?.organizationId, me?.userId];
   const seasons = useQuery({ queryKey: ["assigned-seasons", ...identity], queryFn: () => api.assignedSeasons() });
@@ -57,6 +63,11 @@ export function StudentHomePage() {
   // card now folds that meaning into subtext + the single action instead.
   const choosePassages = !!data && !available && me?.kind === "Adult" && data.mission.status !== "Invalidated" && !(data.seasonStatus !== "Active" && data.seasonId);
   const missionNotice = data && !available && !choosePassages ? (data.mission.status === "Invalidated" ? "Your passages changed. Start updated training to build a plan around the new ones." : data.seasonStatus !== "Active" && data.seasonId ? "Training opens when this season is Active." : me?.kind === "Adult" ? "Choose your study passages in My assignments." : "Your coach will add your study assignment here.") : null;
+  // The mission card's primary action, computed once: on phones it rides the
+  // bottom action dock instead of the card (same label, same href — the dock
+  // replaces the in-flow button, never duplicates it).
+  const startDeck = available && !completedSessionId && action ? { label: action.label, href: study(action.mode, action.sessionId, true) } : null;
+  const heroXp = data ? { total: data.xp.total, xpIntoLevel: data.xp.xpIntoLevel, xpForNext: data.xp.xpForNext, nextLevelName: nextLevelName(data.xp.level), level: data.xp.level, levelName: data.xp.levelName } : null;
   return <div className="training-dashboard student-home">
     <PlayerCard
       className="training-hq-hero"
@@ -66,7 +77,7 @@ export function StudentHomePage() {
       description={firstName ? `Ready when you are, ${firstName} — here is your Scripture to review and your plan for today.` : "Review your assigned Scripture and prepare for team practice."}
       name={me?.displayName ?? (firstName ? `${firstName}` : "You")}
       avatar={null}
-      xp={data ? { total: data.xp.total, xpIntoLevel: data.xp.xpIntoLevel, xpForNext: data.xp.xpForNext, nextLevelName: nextLevelName(data.xp.level), level: data.xp.level, levelName: data.xp.levelName } : null}
+      xp={heroXp}
       streak={data?.streak?.current}
       streakState={data ? (data.streakNudge || data.streak?.state === "paused" ? "paused" : data.streak?.state === "active" ? "active" : "none") : undefined}
       seasonLabel={data ? <span data-testid="current-season">{data.seasonName || "Not assigned"} · {data.seasonStatus === "None" ? "Awaiting assignment" : data.seasonStatus}</span> : undefined}
@@ -74,6 +85,7 @@ export function StudentHomePage() {
     >
       {data?.format === "Pbe" && <Link className="training-format-switch" to={link("/student/study?mode=Practice&format=Memory")}>Choose Memory</Link>}
     </PlayerCard>
+    {phone && heroXp && <HqIdentityStrip name={me?.displayName ?? "You"} xp={heroXp} />}
     {(seasons.data?.length ?? 0) > 1 && <label className="training-season-select">Assigned season<Select value={seasonId ?? ""} onChange={event => { setGoalOpen(false); setParams({ seasonId: event.target.value }); }}>{seasons.data?.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}
     {seasons.isError && <Notice tone="danger">Assigned seasons could not load. <Button variant="secondary" onClick={() => void seasons.refetch()}>Retry seasons</Button></Notice>}
     {today.isPending ? <LoadingState label="Loading your training plan…" /> : today.isError ? <Notice tone="danger">Your training plan could not load. <Button variant="secondary" onClick={() => void today.refetch()}>Try again</Button></Notice> : data && <>
@@ -124,7 +136,7 @@ export function StudentHomePage() {
         myAssignmentsHref={!available && me?.kind === "Adult" ? link("/student/assignments") : null}
         updatedTrainingHref={data.seasonStatus === "Active" && data.mission.status === "Invalidated" && action ? study(action.mode, null, true) : null}
         recapHref={completedSessionId ? link(`/student/sessions/${encodeURIComponent(completedSessionId)}/recap`) : null}
-        startDeck={available && !completedSessionId && action ? { label: action.label, href: study(action.mode, action.sessionId, true) } : null}
+        startDeck={phone ? null : startDeck}
         simulation={available ? { label: data.format === "Pbe" ? "Start solo timed rehearsal" : "Start rehearsal", href: study("Simulation", null) } : null}
         steps={data.mission.steps}
         nextKind={action?.mode ?? null}
@@ -148,9 +160,18 @@ export function StudentHomePage() {
         </Panel>
       </>}
       {seasonId && data.format === 'Pbe' && <PbeJourney key={`pbe:${seasonId}`} seasonId={seasonId} preview={false} />}
-      {seasonId && <PassagePicker key={`picker:${seasonId}`} seasonId={seasonId} mastery={progressData?.mastery} difficulty={progressData?.assignments.find(a => a.difficulty)?.difficulty} />}
+      {seasonId && (phone ? <>
+        <Panel className="passage-picker passage-picker-trigger" data-testid="passage-picker-trigger">
+          <div className="training-panel-title"><div><h2>Choose a passage to practice</h2><p>Pick a verse — practice starts right away.</p></div></div>
+          <Button onClick={() => setPickerOpen(true)}>Browse passages<AppIcon name="arrow" /></Button>
+        </Panel>
+        {pickerOpen && <TrainingDialog open title="Choose a passage to practice" onClose={() => setPickerOpen(false)} className="passage-picker-dialog">
+          <PassagePicker key={`picker:${seasonId}`} seasonId={seasonId} mastery={progressData?.mastery} difficulty={progressData?.assignments.find(a => a.difficulty)?.difficulty} />
+        </TrainingDialog>}
+      </> : <PassagePicker key={`picker:${seasonId}`} seasonId={seasonId} mastery={progressData?.mastery} difficulty={progressData?.assignments.find(a => a.difficulty)?.difficulty} />)}
       {seasonId && data.format === 'Pbe' && <SeasonCoveragePanel key={`cooperation:${seasonId}`} seasonId={seasonId} audience="student" collapsible />}
       {goalOpen && <WeeklyGoalDialog preferences={data.preferences} onClose={() => setGoalOpen(false)} />}
+      {phone && startDeck && <ActionDock label="Today's practice"><LinkButton data-testid="start-todays-deck" to={startDeck.href}>{startDeck.label}<AppIcon name="arrow" /></LinkButton></ActionDock>}
     </>}
   </div>;
 }

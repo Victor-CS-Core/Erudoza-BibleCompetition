@@ -38,9 +38,9 @@ it('keeps a note draft on failed save, retries and permits editing saved text', 
 });
 it('jumps to the selected verse with keyboard focus while Focus mode is active', async () => {
   mount(); await screen.findByText('Your notebook is empty.'); fireEvent.click(screen.getByRole('button', { name: 'Focus' }));
+  // Selecting a verse navigates on its own — there is no separate Go button.
+  expect(screen.queryByRole('button', { name: 'Go to verse' })).not.toBeInTheDocument();
   fireEvent.change(screen.getByRole('combobox', { name: 'Verse' }), { target: { value: 'source' } });
-  expect(screen.getByRole('button', { name: 'Select verse 1' })).toHaveFocus();
-  const go = screen.getByRole('button', { name: 'Go to verse' }); go.focus(); fireEvent.click(go);
   expect(screen.getByRole('button', { name: 'Select verse 1' })).toHaveFocus();
 });
 it('bookmarks the chapter and restores the notebook after Focus mode', async () => {

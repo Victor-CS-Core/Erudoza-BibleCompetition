@@ -185,10 +185,7 @@
 .pbe-chapter-card { display: grid; gap: 16px; }
 .pbe-chapter-card h3, .pbe-chapter-card p, .pbe-season-coverage h2, .pbe-season-coverage h3, .pbe-season-coverage p { margin: 0; }
 .pbe-chapter-card > .training-panel-title > div, .pbe-season-coverage > .training-panel-title > div { display: grid; gap: 4px; }
-.pbe-chapter-counts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 0; }
-.pbe-chapter-counts > div { display: grid; gap: 4px; min-width: 0; }
-.pbe-chapter-counts dt { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
-.pbe-chapter-counts dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+.pbe-chapter-stats { margin-bottom: 0; }
 .pbe-chapter-stamp { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px 12px; padding-top: 16px; border-top: 1px solid var(--er-border); }
 .pbe-chapter-stamp > span, .pbe-chapter-stamp > small { grid-column: 2 / -1; color: var(--er-muted-ink); }
 .pbe-group-section { display: grid; gap: 16px; padding-top: 8px; }
@@ -230,12 +227,12 @@
   .training-mission-main > .ds-button { width: 100%; }
   .training-mission .training-mission-steps { padding: 4px 20px; }
   .training-passage-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .pbe-chapter-counts, .pbe-coverage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pbe-coverage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pbe-coverage-material + .pbe-coverage-material { border-left: 0; border-top: 1px solid var(--er-border); padding: 16px 0 0; }
 }
 @media (max-width: 440px) {
   .training-skill-list { grid-template-columns: minmax(0, 1fr); }
-  .pbe-chapter-counts, .pbe-coverage-grid { grid-template-columns: minmax(0, 1fr); }
+  .pbe-coverage-grid { grid-template-columns: minmax(0, 1fr); }
   .pbe-chapter-stamp { grid-template-columns: minmax(0, 1fr); }
   .pbe-chapter-stamp > span, .pbe-chapter-stamp > small { grid-column: 1; }
   .training-controls > .ds-button { width: 100%; }
@@ -335,9 +332,7 @@
 .study-exam-banner .study-rules li { background:color-mix(in srgb, var(--er-on-navy) 14%, transparent); border-color:transparent; color:var(--er-on-navy); }
 .study-aids { display:grid; gap:var(--er-space-4); }
 
-.training-assigned-passages ul{list-style:none;margin:var(--er-space-2) 0 0;padding:0;display:grid;gap:var(--er-space-1)}
-.training-assigned-passages li{padding:var(--er-space-1) 0;border-bottom:1px solid var(--er-border);font-size:var(--er-text-sm)}
-.training-assigned-passages li:last-child{border-bottom:0}
+.training-assigned-passages .game-passage-quests{margin-top:var(--er-space-3)}
 
 /* Gamification Phase 1: streak panel, recap celebrations, confetti */
 .training-recap-main { position: relative; overflow: hidden; }
@@ -462,8 +457,11 @@
 .passage-book-group > summary::-webkit-details-marker { display: none; }
 .passage-book-name { grid-area: name; font-weight: 600; }
 .passage-book-count { grid-area: count; font-size: var(--er-text-sm); color: var(--er-muted-ink); white-space: nowrap; }
-.passage-book-bar { grid-area: bar; height: 4px; border-radius: 2px; background: var(--er-track, rgba(128, 128, 128, 0.2)); overflow: hidden; }
-.passage-book-bar > span { display: block; height: 100%; background: var(--er-teal); border-radius: 2px; }
+/* Game-meter standard for the browser's bars: 6px pill track, teal for
+   progress, gold only when the share shown is fully mastered. */
+.passage-book-bar { grid-area: bar; height: 6px; border-radius: 999px; background: var(--er-track, rgba(128, 128, 128, 0.2)); overflow: hidden; }
+.passage-book-bar > span { display: block; height: 100%; background: var(--er-teal); border-radius: 999px; }
+.passage-book-bar > span.is-complete { background: var(--er-thread-gold); }
 .passage-compact-rows { margin: 0; padding: 0 var(--er-space-4) var(--er-space-3); list-style: none; display: grid; }
 .passage-compact-rows > li {
   display: grid; grid-template-columns: minmax(0, 1fr) 72px 36px auto; gap: var(--er-space-2);
@@ -471,10 +469,53 @@
   min-height: 44px;
 }
 .passage-row-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--er-text-sm); }
-.passage-row-bar { height: 4px; border-radius: 2px; background: var(--er-track, rgba(128, 128, 128, 0.2)); overflow: hidden; }
-.passage-row-bar > span { display: block; height: 100%; background: var(--er-teal); border-radius: 2px; }
+.passage-row-bar { height: 6px; border-radius: 999px; background: var(--er-track, rgba(128, 128, 128, 0.2)); overflow: hidden; }
+.passage-row-bar > span { display: block; height: 100%; background: var(--er-teal); border-radius: 999px; }
+.passage-row-bar > span.is-mastered { background: var(--er-thread-gold); }
 .passage-row-score { font-size: var(--er-text-sm); color: var(--er-muted-ink); text-align: right; font-variant-numeric: tabular-nums; }
 .passage-row-legacy { grid-column: 1 / -1; font-size: var(--er-text-xs); color: var(--er-muted-ink); }
 .progress-disclosure > summary { cursor: pointer; list-style: none; }
 .progress-disclosure > summary::-webkit-details-marker { display: none; }
 .progress-disclosure > summary h2 { display: inline; }
+
+/* Option D mobile-first (student surfaces): compact section rhythm on
+   phones, and the study session's primary actions riding the shared bottom
+   dock. The dock variant of .student-study-actions keeps the exact in-flow
+   buttons (pages move them, never clone them); secondary practice tools
+   (shuffle blanks / deck) stay in flow in their own row. */
+@media (max-width: 760px) {
+  .training-dashboard { gap: var(--er-space-4); }
+  .training-hq-grid, .training-hq-aside { gap: var(--er-space-4); }
+  .training-mission-main { padding: var(--er-space-5); }
+  .student-study-actions { margin-top: var(--er-space-4); }
+  .student-study-actions.mobile-action-dock { margin-top: 0; flex-wrap: nowrap; }
+  .student-study-actions.mobile-action-dock .ds-button { flex: 0 1 auto; }
+  .student-study-actions.mobile-action-dock .ds-button-primary { flex: 1 1 auto; }
+  .student-study-actions--secondary { margin-top: var(--er-space-4); }
+  /* The passage picker inside its phone sheet sheds the panel chrome — the
+     sheet itself is the surface. */
+  .passage-picker-dialog .passage-picker { border: 0; border-radius: 0; padding: 0; background: transparent; box-shadow: none; }
+  .passage-picker-trigger .ds-button { width: 100%; }
+}
+
+/* Refinement R2 — collapsing HQ hero: when the hero has scrolled fully
+   off-screen, a slim identity strip (crest, first name, level, mini XP
+   bar) overlays the top of the viewport. Fixed overlay: the list beneath
+   never reflows, and HqIdentityStrip lends the strip's height to the
+   scroller's scroll-padding while it is up so jumps never land a card
+   underneath it. The fade runs only under no-preference; reduced motion
+   gets an instant swap. */
+.hq-identity-strip { display: none; }
+@media (max-width: 760px) {
+  .hq-identity-strip { display: flex; align-items: center; gap: var(--er-space-2); position: fixed; top: 0; left: 0; right: 0; z-index: 28; padding: calc(var(--er-space-2) + env(safe-area-inset-top, 0px)) var(--er-space-3) var(--er-space-2); background: var(--er-navy-surface); color: var(--er-on-navy); box-shadow: 0 4px 16px color-mix(in srgb, var(--er-ink-navy) 18%, transparent); visibility: hidden; opacity: 0; transform: translateY(-100%); pointer-events: none; }
+  .hq-identity-strip.is-visible { visibility: visible; opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .hq-identity-strip__name { font-weight: 700; white-space: nowrap; }
+  .hq-identity-strip__level { font-size: var(--er-text-xs); white-space: nowrap; color: var(--er-on-navy-muted); }
+  .hq-identity-strip__xp { flex: 1 1 auto; min-width: 0; }
+  .hq-identity-strip__xp .game-xp-bar__caption { display: none; }
+  .hq-identity-strip__xp .game-xp-bar__track { background: color-mix(in srgb, var(--er-on-navy) 20%, transparent); }
+}
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  .hq-identity-strip { transition: opacity 160ms ease-out, transform 160ms ease-out, visibility 0s linear 160ms; }
+  .hq-identity-strip.is-visible { transition: opacity 160ms ease-out, transform 160ms ease-out, visibility 0s; }
+}
