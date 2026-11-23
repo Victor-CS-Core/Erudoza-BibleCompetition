@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { afterEach, expect, it } from 'vitest';
-import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
+import { afterAll, afterEach, beforeAll, expect, it } from 'vitest';
+import { createNativeTestApp, disposeSharedNativeTestApps, getSharedNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
 import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
 import { loadPbeBank, resolvePbeSources } from './bank';
@@ -10,9 +10,14 @@ const pack='aaaaaaaa-0000-0000-0000-000000000001',source='aaaaaaaa-0000-0000-000
 const input={bookKey:'GEN',sourceEdition:'Test edition',title:'Genesis introduction',citation:'Test introduction',licensingStatus:'approved',units:[{citation:'Test introduction §1',canonicalText:'The opening introduces Alpha and Beta.'}]};
 type Intro=typeof input & {id:string;organizationId:string;seasonId:string;reviewed:boolean;revision:number;assignedStudentIds:string[];units:{id:string;citation:string;canonicalText:string}[]};
 let app:Awaited<ReturnType<typeof createNativeTestApp>>;
-afterEach(async()=>{await app?.runtime.dispose();});
+let ephemeral=false;
+afterEach(async()=>{if(ephemeral)await app?.runtime.dispose();});
+afterAll(async()=>{await disposeSharedNativeTestApps();});
+// Warm the shared app(s) outside any test's 5s budget: the one-time workerd
+// boot belongs in beforeAll (house pattern, 30s), not in the first test.
+beforeAll(async () => { await getSharedNativeTestApp({measureD1:false,clearCachesOnReset:true}); await getSharedNativeTestApp({measureD1:true,clearCachesOnReset:true}); }, 30000);
 async function setup(measureD1=false,beforeD1Statement?:(sql:string)=>Promise<void>){
- app=await createNativeTestApp({measureD1,beforeD1Statement});const store=new Store(app.db as unknown as Env['DB']);const cookie=(await app.login()).headers.get('set-cookie')!.split(';')[0];
+ ephemeral=!!beforeD1Statement;app=ephemeral?await createNativeTestApp({measureD1,beforeD1Statement}):await getSharedNativeTestApp({measureD1,clearCachesOnReset:true});const store=new Store(app.db as unknown as Env['DB']);const cookie=(await app.login()).headers.get('set-cookie')!.split(';')[0];
  const path=`/api/v1/organizations/${TEST_ORG}/practice/pbe/seasons/${season}`;
  const send=(suffix:string,value?:unknown,auth=cookie)=>app.fetch(path+suffix,{method:value===undefined?'GET':'POST',headers:{Cookie:auth,Origin:'https://erudoza.test','Content-Type':'application/json'},body:value===undefined?undefined:JSON.stringify(value)});
  await store.insert('season',season,TEST_ORG,{id:season,organizationId:TEST_ORG,status:'Active',pbeEnabled:true});

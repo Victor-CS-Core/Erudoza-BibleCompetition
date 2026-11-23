@@ -1,6 +1,6 @@
 // @vitest-environment node
-import {afterEach,expect,it} from 'vitest';
-import {createNativeTestApp,TEST_ORG,TEST_USER} from '../test-runtime';
+import {afterAll,beforeAll,expect,it} from 'vitest';
+import {createNativeTestApp,disposeSharedNativeTestApps,getSharedNativeTestApp,TEST_ORG,TEST_USER} from '../test-runtime';
 import {Store} from '../store';
 import type {Env,RequestContext} from '../types';
 import type {D1PreparedStatement,D1Result} from '@cloudflare/workers-types';
@@ -8,10 +8,13 @@ import {LIBRARY_ORG} from '../application/library-access';
 import {chapterBase,chapterSourcePage,chapterAssignmentPage,chapterSelectedSources} from './chapter-source-pages';
 const season='cccccccc-0000-0000-0000-000000000001',student='dddddddd-0000-0000-0000-000000000001',pack='aaaaaaaa-0000-0000-0000-000000000001';
 let app:Awaited<ReturnType<typeof createNativeTestApp>>;
-afterEach(async()=>{await app?.runtime.dispose();});
+afterAll(async()=>{await disposeSharedNativeTestApps();});
+// Warm the shared app(s) outside any test's 5s budget: the one-time workerd
+// boot belongs in beforeAll (house pattern, 30s), not in the first test.
+beforeAll(async () => { await getSharedNativeTestApp({clearCachesOnReset:true}); }, 30000);
 const range=(start=1,end=10000)=>({bookKey:'GEN',startChapter:1,startVerse:start,endChapter:1,endVerse:end});
 async function setup(n=1){
- app=await createNativeTestApp();
+ app=await getSharedNativeTestApp({clearCachesOnReset:true});
  const reads:{rows:number;payloads:number;payloadBytes:number;rowsRead:number;plan:string[]}[]=[];
  const db=app.db as unknown as Env['DB'];
  const track=(statement:D1PreparedStatement,sql:string,args:unknown[]=[]):D1PreparedStatement=>new Proxy(statement,{get(target,key){

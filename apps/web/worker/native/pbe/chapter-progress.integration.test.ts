@@ -1,7 +1,7 @@
 import {writeFile} from 'node:fs/promises';
 // @vitest-environment node
-import { afterEach, expect, it } from 'vitest';
-import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
+import { afterAll, afterEach, beforeAll, expect, it } from 'vitest';
+import { createNativeTestApp, disposeSharedNativeTestApps, getSharedNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
 import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
 import type { PbeQuestion, PbeTarget } from './types';
@@ -17,9 +17,14 @@ const season = 'cccccccc-0000-0000-0000-000000000001', student = 'dddddddd-0000-
 const tid = (n: number) => `bbbbbbbb-0000-0000-0000-${String(n).padStart(12, '0')}`;
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
 const allMeters:Record<string,unknown>[]=[];
-afterEach(async () => { await app?.runtime.dispose(); await writeFile('../../.local/d1-native-request-meters.json',JSON.stringify(allMeters,null,2)); });
+let ephemeral=false;
+afterEach(async () => { if(ephemeral) await app?.runtime.dispose(); await writeFile('../../.local/d1-native-request-meters.json',JSON.stringify(allMeters,null,2)); });
+afterAll(async () => { await disposeSharedNativeTestApps(); });
+// Warm the shared app(s) outside any test's 5s budget: the one-time workerd
+// boot belongs in beforeAll (house pattern, 30s), not in the first test.
+beforeAll(async () => { await getSharedNativeTestApp({ measureD1: true, clearCachesOnReset: true }); }, 30000);
 async function setup(count = 2, beforeD1Statement?: (sql: string) => Promise<void>, options: {replaceSoloAuthority?:boolean} = {}) {
-    app = await createNativeTestApp({ measureD1: true, beforeD1Statement, ...options });
+    ephemeral = !!beforeD1Statement; app = ephemeral ? await createNativeTestApp({ measureD1: true, beforeD1Statement, ...options }) : await getSharedNativeTestApp({ measureD1: true, clearCachesOnReset: true, ...options });
     const store = new Store(app.db as unknown as Env['DB']);
     await store.insert('season', season, TEST_ORG, { id: season, name: 'Test season', organizationId: TEST_ORG, status: 'Active', pbeEnabled: true });
     await store.insert('pack', pack, TEST_ORG, { id: pack, isActive: true, licensingStatus: 'approved', sourceType: 'Scripture' });

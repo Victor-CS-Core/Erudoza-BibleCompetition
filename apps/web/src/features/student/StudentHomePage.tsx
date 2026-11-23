@@ -14,6 +14,7 @@ import { AssignedPassages } from "./AssignedPassages";
 import { TrainingMissionCard } from "./TrainingMissionCard";
 import { ActionDock } from "../../components/ui/ActionDock";
 import { HqIdentityStrip } from "./HqIdentityStrip";
+import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { TrainingDialog } from "../../components/ui/TrainingDialog";
 import { usePhoneLayout } from "../../hooks/useMediaQuery";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
@@ -85,7 +86,7 @@ export function StudentHomePage() {
     >
       {data?.format === "Pbe" && <Link className="training-format-switch" to={link("/student/study?mode=Practice&format=Memory")}>Choose Memory</Link>}
     </PlayerCard>
-    {phone && heroXp && <HqIdentityStrip name={me?.displayName ?? "You"} xp={heroXp} />}
+    {phone && heroXp && <HqIdentityStrip name={me?.displayName ?? "You"} xp={heroXp} avatar={<ProfileAvatar userId={me?.userId ?? ""} displayName={me?.displayName ?? "You"} size={36} />} />}
     {(seasons.data?.length ?? 0) > 1 && <label className="training-season-select">Assigned season<Select value={seasonId ?? ""} onChange={event => { setGoalOpen(false); setParams({ seasonId: event.target.value }); }}>{seasons.data?.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}
     {seasons.isError && <Notice tone="danger">Assigned seasons could not load. <Button variant="secondary" onClick={() => void seasons.refetch()}>Retry seasons</Button></Notice>}
     {today.isPending ? <LoadingState label="Loading your training plan…" /> : today.isError ? <Notice tone="danger">Your training plan could not load. <Button variant="secondary" onClick={() => void today.refetch()}>Try again</Button></Notice> : data && <>

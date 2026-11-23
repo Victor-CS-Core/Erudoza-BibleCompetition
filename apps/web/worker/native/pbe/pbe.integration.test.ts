@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { readFile } from "node:fs/promises";
-import { afterEach, expect, it, vi } from 'vitest';
-import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
+import { afterAll, beforeAll, expect, it, vi } from 'vitest';
+import { createNativeTestApp, disposeSharedNativeTestApps, getSharedNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
 import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
 import { HttpError } from '../types';
@@ -13,9 +13,12 @@ const a='aaaaaaaa-0000-0000-0000-000000000003',b='bbbbbbbb-0000-0000-0000-000000
 const target={id:'00000000-0000-0000-0000-000000000004',sourceUnitIds:[a,b],skill:'FactualRecall',label:'Both labels'};
 const question={...fixtures.cases[0].question,id:'00000000-0000-0000-0000-000000000001',contentPackId:pack,sourceUnitId:a,sourceUnitIds:[a,b],kind:'ShortAnswer',reference:'GEN 1:1; GEN 1:2',evidence:'Alpha and Beta',parts:[{targetId:target.id,acceptedAnswers:['Alpha and Beta'],points:1}]};
 let app:Awaited<ReturnType<typeof createNativeTestApp>>;
-afterEach(async()=>{await app?.runtime.dispose();});
+afterAll(async()=>{await disposeSharedNativeTestApps();});
+// Warm the shared app(s) outside any test's 5s budget: the one-time workerd
+// boot belongs in beforeAll (house pattern, 30s), not in the first test.
+beforeAll(async () => { await getSharedNativeTestApp({measureD1:false,clearCachesOnReset:true}); await getSharedNativeTestApp({measureD1:true,clearCachesOnReset:true}); }, 30000);
 async function setup(measureD1=false){
- app=await createNativeTestApp({measureD1});const store=new Store(app.db as unknown as Env['DB']);
+ app=await getSharedNativeTestApp({measureD1,clearCachesOnReset:true});const store=new Store(app.db as unknown as Env['DB']);
  const cookie=(await app.login()).headers.get('set-cookie')!.split(';')[0];
  const base=`/api/v1/organizations/${TEST_ORG}/practice/pbe/seasons/${season}`;
  const send=(path:string,value?:unknown)=>app.fetch(base+path,{method:value===undefined?'GET':'POST',headers:{Cookie:cookie,Origin:'https://erudoza.test','Content-Type':'application/json'},body:value===undefined?undefined:JSON.stringify(value)});

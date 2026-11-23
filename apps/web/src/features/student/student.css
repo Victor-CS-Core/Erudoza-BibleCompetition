@@ -521,6 +521,7 @@
 @media (max-width: 760px) {
   .hq-identity-strip { display: flex; align-items: center; gap: var(--er-space-2); position: fixed; top: 0; left: 0; right: 0; z-index: 28; padding: calc(var(--er-space-2) + env(safe-area-inset-top, 0px)) var(--er-space-3) var(--er-space-2); background: var(--er-navy-surface); color: var(--er-on-navy); box-shadow: 0 4px 16px color-mix(in srgb, var(--er-ink-navy) 18%, transparent); visibility: hidden; opacity: 0; transform: translateY(-100%); pointer-events: none; }
   .hq-identity-strip.is-visible { visibility: visible; opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .hq-identity-strip__avatar { display: grid; place-items: center; flex: 0 0 auto; }
   .hq-identity-strip__name { font-weight: 700; white-space: nowrap; }
   .hq-identity-strip__level { font-size: var(--er-text-xs); white-space: nowrap; color: var(--er-on-navy-muted); }
   .hq-identity-strip__xp { flex: 1 1 auto; min-width: 0; }

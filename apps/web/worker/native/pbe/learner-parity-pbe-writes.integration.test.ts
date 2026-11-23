@@ -2,8 +2,8 @@
 // Learner-parity write guards: an Adult Owner/Admin in learner mode must be able
 // to complete the PBE cooperation continue write and the PBE chapter-progress
 // continuation write; signed-out and non-learner actors must still be refused.
-import {afterEach,expect,it} from 'vitest';
-import {createNativeTestApp,TEST_ORG,TEST_USER} from '../test-runtime';
+import {afterAll,beforeAll,expect,it} from 'vitest';
+import {createNativeTestApp,disposeSharedNativeTestApps,getSharedNativeTestApp,TEST_ORG,TEST_USER} from '../test-runtime';
 import {Store} from '../store';
 import type {Env} from '../types';
 import type {PbeQuestion,PbeTarget} from './types';
@@ -12,9 +12,12 @@ import type {ContinueChaptersResponse,CooperationSnapshot} from '../../../src/ap
 const season='ffffffff-0000-0000-0000-000000000001',student='ffffffff-0000-0000-0000-000000000002',adult='ffffffff-0000-0000-0000-000000000003',member='ffffffff-0000-0000-0000-000000000004',pack='ffffffff-0000-0000-0000-000000000005',source='ffffffff-0000-0000-0000-000000000006';
 const tid=(n:number)=>`ffffffff-0000-0000-0000-${String(n).padStart(12,'0')}`;
 let app:Awaited<ReturnType<typeof createNativeTestApp>>;
-afterEach(async()=>{await app?.runtime.dispose();});
+afterAll(async()=>{await disposeSharedNativeTestApps();});
+// Warm the shared app(s) outside any test's 5s budget: the one-time workerd
+// boot belongs in beforeAll (house pattern, 30s), not in the first test.
+beforeAll(async () => { await getSharedNativeTestApp({clearCachesOnReset:true}); }, 30000);
 async function setup(){
- app=await createNativeTestApp();
+ app=await getSharedNativeTestApp({clearCachesOnReset:true});
  const store=new Store(app.db as unknown as Env['DB']);
  await store.insert('season',season,TEST_ORG,{id:season,name:'Test season',organizationId:TEST_ORG,status:'Active',pbeEnabled:true});
  await store.insert('pack',pack,TEST_ORG,{id:pack,isActive:true,licensingStatus:'approved',sourceType:'Scripture'});

@@ -8,6 +8,7 @@ import { profileApi, type MyProfile } from './profile';
 import { ToastProvider } from "../../components/ui";
 
 vi.mock('../../auth/AuthContext', () => ({ useAuth: () => ({ me: { userId: 'self', organizationId: 'academy', organizationName: 'Academy', displayName: 'Anna Reed', userName: 'anna.reed', kind: 'Student', role: 'Student' } }) }));
+vi.mock('../../api/training', () => ({ trainingApi: { today: vi.fn(async () => ({ xp: { total: 612, xpIntoLevel: 112, xpForNext: 288, level: 4, levelName: 'Keeper' }, streak: { current: 6, state: 'active' }, streakNudge: false, seasonName: 'Fall 2026' })) } }));
 const base: MyProfile & CharacterProfileFields = {
   userId: 'self', displayName: 'Anna Reed', avatarHonorKey: null,
   avatarKind: 'initials', characterVersion: 3, canUseMasterGuide: false,
@@ -201,5 +202,61 @@ describe('production character profile', () => {
     const reloaded = await screen.findByRole('group', { name: 'Preview style' });
     expect(within(reloaded).getByRole('button', { name: '3D' })).toHaveAttribute('aria-pressed', 'true');
     expect(fillSrc()).toContain('basecamp');
+  });
+
+  it('combines the player card and the sash into one crest-anchored header card', async () => {
+    const view = mount();
+    await screen.findByRole('navigation', { name: 'Profile pages' });
+    // The header card and its collapsed strip both spell the level out.
+    await screen.findAllByText('Level 4 · Keeper');
+    const card = view.container.querySelector('.profile-header-card') as HTMLElement;
+    expect(card).not.toBeNull();
+    // No avatar slot in the identity row — the level crest anchors the card.
+    expect(card.querySelector('.game-player-card__avatar')).toBeNull();
+    expect(card.querySelector('.game-level-crest')).not.toBeNull();
+    // The sash row lives inside the same card: thumbnail, count, actions.
+    const row = card.querySelector('.profile-sash-row') as HTMLElement;
+    expect(row).not.toBeNull();
+    expect(row.querySelector('.profile-sash-thumb')).not.toBeNull();
+    expect(within(row).getByText('Sash · 0 of 3 Achievement patches selected')).toBeVisible();
+    expect(within(row).getByRole('button', { name: 'Edit' })).toBeVisible();
+    expect(within(row).getByRole('button', { name: 'Share' })).toBeVisible();
+    // The collapsed strip carries the face with the first name and the
+    // level spelled out in text (no crest) beside Edit + Share.
+    const strip = view.container.querySelector('[data-testid="profile-sash-strip"]');
+    expect(strip).not.toBeNull();
+    expect(strip!.textContent).toContain('Anna');
+    expect(strip!.textContent).toContain('Level 4 · Keeper');
+    expect(strip!.querySelector('.game-level-crest')).toBeNull();
+    // The Profile tab no longer stacks a separate character stage card.
+    expect(view.container.querySelector('.character-panel')).toBeNull();
+  });
+
+  it('keeps one persistent face per tab: the stage tabs yield the header thumbnail and the strip', async () => {
+    const view = mount();
+    await screen.findByRole('navigation', { name: 'Profile pages' });
+    const headerThumb = () => view.container.querySelector('.profile-header-card .profile-sash-thumb');
+    // Profile tab: header carries the face, and the collapsed strip stands by.
+    expect(headerThumb()).not.toBeNull();
+    expect(screen.getByTestId('profile-sash-strip')).toBeInTheDocument();
+    expect(view.container.querySelector('[data-testid="profile-sash-strip"] .character-portrait')).not.toBeNull();
+    // Character tab: the sticky character stage is the face's home — the
+    // header row keeps count + actions but drops its thumbnail, and no
+    // strip duplicates the stage's persistent preview.
+    await page('Character');
+    expect(headerThumb()).toBeNull();
+    expect(screen.queryByTestId('profile-sash-strip')).toBeNull();
+    const panel = view.container.querySelector('.character-panel');
+    expect(panel).not.toBeNull();
+    expect(panel!.querySelector('.character-mini-thumb')).not.toBeNull();
+    // Achievement patches tab: same treatment as Character.
+    await page('Achievement patches');
+    expect(headerThumb()).toBeNull();
+    expect(screen.queryByTestId('profile-sash-strip')).toBeNull();
+    expect(view.container.querySelector('.character-panel')).not.toBeNull();
+    // Share tab: no stage, so the header + strip carry the face again.
+    await page('Share');
+    expect(headerThumb()).not.toBeNull();
+    expect(screen.getByTestId('profile-sash-strip')).toBeInTheDocument();
   });
 });

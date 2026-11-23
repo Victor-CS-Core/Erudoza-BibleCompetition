@@ -1,10 +1,13 @@
 // @vitest-environment node
-import {afterEach,expect,it} from 'vitest';
-import {createNativeTestApp,TEST_ORG} from './test-runtime';
+import {afterAll,beforeAll,expect,it} from 'vitest';
+import {createNativeTestApp,disposeSharedNativeTestApps,getSharedNativeTestApp,TEST_ORG} from './test-runtime';
 import {purgeAuditRows,purgeNotifications,runRetentionPurge} from './retention';
 
 let app:Awaited<ReturnType<typeof createNativeTestApp>>;
-afterEach(async()=>{await app?.runtime.dispose();});
+afterAll(async()=>{await disposeSharedNativeTestApps();});
+// Warm the shared app(s) outside any test's 5s budget: the one-time workerd
+// boot belongs in beforeAll (house pattern, 30s), not in the first test.
+beforeAll(async () => { await getSharedNativeTestApp(); }, 30000);
 
 const DAY_MS=86400_000;
 const NOW=Date.UTC(2026,8,18,12,0,0);
@@ -17,7 +20,7 @@ const count=async(kind:string,ownerId?:string)=>(await app.db.prepare(`SELECT CO
 const auditIds=async()=>((await app.db.prepare("SELECT id FROM Records WHERE kind='audit'").all<{id:string}>()).results??[]).map(r=>r.id).sort();
 
 it('purges audit rows older than 90 days plus dateless guard receipts',async()=>{
-  app=await createNativeTestApp();
+  app=await getSharedNativeTestApp();
   await insertAudit('dateless-early',{});
   await insertAudit('old-1',{createdAtUtc:iso(100)});
   await insertAudit('old-2',{createdAtUtc:iso(91)});
@@ -33,7 +36,7 @@ it('purges audit rows older than 90 days plus dateless guard receipts',async()=>
 });
 
 it('deletes at most the batch size of audit rows per run',async()=>{
-  app=await createNativeTestApp();
+  app=await getSharedNativeTestApp();
   for(let n=0;n<5;n++)await insertAudit(`old-${n}`,{createdAtUtc:iso(100)});
   expect(await purgeAuditRows({DB:app.db},NOW,2)).toBe(2);
   expect(await count('audit')).toBe(3);
@@ -43,7 +46,7 @@ it('deletes at most the batch size of audit rows per run',async()=>{
 });
 
 it('caps notifications at the newest 100 per user',async()=>{
-  app=await createNativeTestApp();
+  app=await getSharedNativeTestApp();
   const ownerA=crypto.randomUUID(),ownerB=crypto.randomUUID();
   for(let n=0;n<105;n++)await insertNotification(`a-${n}`,ownerA,n);
   for(let n=0;n<3;n++)await insertNotification(`b-${n}`,ownerB,n);
@@ -59,7 +62,7 @@ it('caps notifications at the newest 100 per user',async()=>{
 });
 
 it('breaks notification timestamp ties deterministically',async()=>{
-  app=await createNativeTestApp();
+  app=await getSharedNativeTestApp();
   const owner=crypto.randomUUID();
   for(let n=0;n<101;n++)await insertNotification(`t-${n}`,owner,7);
   expect(await purgeNotifications({DB:app.db})).toBe(1);
@@ -70,7 +73,7 @@ it('breaks notification timestamp ties deterministically',async()=>{
 });
 
 it('runRetentionPurge combines both purges',async()=>{
-  app=await createNativeTestApp();
+  app=await getSharedNativeTestApp();
   await insertAudit('old',{createdAtUtc:iso(100)});
   await insertAudit('recent',{createdAtUtc:iso(1)});
   const owner=crypto.randomUUID();

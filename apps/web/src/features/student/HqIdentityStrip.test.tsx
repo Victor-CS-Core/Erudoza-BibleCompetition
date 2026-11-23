@@ -9,7 +9,7 @@ function renderStrip() {
   return render(
     <div className="training-dashboard student-home">
       <section className="training-hq-hero">hero</section>
-      <HqIdentityStrip name="Sam Rivera" xp={xp} />
+      <HqIdentityStrip name="Sam Rivera" xp={xp} avatar={<span data-entry-avatar="character" />} />
     </div>,
   );
 }
@@ -28,16 +28,16 @@ class MockIntersectionObserver {
 afterEach(() => { vi.unstubAllGlobals(); MockIntersectionObserver.instances = []; document.documentElement.style.scrollPaddingTop = ""; });
 
 describe("HqIdentityStrip (R2 collapsing hero)", () => {
-  it("renders crest, first name, level and a mini XP bar — never a character avatar", () => {
+  it("renders the profile picture, first name, level text and a mini XP bar — no crest (the level is already text)", () => {
     renderStrip();
     const strip = screen.getByTestId("hq-identity-strip");
-    // The strip starts aria-hidden (hero on screen), so query the crest
-    // element directly rather than by role.
-    expect(strip.querySelector(".game-level-crest")).toHaveAttribute("aria-label", "Level 4 · Keeper");
+    // Owner direction (2026-11-23): in the sticky bar the face replaces
+    // the crest, because the level is spelled out in text right beside it.
+    expect(strip.querySelector("[data-entry-avatar]")).not.toBeNull();
+    expect(strip.querySelector(".game-level-crest")).toBeNull();
     expect(within(strip).getByText("Sam")).toBeInTheDocument();
     expect(within(strip).getByText("Level 4 · Keeper")).toBeInTheDocument();
     expect(strip.querySelector("progress")).not.toBeNull();
-    expect(strip.querySelector("[data-entry-avatar], img")).toBeNull();
   });
 
   it("stays hidden while the hero is on screen (no IntersectionObserver in jsdom)", () => {

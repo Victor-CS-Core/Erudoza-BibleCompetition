@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { afterEach, expect, it } from 'vitest';
-import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
+import { afterAll, beforeAll, expect, it } from 'vitest';
+import { createNativeTestApp, disposeSharedNativeTestApps, getSharedNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
 import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
 import { atomic } from '../application/model';
@@ -9,8 +9,11 @@ const season = 'cccccccc-0000-0000-0000-000000000001', target = 'aaaaaaaa-0000-0
 const attempt = (n: number) => `dddddddd-0000-0000-0000-${String(n).padStart(12, '0')}`;
 const e = (n: number, points = 0, atMs = 1000) => ({ attemptId: attempt(n), targetId: target, questionId: question, atMs, earnedPoints: points, availablePoints: 1, unaided: true, recall: true });
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
-afterEach(async () => { await app?.runtime.dispose(); });
-async function setup() { app = await createNativeTestApp(); const store = new Store(app.db as unknown as Env['DB']); const ctx = { store, env: { DB: store.db }, orgId: TEST_ORG, actor: { userId: TEST_USER, organizationId: TEST_ORG, kind: 'Adult', role: 'Owner' }, request: new Request('https://erudoza.test'), path: '' } as unknown as RequestContext; return { ctx, store }; }
+afterAll(async () => { await disposeSharedNativeTestApps(); });
+// Warm the shared app(s) outside any test's 5s budget: the one-time workerd
+// boot belongs in beforeAll (house pattern, 30s), not in the first test.
+beforeAll(async () => { await getSharedNativeTestApp({clearCachesOnReset:true}); }, 30000);
+async function setup() { app = await getSharedNativeTestApp({clearCachesOnReset:true}); const store = new Store(app.db as unknown as Env['DB']); const ctx = { store, env: { DB: store.db }, orgId: TEST_ORG, actor: { userId: TEST_USER, organizationId: TEST_ORG, kind: 'Adult', role: 'Owner' }, request: new Request('https://erudoza.test'), path: '' } as unknown as RequestContext; return { ctx, store }; }
 it('commits caller attempt and evidence together; exact retry is inert and contradictory retry conflicts', async () => {
     const { ctx, store } = await setup();
     const w = await prepareRecallEvidence(ctx, season, 'scope-1', [e(1)]);

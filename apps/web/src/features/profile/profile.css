@@ -137,3 +137,51 @@
   .profile-page .avatar-options { margin-block: var(--er-space-4); }
   .profile-page .review-note { margin-top: var(--er-space-4); }
 }
+
+/* Avatar dedupe (Nov 23): the Profile image picker is a selector, not a
+   second portrait gallery — its option tiles render at selector scale
+   (72px art, 64px on phones) with the pressed button state as the
+   selected ring. Scoped to .avatar-options so the Character tab's
+   hairstyle thumbnails and the sash stage keep their sizes. */
+.profile-page .avatar-options .character-portrait, .profile-page .avatar-options .ds-patch-art, .profile-page .avatar-options .initials-preview, .profile-page .avatar-options .avatar-empty { height: 72px; }
+.profile-page .avatar-options .ds-patch-art { width: 100%; max-width: 72px; }
+.profile-page .avatar-options .ds-patch-art img { width: 100%; height: 100%; object-fit: contain; }
+.profile-page .avatar-options .initials-preview { font-size: var(--er-text-title); }
+@media (max-width: 760px) {
+  .profile-page .avatar-options .character-portrait, .profile-page .avatar-options .ds-patch-art, .profile-page .avatar-options .initials-preview, .profile-page .avatar-options .avatar-empty { height: 64px; }
+  .profile-page .avatar-options .ds-patch-art { max-width: 64px; }
+}
+
+/* Combined header card (Nov 23): the sash row lives inside the player
+   card, under a hairline — thumbnail (where the header carries the face),
+   the patch count, and the Edit/Share actions. On the Profile tab the
+   character stage leaves the layout, so the editor panels go full width. */
+.profile-page .creator-layout--solo { grid-template-columns: minmax(0, 1fr); }
+.profile-page .profile-sash-row { display: flex; align-items: center; gap: var(--er-space-3); padding-top: var(--er-space-4); border-top: 1px solid color-mix(in srgb, var(--er-on-navy) 18%, transparent); }
+.profile-page .profile-sash-thumb { flex: 0 0 56px; width: 56px; height: 56px; padding: 0; border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-paper); overflow: hidden; cursor: pointer; }
+.profile-page .profile-sash-thumb .character-portrait { display: block; width: 100%; height: 100%; }
+.profile-page .profile-sash-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.profile-page .profile-sash-row .figure-caption { flex: 1 1 auto; min-width: 0; margin: 0; text-align: left; font-size: var(--er-text-sm); color: var(--er-on-navy); }
+.profile-page .profile-sash-row .figure-actions { flex: 0 0 auto; padding: 0; gap: var(--er-space-2); }
+.profile-page .profile-sash-row .figure-actions .ds-button { flex: none; min-height: 44px; font-size: var(--er-text-sm); white-space: nowrap; }
+
+/* Collapsed sticky strip (Nov 23): the HQ identity strip's pattern —
+   fixed overlay on phones, face + Edit + Share only, shown once the
+   combined header card has scrolled fully off-screen. */
+.profile-page .profile-sash-strip { display: none; }
+@media (max-width: 760px) {
+  .profile-page .profile-sash-strip { display: flex; align-items: center; gap: var(--er-space-3); position: fixed; top: 0; left: 0; right: 0; z-index: 28; padding: calc(var(--er-space-2) + env(safe-area-inset-top, 0px)) var(--er-space-3) var(--er-space-2); background: var(--er-navy-surface); color: var(--er-on-navy); box-shadow: 0 4px 16px color-mix(in srgb, var(--er-ink-navy) 18%, transparent); visibility: hidden; opacity: 0; transform: translateY(-100%); pointer-events: none; }
+  .profile-page .profile-sash-strip.is-visible { visibility: visible; opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .profile-page .profile-sash-strip__thumb { flex: 0 0 44px; width: 44px; height: 44px; padding: 0; border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-paper); overflow: hidden; cursor: pointer; }
+  .profile-page .profile-sash-strip__thumb .character-portrait { display: block; width: 100%; height: 100%; }
+  .profile-page .profile-sash-strip__thumb img { width: 100%; height: 100%; object-fit: contain; }
+  .profile-page .profile-sash-strip__id { display: grid; min-width: 0; margin-right: auto; line-height: 1.25; }
+  .profile-page .profile-sash-strip__id strong { font-size: var(--er-text-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .profile-page .profile-sash-strip__id small { color: color-mix(in srgb, var(--er-on-navy) 72%, transparent); font-size: var(--er-text-xs); white-space: nowrap; }
+  .profile-page .profile-sash-strip__actions { display: flex; gap: var(--er-space-2); }
+  .profile-page .profile-sash-strip__actions .ds-button { min-height: 44px; white-space: nowrap; }
+}
+@media (max-width: 760px) and (prefers-reduced-motion: no-preference) {
+  .profile-page .profile-sash-strip { transition: opacity 160ms ease-out, transform 160ms ease-out, visibility 0s linear 160ms; }
+  .profile-page .profile-sash-strip.is-visible { transition: opacity 160ms ease-out, transform 160ms ease-out, visibility 0s; }
+}

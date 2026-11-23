@@ -1,6 +1,6 @@
 // @vitest-environment node
-import { afterEach, expect, it } from 'vitest';
-import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
+import { afterAll, afterEach, beforeAll, expect, it } from 'vitest';
+import { createNativeTestApp, disposeSharedNativeTestApps, getSharedNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
 import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
 import { startPbeSession } from './sessions';
@@ -9,9 +9,14 @@ import { sourceProof } from './bank';
 const season = 'cccccccc-0000-0000-0000-000000000001', student = 'dddddddd-0000-0000-0000-000000000001', pack = 'aaaaaaaa-0000-0000-0000-000000000001', source = 'aaaaaaaa-0000-0000-0000-000000000002';
 const tid = (n: number) => `bbbbbbbb-0000-0000-0000-${String(n).padStart(12, '0')}`;
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
-afterEach(async () => { await app?.runtime.dispose(); });
+let ephemeral=false;
+afterEach(async () => { if(ephemeral) await app?.runtime.dispose(); });
+afterAll(async () => { await disposeSharedNativeTestApps(); });
+// Warm the shared app(s) outside any test's 5s budget: the one-time workerd
+// boot belongs in beforeAll (house pattern, 30s), not in the first test.
+beforeAll(async () => { await getSharedNativeTestApp({ measureD1: true, soloTestClock: true, clearCachesOnReset: true }); await getSharedNativeTestApp({ measureD1: true, soloTestClock: true, clearCachesOnReset: true, replaceSoloAuthority: true }); }, 30000);
 async function setup(count = 2, beforeD1Statement?: (sql: string) => Promise<void>, options: {replaceSoloAuthority?:boolean} = {}) {
-    app = await createNativeTestApp({ measureD1: true, beforeD1Statement, ...options });
+    ephemeral = !!beforeD1Statement; app = ephemeral ? await createNativeTestApp({ measureD1: true, soloTestClock: true, beforeD1Statement, ...options }) : await getSharedNativeTestApp({ measureD1: true, soloTestClock: true, clearCachesOnReset: true, ...options });
     const store = new Store(app.db as unknown as Env['DB']);
     await store.insert('season', season, TEST_ORG, { id: season, name: 'Test season', organizationId: TEST_ORG, status: 'Active', pbeEnabled: true });
     await store.insert('pack', pack, TEST_ORG, { id: pack, isActive: true, licensingStatus: 'approved', sourceType: 'Scripture' });
@@ -31,11 +36,12 @@ async function setup(count = 2, beforeD1Statement?: (sql: string) => Promise<voi
     }
     const login = await app.fetch('/api/v1/auth/login', { method: 'POST', headers: { Origin: 'https://erudoza.test', 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier: 'pbe-student', password: 'Testing!123' }) });
     const cookie = login.headers.get('set-cookie')!.split(';')[0];
-    const send = async (path: string, value?: unknown, empty = false) => { const r = await app.fetch('/api/v1' + path, { method: value === undefined && !empty ? 'GET' : 'POST', headers: { Cookie: cookie, Origin: 'https://erudoza.test', 'Content-Type': 'application/json' }, body: value === undefined || empty ? undefined : JSON.stringify(value) }); const meter = JSON.parse(r.headers.get('x-test-d1-meter')!) as {
+    const send = async (path: string, value?: unknown, empty = false, extraHeaders: Record<string, string> = {}) => { const r = await app.fetch('/api/v1' + path, { method: value === undefined && !empty ? 'GET' : 'POST', headers: { Cookie: cookie, Origin: 'https://erudoza.test', 'Content-Type': 'application/json', ...extraHeaders }, body: value === undefined || empty ? undefined : JSON.stringify(value) }); const meter = JSON.parse(r.headers.get('x-test-d1-meter')!) as {
         bindingCalls: number;
         statements: number;
     }; expect(meter.statements, `${path}: ${JSON.stringify(meter)}`).toBeLessThanOrEqual(50); return r; };
-    return { store, send, cookie };
+    const advancePastWindow = async (sessionId: string, questionId: string) => { await send(`/study/sessions/${sessionId}/timed?questionId=${questionId}`, undefined, false, { 'x-test-solo-now': String(Date.now() + 3100) }); };
+    return { store, send, cookie, advancePastWindow };
 }
 it('delivers immutable private PBE cards, persists partial target grades and original retries through actual HTTP', async () => {
     const { send, store } = await setup();
@@ -482,7 +488,7 @@ it('keeps a frozen daily mission discoverable when publication moves outside the
     expect((await send(path + '/complete', {})).status).toBe(409);
 });
 it('accepts solo Simulation only through the authority and defers all feedback until completion', async () => {
-    const { send, store } = await setup(1);
+    const { send, store, advancePastWindow } = await setup(1);
     const session = await (await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'Simulation' })).json() as {id:string;targetCardCount:number};
     expect(session.targetCardCount).toBe(1);
     const card = await (await send(`/study/sessions/${session.id}/next`)).json() as {id:string;question:{reference:string;prompt:string;points:number}};
@@ -492,7 +498,7 @@ it('accepts solo Simulation only through the authority and defers all feedback u
     const ack = await (await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:present.revision,delivery:'TextFallback'})).json() as {responseStartsAtMs:number};
     expect(ack.responseStartsAtMs).toBeTypeOf('number');
     expect((await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:answer.answers,clientSubmissionId:answer.clientSubmissionId})).status).toBe(409);
-    await new Promise(resolve=>setTimeout(resolve,3100));
+    await advancePastWindow(session.id, card.id);
     const accepted = await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:answer.answers,clientSubmissionId:answer.clientSubmissionId});
     expect(accepted.status).toBe(200);
     const receipt=await accepted.json();
@@ -518,11 +524,11 @@ it('accepts solo Simulation only through the authority and defers all feedback u
     expect((await store.list<{totalXp:number}>('training-xp',TEST_ORG,{ownerId:student}))[0].totalXp).toBe(xpBefore.totalXp);
 });
 it('keeps a frozen native final immutable across projection failure and retries its durable outbox',async()=>{
-    const {send,store,cookie}=await setup(1,undefined,{replaceSoloAuthority:true});
+    const {send,store,cookie,advancePastWindow}=await setup(1,undefined,{replaceSoloAuthority:true});
     const session=await (await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as {id:string};
     const card=await (await send(`/study/sessions/${session.id}/next`)).json() as {id:string};
     const shown=await (await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as {revision:number};
-    await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:shown.revision,delivery:'TextFallback'});await new Promise(resolve=>setTimeout(resolve,3100));
+    await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:shown.revision,delivery:'TextFallback'});await advancePastWindow(session.id, card.id);
     const original={action:'submit',questionId:card.id,revision:shown.revision,answers:['Alpha','Beta'],clientSubmissionId:crypto.randomUUID()};
     await store.remove('assignment','assignment',TEST_ORG);
     expect((await send(`/study/sessions/${session.id}/timed`,original)).status).toBe(409);
@@ -536,8 +542,8 @@ it('keeps a frozen native final immutable across projection failure and retries 
     expect(await store.list('pbe-attempt',TEST_ORG,{ownerId:student})).toHaveLength(1);
 },10000);
 it('preserves an exact accepted final retry after presenting the next card',async()=>{
-    const {send}=await setup(2);const session=await(await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as{id:string};const first=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};
-    const shown=await(await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as{revision:number};await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:first.id,revision:shown.revision,delivery:'TextFallback'});await new Promise(resolve=>setTimeout(resolve,3100));
+    const {send,advancePastWindow}=await setup(2);const session=await(await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as{id:string};const first=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};
+    const shown=await(await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as{revision:number};await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:first.id,revision:shown.revision,delivery:'TextFallback'});await advancePastWindow(session.id, first.id);
     const original={action:'submit',questionId:first.id,revision:shown.revision,answers:['Alpha','Beta'],clientSubmissionId:crypto.randomUUID()};const accepted=await(await send(`/study/sessions/${session.id}/timed`,original)).json();const second=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};
     expect(await(await send(`/study/sessions/${session.id}/timed?questionId=${second.id}`)).json()).toMatchObject({status:'NotPresented',questionId:second.id});
     await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'});
@@ -545,8 +551,8 @@ it('preserves an exact accepted final retry after presenting the next card',asyn
     expect(await(await send(`/study/sessions/${session.id}/timed`,original)).json()).toEqual({...accepted as object,alreadyProcessed:true});expect((await send(`/study/sessions/${session.id}/timed`,{...original,answers:['changed','answer']})).status).toBe(409);expect(second.id).not.toBe(first.id);
 });
 it('returns native interrupted partial results through status resume and recap',async()=>{
-    const {send,cookie}=await setup(2,undefined,{replaceSoloAuthority:true});const session=await(await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as{id:string};const first=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};
-    const shown=await(await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as{revision:number};await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:first.id,revision:shown.revision,delivery:'TextFallback'});await new Promise(resolve=>setTimeout(resolve,3100));await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:first.id,revision:shown.revision,answers:['Alpha','wrong'],clientSubmissionId:crypto.randomUUID()});
+    const {send,cookie,advancePastWindow}=await setup(2,undefined,{replaceSoloAuthority:true});const session=await(await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as{id:string};const first=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};
+    const shown=await(await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as{revision:number};await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:first.id,revision:shown.revision,delivery:'TextFallback'});await advancePastWindow(session.id, first.id);await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:first.id,revision:shown.revision,answers:['Alpha','wrong'],clientSubmissionId:crypto.randomUUID()});
     const second=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};const nextShown=await(await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as{revision:number};await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:second.id,revision:nextShown.revision,delivery:'TextFallback'});
     await app.fetch(`/api/v1/study/sessions/${session.id}/timed?questionId=${second.id}`,{headers:{Cookie:cookie,Origin:'https://erudoza.test','x-test-authority-replaced':'1'}});
     const interrupted=await send(`/study/sessions/${session.id}/timed?questionId=${second.id}`);expect(interrupted.status).toBe(200);expect(await interrupted.json()).toMatchObject({status:'Interrupted',summary:{results:[{earnedPoints:1,availablePoints:2}]}});
@@ -554,8 +560,8 @@ it('returns native interrupted partial results through status resume and recap',
     expect(await(await send(`/study/sessions/${session.id}/recap`)).json()).toMatchObject({interrupted:true,results:[{earnedPoints:1,availablePoints:2}]});
 },10000);
 it('freezes a saved draft and projects it through an actual alarm after authority replacement',async()=>{
-    const {send,store,cookie}=await setup(1,undefined,{replaceSoloAuthority:true});const session=await(await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as{id:string};const card=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};
-    const shown=await(await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as{revision:number};await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:shown.revision,delivery:'TextFallback'});await new Promise(resolve=>setTimeout(resolve,3100));
+    const {send,store,cookie,advancePastWindow}=await setup(1,undefined,{replaceSoloAuthority:true});const session=await(await send('/study/sessions',{seasonId:season,format:'Pbe',mode:'Simulation'})).json() as{id:string};const card=await(await send(`/study/sessions/${session.id}/next`)).json() as{id:string};
+    const shown=await(await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as{revision:number};await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:shown.revision,delivery:'TextFallback'});await advancePastWindow(session.id, card.id);
     await send(`/study/sessions/${session.id}/timed`,{action:'draft',questionId:card.id,revision:shown.revision,answers:['Alpha','Beta']});
     const replacement=await app.fetch(`/api/v1/study/sessions/${session.id}/timed`,{headers:{Cookie:cookie,Origin:'https://erudoza.test','x-test-authority-replaced':'1'}});expect(replacement.status).toBe(200);
     for(let attempt=0;attempt<20&&(await store.list('pbe-attempt',TEST_ORG,{ownerId:student})).length===0;attempt++)await new Promise(resolve=>setTimeout(resolve,100));
