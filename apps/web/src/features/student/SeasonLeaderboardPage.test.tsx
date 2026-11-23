@@ -100,6 +100,36 @@ describe("SeasonLeaderboardPage", () => {
     expect(screen.queryByTestId("season-board-your-rank")).not.toBeInTheDocument();
   });
 
+  it("puts the top three on a podium above the flat race-bar rows", async () => {
+    renderPage();
+    await screen.findByTestId("season-board-your-rank");
+    const first = screen.getByTestId("leaderboard-podium-1");
+    expect(first).toHaveTextContent("Maya R.");
+    expect(first).toHaveTextContent("845 XP");
+    expect(screen.getByTestId("leaderboard-podium-2")).toHaveTextContent("Jonah K.");
+    expect(screen.getByTestId("leaderboard-podium-3")).toHaveTextContent("Sam R.");
+    // Rows stay a flat list (no card-in-card) and each carries a race bar.
+    const row = screen.getByTestId("season-board-row-3");
+    expect(row.querySelector(".game-chase-bar")).not.toBeNull();
+    expect(row).toHaveTextContent("Level 4 · Keeper");
+  });
+
+  it("shows the designed zero state with a starting line when members have not scored", async () => {
+    apiMocks.seasonLeaderboard.mockResolvedValue({
+      ...baseBoard,
+      entries: baseBoard.entries.map(entry => ({ ...entry, xp: 0, seasonXp: 0, weekXp: 0 })),
+      me: { ...baseBoard.me!, seasonXp: 0, weekXp: 0, totalXp: 0, level: 1, levelName: "Seedling", nextLevelName: "Seeker", xpIntoLevel: 0, xpForNext: 100 },
+    });
+    renderPage();
+    const zero = await screen.findByTestId("season-board-zero");
+    expect(zero).toHaveTextContent("The race is about to start");
+    expect(zero).toHaveTextContent("At the starting line");
+    expect(zero).toHaveTextContent("Maya R.");
+    expect(screen.getByRole("link", { name: "Start practice" })).toBeInTheDocument();
+    expect(screen.queryByTestId("leaderboard-podium")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("season-board-row-1")).not.toBeInTheDocument();
+  });
+
   it("shows the opt-in prompt with accurate name-privacy copy for students who have not joined", async () => {
     apiMocks.seasonLeaderboard.mockResolvedValue({ ...baseBoard, me: { ...baseBoard.me!, optedIn: false } });
     renderPage();

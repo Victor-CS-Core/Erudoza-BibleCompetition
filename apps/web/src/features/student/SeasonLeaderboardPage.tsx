@@ -5,18 +5,22 @@ import { useAuth } from "../../auth/AuthContext";
 import { api } from "../../api/client";
 import { Badge, Button, LinkButton, LoadingState, Notice, Panel } from "../../components/ui";
 import { AppIcon } from "../../components/AppIcon";
+import { ChaseBar, InitialsDisc, LevelCrest, PlayerCard, Podium } from "../../components/game/GameLayer";
 import { trainingLink } from "./trainingAssets";
 import type { SeasonLeaderboardEntry, SeasonLeaderboardResponse } from "../../api/types";
 import "./student.css";
 
 type BoardMode = "season" | "week";
 const modeXp = (entry: SeasonLeaderboardEntry, mode: BoardMode) => mode === "season" ? entry.seasonXp : entry.weekXp;
+const modeSub = (entry: SeasonLeaderboardEntry, mode: BoardMode) => mode === "season" ? `+${entry.weekXp} XP this week` : `${entry.seasonXp} XP this season`;
 
 /**
- * Season leaderboard — the full-board companion to the home Team leaderboard
- * card. Membership is the season (students assigned in it), ranking is season
- * XP with a This-week toggle, and privacy matches the weekly board: students
- * opt in and see masked names; coaches see every member with full names.
+ * Season leaderboard — the one board, at full size. Membership is the season
+ * (students assigned in it), ranking is season XP with a This-week toggle,
+ * and privacy matches the HQ mini: students opt in and see masked names;
+ * coaches see every member with full names. The top three stand on a podium;
+ * every row carries a race bar scaled to the leader; your pinned position is
+ * a PlayerCard with an XPBar and a ChaseBar to the person directly above.
  */
 export function SeasonLeaderboardPage() {
   const { me } = useAuth();
@@ -45,6 +49,8 @@ export function SeasonLeaderboardPage() {
   const myIndex = data?.me ? sorted.findIndex(entry => entry.userId === data.me!.userId) : -1;
   const myEntry = myIndex >= 0 ? sorted[myIndex] : undefined;
   const above = myIndex > 0 ? sorted[myIndex - 1] : undefined;
+  const leaderXp = sorted.length ? modeXp(sorted[0], mode) : 0;
+  const raceNotStarted = leaderXp <= 0;
 
   return <div className="training-dashboard season-board">
     <p className="season-board-caption">Current season</p>
@@ -71,15 +77,17 @@ export function SeasonLeaderboardPage() {
             <button type="button" aria-pressed={mode === "week"} onClick={() => setMode("week")}>This week</button>
           </div>
 
-          {data.me && myEntry && <YourRankCard data={data} mode={mode} rank={myIndex + 1} xp={modeXp(myEntry, mode)} above={above} aboveXp={above ? modeXp(above, mode) : null} />}
+          {data.me && myEntry && <YourPosition data={data} mode={mode} rank={myIndex + 1} entry={myEntry} xp={modeXp(myEntry, mode)} above={above} aboveXp={above ? modeXp(above, mode) : null} />}
 
-          {sorted.length === 0 ? <Panel className="season-board-empty">
-            <h3>No scores yet — be the first on the board</h3>
-            <p>Practice a passage to open the season leaderboard.</p>
-            <LinkButton to={trainingLink("/student/study", seasonId)}>Start practice</LinkButton>
-          </Panel> : <>
+          {raceNotStarted ? <ZeroState entries={sorted} seasonId={seasonId} mode={mode} /> : <>
+            {sorted.length >= 2 && <Podium
+              entries={sorted.map(entry => ({ userId: entry.userId, displayName: entry.displayName, xp: modeXp(entry, mode), level: entry.level, levelName: entry.levelName, streak: entry.streak, sublabel: modeSub(entry, mode) }))}
+              leaderXp={leaderXp}
+              isMe={entry => data.me?.userId === entry.userId}
+              modeLabel={mode === "season" ? "Season" : "This week"}
+            />}
             <ol className="season-board-list">
-              {sorted.map((entry, index) => <BoardRow key={entry.userId} entry={entry} rank={index + 1} mode={mode} isMe={data.me?.userId === entry.userId} />)}
+              {sorted.map((entry, index) => <BoardRow key={entry.userId} entry={entry} rank={index + 1} mode={mode} leaderXp={leaderXp} isMe={data.me?.userId === entry.userId} />)}
             </ol>
             <p className="season-board-note">{data.me === null
               ? "Every student assigned in this season is shown."
@@ -91,52 +99,64 @@ export function SeasonLeaderboardPage() {
   </div>;
 }
 
-function YourRankCard({ data, mode, rank, xp, above, aboveXp }: {
+function YourPosition({ data, mode, rank, entry, xp, above, aboveXp }: {
   data: SeasonLeaderboardResponse;
   mode: BoardMode;
   rank: number;
+  entry: SeasonLeaderboardEntry;
   xp: number;
   above?: SeasonLeaderboardEntry;
   aboveXp: number | null;
 }) {
   const me = data.me!;
-  const nextLevelXp = me.totalXp + me.xpForNext;
-  return <Panel className="season-board-your-rank" data-testid="season-board-your-rank">
-    <div className="season-board-yr-top">
-      <div>
-        <p className="season-board-yr-label">Your rank</p>
-        <div className="season-board-yr-rank">#{rank}</div>
-      </div>
-      <div className="season-board-yr-xp">
-        <div className="season-board-yr-xp-num">{xp} XP</div>
-        <div className="season-board-yr-xp-cap">{mode === "season" ? "this season" : "this week"}</div>
-      </div>
+  const period = mode === "season" ? "this season" : "this week";
+  return <div data-testid="season-board-your-rank" className="season-board-your-position">
+    <PlayerCard
+      name={entry.displayName}
+      xp={{ total: me.totalXp, xpIntoLevel: me.xpIntoLevel, xpForNext: me.xpForNext, nextLevelName: me.nextLevelName, level: me.level, levelName: me.levelName }}
+      streak={me.streak}
+      streakState={me.streak > 0 ? "active" : "none"}
+    >
+      <p className="season-board-yr-rankline"><strong>#{rank}</strong> · {xp} XP {period}</p>
+      {above && aboveXp !== null
+        ? <ChaseBar value={xp} max={aboveXp} ariaLabel={`Your ${xp} XP compared with ${above.displayName}'s ${aboveXp} XP`} caption={<><strong>{aboveXp - xp} XP</strong> behind {above.displayName} — one strong practice day catches up.</>} />
+        : <p className="season-board-yr-note">You’re leading {period} — keep it going.</p>}
+      {me.xpForNext > 0
+        ? <p className="season-board-yr-progress">Progress to next rank — <b>{me.nextLevelName}</b> · {me.totalXp} / {me.totalXp + me.xpForNext} XP</p>
+        : <p className="season-board-yr-note">Top rank reached — {me.levelName}.</p>}
+    </PlayerCard>
+  </div>;
+}
+
+function ZeroState({ entries, seasonId, mode }: { entries: SeasonLeaderboardEntry[]; seasonId?: string; mode: BoardMode }) {
+  return <Panel className="season-board-zero" data-testid="season-board-zero">
+    <div className="season-board-zero-plinths" aria-hidden="true">
+      {[2, 1, 3].map(rank => <span key={rank} className={`season-board-zero-plinth is-rank-${rank}`}><span className="season-board-zero-crest">{rank}</span></span>)}
     </div>
-    {above && aboveXp !== null
-      ? <p className="season-board-yr-note"><strong>{aboveXp - xp} XP</strong> behind {above.displayName} — one strong practice day catches up.</p>
-      : <p className="season-board-yr-note">You’re leading {mode === "season" ? "the season" : "the week"} — keep it going.</p>}
-    {me.xpForNext > 0 ? <>
-      <div className="season-board-yr-meter-head">
-        <span className="season-board-yr-meter-label">Progress to next rank — <b>{me.nextLevelName}</b></span>
-        <span className="season-board-yr-meter-xp">{me.totalXp} / {nextLevelXp} XP</span>
-      </div>
-      <div className="season-board-yr-meter" role="img" aria-label={`${me.totalXp} of ${nextLevelXp} XP toward the next rank`}>
-        <div className="season-board-yr-meter-fill" style={{ width: `${Math.min(100, Math.max(0, (me.xpIntoLevel / (me.xpIntoLevel + me.xpForNext)) * 100))}%` }} />
-      </div>
-    </> : <p className="season-board-yr-note">Top rank reached — {me.levelName}.</p>}
-    <div className="season-board-yr-chips">
-      <span className="season-board-chip">Level {me.level} · {me.levelName}</span>
-      {me.streak > 0 && <span className="season-board-chip"><AppIcon name="flame" />{me.streak}-day streak</span>}
-    </div>
+    <h3>The race is about to start</h3>
+    {entries.length === 0
+      ? <p>No scores yet — be the first on the board</p>
+      : <p>Nobody has scored yet {mode === "season" ? "this season" : "this week"} — the first practice session takes the top spot.</p>}
+    {entries.length > 0 && <>
+      <p className="season-board-zero-line-label">At the starting line</p>
+      <ul className="season-board-zero-line">
+        {entries.map(entry => <li key={entry.userId}>
+          <InitialsDisc name={entry.displayName} />
+          <span>{entry.displayName}</span>
+          <LevelCrest level={entry.level} levelName={entry.levelName} />
+        </li>)}
+      </ul>
+    </>}
+    <LinkButton to={trainingLink("/student/study", seasonId)}>Start practice</LinkButton>
   </Panel>;
 }
 
-function BoardRow({ entry, rank, mode, isMe }: { entry: SeasonLeaderboardEntry; rank: number; mode: BoardMode; isMe: boolean }) {
+function BoardRow({ entry, rank, mode, leaderXp, isMe }: { entry: SeasonLeaderboardEntry; rank: number; mode: BoardMode; leaderXp: number; isMe: boolean }) {
   const xp = modeXp(entry, mode);
   return <li className={isMe ? "is-me" : ""} data-testid={`season-board-row-${rank}`}>
-    {rank <= 3
-      ? <span className={`season-board-medal medal-${rank}`} aria-label={`Position ${rank}`}>{rank}</span>
-      : <span className="season-board-rank" aria-label={`Position ${rank}`}>{rank}</span>}
+    <span className="season-board-rank" aria-label={`Position ${rank}`}>{rank}</span>
+    <LevelCrest level={entry.level} levelName={entry.levelName} />
+    <InitialsDisc name={entry.displayName} />
     <div className="season-board-who">
       <div className="season-board-name-line">
         <span className="season-board-name">{entry.displayName}</span>
@@ -146,7 +166,8 @@ function BoardRow({ entry, rank, mode, isMe }: { entry: SeasonLeaderboardEntry; 
         <span className="season-board-level">Level {entry.level} · {entry.levelName}</span>
         {entry.streak >= 3 && <span className="season-board-streak"><AppIcon name="flame" />{entry.streak}</span>}
       </div>
-      <div className="season-board-sub">{mode === "season" ? `+${entry.weekXp} XP this week` : `${entry.seasonXp} XP this season`}</div>
+      <div className="season-board-sub">{modeSub(entry, mode)}</div>
+      <ChaseBar value={xp} max={leaderXp} ariaLabel={`${entry.displayName}: ${xp} XP compared with the leader's ${leaderXp} XP`} />
     </div>
     <div className="season-board-xp"><strong>{xp}</strong><span>XP</span></div>
   </li>;

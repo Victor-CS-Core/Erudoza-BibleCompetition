@@ -1,11 +1,14 @@
 import { lazy, Suspense, useEffect, useRef, useState, type SetStateAction } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { AvatarKind, CharacterConfig, SaveCharacterProfile, ShareOptions } from '../../../shared/profileCharacter';
 import { useAuth } from '../../auth/AuthContext';
 import { ApiError } from '../../api/client';
+import { trainingApi } from '../../api/training';
+import { PatchDisplay, PlayerCard, nextLevelName } from '../../components/game/GameLayer';
+import { ProfileAvatar } from './ProfileAvatar';
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, useToast } from '../../components/ui';
 import { ConfirmationDialog } from '../../components/ui/ConfirmationDialog';
 import { MasteryHonorArtwork } from './MasteryHonorArtwork';
-import { HonorPatchCard } from './HonorPatchCard';
 import { completeProfile, useMyProfile, useSaveCharacterProfile, type MyProfile } from './profile';
 import { hairStyles, hairColors, type BodyType } from './character/hair';
 import { PreviewModeToggle, type PreviewMode } from './character/PreviewModeToggle';
@@ -54,6 +57,9 @@ export function ProfilePage() {
 function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyProfile; refreshing: boolean; refresh: ReturnType<typeof useMyProfile>['refetch'] }) {
   const { me } = useAuth();
   const profile = completeProfile(value), save = useSaveCharacterProfile();
+  // Identity header data: the same today() read HQ uses. Failure just leaves
+  // the PlayerCard identity-only — the profile editor never blocks on it.
+  const today = useQuery({ queryKey: ["training-today", undefined, me?.organizationId, me?.userId], queryFn: () => trainingApi.today(undefined), retry: false, staleTime: 60_000 });
   const [page, setPage] = useState<Page>('Profile');
   // Null follows fresh saved data. The first edit captures its revision, and
   // subsequent query refreshes update the collection without replacing it.
@@ -159,6 +165,14 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
   return <div className="training-page profile-page">
     <div className="profile-navigation"><span className="breadcrumb">Account <span aria-hidden="true">/</span> {page}</span><nav aria-label="Profile pages">{pages.map(item => <Button key={item} variant="ghost" aria-current={page === item ? 'page' : undefined} onClick={() => navigate(item)}>{item}</Button>)}</nav></div>
     <div ref={heading} tabIndex={-1} className="profile-heading"><PageHeader title={page === 'Profile' ? 'Your profile' : page === 'Character' ? 'Make your Pathfinder' : page === 'Achievement patches' ? 'Your displayed Achievement patches' : 'Share your character'} description={`${profile.displayName} · ${me?.organizationName ?? ''}`}/></div>
+    <PlayerCard
+      name={profile.displayName}
+      avatar={<ProfileAvatar userId={profile.userId} displayName={profile.displayName} size={44} />}
+      xp={today.data ? { total: today.data.xp.total, xpIntoLevel: today.data.xp.xpIntoLevel, xpForNext: today.data.xp.xpForNext, nextLevelName: nextLevelName(today.data.xp.level), level: today.data.xp.level, levelName: today.data.xp.levelName } : null}
+      streak={today.data?.streak?.current}
+      streakState={today.data ? (today.data.streakNudge || today.data.streak?.state === "paused" ? "paused" : today.data.streak?.state === "active" ? "active" : "none") : undefined}
+      seasonLabel={today.data?.seasonName || undefined}
+    />
     {unavailable && <Notice><p>Some selected Achievement patches, attire, or character options are no longer available to your account. Remove those choices to keep editing the rest of your profile.</p><Button variant="secondary" disabled={save.isPending || reloading} onClick={removeUnavailable}>Remove unavailable choices</Button></Notice>}
     {saveError && <Notice tone="danger"><p>{saveError}</p><p>Your changes are still here.{conflict ? ' Reload the saved profile before making a new save.' : ' Review your choices and try again.'}</p>{conflict && <Button variant="secondary" disabled={save.isPending} onClick={() => setConfirmReload(true)}>Reload saved profile</Button>}</Notice>}
     {renderError && <Notice tone="danger"><p>{renderError}</p><Button variant="secondary" onClick={() => { setRenderError(''); setRendererVersion(version => version + 1); }}>Retry artwork</Button></Notice>}
@@ -192,9 +206,10 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
                 <Panel><div className="profile-collection-heading"><h2>Achievement patch collection</h2><Button variant="secondary" disabled={refreshing} onClick={() => void refresh()}>{refreshing ? 'Refreshing patches…' : 'Refresh patches'}</Button></div><p className="help">{earned.length} of {profile.honors.length} unlocked. Earn an Achievement patch to wear it.</p>
                   {(['Scripture', 'Team Practice', 'Simulation'] as const).filter(category => profile.honors.some(honor => honor.category === category)).map(category => <section key={category} className="profile-category" aria-label={`${category} profile images`}><h3>{category}</h3><div className="honor-patch-grid">{profile.honors.filter(honor => honor.category === category).map(honor => {
                     const selected = draft.avatarKind === 'honor' && draft.avatarHonorKey === honor.key;
-                    return <HonorPatchCard key={honor.key}
+                    return <PatchDisplay key={honor.key}
                       title={honor.title}
                       artwork={<MasteryHonorArtwork honorKey={honor.key} size={208} muted={!honor.earnedAtUtc} />}
+                      earnedAtUtc={honor.earnedAtUtc}
                       status={<><Badge tone={honor.earnedAtUtc ? 'info' : 'neutral'}>{honor.earnedAtUtc ? 'Unlocked' : 'Locked'}</Badge>{config.slots.includes(honor.key) && <Badge>On sash</Badge>}{selected && <Badge tone="success">Profile image</Badge>}</>}
                       detail={close => <><MasteryHonorArtwork honorKey={honor.key} size={192} muted={!honor.earnedAtUtc} /><p>{honor.category}</p><h3>How to unlock</h3><p>{honor.requirement}</p>{selected ? <p>Worn as your profile image.</p> : honor.earnedAtUtc ? <Button variant="secondary" aria-label={`Use ${honor.title} as profile image`} onClick={() => { chooseAvatar('honor', honor.key); close(); }}>Use as profile image</Button> : <p>This patch is locked. Meet every requirement to unlock it for your profile.</p>}</>}
                     />;

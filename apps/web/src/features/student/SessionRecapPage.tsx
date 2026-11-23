@@ -7,10 +7,9 @@ import type { SkillScores } from "../../api/trainingTypes";
 import { useAuth } from "../../auth/AuthContext";
 import { PbeFlagAnswer } from "../practice/PbeFlagAnswer";
 import { PatchArtwork } from "../../components/ui/PatchArtwork";
-import { AppIcon } from "../../components/AppIcon";
 import { Badge, Button, HonorArtwork, LinkButton, LoadingState, Notice, PageHeader, Panel, ProgressMeter } from "../../components/ui";
 import { evidenceDate, honorAsset, trainingLink } from "./trainingAssets";
-import { CelebrationBurst } from "./CelebrationBurst";
+import { LevelCrest, MomentCard } from "../../components/game/GameLayer";
 import "./student.css";
 import "./student-collections.css";
 const skillNames: [keyof SkillScores, string][] = [["exactWording", "Wording"], ["reference", "Reference"], ["sequence", "Sequence"], ["recognition", "Recognition"], ["factualRecall", "Factual recall"]];
@@ -68,31 +67,45 @@ export function SessionRecapPage() {
   return <div className="training-dashboard training-recap"><PageHeader title="Session recap" description={data?.version==="pbe-daily-v2"?"How you did — your PBE answers and today's effort.":"How you did, passage by passage."} action={<LinkButton variant="secondary" to={link("/student")}>Back to training</LinkButton>} />
     {!sessionId ? <Notice tone="danger">This recap link is incomplete. Return to training to find your session.</Notice> : recap.isPending ? <LoadingState label="Loading your saved recap…" /> : recap.isError && recap.error instanceof ApiError && recap.error.status === 409 ? <Panel><h2>This session is still in progress</h2><LinkButton to={link(`/student/study?sessionId=${encodeURIComponent(sessionId)}`)}>Resume session</LinkButton></Panel> : recap.isError ? <Notice tone="danger">This recap is not available — it may belong to someone else. <Button variant="secondary" onClick={() => void recap.refetch()}>Try again</Button></Notice> : data?.interrupted ? <><Panel><Badge>Interrupted rehearsal</Badge><h2>Earlier answers are saved</h2><p>{data.correct} fully correct from {data.attempted} accepted attempts.</p>{data.version !== "pbe-daily-v2" && data.results?.map(result=><p key={result.attemptId}>{result.earnedPoints} / {result.availablePoints} points</p>)}<LinkButton to={link('/student/study?mode=Simulation&format=Pbe')}>Start another solo timed rehearsal</LinkButton></Panel>{pbeResults}</> : data && !data.completedAtUtc ? <Panel><h2>This session is still in progress</h2><p>Complete your session to save its recap.</p><LinkButton to={link(`/student/study?sessionId=${encodeURIComponent(data.sessionId)}&mode=${encodeURIComponent(data.mode)}`)}>Resume session</LinkButton></Panel> : data && <>
       <div className="training-recap-layout">
+        <div className="training-recap-main-col">
+        {(() => {
+          // Moment levels: Big only for a rank up or an earned milestone
+          // (the single CelebrationBurst lives inside the Big MomentCard);
+          // personal bests, the weekly goal and quest completions are Lines;
+          // everything else is a Silent tally. Every figure below is one of
+          // the recap's own saved numbers — nothing is invented.
+          const tally = [
+            { label: "Correct answers", value: data.correct },
+            { label: "Answers given", value: data.attempted },
+            { label: "Session goal (cards)", value: data.targetCardCount },
+            { label: "XP earned", value: `+${data.xp.earned}` },
+          ];
+          if (data.levelUp) return <MomentCard level="big" title="Rank up!" description={`${data.levelUp.fromName} → ${data.levelUp.toName}`} artwork={<LevelCrest level={data.levelUp.to} levelName={data.levelUp.toName} size="moment" />} tally={tally} />;
+          if (featuredMilestone) return <MomentCard level="big" title={featuredMilestone.title} description={featuredMilestone.scopeLabel} artwork={<HonorArtwork {...honorAsset(featuredMilestone.key)} size={176} />} tally={tally}>
+            <Badge tone="success">Milestone recorded</Badge>
+            <p><small><time dateTime={featuredMilestone.earnedAtUtc!}>{evidenceDate(featuredMilestone.earnedAtUtc!)}</time></small></p>
+          </MomentCard>;
+          return <MomentCard level="silent" title={data.fullTargetReached ? "Practice complete" : "Practice saved"} tally={tally} />;
+        })()}
         <Panel className="training-recap-main">
-          {hasCelebration && <CelebrationBurst celebrate />}
           <Badge tone={data.fullTargetReached ? "success" : "neutral"}>{data.mode} · {data.fullTargetReached ? "Complete" : "Saved"}</Badge>
           <h2 className="training-recap-title">{data.fullTargetReached ? (firstName ? `Nice work, ${firstName} — practice complete.` : "Practice complete.") : "Your practice is saved."}</h2>
           {hasCelebration && <div className="training-recap-celebrations" role="status">
-            {personalBest && (personalBest.accuracyBeaten || personalBest.correctBeaten) && <p className="training-celebration"><AppIcon name="flag" /><span><strong>New personal best!</strong> {personalBest.accuracyBeaten && personalBest.correctBeaten ? "Your best accuracy and most correct answers in one session." : personalBest.accuracyBeaten ? "Your best accuracy in a single session." : "Your most correct answers in a single session."}</span></p>}
-            {weeklyGoalComplete && <p className="training-celebration"><AppIcon name="check" /><span><strong>Weekly goal complete!</strong> You hit your practice target for this week.</span></p>}
-            {data.levelUp && <p className="training-celebration"><AppIcon name="flag" /><span><strong>Rank up!</strong> {data.levelUp.fromName} → {data.levelUp.toName}</span></p>}
-            {questsCompleted.map(quest => <p key={quest.key} className="training-celebration"><AppIcon name="check" /><span><strong>Quest complete: {quest.title}!</strong> +25 XP</span></p>)}
+            {personalBest && (personalBest.accuracyBeaten || personalBest.correctBeaten) && <MomentCard level="line" title="New personal best!" description={personalBest.accuracyBeaten && personalBest.correctBeaten ? "Your best accuracy and most correct answers in one session." : personalBest.accuracyBeaten ? "Your best accuracy in a single session." : "Your most correct answers in a single session."} />}
+            {weeklyGoalComplete && <MomentCard level="line" title="Weekly goal complete!" description="You hit your practice target for this week." />}
+            {questsCompleted.length >= 3
+              ? <MomentCard level="line" title="Quest triple complete!" description={`All ${questsCompleted.length} quests finished — the +25 XP triple bonus is yours.`} />
+              : questsCompleted.map(quest => <MomentCard key={quest.key} level="line" title={`Quest complete: ${quest.title}!`} description="+25 XP" />)}
           </div>}
           <p>You got {data.correct} of {data.attempted} right.</p>
-          <div className="training-recap-award">
+          {((!data.levelUp && !featuredMilestone) || (data.levelUp && featuredMilestone)) && <div className="training-recap-award">
             {featuredMilestone ? <>
               <HonorArtwork {...honorAsset(featuredMilestone.key)} size={176} />
               <h3>{featuredMilestone.title}</h3>
               <Badge tone="success">Milestone recorded</Badge>
               <p><small>{featuredMilestone.scopeLabel} · <time dateTime={featuredMilestone.earnedAtUtc!}>{evidenceDate(featuredMilestone.earnedAtUtc!)}</time></small></p>
             </> : <PatchArtwork src="/brand/erudoza-patch-192.webp" size={176} alt="Erudoza field guide patch" />}
-          </div>
-          <dl className="training-recap-stats" aria-label="Saved session counts">
-            <div><dt>Correct answers</dt><dd>{data.correct}</dd></div>
-            <div><dt>Answers given</dt><dd>{data.attempted}</dd></div>
-            <div><dt>Session goal (cards)</dt><dd>{data.targetCardCount}</dd></div>
-            <div><dt>XP earned</dt><dd>+{data.xp.earned}</dd></div>
-          </dl>
+          </div>}
           <p><small>Completed <time dateTime={data.completedAtUtc!}>{evidenceDate(data.completedAtUtc!)}</time></small></p>
           {!data.fullTargetReached && <p>You wrapped up early — everything you answered is saved.</p>}
           <div className="training-recap-actions">
@@ -104,6 +117,7 @@ export function SessionRecapPage() {
             {shareState === "failed" && <p><small>Copy didn’t work on this device. Your summary: {shareText}</small></p>}
           </div>
         </Panel>
+        </div>
         <aside className="training-recap-side" aria-label="Saved practice details">
           {pbeResults}
           {data.version === "legacy-counts" ? <Notice>This is an older session — back then we only saved the totals, so there is no passage-by-passage detail.</Notice> : <>

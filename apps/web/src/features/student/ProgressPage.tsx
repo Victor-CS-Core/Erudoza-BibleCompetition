@@ -3,10 +3,10 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api/client";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from "../../components/ui";
+import { StatTile } from "../../components/game/GameLayer";
 import { academyActivityName, academyRecentExactPercent, canStartAcademyTrack } from "./academyTracks";
 import { HonorsPage } from "./HonorsPage";
 import { PassageBrowser } from "./PassageBrowser";
-import { rankWorthAnotherLook } from "./worthAnotherLook";
 import { PbeJourney } from "./PassageJourney";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
 import "./student.css";
@@ -30,10 +30,6 @@ export function ProgressPage() {
     queryFn: () => coachView ? api.studentProgress(me!.organizationId, seasonId!, studentId!) : api.progress(selectedSeasonId), enabled: (!coachView || !!me) && tab !== "honors" });
   const data = progress.data;
   const recent = data?.recentAttempts ?? [];
-  // Needs attention: the shared "worth another look" ranking (due reviews
-  // first, then the lowest-scoring unmastered passages).
-  const needsAttention = rankWorthAnotherLook(data?.mastery, Date.now(), 5);
-  const studyHref = (mode: "Practice" | "Review") => `/student/study?mode=${mode}${data?.seasonId ? `&seasonId=${encodeURIComponent(data.seasonId)}` : ""}`;
   return <div className="training-dashboard student-progress">
     <PageHeader title={coachView ? "Student progress" : "Your progress"} description={<span data-testid="progress-student">{data?.studentDisplayName ? `${data.studentDisplayName} · ` : ""}{data?.seasonName || "How you are doing, passage by passage"}</span>}
       action={<LinkButton variant="secondary" to={coachView ? `/admin/assignments?studentId=${encodeURIComponent(studentId!)}&seasonId=${encodeURIComponent(seasonId!)}` : `/student${selectedSeasonId ? `?seasonId=${encodeURIComponent(selectedSeasonId)}` : ""}`}>{coachView ? "Back to assignments" : "Back to training"}</LinkButton>} />
@@ -47,27 +43,12 @@ export function ProgressPage() {
     {data && <>
       {!coachView && !!data.seasonId && data.pbeEnabled && <PbeJourney seasonId={data.seasonId} preview={false} />}
       {!!data.seasonId && data.pbeEnabled && <SeasonCoveragePanel seasonId={data.seasonId} audience={coachView ? 'coach' : 'student'} organizationId={coachView ? me?.organizationId : undefined} />}
-      <Panel data-testid="progress-top-folio"><h2>Your activity so far</h2><dl className="student-progress-metrics">
-        <div><dt>Attempts</dt><dd data-testid="progress-attempts">{data.attemptCount}</dd></div>
-        <div><dt>Verses mastered</dt><dd>{data.masteredCount}</dd></div>
-        <div><dt>Due reviews</dt><dd data-testid="progress-reviews">{data.reviewDueCount}</dd></div>
-        <div><dt>Recent correct</dt><dd data-testid="progress-recent">{academyRecentExactPercent(data.recentAttempts)}</dd></div>
+      <Panel data-testid="progress-top-folio"><h2>Your activity so far</h2><dl className="game-stat-grid">
+        <StatTile label="Attempts" value={data.attemptCount} testId="progress-attempts" />
+        <StatTile label="Verses mastered" value={data.masteredCount} />
+        <StatTile label="Due reviews" value={data.reviewDueCount} testId="progress-reviews" />
+        <StatTile label="Recent correct" value={academyRecentExactPercent(data.recentAttempts)} testId="progress-recent" />
       </dl>{data.reviewDueCount > 0 && <div className="student-progress-next"><Badge tone="warning" aria-label="DUE">{data.reviewDueCount} {data.reviewDueCount === 1 ? "review" : "reviews"} due</Badge>{!coachView && canStartAcademyTrack("review", data) && <LinkButton size="compact" to={`/student/study?mode=Review&seasonId=${encodeURIComponent(data.seasonId)}`}>Start due reviews</LinkButton>}</div>}</Panel>
-      {needsAttention.length > 0 && !coachView && <Panel data-testid="progress-needs-attention">
-        <h2>Worth another look</h2>
-        <p>Passages that are due, or could use a little more practice.</p>
-        <ul className="training-list student-progress-records">
-          {needsAttention.map(({ item, due }) => (
-            <li key={item.knowledgeUnitId}>
-              <div>
-                <h3>{item.title}</h3>
-                <p>{due ? "Review due" : "Needs practice"} · Wording score: {item.exactWordingScore} / 100</p>
-              </div>
-              <LinkButton size="compact" to={studyHref(due ? "Review" : "Practice")}>{due ? "Review" : "Practice"}</LinkButton>
-            </li>
-          ))}
-        </ul>
-      </Panel>}
       <Panel>
         <PassageBrowser mastery={data.mastery} difficulty={data.assignments.find(a => a.difficulty)?.difficulty} />
       </Panel>

@@ -1,0 +1,171 @@
+/* Shared game layer: progress context, identity, and moments. Token-driven only. */
+.game-level-crest { position: relative; display: inline-grid; place-items: center; flex: none; border-radius: 50%; border: 2px solid var(--er-kraft); background: var(--er-parchment); color: var(--er-kraft-dark); font-weight: 800; font-variant-numeric: tabular-nums; box-shadow: inset 0 0 0 2px var(--er-card); }
+.game-level-crest--row { width: 28px; height: 28px; font-size: var(--er-text-xs); }
+.game-level-crest--card { width: 44px; height: 44px; font-size: var(--er-text-base); }
+.game-level-crest--moment { width: 72px; height: 72px; font-size: var(--er-text-title); }
+.game-level-crest--teal { border-color: var(--er-teal); color: var(--er-teal); }
+.game-level-crest--blue { border-color: var(--er-learning-blue); color: var(--er-learning-blue); }
+.game-level-crest--gold, .game-level-crest--gold-flame { border-color: var(--er-thread-gold); background: color-mix(in srgb, var(--er-thread-gold) 18%, var(--er-card)); color: var(--er-warning-ink); }
+.game-level-crest svg { position: absolute; right: -3px; bottom: -3px; width: 16px; height: 16px; color: var(--er-coral); background: var(--er-card); border-radius: 50%; padding: 1px; }
+.game-level-crest--moment svg { width: 24px; height: 24px; }
+.game-initials-disc { display: inline-grid; place-items: center; flex: none; border-radius: 50%; background: var(--er-selected); color: var(--er-teal); font-weight: 800; border: 1px solid color-mix(in srgb, var(--er-teal) 35%, transparent); }
+.game-initials-disc--row { width: 28px; height: 28px; font-size: var(--er-text-xs); }
+.game-initials-disc--card { width: 44px; height: 44px; font-size: var(--er-text-sm); }
+.game-initials-disc--moment { width: 72px; height: 72px; font-size: var(--er-text-title); }
+
+.game-xp-bar { display: grid; gap: 6px; min-width: 0; }
+.game-xp-bar__caption { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; font-size: var(--er-text-sm); }
+.game-xp-bar__caption > span:last-child { color: var(--er-muted-ink); font-size: var(--er-text-xs); white-space: nowrap; }
+.game-xp-bar__track { appearance: none; display: block; width: 100%; height: 8px; border: 0; border-radius: 999px; overflow: hidden; background: var(--er-border); }
+.game-xp-bar__track::-webkit-progress-bar { background: var(--er-border); }
+.game-xp-bar__track::-webkit-progress-value { background: var(--er-teal); border-radius: 999px; transition: width var(--er-duration) ease; }
+.game-xp-bar__track::-moz-progress-bar { background: var(--er-teal); border-radius: 999px; }
+.game-xp-bar.is-final-stretch .game-xp-bar__track::-webkit-progress-value { background: var(--er-thread-gold); }
+.game-xp-bar.is-final-stretch .game-xp-bar__track::-moz-progress-bar { background: var(--er-thread-gold); }
+.game-player-card .game-xp-bar__track { background: color-mix(in srgb, var(--er-on-navy) 20%, transparent); }
+.game-player-card .game-xp-bar__caption > span:last-child { color: var(--er-on-navy-muted); }
+
+.game-chase-bar { display: grid; gap: 5px; min-width: 0; }
+.game-chase-bar__track { height: 5px; border-radius: 999px; background: var(--er-border); overflow: hidden; }
+.game-chase-bar__track > span { display: block; height: 100%; border-radius: inherit; background: var(--er-teal); transition: width var(--er-duration) ease; }
+.game-chase-bar__caption { margin: 0; font-size: var(--er-text-sm); }
+.game-chase-bar__caption strong { color: var(--er-thread-gold); }
+
+.game-player-card { background: var(--er-navy-surface); color: var(--er-on-navy); border-color: transparent; overflow: hidden; }
+.game-player-card__content { display: grid; gap: var(--er-space-4); min-width: 0; }
+.game-player-card__title { margin: 0; font-size: var(--er-text-section); line-height: 1.08; letter-spacing: -.02em; }
+.game-player-card__description { margin: 0; color: var(--er-on-navy-muted); max-width: 58ch; }
+.game-player-card__identity { display: flex; align-items: center; gap: var(--er-space-3); min-width: 0; }
+.game-player-card__avatar { display: inline-grid; place-items: center; flex: none; }
+.game-player-card__avatar .profile-avatar { --profile-size: 44px; }
+.game-player-card__who { display: grid; gap: 1px; flex: 1; min-width: 0; }
+.game-player-card__who strong { font-size: var(--er-text-lg); overflow-wrap: anywhere; }
+.game-player-card__who span { color: var(--er-on-navy-muted); font-size: var(--er-text-sm); }
+.game-player-card__chips { display: flex; flex-wrap: wrap; gap: var(--er-space-2); }
+.game-player-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 4px 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--er-on-navy) 28%, transparent); background: color-mix(in srgb, var(--er-on-navy) 8%, transparent); color: var(--er-on-navy); font-size: var(--er-text-sm); font-weight: 600; }
+.game-player-chip svg { width: 15px; height: 15px; color: var(--er-thread-gold); flex: none; }
+.game-player-chip.is-urgent { border-color: color-mix(in srgb, var(--er-coral) 65%, transparent); }
+.game-player-chip.is-urgent svg { color: var(--er-coral); }
+.game-player-card--banner { position: relative; isolation: isolate; border-radius: var(--er-radius-card); min-height: 320px; aspect-ratio: 3 / 1; display: flex; align-items: center; }
+.game-player-card--banner .training-hq-banner { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right center; }
+.game-player-card--banner::after { content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none; background: linear-gradient(90deg, var(--er-navy-surface) 0%, var(--er-navy-surface) 34%, transparent 82%); }
+.game-player-card--banner .game-player-card__content { padding: var(--er-space-8); width: 62%; }
+@media (max-width: 760px) {
+  .game-player-card--banner { aspect-ratio: auto; min-height: 380px; align-items: flex-start; }
+  .game-player-card--banner .game-player-card__content { width: 100%; padding: var(--er-space-6); padding-bottom: 132px; }
+  .game-player-card--banner::after { background: linear-gradient(180deg, var(--er-navy-surface) 0%, var(--er-navy-surface) 48%, transparent 100%); }
+  .game-player-card__title { font-size: var(--er-text-title); }
+}
+@media (forced-colors: active) { .game-player-card--banner .training-hq-banner, .game-player-card--banner::after { display: none; } }
+
+.game-quest-card { padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); display: grid; gap: 6px; }
+.game-quest-card.is-complete { border-color: color-mix(in srgb, var(--er-teal) 45%, transparent); background: color-mix(in srgb, var(--er-teal) 6%, var(--er-card)); }
+.game-quest-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--er-space-2); }
+.game-quest-card__head strong { color: var(--er-ink-navy); overflow-wrap: anywhere; }
+.game-quest-card__reward { font-size: var(--er-text-xs); font-weight: 700; color: var(--er-teal); white-space: nowrap; }
+.game-quest-card p { margin: 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.game-quest-card__pips { display: flex; gap: 5px; }
+.game-quest-card__pips span { width: 18px; height: 6px; border-radius: 999px; background: var(--er-border); }
+.game-quest-card__pips span.is-done { background: var(--er-teal); }
+.game-quest-card__status { font-weight: 600; }
+.game-quest-card__status.is-done { display: flex; align-items: center; gap: 6px; color: var(--er-success-ink); }
+.game-quest-card__status.is-done svg { width: 16px; height: 16px; }
+
+.game-stat-tile { min-width: 0; padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-surface-soft); }
+.game-stat-tile dt { font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--er-muted-ink); }
+.game-stat-tile__value { margin: 3px 0 0; font-size: var(--er-text-title); font-weight: 750; line-height: 1; font-variant-numeric: tabular-nums; color: var(--er-ink-navy); }
+.game-stat-tile__context { margin: 4px 0 0; font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+
+.game-patch-display { min-width: 0; }
+.game-patch-display.is-earned .honor-patch-card { border-color: color-mix(in srgb, var(--er-thread-gold) 65%, var(--er-border)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--er-thread-gold) 45%, transparent); }
+.game-patch-display.is-locked .honor-patch-card { background: var(--er-surface-soft); }
+.game-patch-display__progress { display: grid; gap: 3px; width: 100%; }
+.game-patch-display__progress progress { width: 100%; height: 6px; accent-color: var(--er-teal); }
+.game-patch-display__requirement { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.game-patch-display--teaser { display: flex; align-items: center; gap: var(--er-space-4); padding-top: var(--er-space-3); }
+.game-patch-display--teaser .game-patch-display__art { display: grid; place-items: center; flex: none; }
+.game-patch-display--teaser.is-earned .game-patch-display__art { border-radius: 50%; box-shadow: 0 0 0 2px var(--er-thread-gold); }
+.game-patch-display--teaser.is-locked .game-patch-display__art { opacity: .72; }
+.game-patch-display__copy { display: grid; gap: 4px; flex: 1; min-width: 0; }
+.game-patch-display__copy h3, .game-patch-display__copy p { margin: 0; }
+.game-patch-display__copy p { font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.game-patch-display__eyebrow { font-size: var(--er-text-xs) !important; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--er-teal) !important; }
+
+.game-moment-card { position: relative; overflow: hidden; display: flex; gap: var(--er-space-6); align-items: center; }
+.game-moment-card.is-big { background: var(--er-navy-surface); color: var(--er-on-navy); border-color: transparent; }
+.game-moment-card__art { display: grid; place-items: center; flex: none; }
+.game-moment-card__copy { display: grid; gap: var(--er-space-3); flex: 1; min-width: 0; }
+.game-moment-card__copy h2, .game-moment-card__copy p { margin: 0; }
+.game-moment-card__tally { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--er-space-3); margin: 0; }
+.game-moment-card__tally > div { padding: var(--er-space-3); border-radius: var(--er-radius-control); background: color-mix(in srgb, var(--er-on-navy) 8%, transparent); border: 1px solid color-mix(in srgb, var(--er-on-navy) 16%, transparent); }
+.game-moment-card.is-silent .game-moment-card__tally > div { background: var(--er-surface-soft); border-color: var(--er-border); }
+.game-moment-card__tally dt { font-size: var(--er-text-xs); color: var(--er-on-navy-muted); }
+.game-moment-card.is-silent .game-moment-card__tally dt { color: var(--er-muted-ink); }
+.game-moment-card__tally dd { margin: 2px 0 0; font-size: var(--er-text-lg); font-weight: 750; font-variant-numeric: tabular-nums; }
+.game-moment-card__action { display: flex; flex-wrap: wrap; gap: var(--er-space-3); }
+.game-moment-line { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: var(--er-radius-control); background: color-mix(in srgb, var(--er-teal) 10%, transparent); border: 1px solid color-mix(in srgb, var(--er-teal) 35%, transparent); }
+.game-moment-line svg { flex: none; margin-top: 2px; color: var(--er-teal); }
+@media (max-width: 760px) {
+  .game-moment-card { flex-direction: column; align-items: flex-start; }
+  .game-moment-card__art { align-self: center; }
+  .game-moment-card__tally { grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+}
+
+.game-podium { list-style: none; margin: 0 0 var(--er-space-5); padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--er-space-3); align-items: end; max-width: 680px; }
+.game-podium__item { display: grid; justify-items: center; gap: 5px; min-width: 0; padding: var(--er-space-4) var(--er-space-2) 0; text-align: center; border-radius: var(--er-radius-card) var(--er-radius-card) 0 0; background: var(--er-card); border: 1px solid var(--er-border); border-bottom: 0; }
+.game-podium__item.is-rank-1 { padding-top: var(--er-space-6); background: color-mix(in srgb, var(--er-thread-gold) 10%, var(--er-card)); border-color: color-mix(in srgb, var(--er-thread-gold) 55%, var(--er-border)); }
+.game-podium__item.is-me { box-shadow: inset 0 0 0 2px var(--er-teal); }
+.game-podium__item strong { max-width: 100%; overflow-wrap: anywhere; }
+.game-podium__rank { font-weight: 800; color: var(--er-muted-ink); }
+.game-podium__xp { font-weight: 750; font-variant-numeric: tabular-nums; }
+.game-podium__streak { display: inline-flex; gap: 3px; align-items: center; color: var(--er-kraft-dark); font-size: var(--er-text-xs); font-weight: 700; }
+.game-podium__streak svg { color: var(--er-kraft); width: 14px; height: 14px; }
+.game-podium__sub { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.game-podium__item .game-chase-bar { width: 100%; }
+.game-podium__plinth { display: grid; place-items: center; width: 100%; min-height: 34px; margin-top: 6px; background: var(--er-navy-surface); color: var(--er-on-navy); font-weight: 800; }
+.game-podium__item.is-rank-1 .game-podium__plinth { min-height: 52px; background: var(--er-thread-gold); color: var(--er-navy-surface); }
+.game-podium__item.is-rank-3 .game-podium__plinth { background: var(--er-kraft); color: var(--er-navy-surface); }
+@media (max-width: 440px) { .game-podium { gap: var(--er-space-2); } .game-podium__item { padding-inline: var(--er-space-1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .game-xp-bar__track::-webkit-progress-value, .game-chase-bar__track > span { transition: none; }
+}
+
+/* Season leaderboard page: pinned position + designed zero state. */
+.season-board-your-position { max-width: 640px; margin-bottom: var(--er-space-5); }
+.season-board-yr-rankline { margin: 0; font-size: var(--er-text-base); }
+.season-board-yr-rankline strong { color: var(--er-thread-gold); font-size: var(--er-text-lg); }
+.season-board-yr-progress { margin: 0; font-size: var(--er-text-sm); color: var(--er-on-navy-muted); }
+.season-board-yr-progress b { color: var(--er-on-navy); }
+.season-board-zero { max-width: 640px; display: grid; gap: var(--er-space-3); justify-items: start; }
+.season-board-zero h3, .season-board-zero p { margin: 0; }
+.season-board-zero-plinths { display: flex; gap: var(--er-space-3); align-items: end; }
+.season-board-zero-plinth { display: grid; place-items: center; width: 64px; background: var(--er-surface-soft); border: 1px dashed var(--er-border); border-bottom: 0; border-radius: var(--er-radius-control) var(--er-radius-control) 0 0; padding-top: var(--er-space-3); }
+.season-board-zero-plinth.is-rank-1 { height: 76px; }
+.season-board-zero-plinth.is-rank-2 { height: 58px; }
+.season-board-zero-plinth.is-rank-3 { height: 48px; }
+.season-board-zero-crest { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 2px dashed var(--er-kraft); color: var(--er-muted-ink); font-weight: 800; }
+.season-board-zero-line-label { font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--er-muted-ink); }
+.season-board-zero-line { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--er-space-2); width: 100%; }
+.season-board-zero-line li { display: flex; align-items: center; gap: var(--er-space-3); }
+.season-board-zero-line li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+/* HQ leaderboard mini: podium strip + chase row + team footer line. */
+.game-leaderboard-mini__strip { list-style: none; margin: 0 0 var(--er-space-3); padding: 0; display: grid; gap: var(--er-space-2); }
+.game-leaderboard-mini__strip li { display: flex; align-items: center; gap: var(--er-space-2); min-width: 0; }
+.game-leaderboard-mini__strip li.is-me { font-weight: 700; }
+.game-leaderboard-mini__name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.game-leaderboard-mini__xp { font-variant-numeric: tabular-nums; font-weight: 700; }
+.game-leaderboard-mini__footer { margin: var(--er-space-3) 0 0; padding-top: var(--er-space-3); border-top: 1px solid var(--er-border); font-size: var(--er-text-sm); color: var(--er-muted-ink); display: flex; gap: 8px; align-items: flex-start; }
+.game-leaderboard-mini__footer svg { flex: none; margin-top: 2px; color: var(--er-teal); }
+.game-leaderboard-mini__actions { display: flex; flex-wrap: wrap; gap: var(--er-space-2); align-items: center; margin-top: var(--er-space-3); }
+
+/* QuestBoard triple-bonus segment meter. */
+.game-triple-meter { display: grid; gap: 6px; }
+.game-triple-meter__segments { display: flex; gap: 5px; }
+.game-triple-meter__segments span { flex: 1; height: 6px; border-radius: 999px; background: var(--er-border); }
+.game-triple-meter__segments span.is-done { background: var(--er-teal); }
+.game-triple-meter p { margin: 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+
+/* HQ progress disclosure tiles. */
+.game-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: var(--er-space-3); margin: 0 0 var(--er-space-4); }

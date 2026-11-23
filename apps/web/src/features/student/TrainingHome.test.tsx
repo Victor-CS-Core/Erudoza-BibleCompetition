@@ -9,14 +9,15 @@ import { todayFixture, journeyFixture, questFixture } from "./trainingFixtures";
 vi.mock("../../api/client", () => ({ api: { assignedSeasons: vi.fn().mockResolvedValue([]), progress: vi.fn().mockResolvedValue({ seasonId: "s", seasonName: "Daniel", seasonStatus: "Active", assignments: [], masteredCount: 0, reviewDueCount: 0, attemptCount: 0, mastery: [], recentAttempts: [] }) } }));
 vi.mock("../../api/training", () => ({ trainingApi: { today: vi.fn(), journey: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
-it("shows the XP rank panel with progress to the next rank", async () => {
+it("shows the PlayerCard with level, XP total and progress to the next rank", async () => {
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture());
   vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture());
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>);
-  expect(await screen.findByRole("heading", { name: "Rank 2" })).toBeInTheDocument();
-  expect(screen.getByText("Seeker")).toBeInTheDocument();
-  expect(screen.getByLabelText("120 experience points total")).toBeVisible();
+  expect(await screen.findByText("Level 2 · Seeker")).toBeInTheDocument();
+  expect(screen.getByText(/120 XP/)).toBeInTheDocument();
+  expect(screen.getByText(/130 XP to Reader/)).toBeInTheDocument();
   expect(screen.getByLabelText("Progress to the next rank")).toBeVisible();
+  expect(screen.queryByRole("heading", { name: "Rank 2" })).not.toBeInTheDocument();
 });
 
 it("renders the daily quest board with progress and completed states", async () => {
@@ -25,28 +26,30 @@ it("renders the daily quest board with progress and completed states", async () 
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>);
   expect(await screen.findByRole("heading", { name: "Today’s bonus quests" })).toBeInTheDocument();
   expect(screen.getByText("Little extras — no penalty for skipping.")).toBeVisible();
-  expect(screen.getByLabelText("Warm-up: quest progress")).toBeVisible();
-  expect(screen.getByText("Done")).toBeInTheDocument();
+  expect(screen.getByRole("img", { name: "Warm-up: 0 of 1 done" })).toBeInTheDocument();
+  expect(screen.getByText("Completed")).toBeInTheDocument();
+  expect(screen.getByText("1 of 2 done")).toBeInTheDocument();
 });
 
 it("hides the quest board when no quests are available", async () => {
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ quests: [] }));
   vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture());
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>);
-  await screen.findByRole("heading", { name: "Rank 2" });
+  await screen.findByText("Level 2 · Seeker");
   expect(screen.queryByRole("heading", { name: "Today’s bonus quests" })).not.toBeInTheDocument();
 });
 
-it("shows the gentle streak nudge only when the streak is paused", async () => {
+it("shows the paused-streak chip only when the streak is paused", async () => {
   vi.mocked(trainingApi.journey).mockResolvedValue(journeyFixture());
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ streakNudge: true }));
   const { unmount } = render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>);
-  expect(await screen.findByTestId("streak-nudge")).toHaveTextContent("One missed day just pauses your streak");
+  expect(await screen.findByText("Streak paused — practice today to restart")).toBeInTheDocument();
+  expect(screen.queryByTestId("streak-nudge")).not.toBeInTheDocument();
   unmount();
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({ streakNudge: false }));
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><StudentHomePage /></MemoryRouter></QueryClientProvider>);
-  await screen.findByRole("heading", { name: "Rank 2" });
-  expect(screen.queryByTestId("streak-nudge")).not.toBeInTheDocument();
+  await screen.findByText("Level 2 · Seeker");
+  expect(screen.queryByText("Streak paused — practice today to restart")).not.toBeInTheDocument();
 });
 it("reports saved weekly and passage evidence without inventing readiness", async () => {
   vi.mocked(trainingApi.today).mockResolvedValue(todayFixture());

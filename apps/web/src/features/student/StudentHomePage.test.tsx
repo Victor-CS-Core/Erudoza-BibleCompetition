@@ -36,10 +36,12 @@ it("collapses a finished quest to one completion signal", async () => {
   expect(within(doneItem).queryByText("3 of 3")).not.toBeInTheDocument();
   expect(screen.getByText("1 of 3 done")).toBeInTheDocument();
 });
-it("shows the XP rank, not a level", async () => {
+it("shows the PlayerCard hero with level, captioned XP progress and no separate Rank panel", async () => {
   home();
-  expect(await screen.findByRole("heading", { name: /Rank \d/ })).toBeInTheDocument();
+  expect(await screen.findByText("Level 2 · Seeker")).toBeInTheDocument();
   expect(screen.getByLabelText("Progress to the next rank")).toBeInTheDocument();
+  expect(screen.getByText(/130 XP to Reader/)).toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: /Rank \d/ })).not.toBeInTheDocument();
 });
 
 it("shows the practiced-today state and a weekly heatmap on the streak panel", async () => {
