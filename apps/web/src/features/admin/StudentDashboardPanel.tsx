@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import type { SessionHistoryEntry, Student } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LoadingState, Notice, Panel, ProgressMeter, WeeklyProgressStrip } from "../../components/ui";
+import { useScrollLock } from "../../components/ui/scrollLock";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { formatPassageCitation } from "./passageRanges";
 import { StudentSessionRecapDialog } from "./StudentSessionRecapDialog";
@@ -95,6 +96,7 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
   const { me } = useAuth();
   const titleId = useId();
   const dialog = useRef<HTMLDialogElement>(null);
+  useScrollLock();
   const dashboard = useQuery({
     queryKey: ["student-dashboard", me?.organizationId, student.userId],
     queryFn: ({ signal }) => api.studentDashboard(me!.organizationId, student.userId, signal),

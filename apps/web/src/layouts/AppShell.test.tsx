@@ -120,6 +120,16 @@ it("opens all sections from More and restores focus when closed", async () => {
  fireEvent.click(screen.getByRole("button", { name: "Close command center" }));
  await waitFor(() => expect(more).toHaveFocus());
 });
+it("locks background scrolling while the command center is open and restores it on close", async () => {
+ shell("/student/practice");
+ const more = within(screen.getByRole("navigation", { name: "Mobile navigation" })).getByRole("button", { name: "More" });
+ fireEvent.click(more);
+ expect(document.body).toHaveClass("scroll-locked");
+ expect(document.body.style.position).toBe("fixed");
+ fireEvent.click(screen.getByRole("button", { name: "Close command center" }));
+ await waitFor(() => expect(document.body).not.toHaveClass("scroll-locked"));
+ expect(document.body.style.position).toBe("");
+});
 it("does not focus or select the search field when opening from More", async () => {
  shell("/student/practice");
  const more = within(screen.getByRole("navigation", { name: "Mobile navigation" })).getByRole("button", { name: "More" });

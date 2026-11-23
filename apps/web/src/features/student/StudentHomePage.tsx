@@ -8,7 +8,6 @@ import { AppIcon } from "../../components/AppIcon";
 import { LandscapeBanner } from "../../components/brand/LandscapeBanner";
 import { Badge, Button, HonorArtwork, LinkButton, LoadingState, Notice, Panel, Select } from "../../components/ui";
 import { PatchDisplay, PlayerCard, QuestCard, StatTile, nextLevelName } from "../../components/game/GameLayer";
-import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { PbeJourney } from "./PassageJourney";
 import { PassagePicker } from "./PassagePicker";
 import { AssignedPassages } from "./AssignedPassages";
@@ -60,7 +59,7 @@ export function StudentHomePage() {
       titleId="training-hq-title"
       description={firstName ? `Ready when you are, ${firstName} — here is your Scripture to review and your plan for today.` : "Review your assigned Scripture and prepare for team practice."}
       name={me?.displayName ?? (firstName ? `${firstName}` : "You")}
-      avatar={me?.userId ? <ProfileAvatar userId={me.userId} displayName={me.displayName ?? ""} size={44} /> : undefined}
+      avatar={null}
       xp={data ? { total: data.xp.total, xpIntoLevel: data.xp.xpIntoLevel, xpForNext: data.xp.xpForNext, nextLevelName: nextLevelName(data.xp.level), level: data.xp.level, levelName: data.xp.levelName } : null}
       streak={data?.streak?.current}
       streakState={data ? (data.streakNudge || data.streak?.state === "paused" ? "paused" : data.streak?.state === "active" ? "active" : "none") : undefined}

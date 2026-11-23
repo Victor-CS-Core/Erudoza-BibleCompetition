@@ -6,6 +6,28 @@ import { trainingNow } from './clock';
 import { identity, preference, resolvePreference, write, type PreferenceRecord, type Writes } from './store';
 import { creditedDates, streakStatus } from './streak';
 import { LEVELS, levelForXp, type XpRecord } from './xp';
+import { profileIdentities } from '../mastery/profile';
+import type { AvatarKind, CharacterAppearance } from '../../../shared/profileCharacter';
+
+/**
+ * The student's selected profile image, as the board renders it: the same
+ * validated identity `/api/v1/profile/identities` returns — head appearance
+ * only for character avatars, the honor key for patch avatars, never the
+ * full profile record.
+ */
+export interface BoardAvatar {
+    avatarKind: AvatarKind;
+    avatarHonorKey: string | null;
+    character: CharacterAppearance | null;
+}
+
+const INITIALS_AVATAR: BoardAvatar = { avatarKind: 'initials', avatarHonorKey: null, character: null };
+
+/** One batched identity lookup for a board's members (plus the viewer). */
+async function boardAvatars(ctx: RequestContext, userIds: string[]): Promise<Map<string, BoardAvatar>> {
+    const rows = await profileIdentities(ctx, [...new Set(userIds)]);
+    return new Map(rows.map(row => [row.userId, { avatarKind: row.avatarKind, avatarHonorKey: row.avatarHonorKey, character: row.character }]));
+}
 
 /**
  * Gamification Phase 3 — peer momentum (spec §4).
@@ -52,6 +74,7 @@ export interface LeaderboardEntry {
     xp: number;
     level: number;
     levelName: string;
+    avatar: BoardAvatar;
 }
 
 /** Monday (week start) of the week containing a YYYY-MM-DD local date. */
@@ -111,9 +134,12 @@ export async function leaderboard(ctx: RequestContext, url: URL): Promise<Leader
             xp,
             level: level.level,
             levelName: level.levelName,
+            avatar: INITIALS_AVATAR,
         });
     }
     entries.sort((a, b) => b.xp - a.xp || a.displayName.localeCompare(b.displayName));
+    const avatars = await boardAvatars(ctx, entries.map(e => e.userId));
+    for (const entry of entries) entry.avatar = avatars.get(entry.userId) ?? INITIALS_AVATAR;
     const rank = entries.findIndex(e => e.userId === ctx.actor.userId);
     return {
         weekStartLocalDate: weekStart,
@@ -134,6 +160,7 @@ export interface SeasonLeaderboardEntry {
     streak: number;
     level: number;
     levelName: string;
+    avatar: BoardAvatar;
 }
 
 export interface SeasonLeaderboardResponse {
@@ -159,6 +186,7 @@ export interface SeasonLeaderboardResponse {
         nextLevelName: string | null;
         xpIntoLevel: number;
         xpForNext: number;
+        avatar: BoardAvatar;
     } | null;
 }
 
@@ -205,12 +233,12 @@ export async function seasonLeaderboard(ctx: RequestContext, seasonId: string, u
     };
 
     const entries: SeasonLeaderboardEntry[] = [];
-    let me: SeasonLeaderboardResponse['me'] = null;
+    let meBase: Omit<NonNullable<SeasonLeaderboardResponse['me']>, 'avatar'> | null = null;
     for (const s of members) {
         const lctx: RequestContext = { ...ctx, actor: { ...ctx.actor, userId: s.userId, kind: 'Student', role: 'Student' } };
         const own = await standing(lctx);
         if (s.userId === ctx.actor.userId) {
-            me = { userId: s.userId, optedIn: own.optedIn, seasonXp: own.seasonXp, weekXp: own.weekXp, streak: own.streak, totalXp: own.totalXp, level: own.level.level, levelName: own.level.levelName, nextLevelName: own.nextLevelName, xpIntoLevel: own.level.xpIntoLevel, xpForNext: own.level.xpForNext };
+            meBase = { userId: s.userId, optedIn: own.optedIn, seasonXp: own.seasonXp, weekXp: own.weekXp, streak: own.streak, totalXp: own.totalXp, level: own.level.level, levelName: own.level.levelName, nextLevelName: own.nextLevelName, xpIntoLevel: own.level.xpIntoLevel, xpForNext: own.level.xpForNext };
         }
         if (!isCoach && !own.optedIn) continue;
         entries.push({
@@ -222,15 +250,19 @@ export async function seasonLeaderboard(ctx: RequestContext, seasonId: string, u
             streak: own.streak,
             level: own.level.level,
             levelName: own.level.levelName,
+            avatar: INITIALS_AVATAR,
         });
     }
     entries.sort((a, b) => b.seasonXp - a.seasonXp || a.displayName.localeCompare(b.displayName));
-    if (!isCoach && !me) {
+    if (!isCoach && !meBase) {
         // A learner who is not assigned in this season can still view the
         // (masked, opt-in) board; their own standing is "not on this board".
         const own = await standing(ctx);
-        me = { userId: ctx.actor.userId, optedIn: own.optedIn, seasonXp: own.seasonXp, weekXp: own.weekXp, streak: own.streak, totalXp: own.totalXp, level: own.level.level, levelName: own.level.levelName, nextLevelName: own.nextLevelName, xpIntoLevel: own.level.xpIntoLevel, xpForNext: own.level.xpForNext };
+        meBase = { userId: ctx.actor.userId, optedIn: own.optedIn, seasonXp: own.seasonXp, weekXp: own.weekXp, streak: own.streak, totalXp: own.totalXp, level: own.level.level, levelName: own.level.levelName, nextLevelName: own.nextLevelName, xpIntoLevel: own.level.xpIntoLevel, xpForNext: own.level.xpForNext };
     }
+    const avatars = await boardAvatars(ctx, [...entries.map(e => e.userId), ...(meBase ? [meBase.userId] : [])]);
+    for (const entry of entries) entry.avatar = avatars.get(entry.userId) ?? INITIALS_AVATAR;
+    const me: SeasonLeaderboardResponse['me'] = meBase ? { ...meBase, avatar: avatars.get(meBase.userId) ?? INITIALS_AVATAR } : null;
     return { seasonId: season.id, seasonName: season.name, seasonStatus: season.status, weekStartLocalDate: weekStart, entries, me: isCoach ? null : me };
 }
 

@@ -3,6 +3,7 @@ import { body, HttpError, json } from '../types';
 import { honorCatalog, honorId, isHonorKey, ruleVersionFor } from './catalog';
 import type { HonorUnlock, ProfileSelection } from './catalog';
 import { characterFields, defaultCharacter, defaultShareOptions, portraitIdentity, validateCharacterSave } from './character';
+import type { AvatarKind, CharacterAppearance } from '../../../shared/profileCharacter';
 import { lockedCosmetics, unlockedCosmetics } from '../training/cosmetics';
 import type { AssignmentNotification, TeamPracticeNotification } from '../application/notifications';
 import { anyNotificationSummary } from '../application/notifications';
@@ -30,6 +31,29 @@ export async function selfProfile(ctx: RequestContext) {
 }
 function selection(ctx: RequestContext, key: ProfileSelection['honorKey']): ProfileSelection {
   return { id: ctx.actor.userId, userId: ctx.actor.userId, honorKey: key, unlockId: key === null ? null : honorId(ctx.orgId, ctx.actor.userId, key), ruleVersion: key === null ? null : ruleVersionFor(key) };
+}
+
+export type ProfileIdentityRow = { userId: string; avatarHonorKey: string | null; avatarKind: AvatarKind; character: CharacterAppearance | null };
+/**
+ * Batch portrait identities for a set of users in this org — the exact data
+ * `/api/v1/profile/identities` returns (selected honor avatar validated
+ * against its unlock; character = head appearance only, never the full
+ * profile). One query, primary-key probes only. Shared with the leaderboards,
+ * which attach each member's selected profile image to their board entry.
+ */
+export async function profileIdentities(ctx: RequestContext, ids: string[]): Promise<ProfileIdentityRow[]> {
+  if (!ids.length) return [];
+  const rows = await ctx.env.DB.prepare(`SELECT u.id,p.data AS profile,c.data AS character,a.data AS award,${eligibilitySql('a')} AS eligible FROM json_each(?) requested
+      JOIN Users u ON u.id=requested.value AND u.org_id=? AND u.active=1
+      LEFT JOIN Records p ON p.kind='user-profile' AND p.id=u.id AND p.org_id=u.org_id AND p.owner_id=u.id
+      LEFT JOIN Records c ON c.kind='profile-character' AND c.id=u.id AND c.org_id=u.org_id AND c.owner_id=u.id
+      LEFT JOIN Records a ON a.kind='mastery-honor' AND a.id=json_extract(p.data,'$.unlockId') AND a.org_id=u.org_id`).bind(JSON.stringify(ids), ctx.orgId).all<{ id: string; profile: string | null; character: string | null; award: string | null; eligible: number }>();
+  const found = new Map(rows.results.map(row => {
+    const p = row.profile ? JSON.parse(row.profile) as ProfileSelection : null, a = row.award ? JSON.parse(row.award) as HonorUnlock : undefined;
+    const avatarHonorKey = p?.userId === row.id && p.ruleVersion === ruleVersionFor(p.honorKey ?? '') && p.honorKey && p.unlockId === honorId(ctx.orgId, row.id, p.honorKey) && validUnlock(a, ctx.orgId, row.id, p.honorKey, !!row.eligible) ? p.honorKey : null;
+    return [row.id, { userId: row.id, avatarHonorKey, ...portraitIdentity(row.character ? JSON.parse(row.character) : null, row.id, avatarHonorKey) }] as const;
+  }));
+  return ids.flatMap(id => found.has(id) ? [found.get(id)!] : []);
 }
 
 export async function handleProfile(ctx: RequestContext): Promise<Response | null> {
@@ -85,17 +109,7 @@ export async function handleProfile(ctx: RequestContext): Promise<Response | nul
     if (ids.length > 50) throw new HttpError(400, 'Request at most 50 unique identities.');
     if (!ids.length) return json([]);
     // IDs use exact primary-key probes; no profile/award history scan or personal-field expansion.
-    const rows = await ctx.env.DB.prepare(`SELECT u.id,p.data AS profile,c.data AS character,a.data AS award,${eligibilitySql('a')} AS eligible FROM json_each(?) requested
-      JOIN Users u ON u.id=requested.value AND u.org_id=? AND u.active=1
-      LEFT JOIN Records p ON p.kind='user-profile' AND p.id=u.id AND p.org_id=u.org_id AND p.owner_id=u.id
-      LEFT JOIN Records c ON c.kind='profile-character' AND c.id=u.id AND c.org_id=u.org_id AND c.owner_id=u.id
-      LEFT JOIN Records a ON a.kind='mastery-honor' AND a.id=json_extract(p.data,'$.unlockId') AND a.org_id=u.org_id`).bind(JSON.stringify(ids), ctx.orgId).all<{ id: string; profile: string | null; character: string | null; award: string | null; eligible:number }>();
-    const found = new Map(rows.results.map(row => {
-      const p = row.profile ? JSON.parse(row.profile) as ProfileSelection : null, a = row.award ? JSON.parse(row.award) as HonorUnlock : undefined;
-      const avatarHonorKey = p?.userId === row.id && p.ruleVersion === ruleVersionFor(p.honorKey??'') && p.honorKey && p.unlockId === honorId(ctx.orgId, row.id, p.honorKey) && validUnlock(a, ctx.orgId, row.id, p.honorKey,!!row.eligible) ? p.honorKey : null;
-      return [row.id, { userId: row.id, avatarHonorKey, ...portraitIdentity(row.character ? JSON.parse(row.character) : null, row.id, avatarHonorKey) }];
-    }));
-    return json(ids.flatMap(id => found.has(id) ? [found.get(id)!] : []));
+    return json(await profileIdentities(ctx, ids));
   }
   return null;
 }

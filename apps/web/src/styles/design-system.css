@@ -127,7 +127,7 @@
 .ds-switch[aria-checked="true"] .ds-switch-track { background: var(--er-teal); border-color: var(--er-teal); }
 .ds-switch[aria-checked="true"] .ds-switch-track::after { transform: translateX(18px); background: var(--er-card); }
 @media (prefers-reduced-motion: no-preference) { .ds-switch-track::after { transition: transform var(--er-duration); } }
-.ds-dialog { width: min(480px,calc(100% - 32px)); padding: var(--er-space-7); border: 0; border-radius: var(--er-radius-card); background: var(--er-card); color: var(--er-ink-navy); box-shadow: var(--er-shadow-overlay); }
+.ds-dialog { width: min(480px,calc(100% - 32px)); padding: var(--er-space-7); border: 0; border-radius: var(--er-radius-card); background: var(--er-card); color: var(--er-ink-navy); box-shadow: var(--er-shadow-overlay); overscroll-behavior: contain; }
 .ds-dialog::backdrop { background: #102e4770; }
 .ds-table, .training-table { width: 100%; border-collapse: collapse; text-align: left; font-variant-numeric: tabular-nums; }
 :is(.ds-table,.training-table) th { color: var(--er-muted-ink); background: var(--er-surface-soft); padding: var(--er-space-3) var(--er-space-4); font-size: var(--er-text-xs); font-weight: 600; white-space: nowrap; }

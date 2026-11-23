@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import type {Configuration} from './composition';
 import {Button} from '../../../components/ui';
+import {useScrollLock} from '../../../components/ui/scrollLock';
 import {CharacterPreview} from './CharacterPreview';
 import {AnimatedCharacterView} from './AnimatedCharacterView';
 import {PreviewModeToggle, type PreviewMode} from './PreviewModeToggle';
@@ -58,6 +59,7 @@ export function CharacterFullscreen({config, mode, onModeChange, onClose, onErro
   onError?: (message: string) => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  useScrollLock();
   useEffect(() => {
     const trigger = document.activeElement as HTMLElement | null;
     const element = dialog.current!;

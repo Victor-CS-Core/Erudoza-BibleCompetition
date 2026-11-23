@@ -1,10 +1,14 @@
-import type { ReactNode } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import { AppIcon } from "../AppIcon";
 import { Badge, Panel } from "../ui";
 import { HonorPatchCard } from "../../features/profile/HonorPatchCard";
+import { MasteryHonorArtwork, isHonorArtwork } from "../../features/profile/MasteryHonorArtwork";
 import { CelebrationBurst } from "../../features/student/CelebrationBurst";
 import type { QuestDto } from "../../api/trainingTypes";
+import type { BoardAvatar } from "../../api/types";
 import "./game-layer.css";
+
+const CharacterPortrait = lazy(() => import("../../features/profile/character/CharacterPreview").then(module => ({ default: module.CharacterPortrait })));
 
 export const LEVEL_NAMES = ["Seedling", "Seeker", "Reader", "Keeper", "Scribe", "Scholar", "Guide", "Torchbearer"] as const;
 
@@ -18,6 +22,29 @@ export function initialsFor(name: string): string {
 
 export function InitialsDisc({ name, size = "row", className = "" }: { name: string; size?: "row" | "card" | "moment"; className?: string }) {
   return <span className={`game-initials-disc game-initials-disc--${size} ${className}`} aria-hidden="true">{initialsFor(name)}</span>;
+}
+
+/**
+ * A board member's selected profile image in the disc slot: their character
+ * portrait (the profile's static, appearance-cached render — no animation
+ * loop, so a full board stays cheap) or their Achievement patch artwork when
+ * that is the chosen avatar. Falls back to the initials disc when the student
+ * chose initials, set nothing, or the portrait cannot render.
+ */
+export function EntryAvatar({ avatar, name, size = "row", className = "" }: { avatar?: BoardAvatar | null; name: string; size?: "row" | "card" | "moment"; className?: string }) {
+  const px = size === "moment" ? 72 : size === "card" ? 44 : 28;
+  const fallback = <InitialsDisc name={name} size={size} />;
+  if (avatar?.avatarKind === "character" && avatar.character) {
+    return <span className={`game-entry-avatar game-entry-avatar--${size} ${className}`} aria-hidden="true" data-entry-avatar="character">
+      <Suspense fallback={fallback}><CharacterPortrait appearance={avatar.character} fallback={fallback} /></Suspense>
+    </span>;
+  }
+  if (avatar?.avatarKind === "honor" && avatar.avatarHonorKey && isHonorArtwork(avatar.avatarHonorKey)) {
+    return <span className={`game-entry-avatar game-entry-avatar--${size} ${className}`} aria-hidden="true" data-entry-avatar="honor">
+      <MasteryHonorArtwork honorKey={avatar.avatarHonorKey} size={px} />
+    </span>;
+  }
+  return <span className={className} data-entry-avatar="initials">{fallback}</span>;
 }
 
 type CrestSize = "row" | "card" | "moment";
@@ -110,7 +137,7 @@ export function PlayerCard({
       {title ? <h1 id={titleId} className="game-player-card__title">{title}</h1> : null}
       {description ? <p className="game-player-card__description">{description}</p> : null}
       <div className="game-player-card__identity">
-        <span className="game-player-card__avatar">{avatar ?? <InitialsDisc name={name} size="card" />}</span>
+        {avatar !== null && <span className="game-player-card__avatar">{avatar ?? <InitialsDisc name={name} size="card" />}</span>}
         <div className="game-player-card__who">
           <strong>{name}</strong>
           {xp && <span>Level {xp.level} · {xp.levelName}</span>}
@@ -263,6 +290,7 @@ export type PodiumEntry = {
   levelName: string;
   streak: number;
   sublabel?: ReactNode;
+  avatar?: BoardAvatar | null;
 };
 
 export function Podium({ entries, leaderXp, isMe, modeLabel }: { entries: PodiumEntry[]; leaderXp: number; isMe?: (entry: PodiumEntry) => boolean; modeLabel: string }) {
@@ -273,8 +301,10 @@ export function Podium({ entries, leaderXp, isMe, modeLabel }: { entries: Podium
     {display.map(entry => {
       const rank = top.indexOf(entry) + 1;
       return <li key={entry.userId} className={`game-podium__item is-rank-${rank} ${isMe?.(entry) ? "is-me" : ""}`} data-testid={`leaderboard-podium-${rank}`}>
-        <LevelCrest level={entry.level} levelName={entry.levelName} size={rank === 1 ? "moment" : "card"} />
-        <InitialsDisc name={entry.displayName} size={rank === 1 ? "card" : "row"} />
+        <span className="game-podium__face">
+          <EntryAvatar avatar={entry.avatar} name={entry.displayName} size={rank === 1 ? "moment" : "card"} />
+          <LevelCrest level={entry.level} levelName={entry.levelName} size="row" className="game-podium__crest" />
+        </span>
         <strong>{entry.displayName}</strong>
         <span className="game-podium__rank">#{rank}</span>
         <span className="game-podium__xp">{entry.xp} XP</span>

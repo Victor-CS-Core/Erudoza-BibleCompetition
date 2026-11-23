@@ -49,6 +49,9 @@ beforeAll(async () => {
     await seedXp(S1, { [dayInWeek(0)]: 100, [dayInWeek(2)]: 50 }, 1000);
     await seedXp(S2, { [dayInWeek(1)]: 200 }, 600);
     await seedXp(S3, { [dayInWeek(0)]: 500 }, 500);
+    // Grace (S2) has a selected profile character; the others set nothing.
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('profile-character',?,?,?,?)")
+        .bind(S2, TEST_ORG, S2, JSON.stringify({ userId: S2, avatarKind: 'character', characterVersion: 1, character: { bodyType: 'female', style: 'braids', hairColor: 'black', skin: 'deep', eyes: 'hazel', attire: 'student', background: 'sunrise', slots: [null, null, null] }, shareOptions: { showName: true, showBrand: true, showQR: false }, sharePlacements: [] })).run();
 });
 
 it('masks names and finds Monday week starts', () => {
@@ -127,4 +130,11 @@ it('counts teammate practice without naming anyone', async () => {
     expect(activity.practicedToday).toBe(1);
     expect(activity.practicedThisWeek).toBe(2);
     expect(activity.memberCount).toBe(3);
+});
+
+it('weekly entries carry the selected profile image with the initials default', async () => {
+    const url = new URL(`https://erudoza.test/?weekStart=${WEEK}`);
+    const board = await leaderboard(ctxFor(S1), url);
+    expect(board.entries.find(e => e.userId === S2)!.avatar).toEqual({ avatarKind: 'character', avatarHonorKey: null, character: { bodyType: 'female', style: 'braids', hairColor: 'black', skin: 'deep', eyes: 'hazel' } });
+    expect(board.entries.find(e => e.userId === S1)!.avatar).toEqual({ avatarKind: 'initials', avatarHonorKey: null, character: null });
 });

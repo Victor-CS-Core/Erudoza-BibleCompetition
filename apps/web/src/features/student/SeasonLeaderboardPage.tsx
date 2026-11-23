@@ -5,7 +5,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { api } from "../../api/client";
 import { Badge, Button, LinkButton, LoadingState, Notice, Panel } from "../../components/ui";
 import { AppIcon } from "../../components/AppIcon";
-import { ChaseBar, InitialsDisc, LevelCrest, PlayerCard, Podium } from "../../components/game/GameLayer";
+import { ChaseBar, EntryAvatar, LevelCrest, PlayerCard, Podium } from "../../components/game/GameLayer";
 import { trainingLink } from "./trainingAssets";
 import type { SeasonLeaderboardEntry, SeasonLeaderboardResponse } from "../../api/types";
 import "./student.css";
@@ -81,7 +81,7 @@ export function SeasonLeaderboardPage() {
 
           {raceNotStarted ? <ZeroState entries={sorted} seasonId={seasonId} mode={mode} /> : <>
             {sorted.length >= 2 && <Podium
-              entries={sorted.map(entry => ({ userId: entry.userId, displayName: entry.displayName, xp: modeXp(entry, mode), level: entry.level, levelName: entry.levelName, streak: entry.streak, sublabel: modeSub(entry, mode) }))}
+              entries={sorted.map(entry => ({ userId: entry.userId, displayName: entry.displayName, xp: modeXp(entry, mode), level: entry.level, levelName: entry.levelName, streak: entry.streak, sublabel: modeSub(entry, mode), avatar: entry.avatar }))}
               leaderXp={leaderXp}
               isMe={entry => data.me?.userId === entry.userId}
               modeLabel={mode === "season" ? "Season" : "This week"}
@@ -113,6 +113,7 @@ function YourPosition({ data, mode, rank, entry, xp, above, aboveXp }: {
   return <div data-testid="season-board-your-rank" className="season-board-your-position">
     <PlayerCard
       name={entry.displayName}
+      avatar={<EntryAvatar avatar={entry.avatar ?? me.avatar} name={entry.displayName} size="card" />}
       xp={{ total: me.totalXp, xpIntoLevel: me.xpIntoLevel, xpForNext: me.xpForNext, nextLevelName: me.nextLevelName, level: me.level, levelName: me.levelName }}
       streak={me.streak}
       streakState={me.streak > 0 ? "active" : "none"}
@@ -128,10 +129,15 @@ function YourPosition({ data, mode, rank, entry, xp, above, aboveXp }: {
   </div>;
 }
 
-function ZeroState({ entries, seasonId, mode }: { entries: SeasonLeaderboardEntry[]; seasonId?: string; mode: BoardMode }) {
+export function ZeroState({ entries, seasonId, mode }: { entries: SeasonLeaderboardEntry[]; seasonId?: string; mode: BoardMode }) {
   return <Panel className="season-board-zero" data-testid="season-board-zero">
     <div className="season-board-zero-plinths" aria-hidden="true">
-      {[2, 1, 3].map(rank => <span key={rank} className={`season-board-zero-plinth is-rank-${rank}`}><span className="season-board-zero-crest">{rank}</span></span>)}
+      {[2, 1, 3].map(rank => <span key={rank} className={`season-board-zero-plinth is-rank-${rank}`}>
+        <span className="season-board-zero-rank">{rank === 1 ? "1st" : rank === 2 ? "2nd" : "3rd"}</span>
+        <span className="season-board-zero-crest">?</span>
+        <span className="season-board-zero-open">Open spot</span>
+        <span className="season-board-zero-base" />
+      </span>)}
     </div>
     <h3>The race is about to start</h3>
     {entries.length === 0
@@ -141,8 +147,8 @@ function ZeroState({ entries, seasonId, mode }: { entries: SeasonLeaderboardEntr
       <p className="season-board-zero-line-label">At the starting line</p>
       <ul className="season-board-zero-line">
         {entries.map(entry => <li key={entry.userId}>
-          <InitialsDisc name={entry.displayName} />
-          <span>{entry.displayName}</span>
+          <EntryAvatar avatar={entry.avatar} name={entry.displayName} />
+          <span className="season-board-zero-line__name">{entry.displayName}</span>
           <LevelCrest level={entry.level} levelName={entry.levelName} />
         </li>)}
       </ul>
@@ -156,7 +162,7 @@ function BoardRow({ entry, rank, mode, leaderXp, isMe }: { entry: SeasonLeaderbo
   return <li className={isMe ? "is-me" : ""} data-testid={`season-board-row-${rank}`}>
     <span className="season-board-rank" aria-label={`Position ${rank}`}>{rank}</span>
     <LevelCrest level={entry.level} levelName={entry.levelName} />
-    <InitialsDisc name={entry.displayName} />
+    <EntryAvatar avatar={entry.avatar} name={entry.displayName} />
     <div className="season-board-who">
       <div className="season-board-name-line">
         <span className="season-board-name">{entry.displayName}</span>

@@ -2,6 +2,7 @@ import { useEffect, useId, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../../api/client";
 import { Badge, Button, LoadingState, Notice } from "../../components/ui";
+import { useScrollLock } from "../../components/ui/scrollLock";
 import "../../styles/student-dashboard.css";
 
 const skillLabels: Record<string, string> = { exactWording: "Wording", reference: "Reference", sequence: "Sequence", recognition: "Recognition", factualRecall: "Recall" };
@@ -17,6 +18,7 @@ export function StudentSessionRecapDialog({ orgId, studentId, studentName, sessi
 }) {
   const titleId = useId();
   const dialog = useRef<HTMLDialogElement>(null);
+  useScrollLock();
   const recap = useQuery({
     queryKey: ["student-session-recap", orgId, studentId, sessionId],
     queryFn: () => api.studentSessionRecap(orgId, studentId, sessionId),

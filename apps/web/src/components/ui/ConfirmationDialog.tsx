@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { Button, Notice } from "./index";
+import { useScrollLock } from "./scrollLock";
 
 export function ConfirmationDialog({ title, description, confirmLabel, pendingLabel = "Saving…", variant = "primary", pending = false, disabled = false, error, children, onCancel, onConfirm }: {
   title: string; description: ReactNode; confirmLabel: string; pendingLabel?: string; variant?: "primary" | "danger";
@@ -7,6 +8,7 @@ export function ConfirmationDialog({ title, description, confirmLabel, pendingLa
 }) {
   const id = useId();
   const dialog = useRef<HTMLDialogElement>(null);
+  useScrollLock();
   useEffect(() => {
     const trigger = document.activeElement as HTMLElement | null;
     const element = dialog.current!;

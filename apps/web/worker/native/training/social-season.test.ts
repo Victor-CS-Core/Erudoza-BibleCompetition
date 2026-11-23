@@ -42,6 +42,10 @@ const seedDay = (userId: string, localDate: string) =>
     app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-day',?,?,?,?)")
         .bind(`${TEST_ORG}:${userId}:${localDate}`, TEST_ORG, userId, JSON.stringify({ id: `${TEST_ORG}:${userId}:${localDate}`, localDate, timeZone: 'UTC', firstQualifiedAtUtc: `${localDate}T12:00:00Z`, sessionId: 's', credited: true })).run();
 
+const seedCharacter = (userId: string) =>
+    app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('profile-character',?,?,?,?)")
+        .bind(userId, TEST_ORG, userId, JSON.stringify({ userId, avatarKind: 'character', characterVersion: 1, character: { bodyType: 'female', style: 'braids', hairColor: 'black', skin: 'deep', eyes: 'hazel', attire: 'student', background: 'sunrise', slots: [null, null, null] }, shareOptions: { showName: true, showBrand: true, showQR: false }, sharePlacements: [] })).run();
+
 const isoDay = (daysAgo: number) => new Date(Date.now() - daysAgo * 86400000).toISOString().slice(0, 10);
 
 beforeAll(async () => {
@@ -64,6 +68,8 @@ beforeAll(async () => {
     await seedXp(C, { xpBySeason: { [SEASON]: 612 }, xpByDay: { [dayInWeek(0)]: 150 }, totalXp: 612 });
     await seedXp(D, { xpBySeason: { [SEASON]: 900 }, xpByDay: {}, totalXp: 900 });
     await seedXp(E, { xpBySeason: { [SEASON]: 5000 }, xpByDay: { [dayInWeek(0)]: 400 }, totalXp: 5000 });
+    // Maya (A) has a selected profile character; nobody else set one.
+    await seedCharacter(A);
     // Streaks: A practiced today and the three days before (4-day streak); C today + yesterday (2).
     for (const n of [0, 1, 2, 3]) await seedDay(A, isoDay(n));
     for (const n of [0, 1]) await seedDay(C, isoDay(n));
@@ -105,4 +111,14 @@ it('gives coaches every season member with full names, including non-opted-in st
 
 it('rejects an unknown season', async () => {
     await expect(seasonLeaderboard(ctxFor(C), '99999999-9999-4999-8999-999999999999', url)).rejects.toMatchObject({ status: 404 });
+});
+
+it('carries each member’s selected profile image, with the initials default when none is set', async () => {
+    const board = await seasonLeaderboard(ctxFor(C), SEASON, url);
+    // Head appearance only — no attire/background/slots leave the server.
+    expect(board.entries[0].avatar).toEqual({ avatarKind: 'character', avatarHonorKey: null, character: { bodyType: 'female', style: 'braids', hairColor: 'black', skin: 'deep', eyes: 'hazel' } });
+    expect(board.entries[1].avatar).toEqual({ avatarKind: 'initials', avatarHonorKey: null, character: null });
+    expect(board.entries[2].avatar).toEqual({ avatarKind: 'initials', avatarHonorKey: null, character: null });
+    // The viewer's pinned card gets the same treatment (C set nothing).
+    expect(board.me?.avatar).toEqual({ avatarKind: 'initials', avatarHonorKey: null, character: null });
 });

@@ -1,7 +1,19 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { ChaseBar, LevelCrest, MomentCard, PatchDisplay, PlayerCard, Podium, QuestCard, StatTile, XPBar, initialsFor, nextLevelName } from "./GameLayer";
+import { describe, expect, it, vi } from "vitest";
+import { ChaseBar, EntryAvatar, LevelCrest, MomentCard, PatchDisplay, PlayerCard, Podium, QuestCard, StatTile, XPBar, initialsFor, nextLevelName, type PodiumEntry } from "./GameLayer";
 import type { QuestDto } from "../../api/trainingTypes";
+
+// CSS imports are stubbed in this test setup, so the fidelity pins read the
+// real stylesheet from disk (Node builtins are untyped in this tsconfig, so
+// the specifier is built dynamically and loaded with a top-level await).
+const nodeFs = "node:" + "fs";
+const { readFileSync } = (await import(/* @vite-ignore */ nodeFs)) as { readFileSync(path: string, encoding: string): string };
+const cwd = (globalThis as { process?: { cwd(): string } }).process?.cwd() ?? ".";
+const gameLayerCss = readFileSync(`${cwd}/src/components/game/game-layer.css`, "utf8");
+
+vi.mock("../../features/profile/character/CharacterPreview", () => ({
+  CharacterPortrait: ({ appearance }: { appearance: { style: string } }) => <span className="character-portrait"><img src={`portrait://${appearance.style}`} alt="" data-character-portrait="true" /></span>,
+}));
 
 describe("LevelCrest tiers", () => {
   it("maps the eight levels onto kraft, teal, blue, gold and gold-flame rings", () => {
@@ -140,6 +152,37 @@ describe("Podium", () => {
     expect(screen.getByTestId("leaderboard-podium-1")).toHaveTextContent("Ada L.");
     expect(items[0]).toHaveClass("is-me");
   });
+
+  it("the podium face is the student's profile image, not the level crest (regression: number circle on top)", () => {
+    const withAvatars: PodiumEntry[] = entries.map((entry, index) => ({
+      ...entry,
+      avatar: index === 0
+        ? { avatarKind: "character" as const, avatarHonorKey: null, character: { bodyType: "female" as const, style: "braids" as const, hairColor: "black" as const, skin: "deep" as const, eyes: "hazel" as const } }
+        : index === 1
+          ? { avatarKind: "honor" as const, avatarHonorKey: "solo:exact-recall", character: null }
+          : { avatarKind: "initials" as const, avatarHonorKey: null, character: null },
+    }));
+    render(<Podium entries={withAvatars} leaderXp={500} modeLabel="Season" />);
+    for (const rank of [1, 2, 3]) {
+      const face = screen.getByTestId(`leaderboard-podium-${rank}`).querySelector(".game-podium__face");
+      expect(face).not.toBeNull();
+      // The face's primary content is the entry avatar at hero size for 1st, card size for 2nd/3rd.
+      const avatar = face?.querySelector("[data-entry-avatar]");
+      expect(avatar).not.toBeNull();
+      const sizeClass = rank === 1 ? "--moment" : "--card";
+      const disc = face?.querySelector(".game-entry-avatar, .game-initials-disc");
+      expect([...(disc?.classList ?? [])].some(name => name.endsWith(sizeClass))).toBe(true);
+      // The level crest survives only as the small edge badge — never the big number circle.
+      const crest = face?.querySelector(".game-level-crest");
+      expect(crest).toHaveClass("game-podium__crest");
+      expect(crest).toHaveClass("game-level-crest--row");
+      expect(crest).not.toHaveClass("game-level-crest--moment");
+      expect(crest).not.toHaveClass("game-level-crest--card");
+    }
+    expect(screen.getByTestId("leaderboard-podium-1").querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "character");
+    expect(screen.getByTestId("leaderboard-podium-2").querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "honor");
+    expect(screen.getByTestId("leaderboard-podium-3").querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "initials");
+  });
 });
 
 describe("helpers", () => {
@@ -148,5 +191,63 @@ describe("helpers", () => {
     expect(initialsFor("  ")).toBe("?");
     expect(nextLevelName(4)).toBe("Scribe");
     expect(nextLevelName(8)).toBeNull();
+  });
+});
+
+describe("circle fidelity (regression: discs and crests stretched into ellipses)", () => {
+  const rule = (selector: string) => {
+    const match = gameLayerCss.match(new RegExp(`\\${selector} \\{[^}]*\\}`));
+    return match?.[0] ?? "";
+  };
+  it("pins square sizing on every circular game-layer element", () => {
+    for (const selector of [".game-level-crest", ".game-initials-disc", ".game-entry-avatar", ".season-board-zero-crest"]) {
+      expect(rule(selector), selector).toContain("aspect-ratio: 1");
+      expect(rule(selector), selector).toContain("flex: none");
+      expect(rule(selector), selector).toContain("border-radius: 50%");
+    }
+  });
+  it("never flexes every span in the starting-line row (the ellipse root cause)", () => {
+    expect(gameLayerCss).not.toContain(".season-board-zero-line li span");
+    expect(rule(".season-board-zero-line__name")).toContain("flex: 1");
+  });
+  it("keeps quest pips at their fixed ratio under flex stretch", () => {
+    expect(rule(".game-quest-card__pips span")).toContain("flex: none");
+  });
+});
+
+describe("EntryAvatar", () => {
+  it("renders the initials disc when no profile image is set", () => {
+    const { container } = render(<EntryAvatar name="Eve V." avatar={{ avatarKind: "initials", avatarHonorKey: null, character: null }} />);
+    expect(container.querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "initials");
+    expect(container.querySelector(".game-initials-disc")).toHaveTextContent("EV");
+    expect(container.querySelector("img")).not.toBeInTheDocument();
+  });
+  it("renders the selected character portrait when the student set one", async () => {
+    const { container } = render(<EntryAvatar name="Eve V." avatar={{ avatarKind: "character", avatarHonorKey: null, character: { bodyType: "female", style: "Explorer", hairColor: "brown", skin: "medium", eyes: "brown" } }} />);
+    await vi.waitFor(() => expect(container.querySelector("img[data-character-portrait]")).toBeInTheDocument());
+    expect(container.querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "character");
+    expect(container.querySelector(".game-entry-avatar")).toBeInTheDocument();
+    expect(container.querySelector(".game-initials-disc")).not.toBeInTheDocument();
+  });
+  it("renders the chosen Achievement patch artwork for honor avatars", () => {
+    const { container } = render(<EntryAvatar name="Eve V." avatar={{ avatarKind: "honor", avatarHonorKey: "solo:exact-recall", character: null }} />);
+    expect(container.querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "honor");
+    expect(container.querySelector("img")).toBeInTheDocument();
+  });
+  it("falls back to initials for an honor avatar without artwork", () => {
+    const { container } = render(<EntryAvatar name="Eve V." avatar={{ avatarKind: "honor", avatarHonorKey: "solo:not-a-patch", character: null }} />);
+    expect(container.querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "initials");
+  });
+});
+
+describe("PlayerCard avatar slot", () => {
+  it("renders no avatar element when avatar is null (character appears once per screen)", () => {
+    const { container } = render(<PlayerCard name="Sam Rivera" avatar={null} xp={{ total: 612, xpIntoLevel: 112, xpForNext: 288, nextLevelName: "Scribe", level: 4, levelName: "Keeper" }} />);
+    expect(container.querySelector(".game-player-card__avatar")).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /Level 4/ })).toBeInTheDocument();
+  });
+  it("falls back to the initials disc when no avatar is passed", () => {
+    const { container } = render(<PlayerCard name="Sam Rivera" />);
+    expect(container.querySelector(".game-player-card__avatar .game-initials-disc")).toHaveTextContent("SR");
   });
 });

@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import { TeamActivityStrip, LeaderboardCard } from "./TeamMomentum";
+const initialsAvatar = { avatarKind: "initials", avatarHonorKey: null, character: null } as const;
 vi.mock("../../api/client", () => ({ api: { teamActivity: vi.fn(), leaderboard: vi.fn(), seasonLeaderboard: vi.fn(), setLeaderboardOptIn: vi.fn() } }));
 const account = vi.hoisted(() => ({ organizationId: "org", userId: "student", kind: "Student" }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: account }) }));
@@ -45,12 +46,12 @@ it("shows the top five, masked names and the viewer rank outside it", async () =
   vi.mocked(api.leaderboard).mockResolvedValue({
     weekStartLocalDate: "2026-09-14",
     entries: [
-      { userId: "a", displayName: "Ada L.", xp: 500, level: 4, levelName: "Keeper" },
-      { userId: "b", displayName: "Grace H.", xp: 400, level: 3, levelName: "Reader" },
-      { userId: "c", displayName: "Katherine J.", xp: 300, level: 3, levelName: "Reader" },
-      { userId: "d", displayName: "Mary W.", xp: 200, level: 2, levelName: "Seeker" },
-      { userId: "e", displayName: "Alan T.", xp: 100, level: 2, levelName: "Seeker" },
-      { userId: "student", displayName: "Sam R.", xp: 50, level: 1, levelName: "Seedling" },
+      { userId: "a", displayName: "Ada L.", xp: 500, level: 4, levelName: "Keeper", avatar: initialsAvatar },
+      { userId: "b", displayName: "Grace H.", xp: 400, level: 3, levelName: "Reader", avatar: initialsAvatar },
+      { userId: "c", displayName: "Katherine J.", xp: 300, level: 3, levelName: "Reader", avatar: initialsAvatar },
+      { userId: "d", displayName: "Mary W.", xp: 200, level: 2, levelName: "Seeker", avatar: initialsAvatar },
+      { userId: "e", displayName: "Alan T.", xp: 100, level: 2, levelName: "Seeker", avatar: initialsAvatar },
+      { userId: "student", displayName: "Sam R.", xp: 50, level: 1, levelName: "Seedling", avatar: initialsAvatar },
     ],
     me: { userId: "student", rank: 6, xp: 50, optedIn: true },
   });
@@ -65,7 +66,7 @@ it("shows the top five, masked names and the viewer rank outside it", async () =
 it("highlights the viewer inside the top five", async () => {
   vi.mocked(api.leaderboard).mockResolvedValue({
     weekStartLocalDate: "2026-09-14",
-    entries: [{ userId: "student", displayName: "Sam R.", xp: 500, level: 4, levelName: "Keeper" }],
+    entries: [{ userId: "student", displayName: "Sam R.", xp: 500, level: 4, levelName: "Keeper", avatar: initialsAvatar }],
     me: { userId: "student", rank: 1, xp: 500, optedIn: true },
   });
   renderWith(<LeaderboardCard />);
@@ -77,7 +78,7 @@ it("highlights the viewer inside the top five", async () => {
 it("labels the gamification tier as Level so Rank means only board position", async () => {
   vi.mocked(api.leaderboard).mockResolvedValue({
     weekStartLocalDate: "2026-09-14",
-    entries: [{ userId: "a", displayName: "Ada L.", xp: 500, level: 4, levelName: "Keeper" }],
+    entries: [{ userId: "a", displayName: "Ada L.", xp: 500, level: 4, levelName: "Keeper", avatar: initialsAvatar }],
     me: { userId: "student", rank: null, xp: 0, optedIn: true },
   });
   renderWith(<LeaderboardCard />);
@@ -91,11 +92,11 @@ it("renders the season mini — podium strip, chase row, team footer — when a 
   vi.mocked(api.seasonLeaderboard).mockResolvedValue({
     seasonId: "season-1", seasonName: "Daniel", seasonStatus: "Active", weekStartLocalDate: "2026-09-14",
     entries: [
-      { userId: "a", displayName: "Ada L.", xp: 500, seasonXp: 500, weekXp: 90, streak: 4, level: 4, levelName: "Keeper" },
-      { userId: "student", displayName: "Sam R.", xp: 350, seasonXp: 350, weekXp: 60, streak: 2, level: 3, levelName: "Reader" },
-      { userId: "c", displayName: "Katherine J.", xp: 300, seasonXp: 300, weekXp: 40, streak: 0, level: 3, levelName: "Reader" },
+      { userId: "a", displayName: "Ada L.", xp: 500, seasonXp: 500, weekXp: 90, streak: 4, level: 4, levelName: "Keeper", avatar: initialsAvatar },
+      { userId: "student", displayName: "Sam R.", xp: 350, seasonXp: 350, weekXp: 60, streak: 2, level: 3, levelName: "Reader", avatar: initialsAvatar },
+      { userId: "c", displayName: "Katherine J.", xp: 300, seasonXp: 300, weekXp: 40, streak: 0, level: 3, levelName: "Reader", avatar: initialsAvatar },
     ],
-    me: { userId: "student", optedIn: true, seasonXp: 350, weekXp: 60, streak: 2, totalXp: 350, level: 3, levelName: "Reader", nextLevelName: "Keeper", xpIntoLevel: 50, xpForNext: 100 },
+    me: { userId: "student", optedIn: true, seasonXp: 350, weekXp: 60, streak: 2, totalXp: 350, level: 3, levelName: "Reader", nextLevelName: "Keeper", xpIntoLevel: 50, xpForNext: 100, avatar: initialsAvatar },
   });
   renderWith(<MemoryRouter><LeaderboardCard seasonId="season-1" /></MemoryRouter>);
   const card = await screen.findByTestId("leaderboard-card");
@@ -114,8 +115,8 @@ it("shows the designed zero state in the season mini before anyone scores", asyn
   vi.mocked(api.teamActivity).mockResolvedValue({ practicedToday: 0, practicedThisWeek: 0, memberCount: 6 });
   vi.mocked(api.seasonLeaderboard).mockResolvedValue({
     seasonId: "season-1", seasonName: "Daniel", seasonStatus: "Active", weekStartLocalDate: "2026-09-14",
-    entries: [{ userId: "student", displayName: "Sam R.", xp: 0, seasonXp: 0, weekXp: 0, streak: 0, level: 1, levelName: "Seedling" }],
-    me: { userId: "student", optedIn: true, seasonXp: 0, weekXp: 0, streak: 0, totalXp: 0, level: 1, levelName: "Seedling", nextLevelName: "Seeker", xpIntoLevel: 0, xpForNext: 100 },
+    entries: [{ userId: "student", displayName: "Sam R.", xp: 0, seasonXp: 0, weekXp: 0, streak: 0, level: 1, levelName: "Seedling", avatar: initialsAvatar }],
+    me: { userId: "student", optedIn: true, seasonXp: 0, weekXp: 0, streak: 0, totalXp: 0, level: 1, levelName: "Seedling", nextLevelName: "Seeker", xpIntoLevel: 0, xpForNext: 100, avatar: initialsAvatar },
   });
   renderWith(<MemoryRouter><LeaderboardCard seasonId="season-1" /></MemoryRouter>);
   expect(await screen.findByTestId("leaderboard-mini-zero")).toHaveTextContent("The race is about to start");

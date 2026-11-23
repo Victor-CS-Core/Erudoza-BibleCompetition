@@ -342,6 +342,17 @@ export type TeamActivity = {
   memberCount: number;
 };
 
+/**
+ * A board member's selected profile image: the validated portrait identity —
+ * head appearance for character avatars, the honor key for patch avatars,
+ * `initials` when the student has chosen initials (or set nothing).
+ */
+export type BoardAvatar = {
+  avatarKind: "initials" | "honor" | "character";
+  avatarHonorKey: string | null;
+  character: import("../../shared/profileCharacter").CharacterAppearance | null;
+};
+
 /** Gamification Phase 3 §4 — one weekly leaderboard row. */
 export type LeaderboardEntry = {
   userId: string;
@@ -349,6 +360,7 @@ export type LeaderboardEntry = {
   xp: number;
   level: number;
   levelName: string;
+  avatar: BoardAvatar;
 };
 
 /** Gamification Phase 3 §4 — weekly XP leaderboard response. */
@@ -368,6 +380,7 @@ export type SeasonLeaderboardEntry = {
   streak: number;
   level: number;
   levelName: string;
+  avatar: BoardAvatar;
 };
 
 /** Season leaderboard response — members are the students assigned in the season. */
@@ -389,6 +402,7 @@ export type SeasonLeaderboardResponse = {
     nextLevelName: string | null;
     xpIntoLevel: number;
     xpForNext: number;
+    avatar: BoardAvatar;
   } | null;
 };
 

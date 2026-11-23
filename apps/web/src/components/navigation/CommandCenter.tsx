@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { AppIcon } from "../AppIcon";
 import { Button, Input } from "../ui";
+import { useScrollLock } from "../ui/scrollLock";
 import type { Destination } from "./destinations";
 
 type Props = { items: Destination[]; coach: boolean; onClose: () => void; expanded: string[]; toggleExpanded: (id: string) => void; /** Whether opening the hub focuses the search field. The mobile "More" button passes false so tapping it never pops the keyboard or selects the search text; the search trigger and Ctrl/Cmd+K keep the default. */ focusSearch?: boolean };
@@ -38,6 +39,7 @@ function readRecent(key: string): string[] {
 type SectionHit = Destination & { category?: string; hub: string };
 
 export function CommandCenter({ items, coach, onClose, expanded, toggleExpanded, focusSearch = true }: Props) {
+  useScrollLock();
   const { me } = useAuth();
   const dialog = useRef<HTMLDialogElement>(null);
   const focusSearchOnOpen = useRef(focusSearch);

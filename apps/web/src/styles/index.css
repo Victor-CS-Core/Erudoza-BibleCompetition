@@ -28,6 +28,19 @@ body {
   font-family: var(--font-sans);
   background: var(--er-paper);
   color: var(--er-ink-navy);
+  /* Intentional: no grey tap flash on touch devices; interactive elements
+     carry their own hover/active/focus states instead. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  /* No double-tap zoom delay on interactive elements. */
+  touch-action: manipulation;
 }
 
 button,

@@ -1,5 +1,5 @@
 /* Shared game layer: progress context, identity, and moments. Token-driven only. */
-.game-level-crest { position: relative; display: inline-grid; place-items: center; flex: none; border-radius: 50%; border: 2px solid var(--er-kraft); background: var(--er-parchment); color: var(--er-kraft-dark); font-weight: 800; font-variant-numeric: tabular-nums; box-shadow: inset 0 0 0 2px var(--er-card); }
+.game-level-crest { position: relative; display: inline-grid; place-items: center; flex: none; aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--er-kraft); background: var(--er-parchment); color: var(--er-kraft-dark); font-weight: 800; font-variant-numeric: tabular-nums; box-shadow: inset 0 0 0 2px var(--er-card); }
 .game-level-crest--row { width: 28px; height: 28px; font-size: var(--er-text-xs); }
 .game-level-crest--card { width: 44px; height: 44px; font-size: var(--er-text-base); }
 .game-level-crest--moment { width: 72px; height: 72px; font-size: var(--er-text-title); }
@@ -8,10 +8,20 @@
 .game-level-crest--gold, .game-level-crest--gold-flame { border-color: var(--er-thread-gold); background: color-mix(in srgb, var(--er-thread-gold) 18%, var(--er-card)); color: var(--er-warning-ink); }
 .game-level-crest svg { position: absolute; right: -3px; bottom: -3px; width: 16px; height: 16px; color: var(--er-coral); background: var(--er-card); border-radius: 50%; padding: 1px; }
 .game-level-crest--moment svg { width: 24px; height: 24px; }
-.game-initials-disc { display: inline-grid; place-items: center; flex: none; border-radius: 50%; background: var(--er-selected); color: var(--er-teal); font-weight: 800; border: 1px solid color-mix(in srgb, var(--er-teal) 35%, transparent); }
+.game-initials-disc { display: inline-grid; place-items: center; flex: none; aspect-ratio: 1; border-radius: 50%; background: var(--er-selected); color: var(--er-teal); font-weight: 800; border: 1px solid color-mix(in srgb, var(--er-teal) 35%, transparent); }
 .game-initials-disc--row { width: 28px; height: 28px; font-size: var(--er-text-xs); }
 .game-initials-disc--card { width: 44px; height: 44px; font-size: var(--er-text-sm); }
 .game-initials-disc--moment { width: 72px; height: 72px; font-size: var(--er-text-title); }
+
+/* A board member's selected profile image in the disc slot: a fixed square,
+   circular-clipped frame so a character portrait or patch artwork can never
+   stretch the row it sits in. */
+.game-entry-avatar { display: inline-grid; place-items: center; flex: none; aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: var(--er-selected); }
+.game-entry-avatar--row { width: 28px; height: 28px; }
+.game-entry-avatar--card { width: 44px; height: 44px; }
+.game-entry-avatar--moment { width: 72px; height: 72px; }
+.game-entry-avatar .character-portrait { display: block; width: 100%; height: 100%; }
+.game-entry-avatar .character-portrait img { display: block; width: 100%; height: 100%; object-fit: contain; }
 
 .game-xp-bar { display: grid; gap: 6px; min-width: 0; }
 .game-xp-bar__caption { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; font-size: var(--er-text-sm); }
@@ -33,7 +43,7 @@
 
 .game-player-card { background: var(--er-navy-surface); color: var(--er-on-navy); border-color: transparent; overflow: hidden; }
 .game-player-card__content { display: grid; gap: var(--er-space-4); min-width: 0; }
-.game-player-card__title { margin: 0; font-size: var(--er-text-section); line-height: 1.08; letter-spacing: -.02em; }
+.game-player-card__title { margin: 0; font-size: var(--er-text-section); line-height: 1.08; letter-spacing: -.02em; color: var(--er-on-navy); }
 .game-player-card__description { margin: 0; color: var(--er-on-navy-muted); max-width: 58ch; }
 .game-player-card__identity { display: flex; align-items: center; gap: var(--er-space-3); min-width: 0; }
 .game-player-card__avatar { display: inline-grid; place-items: center; flex: none; }
@@ -51,9 +61,9 @@
 .game-player-card--banner::after { content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none; background: linear-gradient(90deg, var(--er-navy-surface) 0%, var(--er-navy-surface) 34%, transparent 82%); }
 .game-player-card--banner .game-player-card__content { padding: var(--er-space-8); width: 62%; }
 @media (max-width: 760px) {
-  .game-player-card--banner { aspect-ratio: auto; min-height: 380px; align-items: flex-start; }
-  .game-player-card--banner .game-player-card__content { width: 100%; padding: var(--er-space-6); padding-bottom: 132px; }
-  .game-player-card--banner::after { background: linear-gradient(180deg, var(--er-navy-surface) 0%, var(--er-navy-surface) 48%, transparent 100%); }
+  .game-player-card--banner { aspect-ratio: auto; min-height: 344px; align-items: flex-start; }
+  .game-player-card--banner .game-player-card__content { width: 100%; padding: var(--er-space-6); padding-bottom: var(--er-space-8); }
+  .game-player-card--banner::after { background: linear-gradient(180deg, var(--er-navy-surface) 0%, var(--er-navy-surface) 52%, color-mix(in srgb, var(--er-navy-surface) 62%, transparent) 82%, transparent 100%); }
   .game-player-card__title { font-size: var(--er-text-title); }
 }
 @media (forced-colors: active) { .game-player-card--banner .training-hq-banner, .game-player-card--banner::after { display: none; } }
@@ -65,7 +75,7 @@
 .game-quest-card__reward { font-size: var(--er-text-xs); font-weight: 700; color: var(--er-teal); white-space: nowrap; }
 .game-quest-card p { margin: 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
 .game-quest-card__pips { display: flex; gap: 5px; }
-.game-quest-card__pips span { width: 18px; height: 6px; border-radius: 999px; background: var(--er-border); }
+.game-quest-card__pips span { flex: none; width: 18px; height: 6px; border-radius: 999px; background: var(--er-border); }
 .game-quest-card__pips span.is-done { background: var(--er-teal); }
 .game-quest-card__status { font-weight: 600; }
 .game-quest-card__status.is-done { display: flex; align-items: center; gap: 6px; color: var(--er-success-ink); }
@@ -93,6 +103,7 @@
 
 .game-moment-card { position: relative; overflow: hidden; display: flex; gap: var(--er-space-6); align-items: center; }
 .game-moment-card.is-big { background: var(--er-navy-surface); color: var(--er-on-navy); border-color: transparent; }
+.game-moment-card.is-big h2 { color: var(--er-on-navy); }
 .game-moment-card__art { display: grid; place-items: center; flex: none; }
 .game-moment-card__copy { display: grid; gap: var(--er-space-3); flex: 1; min-width: 0; }
 .game-moment-card__copy h2, .game-moment-card__copy p { margin: 0; }
@@ -115,6 +126,8 @@
 .game-podium__item { display: grid; justify-items: center; gap: 5px; min-width: 0; padding: var(--er-space-4) var(--er-space-2) 0; text-align: center; border-radius: var(--er-radius-card) var(--er-radius-card) 0 0; background: var(--er-card); border: 1px solid var(--er-border); border-bottom: 0; }
 .game-podium__item.is-rank-1 { padding-top: var(--er-space-6); background: color-mix(in srgb, var(--er-thread-gold) 10%, var(--er-card)); border-color: color-mix(in srgb, var(--er-thread-gold) 55%, var(--er-border)); }
 .game-podium__item.is-me { box-shadow: inset 0 0 0 2px var(--er-teal); }
+.game-podium__face { position: relative; display: inline-grid; }
+.game-podium__face .game-podium__crest { position: absolute; right: -7px; bottom: -5px; box-shadow: 0 0 0 2px var(--er-card), inset 0 0 0 2px var(--er-card); }
 .game-podium__item strong { max-width: 100%; overflow-wrap: anywhere; }
 .game-podium__rank { font-weight: 800; color: var(--er-muted-ink); }
 .game-podium__xp { font-weight: 750; font-variant-numeric: tabular-nums; }
@@ -139,16 +152,20 @@
 .season-board-yr-progress b { color: var(--er-on-navy); }
 .season-board-zero { max-width: 640px; display: grid; gap: var(--er-space-3); justify-items: start; }
 .season-board-zero h3, .season-board-zero p { margin: 0; }
-.season-board-zero-plinths { display: flex; gap: var(--er-space-3); align-items: end; }
-.season-board-zero-plinth { display: grid; place-items: center; width: 64px; background: var(--er-surface-soft); border: 1px dashed var(--er-border); border-bottom: 0; border-radius: var(--er-radius-control) var(--er-radius-control) 0 0; padding-top: var(--er-space-3); }
-.season-board-zero-plinth.is-rank-1 { height: 76px; }
-.season-board-zero-plinth.is-rank-2 { height: 58px; }
-.season-board-zero-plinth.is-rank-3 { height: 48px; }
-.season-board-zero-crest { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; border: 2px dashed var(--er-kraft); color: var(--er-muted-ink); font-weight: 800; }
+.season-board-zero-plinths { display: grid; grid-template-columns: 1fr 1.12fr 1fr; gap: var(--er-space-3); align-items: end; width: 100%; max-width: 420px; }
+.season-board-zero-plinth { display: grid; justify-items: center; align-content: start; gap: var(--er-space-2); background: transparent; border: 1px dashed var(--er-border); border-bottom: 0; border-radius: var(--er-radius-control) var(--er-radius-control) 0 0; padding: var(--er-space-3) var(--er-space-2) 0; }
+.season-board-zero-plinth.is-rank-1 { padding-top: var(--er-space-4); }
+.season-board-zero-rank { font-size: var(--er-text-xs); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--er-muted-ink); }
+.season-board-zero-plinth.is-rank-1 .season-board-zero-rank { color: var(--er-warning-ink); }
+.season-board-zero-crest { display: grid; place-items: center; flex: none; aspect-ratio: 1; width: 38px; height: 38px; border-radius: 50%; border: 2px dashed var(--er-kraft); color: var(--er-muted-ink); font-weight: 800; }
+.season-board-zero-plinth.is-rank-1 .season-board-zero-crest { width: 46px; height: 46px; border-color: var(--er-thread-gold); color: var(--er-warning-ink); }
+.season-board-zero-open { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+.season-board-zero-base { display: block; width: calc(100% + 2 * var(--er-space-2)); height: 10px; margin-top: var(--er-space-1); background: var(--er-border); }
+.season-board-zero-plinth.is-rank-1 .season-board-zero-base { height: 22px; background: var(--er-thread-gold); }
 .season-board-zero-line-label { font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--er-muted-ink); }
 .season-board-zero-line { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--er-space-2); width: 100%; }
 .season-board-zero-line li { display: flex; align-items: center; gap: var(--er-space-3); }
-.season-board-zero-line li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.season-board-zero-line__name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 
 /* HQ leaderboard mini: podium strip + chase row + team footer line. */
 .game-leaderboard-mini__strip { list-style: none; margin: 0 0 var(--er-space-3); padding: 0; display: grid; gap: var(--er-space-2); }

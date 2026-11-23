@@ -24,6 +24,7 @@ vi.mock("../../auth/AuthContext", () => ({
 }));
 
 import { SeasonLeaderboardPage } from "./SeasonLeaderboardPage";
+const initialsAvatar = { avatarKind: "initials", avatarHonorKey: null, character: null } as const;
 
 const baseBoard: SeasonLeaderboardResponse = {
   seasonId: "season-1",
@@ -31,11 +32,11 @@ const baseBoard: SeasonLeaderboardResponse = {
   seasonStatus: "Active",
   weekStartLocalDate: "2026-09-14",
   entries: [
-    { userId: "maya", displayName: "Maya R.", xp: 845, seasonXp: 845, weekXp: 210, streak: 4, level: 5, levelName: "Scribe" },
-    { userId: "jonah", displayName: "Jonah K.", xp: 650, seasonXp: 650, weekXp: 240, streak: 0, level: 4, levelName: "Keeper" },
-    { userId: "me", displayName: "Sam R.", xp: 612, seasonXp: 612, weekXp: 150, streak: 6, level: 4, levelName: "Keeper" },
+    { userId: "maya", displayName: "Maya R.", xp: 845, seasonXp: 845, weekXp: 210, streak: 4, level: 5, levelName: "Scribe", avatar: initialsAvatar },
+    { userId: "jonah", displayName: "Jonah K.", xp: 650, seasonXp: 650, weekXp: 240, streak: 0, level: 4, levelName: "Keeper", avatar: initialsAvatar },
+    { userId: "me", displayName: "Sam R.", xp: 612, seasonXp: 612, weekXp: 150, streak: 6, level: 4, levelName: "Keeper", avatar: initialsAvatar },
   ],
-  me: { userId: "me", optedIn: true, seasonXp: 612, weekXp: 150, streak: 6, totalXp: 612, level: 4, levelName: "Keeper", nextLevelName: "Scribe", xpIntoLevel: 112, xpForNext: 288 },
+  me: { userId: "me", optedIn: true, seasonXp: 612, weekXp: 150, streak: 6, totalXp: 612, level: 4, levelName: "Keeper", nextLevelName: "Scribe", xpIntoLevel: 112, xpForNext: 288, avatar: initialsAvatar },
 };
 
 function renderPage() {
@@ -92,7 +93,7 @@ describe("SeasonLeaderboardPage", () => {
     apiMocks.seasonLeaderboard.mockResolvedValue({
       ...baseBoard,
       entries: [],
-      me: { ...baseBoard.me!, seasonXp: 0, weekXp: 0, streak: 0, totalXp: 0, level: 1, levelName: "Seedling", nextLevelName: "Seeker", xpIntoLevel: 0, xpForNext: 100 },
+      me: { ...baseBoard.me!, seasonXp: 0, weekXp: 0, streak: 0, totalXp: 0, level: 1, levelName: "Seedling", nextLevelName: "Seeker", xpIntoLevel: 0, xpForNext: 100, avatar: initialsAvatar },
     });
     renderPage();
     expect(await screen.findByText("No scores yet — be the first on the board")).toBeInTheDocument();
@@ -118,7 +119,7 @@ describe("SeasonLeaderboardPage", () => {
     apiMocks.seasonLeaderboard.mockResolvedValue({
       ...baseBoard,
       entries: baseBoard.entries.map(entry => ({ ...entry, xp: 0, seasonXp: 0, weekXp: 0 })),
-      me: { ...baseBoard.me!, seasonXp: 0, weekXp: 0, totalXp: 0, level: 1, levelName: "Seedling", nextLevelName: "Seeker", xpIntoLevel: 0, xpForNext: 100 },
+      me: { ...baseBoard.me!, seasonXp: 0, weekXp: 0, totalXp: 0, level: 1, levelName: "Seedling", nextLevelName: "Seeker", xpIntoLevel: 0, xpForNext: 100, avatar: initialsAvatar },
     });
     renderPage();
     const zero = await screen.findByTestId("season-board-zero");

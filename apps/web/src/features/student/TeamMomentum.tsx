@@ -3,7 +3,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { api } from "../../api/client";
 import { Badge, Button, LinkButton, LoadingState, Notice, Panel } from "../../components/ui";
 import { AppIcon } from "../../components/AppIcon";
-import { ChaseBar, LevelCrest } from "../../components/game/GameLayer";
+import { ChaseBar, EntryAvatar, LevelCrest } from "../../components/game/GameLayer";
 import { trainingLink } from "./trainingAssets";
 import type { LeaderboardResponse } from "../../api/types";
 
@@ -73,6 +73,7 @@ function BoardRows({ board }: { board: LeaderboardResponse }) {
   return <ol className="leaderboard-list">
     {top.map((entry, index) => <li key={entry.userId} className={board.me?.userId === entry.userId ? "is-me" : ""} data-testid={`leaderboard-row-${index + 1}`}>
       <span className="leaderboard-rank" aria-label={`Position ${index + 1}`}>{index + 1}</span>
+      <EntryAvatar avatar={entry.avatar} name={entry.displayName} />
       <span className="leaderboard-name">{entry.displayName}{board.me?.userId === entry.userId && <Badge tone="info">You</Badge>}</span>
       <span className="leaderboard-xp"><strong>{entry.xp}</strong> XP</span>
       <Badge tone="neutral">Level {entry.level}</Badge>
@@ -120,6 +121,7 @@ function SeasonLeaderboardMini({ seasonId }: { seasonId: string }) {
             {top.map((entry, index) => <li key={entry.userId} className={data.me?.userId === entry.userId ? "is-me" : ""} data-testid={`leaderboard-mini-row-${index + 1}`}>
               <span className="leaderboard-rank" aria-label={`Position ${index + 1}`}>{index + 1}</span>
               <LevelCrest level={entry.level} levelName={entry.levelName} />
+              <EntryAvatar avatar={entry.avatar} name={entry.displayName} />
               <span className="game-leaderboard-mini__name">{entry.displayName}{data.me?.userId === entry.userId && <Badge tone="info">You</Badge>}</span>
               <span className="game-leaderboard-mini__xp">{entry.seasonXp} XP</span>
             </li>)}

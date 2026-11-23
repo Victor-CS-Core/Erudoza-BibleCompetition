@@ -1,11 +1,13 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { Button } from "./index";
+import { useScrollLock } from "./scrollLock";
 
 export function TrainingDialog({ open, title, onClose, children, pending = false, className = "" }: {
   open: boolean; title: string; onClose(): void; children: ReactNode; pending?: boolean; className?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  useScrollLock(open);
   useEffect(() => {
     if (!open) return;
     const trigger = document.activeElement as HTMLElement | null;

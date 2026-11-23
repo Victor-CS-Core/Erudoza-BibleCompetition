@@ -69,7 +69,8 @@
 .command-context-links>a:hover,.command-context-links>a[aria-current=location] { color:var(--er-action-blue); border-bottom-color:var(--er-teal); }
 .command-study-back { display:flex; align-items:center; gap:8px; font-size:var(--er-text-sm); color:var(--er-action-blue); margin-left:auto; }
 .command-app [id] { scroll-margin-top:24px; }
-.command-dialog { position:fixed; inset:0; margin:auto; width:min(740px,calc(100vw - 32px)); max-height:min(760px,calc(100dvh - 48px)); padding:0; border:1px solid var(--er-border); border-radius:var(--er-radius-sheet); color:var(--er-ink-navy); background:var(--er-card); }
+.command-dialog { position:fixed; inset:0; margin:auto; width:min(740px,calc(100vw - 32px)); max-height:min(760px,calc(100dvh - 48px)); padding:0; border:1px solid var(--er-border); border-radius:var(--er-radius-sheet); color:var(--er-ink-navy); background:var(--er-card); overscroll-behavior: contain; }
+.command-results { overscroll-behavior: contain; }
 .command-dialog[open] { display:flex; flex-direction:column; }
 .command-dialog::backdrop { background:color-mix(in srgb,var(--er-navy-surface) 28%,transparent); }
 .command-dialog-heading { display:flex; align-items:center; justify-content:space-between; padding:16px 20px 0; }
