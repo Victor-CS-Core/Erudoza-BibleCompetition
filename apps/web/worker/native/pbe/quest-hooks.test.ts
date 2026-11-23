@@ -90,6 +90,15 @@ it('credits the mission (start) date when a Practice session crosses midnight (D
     };
     const w = await preparePbeEffort(ctx, s, afterMidnight);
     await atomic(ctx, 'pbe-midnight.test', w.statements, w.guards);
+    // The reward snapshot rides on the attempt's stored result: it carries
+    // the full awarded delta, bracketed by the learner's before/after
+    // lifetime totals (a fresh learner starts at 0).
+    const reward = s.attempts.at(-1)!.result.xpReward;
+    expect(reward).toBeDefined();
+    expect(reward!.earned).toBe(s.xpEarned);
+    expect(reward!.before.total).toBe(0);
+    expect(reward!.after.total).toBe(reward!.earned);
+    expect(reward!.after.level).toBe(1);
     // Day credit belongs to the start date, not the post-midnight attempt date.
     expect(s.creditedLocalDate).toBe(startDate);
     expect(s.newlyCreditedDay).toBe(true);
@@ -187,4 +196,35 @@ it('progresses explorer and comeback through preparePbeEffort with distinct coun
     const comeback3 = quests.find(q => q.key === 'comeback')!;
     expect(comeback3.progress).toBe(2);
     expect(comeback3.countedIds).toEqual(['q1', 'q2']);
+});
+
+it('stamps the reward snapshot with the partial-credit amount actually awarded (D3)', async () => {
+    const student4 = '99999999-9999-4999-8999-999999999999';
+    await insertStudent(student4, 'pbe-partial-student');
+    const ctx = studentCtx(student4), store = new Store(app.db as unknown as Env['DB']);
+    const sid = 'pbe-partial-session', localDate = '2026-09-17', at = `${localDate}T12:00:00Z`;
+    const mission: PbeMission = { id: sid, format: 'Pbe', ruleVersion: 'r', scoringVersion: 's', selectionVersion: 'sel', seasonId: 's1', sessionId: sid, scopeVersion: 'v', localDate, timeZone: 'UTC', mode: 'Practice', target: 4, completed: 0 };
+    await store.insert('pbe-daily-mission', sid, TEST_ORG, mission, { seasonId: 's1' });
+    const s: PbeSession = {
+        id: sid, format: 'Pbe', studentUserId: student4, seasonId: 's1', mode: 'Practice', status: 'Active',
+        scopeVersion: 'v', ruleVersion: 'r', scoringVersion: 's', selectionVersion: 'sel', questionIds: ['q1', 'q1', 'q1', 'q2'],
+        // Partial credit on the last attempt: 1 of 2 points, unaided → half
+        // of the full 10 = 5 XP. The two earlier scoreless serves of q1 make
+        // the question non-fresh (no Explorer completion joins the award),
+        // a partial is not a comeback repair, and the deck is unfinished
+        // (3 of 4 cards), so no day credit joins either — the snapshot is
+        // the attempt's own award.
+        cards: [card('c0', 'q1'), card('c1', 'q1'), card('c2', 'q1'), card('c3', 'q2')],
+        attempts: [attempt('a0', 'c0', 0), attempt('a1', 'c1', 0), attempt('a2', 'c2', 1)],
+        createdAtUtc: at, startPayload: '{}', missionLocalDate: localDate, creditedLocalDate: null, newlyCreditedDay: false,
+    };
+    const w = await preparePbeEffort(ctx, s, at);
+    await atomic(ctx, 'pbe-partial.test', w.statements, w.guards);
+    const reward = s.attempts.at(-1)!.result.xpReward;
+    expect(reward).toBeDefined();
+    expect(reward!.earned).toBe(5);
+    expect(reward!.before).toMatchObject({ total: 0, level: 1, xpIntoLevel: 0, xpForNext: 100 });
+    expect(reward!.after).toMatchObject({ total: 5, level: 1, xpIntoLevel: 5, xpForNext: 95 });
+    const xp = (await store.list<XpRecord>('training-xp', TEST_ORG, { ownerId: student4 }))[0];
+    expect(xp.totalXp).toBe(5);
 });

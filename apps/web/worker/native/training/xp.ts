@@ -101,6 +101,40 @@ export interface AwardXpOptions {
 export interface AwardXpResult {
     awarded: number;
     leveledUp: { from: number; to: number } | null;
+    /** Lifetime total immediately before / after this award (authoritative — read from the record the award mutated). */
+    totalBefore: number;
+    totalAfter: number;
+}
+
+/** One learner's level state at a specific lifetime total. */
+export interface XpLevelSnapshot {
+    total: number;
+    level: number;
+    levelName: string;
+    xpIntoLevel: number;
+    xpForNext: number;
+}
+
+/** Level snapshot for a lifetime total (pure derivation from the curve). */
+export function levelSnapshot(totalXp: number): XpLevelSnapshot {
+    const total = Math.max(0, Math.floor(totalXp));
+    return { total, ...levelForXp(total) };
+}
+
+/**
+ * The per-attempt reward payload the client animates: the XP this attempt
+ * actually earned plus the learner's level state immediately before and
+ * after, all computed here from the award's own record — the client never
+ * recomputes totals or curve math.
+ */
+export interface XpReward {
+    earned: number;
+    before: XpLevelSnapshot;
+    after: XpLevelSnapshot;
+}
+
+export function xpReward(totalBefore: number, totalAfter: number): XpReward {
+    return { earned: totalAfter - totalBefore, before: levelSnapshot(totalBefore), after: levelSnapshot(totalAfter) };
 }
 
 /** Prune per-day history older than 400 days so the record stays small (400 days keeps a full season's pinned weeks reachable). */
@@ -125,6 +159,7 @@ export async function awardXp(ctx: RequestContext, w: Writes, opts: AwardXpOptio
     const id = identity(ctx), old = await ctx.store.get<XpRecord>('training-xp', id, ctx.orgId);
     const rec: XpRecord = old?.value ?? { id, totalXp: 0, xpBySeason: {}, attemptXpByDay: {}, xpByDay: {}, xpByDaySeason: {}, updatedAtUtc: opts.atUtc };
     rec.xpByDaySeason ??= {};
+    const totalBefore = rec.totalXp;
     const fromLevel = levelForXp(rec.totalXp).level;
     let awarded = 0;
     for (const event of opts.events) {
@@ -148,7 +183,7 @@ export async function awardXp(ctx: RequestContext, w: Writes, opts: AwardXpOptio
     rec.updatedAtUtc = opts.atUtc;
     if (awarded > 0 || !old) write(ctx, w, 'training-xp', id, rec, old);
     const toLevel = levelForXp(rec.totalXp).level;
-    return { awarded, leveledUp: toLevel > fromLevel ? { from: fromLevel, to: toLevel } : null };
+    return { awarded, leveledUp: toLevel > fromLevel ? { from: fromLevel, to: toLevel } : null, totalBefore, totalAfter: rec.totalXp };
 }
 
 export interface XpSummary {

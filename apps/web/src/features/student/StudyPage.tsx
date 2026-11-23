@@ -24,6 +24,9 @@ import { MissingWordsInput } from './MissingWordsInput';
 import { VerseBuilderInput } from "./VerseBuilderInput";
 import { ScriptureReader } from "./ScriptureReader";
 import { RecitationPanel } from "./RecitationPanel";
+import { useProfileIdentity } from "../profile/profile";
+import { XpRewardOverlay, useXpReward } from "../../components/game/XpReward";
+import type { BoardAvatar } from "../../api/types";
 import { PbeStudyPage, reviewReturnDetail } from './PbeStudyPage';
 import { StudyModeSelect } from './StudyModeSelect';
 import { trainingApi } from '../../api/training';
@@ -94,6 +97,16 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const startIntent = useRef<{ key: string; context: StartTrainingContext } | null>(null);
   const progress = useQuery({ queryKey: ["progress", selectedSeasonId, me?.organizationId, me?.userId], queryFn: () => api.progress(selectedSeasonId) });
   const game = useQuery({ queryKey: ["training-today", selectedSeasonId, me?.organizationId, me?.userId], queryFn: () => trainingApi.today(selectedSeasonId), retry: false, staleTime: 60_000 });
+  // XP reward animation: fired from the submit success path only (never for
+  // restored/replayed results), with the student's real profile identity.
+  const xpReward = useXpReward();
+  const identity = useProfileIdentity(me?.userId ?? "");
+  const rewardAvatar: BoardAvatar | null = identity.data ? {
+    avatarKind: identity.data.avatarKind ?? (identity.data.avatarHonorKey ? "honor" : "initials"),
+    avatarHonorKey: identity.data.avatarHonorKey,
+    character: identity.data.character ?? null,
+  } : null;
+  const feedbackRef = useRef<HTMLDivElement>(null);
   const [purposeChoice,setPurposeChoice]=useState<{seasonId:string;purpose:"Warmup"|"Advanced"}|null>(null);
   const memoryChallenge=purposeChoice?.seasonId===progress.data?.seasonId?purposeChoice?.purpose:undefined;
   const choosePurpose=!!progress.data?.pbeEnabled&&!requestedSessionId&&!memoryChallenge;
@@ -188,9 +201,12 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
       sessionStorage.setItem("erudoza:attempt:" + sessionId, JSON.stringify(pendingAttempt.current));
       return api.submitAttempt(sessionId!, pendingAttempt.current);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       sessionStorage.removeItem("erudoza:attempt:" + sessionId);
       sessionStorage.removeItem(`erudoza:attempt:read:${sessionId}:${card.data!.id}`);
+      // Fresh, correct, first-time results only: replays (alreadyProcessed)
+      // and restored attempts render feedback without the reward animation.
+      if (data.isCorrect && !data.alreadyProcessed) xpReward.fire(data.xpReward);
     },
   });
 
@@ -274,7 +290,6 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   // In-session game feedback (B1): newer results carry the XP the attempt
   // earned and the running session streak; legacy results omit both and
   // simply render no line.
-  const resultXpFields = result as (AttemptResult & { xpEarned?: number; sessionStreak?: number }) | undefined;
   const accepted = !!result;
   const current = card.data;
   const submittedText = result?.submittedAnswer ?? answer;
@@ -397,7 +412,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           </p>
         ) : null}
       {result ? (
-        <div className="student-feedback" data-testid="challenge-feedback" role="status" aria-live="polite">
+        <div className="student-feedback" data-testid="challenge-feedback" role="status" aria-live="polite" ref={feedbackRef}>
           {result.isCorrect ? <Badge tone="success">Correct</Badge> : <Badge tone="warning">Not quite yet</Badge>}
           <p className="mt-3 text-lg font-semibold text-[var(--er-ink-navy)]">{result.isCorrect ? "Well remembered" : "Take another look"}</p>
           {result.citation !== current?.citation && <p className="mt-2 text-sm" data-testid="feedback-citation">
@@ -429,8 +444,8 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           <p className="mt-3 text-sm text-[var(--er-success-ink)]" data-testid="mastery-impact">
             Your {result.skillLabel ?? "wording"} score: {result.skillScore ?? result.exactWordingScore} / 100 · Level: {result.masteryLevel}
           </p>
-          {typeof resultXpFields?.xpEarned === "number" && <p className="mt-2 text-sm" data-testid="session-xp-line">
-            +{resultXpFields.xpEarned} XP{typeof resultXpFields.sessionStreak === "number" && resultXpFields.sessionStreak >= 2 ? ` · Session streak ${resultXpFields.sessionStreak}` : ""}
+          {typeof result?.xpEarned === "number" && <p className="mt-2 text-sm" data-testid="session-xp-line">
+            +{result.xpEarned} XP{typeof result.sessionStreak === "number" && result.sessionStreak >= 2 ? ` · Session streak ${result.sessionStreak}` : ""}
           </p>}
           <p className="mt-2 text-sm" data-testid="assistance-note">
             {readerOpened
@@ -524,6 +539,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           }}
         />}
       </section>}
+      <XpRewardOverlay reward={xpReward.reward} name={me?.displayName ?? "You"} avatar={rewardAvatar} getAnchor={() => feedbackRef.current} />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import type { PbeAttempt, PbeSession } from './sessions';
 import type { DayRecord, WeekRecord, Writes } from '../training/store';
 import { awardStreakBadges, identity, preference, recordBests, resolvePreference, write } from '../training/store';
 import type { BestsInput } from '../training/store';
-import { awardXp, xpSummary, XP_VALUES, type XpEvent } from '../training/xp';
+import { awardXp, xpReward, xpSummary, XP_VALUES, type XpEvent } from '../training/xp';
 import { getDailyQuests, inTeamRoom, progressQuests, questDto, type QuestKey } from '../training/quests';
 import { bestStreak, creditedDates, streakCount, streakStatus } from '../training/streak';
 import { addDays, resolveTrainingCalendar } from '../training/calendar';
@@ -121,6 +121,9 @@ export async function awardPbeSimulationAttemptXp(ctx: RequestContext, s: PbeSes
     s.xpEarned = (s.xpEarned ?? 0) + awarded.awarded;
     if (awarded.leveledUp)
         s.leveledUp = { from: s.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
+    // Stored on the attempt's result so the client animates exactly what was
+    // awarded (Simulation receipts never surface it — feedback is deferred).
+    attempt.result.xpReward = xpReward(awarded.totalBefore, awarded.totalAfter);
     return w;
 }
 
@@ -192,6 +195,11 @@ export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: s
         s.xpEarned = (s.xpEarned ?? 0) + awarded.awarded;
         if (awarded.leveledUp)
             s.leveledUp = { from: s.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
+        // The attempt's reward snapshot rides on its stored result, so the
+        // client animates exactly what was awarded — before/after totals
+        // come from the award itself, never a client recomputation.
+        if (lastAttempt)
+            lastAttempt.result.xpReward = xpReward(awarded.totalBefore, awarded.totalAfter);
     }
     // The same preference revision serializes day/week races with Memory sessions.
     write(ctx, w, 'training-preferences', p.id, p, old);

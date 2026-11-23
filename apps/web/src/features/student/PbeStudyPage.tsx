@@ -3,7 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import { api, ApiError } from '../../api/client';
-import type { Progress, Session } from '../../api/types';
+import type { Progress, Session, BoardAvatar } from '../../api/types';
+import { useProfileIdentity } from '../profile/profile';
+import { XpRewardOverlay, useXpReward } from '../../components/game/XpReward';
 import type { PbeAttemptResult, PbePresentationState, PbeResumedSession, PbeSessionCard, PbeSubmission, PbeTimedReceipt } from '../../api/pbeTypes';
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from '../../components/ui';
 import { AppIcon } from '../../components/AppIcon';
@@ -123,6 +125,17 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     const [answers, setAnswers] = useState<string[]>(() => saved?.card ? pending(saved.session.id, saved.card.id)?.answers ?? saved.card.question.partPoints.map(() => '') : []);
     const [presentation,setPresentation]=useState<PbePresentationState|null>(null),[timedReceipt,setTimedReceipt]=useState<PbeTimedReceipt|null>(saved?.attempt && 'feedbackDeferred' in saved.attempt && saved.attempt.questionId===saved.card?.id ? saved.attempt : null),[interruptionSummary,setInterruptionSummary]=useState(saved?.interruption?saved.summary:null),[timingError,setTimingError]=useState(''),[tick,setTick]=useState(0);
     const warned=useRef(''), serverClock=useRef<{server:number;observed:number}|null>(null);
+    // XP reward animation: fired from the submit success path only (never
+    // for restored/replayed results or Simulation's deferred receipts), with
+    // the student's real profile identity.
+    const xpReward = useXpReward();
+    const identity = useProfileIdentity(me?.userId ?? "");
+    const rewardAvatar: BoardAvatar | null = identity.data ? {
+        avatarKind: identity.data.avatarKind ?? (identity.data.avatarHonorKey ? "honor" : "initials"),
+        avatarHonorKey: identity.data.avatarHonorKey,
+        character: identity.data.character ?? null,
+    } : null;
+    const feedbackRef = useRef<HTMLDivElement>(null);
     const frozen = useRef<PbeSubmission | null>(saved?.card ? pending(saved.session.id, saved.card.id) : null), startId = useRef(params.get('startId') ?? crypto.randomUUID());
     const recapped = useRef(false);
     const complete = useMutation({ mutationFn: () => api.completeSession(session!.id), onSuccess: () => { for (const key of ['progress', 'training-today', 'training-journey', 'training-honors', 'pbe-chapters', 'pbe-cooperation'])
@@ -143,7 +156,8 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
             frozen.current ??= { clientSubmissionId: crypto.randomUUID(), challengeCardId: card!.id, answers: [...answers], hintsUsed: card!.assisted };
             sessionStorage.setItem(`erudoza:pbe-attempt:${session!.id}`, JSON.stringify(frozen.current));
             return mode === 'Simulation' ? api.pbeTimed(session!.id, { action: 'submit', questionId: card!.id, revision: presentation!.revision, answers: frozen.current.answers, clientSubmissionId: frozen.current.clientSubmissionId }) : api.submitPbeAttempt(session!.id, frozen.current);
-        }, onSuccess: r => { if (mode === 'Simulation') { setTimedReceipt(r as PbeTimedReceipt); if (card!.sequence === card!.total) complete.mutate(); else next.mutate(session!.id); } else setResult(r as PbeAttemptResult); sessionStorage.removeItem(`erudoza:pbe-attempt:${session!.id}`); frozen.current = null; } });
+        }, onSuccess: r => { if (mode === 'Simulation') { setTimedReceipt(r as PbeTimedReceipt); if (card!.sequence === card!.total) complete.mutate(); else next.mutate(session!.id); } else { const pbeResult = r as PbeAttemptResult; setResult(pbeResult); // Full or partial credit only (scoreless answers trigger nothing), fresh results only — replays keep their stored numbers without re-animating.
+            if (pbeResult.earnedPoints > 0 && !pbeResult.alreadyProcessed) xpReward.fire(pbeResult.xpReward); } sessionStorage.removeItem(`erudoza:pbe-attempt:${session!.id}`); frozen.current = null; } });
     useEffect(() => {
         if (saved?.summary && !recapped.current) {
             if (saved.interruption) return;
@@ -333,11 +347,12 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     {mode === 'Simulation' && presentation && <><p role="timer">{presentation.responseStartsAtMs && displayedNow < presentation.responseStartsAtMs ? 'Response starts shortly' : `${remaining} seconds remaining`}</p>{warned.current === card.id && remaining !== null && remaining <= 10 && <Notice>Ten seconds remain.</Notice>}</>}
     {card.question.kind === 'TrueFalse' ? <div className="mt-6 flex flex-wrap gap-3" aria-label="True or false">{['True', 'False'].map(value => <Button key={value} aria-pressed={answers[0] === value} variant={answers[0] === value ? 'primary' : 'secondary'} disabled={locked} onClick={() => setAnswers([value])}>{value}</Button>)}</div> : <PbeAnswerInput partPoints={card.question.partPoints} answers={answers} onChange={setAnswers} disabled={locked}/>}
     {frozen.current && !result && <Notice className="mt-4">Saved answer awaiting confirmation. Retry sends these exact answers.</Notice>}
-    {result && mode !== 'Simulation' && <div className="student-feedback" role="status" data-testid="challenge-feedback"><Badge tone={result.earnedPoints === result.availablePoints ? 'success' : 'warning'}>{result.earnedPoints} / {result.availablePoints} points</Badge><h3 className="mt-3">Expected answers</h3><ol className="space-y-3">{result.expectedParts.map((part, i) => <PbePartFeedback key={i} index={i} expected={part} submitted={answers[i] ?? ''} points={card.question.partPoints[i]} />)}</ol><p className="mt-3">{result.citation}</p><p className="er-scripture" data-testid="feedback-source">{result.sourceEvidence}</p><p className="mt-3">{result.unaided ? 'Unaided answer saved. Missed targets remain due for review.' : 'Practice with assistance saved. This answer does not establish unaided recall.'}</p></div>}
+    {result && mode !== 'Simulation' && <div className="student-feedback" role="status" data-testid="challenge-feedback" ref={feedbackRef}><Badge tone={result.earnedPoints === result.availablePoints ? 'success' : 'warning'}>{result.earnedPoints} / {result.availablePoints} points</Badge><h3 className="mt-3">Expected answers</h3><ol className="space-y-3">{result.expectedParts.map((part, i) => <PbePartFeedback key={i} index={i} expected={part} submitted={answers[i] ?? ''} points={card.question.partPoints[i]} />)}</ol><p className="mt-3">{result.citation}</p><p className="er-scripture" data-testid="feedback-source">{result.sourceEvidence}</p><p className="mt-3">{result.unaided ? 'Unaided answer saved. Missed targets remain due for review.' : 'Practice with assistance saved. This answer does not establish unaided recall.'}</p></div>}
     <div className="student-study-actions"><Button data-testid="submit-answer" disabled={!!result || submit.isPending || !answers.some(a => a.trim()) || mode === 'Simulation' && (!presentation?.responseStartsAtMs || displayedNow < presentation.responseStartsAtMs)} onClick={() => submit.mutate()}>{submit.isPending ? 'Saving…' : timedReceipt ? 'Answer saved' : result ? 'Answer checked' : frozen.current ? 'Retry saved answer' : 'Check answer'}</Button>{result && card.sequence < card.total && <Button data-testid="next-card" disabled={next.isPending} onClick={() => { submit.reset(); next.mutate(session!.id); }}>Next card</Button>}<Button data-testid="complete-session" variant={result && card.sequence === card.total ? 'primary' : 'ghost'} disabled={!result || complete.isPending} onClick={() => complete.mutate()}>Finish session</Button></div>
     {!result && mode === 'Practice' && <div className="mt-4"><Button variant="secondary" disabled={aid.isPending || locked} onClick={() => aid.mutate()}>Read source with assistance</Button>{card.assisted && <p>Source assistance is recorded for this card.</p>}{aid.data && <div className="mt-3">{aid.data.sources.map((source, i) => <div key={i}><h3>{source.citation}</h3><p className="er-scripture">{source.canonicalText}</p></div>)}</div>}</div>}
    </Panel>}
   </>}
   <div className="flex flex-wrap gap-3"><LinkButton variant="secondary" to={home}>Back to Training HQ</LinkButton><LinkButton variant="ghost" to={memory}>Choose Memory</LinkButton>{mode === 'Review' && <LinkButton variant="secondary" to={practice}>Choose Practice</LinkButton>}</div>
+  <XpRewardOverlay reward={xpReward.reward} name={me?.displayName ?? "You"} avatar={rewardAvatar} getAnchor={() => feedbackRef.current} />
  </div>;
 }

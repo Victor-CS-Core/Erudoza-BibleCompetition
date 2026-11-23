@@ -147,6 +147,54 @@
   .game-xp-bar__track::-webkit-progress-value, .game-chase-bar__track > span { transition: none; }
 }
 
+/* XP reward overlay (per-answer reward animation). Fixed, pointer-events:
+   none, decoration only — it never blocks taps, shifts layout, or delays the
+   next card. The bar is a slim 58px navy strip at the top of the screen. */
+.game-xp-reward { position: fixed; inset: 0; z-index: 80; pointer-events: none; }
+.game-xp-reward__bar { position: absolute; top: max(8px, env(safe-area-inset-top)); left: 0; right: 0; margin-inline: auto; width: min(430px, calc(100% - 24px)); height: 58px; display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 16px; background: var(--er-navy-surface); color: var(--er-on-navy); box-shadow: var(--er-shadow-overlay); animation: xp-reward-bar-in var(--er-duration) ease-out; }
+.game-xp-reward__bar.is-exiting { animation: xp-reward-bar-out var(--er-duration) ease-in forwards; }
+.game-xp-reward__bar.is-calm { animation-name: xp-reward-fade-in; }
+.game-xp-reward__bar.is-calm.is-exiting { animation-name: xp-reward-fade-out; }
+.game-xp-reward__avatar { display: inline-grid; place-items: center; flex: none; }
+.game-xp-reward__main { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.game-xp-reward__line { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.game-xp-reward__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--er-text-sm); }
+.game-xp-reward__total { flex: none; font-size: var(--er-text-sm); font-weight: 750; font-variant-numeric: tabular-nums; color: var(--er-thread-gold); }
+.game-xp-reward__track { height: 6px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--er-on-navy) 22%, transparent); }
+.game-xp-reward__track > span { display: block; height: 100%; border-radius: inherit; background: var(--er-thread-gold); }
+.game-xp-reward__caption { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: var(--er-text-xs); color: var(--er-on-navy-muted); font-variant-numeric: tabular-nums; }
+.game-xp-reward__crest { display: inline-grid; place-items: center; flex: none; }
+.game-xp-reward__crest.is-flipping { animation: xp-reward-crest-flip 360ms ease; }
+.game-xp-reward__pop { position: fixed; z-index: 81; transform: translate(-50%, -100%); padding: 4px 10px; border-radius: 999px; background: var(--er-navy-surface); color: var(--er-thread-gold); border: 1px solid color-mix(in srgb, var(--er-thread-gold) 55%, transparent); font-size: var(--er-text-sm); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; box-shadow: var(--er-shadow-overlay); animation: xp-reward-pop 950ms ease-out forwards; }
+.game-xp-reward__pop.is-calm { animation-name: xp-reward-pop-calm; }
+.game-xp-reward__coin { position: fixed; z-index: 82; width: 24px; height: 24px; transform: translate(-50%, -50%); display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #ffe9ad, var(--er-thread-gold) 62%, #c9962e); border: 1px solid #a87b1f; color: #7a5410; font-size: 13px; line-height: 1; box-shadow: 0 2px 8px rgb(0 0 0 / .3); }
+@keyframes xp-reward-bar-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes xp-reward-bar-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
+@keyframes xp-reward-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes xp-reward-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes xp-reward-pop {
+  0% { opacity: 0; transform: translate(-50%, -88%) scale(.6); }
+  18% { opacity: 1; transform: translate(-50%, -112%) scale(1.08); }
+  30% { transform: translate(-50%, -118%) scale(1); }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -168%) scale(1); }
+}
+@keyframes xp-reward-pop-calm {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes xp-reward-crest-flip {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.28) rotate(-6deg); }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-xp-reward__bar, .game-xp-reward__crest.is-flipping { animation: none; }
+  .game-xp-reward__pop { animation-name: xp-reward-pop-calm; }
+}
+
 /* Season leaderboard page: pinned position + designed zero state. */
 .season-board-your-position { max-width: 640px; margin-bottom: var(--er-space-5); }
 .season-board-yr-rankline { margin: 0; font-size: var(--er-text-base); }

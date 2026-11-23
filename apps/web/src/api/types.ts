@@ -164,6 +164,12 @@ export type AttemptResult = {
   skillScore: number;
   reviewDueAtUtc: string | null;
   alreadyProcessed: boolean;
+  /** XP this attempt actually earned (server, cap-aware; absent on legacy results). */
+  xpEarned?: number;
+  /** Trailing consecutive correct attempts in this session, including this one. */
+  sessionStreak?: number;
+  /** Server reward snapshot (earned + level before/after) for the XP reward animation. */
+  xpReward?: import("./trainingTypes").XpReward;
 };
 
 export type Progress = {

@@ -10,7 +10,7 @@ import type { BadgeProgress, TrainingPreferences, TrainingStep, SkillScores, Ses
 import { addDays, effectivePreferences, resolveTrainingCalendar, validateZone } from './calendar';
 import { badgeCounters, fullTargetReached } from './rules';
 import { creditedDates, streakCount } from './streak';
-import { awardXp, levelNameFor, xpSummary, XP_VALUES, type XpEvent } from './xp';
+import { awardXp, levelNameFor, xpReward, xpSummary, XP_VALUES, type XpEvent } from './xp';
 import { inTeamRoom, progressQuests, type QuestKey } from './quests';
 export interface PreferenceRecord extends TrainingPreferences {
     id: string;
@@ -339,6 +339,10 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
         training.xpEarned = (training.xpEarned ?? 0) + awarded.awarded;
         if (awarded.leveledUp)
             training.leveledUp = { from: training.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
+        // The attempt's reward snapshot rides on its stored result (the same
+        // numbers result.xpEarned reports), so the client animates exactly
+        // what was awarded — before/after totals come from the award itself.
+        attempt.result.xpReward = xpReward(awarded.totalBefore, awarded.totalAfter);
     }
     // Serialize the final preference value after qualification changed its bounded week evidence.
     w.statements[0] = old ? ctx.store.update('training-preferences', p.id, ctx.orgId, p, old.revision) : ctx.store.insertion('training-preferences', p.id, ctx.orgId, p, { ownerId: ctx.actor.userId });

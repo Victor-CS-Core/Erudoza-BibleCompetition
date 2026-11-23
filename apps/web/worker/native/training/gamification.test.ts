@@ -57,7 +57,9 @@ it('awards XP, detects level-ups and caps attempt XP per day', async () => {
     const w1 = newWrites();
     const r1 = await awardXp(ctx, w1, { localDate: '2026-09-17', atUtc: '2026-09-17T12:00:00Z', events: [{ kind: 'attempt', amount: XP_VALUES.attemptCorrectNoHints }] });
     await atomic(ctx, 'gamification.test', w1.statements, w1.guards);
-    expect(r1).toEqual({ awarded: 10, leveledUp: null });
+    // The result also carries the lifetime totals bracketing the award —
+    // the XP reward animation's before/after snapshots derive from them.
+    expect(r1).toEqual({ awarded: 10, leveledUp: null, totalBefore: 0, totalAfter: 10 });
 
     // 100 more XP crosses the 100 XP Seeker threshold (10 + 50 + 25 + 25 = 110).
     const w2 = newWrites();
@@ -65,6 +67,8 @@ it('awards XP, detects level-ups and caps attempt XP per day', async () => {
     await atomic(ctx, 'gamification.test', w2.statements, w2.guards);
     expect(r2.awarded).toBe(100);
     expect(r2.leveledUp).toEqual({ from: 1, to: 2 });
+    expect(r2.totalBefore).toBe(10);
+    expect(r2.totalAfter).toBe(110);
 
     // Attempt XP is capped at 300 per local day; the cap resets the next day.
     const w3 = newWrites();

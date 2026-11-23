@@ -287,15 +287,15 @@ it('reports per-attempt XP and the session streak on the result (B1)',async()=>{
   // attempts asserted below earn attempt XP only.
   await app.db.prepare("UPDATE Records SET data=json_set(data,'$.deckOrder',json(?)),revision=revision+1 WHERE kind='session' AND id=?").bind(JSON.stringify([...sourceIds,...sourceIds,sourceIds[0],sourceIds[1]]),session.id).run();
   const base=`/api/v1/study/sessions/${session.id}`;
-  const results:{xpEarned?:number;sessionStreak?:number;alreadyProcessed?:boolean}[]=[];
-  let lastPayload:unknown,lastResult:{xpEarned?:number;sessionStreak?:number}|undefined;
+  const results:{xpEarned?:number;sessionStreak?:number;alreadyProcessed?:boolean;xpReward?:{earned:number;before:{total:number};after:{total:number;level:number;xpIntoLevel:number;xpForNext:number}}}[]=[];
+  let lastPayload:unknown,lastResult:{xpEarned?:number;sessionStreak?:number;xpReward?:{earned:number;before:{total:number};after:{total:number;level:number;xpIntoLevel:number;xpForNext:number}}}|undefined;
   for(let n=0;n<6;n++){
     const card=await (await request(`${base}/next`)).json() as {id:string};
     const row=await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(session.id).first<{data:string}>();
     const saved=JSON.parse(row!.data).cards.find((c:{id:string})=>c.id===card.id);
     const correct=n!==4;
     lastPayload={clientSubmissionId:`b1-${n}`,challengeCardId:card.id,submittedAnswer:correct?saved.answerKey.canonicalAnswer:'a deliberately wrong answer',responseTimeMs:25,hintsUsed:false};
-    lastResult=await (await request(`${base}/attempts`,'POST',lastPayload)).json() as {xpEarned?:number;sessionStreak?:number};
+    lastResult=await (await request(`${base}/attempts`,'POST',lastPayload)).json() as {xpEarned?:number;sessionStreak?:number;xpReward?:{earned:number;before:{total:number};after:{total:number;level:number;xpIntoLevel:number;xpForNext:number}}};
     results.push(lastResult);
   }
   // Fourth consecutive correct attempt: exactly the unaided-correct XP, streak 4.
@@ -305,8 +305,16 @@ it('reports per-attempt XP and the session streak on the result (B1)',async()=>{
   // The next correct attempt restarts the streak and earns 10 XP again.
   expect(results[5]).toMatchObject({xpEarned:10,sessionStreak:1});
   // A replayed submission keeps its stored per-attempt values.
-  const replayed=await (await request(`${base}/attempts`,'POST',lastPayload)).json() as {xpEarned?:number;sessionStreak?:number;alreadyProcessed?:boolean};
+  const replayed=await (await request(`${base}/attempts`,'POST',lastPayload)).json() as {xpEarned?:number;sessionStreak?:number;alreadyProcessed?:boolean;xpReward?:unknown};
   expect(replayed).toMatchObject({xpEarned:lastResult!.xpEarned!,sessionStreak:lastResult!.sessionStreak!,alreadyProcessed:true});
+  // The reward snapshot rides on the stored result (so the replay carries
+  // the identical object): its earned amount is the per-attempt XP, and the
+  // before/after lifetime totals bracket it exactly.
+  const reward=lastResult!.xpReward!;
+  expect(reward.earned).toBe(lastResult!.xpEarned);
+  expect(reward.after.total-reward.before.total).toBe(reward.earned);
+  expect(reward.after.xpIntoLevel).toBeGreaterThanOrEqual(0);
+  expect(replayed.xpReward).toEqual(reward);
 });
 it('caps the student progress review-due count at the 8-passage mission set (D2)',async()=>{
   // Grow the scope to twelve passages and make every one of them due, so the

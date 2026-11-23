@@ -1,4 +1,23 @@
 export type WeeklyTarget = 3 | 4 | 5;
+/** Level state at one lifetime XP total, as computed by the server. */
+export type XpLevelSnapshot = {
+    total: number;
+    level: number;
+    levelName: string;
+    xpIntoLevel: number;
+    /** XP still needed to reach the next level (0 at the top level). */
+    xpForNext: number;
+};
+/**
+ * Per-attempt reward payload on attempt results: the XP the attempt actually
+ * earned plus the server's level state immediately before and after. The XP
+ * reward animation renders exactly these numbers — it never recomputes them.
+ */
+export type XpReward = {
+    earned: number;
+    before: XpLevelSnapshot;
+    after: XpLevelSnapshot;
+};
 export type TrainingStepKind = "Review" | "Practice" | "Simulation";
 export type MissionStatus = "Suggested" | "Active" | "Complete" | "Invalidated" | "Unavailable";
 export type BadgeKey = "exact-recall" | "reference-ready" | "chapter-strong" | "full-coverage" | "steady-study" | "review-complete" | "streak-7" | "streak-14" | "streak-30";

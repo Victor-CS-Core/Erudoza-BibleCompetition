@@ -38,6 +38,8 @@ export interface PbeResult {
     acceptedAtUtc: string;
     acceptedSequence: number;
     alreadyProcessed: boolean;
+    /** Server-computed reward snapshot (earned XP + level state before/after) powering the per-answer XP animation; stored on the result so replays carry the same numbers. */
+    xpReward?: import('../training/xp').XpReward;
 }
 export interface PbeAttempt {
     id: string;
