@@ -17,6 +17,8 @@ vi.mock("../../api/client", async importOriginal => ({
     submitAttempt: vi.fn(),
     completeSession: vi.fn(),
     resumeSession: vi.fn(),
+    shuffleSession: vi.fn(),
+    reblankCard: vi.fn(),
   },
 }));
 
@@ -583,6 +585,55 @@ describe("Study submission recovery", () => {
   });
 });
 
+describe("StudyPage Shuffle blanks", () => {
+  const cardBefore = { id: "card-1", sessionId: "session-1", activityType: "MissingWords", citation: "Genesis 1:1", prompt: "In the ____ created ____ earth", tokens: [
+    { index: 0, display: "In", hidden: false }, { index: 1, display: "the", hidden: false }, { index: 2, display: "____", hidden: true },
+    { index: 3, display: "created", hidden: false }, { index: 4, display: "____", hidden: true }, { index: 5, display: "earth", hidden: false },
+  ], sequence: 1, total: 2, blankShuffles: 0, blankShuffleLimit: 3 };
+  const cardAfter = { ...cardBefore, prompt: "In ____ God ____ heaven earth", tokens: [
+    { index: 0, display: "In", hidden: false }, { index: 1, display: "____", hidden: true }, { index: 2, display: "God", hidden: false },
+    { index: 3, display: "____", hidden: true }, { index: 4, display: "heaven", hidden: false }, { index: 5, display: "earth", hidden: false },
+  ], blankShuffles: 1 };
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+    vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: "session-1", seasonId: "season-1", mode: "Practice", status: "Active", targetCardCount: 2 }, card: cardBefore, attempt: null, summary: null });
+  });
+
+  it("re-deals the blanks on the same verse, clears the draft, and submits against the new pattern", async () => {
+    vi.mocked(api.reblankCard).mockResolvedValue(cardAfter);
+    vi.mocked(api.submitAttempt).mockResolvedValue({ attemptId: "attempt-1", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "the created", citation: "Genesis 1:1", sourceText: "In the God created heaven earth", masteryLevel: "Learning", exactWordingScore: 10, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 10, reviewDueAtUtc: null, alreadyProcessed: false, missingWordAnswers: [{ index: 1, text: "the" }, { index: 3, text: "created" }], missingWordResults: [{ index: 1, isCorrect: true, expected: "the" }, { index: 3, isCorrect: true, expected: "created" }] });
+    renderStudy("/student/study?sessionId=session-1&seasonId=season-1&mode=Practice");
+    await screen.findByTestId("challenge-card");
+    fireEvent.change(screen.getByRole("textbox", { name: "Blank 1 of 2" }), { target: { value: "God" } });
+    fireEvent.click(screen.getByTestId("shuffle-blanks"));
+    expect(await screen.findByTestId("reblank-note")).toBeInTheDocument();
+    expect(api.reblankCard).toHaveBeenCalledWith("session-1", "card-1");
+    // Same card, new pattern: the typed draft is gone and the blanks moved.
+    expect(screen.getByRole("textbox", { name: "Blank 1 of 2" })).toHaveValue("");
+    expect(screen.getByRole("textbox", { name: "Blank 2 of 2" })).toHaveValue("");
+    expect(screen.queryByDisplayValue("God")).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole("textbox", { name: "Blank 1 of 2" }), { target: { value: "the" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Blank 2 of 2" }), { target: { value: "created" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await waitFor(() => expect(api.submitAttempt).toHaveBeenCalledWith("session-1", expect.objectContaining({ challengeCardId: "card-1", missingWordAnswers: [{ index: 1, text: "the" }, { index: 3, text: "created" }], hintsUsed: false })));
+  });
+
+  it("disables Shuffle blanks once the card reaches its shuffle limit", async () => {
+    vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: "session-1", seasonId: "season-1", mode: "Practice", status: "Active", targetCardCount: 2 }, card: { ...cardBefore, blankShuffles: 3 }, attempt: null, summary: null });
+    renderStudy("/student/study?sessionId=session-1&seasonId=season-1&mode=Practice");
+    await screen.findByTestId("challenge-card");
+    expect(screen.getByTestId("shuffle-blanks")).toBeDisabled();
+  });
+
+  it("does not offer Shuffle blanks in Simulation", async () => {
+    vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: "session-1", seasonId: "season-1", mode: "Simulation", status: "Active", targetCardCount: 2 }, card: cardBefore, attempt: null, summary: null });
+    renderStudy("/student/study?sessionId=session-1&seasonId=season-1&mode=Simulation");
+    await screen.findByTestId("challenge-card");
+    expect(screen.queryByTestId("shuffle-blanks")).not.toBeInTheDocument();
+  });
+});
+
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
 vi.mock("../../api/scripture", () => ({ scriptureApi: { assigned: vi.fn() } }));
 
@@ -759,7 +810,7 @@ describe("StudyPage mode select", () => {
   it("explains the mode rules without starting a session", async () => {
     renderStudy("/student/study?seasonId=season-1&format=Memory");
     expect(await screen.findByRole("heading", { name: "Choose your training" })).toBeInTheDocument();
-    expect(screen.getByText("Competition conditions — no aids, timed answers, results at the end. Like the real event.")).toBeInTheDocument();
+    expect(screen.getByText("Competition conditions — no aids, typed answers only. Each answer is checked as you go.")).toBeInTheDocument();
     expect(screen.getByText("Learn your passage with memory games and drills.")).toBeInTheDocument();
     expect(screen.getByText(/See how each mode works in the Help Center/)).toBeInTheDocument();
     expect(screen.getByText("Just read and explore — no session, no score.")).toBeInTheDocument();
@@ -903,5 +954,141 @@ describe("StudyPage word-level answer diff", () => {
     expect(diff.querySelector(".diff-spelling")?.textContent).toBe("baptized");
     expect(diff.querySelectorAll(".diff-missed")).toHaveLength(0);
     expect(screen.getByTestId("answer-diff-summary")).toHaveTextContent("Spelling: you wrote “baptised” for “baptized”");
+  });
+});
+
+describe("StudyPage activity improvements (Q1-Q4, B1)", () => {
+  const blankCard = {
+    id: "card-1", sessionId: "session-1", activityType: "MissingWords",
+    prompt: "In the beginning ____ created the heaven and the earth.",
+    citation: "Genesis 1:1", tokens: [{ index: 2, display: "____", hidden: true }], sequence: 1, total: 8,
+  };
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+    vi.mocked(trainingApi.today).mockResolvedValue(today());
+    vi.mocked(api.startSession).mockResolvedValue({ id: "session-1", seasonId: "season-1", status: "Created", mode: "Practice", targetCardCount: 8 });
+    vi.mocked(api.nextCard).mockResolvedValue(blankCard);
+  });
+
+  it("Q2: names the deck shuffle 'Shuffle deck' and explains it as a deck shuffle", async () => {
+    vi.mocked(api.shuffleSession).mockResolvedValue({} as never);
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    await screen.findByRole("textbox", { name: "Blank 1 of 1" });
+    const deckButton = screen.getByRole("button", { name: "Shuffle deck" });
+    expect(screen.queryByRole("button", { name: "Shuffle" })).not.toBeInTheDocument();
+    fireEvent.click(deckButton);
+    expect(await screen.findByTestId("shuffle-note")).toHaveTextContent("Deck shuffled — the order of the remaining cards has changed. This card stays as it is.");
+  });
+
+  it("Q1: renders the spelling callout and styling for a flagged Fill in the Blank slot", async () => {
+    vi.mocked(api.submitAttempt).mockResolvedValue({
+      attemptId: "a-q1", isCorrect: false, evaluationResult: "Incorrect", canonicalAnswer: "baptized",
+      citation: "Genesis 1:1", sourceText: "In the beginning baptized created the heaven and the earth.",
+      masteryLevel: "Learning", exactWordingScore: 0, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 0,
+      reviewDueAtUtc: null, alreadyProcessed: false,
+      missingWordAnswers: [{ index: 2, text: "baptised" }],
+      missingWordResults: [{ index: 2, isCorrect: false, expected: "baptized", spelling: true }],
+    } as never);
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    fireEvent.change(await screen.findByRole("textbox", { name: "Blank 1 of 1" }), { target: { value: "baptised" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await screen.findByTestId("challenge-feedback");
+    expect(screen.getByTestId("missing-words-spelling")).toHaveTextContent("Spelling: you wrote “baptised” for “baptized” — a spelling slip, not a wrong word; in PBE a misspelling can still earn credit.");
+    expect(screen.getByRole("textbox", { name: "Blank 1 of 1" })).toHaveClass("diff-spelling");
+  });
+
+  it("B1: shows the earned XP and session streak in the feedback block", async () => {
+    vi.mocked(api.submitAttempt).mockResolvedValue({
+      attemptId: "a-b1", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "God",
+      citation: "Genesis 1:1", sourceText: "In the beginning God created the heaven and the earth.",
+      masteryLevel: "Learning", exactWordingScore: 18, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 18,
+      reviewDueAtUtc: null, alreadyProcessed: false, xpEarned: 10, sessionStreak: 4,
+    } as never);
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    fireEvent.change(await screen.findByRole("textbox", { name: "Blank 1 of 1" }), { target: { value: "God" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await screen.findByTestId("challenge-feedback");
+    expect(screen.getByTestId("session-xp-line")).toHaveTextContent("+10 XP · Session streak 4");
+  });
+
+  it("B1: hides the streak segment at streak 1 and the whole line for legacy results without xpEarned", async () => {
+    vi.mocked(api.submitAttempt).mockResolvedValue({
+      attemptId: "a-b1b", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "God",
+      citation: "Genesis 1:1", sourceText: "In the beginning God created the heaven and the earth.",
+      masteryLevel: "Learning", exactWordingScore: 18, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 18,
+      reviewDueAtUtc: null, alreadyProcessed: false, xpEarned: 10, sessionStreak: 1,
+    } as never);
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    fireEvent.change(await screen.findByRole("textbox", { name: "Blank 1 of 1" }), { target: { value: "God" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await screen.findByTestId("challenge-feedback");
+    expect(screen.getByTestId("session-xp-line")).toHaveTextContent("+10 XP");
+    expect(screen.getByTestId("session-xp-line")).not.toHaveTextContent("Session streak");
+    cleanup();
+
+    vi.mocked(api.submitAttempt).mockResolvedValue({
+      attemptId: "a-b1c", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "God",
+      citation: "Genesis 1:1", sourceText: "In the beginning God created the heaven and the earth.",
+      masteryLevel: "Learning", exactWordingScore: 18, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 18,
+      reviewDueAtUtc: null, alreadyProcessed: false,
+    });
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    fireEvent.change(await screen.findByRole("textbox", { name: "Blank 1 of 1" }), { target: { value: "God" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await screen.findByTestId("challenge-feedback");
+    expect(screen.queryByTestId("session-xp-line")).not.toBeInTheDocument();
+  });
+
+  it("Q3: offers the recitation comparison only after the card is checked, and renders the diff", async () => {
+    vi.mocked(api.submitAttempt).mockResolvedValue({
+      attemptId: "a-q3", isCorrect: true, evaluationResult: "Correct", canonicalAnswer: "God",
+      citation: "Genesis 1:1", sourceText: "In the beginning God created the heaven and the earth.",
+      masteryLevel: "Learning", exactWordingScore: 18, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 18,
+      reviewDueAtUtc: null, alreadyProcessed: false,
+    });
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    const blank = await screen.findByRole("textbox", { name: "Blank 1 of 1" });
+    const recitation = screen.getByLabelText("Your private recitation practice");
+    fireEvent.change(recitation, { target: { value: "In the beginning God created the heaven" } });
+    // Before the check there is no comparison affordance at all.
+    expect(screen.queryByRole("button", { name: "Compare your recitation" })).not.toBeInTheDocument();
+    fireEvent.change(blank, { target: { value: "God" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await screen.findByTestId("challenge-feedback");
+    fireEvent.click(screen.getByRole("button", { name: "Compare your recitation" }));
+    const compare = await screen.findByTestId("recitation-compare");
+    expect(compare.querySelector(".diff-missed")?.textContent).toBe("and");
+    expect(screen.getByTestId("recitation-compare-summary")).toHaveTextContent("3 missed words are underlined");
+  });
+
+  it("Q4: marks VerseBuilder chunks by placement in the checked feedback", async () => {
+    vi.mocked(api.nextCard).mockResolvedValue({
+      id: "card-vb", sessionId: "session-1", activityType: "VerseBuilder",
+      prompt: "Build the verse in the correct order.", citation: "Genesis 1:1",
+      tokens: [
+        { index: 0, display: "God created", hidden: false },
+        { index: 1, display: "In the beginning", hidden: false },
+        { index: 2, display: "the heaven and the earth", hidden: false },
+      ],
+      sequence: 1, total: 8,
+    });
+    vi.mocked(api.submitAttempt).mockResolvedValue({
+      attemptId: "a-q4", isCorrect: false, evaluationResult: "Partial", canonicalAnswer: "In the beginning God created the heaven and the earth",
+      citation: "Genesis 1:1", sourceText: "In the beginning God created the heaven and the earth",
+      submittedAnswer: "In the beginning the heaven and the earth God created",
+      masteryLevel: "Learning", exactWordingScore: 10, skillKey: "sequence", skillLabel: "Sequence", skillScore: 40,
+      reviewDueAtUtc: null, alreadyProcessed: false,
+    });
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    fireEvent.click(await screen.findByRole("button", { name: "Add In the beginning" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add the heaven and the earth" }));
+    fireEvent.click(screen.getByRole("button", { name: "Add God created" }));
+    expect(screen.queryByTestId("chunk-placements")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await screen.findByTestId("challenge-feedback");
+    const items = screen.getAllByTestId("chunk-placement");
+    expect(items.map(item => item.getAttribute("data-placement"))).toEqual(["correct-position", "wrong-position", "wrong-position"]);
+    expect(items[0]).toHaveTextContent("Right place");
   });
 });

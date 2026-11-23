@@ -1,7 +1,8 @@
 // @vitest-environment node
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
-import { handleStudy } from './routes';
+import { handleStudy, orderDistractorCitations, closestAlternateSource } from './routes';
+import type { Source } from '../application/model';
 import { MASTERY_VERSION } from './engine';
 import type { Attempt, Session } from './routes';
 import { Store } from '../store';
@@ -247,4 +248,58 @@ it('rejects inconsistent saved Memory card snapshots before attempt, mastery, or
  const before=await Promise.all(['attempt','mastery','mastery-proof','mastery-honor'].map(count));
  expect((await request(`${endpoint}/${inconsistent.id}/attempts`,'POST',{clientSubmissionId:'invalid-legacy-versioned-card',challengeCardId:inconsistentShown.id,submittedAnswer:inconsistentCard.answerKey.canonicalAnswer,responseTimeMs:20,hintsUsed:false})).status).toBe(400);
  expect(await Promise.all(['attempt','mastery','mastery-proof','mastery-honor'].map(count))).toEqual(before);
+});
+const fakeSource=(id:string,bookKey:string,chapter:number,ordinal:number,citation:string):Source=>({id,contentPackId:pack,citation,bookKey,chapter,verse:ordinal,ordinal,canonicalText:`Text of ${citation}`,isActive:true});
+it('orders ReferenceMatch distractors by proximity: same chapter, then same book, then same testament (Q5)',()=>{
+  const target=fakeSource('t','GEN',1,10,'Genesis 1:10');
+  const sameChapter=fakeSource('a','GEN',1,12,'Genesis 1:12');
+  const sameBookNear=fakeSource('b','GEN',2,40,'Genesis 2:1');
+  const sameBookFar=fakeSource('c','GEN',9,90,'Genesis 9:1');
+  const sameTestament=fakeSource('d','EXO',1,200,'Exodus 1:1');
+  const otherTestament=fakeSource('e','MAT',1,300,'Matthew 1:1');
+  const shuffled=[otherTestament,sameBookFar,sameTestament,target,sameBookNear,sameChapter];
+  expect(orderDistractorCitations(shuffled,target)).toEqual(['Genesis 1:12','Genesis 2:1','Genesis 9:1','Exodus 1:1','Matthew 1:1']);
+  // Deterministic regardless of input order, and the target citation is excluded.
+  expect(orderDistractorCitations([...shuffled].reverse(),target)).toEqual(orderDistractorCitations(shuffled,target));
+  expect(orderDistractorCitations(shuffled,target)).not.toContain('Genesis 1:10');
+});
+it('picks the closest same-chapter source as the TrueFalse fallback alternate (Q7)',()=>{
+  const target=fakeSource('t','GEN',1,10,'Genesis 1:10');
+  const near=fakeSource('a','GEN',1,11,'Genesis 1:11');
+  const farther=fakeSource('b','GEN',1,14,'Genesis 1:14');
+  const sameBook=fakeSource('c','GEN',4,80,'Genesis 4:1');
+  const otherBook=fakeSource('d','EXO',1,90,'Exodus 1:1');
+  expect(closestAlternateSource([otherBook,sameBook,farther,near,target],target)?.id).toBe('a');
+  expect(closestAlternateSource([otherBook,sameBook,target],target)?.id).toBe('c');
+  expect(closestAlternateSource([otherBook,target],target)?.id).toBe('d');
+  expect(closestAlternateSource([target],target)).toBeUndefined();
+});
+it('reports per-attempt XP and the session streak on the result (B1)',async()=>{
+  const session=await (await request('/api/v1/study/sessions','POST',{seasonId:season,mode:'Practice'})).json() as {id:string};
+  // Pin the deck so the six draws cycle the three scope sources in order:
+  // the first three correct attempts also drain any still-pending daily
+  // quest progress (explorer/comeback) that could add bonus XP, so the
+  // attempts asserted below earn attempt XP only.
+  await app.db.prepare("UPDATE Records SET data=json_set(data,'$.deckOrder',json(?)),revision=revision+1 WHERE kind='session' AND id=?").bind(JSON.stringify([...sourceIds,...sourceIds,sourceIds[0],sourceIds[1]]),session.id).run();
+  const base=`/api/v1/study/sessions/${session.id}`;
+  const results:{xpEarned?:number;sessionStreak?:number;alreadyProcessed?:boolean}[]=[];
+  let lastPayload:unknown,lastResult:{xpEarned?:number;sessionStreak?:number}|undefined;
+  for(let n=0;n<6;n++){
+    const card=await (await request(`${base}/next`)).json() as {id:string};
+    const row=await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(session.id).first<{data:string}>();
+    const saved=JSON.parse(row!.data).cards.find((c:{id:string})=>c.id===card.id);
+    const correct=n!==4;
+    lastPayload={clientSubmissionId:`b1-${n}`,challengeCardId:card.id,submittedAnswer:correct?saved.answerKey.canonicalAnswer:'a deliberately wrong answer',responseTimeMs:25,hintsUsed:false};
+    lastResult=await (await request(`${base}/attempts`,'POST',lastPayload)).json() as {xpEarned?:number;sessionStreak?:number};
+    results.push(lastResult);
+  }
+  // Fourth consecutive correct attempt: exactly the unaided-correct XP, streak 4.
+  expect(results[3]).toMatchObject({xpEarned:10,sessionStreak:4});
+  // The incorrect attempt resets the streak.
+  expect(results[4].sessionStreak).toBe(0);
+  // The next correct attempt restarts the streak and earns 10 XP again.
+  expect(results[5]).toMatchObject({xpEarned:10,sessionStreak:1});
+  // A replayed submission keeps its stored per-attempt values.
+  const replayed=await (await request(`${base}/attempts`,'POST',lastPayload)).json() as {xpEarned?:number;sessionStreak?:number;alreadyProcessed?:boolean};
+  expect(replayed).toMatchObject({xpEarned:lastResult!.xpEarned!,sessionStreak:lastResult!.sessionStreak!,alreadyProcessed:true});
 });

@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import type { ChallengeCard } from '../../api/types';
 import { Input } from '../../components/ui';
 
-type MissingWordResult = { index: number; isCorrect: boolean; expected: string };
+type MissingWordResult = { index: number; isCorrect: boolean; expected: string; spelling?: boolean };
 
 export function MissingWordsInput({ tokens, values, onChange, disabled, results }: {
   tokens: ChallengeCard['tokens'];
@@ -20,6 +20,11 @@ export function MissingWordsInput({ tokens, values, onChange, disabled, results 
     .filter(result => !result.isCorrect)
     .map(result => ordinalByIndex.get(result.index))
     .filter((ordinal): ordinal is number => ordinal !== undefined);
+  // A wrong slot the server flagged as a near-miss spelling of the expected
+  // word gets the same callout the word-diff feedback uses for text answers
+  // (StudyPage): it still counts wrong here, but it is named as a spelling
+  // slip, not a wrong word.
+  const spellingResults = (results ?? []).filter(result => !result.isCorrect && result.spelling);
 
   return <>
     <div ref={passage} className="er-scripture" aria-label="Fill-in-the-blank passage" role="group"
@@ -29,12 +34,15 @@ export function MissingWordsInput({ tokens, values, onChange, disabled, results 
         const ordinal = ordinalByIndex.get(token.index)!;
         const value = values[token.index] ?? '';
         const result = resultByIndex.get(token.index);
+        const isSpelling = !!result && !result.isCorrect && !!result.spelling;
         const underline = result
-          ? result.isCorrect ? 'var(--er-success-ink)' : 'var(--er-coral)'
+          ? result.isCorrect ? 'var(--er-success-ink)' : isSpelling ? 'var(--er-teal)' : 'var(--er-coral)'
           : 'var(--er-blank-underline)';
         return <Input
           key={token.index}
           data-missing-word-slot=""
+          data-spelling-slip={isSpelling || undefined}
+          className={isSpelling ? 'diff-spelling' : undefined}
           aria-label={`Blank ${ordinal} of ${hidden.length}`}
           aria-invalid={result ? !result.isCorrect : undefined}
           autoComplete="off"
@@ -78,5 +86,10 @@ export function MissingWordsInput({ tokens, values, onChange, disabled, results 
     {results && <p data-testid="missing-words-summary" role="status" style={{ fontSize: 'var(--er-text-sm)', color: 'var(--er-muted-ink)', marginTop: 'var(--er-space-3)' }}>
       {correctCount} of {hidden.length} correct{reviewOrdinals.length > 0 && ` — review ${reviewOrdinals.map(ordinal => `blank ${ordinal}`).join(', ')}`}
     </p>}
+    {spellingResults.length > 0 && <div data-testid="missing-words-spelling">
+      {spellingResults.map(result => <p key={result.index} className="text-sm" style={{ marginTop: 'var(--er-space-2)' }}>
+        {`Spelling: you wrote “${values[result.index] ?? ''}” for “${result.expected}” — a spelling slip, not a wrong word; in PBE a misspelling can still earn credit.`}
+      </p>)}
+    </div>}
   </>;
 }

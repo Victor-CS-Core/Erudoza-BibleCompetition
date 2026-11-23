@@ -124,3 +124,84 @@ it('matches the shared versioned 47-word seed fixture in both runtimes',()=>{
  expect(generateActivity('VerseBuilder',r).payload.tokens.map(t=>Number(t.text.split(' ')[0].slice(4)))).toEqual([24,4,28,16,40,20,32,44,36,8,12,0]);
  expect(generateActivity('MissingWords',r).payload.tokens.filter(t=>t.hidden).map(t=>t.index)).toEqual([1,4,5,6,7,8,9,10,11,13,16,17,19,20,21,22,23,27,28,29,30,32,33,34,37,38,39,40,41,42,44,45,46]);
 });
+
+describe('difficulty floors (Q6)',()=>{
+ const verse=(n:number)=>Array.from({length:n},(_,i)=>`word${i+3}`).join(' ');
+ it('scales Foundation Fill in the Blank blanks with verse length on the legacy path',()=>{
+  const long=generateActivity('MissingWords',{...request,difficulty:1,sourceUnit:{...unit,canonicalText:verse(30)}});
+  expect(long.answerKey.hiddenWords).toHaveLength(3);
+  const mid=generateActivity('MissingWords',{...request,difficulty:1,sourceUnit:{...unit,canonicalText:verse(16)}});
+  expect(mid.answerKey.hiddenWords).toHaveLength(2);
+  const short=generateActivity('MissingWords',{...request,difficulty:1});
+  expect(short.answerKey.hiddenWords).toHaveLength(1);
+  // Higher difficulties keep their existing counts on the same long verse.
+  expect(generateActivity('MissingWords',{...request,difficulty:3,sourceUnit:{...unit,canonicalText:verse(30)}}).answerKey.hiddenWords).toHaveLength(7);
+  expect(generateActivity('MissingWords',{...request,difficulty:5,sourceUnit:{...unit,canonicalText:verse(30)}}).answerKey.hiddenWords).toHaveLength(29);
+ });
+ it('guarantees at least 3 VerseBuilder chunks at Foundation for verses of 6+ words',()=>{
+  expect(generateActivity('VerseBuilder',{...request,difficulty:1,sourceUnit:{...unit,canonicalText:verse(6)}}).payload.tokens.length).toBeGreaterThanOrEqual(3);
+  expect(generateActivity('VerseBuilder',{...request,difficulty:1,sourceUnit:{...unit,canonicalText:verse(8)}}).payload.tokens.length).toBeGreaterThanOrEqual(3);
+  expect(generateActivity('VerseBuilder',{...request,difficulty:1,sourceUnit:{...unit,canonicalText:verse(30)}}).payload.tokens.length).toBeGreaterThanOrEqual(3);
+  // Verses under 6 words keep the current behavior (a 4-word verse stays 2 chunks).
+  expect(generateActivity('VerseBuilder',{...request,difficulty:1,sourceUnit:{...unit,canonicalText:verse(4)}}).payload.tokens).toHaveLength(2);
+  // Higher difficulties are unchanged.
+  expect(generateActivity('VerseBuilder',{...request,difficulty:3,sourceUnit:{...unit,canonicalText:verse(8)}}).payload.tokens).toHaveLength(4);
+  expect(generateActivity('VerseBuilder',{...request,difficulty:5,sourceUnit:{...unit,canonicalText:verse(8)}}).payload.tokens).toHaveLength(8);
+ });
+});
+
+describe('TrueFalse single-word substitution (Q7)',()=>{
+ const target={...unit,canonicalText:'In the beginning God created the heaven and the earth'};
+ const pool=['And','the','earth','was','without','form','void','darkness','upon','face','deep','Spirit','moved','waters','light','firmament'];
+ const alternate={...unit,id:'aaaaaaaa-1111-4111-8111-111111111111',citationLabel:'Daniel 1:2',canonicalText:'Completely different alternate verse text lives here now'};
+ const tfRequest=(sequence:number,overrides:Partial<ActivityRequest>={}):ActivityRequest=>({...request,sequence,difficulty:3,sourceUnit:target,alternateSourceUnit:alternate,trueFalseWordPool:pool,...overrides});
+ const seedParity=(sequence:number)=>((stableSeed(target.id,request.sessionId,sequence)%2)+2)%2;
+ const findSequence=(parity:number)=>{for(let s=1;s<200;s++)if(seedParity(s)===parity)return s;throw new Error('no sequence');};
+ const statementOf=(card:ReturnType<typeof generateActivity>)=>card.payload.prompt.slice(card.payload.prompt.indexOf('? ')+2);
+ it('true statements are byte-identical to the target verse',()=>{
+  const card=generateActivity('TrueFalse',tfRequest(findSequence(0)));
+  expect(statementOf(card)).toBe(target.canonicalText);
+  expect(card.answerKey.canonicalAnswer).toBe('True');
+ });
+ it('false statements differ from the target by exactly one word, in place',()=>{
+  const card=generateActivity('TrueFalse',tfRequest(findSequence(1)));
+  const statement=statementOf(card),targetWords=target.canonicalText.split(' '),statementWords=statement.split(' ');
+  expect(card.answerKey.canonicalAnswer).toBe('False');
+  expect(statement).not.toBe(alternate.canonicalText);
+  expect(statementWords).toHaveLength(targetWords.length);
+  const diffs=targetWords.map((w,i)=>w===statementWords[i]?-1:i).filter(i=>i>=0);
+  expect(diffs).toHaveLength(1);
+  expect(pool).toContain(statementWords[diffs[0]]);
+ });
+ it('is deterministic for the same seed',()=>{
+  const r=tfRequest(findSequence(1));
+  expect(generateActivity('TrueFalse',r)).toEqual(generateActivity('TrueFalse',r));
+ });
+ it('Foundation false statements differ within the first 4 words',()=>{
+  const card=generateActivity('TrueFalse',tfRequest(findSequence(1),{difficulty:1}));
+  const statementWords=statementOf(card).split(' '),targetWords=target.canonicalText.split(' ').slice(0,4);
+  expect(card.answerKey.canonicalAnswer).toBe('False');
+  expect(statementWords).toHaveLength(4);
+  const diffs=targetWords.map((w,i)=>w===statementWords[i]?-1:i).filter(i=>i>=0);
+  expect(diffs).toHaveLength(1);
+  expect(diffs[0]).toBeLessThan(4);
+  const truthful=generateActivity('TrueFalse',tfRequest(findSequence(0),{difficulty:1}));
+  expect(statementOf(truthful)).toBe(target.canonicalText.split(' ').slice(0,4).join(' '));
+  expect(truthful.answerKey.canonicalAnswer).toBe('True');
+ });
+ it('falls back to the alternate verse when no pool is available',()=>{
+  const card=generateActivity('TrueFalse',tfRequest(findSequence(1),{trueFalseWordPool:undefined}));
+  expect(statementOf(card)).toBe(alternate.canonicalText);
+  expect(card.answerKey.canonicalAnswer).toBe('False');
+  const noAlternate=generateActivity('TrueFalse',tfRequest(findSequence(1),{trueFalseWordPool:undefined,alternateSourceUnit:null}));
+  expect(statementOf(noAlternate)).toBe(target.canonicalText);
+  expect(noAlternate.answerKey.canonicalAnswer).toBe('True');
+ });
+ it('falls back when no pool word differs from the alterable words',()=>{
+  const repeated={...unit,canonicalText:'God God God God God God'};
+  const seq=(()=>{for(let s=1;s<200;s++){const seed=stableSeed(repeated.id,request.sessionId,s);if(((seed%2)+2)%2===1)return s;}throw new Error('no sequence');})();
+  const card=generateActivity('TrueFalse',{...request,sequence:seq,difficulty:3,sourceUnit:repeated,alternateSourceUnit:alternate,trueFalseWordPool:['God','God']});
+  expect(statementOf(card)).toBe(alternate.canonicalText);
+  expect(card.answerKey.canonicalAnswer).toBe('False');
+ });
+});

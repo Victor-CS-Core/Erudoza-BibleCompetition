@@ -155,6 +155,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     pendingAttempt.current = readPendingAttempt(sessionId!, card.data);
     submit.reset();
     setShuffleNote(false);
+    setReblankNote(false);
     setChunks([]);
     setAnswer(pendingAttempt.current?.submittedAnswer ?? "");
     setSlotValues(Object.fromEntries(pendingAttempt.current?.missingWordAnswers?.map(slot => [slot.index, slot.text]) ?? []));
@@ -207,6 +208,24 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     onSuccess: () => setShuffleNote(true),
   });
 
+  const [reblankNote, setReblankNote] = useState(false);
+  const reblank = useMutation({
+    mutationFn: (cardId: string) => api.reblankCard(sessionId!, cardId),
+    onSuccess: (nextCard) => {
+      // The draft was typed against the old blank pattern: clear it, and any
+      // unconfirmed saved attempt (it names the old blank slots), so the new
+      // pattern starts fresh. The reader flag is deliberately untouched —
+      // shuffling blanks is a practice action, never assistance.
+      pendingAttempt.current = null;
+      sessionStorage.removeItem("erudoza:attempt:" + sessionId);
+      queryClient.setQueryData(["card", sessionId, me?.organizationId, me?.userId], nextCard);
+      setSlotValues({});
+      submit.reset();
+      startedAt.current = Date.now();
+      setReblankNote(true);
+    },
+  });
+
   useEffect(() => {
     if (requestedSessionId && loadedSession.current === requestedSessionId) return;
     let cancelled = false;
@@ -252,6 +271,10 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   }, [requestedSessionId, progress.data?.seasonId, trackReady, mode, missionId, missionRevision, step, startRetry, choosePurpose, memoryChallenge]);
 
   const result = submit.data ?? (restoredAttempt?.cardId === card.data?.id ? restoredAttempt?.result : undefined);
+  // In-session game feedback (B1): newer results carry the XP the attempt
+  // earned and the running session streak; legacy results omit both and
+  // simply render no line.
+  const resultXpFields = result as (AttemptResult & { xpEarned?: number; sessionStreak?: number }) | undefined;
   const accepted = !!result;
   const current = card.data;
   const submittedText = result?.submittedAnswer ?? answer;
@@ -364,6 +387,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             onChunks={chooseChunks}
             locked={accepted || submit.isPending || submit.isError || !!pendingAttempt.current}
             allowChoices={mode !== "Simulation"}
+            feedbackSourceText={result && current.activityType === "VerseBuilder" ? (result.sourceText || result.canonicalAnswer) : undefined}
           />
         ) : null}
         {pendingAttempt.current && !accepted && <Notice className="mt-4" data-testid="pending-answer"><p className="font-medium">Your answer is saved — we just couldn't confirm it yet</p><p className="mt-2 whitespace-pre-wrap">{pendingAttempt.current.submittedAnswer ?? pendingAttempt.current.missingWordAnswers?.map((slot, index) => `Blank ${index + 1}: ${slot.text || '(empty)'}`).join('\n')}</p><p className="mt-2 text-sm">Retrying sends this same answer.</p></Notice>}
@@ -405,6 +429,9 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           <p className="mt-3 text-sm text-[var(--er-success-ink)]" data-testid="mastery-impact">
             Your {result.skillLabel ?? "wording"} score: {result.skillScore ?? result.exactWordingScore} / 100 · Level: {result.masteryLevel}
           </p>
+          {typeof resultXpFields?.xpEarned === "number" && <p className="mt-2 text-sm" data-testid="session-xp-line">
+            +{resultXpFields.xpEarned} XP{typeof resultXpFields.sessionStreak === "number" && resultXpFields.sessionStreak >= 2 ? ` · Session streak ${resultXpFields.sessionStreak}` : ""}
+          </p>}
           <p className="mt-2 text-sm" data-testid="assistance-note">
             {readerOpened
               ? "You opened the reader on this one, so it counts as practice — not as remembering it on your own."
@@ -413,14 +440,24 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
         </div>
       ) : null}
         <div className="student-study-actions">
+          {current?.activityType === "MissingWords" && mode !== "Simulation" && !accepted && <Button
+            data-testid="shuffle-blanks"
+            type="button"
+            variant="secondary"
+            onClick={() => reblank.mutate(current.id)}
+            disabled={reblank.isPending || submit.isPending || card.isFetching || !!pendingAttempt.current || (current.blankShuffles ?? 0) >= (current.blankShuffleLimit ?? 3)}
+          >
+            {reblank.isPending ? "Shuffling blanks…" : "Shuffle blanks"}
+          </Button>}
           {mode === "Practice" && current && current.sequence < current.total && <Button
             data-testid="shuffle-deck"
             type="button"
             variant="secondary"
+            aria-label="Shuffle deck"
             onClick={() => shuffle.mutate()}
             disabled={shuffle.isPending || complete.isPending || card.isFetching}
           >
-            {shuffle.isPending ? "Shuffling…" : "Shuffle"}
+            {shuffle.isPending ? "Shuffling deck…" : "Shuffle deck"}
           </Button>}
           <Button
             data-testid="submit-answer"
@@ -453,11 +490,12 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             {complete.isPending ? "Finishing…" : "Finish session"}
           </Button>
         </div>
-        {(submit.isError || complete.isError || shuffle.isError) && <p role="alert">{submit.isError ? "Your answer could not be saved. Please try again." : complete.isError ? "The session could not be finished. Please try again." : "The remaining cards could not be shuffled. Please try again."}</p>}
-        {shuffleNote && !shuffle.isPending && <p className="text-sm" data-testid="shuffle-note">Remaining cards shuffled — the order of what comes next has changed. This card stays as it is.</p>}
+        {(submit.isError || complete.isError || shuffle.isError || reblank.isError) && <p role="alert">{submit.isError ? "Your answer could not be saved. Please try again." : complete.isError ? "The session could not be finished. Please try again." : reblank.isError ? "The blanks could not be shuffled. Please try again." : "The remaining cards could not be shuffled. Please try again."}</p>}
+        {shuffleNote && !shuffle.isPending && <p className="text-sm" data-testid="shuffle-note">Deck shuffled — the order of the remaining cards has changed. This card stays as it is.</p>}
+        {reblankNote && !reblank.isPending && <p className="text-sm" data-testid="reblank-note">Blanks shuffled — same verse, new pattern, and your draft was cleared so this pattern starts fresh. Shuffling blanks is practice, not help: it never marks your attempt as assisted.</p>}
       </Panel>
       {current && mode !== "Simulation" && <section aria-label="Learning aids" className="study-aids">
-        <RecitationPanel key={current.id} />
+        <RecitationPanel key={current.id} compareSourceText={result ? (result.sourceText || result.canonicalAnswer) : undefined} />
 
         {sessionSnapshot && <ScriptureReader
           key={sessionSnapshot.seasonId}
@@ -498,6 +536,7 @@ function ChallengeInput({
   onChunks,
   locked,
   allowChoices,
+  feedbackSourceText,
 }: {
   card: ChallengeCard;
   answer: string;
@@ -506,9 +545,10 @@ function ChallengeInput({
   onChunks: (ids: number[]) => void;
   locked: boolean;
   allowChoices: boolean;
+  feedbackSourceText?: string;
 }) {
   if (card.activityType === "VerseBuilder") {
-    return <VerseBuilderInput tokens={card.tokens} selected={chunks} onChange={onChunks} disabled={locked}/>;
+    return <VerseBuilderInput tokens={card.tokens} selected={chunks} onChange={onChunks} disabled={locked} feedbackSourceText={feedbackSourceText}/>;
   }
 
   if (card.activityType === "TrueFalse") {

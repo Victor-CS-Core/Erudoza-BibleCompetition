@@ -8,6 +8,7 @@ import type { PbeAttemptResult, PbePresentationState, PbeResumedSession, PbeSess
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from '../../components/ui';
 import { AppIcon } from '../../components/AppIcon';
 import { academyModeRules, studySessionFraming } from './academyTracks';
+import { diffWords, type DiffToken } from './wordDiff';
 import { PbeAnswerInput } from './PbeAnswerInput';
 import { PbePresentation } from '../study/PbePresentation';
 import './student.css';
@@ -55,6 +56,36 @@ export function reviewReturnDetail(progress: Progress | undefined, citation: str
   if (mastery) parts.push(`last score ${mastery.exactWordingScore}%`);
   else if (last) parts.push(last.isCorrect ? 'last attempt correct' : 'last attempt needs another pass');
   return parts.length > 0 ? parts.join(' · ') : null;
+}
+/** Same highlighted-token rendering the Memory track's answer diff uses. */
+function DiffTokens({ tokens }: { tokens: DiffToken[] }) {
+    return <>{tokens.map((token, index) => <span key={index}>{index > 0 ? ' ' : ''}<span className={`diff-token diff-${token.status}`}>{token.text}</span></span>)}</>;
+}
+/**
+ * One expected part in PBE feedback, shown against what the student typed
+ * (B2): the shared word diff keeps the correct wording fully readable while
+ * missed/extra/spelling differences are highlighted in place, with the same
+ * summary language as Memory feedback. PBE answers are typed, so spelling
+ * near-misses keep the spelling treatment (diffWords' default). A part with
+ * no submitted answer renders the expected text plainly with a "No answer"
+ * state instead of an all-missed diff, which would read as an attempt.
+ */
+function PbePartFeedback({ expected, submitted, points, index }: { expected: string; submitted: string; points?: number; index: number }) {
+    const weight = points !== undefined ? <p className="text-sm">Part {index + 1} · {points} {points === 1 ? 'point' : 'points'}</p> : null;
+    if (!submitted.trim())
+        return <li data-testid={`pbe-part-feedback-${index}`}>{weight}<p>{expected}</p><p className="mt-1 text-sm">No answer — this part earned no points.</p></li>;
+    const diff = diffWords(expected, submitted);
+    if (diff.missed === 0 && diff.extra === 0 && diff.spelling === 0)
+        return <li data-testid={`pbe-part-feedback-${index}`}>{weight}<p>{expected}</p></li>;
+    return <li data-testid={`pbe-part-feedback-${index}`}>{weight}
+        <p><DiffTokens tokens={diff.expected} /></p>
+        <p className="mt-1 text-sm"><span className="font-semibold">Your answer: </span><DiffTokens tokens={diff.submitted} /></p>
+        <p className="mt-1 text-sm">{[
+            diff.missed ? `${diff.missed} missed ${diff.missed === 1 ? 'word is' : 'words are'} underlined in the expected answer.` : '',
+            diff.extra ? `${diff.extra} extra ${diff.extra === 1 ? 'word is' : 'words are'} struck through in your answer.` : '',
+            ...diff.spellingPairs.map(pair => `Spelling: you wrote “${pair.submitted}” for “${pair.expected}” — a spelling slip, not a wrong word; in PBE a misspelling can still earn credit.`),
+        ].filter(Boolean).join(' ')}</p>
+    </li>;
 }
 type DueKind = 'Scheduled' | 'Refresh' | 'Retry';
 const DUE_KIND_COPY: Record<DueKind, { lead: string; fallback: string; tone: 'info' | 'warning' }> = {
@@ -193,7 +224,7 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     if (card && remaining !== null && remaining <= 10 && warned.current !== card.id) warned.current = card.id;
     const home = `/student?seasonId=${encodeURIComponent(session?.seasonId ?? seasonId)}`, practice = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Pbe`, memory = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Memory`;
     const framingMode = mode === 'Review' ? 'Review' : mode === 'Simulation' ? 'Simulation' : 'Practice';
-    const framing = studySessionFraming(framingMode);
+    const framing = studySessionFraming(framingMode, 'Pbe');
     const entryHref = `/student/study?seasonId=${encodeURIComponent(seasonId)}&format=Pbe`;
     const error = start.error ?? next.error ?? submit.error ?? aid.error ?? complete.error;
     const staleScope = start.error instanceof ApiError && ['PBE_CHAPTER_SCOPE_STALE', 'PBE_CHAPTER_CURSOR_STALE'].includes(start.error.code ?? '');
@@ -302,7 +333,7 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     {mode === 'Simulation' && presentation && <><p role="timer">{presentation.responseStartsAtMs && displayedNow < presentation.responseStartsAtMs ? 'Response starts shortly' : `${remaining} seconds remaining`}</p>{warned.current === card.id && remaining !== null && remaining <= 10 && <Notice>Ten seconds remain.</Notice>}</>}
     {card.question.kind === 'TrueFalse' ? <div className="mt-6 flex flex-wrap gap-3" aria-label="True or false">{['True', 'False'].map(value => <Button key={value} aria-pressed={answers[0] === value} variant={answers[0] === value ? 'primary' : 'secondary'} disabled={locked} onClick={() => setAnswers([value])}>{value}</Button>)}</div> : <PbeAnswerInput partPoints={card.question.partPoints} answers={answers} onChange={setAnswers} disabled={locked}/>}
     {frozen.current && !result && <Notice className="mt-4">Saved answer awaiting confirmation. Retry sends these exact answers.</Notice>}
-    {result && mode !== 'Simulation' && <div className="student-feedback" role="status" data-testid="challenge-feedback"><Badge tone={result.earnedPoints === result.availablePoints ? 'success' : 'warning'}>{result.earnedPoints} / {result.availablePoints} points</Badge><h3 className="mt-3">Expected answers</h3><ol>{result.expectedParts.map((part, i) => <li key={i}>{part}</li>)}</ol><p className="mt-3">{result.citation}</p><p className="er-scripture" data-testid="feedback-source">{result.sourceEvidence}</p><p className="mt-3">{result.unaided ? 'Unaided answer saved. Missed targets remain due for review.' : 'Practice with assistance saved. This answer does not establish unaided recall.'}</p></div>}
+    {result && mode !== 'Simulation' && <div className="student-feedback" role="status" data-testid="challenge-feedback"><Badge tone={result.earnedPoints === result.availablePoints ? 'success' : 'warning'}>{result.earnedPoints} / {result.availablePoints} points</Badge><h3 className="mt-3">Expected answers</h3><ol className="space-y-3">{result.expectedParts.map((part, i) => <PbePartFeedback key={i} index={i} expected={part} submitted={answers[i] ?? ''} points={card.question.partPoints[i]} />)}</ol><p className="mt-3">{result.citation}</p><p className="er-scripture" data-testid="feedback-source">{result.sourceEvidence}</p><p className="mt-3">{result.unaided ? 'Unaided answer saved. Missed targets remain due for review.' : 'Practice with assistance saved. This answer does not establish unaided recall.'}</p></div>}
     <div className="student-study-actions"><Button data-testid="submit-answer" disabled={!!result || submit.isPending || !answers.some(a => a.trim()) || mode === 'Simulation' && (!presentation?.responseStartsAtMs || displayedNow < presentation.responseStartsAtMs)} onClick={() => submit.mutate()}>{submit.isPending ? 'Saving…' : timedReceipt ? 'Answer saved' : result ? 'Answer checked' : frozen.current ? 'Retry saved answer' : 'Check answer'}</Button>{result && card.sequence < card.total && <Button data-testid="next-card" disabled={next.isPending} onClick={() => { submit.reset(); next.mutate(session!.id); }}>Next card</Button>}<Button data-testid="complete-session" variant={result && card.sequence === card.total ? 'primary' : 'ghost'} disabled={!result || complete.isPending} onClick={() => complete.mutate()}>Finish session</Button></div>
     {!result && mode === 'Practice' && <div className="mt-4"><Button variant="secondary" disabled={aid.isPending || locked} onClick={() => aid.mutate()}>Read source with assistance</Button>{card.assisted && <p>Source assistance is recorded for this card.</p>}{aid.data && <div className="mt-3">{aid.data.sources.map((source, i) => <div key={i}><h3>{source.citation}</h3><p className="er-scripture">{source.canonicalText}</p></div>)}</div>}</div>}
    </Panel>}

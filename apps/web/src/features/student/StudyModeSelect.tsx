@@ -11,6 +11,7 @@ import {
   canStartAcademyTrack,
   resolveStudyFormat,
   STUDY_MODE_CARDS,
+  studyModeCardDescription,
   type StudyFormat,
   type StudyModeCard,
 } from "./academyTracks";
@@ -164,7 +165,7 @@ export function StudyModeSelect() {
                   <Badge>{badge}</Badge>
                 </div>
               </div>
-              <p className="study-mode-card-desc">{card.description}</p>
+              <p className="study-mode-card-desc">{studyModeCardDescription(card, format)}</p>
               <ul className="study-rules" aria-label={`${card.title} rules`}>
                 {rules.map((rule) => (
                   <li key={rule}>{rule}</li>

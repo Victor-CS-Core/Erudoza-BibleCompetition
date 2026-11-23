@@ -152,6 +152,8 @@ export const api = {
     request<SessionSummary>(`/api/v1/study/sessions/${sessionId}/complete`, { method: "POST" }),
   shuffleSession: (sessionId: string) =>
     request<{ sessionId: string; remaining: number }>(`/api/v1/study/sessions/${sessionId}/shuffle`, { method: "POST" }),
+  reblankCard: (sessionId: string, challengeCardId: string) =>
+    request<ChallengeCard>(`/api/v1/study/sessions/${sessionId}/reblank`, { method: "POST", body: JSON.stringify({ challengeCardId }) }),
   setDifficulty: (orgId: string, seasonId: string, studentId: string, difficulty: TrainingDifficulty, signal?: AbortSignal) =>
     request<{ difficulty: TrainingDifficulty }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/difficulty`, { method: "PUT", body: JSON.stringify({ difficulty }), signal }),
   assignedSeasons: () => request<{ id: string; name: string }[]>("/api/v1/progress/me/seasons"),

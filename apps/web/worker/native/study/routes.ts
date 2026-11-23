@@ -15,11 +15,11 @@ import { admin, body, HttpError, json, requiredString } from '../types';
 import { atomic, contains, effectiveSources, fail, id, memberId, student, requireLearner } from '../application/model';
 import type { Assignment, Membership, Season, Source } from '../application/model';
 import { builtInContentSql, scopeEntriesSql } from '../application/library-access';
-import { applyMastery, chooseActivity, eligibleActivities, evaluateAnswer, generateActivity, MASTERY_VERSION, nextReview, normalizeDifficulty, scoredSkill, shuffleRandom, toCardDto } from './engine';
+import { applyMastery, BLANK_SHUFFLE_LIMIT, chooseActivity, eligibleActivities, evaluateAnswer, generateActivity, MASTERY_VERSION, nextReview, normalizeDifficulty, scoredSkill, shuffleRandom, toCardDto } from './engine';
 import type { GeneratedActivity, MasteryScores, RuleProfile, StudyMode } from './engine';
 
-export interface Card extends GeneratedActivity { id: string; sequence: number; createdAtUtc: string; source: Source; answerSource: Source }
-export interface Result { submittedAnswer?: string; missingWordAnswers?: MissingWordAnswer[]; missingWordResults?: MissingWordResult[]; attemptId: string; isCorrect: boolean; score: number; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; skillKey: string; skillLabel: string; skillScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean }
+export interface Card extends GeneratedActivity { id: string; sequence: number; createdAtUtc: string; source: Source; answerSource: Source; blankShuffles?: number }
+export interface Result { submittedAnswer?: string; missingWordAnswers?: MissingWordAnswer[]; missingWordResults?: MissingWordResult[]; attemptId: string; isCorrect: boolean; score: number; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; skillKey: string; skillLabel: string; skillScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean; /** XP this attempt actually earned (cap-aware session xpEarned delta, including any bonus the attempt triggered). */ xpEarned?: number; /** Trailing consecutive correct attempts in this session, including this one. */ sessionStreak?: number }
 export interface Attempt { clientHintsUsed?: boolean; answerPayload?: MissingWordAnswerPayload; id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; score: number; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean; previousAttemptId?: string; before?: SkillScores; after?: SkillScores }
 export interface Session { readerAssistedCardIds?: string[]; deckOrder?: string[]; memoryChallenge?: 'Warmup' | 'Advanced'; memoryChallengeRequest?: 'Warmup' | 'Advanced'; generatorVersion?: string; evidenceProfile?: import('./engine').MemoryEvidenceProfile; id: string; studentUserId: string; seasonId: string; status: string; mode: StudyMode; difficulty: string; targetCardCount: number; ruleProfile: RuleProfile & { showReference: boolean }; cards: Card[]; attempts: Attempt[]; createdAtUtc: string; completedAtUtc?: string; training?: SessionTraining; recap?: SessionRecap }
 export interface Mastery extends MasteryScores { id: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; algorithmVersion: string; reviewDueAt: string; lastSeenAt: string; lastAttemptId?: string; streak: number }
@@ -52,9 +52,31 @@ interface Guard { kind: string; id: string; revision: number }
 const zero: MasteryScores = { recognition: 0, exactWording: 0, reference: 0, sequence: 0, factualRecall: 0, level: 'Unseen' };
 const defaultRules = { studyAllowMultipleChoice: true, simulationAllowMultipleChoice: false, simulationAllowTrueFalse: true, trueFalseMaxRatio: 0.1, showReference: true };
 const sourceUnit = (s: Source) => ({ id: s.id, citationLabel: s.citation, canonicalText: s.canonicalText });
+/** New Testament book keys — the same set the client catalog uses
+ * (src/components/scripture/BookBrowser.tsx); every other book key is Old
+ * Testament. Used only to rank ReferenceMatch distractors by proximity. */
+const NEW_TESTAMENT_BOOK_KEYS = new Set('MAT MRK LUK JHN ACT ROM 1CO 2CO GAL EPH PHP COL 1TH 2TH 1TI 2TI TIT PHM HEB JAS 1PE 2PE 1JN 2JN 3JN JUD REV'.split(' '));
+const testamentOf = (bookKey: string) => NEW_TESTAMENT_BOOK_KEYS.has(bookKey) ? 'New' : 'Old';
+/** ReferenceMatch distractors ordered by proximity to the target source:
+ * tier 1 same book + same chapter, tier 2 same book, tier 3 same testament,
+ * tier 4 everything else; within a tier by chapter distance, then ordinal.
+ * Deterministic; the target's own citation is excluded, as before. */
+export function orderDistractorCitations(sources: Source[], target: Source): string[] {
+  const tier = (s: Source) => s.bookKey === target.bookKey && s.chapter === target.chapter ? 1 : s.bookKey === target.bookKey ? 2 : testamentOf(s.bookKey) === testamentOf(target.bookKey) ? 3 : 4;
+  const ordered = sources.filter(s => s.citation !== target.citation).sort((a, b) => tier(a) - tier(b) || Math.abs(a.chapter - target.chapter) - Math.abs(b.chapter - target.chapter) || a.ordinal - b.ordinal || a.id.localeCompare(b.id));
+  return [...new Set(ordered.map(s => s.citation))].slice(0, 6);
+}
+/** The TrueFalse fallback alternate: the CLOSEST same-chapter source by
+ * ordinal distance, then the closest same-book source, then the first
+ * other source — a neighboring verse reads as a far more plausible false
+ * statement than an arbitrary one. */
+export function closestAlternateSource(sources: Source[], target: Source): Source | undefined {
+  const tier = (s: Source) => s.bookKey === target.bookKey && s.chapter === target.chapter ? 0 : s.bookKey === target.bookKey ? 1 : 2;
+  return sources.filter(s => s.id !== target.id).sort((a, b) => tier(a) - tier(b) || Math.abs(a.ordinal - target.ordinal) - Math.abs(b.ordinal - target.ordinal) || a.ordinal - b.ordinal || a.id.localeCompare(b.id))[0];
+}
 const knowledgeId = (s: Source) => s.knowledgeUnitId ?? s.id;
 const sessionDto = (s: Session) => ({ id: s.id, seasonId: s.seasonId, status: s.status, mode: s.mode, targetCardCount: s.targetCardCount, difficulty: s.difficulty, memoryChallenge:s.memoryChallenge,generatorVersion:s.generatorVersion,evidenceProfile:s.evidenceProfile });
-const cardDto = (s: Session, c: Card) => toCardDto(c, { id: c.id, sessionId: s.id, sequence: c.sequence, total: s.targetCardCount }, sourceUnit(c.source), s.mode !== 'Simulation' || s.ruleProfile.showReference, false);
+const cardDto = (s: Session, c: Card) => { const dto = toCardDto(c, { id: c.id, sessionId: s.id, sequence: c.sequence, total: s.targetCardCount }, sourceUnit(c.source), s.mode !== 'Simulation' || s.ruleProfile.showReference, false); return c.activityType === 'MissingWords' ? { ...dto, blankShuffles: c.blankShuffles ?? 0, blankShuffleLimit: BLANK_SHUFFLE_LIMIT } : dto; };
 const summary = (s: Session) => ({ sessionId: s.id, mode: s.mode, attempted: s.attempts.length, correct: s.attempts.filter(a => a.isCorrect).length, targetCardCount: s.targetCardCount, status: s.status, ...(s.recap ? { recap: s.recap } : {}) });
 const replay = (a: Attempt) => ({ ...a.result, submittedAnswer: a.result.submittedAnswer ?? a.submittedAnswer, alreadyProcessed: true });
 
@@ -207,8 +229,9 @@ async function next(ctx: RequestContext, sessionId: string) {
     // due-order selection and Simulation its balanced deterministic order.
     const source = session.mode === 'Practice' ? drawPracticeSource(session, eligible) : eligible.sort((a, b) => count(session.cards, a) - count(session.cards, b) || (exposure.get(a.id)?.count ?? 0) - (exposure.get(b.id)?.count ?? 0) || Number(due.has(knowledgeId(b))) - Number(due.has(knowledgeId(a))) || Number(primary(b)) - Number(primary(a)) || last(a) - last(b) || a.ordinal - b.ordinal || knowledgeId(a).localeCompare(knowledgeId(b)))[0];
     const nextSource = scope.sources.find(s => s.contentPackId === source.contentPackId && s.ordinal === source.ordinal + 1 && (!frozen || frozen.has(knowledgeId(s))));
-    const alternate = scope.sources.find(s => s.id !== source.id), sequence = session.cards.length + 1;
-    const request = { generatorVersion:session.generatorVersion,evidenceProfile:session.evidenceProfile,sourceUnit: sourceUnit(source), knowledgeUnitId: knowledgeId(source), sessionId, sequence, difficulty: normalizeDifficulty(session.difficulty), mode: session.mode, ruleProfile: session.ruleProfile, nextSourceUnit: nextSource ? sourceUnit(nextSource) : null, nextKnowledgeUnitId: nextSource ? knowledgeId(nextSource) : null, alternateSourceUnit: alternate ? sourceUnit(alternate) : null, distractorCitations: [...new Set(scope.sources.filter(s => s.citation !== source.citation).map(s => s.citation))].slice(0, 6), usedActivityTypes: session.cards.map(c => c.activityType), targetCardCount: session.targetCardCount };
+    const alternate = closestAlternateSource(scope.sources, source), sequence = session.cards.length + 1;
+    const trueFalseWordPool = [...new Set(scope.sources.filter(s => s.id !== source.id && s.bookKey === source.bookKey && s.chapter === source.chapter).flatMap(s => s.canonicalText.split(' ')).map(w => w.trim()).filter(Boolean))];
+    const request = { generatorVersion:session.generatorVersion,evidenceProfile:session.evidenceProfile,sourceUnit: sourceUnit(source), knowledgeUnitId: knowledgeId(source), sessionId, sequence, difficulty: normalizeDifficulty(session.difficulty), mode: session.mode, ruleProfile: session.ruleProfile, nextSourceUnit: nextSource ? sourceUnit(nextSource) : null, nextKnowledgeUnitId: nextSource ? knowledgeId(nextSource) : null, alternateSourceUnit: alternate ? sourceUnit(alternate) : null, trueFalseWordPool, distractorCitations: orderDistractorCitations(scope.sources, source), usedActivityTypes: session.cards.map(c => c.activityType), targetCardCount: session.targetCardCount };
     const activity = chooseActivity(eligibleActivities(request), request.usedActivityTypes, sequence);
     if (!activity) return fail('No practice activity is available for these passages right now.');
     const generated = generateActivity(activity, request);
@@ -235,6 +258,45 @@ async function shufflePracticeDeck(ctx: RequestContext, sessionId: string) {
     session.deckOrder = shuffleRandom(session.deckOrder.filter(id => scope.sources.some(s => s.id === id)));
     await atomic(ctx, 'study.session.shuffle', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision)], [{ kind: 'session', id: sessionId, revision: stored.revision }]);
     return json({ sessionId, remaining: session.deckOrder.length });
+  });
+}
+/** Re-deal the blank pattern of the Fill in the Blank card currently on
+ * screen: same verse, same card, same blank count (the generator's own
+ * difficulty/profile rules), a new hidden-word selection. The stored card
+ * payload and answer key are replaced in place, so the eventual submit is
+ * graded against the pattern the student actually answered — answers keyed
+ * to the old pattern no longer validate. Shuffling blanks is a practice
+ * action, not reader assistance: readerAssistedCardIds is never touched
+ * here. Bounded per card (BLANK_SHUFFLE_LIMIT) so repeated re-deals cannot
+ * cycle the whole verse into view, and unavailable in Simulation, where
+ * exam conditions stay fixed. The client clears the typed draft on success
+ * (mirroring the read-passage reset), because the draft was written against
+ * the old pattern. */
+async function reblankCard(ctx: RequestContext, sessionId: string, input: { challengeCardId?: unknown }) {
+  const challengeCardId = requiredString(input?.challengeCardId, 'Challenge card');
+  return retry(async () => {
+    const stored = await loadSession(ctx, sessionId), session = stored.value;
+    if (['Completed', 'Abandoned'].includes(session.status)) fail('The study session is already complete.');
+    if (session.mode === 'Simulation') fail('Blanks stay fixed in Simulation.');
+    const card = session.cards.find(c => c.id === challengeCardId);
+    if (!card) return fail('Challenge card does not belong to this session.');
+    if (card.activityType !== 'MissingWords') fail('Only Fill in the Blank cards can shuffle their blanks.');
+    const current = session.cards.find(c => !session.attempts.some(a => a.cardId === c.id));
+    if (!current || current.id !== card.id) fail('This card has already been answered.');
+    if ((card.blankShuffles ?? 0) >= BLANK_SHUFFLE_LIMIT) fail('This card has been shuffled the maximum number of times.');
+    validateCardSnapshot(session, card);
+    const scope = await sessionScope(ctx, session); cardInScope(card, scope.sources);
+    const hiddenOf = (tokens: { hidden: boolean; index: number }[]) => tokens.filter(t => t.hidden).map(t => t.index).sort((a, b) => a - b).join(',');
+    const before = hiddenOf(card.payload.tokens);
+    let replacement: Card | null = null;
+    for (let salt = 1; salt <= 8 && !replacement; salt++) {
+      const generated = generateActivity('MissingWords', { generatorVersion: session.generatorVersion, evidenceProfile: session.evidenceProfile, sourceUnit: sourceUnit(card.source), knowledgeUnitId: card.knowledgeUnitId, knowledgeUnitKind: 'ExactVerseText', sessionId, sequence: card.sequence + salt * 1009, difficulty: card.payload.difficulty, mode: session.mode, ruleProfile: session.ruleProfile });
+      if (hiddenOf(generated.payload.tokens) !== before) replacement = { ...generated, id: card.id, sequence: card.sequence, createdAtUtc: card.createdAtUtc, source: card.source, answerSource: card.answerSource, blankShuffles: (card.blankShuffles ?? 0) + 1 };
+    }
+    if (!replacement) return fail('Every word that can be blanked is already blanked in this verse.');
+    session.cards = session.cards.map(c => c.id === card.id ? replacement! : c);
+    await atomic(ctx, 'study.card.reblank', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision)], [{ kind: 'session', id: sessionId, revision: stored.revision }, ...selectedGuards(scope.guards, [card.sourceUnitId, card.answerSource.id])]);
+    return json(cardDto(session, replacement));
   });
 }
 async function submit(ctx: RequestContext, sessionId: string, input: Submission) {
@@ -299,7 +361,16 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
     const attempt: Attempt = { ...(answerPayload?{answerPayload}:{}), id: attemptId, sessionId, cardId: card.id, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, clientSubmissionId: input.clientSubmissionId, submittedAnswer, responseTimeMs: input.responseTimeMs, clientHintsUsed: input.hintsUsed, hintsUsed, isCorrect: evaluation.isCorrect, score: evaluation.score, evaluationResult: evaluation.evaluationCode, activityType: card.activityType, at: now, result, previousAttemptId: previous?.value.lastAttemptId, before: { ...priorScores }, after: { ...scores } };
     session.attempts.push(attempt); session.status = 'Active';
     const recordScope = { seasonId: session.seasonId, ownerId: session.studentUserId };
+    const xpBefore = session.training?.xpEarned ?? 0;
     const trainingWrites = await applyAcceptedAttempt(ctx,session,attempt,scope.sources,mastery,previous?.value.reviewDueAt);
+    // Per-attempt game feedback: the XP this attempt actually earned is the
+    // cap-aware session total's delta across the accepted-attempt write
+    // (attempt XP plus any quest/milestone bonus this attempt triggered),
+    // and the session streak counts trailing correct attempts including
+    // this one. Both ride on the stored result, so replays keep them.
+    result.xpEarned = (session.training?.xpEarned ?? 0) - xpBefore;
+    let sessionStreak = 0; for (let i = session.attempts.length - 1; i >= 0 && session.attempts[i].isCorrect; i--) sessionStreak++;
+    result.sessionStreak = sessionStreak;
     await atomic(ctx, 'study.attempt', [...trainingWrites.statements,ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision), previous ? ctx.store.update('mastery', masteryId, ctx.orgId, mastery, previous.revision) : ctx.store.insertion('mastery', masteryId, ctx.orgId, mastery, recordScope), ctx.store.insertion('attempt', attemptId, ctx.orgId, attempt, recordScope)], [...trainingWrites.guards,{ kind: 'session', id: sessionId, revision: stored.revision }, ...(previous ? [{ kind: 'mastery', id: masteryId, revision: previous.revision }] : []), ...selectedGuards(scope.guards, [card.sourceUnitId, card.answerSource.id])]);
     return json(result);
   });
@@ -352,12 +423,13 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
     return json(discovered);
   }
   if (path === '/api/v1/study/sessions' && method === 'POST') { const input = await body<{seasonId:string;format?:string;mode?:StudyMode;progressScope?:unknown}>(request); if(!input||typeof input!=='object'||Array.isArray(input))throw new HttpError(400,'Provide a study request.'); if(input.mode!==undefined&&!['Practice','Review','Simulation'].includes(input.mode))throw new HttpError(400,'Choose a valid study mode.'); if(input.format === 'Pbe') return startPbeSession(ctx,input as Parameters<typeof startPbeSession>[1]); if(input.progressScope!==undefined)throw new HttpError(400,'Progress scope requires Pbe.'); if(input.format!==undefined&&input.format!=='Memory')throw new HttpError(400,'Choose Memory or Pbe.'); return start(ctx,input); }
-  const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete|source|shuffle))?$/);
+  const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete|source|shuffle|reblank))?$/);
   if (!match) return null;
   const sessionId = match[1], action = match[2];
   if((!action||action==='next')&&method==='GET'||['attempts','complete','source'].includes(action)&&method==='POST'){const response=await pbeSessionAction(ctx,sessionId,action,method==='POST'&&action!=='complete'?await request.clone().json():undefined);if(response)return response;}
   if (action === 'next' && method === 'GET') return next(ctx, sessionId);
   if (action === 'shuffle' && method === 'POST') return shufflePracticeDeck(ctx, sessionId);
+  if (action === 'reblank' && method === 'POST') return reblankCard(ctx, sessionId, await body<{ challengeCardId?: unknown }>(request));
   if (action === 'attempts' && method === 'POST') return submit(ctx, sessionId, await body(request));
   if (action === 'complete' && method === 'POST') return retry(async () => {
     const stored = await loadSession(ctx, sessionId), session = stored.value;

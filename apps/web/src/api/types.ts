@@ -125,6 +125,10 @@ export type ChallengeCard = {
   total: number;
   debugAnswer?: string | null;
   choices?: string[] | null;
+  /** Fill in the Blank only: how many times this card's blanks have been
+   * re-dealt (Shuffle blanks) and the per-card limit. */
+  blankShuffles?: number;
+  blankShuffleLimit?: number;
 };
 
 export interface MissingWordAnswer { index: number; text: string }

@@ -9,7 +9,9 @@ import {
   academyUnavailableCopy,
   canStartAcademyTrack,
   resolveStudyFormat,
+  STUDY_BEHAVIOR_MATRIX,
   STUDY_MODE_CARDS,
+  studyModeCardDescription,
   studySessionFraming,
   visibleAcademyTracks,
 } from "./academyTracks";
@@ -190,7 +192,7 @@ describe("academyModeRules", () => {
 
   it("describes Rehearse as exam conditions", () => {
     expect(academyModeRules("rehearsal", "Pbe")).toEqual(["Shortened timed practice", "Answers freeze", "Feedback at end"]);
-    expect(academyModeRules("rehearsal", "Memory")).toEqual(["Typed answers only", "No reader", "No recitation"]);
+    expect(academyModeRules("rehearsal", "Memory")).toEqual(["Typed answers only", "No reader", "No recitation", "Feedback as you go"]);
   });
 });
 
@@ -199,6 +201,45 @@ describe("studySessionFraming", () => {
     expect(studySessionFraming("Practice").eyebrow).toBe("Learn · coached practice");
     expect(studySessionFraming("Review").eyebrow).toBe("Review · due practice");
     expect(studySessionFraming("Simulation").eyebrow).toBe("Rehearse · exam mode");
+  });
+});
+
+describe("Q8 Simulation framing split", () => {
+  it("states the feedback contract per format in session framing", () => {
+    const memory = studySessionFraming("Simulation", "Memory").blurb;
+    const pbe = studySessionFraming("Simulation", "Pbe").blurb;
+    expect(memory).not.toBe(pbe);
+    // Memory Simulation really checks each answer immediately.
+    expect(memory).toContain("checked as you go");
+    expect(memory).not.toContain("at the end");
+    // PBE Simulation really defers feedback to completion.
+    expect(pbe).toContain("you'll see how you did at the end");
+    expect(pbe).not.toContain("as you go");
+    // The format-less call is the Memory session page, so it defaults to Memory.
+    expect(studySessionFraming("Simulation").blurb).toBe(memory);
+  });
+
+  it("states the feedback contract per format on the Rehearse mode card", () => {
+    const card = STUDY_MODE_CARDS.find((entry) => entry.mode === "Simulation")!;
+    const memory = studyModeCardDescription(card, "Memory");
+    const pbe = studyModeCardDescription(card, "Pbe");
+    expect(memory).not.toBe(pbe);
+    expect(memory).toContain("checked as you go");
+    expect(memory).not.toContain("results at the end");
+    expect(pbe).toContain("results at the end");
+    expect(pbe).not.toContain("as you go");
+    // The shared fallback description must not promise one format's contract.
+    expect(card.description).not.toContain("results at the end");
+    expect(card.description).not.toContain("as you go");
+  });
+
+  it("splits the rehearsal feedback contract in the rules and behavior matrix", () => {
+    expect(academyModeRules("rehearsal", "Memory")).toContain("Feedback as you go");
+    expect(academyModeRules("rehearsal", "Pbe")).toContain("Feedback at end");
+    const pbeRow = STUDY_BEHAVIOR_MATRIX.find((row) => row.behavior === "PBE feedback")!;
+    const memoryRow = STUDY_BEHAVIOR_MATRIX.find((row) => row.behavior === "Memory feedback")!;
+    expect(pbeRow.rehearse).toBe("At end");
+    expect(memoryRow.rehearse).toBe("As you go");
   });
 });
 

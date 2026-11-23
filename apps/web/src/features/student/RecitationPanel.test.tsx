@@ -78,6 +78,35 @@ describe("RecitationPanel voice input", () => {
     expect(box).toHaveValue("still typing");
   });
 
+  it("offers no recitation comparison before the card is checked, even with text present", () => {
+    render(<RecitationPanel />);
+    const box = screen.getByLabelText("Your private recitation practice");
+    fireEvent.change(box, { target: { value: "in the beginning God created" } });
+    expect(screen.queryByRole("button", { name: "Compare your recitation" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("recitation-compare")).not.toBeInTheDocument();
+  });
+
+  it("offers no comparison after check when the recitation box is empty", () => {
+    render(<RecitationPanel compareSourceText="In the beginning God created the heaven" />);
+    expect(screen.queryByRole("button", { name: "Compare your recitation" })).not.toBeInTheDocument();
+  });
+
+  it("compares the recitation against the checked verse with missed/extra highlighting and no spelling callout", () => {
+    render(<RecitationPanel compareSourceText="In the beginning God created the heaven" />);
+    const box = screen.getByLabelText("Your private recitation practice");
+    // "creatde" is a near-miss of "created", but a spoken/typed recitation
+    // compare passes markSpelling: false, so it stays missed+extra.
+    fireEvent.change(box, { target: { value: "In the beginning God creatde the shiny heaven" } });
+    fireEvent.click(screen.getByRole("button", { name: "Compare your recitation" }));
+    const compare = screen.getByTestId("recitation-compare");
+    expect(compare.querySelector(".diff-missed")?.textContent).toBe("created");
+    expect(compare.querySelectorAll(".diff-extra")).toHaveLength(2);
+    expect(compare.querySelector(".diff-spelling")).not.toBeInTheDocument();
+    expect(screen.getByTestId("recitation-compare-summary")).toHaveTextContent("1 missed word is underlined");
+    expect(screen.getByTestId("recitation-compare-summary")).toHaveTextContent("2 extra words are struck through");
+    expect(screen.getByTestId("recitation-compare-summary")).not.toHaveTextContent("Spelling:");
+  });
+
   it("appends a new recitation after text already in the box", () => {
     win.SpeechRecognition = MockRecognition;
     render(<RecitationPanel />);

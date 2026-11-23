@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Panel, Textarea } from "../../components/ui";
+import { diffWords, type DiffToken } from "./wordDiff";
+
+function DiffTokens({ tokens }: { tokens: DiffToken[] }) {
+  return <>{tokens.map((token, index) => <span key={index}>{index > 0 ? " " : ""}<span className={`diff-token diff-${token.status}`}>{token.text}</span></span>)}</>;
+}
 
 /**
  * Optional full-verse recitation aid with a microphone option.
@@ -34,8 +39,15 @@ function recognitionCtor(): SpeechRecognitionCtor | undefined {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;
 }
 
-export function RecitationPanel() {
+export function RecitationPanel({ compareSourceText }: {
+  /** The checked card's verse text from the attempt result. Only passed
+   * once the card has been checked, so comparing a recitation against it
+   * costs nothing: no reader trip, no assistance change, nothing sent to
+   * the server — the answer is already revealed by the feedback. */
+  compareSourceText?: string;
+} = {}) {
   const [text, setText] = useState("");
+  const [compareOpen, setCompareOpen] = useState(false);
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [supported] = useState(() => recognitionCtor() !== undefined);
@@ -125,6 +137,37 @@ export function RecitationPanel() {
           {listening && <p className="text-sm" aria-live="polite">Listening… speak the verse, then tap Stop reciting. You can edit the words before comparing.</p>}
         </div>
         {error && <p role="alert" className="text-sm">{error}</p>}
+        {compareSourceText && text.trim() && (
+          <div className="mt-3">
+            <Button type="button" variant="secondary" data-testid="recitation-compare-toggle" aria-expanded={compareOpen}
+              onClick={() => setCompareOpen(open => !open)}>
+              {compareOpen ? "Hide recitation comparison" : "Compare your recitation"}
+            </Button>
+            {compareOpen && (() => {
+              // Spoken answers never get spelling callouts: the transcript's
+              // spelling comes from the speech engine, not the student.
+              const diff = diffWords(compareSourceText, text, { markSpelling: false });
+              return (
+                <div data-testid="recitation-compare" className="mt-3">
+                  <p className="er-scripture" data-testid="recitation-compare-source">
+                    <DiffTokens tokens={diff.expected} />
+                  </p>
+                  <p className="mt-2 text-sm">
+                    <span className="font-semibold">Your recitation: </span>
+                    <DiffTokens tokens={diff.submitted} />
+                  </p>
+                  <p className="mt-2 text-sm" data-testid="recitation-compare-summary">
+                    {[
+                      diff.missed ? `${diff.missed} missed ${diff.missed === 1 ? "word is" : "words are"} underlined in the verse.` : "",
+                      diff.extra ? `${diff.extra} extra ${diff.extra === 1 ? "word is" : "words are"} struck through in your recitation.` : "",
+                      !diff.missed && !diff.extra ? "Every word matches the verse." : "",
+                    ].filter(Boolean).join(" ")}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+        )}
       </details>
     </Panel>
   );

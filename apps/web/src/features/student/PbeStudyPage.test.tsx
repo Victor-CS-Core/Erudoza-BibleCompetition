@@ -245,6 +245,53 @@ it('shows the no-questions state when the server reports no published questions 
     fireEvent.click(await screen.findByRole('button', { name: 'Start due reviews' }));
     expect(await screen.findByRole('heading', { name: 'No PBE questions to review' })).toBeInTheDocument();
 });
+// --- B2: per-part word-diff feedback ---
+it('highlights missed and extra words per part while keeping points and the expected text readable', async () => {
+    vi.mocked(api.submitPbeAttempt).mockResolvedValue({ ...result, expectedParts: ['Alpha brave Charlie', 'Beta'], sourceEvidence: 'Alpha brave Charlie and Beta' });
+    mount('/student/study?sessionId=pbe-session');
+    fireEvent.change(await screen.findByLabelText('Answer 1'), { target: { value: 'Alpha Charlie extra' } });
+    fireEvent.change(screen.getByLabelText('Answer 2'), { target: { value: 'Beta' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    const feedback = await screen.findByTestId('challenge-feedback');
+    expect(await within(feedback).findByText('1 / 2 points')).toBeInTheDocument();
+    const part = within(feedback).getByTestId('pbe-part-feedback-0');
+    expect(part.querySelector('.diff-missed')?.textContent).toBe('brave');
+    expect(part.querySelector('.diff-extra')?.textContent).toBe('extra');
+    expect(part).toHaveTextContent('Alpha brave Charlie');
+    expect(part).toHaveTextContent(/1 missed word is underlined/);
+    expect(part).toHaveTextContent(/1 extra word is struck through/);
+    expect(part).toHaveTextContent('Part 1 · 1 point');
+    expect(within(feedback).getByTestId('pbe-part-feedback-1')).toHaveTextContent('Part 2 · 1 point');
+    expect(screen.getByTestId('feedback-source')).toHaveTextContent('Alpha brave Charlie and Beta');
+    expect(feedback).toHaveTextContent('Practice with assistance saved.');
+});
+it('renders the spelling treatment and callout for a spelling near-miss', async () => {
+    vi.mocked(api.submitPbeAttempt).mockResolvedValue({ ...result, expectedParts: ['baptized by him', 'Beta'], sourceEvidence: 'baptized by him and Beta' });
+    mount('/student/study?sessionId=pbe-session');
+    fireEvent.change(await screen.findByLabelText('Answer 1'), { target: { value: 'baptised by him' } });
+    fireEvent.change(screen.getByLabelText('Answer 2'), { target: { value: 'Beta' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    const feedback = await screen.findByTestId('challenge-feedback');
+    const part = within(feedback).getByTestId('pbe-part-feedback-0');
+    const spelling = [...part.querySelectorAll('.diff-spelling')].map(node => node.textContent);
+    expect(spelling).toContain('baptized');
+    expect(spelling).toContain('baptised');
+    expect(part).toHaveTextContent('Spelling: you wrote “baptised” for “baptized” — a spelling slip, not a wrong word; in PBE a misspelling can still earn credit.');
+    expect(part.querySelector('.diff-missed')).not.toBeInTheDocument();
+    expect(part.querySelector('.diff-extra')).not.toBeInTheDocument();
+});
+it('renders an unanswered part plainly with a No answer state instead of an all-missed diff', async () => {
+    mount('/student/study?sessionId=pbe-session');
+    fireEvent.change(await screen.findByLabelText('Answer 1'), { target: { value: 'Alpha' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    const feedback = await screen.findByTestId('challenge-feedback');
+    const part = within(feedback).getByTestId('pbe-part-feedback-1');
+    expect(part).toHaveTextContent('Beta');
+    expect(part).toHaveTextContent('No answer — this part earned no points.');
+    expect(part.querySelector('.diff-missed')).not.toBeInTheDocument();
+    expect(part.querySelector('.diff-extra')).not.toBeInTheDocument();
+    expect(part.querySelector('.diff-spelling')).not.toBeInTheDocument();
+});
 it('still starts rehearsal automatically without a review entry screen', async () => {
     mockSuggestedToday();
     vi.mocked(api.startSession).mockResolvedValue(saved.session);

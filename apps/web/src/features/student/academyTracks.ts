@@ -28,9 +28,16 @@ export type StudyModeCard = {
   mode: "Practice" | "Review" | "Simulation";
   title: string;
   description: string;
+  /** Per-format description when the mode's contract differs by format (Rehearse). */
+  descriptionByFormat?: Partial<Record<StudyFormat, string>>;
   ctaLabel: string;
   ctaTestId: string;
 };
+
+/** The description a mode card shows for the currently selected format. */
+export function studyModeCardDescription(card: StudyModeCard, format: StudyFormat): string {
+  return card.descriptionByFormat?.[format] ?? card.description;
+}
 
 export const STUDY_MODE_CARDS: StudyModeCard[] = [
   {
@@ -53,7 +60,11 @@ export const STUDY_MODE_CARDS: StudyModeCard[] = [
     track: "rehearsal",
     mode: "Simulation",
     title: "Rehearse",
-    description: "Competition conditions — no aids, timed answers, results at the end. Like the real event.",
+    description: "Competition conditions — no aids. Like the real event.",
+    descriptionByFormat: {
+      Memory: "Competition conditions — no aids, typed answers only. Each answer is checked as you go.",
+      Pbe: "Competition conditions — no aids, timed answers, results at the end. Like the real event.",
+    },
     ctaLabel: "Start rehearsal",
     ctaTestId: "start-rehearse",
   },
@@ -73,11 +84,20 @@ export function academyModeRules(track: AcademyTrackId, format: StudyFormat): st
   }
   return format === "Pbe"
     ? ["Shortened timed practice", "Answers freeze", "Feedback at end"]
-    : ["Typed answers only", "No reader", "No recitation"];
+    : ["Typed answers only", "No reader", "No recitation", "Feedback as you go"];
 }
 
-/** Mode-specific session identity: the eyebrow and coaching copy above each session. */
-export function studySessionFraming(mode: "Practice" | "Review" | "Simulation"): {
+/**
+ * Mode-specific session identity: the eyebrow and coaching copy above each session.
+ * Rehearsal's feedback contract differs by format — Memory checks each answer
+ * as you go, PBE holds results until the end — so Simulation framing is
+ * format-specific. The default format is Memory because the only caller that
+ * does not pass a format is the Memory session page.
+ */
+export function studySessionFraming(
+  mode: "Practice" | "Review" | "Simulation",
+  format: StudyFormat = "Memory",
+): {
   eyebrow: string;
   blurb: string;
 } {
@@ -90,7 +110,10 @@ export function studySessionFraming(mode: "Practice" | "Review" | "Simulation"):
   if (mode === "Simulation") {
     return {
       eyebrow: "Rehearse · exam mode",
-      blurb: "Just like the real competition: answers are final, and you'll see how you did at the end.",
+      blurb:
+        format === "Pbe"
+          ? "Just like the real competition: answers are final, and you'll see how you did at the end."
+          : "Just like the real competition: answers are final — and each answer is checked as you go, so you see how you're doing right away.",
     };
   }
   return {
@@ -104,6 +127,7 @@ export const STUDY_BEHAVIOR_MATRIX: { behavior: string; learn: string; review: s
   { behavior: "Purpose", learn: "Build", review: "Protect", rehearse: "Perform" },
   { behavior: "Memory aids", learn: "All on", review: "Review set", rehearse: "None" },
   { behavior: "PBE feedback", learn: "Immediate", review: "Immediate", rehearse: "At end" },
+  { behavior: "Memory feedback", learn: "Immediate", review: "Immediate", rehearse: "As you go" },
   { behavior: "Timing", learn: "Untimed", review: "Untimed", rehearse: "Countdown" },
   { behavior: "You need", learn: "Your season started", review: "Your season started + passages due", rehearse: "Your season started" },
 ];

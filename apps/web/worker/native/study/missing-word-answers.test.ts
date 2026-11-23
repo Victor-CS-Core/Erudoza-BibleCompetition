@@ -1,5 +1,48 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateMissingWordAnswers } from './missing-word-answers';
+import { evaluateMissingWordAnswers, isSpellingNearMiss } from './missing-word-answers';
+
+describe('spelling flag (twin of wordDiff.ts isSpellingPair)', () => {
+  const slot = (expected: string, submitted: string) =>
+    evaluateMissingWordAnswers([{ index: 0, text: expected, hidden: true }], [{ index: 0, text: submitted }]).results[0];
+
+  it('flags a one-letter slip and a transposition without changing the verdict or score', () => {
+    // Mirrors wordDiff.test.ts: 'baptized'/'baptised' and 'receive'/'recieve'.
+    expect(slot('baptized', 'baptised')).toEqual({ index: 0, isCorrect: false, expected: 'baptized', spelling: true });
+    expect(slot('receive', 'recieve').spelling).toBe(true);
+    const graded = evaluateMissingWordAnswers([{ index: 0, text: 'baptized', hidden: true }], [{ index: 0, text: 'baptised' }]);
+    expect(graded).toMatchObject({ isCorrect: false, score: 0, evaluationCode: 'Incorrect' });
+  });
+
+  it('does not flag a genuinely different word (mirrors wordDiff.test.ts)', () => {
+    expect(slot('walked', 'went').spelling).toBe(false);
+    expect(slot('river', 'mountain').spelling).toBe(false);
+    expect(isSpellingNearMiss('walked', 'went')).toBe(false);
+    expect(isSpellingNearMiss('river', 'mountain')).toBe(false);
+  });
+
+  it('never flags correct slots or empty submissions', () => {
+    expect(slot('baptized', 'Baptized,').spelling).toBe(false);
+    expect(slot('baptized', '').spelling).toBe(false);
+    expect(slot('baptized', '   ').spelling).toBe(false);
+  });
+
+  it('respects the exact distance boundaries of the client rule', () => {
+    // <= 5 letters: distance 1 passes, distance 2 fails.
+    expect(isSpellingNearMiss('faith', 'fait')).toBe(true);
+    expect(isSpellingNearMiss('faith', 'fath')).toBe(true);
+    expect(isSpellingNearMiss('faith', 'foth')).toBe(false);
+    // Longer words: distance 2 passes, distance 3 fails.
+    expect(isSpellingNearMiss('baptized', 'baptisd')).toBe(true);
+    expect(isSpellingNearMiss('baptized', 'bptisd')).toBe(false);
+    // Distance must also be <= a third of the longer word: 6 letters, distance 2 ok; 5 letters distance 2 already over the <=5 cap.
+    expect(isSpellingNearMiss('spirit', 'sprit')).toBe(true);
+    // Words under 3 letters are never spelling pairs, however close.
+    expect(isSpellingNearMiss('in', 'im')).toBe(false);
+    expect(isSpellingNearMiss('go', 'goo')).toBe(false);
+    // Identical after normalization is not a near-miss.
+    expect(isSpellingNearMiss('Word,', 'word')).toBe(false);
+  });
+});
 
 describe('evaluateMissingWordAnswers', () => {
   it('does not move words across an empty blank', () => {
@@ -16,9 +59,9 @@ describe('evaluateMissingWordAnswers', () => {
     expect(evaluateMissingWordAnswers(tokens, [
       { index: 2, text: 'alpha' }, { index: 3, text: '' }, { index: 4, text: 'beta gamma' },
     ]).results).toEqual([
-      { index: 2, isCorrect: true, expected: 'alpha' },
-      { index: 3, isCorrect: false, expected: 'beta' },
-      { index: 4, isCorrect: false, expected: 'gamma' },
+      { index: 2, isCorrect: true, expected: 'alpha', spelling: false },
+      { index: 3, isCorrect: false, expected: 'beta', spelling: false },
+      { index: 4, isCorrect: false, expected: 'gamma', spelling: false },
     ]);
     expect(evaluateMissingWordAnswers(tokens, [
       { index: 2, text: 'beta' }, { index: 3, text: 'alpha' }, { index: 4, text: 'gamma' },
@@ -38,9 +81,9 @@ describe('evaluateMissingWordAnswers', () => {
       score: 67,
       evaluationCode: 'PartialMatch',
       results: [
-        { index: 8, isCorrect: true, expected: 'again' },
-        { index: 4, isCorrect: false, expected: 'then' },
-        { index: 9, isCorrect: true, expected: 'again' },
+        { index: 8, isCorrect: true, expected: 'again', spelling: false },
+        { index: 4, isCorrect: false, expected: 'then', spelling: false },
+        { index: 9, isCorrect: true, expected: 'again', spelling: false },
       ],
     });
   });
@@ -99,7 +142,7 @@ describe('evaluateMissingWordAnswers', () => {
       isCorrect: false,
       score: 0,
       evaluationCode: 'Incorrect',
-      results: [{ index: 7, isCorrect: false, expected: '“”' }],
+      results: [{ index: 7, isCorrect: false, expected: '“”', spelling: false }],
     });
     expect(evaluateMissingWordAnswers(tokens, [{ index: 7, text: '“”' }]).isCorrect).toBe(true);
   });
