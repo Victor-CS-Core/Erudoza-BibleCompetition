@@ -84,15 +84,19 @@
 }
 @media (forced-colors: active) { .game-player-card--banner .training-hq-banner, .game-player-card--banner::after { display: none; } }
 
-.game-quest-card { padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); display: grid; gap: 6px; box-shadow: var(--er-shadow-card); }
+.game-quest-card { padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); display: grid; gap: var(--er-space-1); box-shadow: var(--er-shadow-card); }
 .game-quest-card.is-complete { border-color: color-mix(in srgb, var(--er-teal) 45%, transparent); background: color-mix(in srgb, var(--er-teal) 6%, var(--er-card)); }
 .game-quest-card__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--er-space-2); }
 .game-quest-card__head strong { color: var(--er-ink-navy); overflow-wrap: anywhere; }
 .game-quest-card__reward { font-size: var(--er-text-xs); font-weight: 700; color: var(--er-teal); white-space: nowrap; }
 .game-quest-card p { margin: 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
-.game-quest-card__pips { display: flex; gap: 5px; }
-.game-quest-card__pips span { flex: none; width: 18px; height: 6px; border-radius: 999px; background: var(--er-border); }
-.game-quest-card__pips span.is-done { background: var(--er-teal); }
+/* Segmented quest progress: the track is the strong border tone so the
+   unfilled segments still read on the card in both themes, and completed
+   segments fill gold (the achievement accent), sized to read at phone
+   width — the old 18×6 border-colored dashes were effectively invisible. */
+.game-quest-card__pips { display: flex; gap: var(--er-space-1); }
+.game-quest-card__pips span { flex: none; width: 22px; height: 8px; border-radius: 999px; background: var(--er-border-strong); }
+.game-quest-card__pips span.is-done { background: var(--er-gold-fill); }
 .game-quest-card__status { font-weight: 600; }
 .game-quest-card__status.is-done { display: flex; align-items: center; gap: 6px; color: var(--er-success-ink); }
 
@@ -108,6 +112,10 @@
 /* Assigned passages as quests: citation title, state chip, shared meter,
    one practice action. Gold is reserved for the Mastered achievement state. */
 .game-passage-quests { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--er-space-2); }
+/* Collapse toggle: a full-width row under the visible quest rows, so a
+   long assignment list never turns HQ into a wall. */
+.game-passage-quests__toggle { width: 100%; min-height: 44px; margin-top: var(--er-space-2); }
+.game-passage-quests__toggle-more { margin-left: var(--er-space-2); color: var(--er-muted-ink); font-weight: 600; }
 .game-passage-quest { padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); display: grid; gap: var(--er-space-2); box-shadow: var(--er-shadow-card); }
 .game-passage-quest.is-mastered { border-color: color-mix(in srgb, var(--er-thread-gold) 55%, var(--er-border)); background: color-mix(in srgb, var(--er-thread-gold) 5%, var(--er-card)); }
 .game-passage-quest__head { display: flex; justify-content: space-between; align-items: center; gap: var(--er-space-2); }
@@ -270,11 +278,14 @@
 .game-leaderboard-mini__footer svg { flex: none; margin-top: 2px; color: var(--er-teal); }
 .game-leaderboard-mini__actions { display: flex; flex-wrap: wrap; gap: var(--er-space-2); align-items: center; margin-top: var(--er-space-3); }
 
-/* QuestBoard triple-bonus segment meter. */
-.game-triple-meter { display: grid; gap: 6px; }
+/* QuestBoard triple-bonus segment meter: the missions panel's footer —
+   a divider and the panel's padding rhythm attach it to the quest cards
+   above instead of leaving it a stray block, and its segments share the
+   quest pips' visible track + gold fill. */
+.game-triple-meter { display: grid; gap: 6px; margin-top: var(--er-space-3); padding-top: var(--er-space-3); border-top: 1px solid var(--er-border); }
 .game-triple-meter__segments { display: flex; gap: 5px; }
-.game-triple-meter__segments span { flex: 1; height: 6px; border-radius: 999px; background: var(--er-border); }
-.game-triple-meter__segments span.is-done { background: var(--er-teal); }
+.game-triple-meter__segments span { flex: 1; height: 8px; border-radius: 999px; background: var(--er-border-strong); }
+.game-triple-meter__segments span.is-done { background: var(--er-gold-fill); }
 .game-triple-meter p { margin: 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
 
 /* HQ progress disclosure tiles. */

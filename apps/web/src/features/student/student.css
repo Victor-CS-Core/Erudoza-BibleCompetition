@@ -356,7 +356,11 @@
 .training-quest-xp { font-size: var(--er-text-xs); color: var(--er-muted-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .training-quest-status { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
 .training-quest-status.is-done { font-weight: 600; color: var(--er-success-ink); }
-.training-quest-list p { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin: 4px 0 8px; }
+.training-quest-list p { font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+/* Quest cards own their internal rhythm (game-layer.css); the legacy
+   paragraph margins would stack on top of the card's grid gaps as dead
+   space, so they apply only to plain list items (room-recap awards). */
+.training-quest-list li:not(.game-quest-card) p { margin: 4px 0 8px; }
 .training-streak-heatmap { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 3px; margin: 12px 0; }
 .training-streak-heatmap.is-weekly { grid-template-columns: repeat(7, minmax(0, 1fr)); max-width: 280px; }
 .training-streak-heatmap span { aspect-ratio: 1; border-radius: 3px; background: var(--er-border); min-width: 0; }
