@@ -15,7 +15,7 @@ import { admin, body, HttpError, json, requiredString } from '../types';
 import { atomic, contains, effectiveSources, fail, id, memberId, student, requireLearner } from '../application/model';
 import type { Assignment, Membership, Season, Source } from '../application/model';
 import { builtInContentSql, scopeEntriesSql } from '../application/library-access';
-import { applyMastery, BLANK_SHUFFLE_LIMIT, chooseActivity, eligibleActivities, evaluateAnswer, generateActivity, MASTERY_VERSION, nextReview, normalizeDifficulty, scoredSkill, shuffleRandom, toCardDto } from './engine';
+import { applyMastery, BLANK_SHUFFLE_LIMIT, chooseActivity, eligibleActivities, evaluateAnswer, generateActivity, isScoredMasteryVersion, MASTERY_VERSION, nextReview, normalizeDifficulty, scoredSkill, shuffleRandom, toCardDto } from './engine';
 import type { GeneratedActivity, MasteryScores, RuleProfile, StudyMode } from './engine';
 
 export interface Card extends GeneratedActivity { id: string; sequence: number; createdAtUtc: string; source: Source; answerSource: Source; blankShuffles?: number }
@@ -77,7 +77,7 @@ export function closestAlternateSource(sources: Source[], target: Source): Sourc
 const knowledgeId = (s: Source) => s.knowledgeUnitId ?? s.id;
 const sessionDto = (s: Session) => ({ id: s.id, seasonId: s.seasonId, status: s.status, mode: s.mode, targetCardCount: s.targetCardCount, difficulty: s.difficulty, memoryChallenge:s.memoryChallenge,generatorVersion:s.generatorVersion,evidenceProfile:s.evidenceProfile });
 const cardDto = (s: Session, c: Card) => { const dto = toCardDto(c, { id: c.id, sessionId: s.id, sequence: c.sequence, total: s.targetCardCount }, sourceUnit(c.source), s.mode !== 'Simulation' || s.ruleProfile.showReference, false); return c.activityType === 'MissingWords' ? { ...dto, blankShuffles: c.blankShuffles ?? 0, blankShuffleLimit: BLANK_SHUFFLE_LIMIT } : dto; };
-const summary = (s: Session) => ({ sessionId: s.id, mode: s.mode, attempted: s.attempts.length, correct: s.attempts.filter(a => a.isCorrect).length, targetCardCount: s.targetCardCount, status: s.status, ...(s.recap ? { recap: s.recap } : {}) });
+const summary = (s: Session) => ({ sessionId: s.id, mode: s.mode, attempted: s.attempts.filter(a => !a.isLegacyDuplicate).length, correct: s.attempts.filter(a => !a.isLegacyDuplicate && a.isCorrect).length, targetCardCount: s.targetCardCount, status: s.status, ...(s.recap ? { recap: s.recap } : {}) });
 const replay = (a: Attempt) => ({ ...a.result, submittedAnswer: a.result.submittedAnswer ?? a.submittedAnswer, alreadyProcessed: true });
 
 async function listAll<T extends { id: string }>(ctx: RequestContext, kind: string, scope: { seasonId?: string; ownerId?: string } = {}) {
@@ -335,9 +335,13 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
     const priorId = await ctx.env.DB.prepare("SELECT id FROM Records WHERE kind='mastery' AND org_id=? AND season_id=? AND owner_id=? AND json_extract(data,'$.knowledgeUnitId')=? LIMIT 1").bind(ctx.orgId, session.seasonId, session.studentUserId, card.knowledgeUnitId).first<{ id: string }>();
     const masteryId = priorId?.id ?? `${session.seasonId}:${session.studentUserId}:${card.knowledgeUnitId}`;
     const previous = await ctx.store.get<Mastery>('mastery', masteryId, ctx.orgId);
-    let priorScores = previous?.value.algorithmVersion === MASTERY_VERSION ? previous.value : zero;
-    let priorStreak = previous?.value.algorithmVersion === MASTERY_VERSION ? previous.value.streak ?? 0 : 0;
-    if (previous && previous.value.algorithmVersion !== MASTERY_VERSION) {
+    // Priors on either scored version (v2 or v3) carry forward at face value —
+    // every consumer counts those records as-is, so rebuilding them by replay
+    // would make a verse's mastery jump on its next attempt. The replay below
+    // is only for genuinely legacy (pre-skill-evidence) records.
+    let priorScores = isScoredMasteryVersion(previous?.value.algorithmVersion) ? previous!.value : zero;
+    let priorStreak = isScoredMasteryVersion(previous?.value.algorithmVersion) ? previous!.value.streak ?? 0 : 0;
+    if (previous && !isScoredMasteryVersion(previous.value.algorithmVersion)) {
       const rows = await ctx.env.DB.prepare(`SELECT a.data,
         (SELECT c.value FROM json_each(s.data,'$.cards') c WHERE json_extract(c.value,'$.id')=json_extract(a.data,'$.cardId') LIMIT 1) AS card
         FROM Records a LEFT JOIN Records s ON s.kind='session' AND s.id=json_extract(a.data,'$.sessionId') AND s.org_id=a.org_id AND s.season_id=a.season_id AND s.owner_id=a.owner_id
@@ -398,7 +402,7 @@ async function progress(ctx: RequestContext, studentId: string, requested: strin
   const attemptCount = (await ctx.env.DB.prepare(`SELECT count(*) AS n FROM Records INDEXED BY Records_training_scope WHERE kind='attempt' AND org_id=? AND season_id=? AND owner_id=? AND ${notDuplicate}`).bind(ctx.orgId, season.id, studentId).first<{ n: number }>())?.n ?? 0;
   const recentAttempts = (await ctx.env.DB.prepare(`SELECT data FROM Records INDEXED BY Records_training_scope WHERE kind='attempt' AND org_id=? AND season_id=? AND owner_id=? AND ${notDuplicate} ORDER BY json_extract(data,'$.at') DESC, id ASC LIMIT 20`).bind(ctx.orgId, season.id, studentId).all<{ data: string }>()).results.map(r => JSON.parse(r.data) as Attempt);
   const member = await ctx.store.get<Membership>('membership', memberId(season.id, studentId), ctx.orgId);
-  return json({ ...empty, pbeEnabled:season.pbeEnabled===true, seasonId: season.id, seasonName: season.name, seasonStatus: season.status, assignments: assignments.filter(a => a.seasonId === season.id).map(a => ({ ...a, difficulty: member?.value.difficulty ?? 'Standard' })), masteredCount: states.filter(m => m.level === 'Mastered' && m.algorithmVersion === MASTERY_VERSION).length, reviewDueCount: states.filter(m => Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount, mastery: states.map(m => ({ knowledgeUnitId: m.knowledgeUnitId, title: byKnowledge.get(m.knowledgeUnitId)?.citation ?? 'Passage', level: m.level, exactWordingScore: m.exactWording, recognitionScore: m.recognition, referenceScore: m.reference, sequenceScore: m.sequence, factualRecallScore: m.factualRecall, bookKey: byKnowledge.get(m.knowledgeUnitId)?.bookKey, chapter: byKnowledge.get(m.knowledgeUnitId)?.chapter, verse: byKnowledge.get(m.knowledgeUnitId)?.verse, algorithmVersion: m.algorithmVersion, reviewDueAtUtc: m.reviewDueAt })), recentAttempts: recentAttempts.map(a => ({ id: a.id, title: a.result?.citation ?? byKnowledge.get(a.knowledgeUnitId)?.citation ?? 'Passage', activityType: a.activityType, isCorrect: a.isCorrect, submittedAnswer: a.submittedAnswer, evaluationResult: a.evaluationResult, createdAtUtc: a.at })) });
+  return json({ ...empty, pbeEnabled:season.pbeEnabled===true, seasonId: season.id, seasonName: season.name, seasonStatus: season.status, assignments: assignments.filter(a => a.seasonId === season.id).map(a => ({ ...a, difficulty: member?.value.difficulty ?? 'Standard' })), masteredCount: states.filter(m => m.level === 'Mastered' && isScoredMasteryVersion(m.algorithmVersion)).length, reviewDueCount: Math.min(8, new Set(states.filter(m => Date.parse(m.reviewDueAt) <= Date.now()).map(m => m.knowledgeUnitId)).size), attemptCount, mastery: states.map(m => ({ knowledgeUnitId: m.knowledgeUnitId, title: byKnowledge.get(m.knowledgeUnitId)?.citation ?? 'Passage', level: m.level, exactWordingScore: m.exactWording, recognitionScore: m.recognition, referenceScore: m.reference, sequenceScore: m.sequence, factualRecallScore: m.factualRecall, bookKey: byKnowledge.get(m.knowledgeUnitId)?.bookKey, chapter: byKnowledge.get(m.knowledgeUnitId)?.chapter, verse: byKnowledge.get(m.knowledgeUnitId)?.verse, algorithmVersion: m.algorithmVersion, reviewDueAtUtc: m.reviewDueAt })), recentAttempts: recentAttempts.map(a => ({ id: a.id, title: a.result?.citation ?? byKnowledge.get(a.knowledgeUnitId)?.citation ?? 'Passage', activityType: a.activityType, isCorrect: a.isCorrect, submittedAnswer: a.submittedAnswer, evaluationResult: a.evaluationResult, createdAtUtc: a.at })) });
 }
 export async function handleStudy(ctx: RequestContext): Promise<Response | null> {
   const { path, request } = ctx, method = request.method;

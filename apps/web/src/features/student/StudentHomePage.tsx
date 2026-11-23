@@ -11,6 +11,7 @@ import { PatchDisplay, PlayerCard, QuestCard, StatTile, nextLevelName } from "..
 import { PbeJourney } from "./PassageJourney";
 import { PassagePicker } from "./PassagePicker";
 import { AssignedPassages } from "./AssignedPassages";
+import { TrainingMissionCard } from "./TrainingMissionCard";
 import { SeasonCoveragePanel } from "./SeasonCoverage";
 import { WeeklyGoalDialog } from "./WeeklyGoalDialog";
 import { LeaderboardCard } from "./TeamMomentum";
@@ -51,6 +52,11 @@ export function StudentHomePage() {
     return link(`/student/study?${search}`);
   };
   const recent = progressData?.recentAttempts ?? [];
+  // "Your training assignment" card states: for an Adult with no usable
+  // assignment, the old notice box duplicated the My assignments button — the
+  // card now folds that meaning into subtext + the single action instead.
+  const choosePassages = !!data && !available && me?.kind === "Adult" && data.mission.status !== "Invalidated" && !(data.seasonStatus !== "Active" && data.seasonId);
+  const missionNotice = data && !available && !choosePassages ? (data.mission.status === "Invalidated" ? "Your passages changed. Start updated training to build a plan around the new ones." : data.seasonStatus !== "Active" && data.seasonId ? "Training opens when this season is Active." : me?.kind === "Adult" ? "Choose your study passages in My assignments." : "Your coach will add your study assignment here.") : null;
   return <div className="training-dashboard student-home">
     <PlayerCard
       className="training-hq-hero"
@@ -108,6 +114,21 @@ export function StudentHomePage() {
           <LeaderboardCard seasonId={seasonId} />
         </aside>
       </div>
+      <TrainingMissionCard
+        title={data.mission.status === "Complete" ? "Today’s practice is complete." : available ? "Practice your assigned Scripture." : "Your training assignment"}
+        description={data.mission.explanation || (data.mission.status === "Complete" ? `${firstName ? `${firstName}, you` : "You"}’ve finished today’s reviews and practice. Everything is saved.` : "Review missed answers, then practice recalling your assigned Scripture.")}
+        scope={available && nextStep ? { target: nextStep.target, kind: nextStep.kind } : null}
+        reviewDue={progressData && progressData.reviewDueCount > 0 ? { count: progressData.reviewDueCount, href: canStartAcademyTrack("review", progressData) ? `/student/study?mode=Review&seasonId=${encodeURIComponent(progressData.seasonId)}` : null } : null}
+        notice={missionNotice}
+        choosePassages={choosePassages}
+        myAssignmentsHref={!available && me?.kind === "Adult" ? link("/student/assignments") : null}
+        updatedTrainingHref={data.seasonStatus === "Active" && data.mission.status === "Invalidated" && action ? study(action.mode, null, true) : null}
+        recapHref={completedSessionId ? link(`/student/sessions/${encodeURIComponent(completedSessionId)}/recap`) : null}
+        startDeck={available && !completedSessionId && action ? { label: action.label, href: study(action.mode, action.sessionId, true) } : null}
+        simulation={available ? { label: data.format === "Pbe" ? "Start solo timed rehearsal" : "Start rehearsal", href: study("Simulation", null) } : null}
+        steps={data.mission.steps}
+        nextKind={action?.mode ?? null}
+      />
       {progress.isPending ? <Panel aria-busy="true"><LoadingState label="Loading progress…" /></Panel> : progress.isError ? <Notice tone="danger">Progress could not load. <Button variant="secondary" onClick={() => void progress.refetch()}>Try again</Button></Notice> : progressData && <>
         <Panel data-testid="progress-top-folio">
           <details className="progress-disclosure">
@@ -128,29 +149,7 @@ export function StudentHomePage() {
       </>}
       {seasonId && data.format === 'Pbe' && <PbeJourney key={`pbe:${seasonId}`} seasonId={seasonId} preview={false} />}
       {seasonId && <PassagePicker key={`picker:${seasonId}`} seasonId={seasonId} mastery={progressData?.mastery} difficulty={progressData?.assignments.find(a => a.difficulty)?.difficulty} />}
-      {seasonId && data.format === 'Pbe' && <SeasonCoveragePanel key={`cooperation:${seasonId}`} seasonId={seasonId} audience="student" />}
-      <Panel className="training-mission">
-        <div className="training-mission-main">
-          <h2>{data.mission.status === "Complete" ? "Today’s practice is complete." : available ? "Practice your assigned Scripture." : "Your training assignment"}</h2>
-          <p className="training-mission-description">{data.mission.explanation || (data.mission.status === "Complete" ? `${firstName ? `${firstName}, you` : "You"}’ve finished today’s reviews and practice. Everything is saved.` : "Review missed answers, then practice recalling your assigned Scripture.")}</p>
-          {available && nextStep && <p className="training-mission-scope"><AppIcon name="book" /><span>{nextStep.target} {nextStep.kind === "Review" ? "due passages" : "cards"} · Your assigned passages</span></p>}
-          {progressData && progressData.reviewDueCount > 0 && <p className="training-mission-due"><Badge tone="warning" aria-label="DUE">{progressData.reviewDueCount} {progressData.reviewDueCount === 1 ? "review" : "reviews"} due</Badge>{canStartAcademyTrack("review", progressData) && <LinkButton size="compact" to={`/student/study?mode=Review&seasonId=${encodeURIComponent(progressData.seasonId)}`}>Start due reviews</LinkButton>}</p>}
-          {!available && <Notice data-testid="academy-track-unavailable">{data.mission.status === "Invalidated" ? "Your passages changed. Start updated training to build a plan around the new ones." : data.seasonStatus !== "Active" && data.seasonId ? "Training opens when this season is Active." : (me?.kind === "Adult" ? "Choose your study passages in My assignments." : "Your coach will add your study assignment here.")}</Notice>}
-          {!available && me?.kind === "Adult" && <LinkButton to={link("/student/assignments")}>My assignments</LinkButton>}
-          {data.seasonStatus === "Active" && data.mission.status === "Invalidated" && action && <LinkButton to={study(action.mode, null, true)}>Start updated training<AppIcon name="arrow" /></LinkButton>}
-          {completedSessionId && <LinkButton to={link(`/student/sessions/${encodeURIComponent(completedSessionId)}/recap`)}>See today’s recap<AppIcon name="arrow" /></LinkButton>}
-          {available && !completedSessionId && action && <LinkButton data-testid="start-todays-deck" to={study(action.mode, action.sessionId, true)}>{action.label}<AppIcon name="arrow" /></LinkButton>}
-          {available && <LinkButton variant="secondary" data-testid="start-simulation" to={study("Simulation", null)}>{data.format === "Pbe" ? "Start solo timed rehearsal" : "Start rehearsal"}</LinkButton>}
-        </div>
-        {!!data.mission.steps.length && <ol className="training-mission-steps">{data.mission.steps.map((step, index) => {
-          const resolved = step.status === "Complete" || step.status === "NotNeeded";
-          return <li key={step.kind}>
-            <span className={`training-step-dot${resolved ? " is-complete" : step.kind === action?.mode ? " is-next" : ""}`} aria-hidden="true">{resolved ? <AppIcon name="check" /> : index + 1}</span>
-            <div><h3>{step.kind === "Review" ? "Refresh your memory" : "Practice your passage"}</h3><p>{step.status === "NotNeeded" ? "No review needed today" : `${step.completed} of ${step.target} ${step.kind === "Review" ? "passages" : "cards"} completed`}</p></div>
-            <span className="training-step-state">{step.status === "NotNeeded" ? "Up to date" : step.status === "Complete" ? "Done" : step.status === "Active" ? "In progress" : step.status === "Invalidated" ? "Changed" : ""}</span>
-          </li>;
-        })}</ol>}
-      </Panel>
+      {seasonId && data.format === 'Pbe' && <SeasonCoveragePanel key={`cooperation:${seasonId}`} seasonId={seasonId} audience="student" collapsible />}
       {goalOpen && <WeeklyGoalDialog preferences={data.preferences} onClose={() => setGoalOpen(false)} />}
     </>}
   </div>;

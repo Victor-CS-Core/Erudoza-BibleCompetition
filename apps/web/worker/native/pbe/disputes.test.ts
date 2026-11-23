@@ -6,6 +6,41 @@ import type {PracticeRoom,PracticeBootstrap} from '../../../src/api/practice';
 import {disputeFixture} from './dispute-fixture';
 let app:Awaited<ReturnType<typeof createNativeTestApp>>;
 afterEach(async()=>{await app?.runtime.dispose();});
+type XpRow={totalXp:number;xpByDay:Record<string,number>;xpBySeason:Record<string,number>;attemptXpByDay:Record<string,number>};
+async function soloDisputeXp(answers:string[],pointsByPart:number[]){
+ const fixture=await disputeFixture('xp-recredit');app=fixture.app;const {store,season,players,call}=fixture;
+ const started=await call(0,'/study/sessions',{seasonId:season,format:'Pbe',mode:'Practice'});expect(started.status).toBe(200);const sessionId=(await started.json() as {id:string}).id;
+ const card=await (await call(0,`/study/sessions/${sessionId}/next`)).json() as {id:string};
+ const accepted=await call(0,`/study/sessions/${sessionId}/attempts`,{clientSubmissionId:crypto.randomUUID(),challengeCardId:card.id,answers,hintsUsed:false});expect(accepted.status).toBe(200);const attemptId=(await accepted.json() as {attemptId:string}).attemptId;const attemptDate=new Date().toISOString().slice(0,10);
+ expect((await call(0,`/study/sessions/${sessionId}/complete`,{})).status).toBe(200);
+ const flag=await call(0,'/pbe/disputes',{activity:'Solo',sessionId,attemptId,reason:'Please recheck this answer.'});expect(flag.status).toBe(201);const dispute=await flag.json() as {id:string};
+ const xpOf=async()=>(await store.list<XpRow>('training-xp',TEST_ORG,{ownerId:players[0].id}))[0];
+ const before=await xpOf();const path='/pbe/disputes/'+encodeURIComponent(dispute.id);const resolution={expectedRevision:1,pointsByPart,reason:'Ruling after review.'};
+ const resolved=await call(-1,path+'/resolve',resolution);expect(resolved.status,await resolved.clone().text()).toBe(200);
+ const after=await xpOf();
+ expect((await call(-1,path+'/resolve',resolution)).status).toBe(200); // exact replay: must not re-apply
+ const replayed=await xpOf();
+ const adjustments=await store.list<{xpDelta?:number}>('pbe-grade-adjustment',TEST_ORG,{seasonId:season});
+ return {before,after,replayed,attemptDate,season,adjustments};
+}
+it('re-credits +8 XP when a Solo dispute win turns a fully incorrect answer fully correct (D10)',async()=>{
+ const r=await soloDisputeXp(['wrong','wrong'],[1,1]); // priced 2 → 10, no hints
+ expect(r.adjustments).toHaveLength(1);expect(r.adjustments[0].xpDelta).toBe(8);
+ expect(r.after.totalXp).toBe(r.before.totalXp+8);
+ expect(r.after.xpByDay[r.attemptDate]).toBe((r.before.xpByDay[r.attemptDate]??0)+8);
+ expect(r.after.xpBySeason[r.season]).toBe((r.before.xpBySeason[r.season]??0)+8);
+ expect(r.after.attemptXpByDay).toEqual(r.before.attemptXpByDay); // cap accounting untouched
+ expect(r.replayed.totalXp).toBe(r.after.totalXp);
+},30000);
+it('debits −8 XP when a Solo dispute ruling removes a fully correct score (D10)',async()=>{
+ const r=await soloDisputeXp(['Alpha','Beta'],[0,0]); // priced 10 → 2, no hints
+ expect(r.adjustments).toHaveLength(1);expect(r.adjustments[0].xpDelta).toBe(-8);
+ expect(r.after.totalXp).toBe(r.before.totalXp-8);
+ expect(r.after.xpByDay[r.attemptDate]).toBe((r.before.xpByDay[r.attemptDate]??0)-8);
+ expect(r.after.xpBySeason[r.season]).toBe((r.before.xpBySeason[r.season]??0)-8);
+ expect(r.after.attemptXpByDay).toEqual(r.before.attemptXpByDay);
+ expect(r.replayed.totalXp).toBe(r.after.totalXp);
+},30000);
 it.each(['Solo','Team','TeamInterrupted','TeamCoached'] as const)('flags and resolves an actual %s result with frozen bounds, role/control gates and exact retries',async scenario=>{
  const activity=scenario==='Solo'?'Solo':'Team';
  const fixture=await disputeFixture(scenario);app=fixture.app;const {store,season,players,call,flagControl}=fixture;let sessionId:string,attemptId:string,questionId:string,original:string;

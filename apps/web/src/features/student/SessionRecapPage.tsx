@@ -76,6 +76,7 @@ export function SessionRecapPage() {
           // the recap's own saved numbers — nothing is invented.
           const tally = [
             { label: "Correct answers", value: data.correct },
+            ...(data.partial && data.partial > 0 ? [{ label: "Partial answers", value: data.partial }] : []),
             { label: "Answers given", value: data.attempted },
             { label: "Session goal (cards)", value: data.targetCardCount },
             { label: "XP earned", value: `+${data.xp.earned}` },

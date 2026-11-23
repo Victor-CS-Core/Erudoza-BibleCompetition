@@ -33,12 +33,91 @@ export async function preparePbeStartEffort(ctx: RequestContext, s: PbeSession, 
     write(ctx, w, 'pbe-daily-mission-head', headId, { id: headId, format: 'Pbe', missionId: s.id, ruleVersion:s.ruleVersion, scoringVersion:s.scoringVersion, selectionVersion:s.selectionVersion }, head, s.seasonId);
     return w;
 }
+/**
+ * Shared PBE attempt pricing (D3): fully correct pays the full attempt value
+ * (10 without hints, 6 with); a partial answer (some but not all points)
+ * pays half of the full value, floored (5 / 3); zero points pays the
+ * incorrect value (2) regardless of hints.
+ */
+export function pbeAttemptXp(earnedPoints: number, availablePoints: number, hintsUsed: boolean): number {
+    const full = hintsUsed ? XP_VALUES.attemptCorrectHints : XP_VALUES.attemptCorrectNoHints;
+    if (earnedPoints >= availablePoints)
+        return full;
+    if (earnedPoints > 0)
+        return Math.floor(full / 2);
+    return XP_VALUES.attemptIncorrect;
+}
+export interface PbeDayCalendar {
+    localDate: string;
+    weekStartLocalDate: string;
+    timeZone: string;
+}
+/** Calendar anchored to one fixed local date (e.g. a mission/session-start snapshot) instead of an instant. */
+export function calendarForLocalDate(localDate: string, timeZone: string): PbeDayCalendar {
+    const dow = new Date(`${localDate}T12:00:00Z`).getUTCDay();
+    return { localDate, weekStartLocalDate: addDays(localDate, -((dow + 6) % 7)), timeZone };
+}
+/**
+ * D12: the calendar a session's day credit belongs to — the session-start
+ * (mission snapshot) date when one was frozen at start, else the calendar
+ * date of the session's creation instant.
+ */
+export function pbeStartCalendar(s: Pick<PbeSession, 'missionLocalDate' | 'createdAtUtc'>, p: Parameters<typeof resolveTrainingCalendar>[1]): PbeDayCalendar {
+    const created = resolveTrainingCalendar(s.createdAtUtc, p);
+    return s.missionLocalDate ? calendarForLocalDate(s.missionLocalDate, created.timeZone) : created;
+}
+/**
+ * Credit the practice day for a completed deck: training-day record, week
+ * progress, streak milestone badges. Collects the day/milestone XP events
+ * into `xpEvents` (the caller awards them once, exactly like the mission
+ * path) and stamps s.creditedLocalDate / s.newlyCreditedDay /
+ * s.weeklyGoalComplete. Idempotent: does nothing unless the deck is fully
+ * attempted and the session has not already credited a day; an existing
+ * training-day record (e.g. from a Memory session) is never rewritten.
+ * Returns true only when a new training-day record was written (the caller
+ * then persists the possibly-mutated preference record `p`).
+ */
+export async function creditPbePracticeDay(ctx: RequestContext, w: Writes, s: PbeSession, p: ReturnType<typeof resolvePreference>, at: string, xpEvents: XpEvent[], c: PbeDayCalendar): Promise<boolean> {
+    if (!(s.cards.length > 0 && s.attempts.length === s.cards.length && !s.creditedLocalDate))
+        return false;
+    const dayId = identity(ctx, c.localDate), day = await ctx.store.get<DayRecord>('training-day', dayId, ctx.orgId);
+    s.creditedLocalDate = c.localDate;
+    if (day)
+        return false;
+    s.newlyCreditedDay = true;
+    write(ctx, w, 'training-day', dayId, { id: dayId, localDate: c.localDate, timeZone: c.timeZone, firstQualifiedAtUtc: at, sessionId: s.id, credited: true }, null);
+    xpEvents.push({ kind: 'day', amount: XP_VALUES.dayCredited });
+    const wid = identity(ctx, c.weekStartLocalDate), oldWeek = await ctx.store.get<WeekRecord>('training-week', wid, ctx.orgId), week = oldWeek?.value ?? { id: wid, weekStartLocalDate: c.weekStartLocalDate, timeZone: c.timeZone, target: p.weeklyTarget, dates: Array.from({ length: 7 }, (_, i) => addDays(c.weekStartLocalDate, i)), creditedDates: [], qualifiedAtUtc: null };
+    if (!week.creditedDates.includes(c.localDate))
+        week.creditedDates.push(c.localDate);
+    if (week.creditedDates.length >= week.target && !week.qualifiedAtUtc) {
+        week.qualifiedAtUtc = at;
+        s.weeklyGoalComplete = true;
+        if (p.qualifyingWeekStarts.length < 4 && !p.qualifyingWeekStarts.includes(week.weekStartLocalDate))
+            p.qualifyingWeekStarts.push(week.weekStartLocalDate);
+    }
+    write(ctx, w, 'training-week', wid, week, oldWeek);
+    const credited = await creditedDates(ctx);
+    credited.add(c.localDate);
+    const earned = await awardStreakBadges(ctx, w, streakCount(credited, c.localDate), at, s.id);
+    if (earned.length) {
+        s.earnedBadges = [...(s.earnedBadges ?? []), ...earned];
+        xpEvents.push({ kind: 'milestone', amount: XP_VALUES.soloMilestone * earned.length });
+    }
+    return true;
+}
 /** Attempt XP for PBE Simulation sessions (preparePbeEffort is bypassed there). */
 export async function awardPbeSimulationAttemptXp(ctx: RequestContext, s: PbeSession, attempt: PbeAttempt, at: string): Promise<Writes> {
     const w: Writes = { statements: [], guards: [] };
     const old = await preference(ctx), p = resolvePreference(ctx, old, at), cal = resolveTrainingCalendar(at, p);
-    const correct = attempt.result.earnedPoints === attempt.result.availablePoints;
-    const awarded = await awardXp(ctx, w, { seasonId: s.seasonId, localDate: cal.localDate, atUtc: at, events: [{ kind: 'attempt', amount: correct ? (attempt.hintsUsed ? XP_VALUES.attemptCorrectHints : XP_VALUES.attemptCorrectNoHints) : XP_VALUES.attemptIncorrect }] });
+    const xpEvents: XpEvent[] = [{ kind: 'attempt', amount: pbeAttemptXp(attempt.result.earnedPoints, attempt.result.availablePoints, attempt.hintsUsed) }];
+    // D1: Simulation credits the practice day like every other mode — when
+    // the deck completes, run the shared day-credit block (D12: dated by the
+    // session start, not the final attempt). Its events join the attempt
+    // event in the single award below; awardXp stays attempt-dated.
+    if (await creditPbePracticeDay(ctx, w, s, p, at, xpEvents, pbeStartCalendar(s, p)))
+        write(ctx, w, 'training-preferences', p.id, p, old);
+    const awarded = await awardXp(ctx, w, { seasonId: s.seasonId, localDate: cal.localDate, atUtc: at, events: xpEvents });
     s.xpEarned = (s.xpEarned ?? 0) + awarded.awarded;
     if (awarded.leveledUp)
         s.leveledUp = { from: s.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
@@ -80,42 +159,19 @@ export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: s
     const xpEvents: XpEvent[] = [];
     const cal = resolveTrainingCalendar(at, p);
     const lastAttempt = s.attempts.at(-1);
-    if (lastAttempt) {
-        const correct = lastAttempt.result.earnedPoints === lastAttempt.result.availablePoints;
-        xpEvents.push({ kind: 'attempt', amount: correct ? (lastAttempt.hintsUsed ? XP_VALUES.attemptCorrectHints : XP_VALUES.attemptCorrectNoHints) : XP_VALUES.attemptIncorrect });
-    }
+    if (lastAttempt)
+        xpEvents.push({ kind: 'attempt', amount: pbeAttemptXp(lastAttempt.result.earnedPoints, lastAttempt.result.availablePoints, lastAttempt.hintsUsed) });
     // Review-step completion: a Review-mode session reaching its full target.
     if (s.mode === 'Review' && s.cards.length > 0 && s.attempts.length === s.cards.length && m.value.completed < s.cards.length)
         xpEvents.push({ kind: 'review', amount: XP_VALUES.reviewStepCompleted });
-    if (s.cards.length > 0 && s.attempts.length === s.cards.length && !s.creditedLocalDate) {
-        const c = resolveTrainingCalendar(at, p), dayId = identity(ctx, c.localDate), day = await ctx.store.get<DayRecord>('training-day', dayId, ctx.orgId);
-        s.creditedLocalDate = c.localDate;
-        if (!day) {
-            s.newlyCreditedDay = true;
-            write(ctx, w, 'training-day', dayId, { id: dayId, localDate: c.localDate, timeZone: c.timeZone, firstQualifiedAtUtc: at, sessionId: s.id, credited: true }, null);
-            xpEvents.push({ kind: 'day', amount: XP_VALUES.dayCredited });
-            const wid = identity(ctx, c.weekStartLocalDate), oldWeek = await ctx.store.get<WeekRecord>('training-week', wid, ctx.orgId), week = oldWeek?.value ?? { id: wid, weekStartLocalDate: c.weekStartLocalDate, timeZone: c.timeZone, target: p.weeklyTarget, dates: Array.from({ length: 7 }, (_, i) => addDays(c.weekStartLocalDate, i)), creditedDates: [], qualifiedAtUtc: null };
-            if (!week.creditedDates.includes(c.localDate))
-                week.creditedDates.push(c.localDate);
-            if (week.creditedDates.length >= week.target && !week.qualifiedAtUtc) {
-                week.qualifiedAtUtc = at;
-                s.weeklyGoalComplete = true;
-                if (p.qualifyingWeekStarts.length < 4 && !p.qualifyingWeekStarts.includes(week.weekStartLocalDate))
-                    p.qualifyingWeekStarts.push(week.weekStartLocalDate);
-            }
-            write(ctx, w, 'training-week', wid, week, oldWeek);
-            const credited = await creditedDates(ctx);
-            credited.add(c.localDate);
-            const earned = await awardStreakBadges(ctx, w, streakCount(credited, c.localDate), at, s.id);
-            if (earned.length) {
-                s.earnedBadges = [...(s.earnedBadges ?? []), ...earned];
-                xpEvents.push({ kind: 'milestone', amount: XP_VALUES.soloMilestone * earned.length });
-            }
-        }
-    }
+    // D12: day credit is dated by the mission snapshot (session-start) date,
+    // not the attempt instant — a session crossing midnight credits the day
+    // it started. (The awardXp call below stays attempt-dated.)
+    await creditPbePracticeDay(ctx, w, s, p, at, xpEvents, calendarForLocalDate(m.value.localDate, m.value.timeZone));
     // Daily bonus quests: warmup on Review completion, teammate on room
     // membership, explorer for fresh questions, comeback for repaired ones.
-    const questRes = await progressQuests(ctx, w, { localDate: cal.localDate, timeZone: cal.timeZone, seasonId: s.seasonId, atUtc: at }, async api => {
+    // D12: quest progress also belongs to the mission snapshot (start) date.
+    const questRes = await progressQuests(ctx, w, { localDate: m.value.localDate, timeZone: cal.timeZone, seasonId: s.seasonId, atUtc: at }, async api => {
         const has = (key: QuestKey) => api.quests.some(q => q.key === key && !q.completed);
         if (has('warmup') && s.mode === 'Review' && s.cards.length > 0 && s.attempts.length === s.cards.length)
             api.complete('warmup');

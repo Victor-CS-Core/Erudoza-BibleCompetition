@@ -57,9 +57,12 @@ export function StudyModeSelect() {
   };
 
   const quest = today.data?.quests?.find((item) => !item.completed);
+  // xpForNext is the XP REMAINING to the next level, so the level's span is
+  // into + remaining. Dividing by xpForNext alone overstated progress (39%
+  // instead of 28% at 612 XP) and hit 100% halfway through a level.
   const xpPct =
     today.data?.xp && today.data.xp.xpForNext > 0
-      ? Math.min(100, Math.round((today.data.xp.xpIntoLevel / today.data.xp.xpForNext) * 100))
+      ? Math.min(100, Math.round((today.data.xp.xpIntoLevel / (today.data.xp.xpIntoLevel + today.data.xp.xpForNext)) * 100))
       : 100;
   const gameLayer = today.data?.streak && today.data?.xp ? today.data : null;
 
@@ -153,7 +156,7 @@ export function StudyModeSelect() {
                 : "All caught up"
               : card.track === "learner"
                 ? "Aids on"
-                : "Exam mode";
+                : "Challenge mode";
           return (
             <Panel key={card.track} className={`study-mode-card study-mode-card--${card.track}`}>
               <div className="study-mode-card-head">

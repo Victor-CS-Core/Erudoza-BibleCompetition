@@ -303,9 +303,9 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     <div className="study-exam-banner" data-testid="exam-mode-banner">
       <AppIcon name="flag" />
       <div>
-        <strong>Exam mode</strong>
+        <strong>Challenge mode</strong>
         <p>Typed answers only — no choices, reader, recitation, or hints. Each answer is checked as you go.</p>
-        <ul className="study-rules" aria-label="Exam rules">
+        <ul className="study-rules" aria-label="Challenge rules">
           {academyModeRules("rehearsal", "Memory").map((rule) => <li key={rule}>{rule}</li>)}
         </ul>
       </div>
@@ -490,9 +490,9 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             {complete.isPending ? "Finishing…" : "Finish session"}
           </Button>
         </div>
-        {(submit.isError || complete.isError || shuffle.isError || reblank.isError) && <p role="alert">{submit.isError ? "Your answer could not be saved. Please try again." : complete.isError ? "The session could not be finished. Please try again." : reblank.isError ? "The blanks could not be shuffled. Please try again." : "The remaining cards could not be shuffled. Please try again."}</p>}
-        {shuffleNote && !shuffle.isPending && <p className="text-sm" data-testid="shuffle-note">Deck shuffled — the order of the remaining cards has changed. This card stays as it is.</p>}
-        {reblankNote && !reblank.isPending && <p className="text-sm" data-testid="reblank-note">Blanks shuffled — same verse, new pattern, and your draft was cleared so this pattern starts fresh. Shuffling blanks is practice, not help: it never marks your attempt as assisted.</p>}
+        {(submit.isError || complete.isError || shuffle.isError || reblank.isError) && <p role="alert" className="study-action-note">{submit.isError ? "Your answer could not be saved. Please try again." : complete.isError ? "The session could not be finished. Please try again." : reblank.isError ? "The blanks could not be shuffled. Please try again." : "The remaining cards could not be shuffled. Please try again."}</p>}
+        {shuffleNote && !shuffle.isPending && <p className="text-sm study-action-note" data-testid="shuffle-note">Deck shuffled — the order of the remaining cards has changed. This card stays as it is.</p>}
+        {reblankNote && !reblank.isPending && <p className="text-sm study-action-note" data-testid="reblank-note">Blanks shuffled — same verse, new pattern, and your draft was cleared so this pattern starts fresh. Shuffling blanks is practice, not help: it never marks your attempt as assisted.</p>}
       </Panel>
       {current && mode !== "Simulation" && <section aria-label="Learning aids" className="study-aids">
         <RecitationPanel key={current.id} compareSourceText={result ? (result.sourceText || result.canonicalAnswer) : undefined} />

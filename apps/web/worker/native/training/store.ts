@@ -5,7 +5,7 @@ import { HttpError } from '../types';
 import type { Source } from '../application/model';
 import type { Stored } from '../store';
 import type { Session, Attempt, Mastery } from '../study/routes';
-import { nextReview } from '../study/engine';
+import { isScoredMasteryVersion, nextReview } from '../study/engine';
 import type { BadgeProgress, TrainingPreferences, TrainingStep, SkillScores, SessionRecap, StartTrainingContext } from '../../../src/api/trainingTypes';
 import { addDays, effectivePreferences, resolveTrainingCalendar, validateZone } from './calendar';
 import { badgeCounters, fullTargetReached } from './rules';
@@ -218,6 +218,11 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
     xpEvents.push({ kind: 'attempt', amount: attempt.isCorrect ? (attempt.hintsUsed ? XP_VALUES.attemptCorrectHints : XP_VALUES.attemptCorrectNoHints) : XP_VALUES.attemptIncorrect });
     session.training ??= { missionId: null, missionRevision: null, missionLocalDate: null, timeZone: p.timeZone, reviewKnowledgeUnitIds: [], creditedLocalDate: null, newlyCreditedDay: false, earnedBadges: [] };
     const training = session.training, fingerprint = await scopeVersion(sources);
+    // Quest progress and day credit belong to the day the SESSION started
+    // (its mission's date), not the attempt's date: a session begun at 23:30
+    // and finished after midnight still credits the start date. Attempt XP
+    // above stays attempt-dated (xpDate).
+    const sessionDate = training.missionLocalDate ?? resolveTrainingCalendar(session.createdAtUtc, p).localDate;
     let review = false, reviewTransition = false;
     const reviewIds: string[] = [];
     if (training.missionId) {
@@ -239,15 +244,19 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
     const before = session.attempts.filter(a => a.id !== attempt.id), qualifies = training.missionId && session.mode === 'Review' ? reviewTransition : fullTargetReached(session.targetCardCount, session.attempts) && !fullTargetReached(session.targetCardCount, before);
     let streak = 0;
     if (qualifies && !training.creditedLocalDate) {
-        const c = resolveTrainingCalendar(at, p), dayId = identity(ctx, c.localDate), day = await ctx.store.get<DayRecord>('training-day', dayId, ctx.orgId);
-        training.creditedLocalDate = c.localDate;
+        const c = resolveTrainingCalendar(at, p), dayId = identity(ctx, sessionDate), day = await ctx.store.get<DayRecord>('training-day', dayId, ctx.orgId);
+        training.creditedLocalDate = sessionDate;
         if (!day) {
             training.newlyCreditedDay = true;
-            write(ctx, w, 'training-day', dayId, { id: dayId, localDate: c.localDate, timeZone: c.timeZone, firstQualifiedAtUtc: at, sessionId: session.id, credited: true }, null);
+            write(ctx, w, 'training-day', dayId, { id: dayId, localDate: sessionDate, timeZone: c.timeZone, firstQualifiedAtUtc: at, sessionId: session.id, credited: true }, null);
             xpEvents.push({ kind: 'day', amount: XP_VALUES.dayCredited });
-            const wid = identity(ctx, c.weekStartLocalDate), oldWeek = await ctx.store.get<WeekRecord>('training-week', wid, ctx.orgId), week = oldWeek?.value ?? { id: wid, weekStartLocalDate: c.weekStartLocalDate, timeZone: c.timeZone, target: p.weeklyTarget, dates: Array.from({ length: 7 }, (_, i) => addDays(c.weekStartLocalDate, i)), creditedDates: [], qualifiedAtUtc: null };
-            if (!week.creditedDates.includes(c.localDate))
-                week.creditedDates.push(c.localDate);
+            // Monday of sessionDate's week, via the same addDays/getUTCDay
+            // arithmetic calendar.ts uses (mondayOfWeek lives in social.ts;
+            // importing it here would create a cycle).
+            const sessionDow = new Date(`${sessionDate}T12:00:00Z`).getUTCDay(), sessionWeekStart = addDays(sessionDate, -((sessionDow + 6) % 7));
+            const wid = identity(ctx, sessionWeekStart), oldWeek = await ctx.store.get<WeekRecord>('training-week', wid, ctx.orgId), week = oldWeek?.value ?? { id: wid, weekStartLocalDate: sessionWeekStart, timeZone: c.timeZone, target: p.weeklyTarget, dates: Array.from({ length: 7 }, (_, i) => addDays(sessionWeekStart, i)), creditedDates: [], qualifiedAtUtc: null };
+            if (!week.creditedDates.includes(sessionDate))
+                week.creditedDates.push(sessionDate);
             if (week.creditedDates.length >= week.target && !week.qualifiedAtUtc) {
                 week.qualifiedAtUtc = at;
                 training.weeklyGoalComplete = true;
@@ -256,8 +265,8 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
             }
             write(ctx, w, 'training-week', wid, week, oldWeek);
             const creditedDays = await creditedDates(ctx);
-            creditedDays.add(c.localDate);
-            streak = streakCount(creditedDays, c.localDate);
+            creditedDays.add(sessionDate);
+            streak = streakCount(creditedDays, sessionDate);
         }
     }
     const pid = identity(ctx, session.seasonId, fingerprint), oldProgress = await ctx.store.get<SeasonProgressRecord>('training-season-progress', pid, ctx.orgId), seen = oldProgress?.value.seenKnowledgeUnitIds ?? [];
@@ -270,18 +279,27 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
     w.guards.push(...masteryWrites.writes.guards);
     if (masteryWrites.newAwards.length)
         xpEvents.push({ kind: 'honor', amount: XP_VALUES.profileHonor * masteryWrites.newAwards.length });
-    const counters = badgeCounters(sources.map(s => ({ id: kid(s), bookKey: s.bookKey, chapter: s.chapter })), states, seen, p.qualifyingWeekStarts.length, review, streak), projection = { id: pid, seasonId: session.seasonId, scopeVersion: fingerprint, seenKnowledgeUnitIds: seen, counters };
+    const counters = badgeCounters(sources.map(s => ({ id: kid(s), bookKey: s.bookKey, chapter: s.chapter })), states, seen, p.qualifyingWeekStarts.length, review, streak);
+    // Review-complete progress is cumulative: `review` only describes the
+    // current mission, so a later attempt under a new, incomplete mission
+    // must not overwrite an already-reached [1, 1] back to [0, 1].
+    if (oldProgress?.value.counters?.['review-complete']?.[0])
+        counters['review-complete'] = oldProgress.value.counters['review-complete'];
+    const projection = { id: pid, seasonId: session.seasonId, scopeVersion: fingerprint, seenKnowledgeUnitIds: seen, counters };
     if (!oldProgress || JSON.stringify(oldProgress.value) !== JSON.stringify(projection))
         write(ctx, w, 'training-season-progress', pid, projection, oldProgress, session.seasonId);
-    for (const key of Object.keys(titles) as (keyof typeof titles)[]) {
+    // Fetch every qualifying badge's award record in ONE query instead of a
+    // get per key on every attempt (the attempt path is query-budgeted).
+    const qualifying = (Object.keys(titles) as (keyof typeof titles)[]).filter(key => { const [completed, target] = counters[key]; return !!target && completed >= target; });
+    const awardIds = new Map(qualifying.map(key => [key, identity(ctx, key, 'training-v1', key === 'steady-study' || key.startsWith('streak-') ? 'academy' : session.seasonId)] as const));
+    const existingAwards = qualifying.length ? await ctx.store.getMany<AwardRecord>('solo-badge-award', [...awardIds.values()], ctx.orgId) : [];
+    for (const key of qualifying) {
         const [completed, target] = counters[key];
-        if (!target || completed < target)
-            continue;
         const academyScoped = key === 'steady-study' || key.startsWith('streak-');
-        const aid = identity(ctx, key, 'training-v1', academyScoped ? 'academy' : session.seasonId), existing = await ctx.store.get<AwardRecord>('solo-badge-award', aid, ctx.orgId);
-        if (existing)
+        const aid = awardIds.get(key)!;
+        if (existingAwards.some(r => r.value.id === aid))
             continue;
-        const chapter = key === 'chapter-strong' ? sources.find(source => sources.filter(s => s.bookKey === source.bookKey && s.chapter === source.chapter).every(s => states.some(m => m.knowledgeUnitId === kid(s) && m.algorithmVersion === 'v2-skill-evidence' && ['Strong', 'Mastered'].includes(m.level)))) : undefined;
+        const chapter = key === 'chapter-strong' ? sources.find(source => sources.filter(s => s.bookKey === source.bookKey && s.chapter === source.chapter).every(s => states.some(m => m.knowledgeUnitId === kid(s) && isScoredMasteryVersion(m.algorithmVersion) && ['Strong', 'Mastered'].includes(m.level)))) : undefined;
         const awardSources = key === 'review-complete' ? sources.filter(s => reviewIds.includes(kid(s))) : chapter ? sources.filter(s => s.bookKey === chapter.bookKey && s.chapter === chapter.chapter) : sources;
         const award: AwardRecord = { id: aid, key, ruleVersion: 'training-v1', title: titles[key], completed, target, earnedAtUtc: at, scopeLabel: key === 'steady-study' ? 'Academy practice weeks' : key.startsWith('streak-') ? 'Practice streak' : key === 'review-complete' ? `Daily review (${reviewIds.length} passages)` : `Assigned scope${chapter ? ` · ${chapter.bookKey} ${chapter.chapter}` : ''} (${target} passages)`, evidenceSessionId: session.id, seasonId: academyScoped ? null : session.seasonId, scopeVersion: fingerprint, eligibleKnowledgeUnitIds: awardSources.map(kid), evidence: { missionId: training.missionId, qualifyingWeekStarts: [...p.qualifyingWeekStarts], skills: states.filter(m => awardSources.some(s => kid(s) === m.knowledgeUnitId)).map(m => ({ knowledgeUnitId: m.knowledgeUnitId, algorithmVersion: m.algorithmVersion, scores: skills(m) })) } };
         write(ctx, w, 'solo-badge-award', aid, award, null, award.seasonId ?? undefined);
@@ -290,7 +308,7 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
     }
     // Daily bonus quests: explorer / comeback progress from this attempt,
     // warmup on review-step completion, teammate on room membership.
-    const questRes = await progressQuests(ctx, w, { localDate: xpDate, timeZone: p.timeZone, seasonId: session.seasonId, atUtc: at }, async api => {
+    const questRes = await progressQuests(ctx, w, { localDate: sessionDate, timeZone: p.timeZone, seasonId: session.seasonId, atUtc: at }, async api => {
         const has = (key: QuestKey) => api.quests.some(q => q.key === key && !q.completed);
         if (has('warmup') && reviewTransition)
             api.complete('warmup');

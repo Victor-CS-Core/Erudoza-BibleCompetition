@@ -105,6 +105,8 @@ export type SessionRecap = {
     completedAtUtc: string | null;
     attempted: number;
     correct: number;
+    /** PBE recaps only: answers that earned partial (not full) points. */
+    partial?: number;
     targetCardCount: number;
     fullTargetReached: boolean;
     newlyCreditedDay: boolean;

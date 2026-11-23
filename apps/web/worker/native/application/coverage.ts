@@ -1,7 +1,7 @@
 import type { RequestContext } from '../types';
 import { contains, effectiveSources, students } from './model';
 import type { Assignment, Season } from './model';
-import { MASTERY_VERSION } from '../study/engine';
+import { isScoredMasteryVersion } from '../study/engine';
 export async function coverage(ctx: RequestContext, season: Season) {
     const { store, orgId } = ctx, seasonId = season.id;
     const assignments = await store.list<Assignment>('assignment', orgId, { seasonId });
@@ -27,7 +27,7 @@ export async function coverage(ctx: RequestContext, season: Season) {
         const assigned = assignments.filter(a => a.studentUserId === userId).sort((a, b) => ['PrimarySpecialist', 'RequiredCoverage', 'OptionalReview'].indexOf(a.type) - ['PrimarySpecialist', 'RequiredCoverage', 'OptionalReview'].indexOf(b.type));
         const a = assigned[0], eligibleIds = new Set(sources.filter(u => assigned.some(a => a.contentPackId === u.contentPackId && contains(a, u))).map(u => u.id));
         const studentMastery = mastery.filter(m => m.studentUserId === userId && eligibleIds.has(m.sourceUnitId));
-        rows.push({ studentUserId: userId, displayName: user.displayName, userName: user.userName, assignmentType: a.type, bookKey: a.bookKey, startChapter: a.startChapter, startVerse: a.startVerse, endChapter: a.endChapter, endVerse: a.endVerse, eligibleUnitCount: eligibleIds.size, masteredCount: studentMastery.filter(m => m.level === 'Mastered' && m.algorithmVersion === MASTERY_VERSION).length, reviewDueCount: studentMastery.filter(m => m.reviewDueAt && Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount: countByStudent.get(userId) ?? 0 });
+        rows.push({ studentUserId: userId, displayName: user.displayName, userName: user.userName, assignmentType: a.type, bookKey: a.bookKey, startChapter: a.startChapter, startVerse: a.startVerse, endChapter: a.endChapter, endVerse: a.endVerse, eligibleUnitCount: eligibleIds.size, masteredCount: studentMastery.filter(m => m.level === 'Mastered' && isScoredMasteryVersion(m.algorithmVersion)).length, reviewDueCount: studentMastery.filter(m => m.reviewDueAt && Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount: countByStudent.get(userId) ?? 0 });
     }
     return { seasonId, seasonName: season.name, seasonStatus: season.status, students: rows };
 }

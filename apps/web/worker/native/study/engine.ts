@@ -17,6 +17,13 @@ export const EVALUATOR_VERSION = 'partial-credit-v1';
  * cannot walk the whole verse into view; see study.card.reblank. */
 export const BLANK_SHUFFLE_LIMIT = 3;
 export const MASTERY_VERSION = 'v3-partial-credit';
+/** The skill-evidence version that preceded v3. Records stamped with it are
+ * still scored records (the study writer resets one only when that verse is
+ * practiced again); consumers must count BOTH versions. Filtering on either
+ * string alone silently zeroes badges, honors and picker counts for every
+ * learner stamped with the other one. */
+export const PRIOR_MASTERY_VERSION = 'v2-skill-evidence';
+export const isScoredMasteryVersion = (version?: string | null) => version === MASTERY_VERSION || version === PRIOR_MASTERY_VERSION;
 // Seeded System.Random uses the compatibility subtractive generator (not unseeded xoshiro).
 export class DotNetRandom {
  private values = new Array<number>(56).fill(0); private nextIndex = 0; private nextPrime = 21;
@@ -78,7 +85,7 @@ export interface AttemptCredit { isCorrect:boolean;score:number }
 export function applyMastery(current:MasteryScores,credit:AttemptCredit,hintsUsed:boolean,activityType:string,answerMode:AnswerMode='ExactText',difficulty=3,evidenceProfile?:MemoryEvidenceProfile):MasteryScores {const bound=(n:number)=>Math.max(0,Math.min(100,n));const score=Math.max(0,Math.min(100,credit.score));const next={...current,recognition:bound(current.recognition+(credit.isCorrect?hintsUsed?4:10:-2))};
 /* Exact answers keep the historical +18 / -6 deltas. Partial credit scales the skill
    delta linearly from -6 (blank) to +18 (exact); hints halve a partial gain. */
-const scaled=Math.round(-6+score/100*24);const delta=credit.isCorrect?hintsUsed?0:18:score<=0?-6:hintsUsed?Math.round(scaled/2):scaled;if(answerMode!=='SelectedChoice'){if(activityType==='MissingWords'&&answerMode==='ExactText'){const ceiling=Math.min(evidenceProfile==='memory-cued-v3'?70:100,difficulty>=5?100:difficulty>=3?70:40);next.exactWording=credit.isCorrect?Math.max(next.exactWording,Math.min(ceiling,bound(next.exactWording+delta))):bound(next.exactWording+delta);}else if(activityType==='ReferenceMatch')next.reference=bound(next.reference+delta);else if(activityType==='WhatComesNext'||activityType==='VerseBuilder')next.sequence=bound(next.sequence+delta);else if(activityType==='ShortAnswer')next.factualRecall=bound(next.factualRecall+delta);}
+const scaled=Math.round(-6+score/100*24);const delta=credit.isCorrect?hintsUsed?0:18:score<=0?-6:hintsUsed?Math.round(scaled/2):scaled;if(answerMode!=='SelectedChoice'){if(activityType==='MissingWords'&&answerMode==='ExactText'){const ceiling=Math.min(evidenceProfile==='memory-cued-v3'?70:100,difficulty>=3?100:70);next.exactWording=credit.isCorrect?Math.max(next.exactWording,Math.min(ceiling,bound(next.exactWording+delta))):bound(next.exactWording+delta);}else if(activityType==='ReferenceMatch')next.reference=bound(next.reference+delta);else if(activityType==='WhatComesNext'||activityType==='VerseBuilder')next.sequence=bound(next.sequence+delta);else if(activityType==='ShortAnswer')next.factualRecall=bound(next.factualRecall+delta);}
 /* The level weighs every skill with evidence, not just exact wording and recognition:
    a weak sequence or reference score now blocks Mastered and Strong. factualRecall is
    intentionally excluded — no registered activity feeds it (see PROGRESS.md). */

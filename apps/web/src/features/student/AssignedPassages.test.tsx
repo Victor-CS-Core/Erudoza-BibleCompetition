@@ -27,6 +27,17 @@ it("lists each assignment as a verse-aware citation", async () => {
   expect(screen.getByText("John 3:16–4:3")).toBeInTheDocument();
 });
 
+it("divides by the assignment's full verse count, not just the practiced rows", async () => {
+  vi.mocked(api.myAssignments).mockResolvedValue([
+    assignment({ bookKey: "Daniel", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3, verseCount: 3 }),
+  ] as never);
+  const mastery = [
+    { knowledgeUnitId: "ku-1", title: "Daniel 1:1", level: "Strong", exactWordingScore: 95, recognitionScore: 95, bookKey: "Daniel", chapter: 1, verse: 1, reviewDueAtUtc: null },
+  ] as never;
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><AssignedPassages seasonId="season" seasonStatus="Active" mastery={mastery} /></QueryClientProvider>);
+  expect(await screen.findByText("1 of 3 verses strong or mastered")).toBeInTheDocument();
+});
+
 it("explains an empty assignment list and retries after a failure", async () => {
   vi.mocked(api.myAssignments).mockResolvedValue([]);
   mount();

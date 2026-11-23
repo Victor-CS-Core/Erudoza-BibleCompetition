@@ -79,6 +79,14 @@
 .game-quest-card__pips span.is-done { background: var(--er-teal); }
 .game-quest-card__status { font-weight: 600; }
 .game-quest-card__status.is-done { display: flex; align-items: center; gap: 6px; color: var(--er-success-ink); }
+
+/* Mission due row: QuestCard-shaped, coral reserved for the due urgency.
+   The count and its action share one baseline — no separate floating chip. */
+.game-mission-due { display: flex; flex-wrap: wrap; align-items: center; gap: var(--er-space-3); padding: var(--er-space-3) var(--er-space-4); border: 1px solid color-mix(in srgb, var(--er-coral) 45%, transparent); border-radius: var(--er-radius-control); background: color-mix(in srgb, var(--er-coral) 6%, var(--er-card)); }
+.game-mission-due__icon { display: inline-grid; place-items: center; flex: none; color: var(--er-coral); }
+.game-mission-due__icon svg { width: 20px; height: 20px; }
+.game-mission-due__count { flex: 1; min-width: 0; font-size: var(--er-text-base); white-space: nowrap; }
+.game-mission-due .ds-button { flex: none; }
 .game-quest-card__status.is-done svg { width: 16px; height: 16px; }
 
 .game-stat-tile { min-width: 0; padding: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-surface-soft); }

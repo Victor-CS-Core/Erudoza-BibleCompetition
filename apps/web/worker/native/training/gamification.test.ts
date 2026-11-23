@@ -2,7 +2,7 @@ import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
 import { atomic } from '../application/model';
 import { createNativeTestApp, TEST_ORG } from '../test-runtime';
-import { awardXp, levelForXp, levelNameFor, XP_VALUES } from './xp';
+import { awardXp, levelForXp, levelNameFor, XP_VALUES, type XpRecord } from './xp';
 import { generateDailyQuests, progressQuests, questDto, sessionCompleteQuests, questEligibility, inTeamRoom, QUEST_DEFS, type QuestKey, type QuestState } from './quests';
 import { makeRecap } from './store';
 import type { Session } from '../study/routes';
@@ -10,9 +10,10 @@ import { engagementOverview, studentExportCsv, studentSessionHistory } from '../
 import { identity, preference, resolvePreference } from './store';
 import { resolveTrainingCalendar } from './calendar';
 import { trainingNow } from './clock';
+import * as clock from './clock';
 import type { Writes } from './store';
 // @vitest-environment node
-import { beforeAll, expect, it } from 'vitest';
+import { beforeAll, expect, it, vi } from 'vitest';
 
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
 const STUDENT = '22222222-2222-4222-8222-222222222222';
@@ -74,6 +75,52 @@ it('awards XP, detects level-ups and caps attempt XP per day', async () => {
     const r4 = await awardXp(ctx, w4, { localDate: '2026-09-18', atUtc: '2026-09-18T12:00:00Z', events: [{ kind: 'attempt', amount: 10 }] });
     await atomic(ctx, 'gamification.test', w4.statements, w4.guards);
     expect(r4.awarded).toBe(10);
+});
+
+it('prunes per-day XP history at 400 days, including the season split', async () => {
+    const user = '12121212-1212-4121-8121-121212121212';
+    const ctx = studentCtx(user);
+    // Award date 2026-09-17: 100 days before is 2026-06-09 (survives),
+    // 401 days before is 2025-08-12 (cutoff is 2025-08-13, so it is pruned).
+    const seeded: XpRecord = {
+        id: `${TEST_ORG}:${user}`, totalXp: 16, xpBySeason: { s1: 16 },
+        attemptXpByDay: { '2026-06-09': 7, '2025-08-12': 9 },
+        xpByDay: { '2026-06-09': 7, '2025-08-12': 9 },
+        xpByDaySeason: { s1: { '2026-06-09': 7, '2025-08-12': 9 } },
+        updatedAtUtc: '2026-09-17T12:00:00Z',
+    };
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-xp',?,?,?,?)")
+        .bind(seeded.id, TEST_ORG, user, JSON.stringify(seeded)).run();
+    const w = newWrites();
+    const r = await awardXp(ctx, w, { localDate: '2026-09-17', atUtc: '2026-09-17T12:00:00Z', seasonId: 's1', events: [{ kind: 'quest', amount: 25 }] });
+    await atomic(ctx, 'gamification.test', w.statements, w.guards);
+    expect(r.awarded).toBe(25);
+    const rec = (await ctx.store.get<XpRecord>('training-xp', seeded.id, TEST_ORG))!.value;
+    expect(rec.xpByDay).toEqual({ '2026-06-09': 7, '2026-09-17': 25 });
+    expect(rec.attemptXpByDay).toEqual({ '2026-06-09': 7 });
+    expect(rec.xpByDaySeason).toEqual({ s1: { '2026-06-09': 7, '2026-09-17': 25 } });
+    expect(rec.totalXp).toBe(41);
+});
+
+it('splits awarded XP per season per day, and initializes the split for legacy records', async () => {
+    const user = '34343434-3434-4343-8343-343434343434';
+    const ctx = studentCtx(user);
+    // Legacy record: no xpByDaySeason field at all.
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-xp',?,?,?,?)")
+        .bind(`${TEST_ORG}:${user}`, TEST_ORG, user, JSON.stringify({ id: `${TEST_ORG}:${user}`, totalXp: 0, xpBySeason: {}, attemptXpByDay: {}, xpByDay: {}, updatedAtUtc: '2026-09-17T12:00:00Z' })).run();
+    const w1 = newWrites();
+    await awardXp(ctx, w1, { localDate: '2026-09-15', atUtc: '2026-09-15T12:00:00Z', seasonId: 'season-a', events: [{ kind: 'quest', amount: 40 }] });
+    await atomic(ctx, 'gamification.test', w1.statements, w1.guards);
+    const w2 = newWrites();
+    await awardXp(ctx, w2, { localDate: '2026-09-15', atUtc: '2026-09-15T13:00:00Z', seasonId: 'season-b', events: [{ kind: 'quest', amount: 15 }] });
+    await atomic(ctx, 'gamification.test', w2.statements, w2.guards);
+    const w3 = newWrites();
+    await awardXp(ctx, w3, { localDate: '2026-09-16', atUtc: '2026-09-16T12:00:00Z', events: [{ kind: 'quest', amount: 5 }] }); // no season: split untouched
+    await atomic(ctx, 'gamification.test', w3.statements, w3.guards);
+    const rec = (await ctx.store.get<XpRecord>('training-xp', `${TEST_ORG}:${user}`, TEST_ORG))!.value;
+    expect(rec.xpByDay).toEqual({ '2026-09-15': 55, '2026-09-16': 5 });
+    expect(rec.xpByDaySeason).toEqual({ 'season-a': { '2026-09-15': 40 }, 'season-b': { '2026-09-15': 15 } });
+    expect(rec.xpBySeason).toEqual({ 'season-a': 40, 'season-b': 15 });
 });
 
 it('generates a deterministic daily quest set', () => {
@@ -147,7 +194,17 @@ it('builds the coach engagement overview from student records', async () => {
     await app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-day',?,?,?,?)")
         .bind(`${TEST_ORG}:${STUDENT}:2026-09-17`, TEST_ORG, STUDENT, JSON.stringify({ id: `${TEST_ORG}:${STUDENT}:2026-09-17`, localDate: '2026-09-17', timeZone: 'America/New_York', firstQualifiedAtUtc: '2026-09-17T12:00:00Z', sessionId: 's', credited: true })).run();
     const coach: RequestContext = { ...ctx, actor: { ...ctx.actor, userId: 'coach', kind: 'Adult', role: 'Owner' } };
-    const rows = await engagementOverview(coach);
+    // Pin "now" to the award day: the overview reads the real clock, so an
+    // unpinned run eventually leaves 2026-09-17 outside every "this week"
+    // window and this assertion time-bombs (it failed from Nov 2026 on).
+    const mock = vi.spyOn(clock, 'trainingNow').mockReturnValue('2026-09-17T12:00:00Z');
+    let rows: Awaited<ReturnType<typeof engagementOverview>>;
+    try {
+        rows = await engagementOverview(coach);
+    }
+    finally {
+        mock.mockRestore();
+    }
     const row = rows.find(r => r.studentId === STUDENT)!;
     expect(row.name).toBe('XP Student');
     expect(row.xpThisWeek).toBeGreaterThan(0);

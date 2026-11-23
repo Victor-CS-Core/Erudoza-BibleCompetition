@@ -12,6 +12,10 @@ import { rankWorthAnotherLook, type MasteryItem } from "./worthAnotherLook";
 type JourneyChapter = PassageJourneyPage["chapters"][number];
 type JourneyPassage = JourneyChapter["passages"][number];
 
+/** Scored mastery versions: v2 skill-evidence and the current v3
+ * partial-credit. Anything else (v1, unknown) predates skill scoring. */
+export const isScoredVersion = (version?: string | null) => version === "v2-skill-evidence" || version === "v3-partial-credit";
+
 const JOURNEY_SKILLS = [
   ["Wording", "exactWording"],
   ["Reference", "reference"],
@@ -46,7 +50,7 @@ function tileState(passage: JourneyPassage, masteryItem?: MasteryItem): TileStat
   if (passage.level === "Unseen" || passage.level === "Unknown") return { className: "is-unseen", label: "not started", mastered: false, sliver: null };
   // In progress: the sliver is the passage's v2 skill average, or the mastery
   // wording score for legacy-scored passages.
-  const score = passage.algorithmVersion === "v2-skill-evidence"
+  const score = isScoredVersion(passage.algorithmVersion)
     ? Math.round(JOURNEY_SKILLS.reduce((sum, [, key]) => sum + passage.skills[key], 0) / JOURNEY_SKILLS.length)
     : masteryItem?.exactWordingScore ?? null;
   return { className: "is-progress", label: score !== null ? `in progress, ${score} percent` : "in progress", mastered: false, sliver: score };
@@ -59,7 +63,7 @@ function tileState(passage: JourneyPassage, masteryItem?: MasteryItem): TileStat
  * chapter the student is currently looking at.
  */
 function PassageDetailCard({ passage, seasonId }: { passage: JourneyPassage; seasonId: string }) {
-  const isV2 = passage.algorithmVersion === "v2-skill-evidence";
+  const isV2 = isScoredVersion(passage.algorithmVersion);
   const unseen = (passage.level === "Unseen" || passage.level === "Unknown") && !isV2;
   const average = isV2 ? Math.round(JOURNEY_SKILLS.reduce((sum, [, key]) => sum + passage.skills[key], 0) / JOURNEY_SKILLS.length) : null;
   const tone = passageLevelTone(passage.level);
@@ -78,7 +82,7 @@ function PassageDetailCard({ passage, seasonId }: { passage: JourneyPassage; sea
 
 function ChapterDetails({ chapter, seasonId }: { chapter: JourneyChapter; seasonId: string }) {
   const dueCount = chapter.passages.filter(passage => passage.dueAtUtc).length;
-  const hasLegacy = chapter.passages.some(passage => passage.algorithmVersion !== "v2-skill-evidence" && passage.algorithmVersion !== "unknown");
+  const hasLegacy = chapter.passages.some(passage => !isScoredVersion(passage.algorithmVersion) && passage.algorithmVersion !== "unknown");
   return <>
     <p className="passage-picker-details-scope"><Badge>{chapter.scopeLabel}</Badge></p>
     <div className="journey-chapter-stats">

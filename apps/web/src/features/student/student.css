@@ -3,6 +3,10 @@
 .student-home-unassigned .training-next { max-width: none; }
 .student-home .student-assignment-list { margin-top: var(--er-space-6); }
 .student-study-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--er-space-3); margin-top: var(--er-space-6); }
+/* Notes that belong to the action row (shuffle confirmations, save errors)
+   get a real step of the spacing scale — they used to sit flush under the
+   buttons (user phone report, 2026-11-23). */
+.study-action-note { margin: var(--er-space-3) 0 0; }
 .student-challenge .student-study-actions [data-testid=submit-answer] { flex: 1 1 auto; }
 .student-study-actions .ds-button-primary { flex: 1 1 200px; }
 .student-feedback { margin-top: var(--er-space-6); padding-top: var(--er-space-6); border-top: 1px solid var(--er-border); }
@@ -49,13 +53,14 @@
 .training-hq-grid > * { min-width: 0; }
 .training-hq-aside { display: grid; gap: 24px; }
 .training-mission.ds-panel { position: relative; overflow: hidden; padding: 0; }
-.training-mission-main { position: relative; padding: 28px; }
-.training-mission-main h2 { font-size: 1.5rem; margin: 0 0 12px; letter-spacing: -.02em; }
-.training-mission-description { max-width: 320px; font-size: var(--er-text-sm); color: var(--er-muted-ink); margin-bottom: 20px; }
-.training-mission-scope { display: flex; align-items: center; gap: 8px; font-size: var(--er-text-sm); margin-bottom: 4px; }
+.training-mission-main { position: relative; padding: var(--er-space-6); display: grid; gap: var(--er-space-4); align-content: start; }
+.training-mission-main h2 { font-size: 1.5rem; margin: 0; letter-spacing: -.02em; }
+.training-mission-description { max-width: 58ch; font-size: var(--er-text-sm); color: var(--er-muted-ink); margin: 0; }
+.training-mission-scope { display: flex; align-items: center; gap: 8px; font-size: var(--er-text-sm); margin: 0; }
 .training-mission-scope > svg { flex: none; }
-.training-mission-main > .ds-button { margin: 4px 0 18px; }
-.training-mission-main > .ds-notice { margin: 16px 0; }
+.training-mission-main > .ds-notice { margin: 0; }
+.training-mission-choose { color: var(--er-muted-ink); font-size: var(--er-text-sm); margin: 0; }
+.training-mission-actions { display: flex; flex-wrap: wrap; gap: var(--er-space-3); }
 .training-mission-note { color: var(--er-muted-ink); font-size: var(--er-text-xs); margin: 12px 0 0; }
 .training-hq-aside h2 { font-size: var(--er-text-lg); margin: 0; }
 .training-this-week > .training-panel-title { margin-bottom: 4px; }
@@ -94,8 +99,10 @@
 .training-season { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .training-panel-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .training-passage-list { list-style: none; padding: 0; margin: 16px 0; }
-.training-mission .training-mission-steps { position: relative; list-style: none; border-top: 1px solid var(--er-border); padding: 6px 28px; margin: 0; background: var(--er-card); }
-.training-mission-steps > li { display: flex; align-items: center; gap: 12px; padding: 14px 0; }
+.training-mission .training-mission-steps { position: relative; list-style: none; border-top: 1px solid var(--er-border); padding: var(--er-space-2) var(--er-space-6); margin: 0; background: var(--er-card); }
+.training-mission-steps > li { display: flex; align-items: center; gap: 12px; padding: var(--er-space-4) 0; }
+.training-mission-step-copy { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.training-mission-step-copy .ds-progress-meter { margin-top: 6px; max-width: 420px; }
 .training-mission-steps > li + li { border-top: 1px solid var(--er-border); }
 .training-mission-steps h3 { font-size: var(--er-text-sm); margin: 0; }
 .training-mission-steps p { margin: 2px 0 0; font-size: var(--er-text-xs); color: var(--er-muted-ink); }
@@ -186,6 +193,16 @@
 .pbe-chapter-stamp > span, .pbe-chapter-stamp > small { grid-column: 2 / -1; color: var(--er-muted-ink); }
 .pbe-group-section { display: grid; gap: 16px; padding-top: 8px; }
 .pbe-season-coverage { display: grid; gap: 20px; }
+.season-cooperation-disclosure > summary { position: relative; cursor: pointer; list-style: none; min-height: 44px; align-content: center; padding-right: var(--er-space-6); }
+.season-cooperation-disclosure > summary::-webkit-details-marker { display: none; }
+/* The card header is the summary: give it the expand affordance the bare
+   marker-less pattern lacks — a chevron that flips when open. */
+.season-cooperation-disclosure > summary::after { content: ""; position: absolute; top: 22px; right: 6px; width: 10px; height: 10px; border-right: 2px solid var(--er-muted-ink); border-bottom: 2px solid var(--er-muted-ink); transform: rotate(45deg); transition: transform 160ms ease; }
+.season-cooperation-disclosure[open] > summary::after { transform: rotate(225deg); }
+@media (prefers-reduced-motion: reduce) { .season-cooperation-disclosure > summary::after { transition: none; } }
+.season-cooperation-disclosure .training-panel-title { width: 100%; }
+.season-cooperation-disclosure .training-panel-title > div { display: grid; gap: 4px; }
+.season-cooperation-body { display: grid; gap: 20px; margin-top: 20px; }
 .pbe-coverage-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .pbe-coverage-material, .pbe-own-contribution, .pbe-coach-breakdown { display: grid; gap: 12px; min-width: 0; }
 .pbe-coverage-stats { display: grid; gap: 12px; }
@@ -222,7 +239,7 @@
   .pbe-chapter-stamp { grid-template-columns: minmax(0, 1fr); }
   .pbe-chapter-stamp > span, .pbe-chapter-stamp > small { grid-column: 1; }
   .training-controls > .ds-button { width: 100%; }
-  .training-step-state { max-width: 58px; }
+  .training-step-state { white-space: nowrap; }
 }
 
 /* Training HQ follows the public hero's navy fade and live text over artwork. */
@@ -264,11 +281,12 @@
 .study-format-segment button.is-active { background:var(--er-navy-surface); color:var(--er-on-navy); }
 .study-default-mark { font-size:var(--er-text-xs); font-weight:600; padding:2px 8px; border-radius:999px; background:color-mix(in srgb, var(--er-on-navy) 18%, transparent); }
 .study-mode-cards { display:grid; gap:var(--er-space-4); grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); }
-.study-mode-card { display:flex; flex-direction:column; gap:var(--er-space-3); border-top:4px solid var(--er-border); }
+.study-mode-card { display:flex; flex-direction:column; gap:var(--er-space-4); border-top:4px solid var(--er-border); }
 .study-mode-card--learner { border-top-color:var(--er-teal); }
 .study-mode-card--review { border-top-color:var(--er-thread-gold); }
 .study-mode-card--rehearsal { border-top-color:var(--er-coral); }
 .study-mode-card-head { display:flex; gap:var(--er-space-3); align-items:flex-start; }
+.study-mode-card-head > div { display:grid; gap:var(--er-space-1); justify-items:start; }
 .study-mode-card-head h2 { margin:0; font-size:var(--er-text-lg); color:var(--er-ink-navy); }
 .study-mode-card-icon { display:grid; place-items:center; width:44px; height:44px; border-radius:12px; background:color-mix(in srgb, var(--er-teal) 12%, transparent); flex:none; }
 .study-mode-card-icon svg { width:24px; height:24px; color:var(--er-teal); }
@@ -279,8 +297,12 @@
 .study-mode-card-desc { margin:0; color:var(--er-muted-ink); }
 .study-mode-card-state { margin:0; font-size:var(--er-text-sm); font-weight:600; color:var(--er-ink-navy); }
 .study-blocked-reason { margin:0; font-size:var(--er-text-sm); color:var(--er-muted-ink); }
-.study-rules { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px; }
-.study-rules li { font-size:var(--er-text-xs); font-weight:600; padding:4px 10px; border-radius:999px; background:color-mix(in srgb, var(--er-teal) 8%, transparent); border:1px solid var(--er-border); color:var(--er-muted-ink); }
+.study-rules { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:var(--er-space-2); }
+.study-rules li { font-size:var(--er-text-xs); font-weight:600; padding:5px 11px; border-radius:999px; background:color-mix(in srgb, var(--er-teal) 8%, transparent); border:1px solid var(--er-border); color:var(--er-muted-ink); }
+/* QuestCard-grade composition: the start action pins to the card foot so
+   the three mode cards line up, and the rules sit directly above it. */
+.study-mode-card .ds-button { margin-top:auto; }
+.study-mode-card .study-blocked-reason { margin-top:calc(var(--er-space-2) * -1); }
 .study-library-link { text-align:center; margin:0; }
 .study-library-link a { font-weight:650; color:var(--er-teal); }
 .study-library-link span { display:block; font-size:var(--er-text-sm); color:var(--er-muted-ink); margin-top:2px; }
@@ -295,8 +317,8 @@
 .study-why-table tbody th { color:var(--er-muted-ink); font-weight:600; }
 .study-why-list { margin:0; padding-left:20px; color:var(--er-muted-ink); font-size:var(--er-text-sm); display:grid; gap:4px; }
 /* Mode-specific session framing */
-.study-eyebrow { margin:0 0 4px; font-size:var(--er-text-sm); font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:var(--er-teal); }
-.study-blurb { display:block; margin-top:4px; color:var(--er-muted-ink); }
+.study-eyebrow { margin:0 0 var(--er-space-2); font-size:var(--er-text-sm); font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:var(--er-teal); }
+.study-blurb { display:block; margin-top:var(--er-space-2); color:var(--er-muted-ink); }
 .study-cover-actions { display:flex; align-items:center; gap:var(--er-space-2); }
 .study-session-meta { display:flex; flex-wrap:wrap; gap:8px; }
 .study-meta-chip { display:inline-flex; align-items:center; gap:6px; font-size:var(--er-text-sm); font-weight:600; color:var(--er-ink-navy); padding:6px 12px; border:1px solid var(--er-border); border-radius:999px; background:var(--er-surface-soft); }

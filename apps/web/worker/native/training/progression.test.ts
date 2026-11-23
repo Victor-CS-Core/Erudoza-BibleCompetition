@@ -145,34 +145,52 @@ it('preserves invalidated mission revisions and GET does not mint awards after s
     }>())!.data).invalidated).toBe(true);
     await app.db.prepare("UPDATE Records SET data=json_set(data,'$.includes[0].endVerse',3),revision=revision+1 WHERE kind='scope'").run();
 });
-it('credits the qualifying Monday event while preserving the Sunday mission date', async () => {
+it('credits the session-start date when the qualifying attempts land after midnight', async () => {
+    // Session starts Sunday 2026-09-13 23:55 in New York (2026-09-14T03:55Z);
+    // every attempt is accepted after midnight, Monday 2026-09-14 00:01 local
+    // (2026-09-14T04:01Z). D12: quest progress and day/week credit belong to
+    // the session-start (mission) date 2026-09-13, not the attempt date.
     const mock = vi.spyOn(clock, 'trainingNow').mockReturnValue('2026-09-14T03:55:00.000Z');
     const db = app.db as unknown as Env['DB'];
     const ctx: RequestContext = { env: { DB: db } as Env, store: new Store(db), orgId: TEST_ORG, actor: { userId: TEST_USER, organizationId: TEST_ORG, displayName: 'Student', userName: 'coach', email: null, kind: 'Student', role: 'Student', credentialVersion: 'v1' }, path: '', request: new Request('https://erudoza.test') };
     const call = async (path: string, method = 'GET', value?: unknown) => handleStudy({ ...ctx, path, request: new Request('https://erudoza.test' + path, { method, ...(value === undefined ? {} : { body: JSON.stringify(value) }) }) });
     try {
         // Earlier tests share this database and credit the real current day in real time.
-        // Clear the mocked Monday's rows so this test does not depend on what today is.
-        await app.db.prepare("DELETE FROM Records WHERE kind IN ('training-day','training-week') AND id=?").bind(`${TEST_ORG}:${TEST_USER}:2026-09-14`).run();
+        // Clear both dates' day/week/quest rows so this test does not depend on what today is.
+        for (const date of ['2026-09-13', '2026-09-14'])
+            await app.db.prepare("DELETE FROM Records WHERE kind IN ('training-day','training-quest') AND id=?").bind(`${TEST_ORG}:${TEST_USER}:${date}`).run();
+        for (const weekStart of ['2026-09-07', '2026-09-14'])
+            await app.db.prepare("DELETE FROM Records WHERE kind='training-week' AND id=?").bind(`${TEST_ORG}:${TEST_USER}:${weekStart}`).run();
         await app.db.prepare("UPDATE Records SET data=json_set(data,'$.timeZone','America/New_York','$.pending',null) WHERE kind='training-preferences'").run();
         const response = await call('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Practice', training: { clientStartId: 'sunday', timeZone: 'America/New_York', step: 'Practice' } });
         const { id } = await response!.json() as {
             id: string;
         };
+        expect((await saved(id)).training.missionLocalDate).toBe('2026-09-13');
+        mock.mockReturnValue('2026-09-14T04:01:00.000Z'); // Monday 00:01 local, before every attempt
         for (let n = 0; n < 8; n++) {
-            if (n === 7)
-                mock.mockReturnValue('2026-09-14T04:01:00.000Z');
             const c = await (await call(`/api/v1/study/sessions/${id}/next`))!.json() as {
                 id: string;
             };
             expect((await call(`/api/v1/study/sessions/${id}/attempts`, 'POST', { clientSubmissionId: `midnight-${n}`, challengeCardId: c.id, submittedAnswer: 'wrong', responseTimeMs: 0, hintsUsed: false }))?.status).toBe(200);
         }
         const complete = await (await call(`/api/v1/study/sessions/${id}/complete`, 'POST'))!.json();
-        expect(complete).toMatchObject({ recap: { missionLocalDate: '2026-09-13', creditedLocalDate: '2026-09-14', newlyCreditedDay: true } });
-        const week = JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='training-week' AND id=?").bind(`${TEST_ORG}:${TEST_USER}:2026-09-14`).first<{
+        expect(complete).toMatchObject({ recap: { missionLocalDate: '2026-09-13', creditedLocalDate: '2026-09-13', newlyCreditedDay: true } });
+        // Training-day lands on the start date; no day record on the attempt date.
+        const day = JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='training-day' AND id=?").bind(`${TEST_ORG}:${TEST_USER}:2026-09-13`).first<{
             data: string;
         }>())!.data);
-        expect(week.creditedDates).toEqual(['2026-09-14']);
+        expect(day.localDate).toBe('2026-09-13');
+        expect(await app.db.prepare("SELECT data FROM Records WHERE kind='training-day' AND id=?").bind(`${TEST_ORG}:${TEST_USER}:2026-09-14`).first()).toBeNull();
+        // The week record is the start date's week (Mon 2026-09-07), holding the start date.
+        const week = JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='training-week' AND id=?").bind(`${TEST_ORG}:${TEST_USER}:2026-09-07`).first<{
+            data: string;
+        }>())!.data);
+        expect(week.weekStartLocalDate).toBe('2026-09-07');
+        expect(week.creditedDates).toEqual(['2026-09-13']);
+        // Quest progress lands on the start date's quest record, none on the attempt date's.
+        expect(await app.db.prepare("SELECT data FROM Records WHERE kind='training-quest' AND id=?").bind(`${TEST_ORG}:${TEST_USER}:2026-09-13`).first()).not.toBeNull();
+        expect(await app.db.prepare("SELECT data FROM Records WHERE kind='training-quest' AND id=?").bind(`${TEST_ORG}:${TEST_USER}:2026-09-14`).first()).toBeNull();
     }
     finally {
         mock.mockRestore();
@@ -304,6 +322,31 @@ it('does not let the device zone override an explicitly chosen calendar zone', a
         };
         expect(res.preferences.timeZone).toBe('Europe/London');
         expect(res.localDate).toBe('2026-09-15');
+    }
+    finally {
+        mock.mockRestore();
+    }
+}, 30000);
+it('honors reports the same streak progress as today (route must not default the streak to 0)', async () => {
+    const mock = vi.spyOn(clock, 'trainingNow').mockReturnValue('2027-01-20T12:00:00.000Z');
+    const db = app.db as unknown as Env['DB'];
+    const actor = { userId: TEST_USER, organizationId: TEST_ORG, displayName: 'Student', userName: 'coach', email: null, kind: 'Student', role: 'Student', credentialVersion: 'v1' } as const;
+    const base = { env: { DB: db } as Env, store: new Store(db), orgId: TEST_ORG, actor } as unknown as RequestContext;
+    // Direct handler calls (not app.fetch): the clock spy only binds this
+    // module instance, and the fetch path would read the real clock — whose
+    // leaked day rows from other tests would collide with the seeds below.
+    const callTraining = async (fullPath: string) => handleTraining({ ...base, path: fullPath.split('?')[0], request: new Request('https://erudoza.test' + fullPath, { method: 'GET', headers: { 'Content-Type': 'application/json' } }) });
+    try {
+        const first = await (await callTraining('/api/v1/progress/me/today'))!.json() as { localDate: string };
+        const base0 = new Date(`${first.localDate}T00:00:00Z`);
+        for (let i = 0; i < 3; i++) {
+            const d = new Date(base0.getTime() - i * 86400000).toISOString().slice(0, 10);
+            await record('training-day', `${TEST_ORG}:${TEST_USER}:${d}`, { id: `${TEST_ORG}:${TEST_USER}:${d}`, localDate: d, timeZone: 'UTC', credited: true }, null, TEST_USER);
+        }
+        const today = await (await callTraining('/api/v1/progress/me/today'))!.json() as { streak: { current: number } };
+        expect(today.streak.current).toBeGreaterThanOrEqual(3);
+        const honors = await (await callTraining(`/api/v1/progress/me/honors?seasonId=${season}`))!.json() as { key: string; completed: number; target: number }[];
+        expect(honors.find(h => h.key === 'streak-7')).toMatchObject({ completed: Math.min(7, today.streak.current), target: 7 });
     }
     finally {
         mock.mockRestore();

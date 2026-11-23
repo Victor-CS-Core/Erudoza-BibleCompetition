@@ -3,8 +3,9 @@ import type { Env, RequestContext } from '../types';
 import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
 import { leaderboard, maskName, mondayOfWeek, setLeaderboardOptIn, teamActivity } from './social';
 import type { XpRecord } from './xp';
+import * as clock from './clock';
 // @vitest-environment node
-import { beforeAll, expect, it } from 'vitest';
+import { beforeAll, expect, it, vi } from 'vitest';
 
 let app: Awaited<ReturnType<typeof createNativeTestApp>>;
 const S1 = '33333333-3333-4333-8333-333333333333';
@@ -24,9 +25,9 @@ const seedXp = (userId: string, xpByDay: Record<string, number>, totalXp: number
     app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-xp',?,?,?,?)")
         .bind(`${TEST_ORG}:${userId}`, TEST_ORG, userId, JSON.stringify({ totalXp, xpBySeason: {}, attemptXpByDay: {}, xpByDay, updatedAtUtc: '2026-09-17T12:00:00Z' } satisfies XpRecord)).run();
 
-const seedPreferences = (userId: string, leaderboardOptIn: boolean) =>
+const seedPreferences = (userId: string, leaderboardOptIn: boolean, timeZone = 'UTC') =>
     app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-preferences',?,?,?,?)")
-        .bind(`${TEST_ORG}:${userId}`, TEST_ORG, userId, JSON.stringify({ id: `${TEST_ORG}:${userId}`, timeZone: 'UTC', weeklyTarget: 5, pending: null, leaderboardOptIn, lastEventAtUtc: '2026-09-17T12:00:00Z', qualifyingWeekStarts: [] })).run();
+        .bind(`${TEST_ORG}:${userId}`, TEST_ORG, userId, JSON.stringify({ id: `${TEST_ORG}:${userId}`, timeZone, weeklyTarget: 5, pending: null, leaderboardOptIn, lastEventAtUtc: '2026-09-17T12:00:00Z', qualifyingWeekStarts: [] })).run();
 
 const seedDay = (userId: string, localDate: string) =>
     app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-day',?,?,?,?)")
@@ -137,4 +138,44 @@ it('weekly entries carry the selected profile image with the initials default', 
     const board = await leaderboard(ctxFor(S1), url);
     expect(board.entries.find(e => e.userId === S2)!.avatar).toEqual({ avatarKind: 'character', avatarHonorKey: null, character: { bodyType: 'female', style: 'braids', hairColor: 'black', skin: 'deep', eyes: 'hazel' } });
     expect(board.entries.find(e => e.userId === S1)!.avatar).toEqual({ avatarKind: 'initials', avatarHonorKey: null, character: null });
+});
+
+it('snaps a mid-week weekStart pin to that week’s Monday', async () => {
+    // 2026-09-16 is a Wednesday of the WEEK (Mon 2026-09-14) week.
+    const board = await leaderboard(ctxFor(S1), new URL('https://erudoza.test/?weekStart=2026-09-16'));
+    expect(board.weekStartLocalDate).toBe(WEEK);
+    // Sums use Mon–Sun of the snapped week: S1 has 100 (Mon) + 50 (Wed).
+    expect(board.entries.find(e => e.userId === S1)!.xp).toBe(150);
+    expect(board.me).toMatchObject({ xp: 150 });
+});
+
+it('falls back to the current week for a weekStart that is not a real calendar date', async () => {
+    const board = await leaderboard(ctxFor(S1), new URL('https://erudoza.test/?weekStart=2026-02-30'));
+    expect(board.weekStartLocalDate).toBe(mondayOfWeek(new Date().toISOString().slice(0, 10)));
+});
+
+it('sums each member’s week XP over their own timezone week when unpinned', async () => {
+    const S4 = '66666666-6666-4666-8666-666666666666';
+    await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version,active) VALUES(?,?,?,?,?,?,?,?,1)")
+        .bind(S4, TEST_ORG, 'kiristudent', 'Kiri Student', 'Student', 'Student', 'x', 'v1').run();
+    await seedPreferences(S4, true, 'Pacific/Kiritimati');
+    // Hand-computed at the pinned instant 2026-09-13T11:00:00Z:
+    // - viewer S1 (UTC): local Sun 2026-09-13 → own week Mon 2026-09-07..Sun 2026-09-13.
+    //   S1's seeded XP sits on 2026-09-14/16, so the viewer's own week XP is 0.
+    // - S4 (Kiritimati, UTC+14): local Mon 2026-09-14 01:00 → own week Mon 2026-09-14..Sun 2026-09-20.
+    //   S4 has 30 XP on 2026-09-13 (the viewer's week, but last week for S4)
+    //   and 70 XP on 2026-09-14 (S4's Monday). S4's week XP must be 70, not 30 or 100.
+    await seedXp(S4, { '2026-09-13': 30, '2026-09-14': 70 }, 100);
+    const mock = vi.spyOn(clock, 'trainingNow').mockReturnValue('2026-09-13T11:00:00.000Z');
+    try {
+        const board = await leaderboard(ctxFor(S1), new URL('https://erudoza.test/'));
+        // The response week start stays the viewer's (UTC) week start.
+        expect(board.weekStartLocalDate).toBe('2026-09-07');
+        expect(board.entries.find(e => e.userId === S4)!.xp).toBe(70);
+        expect(board.entries.find(e => e.userId === S1)!.xp).toBe(0);
+        expect(board.me).toMatchObject({ userId: S1, xp: 0 });
+    }
+    finally {
+        mock.mockRestore();
+    }
 });

@@ -1,4 +1,5 @@
 import type { SkillScores } from '../../../src/api/trainingTypes';
+import { isScoredMasteryVersion } from '../study/engine';
 export interface AcceptedEvidence {
     cardId: string;
     knowledgeUnitId: string;
@@ -18,7 +19,7 @@ export function badgeCounters(sources: {
     algorithmVersion: string;
     level: string;
 })[], seen: string[], weeks: number, review: boolean, streak = 0) {
-    const current = states.filter(m => m.algorithmVersion === 'v2-skill-evidence' && sources.some(s => s.id === m.knowledgeUnitId));
+    const current = states.filter(m => isScoredMasteryVersion(m.algorithmVersion) && sources.some(s => s.id === m.knowledgeUnitId));
     const chapters = [...new Set(sources.map(s => `${s.bookKey}:${s.chapter}`))].map(key => {
         const ids = sources.filter(s => `${s.bookKey}:${s.chapter}` === key).map(s => s.id);
         return [ids.filter(id => current.some(m => m.knowledgeUnitId === id && ['Strong', 'Mastered'].includes(m.level))).length, ids.length] as [

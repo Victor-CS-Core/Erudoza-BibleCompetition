@@ -115,7 +115,7 @@ function YourPosition({ data, mode, rank, entry, xp, above, aboveXp }: {
       avatar={<EntryAvatar avatar={entry.avatar ?? me.avatar} name={entry.displayName} size="card" />}
       xp={{ total: me.totalXp, xpIntoLevel: me.xpIntoLevel, xpForNext: me.xpForNext, nextLevelName: me.nextLevelName, level: me.level, levelName: me.levelName }}
       streak={me.streak}
-      streakState={me.streak > 0 ? "active" : "none"}
+      streakState={me.streakState ?? (me.streak > 0 ? "active" : "none")}
     >
       <p className="season-board-yr-rankline"><strong>#{rank}</strong> · {xp} XP {period}</p>
       {above && aboveXp !== null

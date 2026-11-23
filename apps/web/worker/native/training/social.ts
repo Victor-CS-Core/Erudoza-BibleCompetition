@@ -83,6 +83,22 @@ export function mondayOfWeek(localDate: string): string {
     return addDays(localDate, -dow);
 }
 
+/**
+ * Resolve a `?weekStart=` pin: a format-valid param that is a real calendar
+ * date (round-trip: parsing and re-formatting reproduces it) is snapped to
+ * its week's Monday; anything else is not a pin (null) and the caller falls
+ * back to the viewer's current week.
+ */
+function pinnedWeekStart(param: string | null | undefined): string | null {
+    if (!param || !/^\d{4}-\d{2}-\d{2}$/.test(param)) return null;
+    const parsed = new Date(`${param}T12:00:00Z`);
+    if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== param) return null;
+    return mondayOfWeek(param);
+}
+
+/** The 7 local dates (Mon–Sun) of the week starting at `weekStart`. */
+const weekDatesOf = (weekStart: string) => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
 /** "Ada Lovelace" -> "Ada L." — the only name form students ever see. */
 export function maskName(displayName: string): string {
     const parts = displayName.trim().split(/\s+/).filter(Boolean);
@@ -100,17 +116,18 @@ export interface LeaderboardResponse {
 
 /**
  * Weekly XP leaderboard. Students see only opted-in teammates (masked names);
- * coaches see every student with full names. `weekStart` may pin the week;
- * otherwise the current week (Monday start) in the viewer's timezone is used.
+ * coaches see every student with full names. `weekStart` may pin the week
+ * (snapped to its Monday; an invalid date falls back to the current week);
+ * otherwise each member's current week (Monday start) in THEIR OWN timezone
+ * is used, while the response's weekStartLocalDate stays the viewer's.
  */
 export async function leaderboard(ctx: RequestContext, url: URL): Promise<LeaderboardResponse> {
     const isCoach = ctx.actor.kind !== 'Student';
     const list = await students(ctx);
     const now = trainingNow();
     const viewerCal = resolveTrainingCalendar(now, resolvePreference(ctx, await preference(ctx), now));
-    const param = url.searchParams.get('weekStart');
-    const weekStart = param && /^\d{4}-\d{2}-\d{2}$/.test(param) ? param : mondayOfWeek(viewerCal.localDate);
-    const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    const pinned = pinnedWeekStart(url.searchParams.get('weekStart'));
+    const weekStart = pinned ?? mondayOfWeek(viewerCal.localDate);
 
     const entries: LeaderboardEntry[] = [];
     let viewerOptedIn = false, viewerXp = 0;
@@ -121,7 +138,12 @@ export async function leaderboard(ctx: RequestContext, url: URL): Promise<Leader
             preference(lctx),
         ]);
         const optedIn = (prefRow?.value as PreferenceRecord | undefined)?.leaderboardOptIn === true;
-        const xp = weekDates.reduce((n, d) => n + (xpRow?.value.xpByDay[d] ?? 0), 0);
+        // Unpinned: each member's week is the Monday-start week of THEIR own
+        // local date (their xpByDay keys are their own local dates). Pinned:
+        // the snapped week applies to every member (same date strings).
+        const memberCal = resolveTrainingCalendar(now, resolvePreference(lctx, prefRow, now));
+        const memberWeekDates = weekDatesOf(pinned ?? mondayOfWeek(memberCal.localDate));
+        const xp = memberWeekDates.reduce((n, d) => n + (xpRow?.value.xpByDay[d] ?? 0), 0);
         const level = levelForXp(xpRow?.value.totalXp ?? 0);
         if (s.userId === ctx.actor.userId) {
             viewerOptedIn = optedIn;
@@ -180,6 +202,7 @@ export interface SeasonLeaderboardResponse {
         seasonXp: number;
         weekXp: number;
         streak: number;
+        streakState: "active" | "paused" | "none";
         totalXp: number;
         level: number;
         levelName: string;
@@ -194,8 +217,8 @@ export interface SeasonLeaderboardResponse {
  * Season XP leaderboard. Board membership is the season: only students with
  * an assignment in the season are ranked (the same assignment-based season
  * discovery the student home uses). Ranking is by the per-season XP split
- * (`xpBySeason[seasonId]`); each entry also carries this week's XP (the same
- * Mon–Sun `xpByDay` sum as the weekly board) and the student's current
+ * (`xpBySeason[seasonId]`); each entry also carries this week's XP (the
+ * Mon–Sun sum of this season's `xpByDaySeason` split) and the student's current
  * streak. Privacy matches the weekly board: students see opted-in teammates
  * with masked names; coaches see every member with full names.
  */
@@ -208,11 +231,10 @@ export async function seasonLeaderboard(ctx: RequestContext, seasonId: string, u
     const members = roster.filter(s => assigned.has(s.userId));
     const now = trainingNow();
     const viewerCal = resolveTrainingCalendar(now, resolvePreference(ctx, await preference(ctx), now));
-    const param = url?.searchParams.get('weekStart');
-    const weekStart = param && /^\d{4}-\d{2}-\d{2}$/.test(param) ? param : mondayOfWeek(viewerCal.localDate);
-    const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    const pinned = pinnedWeekStart(url?.searchParams.get('weekStart'));
+    const weekStart = pinned ?? mondayOfWeek(viewerCal.localDate);
 
-    const standing = async (lctx: RequestContext): Promise<{ seasonXp: number; weekXp: number; streak: number; totalXp: number; optedIn: boolean; level: ReturnType<typeof levelForXp>; nextLevelName: string | null }> => {
+    const standing = async (lctx: RequestContext): Promise<{ seasonXp: number; weekXp: number; streak: number; streakState: "active" | "paused" | "none"; totalXp: number; optedIn: boolean; level: ReturnType<typeof levelForXp>; nextLevelName: string | null }> => {
         const [xpRow, prefRow, credited] = await Promise.all([
             lctx.store.get<XpRecord>('training-xp', identity(lctx), lctx.orgId),
             preference(lctx),
@@ -221,10 +243,16 @@ export async function seasonLeaderboard(ctx: RequestContext, seasonId: string, u
         const rec = xpRow?.value;
         const cal = resolveTrainingCalendar(now, resolvePreference(lctx, prefRow, now));
         const level = levelForXp(rec?.totalXp ?? 0);
+        const streak = streakStatus(credited, cal.localDate);
+        // Week XP is season-scoped (xpByDaySeason for THIS season) and, unless
+        // pinned, summed over the member's own Monday-start week dates.
+        const memberWeekDates = weekDatesOf(pinned ?? mondayOfWeek(cal.localDate));
+        const seasonByDay = rec?.xpByDaySeason?.[seasonId];
         return {
             seasonXp: rec?.xpBySeason[seasonId] ?? 0,
-            weekXp: weekDates.reduce((n, d) => n + (rec?.xpByDay[d] ?? 0), 0),
-            streak: streakStatus(credited, cal.localDate).current,
+            weekXp: memberWeekDates.reduce((n, d) => n + (seasonByDay?.[d] ?? 0), 0),
+            streak: streak.current,
+            streakState: streak.state,
             totalXp: rec?.totalXp ?? 0,
             optedIn: (prefRow?.value as PreferenceRecord | undefined)?.leaderboardOptIn === true,
             level,
@@ -238,7 +266,7 @@ export async function seasonLeaderboard(ctx: RequestContext, seasonId: string, u
         const lctx: RequestContext = { ...ctx, actor: { ...ctx.actor, userId: s.userId, kind: 'Student', role: 'Student' } };
         const own = await standing(lctx);
         if (s.userId === ctx.actor.userId) {
-            meBase = { userId: s.userId, optedIn: own.optedIn, seasonXp: own.seasonXp, weekXp: own.weekXp, streak: own.streak, totalXp: own.totalXp, level: own.level.level, levelName: own.level.levelName, nextLevelName: own.nextLevelName, xpIntoLevel: own.level.xpIntoLevel, xpForNext: own.level.xpForNext };
+            meBase = { userId: s.userId, optedIn: own.optedIn, seasonXp: own.seasonXp, weekXp: own.weekXp, streak: own.streak, streakState: own.streakState, totalXp: own.totalXp, level: own.level.level, levelName: own.level.levelName, nextLevelName: own.nextLevelName, xpIntoLevel: own.level.xpIntoLevel, xpForNext: own.level.xpForNext };
         }
         if (!isCoach && !own.optedIn) continue;
         entries.push({
@@ -258,7 +286,7 @@ export async function seasonLeaderboard(ctx: RequestContext, seasonId: string, u
         // A learner who is not assigned in this season can still view the
         // (masked, opt-in) board; their own standing is "not on this board".
         const own = await standing(ctx);
-        meBase = { userId: ctx.actor.userId, optedIn: own.optedIn, seasonXp: own.seasonXp, weekXp: own.weekXp, streak: own.streak, totalXp: own.totalXp, level: own.level.level, levelName: own.level.levelName, nextLevelName: own.nextLevelName, xpIntoLevel: own.level.xpIntoLevel, xpForNext: own.level.xpForNext };
+        meBase = { userId: ctx.actor.userId, optedIn: own.optedIn, seasonXp: own.seasonXp, weekXp: own.weekXp, streak: own.streak, streakState: own.streakState, totalXp: own.totalXp, level: own.level.level, levelName: own.level.levelName, nextLevelName: own.nextLevelName, xpIntoLevel: own.level.xpIntoLevel, xpForNext: own.level.xpForNext };
     }
     const avatars = await boardAvatars(ctx, [...entries.map(e => e.userId), ...(meBase ? [meBase.userId] : [])]);
     for (const entry of entries) entry.avatar = avatars.get(entry.userId) ?? INITIALS_AVATAR;

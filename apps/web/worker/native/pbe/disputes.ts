@@ -5,6 +5,10 @@ import type {PbeQuestion} from './types';
 import {gradePbe} from './grading';
 import {prepareResultOverlay} from './result-overlays';
 import {prepareEvidenceDispute,replayDisputeEvidence,disputeEvidencePage} from './evidence-replay';
+import {pbeAttemptXp} from './effort';
+import {identity,preference,resolvePreference,write,type Writes} from '../training/store';
+import {resolveTrainingCalendar} from '../training/calendar';
+import type {XpRecord} from '../training/xp';
 interface FrozenAttempt {sessionId:string;seasonId:string;attemptId:string;team:number|null;question:PbeQuestion;answers:string[];acceptedAtUtc:string;participantIds:string[];allParticipantIds:string[]}
 export interface PbeDispute {
  id:string;organizationId:string;seasonId:string;activity:'Solo'|'Team';sessionId:string;attemptId:string;questionId:string;questionVersion:number;team:number|null;
@@ -49,9 +53,45 @@ export async function resolvePbeDispute(ctx:RequestContext,disputeId:string,expe
  }
  if(expectedRevision!==d.revision)throw new HttpError(409,'The review changed. Refresh and retry.');
  const resolved:PbeDispute={...d,status:'Resolved',revision:d.revision+1,resolution:{pointsByPart,reason,resolvedBy:ctx.actor.userId,resolvedAtUtc:new Date().toISOString()}};
- const adjustment={id:`${d.id}:${resolved.revision}`,disputeId:d.id,activity:d.activity,sessionId:d.sessionId,attemptId:d.attemptId,questionId:d.questionId,questionVersion:d.questionVersion,team:d.team,pointsByPart,...resolved.resolution,originalAcceptedAtUtc:d.acceptedAtUtc};
+ // D10 (Solo only; Team awards reconcile through the REPORTS path above):
+ // re-price the disputed attempt under the shared pricing helper and apply
+ // the signed delta to the learner's training-xp ledger in this same atomic
+ // batch. This runs only on the first resolve — the Resolved early-return
+ // above replays a ruling without re-applying, and the adjustment id /
+ // revision guard make a concurrent second resolve fail instead.
+ const xpWrites:Writes={statements:[],guards:[]};let xpDelta=0;
+ if(d.activity==='Solo'){
+  const participant=d.participantIds[0],sessionRow=await ctx.store.get<PbeSession>('pbe-session',d.sessionId,ctx.orgId),session=sessionRow?.value,attempt=session?.attempts.find(a=>a.result.attemptId.toLowerCase()===d.attemptId.toLowerCase());
+  if(attempt){
+   const sum=(xs:number[])=>xs.reduce((n,x)=>n+x,0);
+   xpDelta=pbeAttemptXp(sum(pointsByPart),sum(d.partPoints),attempt.hintsUsed)-pbeAttemptXp(sum(d.originalPointsByPart),sum(d.partPoints),attempt.hintsUsed);
+   if(xpDelta!==0){
+    const lctx:RequestContext={...ctx,actor:{...ctx.actor,userId:participant,kind:'Student',role:'Student'}};
+    const attemptLocalDate=resolveTrainingCalendar(attempt.result.acceptedAtUtc,resolvePreference(lctx,await preference(lctx),attempt.result.acceptedAtUtc)).localDate;
+    const xpId=identity(lctx),oldXp=await lctx.store.get<XpRecord>('training-xp',xpId,ctx.orgId);
+    const rec:XpRecord=oldXp?.value??{id:xpId,totalXp:0,xpBySeason:{},attemptXpByDay:{},xpByDay:{},updatedAtUtc:resolved.resolution!.resolvedAtUtc};
+    rec.totalXp=Math.max(0,rec.totalXp+xpDelta);
+    rec.xpByDay[attemptLocalDate]=Math.max(0,(rec.xpByDay[attemptLocalDate]??0)+xpDelta);
+    rec.xpBySeason[d.seasonId]=Math.max(0,(rec.xpBySeason[d.seasonId]??0)+xpDelta);
+    // Keep the season board's week XP (D7) in step when the season-day split
+    // already tracks this season; legacy attempts predate the split and have
+    // no bucket to adjust.
+    const bySeasonDay=(rec as XpRecord&{xpByDaySeason?:Record<string,Record<string,number>>}).xpByDaySeason;
+    if(bySeasonDay?.[d.seasonId])bySeasonDay[d.seasonId][attemptLocalDate]=Math.max(0,(bySeasonDay[d.seasonId][attemptLocalDate]??0)+xpDelta);
+    rec.updatedAtUtc=resolved.resolution!.resolvedAtUtc;
+    // attemptXpByDay is deliberately NOT adjusted: the daily attempt-XP cap
+    // stays as originally consumed at attempt time, so a re-credit cannot
+    // free cap room (double-dip) and a debit cannot create it.
+    write(lctx,xpWrites,'training-xp',xpId,rec,oldXp);
+    // The recap's xp.earned is the session's frozen xpEarned; move it by the
+    // same delta so the recap and the ledger agree after the ruling (D10).
+    if(session&&sessionRow){xpWrites.statements.push(ctx.store.update('pbe-session',d.sessionId,ctx.orgId,{...session,xpEarned:(session.xpEarned??0)+xpDelta},sessionRow.revision));xpWrites.guards.push({kind:'pbe-session',id:d.sessionId,revision:sessionRow.revision});}
+   }
+  }
+ }
+ const adjustment={id:`${d.id}:${resolved.revision}`,disputeId:d.id,activity:d.activity,sessionId:d.sessionId,attemptId:d.attemptId,questionId:d.questionId,questionVersion:d.questionVersion,team:d.team,pointsByPart,...resolved.resolution,originalAcceptedAtUtc:d.acceptedAtUtc,...(d.activity==='Solo'?{xpDelta}:{})};
  const overlay=await prepareResultOverlay(ctx,resolved),evidence=await prepareEvidenceDispute(ctx,resolved);
- await atomic(ctx,'pbe-dispute.resolve',[...evidence.statements,...overlay.statements,ctx.store.update('pbe-dispute',d.id,ctx.orgId,resolved,stored.revision),uniqueInsertion(ctx,'pbe-grade-adjustment',adjustment.id,adjustment,d.seasonId,d.participantIds[0]),deletion(ctx,'pbe-dispute-pending',d.id),...(d.activity==='Solo'?[uniqueInsertion(ctx,'pbe-dispute-correction',d.id,resolved,d.seasonId,'Solo')]:[])],[...evidence.guards,...overlay.guards,...gates,{kind:'@active-admin',id:ctx.actor.userId,revision:0},{kind:'pbe-dispute',id:d.id,revision:stored.revision}]);
+ await atomic(ctx,'pbe-dispute.resolve',[...evidence.statements,...overlay.statements,...xpWrites.statements,ctx.store.update('pbe-dispute',d.id,ctx.orgId,resolved,stored.revision),uniqueInsertion(ctx,'pbe-grade-adjustment',adjustment.id,adjustment,d.seasonId,d.participantIds[0]),deletion(ctx,'pbe-dispute-pending',d.id),...(d.activity==='Solo'?[uniqueInsertion(ctx,'pbe-dispute-correction',d.id,resolved,d.seasonId,'Solo')]:[])],[...evidence.guards,...overlay.guards,...xpWrites.guards,...gates,{kind:'@active-admin',id:ctx.actor.userId,revision:0},{kind:'pbe-dispute',id:d.id,revision:stored.revision}]);
  await reconcileTeamAwards(ctx,resolved);return resolved;
 }
 export async function disputeRoutes(ctx:RequestContext):Promise<Response|null>{

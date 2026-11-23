@@ -13,7 +13,11 @@ function rangeProgress(item: Assignment, mastery: MasteryItem[]) {
     && (m.chapter > item.startChapter || (m.chapter === item.startChapter && m.verse >= item.startVerse))
     && (m.chapter < item.endChapter || (m.chapter === item.endChapter && m.verse <= item.endVerse)));
   if (!inRange.length) return null;
-  return { total: inRange.length, strong: inRange.filter(m => m.level === "Mastered" || m.level === "Strong").length };
+  // Denominator is the assignment's full verse count when the server
+  // provides it; the practiced-row count alone would read "1 of 1" for a
+  // 3-verse assignment with a single practiced verse.
+  const total = item.verseCount && item.verseCount > 0 ? item.verseCount : inRange.length;
+  return { total, strong: inRange.filter(m => m.level === "Mastered" || m.level === "Strong").length };
 }
 
 /** Student-facing list of exactly the passages (down to the verse) assigned for this season. */

@@ -13,6 +13,8 @@ type SeasonCoverageProps = {
   onContinue?: () => void;
   onRetry?: () => void;
   busy?: boolean;
+  /** Render as an expandable card, always closed on first render (HQ). */
+  collapsible?: boolean;
 };
 
 const percent = (value: number) => `${Math.round(value * 100)}%`;
@@ -64,24 +66,36 @@ const blockedReason: Record<string, string> = {
   DataGap: 'Some required progress data could not be checked.',
 };
 
-export function SeasonCoverage({ snapshot, audience, students = [], onContinue, onRetry, busy = false }: SeasonCoverageProps) {
+export function SeasonCoverage({ snapshot, audience, students = [], onContinue, onRetry, busy = false, collapsible = false }: SeasonCoverageProps) {
   const published = (snapshot.state === 'Snapshot' || snapshot.state === 'Provisional') && !!snapshot.snapshotId;
   const empty = published && (snapshot.scripture?.assigned ?? 0) === 0 && (snapshot.introduction?.assigned ?? 0) === 0;
-  return <Panel className="pbe-season-coverage" aria-labelledby="pbe-season-coverage-title">
-    <div className="training-panel-title"><div><h2 id="pbe-season-coverage-title">Season cooperation</h2><p>Independent Solo progress across assigned material. Team answers do not count as Solo recall.{snapshot.checkedAtUtc && <> Checked <time dateTime={snapshot.checkedAtUtc}>{evidenceDate(snapshot.checkedAtUtc)}</time>; maintenance counts are as of this check.</>}</p></div><Badge tone={snapshot.state === 'Snapshot' ? 'success' : snapshot.state === 'Provisional' ? 'warning' : 'neutral'}>{snapshot.state === 'Snapshot' ? 'Checked snapshot' : snapshot.state}</Badge></div>
+  const titleRow = <div className="training-panel-title"><div><h2 id="pbe-season-coverage-title">Season cooperation</h2><p>Independent Solo progress across assigned material. Team answers do not count as Solo recall.{snapshot.checkedAtUtc && <> Checked <time dateTime={snapshot.checkedAtUtc}>{evidenceDate(snapshot.checkedAtUtc)}</time>; maintenance counts are as of this check.</>}</p></div><Badge tone={snapshot.state === 'Snapshot' ? 'success' : snapshot.state === 'Provisional' ? 'warning' : 'neutral'}>{snapshot.state === 'Snapshot' ? 'Checked snapshot' : snapshot.state}</Badge></div>;
+  const body = <>
     {snapshot.state === 'NotStarted' && <><p>Season progress has not been checked yet.</p>{onContinue && <Button disabled={busy} onClick={onContinue}>{busy ? 'Starting…' : 'Check season progress'}</Button>}</>}
     {snapshot.state === 'Updating' && <><p role="status">Checking assigned material and saved Solo progress.</p>{snapshot.work.next === 'Continue' && onContinue && <Button disabled={busy} onClick={onContinue}>{busy ? 'Checking…' : 'Continue checking progress'}</Button>}{snapshot.work.next === 'Reload' && onContinue && <Button variant="secondary" disabled={busy} onClick={onContinue}>Refresh checked progress</Button>}</>}
     {snapshot.state === 'Blocked' && <><p>{blockedReason[snapshot.reason ?? ''] ?? 'Team progress is not available right now.'}</p>{onRetry && <Button variant="secondary" disabled={busy} onClick={onRetry}>Try again</Button>}</>}
     {published && <>
       {snapshot.state === 'Provisional' && <p>{snapshot.unknownStudents} of {snapshot.rosterStudents} student records are still unknown. Possible values are labeled separately.</p>}
-      {empty ? <p>No eligible material is assigned for this season.</p> : <div className="pbe-coverage-grid">{snapshot.scripture && <TeamMaterial kind="Scripture" summary={snapshot.scripture} />}{snapshot.introduction && <TeamMaterial kind="Introduction" summary={snapshot.introduction} />}</div>}
+      {empty ? <p>No eligible material is assigned for this season.</p> : <div className="pbe-coverage-grid">{snapshot.scripture && snapshot.scripture.assigned > 0 && <TeamMaterial kind="Scripture" summary={snapshot.scripture} />}{snapshot.introduction && snapshot.introduction.assigned > 0 && <TeamMaterial kind="Introduction" summary={snapshot.introduction} />}</div>}
       {audience === 'student' && snapshot.own && <div className="pbe-own-contribution"><h3>Your assigned progress</h3>{snapshot.own.state === 'Unassigned' ? <p>You are unassigned in this season.</p> : snapshot.own.state === 'Unknown' ? <p>Your assignment is counted, but your saved progress is still unknown.</p> : <><OwnMaterial kind="passages" summary={snapshot.own.scripture} /><OwnMaterial kind="introduction units" summary={snapshot.own.introduction} /></>}</div>}
       {audience === 'coach' && <div className="pbe-coach-breakdown"><h3>Student progress</h3>{students.length ? <ul className="training-list">{students.map(student => <li key={student.studentId}><div><strong>{student.displayName}</strong>{student.state === 'Unassigned' ? <p>Unassigned</p> : student.state === 'Unknown' ? <p>Progress unknown</p> : <>{student.scripture.assigned > 0 && <p>{student.scripture.retained.known} of {student.scripture.assigned} passages retained</p>}{student.introduction.assigned > 0 && <p>{student.introduction.retained.known} of {student.introduction.assigned} introduction units retained</p>}</>}</div><Badge tone={student.state === 'Known' ? 'success' : 'neutral'}>{student.state}</Badge></li>)}</ul> : <p>No student detail is available for this snapshot.</p>}</div>}
     </>}
+  </>;
+  if (!collapsible) return <Panel className="pbe-season-coverage" aria-labelledby="pbe-season-coverage-title">
+    {titleRow}
+    {body}
+  </Panel>;
+  // Expandable card (HQ): native details, never opened by default and with no
+  // persisted state — every mount starts closed, like HQ's other disclosures.
+  return <Panel className="pbe-season-coverage" aria-labelledby="pbe-season-coverage-title">
+    <details className="season-cooperation-disclosure">
+      <summary>{titleRow}</summary>
+      <div className="season-cooperation-body">{body}</div>
+    </details>
   </Panel>;
 }
 
-export function SeasonCoveragePanel({ seasonId, audience, organizationId }: { seasonId: string; audience: 'student' | 'coach'; organizationId?: string }) {
+export function SeasonCoveragePanel({ seasonId, audience, organizationId, collapsible = false }: { seasonId: string; audience: 'student' | 'coach'; organizationId?: string; collapsible?: boolean }) {
   const scopeKey = `${audience}:${organizationId ?? ''}:${seasonId}`;
   const chapterPublication = useQuery<string | null>({ queryKey: ['pbe-chapter-publication', seasonId], queryFn: async () => null, enabled: false });
   const publicationId = audience === 'student' ? chapterPublication.data ?? null : null;
@@ -180,7 +194,7 @@ export function SeasonCoveragePanel({ seasonId, audience, organizationId }: { se
   return <>
     {continuation.isError && <Notice tone="danger">Season cooperation could not finish checking. Use Try again to restart from saved work.</Notice>}
     {students.isError && <Notice tone="danger">Student cooperation detail could not load. <Button variant="secondary" onClick={() => void students.refetch()}>Retry student detail</Button></Notice>}
-    <SeasonCoverage snapshot={snapshot.data} audience={audience} students={detailMismatch ? undefined : students.data?.items} busy={continuation.isPending || snapshot.isFetching}
+    <SeasonCoverage snapshot={snapshot.data} audience={audience} collapsible={collapsible} students={detailMismatch ? undefined : students.data?.items} busy={continuation.isPending || snapshot.isFetching}
       onContinue={() => { started.current = true; continuation.mutate({ scopeKey, publicationId: currentPublication.current, audience, organizationId, seasonId, workId: snapshot.data.state === 'Updating' && snapshot.data.work.next === 'Reload' ? undefined : snapshot.data.work.id ?? undefined }); }}
       onRetry={() => {
         continuation.reset();

@@ -4,7 +4,9 @@ import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
 import { atomic } from '../application/model';
 import { createNativeTestApp, TEST_ORG } from '../test-runtime';
-import { preparePbeEffort, pbeQuestSignals, type PbeMission } from './effort';
+import { awardPbeSimulationAttemptXp, creditPbePracticeDay, pbeAttemptXp, preparePbeEffort, pbeQuestSignals, type PbeMission } from './effort';
+import { preference, resolvePreference } from '../training/store';
+import type { XpEvent, XpRecord } from '../training/xp';
 import type { PbeAttempt, PbeCard, PbeSession } from './sessions';
 import type { PbeQuestion } from './types';
 import { QUEST_DEFS, type QuestRecord, type QuestState } from '../training/quests';
@@ -53,6 +55,83 @@ it('computes explorer/comeback signals from session cards and attempts', () => {
     expect(pbeQuestSignals({ cards, attempts: [] }, attempt('a4', 'c4', 2)).repairedQuestionId).toBeNull();
     // Unknown card → no signals.
     expect(pbeQuestSignals(s, attempt('ax', 'nope', 2))).toEqual({ explorerFresh: false, repairedQuestionId: null });
+});
+
+it('prices attempts with partial credit: full/partial/zero × hints on/off = 10/5/2 and 6/3/2', () => {
+    // Fully correct (earned === available).
+    expect(pbeAttemptXp(2, 2, false)).toBe(10);
+    expect(pbeAttemptXp(2, 2, true)).toBe(6);
+    // Partial (0 < earned < available): half of full, floored.
+    expect(pbeAttemptXp(1, 2, false)).toBe(5);
+    expect(pbeAttemptXp(1, 2, true)).toBe(3);
+    expect(pbeAttemptXp(3, 4, false)).toBe(5);
+    expect(pbeAttemptXp(1, 4, true)).toBe(3);
+    // Zero earned pays the incorrect value either way.
+    expect(pbeAttemptXp(0, 2, false)).toBe(2);
+    expect(pbeAttemptXp(0, 2, true)).toBe(2);
+});
+
+const insertStudent = async (id: string, name: string) => {
+    await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)")
+        .bind(id, TEST_ORG, name, name, 'Student', 'Student', 'x', 'v1').run();
+};
+
+it('credits the mission (start) date when a Practice session crosses midnight (D12)', async () => {
+    const student2 = '77777777-7777-4777-8777-777777777777';
+    await insertStudent(student2, 'pbe-midnight-student');
+    const ctx = studentCtx(student2), store = new Store(app.db as unknown as Env['DB']);
+    const sid = 'pbe-midnight-session', startDate = '2026-09-17', afterMidnight = '2026-09-18T00:30:00Z';
+    const mission: PbeMission = { id: sid, format: 'Pbe', ruleVersion: 'r', scoringVersion: 's', selectionVersion: 'sel', seasonId: 's1', sessionId: sid, scopeVersion: 'v', localDate: startDate, timeZone: 'UTC', mode: 'Practice', target: 1, completed: 0 };
+    await store.insert('pbe-daily-mission', sid, TEST_ORG, mission, { seasonId: 's1' });
+    const s: PbeSession = {
+        id: sid, format: 'Pbe', studentUserId: student2, seasonId: 's1', mode: 'Practice', status: 'Active',
+        scopeVersion: 'v', ruleVersion: 'r', scoringVersion: 's', selectionVersion: 'sel', questionIds: ['q1'],
+        cards: [card('c1', 'q1')], attempts: [attempt('a1', 'c1', 2)], createdAtUtc: '2026-09-17T23:30:00Z', startPayload: '{}', missionLocalDate: startDate, creditedLocalDate: null, newlyCreditedDay: false,
+    };
+    const w = await preparePbeEffort(ctx, s, afterMidnight);
+    await atomic(ctx, 'pbe-midnight.test', w.statements, w.guards);
+    // Day credit belongs to the start date, not the post-midnight attempt date.
+    expect(s.creditedLocalDate).toBe(startDate);
+    expect(s.newlyCreditedDay).toBe(true);
+    const days = await store.list<{ localDate: string }>('training-day', TEST_ORG, { ownerId: student2 });
+    expect(days.map(d => d.localDate)).toEqual([startDate]);
+    // Quest progress is also recorded on the start date.
+    const quests = await store.list<{ localDate: string }>('training-quest', TEST_ORG, { ownerId: student2 });
+    expect(quests.map(q => q.localDate)).toEqual([startDate]);
+    // But the XP award itself stays attempt-dated in xpByDay.
+    const xp = (await store.list<XpRecord>('training-xp', TEST_ORG, { ownerId: student2 }))[0];
+    expect(Object.keys(xp.xpByDay)).toEqual(['2026-09-18']);
+    expect(xp.xpByDay['2026-09-18']).toBeGreaterThanOrEqual(60); // 10 attempt + 50 day (+ any quest XP)
+});
+
+it('credits exactly one practice day + 50 day XP when a Simulation deck completes, dated by session start (D1/D12)', async () => {
+    const student3 = '88888888-8888-4888-8888-888888888888';
+    await insertStudent(student3, 'pbe-simulation-student');
+    const ctx = studentCtx(student3), store = new Store(app.db as unknown as Env['DB']);
+    const a = attempt('a1', 'c1', 2); // fully correct, no hints → 10 attempt XP
+    const s: PbeSession = {
+        id: 'pbe-simulation-session', format: 'Pbe', studentUserId: student3, seasonId: 's1', mode: 'Simulation', status: 'Active',
+        scopeVersion: 'v', ruleVersion: 'r', scoringVersion: 's', selectionVersion: 'sel', questionIds: ['q1'],
+        cards: [card('c1', 'q1')], attempts: [a], createdAtUtc: '2026-09-17T23:30:00Z', startPayload: '{}', missionLocalDate: '2026-09-17', creditedLocalDate: null, newlyCreditedDay: false,
+    };
+    const at = '2026-09-18T00:15:00Z'; // deck completes after midnight
+    const w = await awardPbeSimulationAttemptXp(ctx, s, a, at);
+    await atomic(ctx, 'pbe-simulation-day.test', w.statements, w.guards);
+    expect(s.creditedLocalDate).toBe('2026-09-17');
+    expect(s.newlyCreditedDay).toBe(true);
+    expect(s.xpEarned).toBe(60); // 10 attempt + 50 day, nothing else
+    const days = await store.list<{ localDate: string }>('training-day', TEST_ORG, { ownerId: student3 });
+    expect(days.map(d => d.localDate)).toEqual(['2026-09-17']);
+    const xp = (await store.list<XpRecord>('training-xp', TEST_ORG, { ownerId: student3 }))[0];
+    expect(xp.totalXp).toBe(60);
+    expect(xp.xpByDay).toEqual({ '2026-09-18': 60 }); // award stays attempt-dated
+    // Idempotent: a second completion pass credits nothing more.
+    const w2 = { statements: [], guards: [] } as Parameters<typeof creditPbePracticeDay>[1], events: XpEvent[] = [];
+    const p = resolvePreference(ctx, await preference(ctx), at);
+    expect(await creditPbePracticeDay(ctx, w2, s, p, at, events, { localDate: '2026-09-17', weekStartLocalDate: '2026-09-14', timeZone: 'UTC' })).toBe(false);
+    expect(events).toEqual([]);
+    expect(w2.statements).toEqual([]);
+    expect((await store.list('training-day', TEST_ORG, { ownerId: student3 })).length).toBe(1);
 });
 
 it('progresses explorer and comeback through preparePbeEffort with distinct counting', async () => {

@@ -145,7 +145,12 @@ it('rebuilds evidence across sixty historical sessions within the Free plan quer
   const ctx:RequestContext={request:new Request(url,{method:'POST',body:JSON.stringify({clientSubmissionId:'after-sixty',challengeCardId:card.id,submittedAnswer:card.answerKey.canonicalAnswer,responseTimeMs:1,hintsUsed:false})}),path:new URL(url).pathname,orgId:TEST_ORG,env:{DB:db},store:new Store(db),actor:{userId:TEST_USER,organizationId:TEST_ORG,organizationName:'Practice Club',displayName:'Student',userName:'student',email:null,kind:'Student',role:'Student',credentialVersion:'v1'}};
   const response=await handleStudy(ctx);
   expect(response!.status).toBe(200);expect(await response!.json()).toMatchObject({isCorrect:true});
-  expect(queries).toBeLessThan(30);
+  // Budget guard (the wrapper hard-fails past the 48-query Free plan cap).
+  // 30 was calibrated while the mastery version split left badge counters
+  // dead; with counters live again, the attempt that first earns a badge
+  // also prepares its award + season-projection writes (one-time per badge,
+  // not per attempt), landing at 30 — so the guard sits at 32.
+  expect(queries).toBeLessThan(32);
   const mastery=JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='mastery' AND json_extract(data,'$.knowledgeUnitId')=?").bind(card.knowledgeUnitId).first<{data:string}>())!.data);
   expect(mastery.algorithmVersion).toBe(MASTERY_VERSION);expect(mastery.reference).toBe(100);
   await app.db.prepare("UPDATE Records SET data=json_set(data,'$.includes[0].endVerse',3),revision=revision+1 WHERE kind='scope' AND id=?").bind(season).run();
@@ -303,3 +308,14 @@ it('reports per-attempt XP and the session streak on the result (B1)',async()=>{
   const replayed=await (await request(`${base}/attempts`,'POST',lastPayload)).json() as {xpEarned?:number;sessionStreak?:number;alreadyProcessed?:boolean};
   expect(replayed).toMatchObject({xpEarned:lastResult!.xpEarned!,sessionStreak:lastResult!.sessionStreak!,alreadyProcessed:true});
 });
+it('caps the student progress review-due count at the 8-passage mission set (D2)',async()=>{
+  // Grow the scope to twelve passages and make every one of them due, so the
+  // uncapped total (12) exceeds the daily mission set the folio reports.
+  const dueIds=[...sourceIds,...Array.from({length:9},(_,i)=>`dddddddd-dddd-4ddd-8ddd-${String(i+4).padStart(12,'0')}`)];
+  await app.db.prepare("UPDATE Records SET data=json_set(data,'$.includes[0].endVerse',12),revision=revision+1 WHERE kind='scope' AND id=?").bind(season).run();
+  await app.db.prepare("UPDATE Records SET data=json_set(data,'$.endVerse',12),revision=revision+1 WHERE kind='assignment' AND id='assignment'").run();
+  for(const [i,id] of dueIds.entries()) if(i>=3) await record('source',id,{id,knowledgeUnitId:id,contentPackId:pack,citation:`Genesis 1:${i+1}`,bookKey:'GEN',chapter:1,verse:i+1,ordinal:i+1,canonicalText:`Synthetic verse ${i+1} has words for this exercise.`,isActive:true},null,pack);
+  await app.db.prepare("DELETE FROM Records WHERE kind='mastery' AND season_id=?").bind(season).run();
+  for(const [i,id] of dueIds.entries()) await record('mastery',`due-mastery-${i+1}`,{id:`due-mastery-${i+1}`,studentUserId:TEST_USER,seasonId:season,sourceUnitId:id,knowledgeUnitId:id,algorithmVersion:MASTERY_VERSION,reviewDueAt:'2000-01-01T00:00:00Z',lastSeenAt:'2000-01-01T00:00:00Z',streak:0,recognition:50,exactWording:50,reference:0,sequence:0,factualRecall:0,level:'Review'},season,TEST_USER);
+  expect(await (await request(`/api/v1/progress/me?seasonId=${season}`)).json()).toMatchObject({reviewDueCount:8});
+},30000);

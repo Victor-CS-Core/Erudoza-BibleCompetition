@@ -1,7 +1,7 @@
 import { Store } from '../store';
 import type { Env, RequestContext } from '../types';
 import { createNativeTestApp, TEST_ORG, TEST_USER } from '../test-runtime';
-import { seasonLeaderboard } from './social';
+import { mondayOfWeek, seasonLeaderboard } from './social';
 import type { XpRecord } from './xp';
 // @vitest-environment node
 import { beforeAll, expect, it } from 'vitest';
@@ -26,7 +26,7 @@ function ctxFor(userId: string, kind: 'Student' | 'Adult' = 'Student', displayNa
     };
 }
 
-const seedXp = (userId: string, rec: Pick<XpRecord, 'xpBySeason' | 'xpByDay' | 'totalXp'>) =>
+const seedXp = (userId: string, rec: Pick<XpRecord, 'xpBySeason' | 'xpByDay' | 'totalXp'> & Partial<Pick<XpRecord, 'xpByDaySeason'>>) =>
     app.db.prepare("INSERT INTO Records(kind,id,org_id,owner_id,data) VALUES('training-xp',?,?,?,?)")
         .bind(`${TEST_ORG}:${userId}`, TEST_ORG, userId, JSON.stringify({ attemptXpByDay: {}, updatedAtUtc: '2026-09-17T12:00:00Z', ...rec } satisfies XpRecord)).run();
 
@@ -63,11 +63,11 @@ beforeAll(async () => {
     await seedPreferences(C, true);
     await seedPreferences(D, false);
     await seedPreferences(E, true);
-    await seedXp(A, { xpBySeason: { [SEASON]: 845 }, xpByDay: { [dayInWeek(0)]: 100, [dayInWeek(2)]: 110 }, totalXp: 1000 });
-    await seedXp(B, { xpBySeason: { [SEASON]: 650 }, xpByDay: { [dayInWeek(1)]: 165 }, totalXp: 620 });
-    await seedXp(C, { xpBySeason: { [SEASON]: 612 }, xpByDay: { [dayInWeek(0)]: 150 }, totalXp: 612 });
-    await seedXp(D, { xpBySeason: { [SEASON]: 900 }, xpByDay: {}, totalXp: 900 });
-    await seedXp(E, { xpBySeason: { [SEASON]: 5000 }, xpByDay: { [dayInWeek(0)]: 400 }, totalXp: 5000 });
+    await seedXp(A, { xpBySeason: { [SEASON]: 845 }, xpByDay: { [dayInWeek(0)]: 100, [dayInWeek(2)]: 110 }, xpByDaySeason: { [SEASON]: { [dayInWeek(0)]: 100, [dayInWeek(2)]: 110 } }, totalXp: 1000 });
+    await seedXp(B, { xpBySeason: { [SEASON]: 650 }, xpByDay: { [dayInWeek(1)]: 165 }, xpByDaySeason: { [SEASON]: { [dayInWeek(1)]: 165 } }, totalXp: 620 });
+    await seedXp(C, { xpBySeason: { [SEASON]: 612 }, xpByDay: { [dayInWeek(0)]: 150 }, xpByDaySeason: { [SEASON]: { [dayInWeek(0)]: 150 } }, totalXp: 612 });
+    await seedXp(D, { xpBySeason: { [SEASON]: 900 }, xpByDay: {}, xpByDaySeason: { [SEASON]: {} }, totalXp: 900 });
+    await seedXp(E, { xpBySeason: { [SEASON]: 5000 }, xpByDay: { [dayInWeek(0)]: 400 }, xpByDaySeason: { [SEASON]: { [dayInWeek(0)]: 400 } }, totalXp: 5000 });
     // Maya (A) has a selected profile character; nobody else set one.
     await seedCharacter(A);
     // Streaks: A practiced today and the three days before (4-day streak); C today + yesterday (2).
@@ -111,6 +111,39 @@ it('gives coaches every season member with full names, including non-opted-in st
 
 it('rejects an unknown season', async () => {
     await expect(seasonLeaderboard(ctxFor(C), '99999999-9999-4999-8999-999999999999', url)).rejects.toMatchObject({ status: 404 });
+});
+
+it('counts only this season’s XP in the season board week XP', async () => {
+    const SEASON_B = '77777777-7777-4777-8777-777777777777';
+    const F = '67676767-6767-4676-8676-676767676767'; // Robin Vale — assigned in both seasons
+    await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version,active) VALUES(?,?,?,?,?,?,?,?,1)")
+        .bind(F, TEST_ORG, 'robinvale', 'Robin Vale', 'Student', 'Student', 'x', 'v1').run();
+    await app.db.prepare("INSERT INTO Records(kind,id,org_id,data) VALUES('season',?,?,?)")
+        .bind(SEASON_B, TEST_ORG, JSON.stringify({ id: SEASON_B, organizationId: TEST_ORG, name: 'Genesis', yearLabel: '2026', status: 'Active', ruleProfileKey: 'PBE_STYLE_V1', ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, createdAtUtc: '2026-09-01T12:00:00Z' })).run();
+    await seedAssignment(F, SEASON);
+    await seedAssignment(F, SEASON_B);
+    await seedPreferences(F, true);
+    // Same pinned week (Mon 2026-09-14): F earned 40 XP in SEASON on Monday and
+    // 60 + 5 XP in SEASON_B on Monday/Tuesday. All-season xpByDay totals 105;
+    // each board must count only its own season's split.
+    await seedXp(F, {
+        xpBySeason: { [SEASON]: 40, [SEASON_B]: 65 },
+        xpByDay: { [dayInWeek(0)]: 100, [dayInWeek(1)]: 5 },
+        xpByDaySeason: { [SEASON]: { [dayInWeek(0)]: 40 }, [SEASON_B]: { [dayInWeek(0)]: 60, [dayInWeek(1)]: 5 } },
+        totalXp: 105,
+    });
+    const boardA = await seasonLeaderboard(ctxFor(C), SEASON, url);
+    expect(boardA.entries.find(e => e.userId === F)).toMatchObject({ seasonXp: 40, weekXp: 40 });
+    const boardB = await seasonLeaderboard(ctxFor(C), SEASON_B, url);
+    expect(boardB.entries.find(e => e.userId === F)).toMatchObject({ seasonXp: 65, weekXp: 65 });
+    // A mid-week pin (Wed 2026-09-16) snaps to Monday on the season board too,
+    // and an impossible date falls back to the viewer's current week.
+    const snapped = await seasonLeaderboard(ctxFor(C), SEASON, new URL('https://erudoza.test/?weekStart=2026-09-16'));
+    expect(snapped.weekStartLocalDate).toBe(WEEK);
+    expect(snapped.entries.find(e => e.userId === F)!.weekXp).toBe(40);
+    const fallback = await seasonLeaderboard(ctxFor(C), SEASON, new URL('https://erudoza.test/?weekStart=2026-02-30'));
+    expect(fallback.weekStartLocalDate).toBe(mondayOfWeek(new Date().toISOString().slice(0, 10)));
+    expect(fallback.entries.find(e => e.userId === F)!.weekXp).toBe(0); // F earned nothing in the real current week
 });
 
 it('carries each member’s selected profile image, with the initials default when none is set', async () => {

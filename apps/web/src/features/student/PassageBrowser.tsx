@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Badge, HelpTip, Input } from "../../components/ui";
 import type { Progress } from "../../api/types";
+import { isScoredVersion } from "./PassagePicker";
 
 type MasteryItem = Progress["mastery"][number];
 
@@ -118,7 +119,7 @@ export function PassageBrowser({ mastery, difficulty }: { mastery: MasteryItem[]
                     </span>
                     <span className="passage-row-score">{item.exactWordingScore}</span>
                     <Badge tone={MASTERED_LEVELS.has(item.level) ? "success" : item.level === "Review" ? "warning" : "neutral"}>{item.level}</Badge>
-                    {(item.algorithmVersion ?? "v1-scaffold") !== "v2-skill-evidence" && <span className="passage-row-legacy">Legacy scoring</span>}
+                    {!isScoredVersion(item.algorithmVersion ?? "v1-scaffold") && <span className="passage-row-legacy">Legacy scoring</span>}
                   </li>
                 ))}
               </ul>

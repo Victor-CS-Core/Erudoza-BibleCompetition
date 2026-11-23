@@ -200,7 +200,7 @@ describe("studySessionFraming", () => {
   it("gives each mode a distinct identity", () => {
     expect(studySessionFraming("Practice").eyebrow).toBe("Learn · coached practice");
     expect(studySessionFraming("Review").eyebrow).toBe("Review · due practice");
-    expect(studySessionFraming("Simulation").eyebrow).toBe("Rehearse · exam mode");
+    expect(studySessionFraming("Simulation").eyebrow).toBe("Rehearse · challenge mode");
   });
 });
 

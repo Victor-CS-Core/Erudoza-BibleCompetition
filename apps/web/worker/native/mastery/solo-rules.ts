@@ -1,6 +1,7 @@
 import type { Source } from '../application/model';
 import type { Mastery, Session, Attempt } from '../study/routes';
 import type { HonorKey } from './catalog';
+import { isScoredMasteryVersion } from '../study/engine';
 export interface PassageEvidence { attemptId: string; sessionId: string; sourceUnitId: string; cardId: string; acceptedAtUtc: string; activityType: string; answerMode: string; difficulty: number; evidenceProfile?: import('../study/engine').MemoryEvidenceProfile; exactWording: number; reference: number; recognition: number }
 export interface PassageProof {
   id: string; knowledgeUnitId: string; seasonId: string; userId: string;
@@ -8,7 +9,7 @@ export interface PassageProof {
   firstMasteredAtUtc: string | null; retainedAtUtc: string | null; retestAttemptId: string | null;
   reviewCertifiedAtUtc: string | null; reviewAttemptId: string | null;
 }
-export const masteryStandard = (m: Mastery | undefined) => !!m && m.algorithmVersion === 'v2-skill-evidence' && m.exactWording >= 90 && m.reference >= 80 && m.recognition >= 80;
+export const masteryStandard = (m: Mastery | undefined) => !!m && isScoredMasteryVersion(m.algorithmVersion) && m.exactWording >= 90 && m.reference >= 80 && m.recognition >= 80;
 export const passageId = (s: Source) => s.knowledgeUnitId ?? s.id;
 export function updatePassageProof(proof: PassageProof, session: Session, attempt: Attempt, mastery: Mastery, dueAtUtc?: string): PassageProof {
   if (attempt.isLegacyDuplicate) return { ...proof };
@@ -30,8 +31,8 @@ export function updatePassageProof(proof: PassageProof, session: Session, attemp
 }
 export function soloQualifiers(sources: Source[], states: Mastery[], proofs: PassageProof[]): { key: HonorKey; passageIds: string[] }[] {
   const units = [...new Map(sources.map(s => [passageId(s), s])).values()], byId = new Map(states.map(m => [m.knowledgeUnitId, m]));
-  const exact = units.filter(s => { const m = byId.get(passageId(s)); return m?.algorithmVersion === 'v2-skill-evidence' && m.exactWording >= 90; });
-  const reference = units.filter(s => { const m = byId.get(passageId(s)); return m?.algorithmVersion === 'v2-skill-evidence' && m.reference >= 90; });
+  const exact = units.filter(s => { const m = byId.get(passageId(s)); return !!m && isScoredMasteryVersion(m.algorithmVersion) && m.exactWording >= 90; });
+  const reference = units.filter(s => { const m = byId.get(passageId(s)); return !!m && isScoredMasteryVersion(m.algorithmVersion) && m.reference >= 90; });
   const mastered = units.filter(s => masteryStandard(byId.get(passageId(s))));
   const result: { key: HonorKey; passageIds: string[] }[] = [];
   const add = (key: HonorKey, eligible: Source[]) => result.push({ key, passageIds: eligible.map(passageId).sort() });

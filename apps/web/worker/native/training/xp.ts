@@ -77,6 +77,8 @@ export interface XpRecord {
     attemptXpByDay: Record<string, number>;
     /** All XP per local day (powers the coach weekly sparkline). */
     xpByDay: Record<string, number>;
+    /** XP per local day split by season (seasonId -> localDate -> xp); powers the season board's week XP. Absent on legacy records. */
+    xpByDaySeason?: Record<string, Record<string, number>>;
     updatedAtUtc: string;
 }
 
@@ -101,11 +103,17 @@ export interface AwardXpResult {
     leveledUp: { from: number; to: number } | null;
 }
 
-/** Prune per-day history older than 90 days so the record stays small. */
-function pruneDaily(maps: Pick<XpRecord, 'attemptXpByDay' | 'xpByDay'>, localDate: string) {
-    const cutoff = addDays(localDate, -90);
+/** Prune per-day history older than 400 days so the record stays small (400 days keeps a full season's pinned weeks reachable). */
+function pruneDaily(maps: Pick<XpRecord, 'attemptXpByDay' | 'xpByDay' | 'xpByDaySeason'>, localDate: string) {
+    const cutoff = addDays(localDate, -400);
     for (const m of [maps.attemptXpByDay, maps.xpByDay])
         for (const key of Object.keys(m)) if (key < cutoff) delete m[key];
+    if (maps.xpByDaySeason)
+        for (const seasonId of Object.keys(maps.xpByDaySeason)) {
+            const byDay = maps.xpByDaySeason[seasonId];
+            for (const key of Object.keys(byDay)) if (key < cutoff) delete byDay[key];
+            if (!Object.keys(byDay).length) delete maps.xpByDaySeason[seasonId];
+        }
 }
 
 /**
@@ -115,7 +123,8 @@ function pruneDaily(maps: Pick<XpRecord, 'attemptXpByDay' | 'xpByDay'>, localDat
  */
 export async function awardXp(ctx: RequestContext, w: Writes, opts: AwardXpOptions): Promise<AwardXpResult> {
     const id = identity(ctx), old = await ctx.store.get<XpRecord>('training-xp', id, ctx.orgId);
-    const rec: XpRecord = old?.value ?? { id, totalXp: 0, xpBySeason: {}, attemptXpByDay: {}, xpByDay: {}, updatedAtUtc: opts.atUtc };
+    const rec: XpRecord = old?.value ?? { id, totalXp: 0, xpBySeason: {}, attemptXpByDay: {}, xpByDay: {}, xpByDaySeason: {}, updatedAtUtc: opts.atUtc };
+    rec.xpByDaySeason ??= {};
     const fromLevel = levelForXp(rec.totalXp).level;
     let awarded = 0;
     for (const event of opts.events) {
@@ -128,7 +137,11 @@ export async function awardXp(ctx: RequestContext, w: Writes, opts: AwardXpOptio
         }
         rec.totalXp += amount;
         rec.xpByDay[opts.localDate] = (rec.xpByDay[opts.localDate] ?? 0) + amount;
-        if (opts.seasonId) rec.xpBySeason[opts.seasonId] = (rec.xpBySeason[opts.seasonId] ?? 0) + amount;
+        if (opts.seasonId) {
+            rec.xpBySeason[opts.seasonId] = (rec.xpBySeason[opts.seasonId] ?? 0) + amount;
+            const byDay = rec.xpByDaySeason![opts.seasonId] ??= {};
+            byDay[opts.localDate] = (byDay[opts.localDate] ?? 0) + amount;
+        }
         awarded += amount;
     }
     pruneDaily(rec, opts.localDate);

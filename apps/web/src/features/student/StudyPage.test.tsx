@@ -876,10 +876,10 @@ describe("StudyPage session framing", () => {
     expect(banner).not.toHaveTextContent("last practiced");
   });
 
-  it("frames Simulation as exam mode without learning aids", async () => {
+  it("frames Simulation as challenge mode without learning aids", async () => {
     renderStudy("/student/study?mode=Simulation");
     await screen.findByTestId("exam-mode-banner");
-    expect(screen.getByText("Rehearse · exam mode")).toBeInTheDocument();
+    expect(screen.getByText("Rehearse · challenge mode")).toBeInTheDocument();
     expect(screen.getByTestId("exam-mode-banner")).toHaveTextContent("Typed answers only");
     expect(screen.queryByLabelText("Learning aids")).not.toBeInTheDocument();
   });

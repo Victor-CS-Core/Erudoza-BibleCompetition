@@ -8,6 +8,7 @@ import type { TrainingToday, PassageJourneyPage } from '../../../src/api/trainin
 import { addDays, resolveTrainingCalendar } from './calendar';
 import { trainingNow } from './clock';
 import { badgeCounters } from './rules';
+import { isScoredMasteryVersion } from '../study/engine';
 import { bestStreak, creditedDates, streakStatus } from './streak';
 import { xpSummary } from './xp';
 import { getDailyQuests, questDto } from './quests';
@@ -70,7 +71,7 @@ export async function journey(ctx: RequestContext, seasonId: string | null, afte
         let chapter = chapters.find(c => c.bookKey === source.bookKey && c.chapter === source.chapter);
         if (!chapter) {
             const all = sources.filter(s => s.bookKey === source.bookKey && s.chapter === source.chapter);
-            chapter = { bookKey: source.bookKey, chapter: source.chapter, scopeLabel: 'Assigned scope', eligibleCount: all.length, seenCount: all.filter(s => states.some(m => m.knowledgeUnitId === kid(s))).length, strongCount: all.filter(s => states.some(m => m.knowledgeUnitId === kid(s) && m.algorithmVersion === 'v2-skill-evidence' && ['Strong', 'Mastered'].includes(m.level))).length, passages: [] };
+            chapter = { bookKey: source.bookKey, chapter: source.chapter, scopeLabel: 'Assigned scope', eligibleCount: all.length, seenCount: all.filter(s => states.some(m => m.knowledgeUnitId === kid(s))).length, strongCount: all.filter(s => states.some(m => m.knowledgeUnitId === kid(s) && isScoredMasteryVersion(m.algorithmVersion) && ['Strong', 'Mastered'].includes(m.level))).length, passages: [] };
             chapters.push(chapter);
         }
         const m = states.find(m => m.knowledgeUnitId === kid(source));

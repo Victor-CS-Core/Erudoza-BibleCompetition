@@ -3,7 +3,7 @@ import { HttpError } from '../types';
 import { student, students } from './model';
 import { resolvePreference, type DayRecord, type PreferenceRecord } from '../training/store';
 import { levelForXp, XP_VALUES, type XpRecord } from '../training/xp';
-import { creditedDates, streakCount } from '../training/streak';
+import { creditedDates, streakStatus } from '../training/streak';
 import { addDays, resolveTrainingCalendar } from '../training/calendar';
 import { trainingNow } from '../training/clock';
 import { honorCatalog } from '../mastery/catalog';
@@ -62,14 +62,20 @@ export async function engagementOverview(ctx: RequestContext): Promise<Engagemen
       creditedDates(learner),
       questWeek(learner, calendar.weekStartLocalDate),
     ]);
-    const weekDays = Array.from({ length: 7 }, (_, i) => addDays(calendar.localDate, -i));
+    // "This week" is the learner's calendar week (Mon–Sun, their zone) — the
+    // same window questWeek below and the leaderboard use. A trailing 7-day
+    // window disagreed with both (e.g. Sun+Mon XP counted 100 vs the board's 50).
+    const weekDays = Array.from({ length: 7 }, (_, i) => addDays(calendar.weekStartLocalDate, i));
     const xpRec = xpById.get(`${ctx.orgId}:${s.userId}`)?.value ?? null;
     const xpThisWeek = weekDays.reduce((n, d) => n + (xpRec?.xpByDay[d] ?? 0), 0);
     const level = levelForXp(xpRec?.totalXp ?? 0);
     return {
       studentId: s.userId,
       name: s.displayName,
-      streak: streakCount(credited, calendar.localDate),
+      // streakStatus, not raw streakCount: anchored at an uncredited today,
+      // streakCount returns 0 for a paused streak the student still sees as
+      // preserved (Mon–Wed credited, Fri view: 0 here vs 3 on the student's HQ).
+      streak: streakStatus(credited, calendar.localDate).current,
       xpThisWeek,
       practiceDaysThisWeek: weekDays.filter(d => credited.has(d)).length,
       lastActiveAtUtc: pref?.value.lastEventAtUtc ?? null,

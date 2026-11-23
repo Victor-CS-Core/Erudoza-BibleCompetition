@@ -118,6 +118,11 @@
 .practice-hub-banner-copy .ds-page-header { margin:0; }
 @media(max-width:760px) {
   .practice-hub-banner { aspect-ratio:auto; min-height:320px; align-items:flex-start; }
+  /* Phone: the tall stacked banner crops the 3:1 panorama to a narrow window.
+     Right-anchoring (desktop) sliced the student group at the left edge and
+     left empty forest at the right; 75% centers the window on the group
+     (faces span ~47–86% of the source, lantern ~71%). */
+  .practice-hub-banner > img { object-position:75% center; }
   .practice-hub-banner-copy { width:100%; padding:var(--er-space-6); padding-bottom:160px; }
   .practice-hub-banner::after { background:linear-gradient(180deg,var(--er-navy-surface) 0%,var(--er-navy-surface) 32%,transparent 85%); }
 }

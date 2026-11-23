@@ -11,6 +11,7 @@ import { trainingNow } from './clock';
 import { preference, resolvePreference, write, makeRecap } from './store';
 import type { Writes } from './store';
 import { today, honors, journey } from './query';
+import { creditedDates, streakStatus } from './streak';
 import { setLeaderboardOptIn, teamActivity } from './social';
 export async function handleTraining(ctx: RequestContext): Promise<Response | null> {
     const { path, request } = ctx, method = request.method;
@@ -38,8 +39,15 @@ export async function handleTraining(ctx: RequestContext): Promise<Response | nu
             return json(await teamActivity(ctx));
         if (path.endsWith('/today'))
             return json(await today(ctx, seasonId, undefined, url.searchParams.get('deviceTimeZone') ?? undefined));
-        if (path.endsWith('/honors'))
-            return json(await honors(ctx, seasonId));
+        if (path.endsWith('/honors')) {
+            // honors() recomputes the streak-badge counters from the streak it
+            // is handed; this route used to omit it (default 0), so the Honors
+            // page showed Week/Fortnight/Month Streak progress as 0 while HQ's
+            // today() showed the true count. Compute it the same way today does.
+            const now = trainingNow(), old = await preference(ctx), p = resolvePreference(ctx, old, now), c = resolveTrainingCalendar(now, p);
+            const streak = streakStatus(await creditedDates(ctx), c.localDate);
+            return json(await honors(ctx, seasonId, streak.current));
+        }
         if (path.endsWith('/journey'))
             return json(await journey(ctx, seasonId, url.searchParams.get('after')));
     }

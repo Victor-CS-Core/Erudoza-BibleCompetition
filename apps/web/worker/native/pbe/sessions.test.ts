@@ -73,7 +73,7 @@ it('delivers immutable private PBE cards, persists partial target grades and ori
     expect((await send(`/study/sessions/${session.id}/attempts`, { ...input, clientSubmissionId: crypto.randomUUID(), challengeCardId: card2.id })).status).toBe(200);
     const done = await send(`/study/sessions/${session.id}/complete`, undefined, true);
     expect(done.status).toBe(200);
-    expect(await done.json()).toMatchObject({ format: 'Pbe', attempted: 2, recap: { fullTargetReached: true, newlyCreditedDay: true, missionSteps: [{ target: 2, completed: 2, status: 'Complete' }] } });
+    expect(await done.json()).toMatchObject({ format: 'Pbe', attempted: 2, recap: { fullTargetReached: true, newlyCreditedDay: true, correct: 0, partial: 2, missionSteps: [{ target: 2, completed: 2, status: 'Complete' }] } });
     const reviews = await store.list<{
         targetId: string;
         review: {
@@ -507,7 +507,15 @@ it('accepts solo Simulation only through the authority and defers all feedback u
     expect((await send(`/study/sessions/${session.id}/complete`,{})).status).toBe(200);
     const completed=await (await send(`/study/sessions/${session.id}`)).json();
     expect(completed.summary).toMatchObject({earnedPoints:2,results:[{earnedPoints:2,expectedParts:['Alpha','Beta']}]});
-    expect(await store.list('training-day',TEST_ORG,{ownerId:student})).toEqual([]);
+    // D1: completing the Simulation deck credits the practice day (+50 day XP).
+    expect(completed.summary.recap).toMatchObject({newlyCreditedDay:true});
+    expect(await store.list('training-day',TEST_ORG,{ownerId:student})).toHaveLength(1);
+    const xpBefore=(await store.list<{totalXp:number}>('training-xp',TEST_ORG,{ownerId:student}))[0];
+    expect(xpBefore.totalXp).toBeGreaterThanOrEqual(50);
+    // A second completion call is idempotent: still one day, no extra XP.
+    expect((await send(`/study/sessions/${session.id}/complete`,{})).status).toBe(200);
+    expect(await store.list('training-day',TEST_ORG,{ownerId:student})).toHaveLength(1);
+    expect((await store.list<{totalXp:number}>('training-xp',TEST_ORG,{ownerId:student}))[0].totalXp).toBe(xpBefore.totalXp);
 });
 it('keeps a frozen native final immutable across projection failure and retries its durable outbox',async()=>{
     const {send,store,cookie}=await setup(1,undefined,{replaceSoloAuthority:true});

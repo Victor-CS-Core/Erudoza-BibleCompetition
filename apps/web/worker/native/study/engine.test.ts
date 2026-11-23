@@ -17,7 +17,30 @@ describe('C# activity parity',()=>{
  it('credits next verse and hides reference answer metadata',()=>{const card=generateActivity('WhatComesNext',{...request,difficulty:1});expect(card.knowledgeUnitId).toBe('next-knowledge');expect(card.answerKey.canonicalAnswer).toBe('Next stored verse has');expect(generateActivity('WhatComesNext',{...request,difficulty:1,mode:'Simulation'}).answerKey.canonicalAnswer).toBe(request.nextSourceUnit!.canonicalText);expect(toCardDto(generateActivity('ReferenceMatch',request),{id:'card',sessionId:request.sessionId,sequence:1,total:8},unit).citation).toBe('Assigned passage');});
  it('retains duplicate word identity and rejects missing, repeated and reversed answers',()=>{const card=generateActivity('VerseBuilder',{...request,difficulty:5,sourceUnit:{...unit,canonicalText:'one two one three'}});const tokens=card.payload.tokens;const used=new Set<number>();const order=['one','two','one','three'].map(word=>{const t=tokens.find(t=>t.text===word&&!used.has(t.index))!;used.add(t.index);return t.index;});expect(evaluateOrderedTokens(card,order).isCorrect).toBe(true);expect(evaluateOrderedTokens(card,[...order].reverse()).isCorrect).toBe(false);expect(evaluateOrderedTokens(card,order.slice(1)).isCorrect).toBe(false);expect(evaluateOrderedTokens(card,[order[0],order[0],...order.slice(2)]).isCorrect).toBe(false);});
  it('normalizes configured punctuation only and preserves word order',()=>{expect(normalizeText(' “Defile”  Himself. ')).toBe('defile himself');expect(evaluateAnswer('himself defile','defile himself').isCorrect).toBe(false);expect(normalizeText('well-being / yes')).toBe('well-being / yes');});
- it('awards skill evidence only and applies difficulty ceilings',()=>{expect(applyMastery(zero,exact,false,'VerseBuilder','OrderedSequence',3).sequence).toBe(18);expect(applyMastery(zero,exact,false,'ReferenceMatch','SelectedChoice',3).reference).toBe(0);expect(applyMastery({...zero,exactWording:39},exact,false,'MissingWords','ExactText',1).exactWording).toBe(40);expect(applyMastery({...zero,exactWording:90},exact,false,'MissingWords','ExactText',1).exactWording).toBe(90);});
+ it('awards skill evidence only and applies difficulty ceilings',()=>{expect(applyMastery(zero,exact,false,'VerseBuilder','OrderedSequence',3).sequence).toBe(18);expect(applyMastery(zero,exact,false,'ReferenceMatch','SelectedChoice',3).reference).toBe(0);expect(applyMastery({...zero,exactWording:39},exact,false,'MissingWords','ExactText',1).exactWording).toBe(57);expect(applyMastery({...zero,exactWording:90},exact,false,'MissingWords','ExactText',1).exactWording).toBe(90);});
+ it('raises the exact-wording ceilings one tier per track (D11)',()=>{
+  // Hand-computed: each unaided exact MissingWords answer adds +18 to
+  // exactWording and +10 to recognition, capped by the track ceiling.
+  // Foundation (difficulty 1) caps at 70: 18, 36, 54, then 70 — past the
+  // Strong threshold (exact ≥55, weakest evidenced ≥40: recognition is 40
+  // after four answers), but Mastered needs exact ≥80, so it stays Strong
+  // no matter how many exact answers follow.
+  let foundation=zero;
+  for(let i=0;i<4;i++) foundation=applyMastery(foundation,exact,false,'MissingWords','ExactText',1);
+  expect(foundation.exactWording).toBe(70);
+  expect(foundation.level).toBe('Strong');
+  for(let i=0;i<6;i++) foundation=applyMastery(foundation,exact,false,'MissingWords','ExactText',1);
+  expect(foundation.exactWording).toBe(70);
+  expect(foundation.level).toBe('Strong');
+  // Standard (difficulty 3) caps at 100: exact reaches 90 after five answers
+  // and 100 after six; recognition reaches 70 on the seventh, and the
+  // weakest evidenced skill is then 70 (≥60), so Mastered is reachable.
+  let standard=zero;
+  for(let i=0;i<7;i++) standard=applyMastery(standard,exact,false,'MissingWords','ExactText',3);
+  expect(standard.exactWording).toBe(100);
+  expect(standard.recognition).toBe(70);
+  expect(standard.level).toBe('Mastered');
+ });
  it('names the skill each attempt actually moves',()=>{expect(scoredSkill('MissingWords','ExactText')).toEqual({key:'exactWording',label:'Exact wording'});expect(scoredSkill('ReferenceMatch','ShortFact').key).toBe('reference');expect(scoredSkill('WhatComesNext','ExactText').key).toBe('sequence');expect(scoredSkill('VerseBuilder','OrderedSequence').key).toBe('sequence');expect(scoredSkill('TrueFalse','ShortFact').key).toBe('recognition');expect(scoredSkill('ReferenceMatch','SelectedChoice').key).toBe('recognition');});
 });
 
@@ -113,7 +136,7 @@ describe('versioned Memory study aids',()=>{
   const state={recognition:80,exactWording:39,reference:90,sequence:0,factualRecall:0,level:'Strong' as const};
   let result=state as import('./engine').MasteryScores;
   for(let i=0;i<10;i++) result=applyMastery(result,exact,false,'MissingWords','ExactText',difficulty,'memory-cued-v3');
-  expect(result.exactWording).toBe(difficulty===1?40:70);
+  expect(result.exactWording).toBe(70);
   expect(applyMastery({...state,exactWording:95},exact,false,'MissingWords','ExactText',difficulty,'memory-cued-v3').exactWording).toBe(95);
   expect(applyMastery(state,exact,false,'VerseBuilder','OrderedSequence',difficulty,'memory-cued-v3').exactWording).toBe(39);
  });

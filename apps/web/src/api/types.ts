@@ -85,6 +85,8 @@ export type Assignment = {
   startVerse: number;
   endChapter: number;
   endVerse: number;
+  /** True verse total of the range within the season scope (my-assignments only). */
+  verseCount?: number;
   studentDisplayName?: string | null;
   studentUserName?: string | null;
 };
@@ -396,6 +398,8 @@ export type SeasonLeaderboardResponse = {
     seasonXp: number;
     weekXp: number;
     streak: number;
+    /** Server-computed streak state; older payloads may omit it. */
+    streakState?: "active" | "paused" | "none";
     totalXp: number;
     level: number;
     levelName: string;

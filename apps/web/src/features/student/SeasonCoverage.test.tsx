@@ -95,6 +95,23 @@ it('treats zero denominators as unassigned', () => {
   expect(screen.queryByText('100%')).not.toBeInTheDocument();
 });
 
+it('renders only the Scripture team panel when the Introduction denominator is zero (D9)', () => {
+  const zeroMaterial = {
+    assigned: 0,
+    questionCovered: { known: 0, possible: 0 },
+    practiced: { known: 0, possible: 0 },
+    retained: { known: 0, possible: 0 },
+    due: { known: 0, possible: 0 },
+    equalRetained: null,
+  };
+  render(<SeasonCoverage snapshot={snapshot({ introduction: zeroMaterial })} audience="student" />);
+  expect(screen.getByRole('heading', { name: 'Scripture' })).toBeVisible();
+  expect(screen.getByText('5 of 9 passages')).toBeVisible();
+  expect(screen.queryByRole('heading', { name: 'Introduction' })).not.toBeInTheDocument();
+  expect(screen.queryByText('0 assigned')).not.toBeInTheDocument();
+  expect(screen.queryByText('No eligible material is assigned for this season.')).not.toBeInTheDocument();
+});
+
 it('shows a separate Introduction fraction for an Introduction-only coach row', () => {
   const students: CooperationStudentSummary[] = [{
     studentId: 'student-2',
@@ -134,6 +151,25 @@ it('surfaces finite continuation and explicit retry actions', () => {
   rerender(<SeasonCoverage snapshot={snapshot({ state: 'Blocked', snapshotId: null, scripture: null, own: null, reason: 'DataGap', work: { id: null, next: 'None' } })} audience="student" onRetry={retry} />);
   fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
   expect(retry).toHaveBeenCalledOnce();
+});
+
+it('collapsible renders as a details card, closed by default, expanding on summary toggle', () => {
+  const { container } = render(<SeasonCoverage snapshot={snapshot()} audience="student" collapsible />);
+  const details = container.querySelector('details.season-cooperation-disclosure');
+  expect(details).not.toBeNull();
+  expect(details!.hasAttribute('open')).toBe(false);
+  const summary = details!.querySelector('summary');
+  expect(summary).toHaveTextContent('Season cooperation');
+  // Body content is rendered (identical content), just not shown until opened.
+  expect(details!.querySelector('.season-cooperation-body')).not.toBeNull();
+  fireEvent.click(summary!);
+  expect(details!.hasAttribute('open')).toBe(true);
+});
+
+it('default (non-collapsible) rendering uses no details element', () => {
+  const { container } = render(<SeasonCoverage snapshot={snapshot()} audience="student" />);
+  expect(container.querySelector('details.season-cooperation-disclosure')).toBeNull();
+  expect(screen.getByRole('heading', { name: 'Season cooperation' })).toBeInTheDocument();
 });
 
 function panel(audience: 'student' | 'coach' = 'student', client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })) {

@@ -108,6 +108,12 @@ it("offers solo timed PBE rehearsal", async () => {
     expect(screen.getByRole('heading', { name: 'Your PBE chapter progress' })).toBeVisible();
     expect(screen.getByText('No chapter progress yet')).toBeInTheDocument();
   });
+  // Season cooperation is an expandable card on HQ: rendered, but always
+  // closed by default — the heading lives in the summary, no open attribute.
+  const disclosure = document.querySelector('details.season-cooperation-disclosure');
+  expect(disclosure).not.toBeNull();
+  expect(disclosure!.hasAttribute('open')).toBe(false);
+  expect(disclosure!.querySelector('summary')).toContainElement(screen.getByRole('heading', { name: 'Season cooperation' }));
 });
 
 it("shows the full PBE chapter progress on HQ once chapter progress exists", async () => {
@@ -157,14 +163,40 @@ it("shows the retired Progress page's contents on HQ: activity totals, the picke
   expect(screen.getByText(/Ready to study — these are your passages for this season\./)).toBeInTheDocument();
 });
 
-it("orders HQ as welcome, assigned passages, progress, then what's next", async () => {
+it("orders HQ as welcome, assigned passages, this week, assignment card, then activity", async () => {
   home();
   const heading = await screen.findByRole("heading", { name: "Welcome to your PBE training HQ" });
   const assigned = await screen.findByRole("heading", { name: "Your assigned passages" });
-  const activity = await screen.findByRole("heading", { name: "Your activity so far" });
+  const week = await screen.findByRole("heading", { name: "This week" });
   const mission = await screen.findByRole("heading", { name: "Practice your assigned Scripture." });
+  const activity = await screen.findByRole("heading", { name: "Your activity so far" });
   const before = Node.DOCUMENT_POSITION_PRECEDING;
   expect(assigned.compareDocumentPosition(heading) & before).toBeTruthy();
-  expect(activity.compareDocumentPosition(assigned) & before).toBeTruthy();
-  expect(mission.compareDocumentPosition(activity) & before).toBeTruthy();
+  expect(week.compareDocumentPosition(assigned) & before).toBeTruthy();
+  expect(mission.compareDocumentPosition(week) & before).toBeTruthy();
+  expect(activity.compareDocumentPosition(mission) & before).toBeTruthy();
+});
+
+it("folds the choose-passages notice into the assignment card for an adult with no usable assignment", async () => {
+  account.kind = "Adult";
+  vi.mocked(api.progress).mockResolvedValue({ ...(hqProgressFixture() as Record<string, unknown>), reviewDueCount: 1 } as never);
+  vi.mocked(trainingApi.today).mockResolvedValue(todayFixture({
+    mission: { id: null, revision: null, status: "Unavailable", scopeVersion: null, explanation: null, steps: [{ kind: "Practice", target: 0, completed: 0, status: "Pending", sessionId: null }] },
+    nextAction: null,
+  }));
+  home();
+  // Adults get their season written into the URL once today resolves, which
+  // remounts the queries — wait for that settle before asserting on the card.
+  await waitFor(() => expect(screen.getByLabelText("Current search")).toHaveTextContent("seasonId=s"));
+  expect(await screen.findByRole("heading", { name: "Your training assignment" })).toBeInTheDocument();
+  // The old teal notice box is gone: its meaning is the card's subtext, and
+  // My assignments is the single action for it.
+  expect(screen.queryByTestId("academy-track-unavailable")).not.toBeInTheDocument();
+  expect(screen.getByText("Choose your study passages in My assignments.")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "My assignments" })).toBeInTheDocument();
+  // Due reviews are one integrated row: count + primary action, no DUE badge.
+  expect(screen.getByText("1 review due")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Start due reviews" })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=s");
+  expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
+  expect(screen.getByText("0 of 0 cards completed")).toBeInTheDocument();
 });

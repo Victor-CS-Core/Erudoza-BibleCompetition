@@ -237,7 +237,12 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
     if (personal) await requireLearner(ctx);
     if (personal && method === 'GET') {
         const membership = await store.get<Membership>('membership',memberId(seasonId,ctx.actor.userId),orgId);
-        return json((await store.list<Assignment>('assignment',orgId,{seasonId,ownerId:ctx.actor.userId})).map(a=>({...a,studentDisplayName:ctx.actor.displayName,difficulty:membership?.value.difficulty??'Standard'})));
+        const assignments = await store.list<Assignment>('assignment',orgId,{seasonId,ownerId:ctx.actor.userId});
+        // verseCount = the assignment range's true verse total from the season
+        // scope sources, so the HQ "X of Y verses strong or mastered" line can
+        // divide by the whole assignment instead of only the practiced rows.
+        const scopeSources = assignments.length ? await effectiveSources(ctx, seasonId) : [];
+        return json(assignments.map(a=>({...a,studentDisplayName:ctx.actor.displayName,difficulty:membership?.value.difficulty??'Standard',verseCount:new Set(scopeSources.filter(s=>s.contentPackId===a.contentPackId && contains(a,s)).map(s=>s.knowledgeUnitId ?? s.id)).size})));
     }
     const personalDelete=suffix.match(/^\/my-assignments\/([^/]+)$/);
     if (personalDelete && method === 'DELETE') {

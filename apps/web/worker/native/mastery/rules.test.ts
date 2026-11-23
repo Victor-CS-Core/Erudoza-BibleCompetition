@@ -31,6 +31,9 @@ describe('solo mastery boundaries', () => {
     expect(keys(30, low)).not.toContain('solo:chapter-strong');
     expect(keys(30, low)).not.toContain('solo:full-coverage');
     expect(keys(30, states(30).map(m => ({ ...m, algorithmVersion: 'legacy' })))).toEqual([]);
+    // v3-partial-credit is what the study writer stamps today; it must qualify identically to v2.
+    expect(keys(12, states(12).map(m => ({ ...m, algorithmVersion: 'v3-partial-credit' })))).toContain('solo:exact-recall');
+    expect(keys(30, states(30).map(m => ({ ...m, algorithmVersion: 'v3-partial-credit' })))).toContain('solo:full-coverage');
     expect(soloQualifiers(Array(30).fill(sources(1)[0]), states(1), [])).toEqual([]);
   });
   it('certifies exact48h advanced unaided retest and first due review only', () => {

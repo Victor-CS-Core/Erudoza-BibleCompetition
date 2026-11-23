@@ -95,6 +95,18 @@ it("flags a saved PBE attempt without blocking replay and refreshes corrected re
   expect(await screen.findByText("2 / 2 points")).toBeVisible();
   expect(screen.getByText("Review resolved")).toBeVisible();
 });
+it("shows the partial count in the PBE recap tally only when present and positive (D3)", async () => {
+  vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ version: "pbe-daily-v2", results: [], attempted: 8, correct: 5, partial: 2 }));
+  const withPartial = render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={["/student/sessions/session/recap"]}><Routes><Route path="/student/sessions/:sessionId/recap" element={<SessionRecapPage />} /></Routes></MemoryRouter></QueryClientProvider>);
+  const tallyCard = await screen.findByTestId("moment-card-silent");
+  expect(tallyCard).toHaveTextContent("Partial answers");
+  expect(tallyCard).toHaveTextContent("2");
+  withPartial.unmount();
+  vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ version: "pbe-daily-v2", results: [], attempted: 8, correct: 5, partial: 0 }));
+  page();
+  expect(await screen.findByTestId("moment-card-silent")).toBeInTheDocument();
+  expect(screen.queryByText("Partial answers")).not.toBeInTheDocument();
+});
 it('sends a finished PBE session back to current chapter progress without claiming a stamp', async () => {
   vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ version: 'pbe-daily-v2', results: [], attempted: 1, correct: 1 }));
   page();

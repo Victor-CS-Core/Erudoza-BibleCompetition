@@ -109,7 +109,7 @@ export function studySessionFraming(
   }
   if (mode === "Simulation") {
     return {
-      eyebrow: "Rehearse · exam mode",
+      eyebrow: "Rehearse · challenge mode",
       blurb:
         format === "Pbe"
           ? "Just like the real competition: answers are final, and you'll see how you did at the end."

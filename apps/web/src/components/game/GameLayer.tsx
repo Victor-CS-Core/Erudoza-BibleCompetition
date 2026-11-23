@@ -77,7 +77,7 @@ export function XPBar({ xp, label = "Experience progress", className = "" }: { x
       <span>{xp.total !== undefined ? <><strong>{xp.total} XP</strong><span aria-hidden="true"> · </span></> : null}{remaining > 0 && nextName ? `${remaining} XP to ${nextName}` : `Top level reached${xp.levelName ? ` — ${xp.levelName}` : ""}`}</span>
       <span>{into} / {span} XP in this level</span>
     </div>
-    <progress className="game-xp-bar__track" aria-label={label} value={into} max={span || 1} />
+    <progress className="game-xp-bar__track" aria-label={label} value={span > 0 ? into : 1} max={span || 1} />
   </div>;
 }
 
