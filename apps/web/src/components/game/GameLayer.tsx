@@ -286,14 +286,10 @@ export type PodiumEntry = {
   userId: string;
   displayName: string;
   xp: number;
-  level: number;
-  levelName: string;
-  streak: number;
-  sublabel?: ReactNode;
   avatar?: BoardAvatar | null;
 };
 
-export function Podium({ entries, leaderXp, isMe, modeLabel }: { entries: PodiumEntry[]; leaderXp: number; isMe?: (entry: PodiumEntry) => boolean; modeLabel: string }) {
+export function Podium({ entries, isMe, modeLabel }: { entries: PodiumEntry[]; isMe?: (entry: PodiumEntry) => boolean; modeLabel: string }) {
   const top = entries.slice(0, 3);
   if (!top.length) return null;
   const display = top.length === 3 ? [top[1], top[0], top[2]] : top;
@@ -303,15 +299,12 @@ export function Podium({ entries, leaderXp, isMe, modeLabel }: { entries: Podium
       return <li key={entry.userId} className={`game-podium__item is-rank-${rank} ${isMe?.(entry) ? "is-me" : ""}`} data-testid={`leaderboard-podium-${rank}`}>
         <span className="game-podium__face">
           <EntryAvatar avatar={entry.avatar} name={entry.displayName} size={rank === 1 ? "moment" : "card"} />
-          <LevelCrest level={entry.level} levelName={entry.levelName} size="row" className="game-podium__crest" />
         </span>
-        <strong>{entry.displayName}</strong>
-        <span className="game-podium__rank">#{rank}</span>
-        <span className="game-podium__xp">{entry.xp} XP</span>
-        {entry.streak >= 3 && <span className="game-podium__streak"><AppIcon name="flame" />{entry.streak}</span>}
-        {entry.sublabel && <span className="game-podium__sub">{entry.sublabel}</span>}
-        <ChaseBar value={entry.xp} max={leaderXp} ariaLabel={`${entry.displayName}: ${entry.xp} XP compared with the leader's ${leaderXp} XP`} />
-        <span className="game-podium__plinth" aria-hidden="true">{rank}</span>
+        <span className="game-podium__block">
+          <strong>{entry.displayName}</strong>
+          <span className="game-podium__xp">{entry.xp} XP</span>
+          <span className="game-podium__numeral">{rank}</span>
+        </span>
       </li>;
     })}
   </ol>;

@@ -115,6 +115,32 @@ describe("SeasonLeaderboardPage", () => {
     expect(row).toHaveTextContent("Level 4 · Keeper");
   });
 
+  it("scales row race bars to the active mode's leader, monotonic with the ranking XP", async () => {
+    const barWidth = (container: HTMLElement) => parseFloat(container.querySelector<HTMLElement>(".game-chase-bar__track > span")!.style.width);
+    renderPage();
+    await screen.findByTestId("season-board-your-rank");
+    // Season mode: leader Maya 845. Every row bar is xp/845. The podium carries
+    // no bars — its blocks show name, XP and the rank numeral only.
+    const season: [string, number][] = [["Maya R.", 845], ["Jonah K.", 650], ["Sam R.", 612]];
+    season.forEach(([name, xp], index) => {
+      const expected = (xp / 845) * 100;
+      const podiumItem = screen.getByTestId(`leaderboard-podium-${index + 1}`);
+      expect(podiumItem).toHaveTextContent(name);
+      expect(podiumItem.querySelector(".game-chase-bar")).toBeNull();
+      expect(barWidth(screen.getByTestId(`season-board-row-${index + 1}`))).toBeCloseTo(expected, 3);
+    });
+    // This week: re-ranked Jonah 240 > Maya 210 > Sam 150, and the yardstick moves to 240.
+    fireEvent.click(screen.getByRole("button", { name: "This week" }));
+    const week: [string, number][] = [["Jonah K.", 240], ["Maya R.", 210], ["Sam R.", 150]];
+    week.forEach(([name, xp], index) => {
+      const expected = (xp / 240) * 100;
+      const podiumItem = screen.getByTestId(`leaderboard-podium-${index + 1}`);
+      expect(podiumItem).toHaveTextContent(name);
+      expect(podiumItem.querySelector(".game-chase-bar")).toBeNull();
+      expect(barWidth(screen.getByTestId(`season-board-row-${index + 1}`))).toBeCloseTo(expected, 3);
+    });
+  });
+
   it("shows the designed zero state with a starting line when members have not scored", async () => {
     apiMocks.seasonLeaderboard.mockResolvedValue({
       ...baseBoard,

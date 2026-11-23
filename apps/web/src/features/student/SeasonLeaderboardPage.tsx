@@ -81,8 +81,7 @@ export function SeasonLeaderboardPage() {
 
           {raceNotStarted ? <ZeroState entries={sorted} seasonId={seasonId} mode={mode} /> : <>
             {sorted.length >= 2 && <Podium
-              entries={sorted.map(entry => ({ userId: entry.userId, displayName: entry.displayName, xp: modeXp(entry, mode), level: entry.level, levelName: entry.levelName, streak: entry.streak, sublabel: modeSub(entry, mode), avatar: entry.avatar }))}
-              leaderXp={leaderXp}
+              entries={sorted.map(entry => ({ userId: entry.userId, displayName: entry.displayName, xp: modeXp(entry, mode), avatar: entry.avatar }))}
               isMe={entry => data.me?.userId === entry.userId}
               modeLabel={mode === "season" ? "Season" : "This week"}
             />}
@@ -157,7 +156,7 @@ export function ZeroState({ entries, seasonId, mode }: { entries: SeasonLeaderbo
   </Panel>;
 }
 
-function BoardRow({ entry, rank, mode, leaderXp, isMe }: { entry: SeasonLeaderboardEntry; rank: number; mode: BoardMode; leaderXp: number; isMe: boolean }) {
+export function BoardRow({ entry, rank, mode, leaderXp, isMe }: { entry: SeasonLeaderboardEntry; rank: number; mode: BoardMode; leaderXp: number; isMe: boolean }) {
   const xp = modeXp(entry, mode);
   return <li className={isMe ? "is-me" : ""} data-testid={`season-board-row-${rank}`}>
     <span className="season-board-rank" aria-label={`Position ${rank}`}>{rank}</span>

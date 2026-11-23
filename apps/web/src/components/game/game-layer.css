@@ -123,22 +123,17 @@
 }
 
 .game-podium { list-style: none; margin: 0 0 var(--er-space-5); padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--er-space-3); align-items: end; max-width: 680px; }
-.game-podium__item { display: grid; justify-items: center; gap: 5px; min-width: 0; padding: var(--er-space-4) var(--er-space-2) 0; text-align: center; border-radius: var(--er-radius-card) var(--er-radius-card) 0 0; background: var(--er-card); border: 1px solid var(--er-border); border-bottom: 0; }
-.game-podium__item.is-rank-1 { padding-top: var(--er-space-6); background: color-mix(in srgb, var(--er-thread-gold) 10%, var(--er-card)); border-color: color-mix(in srgb, var(--er-thread-gold) 55%, var(--er-border)); }
-.game-podium__item.is-me { box-shadow: inset 0 0 0 2px var(--er-teal); }
-.game-podium__face { position: relative; display: inline-grid; }
-.game-podium__face .game-podium__crest { position: absolute; right: -7px; bottom: -5px; box-shadow: 0 0 0 2px var(--er-card), inset 0 0 0 2px var(--er-card); }
-.game-podium__item strong { max-width: 100%; overflow-wrap: anywhere; }
-.game-podium__rank { font-weight: 800; color: var(--er-muted-ink); }
-.game-podium__xp { font-weight: 750; font-variant-numeric: tabular-nums; }
-.game-podium__streak { display: inline-flex; gap: 3px; align-items: center; color: var(--er-kraft-dark); font-size: var(--er-text-xs); font-weight: 700; }
-.game-podium__streak svg { color: var(--er-kraft); width: 14px; height: 14px; }
-.game-podium__sub { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
-.game-podium__item .game-chase-bar { width: 100%; }
-.game-podium__plinth { display: grid; place-items: center; width: 100%; min-height: 34px; margin-top: 6px; background: var(--er-navy-surface); color: var(--er-on-navy); font-weight: 800; }
-.game-podium__item.is-rank-1 .game-podium__plinth { min-height: 52px; background: var(--er-thread-gold); color: var(--er-navy-surface); }
-.game-podium__item.is-rank-3 .game-podium__plinth { background: var(--er-kraft); color: var(--er-navy-surface); }
-@media (max-width: 440px) { .game-podium { gap: var(--er-space-2); } .game-podium__item { padding-inline: var(--er-space-1); } }
+.game-podium__item { display: grid; grid-template-rows: 84px auto; min-width: 0; text-align: center; }
+.game-podium__face { display: grid; place-items: end center; padding-bottom: var(--er-space-2); }
+.game-podium__block { display: grid; justify-items: center; align-content: start; gap: 2px; height: 146px; padding: var(--er-space-3) var(--er-space-1) var(--er-space-2); border-radius: var(--er-radius-control) var(--er-radius-control) 0 0; background: var(--er-navy-surface); color: var(--er-on-navy); overflow: hidden; }
+.game-podium__item.is-rank-1 .game-podium__block { height: 204px; background: var(--er-thread-gold); color: var(--er-navy-surface); }
+.game-podium__item.is-rank-3 .game-podium__block { height: 108px; background: var(--er-kraft); color: var(--er-navy-surface); }
+.game-podium__item.is-me .game-podium__block { box-shadow: inset 0 0 0 2px var(--er-teal); }
+.game-podium__block strong { max-width: 100%; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.game-podium__xp { font-weight: 750; font-variant-numeric: tabular-nums; opacity: .85; }
+.game-podium__numeral { margin-top: auto; font-size: 28px; font-weight: 800; line-height: 1; }
+.game-podium__item.is-rank-1 .game-podium__numeral { font-size: 36px; }
+@media (max-width: 440px) { .game-podium { gap: var(--er-space-2); } }
 
 @media (prefers-reduced-motion: reduce) {
   .game-xp-bar__track::-webkit-progress-value, .game-chase-bar__track > span { transition: none; }
@@ -153,14 +148,15 @@
 .season-board-zero { max-width: 640px; display: grid; gap: var(--er-space-3); justify-items: start; }
 .season-board-zero h3, .season-board-zero p { margin: 0; }
 .season-board-zero-plinths { display: grid; grid-template-columns: 1fr 1.12fr 1fr; gap: var(--er-space-3); align-items: end; width: 100%; max-width: 420px; }
-.season-board-zero-plinth { display: grid; justify-items: center; align-content: start; gap: var(--er-space-2); background: transparent; border: 1px dashed var(--er-border); border-bottom: 0; border-radius: var(--er-radius-control) var(--er-radius-control) 0 0; padding: var(--er-space-3) var(--er-space-2) 0; }
-.season-board-zero-plinth.is-rank-1 { padding-top: var(--er-space-4); }
+.season-board-zero-plinth { display: grid; justify-items: center; align-content: start; gap: var(--er-space-2); height: 152px; background: transparent; border: 1px dashed var(--er-border); border-bottom: 0; border-radius: var(--er-radius-control) var(--er-radius-control) 0 0; padding: var(--er-space-3) var(--er-space-2) 0; }
+.season-board-zero-plinth.is-rank-1 { height: 196px; padding-top: var(--er-space-4); }
+.season-board-zero-plinth.is-rank-3 { height: 116px; }
 .season-board-zero-rank { font-size: var(--er-text-xs); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--er-muted-ink); }
 .season-board-zero-plinth.is-rank-1 .season-board-zero-rank { color: var(--er-warning-ink); }
 .season-board-zero-crest { display: grid; place-items: center; flex: none; aspect-ratio: 1; width: 38px; height: 38px; border-radius: 50%; border: 2px dashed var(--er-kraft); color: var(--er-muted-ink); font-weight: 800; }
 .season-board-zero-plinth.is-rank-1 .season-board-zero-crest { width: 46px; height: 46px; border-color: var(--er-thread-gold); color: var(--er-warning-ink); }
 .season-board-zero-open { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
-.season-board-zero-base { display: block; width: calc(100% + 2 * var(--er-space-2)); height: 10px; margin-top: var(--er-space-1); background: var(--er-border); }
+.season-board-zero-base { display: block; width: calc(100% + 2 * var(--er-space-2)); height: 10px; margin-top: auto; background: var(--er-border); }
 .season-board-zero-plinth.is-rank-1 .season-board-zero-base { height: 22px; background: var(--er-thread-gold); }
 .season-board-zero-line-label { font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--er-muted-ink); }
 .season-board-zero-line { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--er-space-2); width: 100%; }

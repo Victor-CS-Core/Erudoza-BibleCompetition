@@ -56,6 +56,14 @@ describe("ChaseBar", () => {
     expect(bar).toHaveAttribute("aria-valuenow", "100");
     expect(bar).toHaveAttribute("aria-valuemax", "100");
   });
+  it("fills exactly value/max of the track (one yardstick, no per-bar rescaling)", () => {
+    const { container } = render(<ChaseBar value={650} max={845} ariaLabel="chase" />);
+    const bar = screen.getByRole("progressbar", { name: "chase" });
+    expect(bar).toHaveAttribute("aria-valuenow", "650");
+    expect(bar).toHaveAttribute("aria-valuemax", "845");
+    const fill = container.querySelector<HTMLElement>(".game-chase-bar__track > span");
+    expect(parseFloat(fill!.style.width)).toBeCloseTo((650 / 845) * 100, 3);
+  });
 });
 
 describe("PlayerCard", () => {
@@ -145,7 +153,7 @@ describe("Podium", () => {
     { userId: "c", displayName: "Katherine J.", xp: 300, level: 3, levelName: "Reader", streak: 0 },
   ];
   it("raises the winner in the center with 2nd and 3rd beside", () => {
-    render(<Podium entries={entries} leaderXp={500} modeLabel="Season" isMe={entry => entry.userId === "b"} />);
+    render(<Podium entries={entries} modeLabel="Season" isMe={entry => entry.userId === "b"} />);
     const podium = screen.getByTestId("leaderboard-podium");
     const items = [...podium.querySelectorAll("li")];
     expect(items.map(item => item.getAttribute("data-testid"))).toEqual(["leaderboard-podium-2", "leaderboard-podium-1", "leaderboard-podium-3"]);
@@ -162,7 +170,7 @@ describe("Podium", () => {
           ? { avatarKind: "honor" as const, avatarHonorKey: "solo:exact-recall", character: null }
           : { avatarKind: "initials" as const, avatarHonorKey: null, character: null },
     }));
-    render(<Podium entries={withAvatars} leaderXp={500} modeLabel="Season" />);
+    render(<Podium entries={withAvatars} modeLabel="Season" />);
     for (const rank of [1, 2, 3]) {
       const face = screen.getByTestId(`leaderboard-podium-${rank}`).querySelector(".game-podium__face");
       expect(face).not.toBeNull();
@@ -172,16 +180,60 @@ describe("Podium", () => {
       const sizeClass = rank === 1 ? "--moment" : "--card";
       const disc = face?.querySelector(".game-entry-avatar, .game-initials-disc");
       expect([...(disc?.classList ?? [])].some(name => name.endsWith(sizeClass))).toBe(true);
-      // The level crest survives only as the small edge badge — never the big number circle.
-      const crest = face?.querySelector(".game-level-crest");
-      expect(crest).toHaveClass("game-podium__crest");
-      expect(crest).toHaveClass("game-level-crest--row");
-      expect(crest).not.toHaveClass("game-level-crest--moment");
-      expect(crest).not.toHaveClass("game-level-crest--card");
+      // No level-crest badge on the podium: the face stands alone (level crests live on the board rows).
+      expect(face?.querySelector(".game-level-crest")).toBeNull();
+      expect(face?.querySelector(".game-podium__crest")).toBeNull();
     }
     expect(screen.getByTestId("leaderboard-podium-1").querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "character");
     expect(screen.getByTestId("leaderboard-podium-2").querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "honor");
     expect(screen.getByTestId("leaderboard-podium-3").querySelector("[data-entry-avatar]")).toHaveAttribute("data-entry-avatar", "initials");
+  });
+
+  it("podium blocks carry face, name, XP and the big rank numeral only — streak and race bar live on the rows", () => {
+    // Sam (3rd) holds a 6-day streak and Jonah (2nd) none: neither may leak onto
+    // the podium, and no content may change the block structure by rank.
+    const ranked = [
+      { userId: "maya", displayName: "Maya R.", xp: 845 },
+      { userId: "jonah", displayName: "Jonah K.", xp: 650 },
+      { userId: "sam", displayName: "Sam R.", xp: 612 },
+    ];
+    render(<Podium entries={ranked} modeLabel="Season" />);
+    for (const [index, entry] of ranked.entries()) {
+      const rank = index + 1;
+      const item = screen.getByTestId(`leaderboard-podium-${rank}`);
+      const block = item.querySelector(".game-podium__block");
+      expect(block).not.toBeNull();
+      expect(block).toHaveTextContent(entry.displayName);
+      expect(block).toHaveTextContent(`${entry.xp} XP`);
+      expect(item.querySelector(".game-podium__numeral")).toHaveTextContent(String(rank));
+      expect(item.querySelector(".game-chase-bar")).toBeNull();
+      expect(item.querySelector(".game-podium__streak")).toBeNull();
+      expect(item.querySelector(".game-podium__plinth")).toBeNull();
+      expect(item.querySelector(".game-podium__rank")).toBeNull();
+    }
+  });
+
+  it("pins the Kahoot block geometry in CSS: fixed block heights stepping by rank, content never drives them", () => {
+    const heightOf = (selector: string) => {
+      const match = gameLayerCss.match(new RegExp(`\\${selector} \\{[^}]*\\}`));
+      const height = match?.[0].match(/height: (\d+)px/);
+      return height ? Number(height[1]) : 0;
+    };
+    const first = heightOf(".game-podium__item.is-rank-1 .game-podium__block");
+    const second = heightOf(".game-podium__block");
+    const third = heightOf(".game-podium__item.is-rank-3 .game-podium__block");
+    expect(first).toBeGreaterThan(second);
+    expect(second).toBeGreaterThan(third);
+    expect(first - second).toBeGreaterThanOrEqual(16);
+    expect(second - third).toBeGreaterThanOrEqual(16);
+    // The zero-state plinths step the same way.
+    const zeroFirst = heightOf(".season-board-zero-plinth.is-rank-1");
+    const zeroSecond = heightOf(".season-board-zero-plinth");
+    const zeroThird = heightOf(".season-board-zero-plinth.is-rank-3");
+    expect(zeroFirst).toBeGreaterThan(zeroSecond);
+    expect(zeroSecond).toBeGreaterThan(zeroThird);
+    expect(zeroFirst - zeroSecond).toBeGreaterThanOrEqual(16);
+    expect(zeroSecond - zeroThird).toBeGreaterThanOrEqual(16);
   });
 });
 
