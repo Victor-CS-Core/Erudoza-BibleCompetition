@@ -145,7 +145,7 @@ it('extracts a draft suggestion from an article URL without saving it', async ()
   // og:title wins over <title>; the long site suffix is stripped.
   expect(draft.title).toBe('A very long announcement title that definitely exceeds ninety characters in total length');
   expect(draft.summary).toBe('NAD has released the 2026-27 book roster with two new books.');
-  expect(draft.sections).toEqual([{ heading: 'Extracted content', body: expect.stringContaining('first substantive paragraph') }]);
+  expect(draft.sections).toEqual([{ heading: 'From the announcement', body: expect.stringContaining('first substantive paragraph') }]);
   expect(draft.articleType).toBe('announcement');
   expect(draft.keyPoints).toEqual([]);
   expect(draft.sourceUrl).toBe('https://example.com/article');

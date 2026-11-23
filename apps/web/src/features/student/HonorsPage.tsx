@@ -8,6 +8,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, HonorArtwork, LinkButton, LoadingState, Notice, PageHeader, Panel, ProgressMeter, Select } from "../../components/ui";
 import { PatchDisplay } from "../../components/game/GameLayer";
 import { useMyProfile } from "../profile/profile";
+import { UseAsProfileImageButton } from "../profile/UseAsProfileImageButton";
 import { MasteryHonorArtwork } from "../profile/MasteryHonorArtwork";
 import { evidenceDate, honorAsset, honorCriteria, trainingLink } from "./trainingAssets";
 import "./student.css";
@@ -40,7 +41,7 @@ export function HonorsPage({ hideHeader = false }: { hideHeader?: boolean }) {
       artwork={<MasteryHonorArtwork honorKey={honor.key} size={208} muted={!honor.earnedAtUtc} />}
       earnedAtUtc={honor.earnedAtUtc}
       requirement={honor.requirement}
-      detail={<><MasteryHonorArtwork honorKey={honor.key} size={192} muted={!honor.earnedAtUtc} /><p>{honor.category}</p><h3>How to unlock</h3><p>{honor.requirement}</p>{honor.earnedAtUtc ? <><p>Earned <time dateTime={honor.earnedAtUtc}>{evidenceDate(honor.earnedAtUtc)}</time>. Your qualifying evidence is saved.</p><LinkButton variant="secondary" to="/student/profile" aria-label={`Use ${honor.title} as profile image`}>{profile.data?.avatarHonorKey === honor.key ? "Worn as profile image" : "Use as profile image"}</LinkButton></> : <p>This patch is locked. Meet every requirement to unlock it for your profile.</p>}</>}
+      detail={<><MasteryHonorArtwork honorKey={honor.key} size={192} muted={!honor.earnedAtUtc} /><p>{honor.category}</p><h3>How to unlock</h3><p>{honor.requirement}</p>{honor.earnedAtUtc ? <><p>Earned <time dateTime={honor.earnedAtUtc}>{evidenceDate(honor.earnedAtUtc)}</time>. Your qualifying evidence is saved.</p><UseAsProfileImageButton honorKey={honor.key} title={honor.title} worn={profile.data?.avatarHonorKey === honor.key} /></> : <p>This patch is locked. Meet every requirement to unlock it for your profile.</p>}</>}
     />)}{!visible.length && <Panel className="training-collection-empty"><h2>{filter === "Earned" ? "No earned Achievement patches yet" : filter === "Locked" ? "No locked Achievement patches in this category" : "No Achievement patches in this category"}</h2><p>Earn an Achievement patch by meeting all of its listed practice requirements.</p></Panel>}</div>}
     <p className="training-collection-note"><small>Earned Achievement patches preserve their qualifying evidence and date. Your unlocked profile patches remain available if current skill scores later change.</small></p>
     <section className="training-collection-records" aria-label="Records">

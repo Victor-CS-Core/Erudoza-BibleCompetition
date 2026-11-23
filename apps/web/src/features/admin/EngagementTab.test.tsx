@@ -6,7 +6,7 @@ import type { EngagementRow } from "../../api/types";
 import { EngagementTab } from "./EngagementTab";
 
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "coach", organizationId: "org", kind: "Adult", role: "Admin" } }) }));
-vi.mock("../../api/client", () => ({ api: { engagement: vi.fn() } }));
+vi.mock("../../api/client", () => ({ api: { engagement: vi.fn(), seasons: vi.fn(), coverage: vi.fn() } }));
 
 beforeEach(() => { vi.clearAllMocks(); });
 
@@ -78,4 +78,15 @@ it("renders the weekly quest completion column and sorts by rate", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Sort by Quests" }));
   const nameCells = () => screen.getAllByRole("row").slice(1).map(r => (r as HTMLTableRowElement).cells[0]?.textContent ?? "");
   expect(nameCells()[0]).toContain("Cleo");
+});
+
+it("preselects the season from the overview deep link and filters rows to its members", async () => {
+  vi.mocked(api.engagement).mockResolvedValue(rows);
+  vi.mocked(api.seasons).mockResolvedValue([{ id: "season-1", name: "Daniel" } as never]);
+  vi.mocked(api.coverage).mockResolvedValue({ seasonId: "season-1", seasonName: "Daniel", seasonStatus: "Active", students: [{ studentUserId: "s2" }] } as never);
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><EngagementTab initialSeasonId="season-1" /></QueryClientProvider>);
+  expect(await screen.findByText("Ben")).toBeInTheDocument();
+  expect(screen.queryByText("Ava")).not.toBeInTheDocument();
+  expect(screen.queryByText("Cleo")).not.toBeInTheDocument();
+  expect(screen.getByLabelText("Filter engagement by season")).toHaveValue("season-1");
 });

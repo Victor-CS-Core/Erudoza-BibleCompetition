@@ -48,9 +48,9 @@ export function ProgressPage() {
         <StatTile label="Verses mastered" value={data.masteredCount} />
         <StatTile label="Due reviews" value={data.reviewDueCount} testId="progress-reviews" />
         <StatTile label="Recent correct" value={academyRecentExactPercent(data.recentAttempts)} testId="progress-recent" />
-      </dl>{data.reviewDueCount > 0 && <div className="student-progress-next"><Badge tone="warning" aria-label="DUE">{data.reviewDueCount} {data.reviewDueCount === 1 ? "review" : "reviews"} due</Badge>{!coachView && canStartAcademyTrack("review", data) && <LinkButton size="compact" to={`/student/study?mode=Review&seasonId=${encodeURIComponent(data.seasonId)}`}>Start due reviews</LinkButton>}</div>}</Panel>
+      </dl>{data.reviewDueCount > 0 && <div className="student-progress-next"><Badge tone="warning" aria-label="DUE">{data.reviewDueCount} {data.reviewDueCount === 1 ? "review" : "reviews"} due</Badge>{!coachView && canStartAcademyTrack("review", data) && <LinkButton size="compact" to={`/student/study?mode=Review&format=Memory&seasonId=${encodeURIComponent(data.seasonId)}`}>Start due reviews</LinkButton>}</div>}</Panel>
       <Panel>
-        <PassageBrowser mastery={data.mastery} difficulty={data.assignments.find(a => a.difficulty)?.difficulty} />
+        <PassageBrowser mastery={data.mastery} difficulty={data.assignments.find(a => a.difficulty)?.difficulty} assignments={data.assignments} seasonId={data.seasonId} />
       </Panel>
       <Panel>
         <details className="progress-disclosure">
@@ -58,7 +58,7 @@ export function ProgressPage() {
           <ul className="training-list student-progress-records" data-testid="recent-attempts">{recent.length ? recent.map(item => <li key={item.id}>
             <div><h3>{item.title}</h3><p>{academyActivityName(item.activityType)} · <time dateTime={item.createdAtUtc}>{new Date(item.createdAtUtc).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</time></p><p className="er-scripture">{item.submittedAnswer || "—"}</p></div>
             <Badge tone={item.isCorrect ? "success" : "warning"}>{item.isCorrect ? "Correct" : "Keep practicing"}</Badge>
-          </li>) : <li><div><p>Nothing here yet — your answers show up after your first session.</p>{!coachView && canStartAcademyTrack("learner", data) && data.assignments.length > 0 && <LinkButton size="compact" to={`/student/study?seasonId=${encodeURIComponent(data.seasonId)}`}>Start your first study session</LinkButton>}</div></li>}</ul>
+          </li>) : <li><div><p>Nothing here yet — your answers show up after your first session.</p>{!coachView && canStartAcademyTrack("learner", data) && data.assignments.length > 0 && <LinkButton size="compact" to={`/student/study?seasonId=${encodeURIComponent(data.seasonId)}`}>Pick how to train</LinkButton>}</div></li>}</ul>
         </details>
       </Panel>
     </>}

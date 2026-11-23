@@ -154,4 +154,19 @@ describe("Coach directory pages", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Unable to load assignments");
     expect(screen.queryByText(/No assigned students/)).not.toBeInTheDocument();
   });
+  it("opens the directory filtered from the coach overview deep link, and clears back to everyone", async () => {
+    const ruth = { userId: "student-2", userName: "ruth.student", displayName: "Ruth Student", email: null };
+    vi.mocked(api.students).mockResolvedValue([student, ruth]);
+    vi.mocked(api.coverage).mockResolvedValue({ ...coverage, students: [
+      { ...coverage.students[0], reviewDueCount: 2 },
+      { studentUserId: "student-2", displayName: "Ruth Student", userName: "ruth.student", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 4, eligibleUnitCount: 4, masteredCount: 0, reviewDueCount: 0, attemptCount: 3 },
+    ] });
+    renderPage(<StudentsPage />, "/admin/students?filter=review&seasonId=active");
+    expect(await screen.findByText(/Showing 1 student who has passages due for review in Daniel/)).toBeInTheDocument();
+    expect(screen.getAllByText("Daniel Student").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Ruth Student")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Show everyone" }));
+    expect((await screen.findAllByText("Ruth Student")).length).toBeGreaterThan(0);
+    expect(screen.getByTestId("location")).not.toHaveTextContent("filter=review");
+  });
 });

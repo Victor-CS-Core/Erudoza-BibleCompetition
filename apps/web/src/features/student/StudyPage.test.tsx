@@ -787,6 +787,24 @@ describe("StudyPage mode select", () => {
     expect(screen.getByRole("button", { name: "Memory" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByTestId("start-learn")).toHaveAttribute("href", expect.stringContaining("format=Memory"));
   });
+  it("the Review card follows the format toggle: PBE counts due PBE questions, Memory counts due passages", async () => {
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active", pbeEnabled: true, reviewDueCount: 3 }));
+    vi.mocked(trainingApi.today).mockResolvedValue({ ...(today() as Record<string, unknown>), format: "Pbe", pbeReviewDueCount: 2 } as never);
+    renderStudy("/student/study?seasonId=season-1");
+    // Season default is PBE: the badge counts due PBE questions (2) — never
+    // the Memory mastery count (3) — and the start opens the PBE review.
+    const cta = await screen.findByTestId("start-review");
+    expect(cta).not.toBeDisabled();
+    expect(cta).toHaveAttribute("href", expect.stringContaining("mode=Review"));
+    expect(cta).toHaveAttribute("href", expect.stringContaining("format=Pbe"));
+    expect(screen.getByText("2 due")).toBeInTheDocument();
+    expect(screen.queryByText("3 due")).not.toBeInTheDocument();
+    // Switching to Memory swaps the count and the start to the Memory set.
+    fireEvent.click(screen.getByRole("button", { name: "Memory" }));
+    expect(await screen.findByText("3 due")).toBeInTheDocument();
+    expect(screen.getByTestId("start-review")).toHaveAttribute("href", expect.stringContaining("format=Memory"));
+    expect(screen.getByTestId("start-learn")).toHaveAttribute("href", expect.stringContaining("format=Memory"));
+  });
   it("disables Review with an honest reason when no passages are due", async () => {
     renderStudy("/student/study?seasonId=season-1&format=Memory");
     await screen.findByRole("heading", { name: "Review" });

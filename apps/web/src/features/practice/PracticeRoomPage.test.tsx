@@ -268,3 +268,18 @@ it('reopens the prior simulation settings for another rehearsal and creates a ne
  fireEvent.click(screen.getByRole('button',{name:'Save setup'}));
  await waitFor(()=>expect(practiceApi.create).toHaveBeenCalledWith('org',expect.objectContaining({teamSize:3,questionCount:30,simulation:expect.objectContaining({preset:'Custom',timeMultiplier:2,discussion:'Chat',audioPresenterId:'coach',scope:'SelectedChapters',chapters:[{bookKey:'MRK',chapter:1}]})})));
 });
+
+describe("individual review link format (link-integrity audit)", () => {
+  it("pins Memory review after an Arcade room, matching the room's own format", async () => {
+    mount(room({ status: "Completed", format: "Arcade", results: [result(1)] }));
+    const links = await screen.findAllByRole("link", { name: "Review this season individually" });
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) expect(link).toHaveAttribute("href", "/student/study?mode=Review&format=Memory&seasonId=season");
+  });
+  it("pins PBE review after a PBE room, matching the room's own format", async () => {
+    mount(room({ status: "Completed", format: "Pbe", results: [result(1)] }));
+    const links = await screen.findAllByRole("link", { name: "Review this season individually" });
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) expect(link).toHaveAttribute("href", "/student/study?mode=Review&format=Pbe&seasonId=season");
+  });
+});

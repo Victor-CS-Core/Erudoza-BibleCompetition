@@ -76,3 +76,16 @@ it("hides PBE materials/news and the invite link from regular admins", () => {
   expect(navigation(true, "s").some(item => item.id === "materials")).toBe(false);
   expect(navigation(true, "s", false, "Owner").find(item => item.id === "coaches")?.children?.some(child => child.id === "invite-coach")).toBe(true);
 });
+
+it("drops the Team Practice section shortcuts when Team Practice is disabled, keeping the hub itself", () => {
+  const coachEnabled = navigation(true, "s", false, "Owner").find(item => item.id === "practice")!;
+  expect(coachEnabled.children?.map(child => child.to)).toEqual(expect.arrayContaining(["/admin/practice#events", "/admin/practice#rooms"]));
+  const coachDisabled = navigation(true, "s", false, "Owner", false).find(item => item.id === "practice")!;
+  expect(coachDisabled.to).toBe("/admin/practice");
+  expect(coachDisabled.children).toBeUndefined();
+  const studentEnabled = navigation(false, "s").find(item => item.id === "practice")!;
+  expect(studentEnabled.children?.length).toBeGreaterThan(0);
+  const studentDisabled = navigation(false, "s", false, undefined, false).find(item => item.id === "practice")!;
+  expect(studentDisabled.to).toBe("/student/practice?seasonId=s");
+  expect(studentDisabled.children).toBeUndefined();
+});

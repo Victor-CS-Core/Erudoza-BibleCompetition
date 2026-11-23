@@ -45,6 +45,14 @@ export function NotificationBell() {
     } catch { /* The badge simply stays until the next successful sync. */ }
   };
 
+  /** Following a notification's link marks that one item read — the student
+   *  has seen what it points at. Optimistic, mirroring markAllRead's cache
+   *  shape; a failed call leaves the server count to the next sync. */
+  const markOneRead = async (id: string) => {
+    queryClient.setQueryData(["notifications"], (previous: { notifications: { id: string; readAtUtc: string | null }[]; unreadCount: number } | undefined) => previous ? { notifications: previous.notifications.map(item => item.id === id && !item.readAtUtc ? { ...item, readAtUtc: new Date().toISOString() } : item), unreadCount: Math.max(0, previous.unreadCount - (previous.notifications.some(item => item.id === id && !item.readAtUtc) ? 1 : 0)) } : previous);
+    try { await api.markNotificationRead(id); } catch { /* The badge resyncs on the next poll. */ }
+  };
+
   return <div className="command-bell-wrap" ref={wrapRef}>
     <Button variant="ghost" className="command-bell ds-button-mobile-icon" aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"} aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen(value => !value)}>
       <AppIcon name="bell" />
@@ -58,10 +66,19 @@ export function NotificationBell() {
       {list.isPending ? <p className="command-bell-empty">Loading…</p>
         : list.isError ? <p className="command-bell-empty">Could not load notifications. <Button variant="secondary" size="compact" onClick={() => void list.refetch()}>Retry</Button></p>
         : !notifications.length ? <p className="command-bell-empty">You're all caught up.</p>
-        : <ul className="command-bell-list">{notifications.map(item => <li key={item.id} className={item.readAtUtc ? "is-read" : "is-unread"}>
-          {item.type === "team-practice" && item.eventId ? <p><Link to={`/student/practice#event-${item.eventId}`} onClick={() => setOpen(false)}>{item.summary}</Link></p> : <p>{item.summary}</p>}
-          <small>{item.seasonName} · {timeAgo(item.createdAtUtc)}</small>
-        </li>)}</ul>}
+        : <ul className="command-bell-list">{notifications.map(item => {
+          // Deep links: team-practice items land on their event card (only
+          // while the card can exist — see the audit note in git history);
+          // assignment items land on HQ's assigned-passages panel for the
+          // notification's own season. Following either marks it read.
+          const href = item.type === "team-practice"
+            ? item.eventId && (item.action === "assigned" || item.action === "rescheduled") ? `/student/practice#event-${item.eventId}` : null
+            : item.seasonId ? `/student?seasonId=${encodeURIComponent(item.seasonId)}#assigned-passages` : null;
+          return <li key={item.id} className={item.readAtUtc ? "is-read" : "is-unread"}>
+            {href ? <p><Link to={href} onClick={() => { void markOneRead(item.id); setOpen(false); }}>{item.summary}</Link></p> : <p>{item.summary}</p>}
+            <small>{item.seasonName} · {timeAgo(item.createdAtUtc)}</small>
+          </li>;
+        })}</ul>}
     </div>}
   </div>;
 }

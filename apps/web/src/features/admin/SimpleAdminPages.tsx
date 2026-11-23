@@ -45,8 +45,18 @@ export function StudentsPage() {
   const [resetPassword, setResetPassword] = useState("");
   const [stateStudent, setStateStudent] = useState<Student | null>(null);
   const [dashboardStudent, setDashboardStudent] = useState<Student | null>(null);
-  const [tab, setTab] = useState<"directory" | "engagement">("directory");
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tab, setTab] = useState<"directory" | "engagement">(() => new URLSearchParams(location.search).get("tab") === "engagement" ? "engagement" : "directory");
+  // Coach overview deep links arrive pre-filtered: ?filter=review|not-started
+  // with the overview's season, or ?tab=engagement with the season for the
+  // Engagement tab's season filter. The URL is the source of truth so the
+  // filtered view is shareable and the notice can clear it.
+  const directoryFilter = searchParams.get("filter") === "review" || searchParams.get("filter") === "not-started" ? searchParams.get("filter") as "review" | "not-started" : null;
+  const filterSeasonId = directoryFilter ? searchParams.get("seasonId") : null;
+  useEffect(() => {
+    if (searchParams.get("tab") === "engagement") setTab("engagement");
+  }, [searchParams]);
   // The context links "Student directory" / "Add student" navigate to
   // #student-directory / #add-student. Those panels only exist on the
   // Directory tab, so sync the tab when the hash targets them — otherwise
@@ -70,6 +80,12 @@ export function StudentsPage() {
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
   const students = useQuery({ queryKey: ["students", me?.organizationId], queryFn: () => api.students(me!.organizationId), enabled: !!me });
+  // The directory filter reuses the overview's own coverage computation:
+  // review = a coverage row with reviews due; not-started = no attempts yet.
+  const filterCoverage = useQuery({ queryKey: ["coverage", me?.organizationId, filterSeasonId], queryFn: () => api.coverage(me!.organizationId, filterSeasonId!), enabled: !!me && !!filterSeasonId });
+  const filterIds = filterCoverage.data ? new Set(filterCoverage.data.students.filter(s => directoryFilter === "review" ? s.reviewDueCount > 0 : s.attemptCount === 0).map(s => s.studentUserId)) : null;
+  const visibleStudents = students.data && directoryFilter ? (filterIds ? students.data.filter(s => filterIds.has(s.userId)) : []) : students.data;
+  const clearDirectoryFilter = () => setSearchParams(prev => { const next = new URLSearchParams(prev); next.delete("filter"); next.delete("seasonId"); return next; }, { replace: true });
   const create = useMutation({
     mutationFn: () => api.createStudent(me!.organizationId, { userName: userName.trim(), displayName: displayName.trim(), password }),
     onSuccess: () => { setError(null); toast.success("Student added."); setUserName(""); setDisplayName(""); setPassword(""); void queryClient.invalidateQueries({ queryKey: ["students"] }); },
@@ -97,9 +113,10 @@ export function StudentsPage() {
     </div>
     {tab === "directory" ? <>
     <Panel id="student-directory" tabIndex={-1}><h2>Student directory</h2>
+      {directoryFilter && (filterCoverage.isPending ? <p role="status">Loading the filtered list…</p> : filterCoverage.isError ? <QueryError retry={() => void filterCoverage.refetch()}>The filter could not load.</QueryError> : <Notice>Showing {visibleStudents?.length ?? 0} {visibleStudents?.length === 1 ? "student" : "students"} who {directoryFilter === "review" ? (visibleStudents?.length === 1 ? "has passages due for review" : "have passages due for review") : (visibleStudents?.length === 1 ? "hasn't started the assigned passage yet" : "haven't started the assigned passage yet")} in {filterCoverage.data?.seasonName ?? "this season"}. <Button variant="secondary" size="compact" onClick={clearDirectoryFilter}>Show everyone</Button></Notice>)}
       {students.isPending && <p role="status">Loading students…</p>}
       {students.isError && <QueryError retry={() => void students.refetch()}>Unable to load students.</QueryError>}
-      {students.data && <StudentTable students={students.data} renderActions={student => <>
+      {visibleStudents && <StudentTable students={visibleStudents} renderActions={student => <>
 
         <Button size="compact" variant="secondary" onClick={() => setDashboardStudent(student)}>Dashboard<span className="sr-only"> for {student.displayName}</span></Button>
         <LinkButton size="compact" variant="secondary" to={`/admin/assignments?studentId=${encodeURIComponent(student.userId)}`}>Manage assignments<span className="sr-only"> for {student.displayName}</span></LinkButton>
@@ -129,7 +146,7 @@ export function StudentsPage() {
         <Button data-testid="add-student" type="submit" disabled={!canCreate || create.isPending}>{create.isPending ? "Adding student…" : "Add student"}</Button>
       </form>
     </Panel>
-    </> : <EngagementTab />}
+    </> : <EngagementTab initialSeasonId={searchParams.get("seasonId")} />}
   </div>;
 }
 

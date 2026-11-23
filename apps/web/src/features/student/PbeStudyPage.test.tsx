@@ -249,6 +249,40 @@ it('shows the no-questions state when the server reports no published questions 
     mount('/student/study?seasonId=season&format=Pbe&mode=Review');
     fireEvent.click(await screen.findByRole('button', { name: 'Start due reviews' }));
     expect(await screen.findByRole('heading', { name: 'No PBE questions to review' })).toBeInTheDocument();
+    // 409 branch: no server explanation is passed down, so the fallback
+    // sentence carries the guidance — exactly once.
+    const paragraph = document.querySelector('.pbe-review-empty p');
+    expect(paragraph?.textContent).toBe('No questions are ready for this yet. Ask your coach to add questions for this season — or switch to Memory to keep practicing.');
+    expect(paragraph?.textContent?.match(/ask your coach/gi)).toHaveLength(1);
+});
+it('renders the coach guidance exactly once when the server explanation already carries it', async () => {
+    vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Unavailable', explanation: 'No published PBE questions are available for your assignment. Ask your coach to add questions, or choose Memory.' } } as never);
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    expect(await screen.findByRole('heading', { name: 'No PBE questions to review' })).toBeInTheDocument();
+    const paragraph = document.querySelector('.pbe-review-empty p');
+    expect(paragraph?.textContent).toBe('No published PBE questions are available for your assignment. Ask your coach to add questions, or choose Memory.');
+    expect(paragraph?.textContent?.match(/ask your coach/gi)).toHaveLength(1);
+});
+it('appends the coach guidance exactly once when the explanation does not carry it', async () => {
+    vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Unavailable', explanation: 'No eligible published questions are available.' } } as never);
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    expect(await screen.findByRole('heading', { name: 'No PBE questions to review' })).toBeInTheDocument();
+    const paragraph = document.querySelector('.pbe-review-empty p');
+    expect(paragraph?.textContent).toBe('No eligible published questions are available. Ask your coach to add questions for this season — or switch to Memory to keep practicing.');
+    expect(paragraph?.textContent?.match(/ask your coach/gi)).toHaveLength(1);
+});
+it('caps the entry queue at the daily mission set of 8, earliest due first', async () => {
+    mockSuggestedToday();
+    const base = Date.now() - 10 * 86400000;
+    const mastery = Array.from({ length: 10 }, (_, i) => ({ knowledgeUnitId: `k${i + 1}`, title: `Passage ${i + 1}`, level: 'Strong', exactWordingScore: 90, recognitionScore: 80, reviewDueAtUtc: new Date(base + i * 86400000).toISOString() }));
+    vi.mocked(api.progress).mockResolvedValue({ seasonId: 'season', seasonName: 'Season', seasonStatus: 'Active', pbeEnabled: true, assignments: [], masteredCount: 0, reviewDueCount: 8, attemptCount: 0, mastery, recentAttempts: [] } as never);
+    mount('/student/study?seasonId=season&format=Pbe&mode=Review');
+    const queue = await screen.findByRole('list', { name: 'Due passages' });
+    const items = within(queue).getAllByRole('listitem');
+    expect(items).toHaveLength(8);
+    expect(within(items[0]).getByText('Passage 1')).toBeInTheDocument();
+    expect(within(items[7]).getByText('Passage 8')).toBeInTheDocument();
+    expect(document.querySelector('.pbe-review-count')).toHaveTextContent('8');
 });
 // --- B2: per-part word-diff feedback ---
 it('highlights missed and extra words per part while keeping points and the expected text readable', async () => {

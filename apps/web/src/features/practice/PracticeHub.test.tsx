@@ -8,7 +8,8 @@ import { ToastProvider } from "../../components/ui/toast";
 import { PracticeHub } from "./PracticeHub";
 import { useMyProfile } from "../profile/profile";
 
-vi.mock("../profile/profile", () => ({ useMyProfile: vi.fn() }));
+const avatarMutate = vi.hoisted(() => vi.fn());
+vi.mock("../profile/profile", () => ({ useMyProfile: vi.fn(), useSetProfileAvatar: () => ({ mutate: avatarMutate, isPending: false }) }));
 const account = vi.hoisted(() => ({ userId: "coach", organizationId: "org", kind: "Adult" }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: account }) }));
 vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), create: vi.fn(), accept: vi.fn(), enabled: vi.fn(), simulationMaterial: vi.fn(), simulationAvailability: vi.fn(), events: vi.fn(), eventRoster: vi.fn(), createEvent: vi.fn(), updateEvent: vi.fn(), openEvent: vi.fn(), cancelEvent: vi.fn(), duplicateEvent: vi.fn() }, pbeApi: { enabled: vi.fn() } }));
@@ -202,10 +203,12 @@ describe("Student view of the hub", () => {
     await screen.findByRole("heading", { name: "Team Achievement patches" });
     fireEvent.click(screen.getByRole("button", { name: "First Fellowship: view details" }));
     expect(await screen.findByText("90% personal accuracy across 10 distinct manual answers.")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Use First Fellowship as profile image" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Use First Fellowship as profile image" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Close dialog" }));
     fireEvent.click(screen.getByRole("button", { name: "Team Precision: view details" }));
-    expect(await screen.findByRole("link", { name: "Use Team Precision as profile image" })).toHaveAttribute("href", "/student/profile");
+    // A real action now (the avatar endpoint), not a link to the profile page.
+    fireEvent.click(await screen.findByRole("button", { name: "Use Team Precision as profile image" }));
+    expect(avatarMutate).toHaveBeenCalledWith("team:team-precision", expect.anything());
     expect(screen.queryByText("Exact Recall")).not.toBeInTheDocument();
   });
 });

@@ -1,6 +1,15 @@
 /* Composition only; controls and surfaces inherit the shared design system. */
 .news-feed{display:grid;gap:var(--er-space-5)}
-.news-card{position:relative;overflow:hidden}
+.news-card{position:relative;overflow:hidden;box-shadow:var(--er-shadow-card)}
+.news-card-top{display:flex;align-items:center;flex-wrap:wrap;gap:var(--er-space-2);margin:0 0 var(--er-space-2)}
+.news-card-top .news-kicker{margin:0}
+.news-new-badge{display:inline-flex;align-items:center;min-height:24px;padding:2px var(--er-space-3);border-radius:999px;background:var(--er-gold-fill);color:var(--er-navy-surface);font-size:var(--er-text-xs);font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){
+  .news-card{transition:transform .18s ease,box-shadow .18s ease}
+  .news-card:hover{transform:translateY(-2px)}
+}
+.news-card.news-card-featured h3{font-size:var(--er-text-section);line-height:1.22}
+.news-card.news-card-featured .news-summary{font-size:var(--er-text-lead)}
 .news-card h3 a::after{content:"";position:absolute;inset:0}
 .news-source-chip,.news-chip-link{position:relative;z-index:1}
 .news-card h3 a{color:inherit;text-decoration:none}
@@ -21,7 +30,7 @@
 .news-chip-link{border-color:var(--er-teal);color:var(--er-teal);background:var(--er-card);text-decoration:none}
 .news-chip-link:hover{background:var(--er-selected)}
 /* Article reader. */
-.news-article{max-width:68ch;margin-inline:auto;overflow:hidden}
+.news-article{max-width:68ch;margin-inline:auto;overflow:hidden;box-shadow:var(--er-shadow-card)}
 .news-article h1{margin:0 0 var(--er-space-2);font-size:var(--er-text-section);line-height:1.25}
 .news-article .news-meta{margin:0 0 var(--er-space-4)}
 .news-article .news-lede{margin:0 0 var(--er-space-5)}
@@ -40,6 +49,7 @@
 .news-original{margin-top:var(--er-space-6)}
 @media(min-width:720px){
   .news-feed{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .news-card-featured{grid-column:1/-1}
 }
 /* Entrance motion: only when the user has no reduced-motion preference. */
 @media (prefers-reduced-motion: no-preference){

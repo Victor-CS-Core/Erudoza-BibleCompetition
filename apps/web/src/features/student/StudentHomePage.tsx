@@ -130,7 +130,7 @@ export function StudentHomePage() {
         title={data.mission.status === "Complete" ? "Today’s practice is complete." : available ? "Practice your assigned Scripture." : "Your training assignment"}
         description={data.mission.explanation || (data.mission.status === "Complete" ? `${firstName ? `${firstName}, you` : "You"}’ve finished today’s reviews and practice. Everything is saved.` : "Review missed answers, then practice recalling your assigned Scripture.")}
         scope={available && nextStep ? { target: nextStep.target, kind: nextStep.kind } : null}
-        reviewDue={progressData && progressData.reviewDueCount > 0 ? { count: progressData.reviewDueCount, href: canStartAcademyTrack("review", progressData) ? `/student/study?mode=Review&seasonId=${encodeURIComponent(progressData.seasonId)}` : null } : null}
+        reviewDue={progressData && progressData.reviewDueCount > 0 ? { count: progressData.reviewDueCount, href: canStartAcademyTrack("review", progressData) ? `/student/study?mode=Review&format=Memory&seasonId=${encodeURIComponent(progressData.seasonId)}` : null } : null}
         notice={missionNotice}
         choosePassages={choosePassages}
         myAssignmentsHref={!available && me?.kind === "Adult" ? link("/student/assignments") : null}
@@ -155,7 +155,7 @@ export function StudentHomePage() {
             <ul className="training-list student-progress-records" data-testid="recent-attempts">{recent.length ? recent.map(item => <li key={item.id}>
               <div><h3>{item.title}</h3><p>{academyActivityName(item.activityType)} · <time dateTime={item.createdAtUtc}>{new Date(item.createdAtUtc).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</time></p><p className="er-scripture">{item.submittedAnswer || "—"}</p></div>
               <Badge tone={item.isCorrect ? "success" : "warning"}>{item.isCorrect ? "Correct" : "Keep practicing"}</Badge>
-            </li>) : <li><div><p>Nothing here yet — your answers show up after your first session.</p>{canStartAcademyTrack("learner", progressData) && progressData.assignments.length > 0 && <LinkButton size="compact" to={`/student/study?seasonId=${encodeURIComponent(progressData.seasonId)}`}>Start your first study session</LinkButton>}</div></li>}</ul>
+            </li>) : <li><div><p>Nothing here yet — your answers show up after your first session.</p>{canStartAcademyTrack("learner", progressData) && progressData.assignments.length > 0 && <LinkButton size="compact" to={`/student/study?seasonId=${encodeURIComponent(progressData.seasonId)}`}>Pick how to train</LinkButton>}</div></li>}</ul>
           </details>
         </Panel>
       </>}

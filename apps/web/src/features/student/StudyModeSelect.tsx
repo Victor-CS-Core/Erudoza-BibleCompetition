@@ -145,15 +145,36 @@ export function StudyModeSelect() {
 
       <div className="study-mode-cards">
         {STUDY_MODE_CARDS.map((card) => {
-          const canStart = canStartAcademyTrack(card.track, progress.data);
-          const blockedReason = !canStart ? academyUnavailableCopy(card.track, progress.data) : null;
-          const rules = academyModeRules(card.track, format);
-          const reviewDueCount = card.track === "review" ? (progress.data?.reviewDueCount ?? 0) : null;
+          // The Review card follows the selected format end to end: its
+          // start opens that format's review, its gate checks that format's
+          // due set, and its "N due" badge counts that same population —
+          // Memory counts due mastery passages (Progress.reviewDueCount),
+          // PBE counts due question targets (today's pbeReviewDueCount).
+          // A count must never describe the other system. (Count-driven
+          // entries elsewhere — HQ missions, the picker — stay pinned to
+          // Memory because their counts are the Memory set.)
+          const isReview = card.track === "review";
+          const pbeReviewDue = format === "Pbe" && today.data?.format === "Pbe" ? today.data.pbeReviewDueCount : undefined;
+          const canStart = isReview && format === "Pbe"
+            ? progress.data?.seasonStatus === "Active" && (pbeReviewDue ?? 0) > 0
+            : canStartAcademyTrack(card.track, progress.data);
+          const blockedReason = !canStart
+            ? isReview && format === "Pbe"
+              ? progress.data?.seasonStatus !== "Active"
+                ? "Review opens once your season starts."
+                : "No PBE questions are due for review right now."
+              : academyUnavailableCopy(card.track, progress.data)
+            : null;
+          const cardFormat: StudyFormat = format;
+          const rules = academyModeRules(card.track, cardFormat);
+          const reviewDueCount = isReview ? (format === "Pbe" ? pbeReviewDue : (progress.data?.reviewDueCount ?? 0)) : null;
           const badge =
             card.track === "review"
-              ? reviewDueCount && reviewDueCount > 0
-                ? `${reviewDueCount} due`
-                : "All caught up"
+              ? reviewDueCount === undefined || reviewDueCount === null
+                ? null
+                : reviewDueCount > 0
+                  ? `${reviewDueCount} due`
+                  : "All caught up"
               : card.track === "learner"
                 ? "Aids on"
                 : "Challenge mode";
@@ -165,7 +186,7 @@ export function StudyModeSelect() {
                 </span>
                 <div>
                   <h2>{card.title}</h2>
-                  <Badge>{badge}</Badge>
+                  {badge && <Badge>{badge}</Badge>}
                 </div>
               </div>
               <p className="study-mode-card-desc">{studyModeCardDescription(card, format)}</p>
@@ -175,7 +196,7 @@ export function StudyModeSelect() {
                 ))}
               </ul>
               {canStart ? (
-                <LinkButton to={modeHref(seasonId, format, card)} data-testid={card.ctaTestId}>
+                <LinkButton to={modeHref(seasonId, cardFormat, card)} data-testid={card.ctaTestId}>
                   {card.ctaLabel}
                 </LinkButton>
               ) : (

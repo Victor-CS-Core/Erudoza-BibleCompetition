@@ -2,8 +2,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, cleanup } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { practiceApi } from "../../api/practice";
+import { practiceApi, type PracticeEvent } from "../../api/practice";
 import { PracticePage } from "./PracticePage";
+import { PracticeEventCard } from "./StudentPracticeInbox";
 
 vi.mock("../../api/practice", () => ({ practiceApi: { bootstrap: vi.fn(), create: vi.fn(), accept: vi.fn(), events: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "player", organizationId: "org", kind: "Student" } }) }));
@@ -38,5 +39,29 @@ describe("Team Practice entry", () => {
     mount();
     expect(await screen.findByRole("button", { name: "Join Team 2" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Join Team 1" })).not.toBeInTheDocument();
+  });
+});
+
+describe("Practice event card open-state copy (link-integrity audit)", () => {
+  const practiceEvent = (changes: object = {}): PracticeEvent => ({
+    id: "event", seasonId: "season", seasonName: "Daniel", name: "Friday practice",
+    activity: "HeadToHead", format: "Arcade", teamCount: 2, teamSize: 2, questionCount: 10,
+    coached: false, bookKey: null, simulation: null, createdByUserId: "coach",
+    roster: [{ userId: "player", displayName: "You", team: 1 }, { userId: "other", displayName: "Other", team: 2 }],
+    captainStartUserId: null, startsAtUtc: null, status: "Open", roomId: null, myTeam: 1,
+    ...changes,
+  } as PracticeEvent);
+  function mountCard(event: PracticeEvent) {
+    return render(<MemoryRouter><PracticeEventCard event={event} meUserId="player" /></MemoryRouter>);
+  }
+  it("does not promise a join when the open event has no room yet", () => {
+    mountCard(practiceEvent());
+    expect(screen.getByText("Your event is open — your room is being prepared.")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Join your team" })).not.toBeInTheDocument();
+  });
+  it("offers the join only when the room exists", () => {
+    mountCard(practiceEvent({ roomId: "room" }));
+    expect(screen.getByText("Your room is open — join your team.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Join your team" })).toHaveAttribute("href", "/student/practice/room?seasonId=season");
   });
 });

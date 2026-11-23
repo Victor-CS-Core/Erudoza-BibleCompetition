@@ -5,20 +5,22 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import type { ChapterPage } from "../../api/pbeTypes";
 import { trainingApi } from "../../api/training";
+import { ToastProvider } from "../../components/ui";
 import { useMyProfile, type MyProfile } from "../profile/profile";
 import { HonorsPage } from "./HonorsPage";
 import { honorFixture } from "./trainingFixtures";
 vi.mock("../../api/client", () => ({ api: { assignedSeasons: vi.fn() } }));
 vi.mock("../../api/training", () => ({ trainingApi: { honors: vi.fn(), chapters: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", userId: "student" } }) }));
-vi.mock("../profile/profile", () => ({ useMyProfile: vi.fn() }));
+const avatarMutate = vi.hoisted(() => vi.fn());
+vi.mock("../profile/profile", () => ({ useMyProfile: vi.fn(), useSetProfileAvatar: () => ({ mutate: avatarMutate, isPending: false }) }));
 const profile: MyProfile = { userId: "student", displayName: "Anna", avatarHonorKey: null, honors: [
   { key: "solo:exact-recall", title: "Exact Recall", category: "Scripture", requirement: "Exact wording score of at least 90 on 12 distinct assigned passages.", ruleVersion: "mastery-v1", earnedAtUtc: null },
   { key: "solo:reference-ready", title: "Reference Ready", category: "Scripture", requirement: "Reference score of at least 90 on 20 distinct assigned passages.", ruleVersion: "mastery-v1", earnedAtUtc: "2026-09-11T10:00:00Z" },
   { key: "team:team-precision", title: "Team Precision", category: "Team Practice", requirement: "At least 95% team accuracy across 50 distinct questions and 15 passages, plus 90% personal accuracy across 10 manual answers.", ruleVersion: "mastery-v1", earnedAtUtc: null },
 ] };
 function profileResult(overrides: object = {}) { return { data: profile, isPending: false, isError: false, isSuccess: true, refetch: vi.fn(), ...overrides } as unknown as ReturnType<typeof useMyProfile>; }
-function page() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><HonorsPage /></MemoryRouter></QueryClientProvider>); }
+function page() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><ToastProvider><MemoryRouter><HonorsPage /></MemoryRouter></ToastProvider></QueryClientProvider>); }
 function stampPage(matchesCurrentScope: boolean | null): ChapterPage {
   return { seasonId: 's', ruleVersion: 'r', scopeVersion: matchesCurrentScope === null ? null : 'v', snapshotId: matchesCurrentScope === null ? null : 'snap', chapterKey: null, work: { id: null, state: 'Complete', stage: null, reason: null }, currentAvailable: true, historyAvailable: true, asOfUtc: '2026-09-12T00:00:00Z', dueRefreshAtUtc: '2099-09-12T00:00:00Z', nextCursor: null, view: 'Stamps', items: [{ stampId: 'stamp-1', chapterKey: 'chapter:pack:Daniel:1', kind: 'Chapter', label: 'Assigned passages retained', scopeLabel: 'Daniel 1:1–3', scopeVersion: 'v', ruleVersion: 'r', earnedAtUtc: '2026-09-10T12:00:00Z', matchesCurrentScope }] };
 }
@@ -36,12 +38,15 @@ it("shows mastery requirements and only earned profile choices, independently of
   fireEvent.click(screen.getByRole("button", { name: "Reference Ready: view details" }));
   const earnedDialog = screen.getByRole("dialog");
   expect(within(earnedDialog).getByText(profile.honors[1].requirement)).toBeInTheDocument();
-  expect(within(earnedDialog).getByRole("link", { name: "Use Reference Ready as profile image" })).toHaveAttribute("href", "/student/profile");
+  // "Use as profile image" is a real action now: it sets the patch through
+  // the avatar endpoint instead of linking to the profile page.
+  fireEvent.click(within(earnedDialog).getByRole("button", { name: "Use Reference Ready as profile image" }));
+  expect(avatarMutate).toHaveBeenCalledWith("solo:reference-ready", expect.anything());
   fireEvent.click(within(earnedDialog).getByRole("button", { name: "Close dialog" }));
-  expect(screen.queryByRole("link", { name: "Use Exact Recall as profile image" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Use Exact Recall as profile image" })).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Exact Recall: view details" }));
   expect(screen.getByRole("dialog")).toHaveTextContent("This patch is locked");
-  expect(within(screen.getByRole("dialog")).queryByRole("link", { name: "Use as profile image" })).not.toBeInTheDocument();
+  expect(within(screen.getByRole("dialog")).queryByRole("button", { name: "Use as profile image" })).not.toBeInTheDocument();
 });
 it("combines category and earned/locked filters without promoting milestone awards", async () => {
   vi.mocked(trainingApi.honors).mockResolvedValue([honorFixture({ earnedAtUtc: "2026-09-10T12:00:00Z" })]); page();
@@ -82,7 +87,7 @@ it("shows a milestone error independently of the mastery collection", async () =
   fireEvent.click(screen.getByText("Practice milestones", { selector: "summary" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Practice milestones could not load");
   fireEvent.click(screen.getByRole("button", { name: "Reference Ready: view details" }));
-  expect(within(screen.getByRole("dialog")).getByRole("link", { name: "Use Reference Ready as profile image" })).toBeInTheDocument();
+  expect(within(screen.getByRole("dialog")).getByRole("button", { name: "Use Reference Ready as profile image" })).toBeInTheDocument();
 });
 it('keeps dated chapter stamps separate from permanent Honors and legacy milestones', async () => {
   page();

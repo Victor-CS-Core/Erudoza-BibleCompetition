@@ -131,12 +131,13 @@ export const api = {
   ) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/assignments`, { method: "POST", body: JSON.stringify(body), signal }),
   myAssignments: (orgId: string, seasonId: string, signal?: AbortSignal) => request<import("./types").Assignment[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { signal }),
   notifications: () => request<import("./types").NotificationList>("/api/v1/profile/me/notifications"),
-  markNotificationsRead: () => request<{ unreadCount: number }>("/api/v1/profile/me/notifications/read", { method: "POST" }),  assignMyself: (orgId: string, seasonId: string, body: { difficulty?: TrainingDifficulty; type: string; contentPackId: string; range: import("./types").PassageRange }, signal?: AbortSignal) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { method: "POST", body: JSON.stringify(body), signal }),
+  markNotificationsRead: () => request<{ unreadCount: number }>("/api/v1/profile/me/notifications/read", { method: "POST" }),
+  markNotificationRead: (id: string) => request<{ unreadCount: number }>("/api/v1/profile/me/notifications/read", { method: "POST", body: JSON.stringify({ id }) }),  assignMyself: (orgId: string, seasonId: string, body: { difficulty?: TrainingDifficulty; type: string; contentPackId: string; range: import("./types").PassageRange }, signal?: AbortSignal) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { method: "POST", body: JSON.stringify(body), signal }),
   removeMyAssignment: (orgId: string, seasonId: string, assignmentId: string) => request<void>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments/${assignmentId}`, { method: "DELETE" }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
-  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext, format: "Memory" | "Pbe" = "Memory", memoryChallenge?: "Warmup" | "Advanced", selection?: import("./pbeTypes").PbeSessionSelection) =>
-    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, format, ...(memoryChallenge ? {memoryChallenge} : {}), ...(training ? { training } : {}), ...selection }) }),
+  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext, format: "Memory" | "Pbe" = "Memory", memoryChallenge?: "Warmup" | "Advanced", selection?: import("./pbeTypes").PbeSessionSelection, passageScope?: { assignmentId: string } | { knowledgeUnitId: string }) =>
+    request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, format, ...(memoryChallenge ? {memoryChallenge} : {}), ...(training ? { training } : {}), ...selection, ...(passageScope ? { passageScope } : {}) }) }),
   nextPbeCard: (sessionId:string) => request<import('./pbeTypes').PbeSessionCard>(`/api/v1/study/sessions/${sessionId}/next`),
   submitPbeAttempt: (sessionId:string, body:import('./pbeTypes').PbeSubmission) => request<import('./pbeTypes').PbeAttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`,{method:'POST',body:JSON.stringify(body)}),
   pbeTimed: (sessionId:string, body:unknown) => request<import('./pbeTypes').PbePresentationState|import('./pbeTypes').PbeTimedReceipt>(`/api/v1/study/sessions/${sessionId}/timed`,{method:'POST',body:JSON.stringify(body)}),
@@ -198,6 +199,8 @@ export const api = {
     request<import("./types").PbeNewsArticle>(`/api/v1/organizations/${orgId}/pbe-news/articles/${encodeURIComponent(id)}/unpublish`, { method: "POST" }),
   deletePbeNewsArticle: (orgId: string, id: string) =>
     request<void>(`/api/v1/organizations/${orgId}/pbe-news/articles/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  dismissPbeNewsArticle: (orgId: string, id: string) =>
+    request<{ ok: true }>(`/api/v1/organizations/${orgId}/pbe-news/articles/${encodeURIComponent(id)}/dismiss`, { method: "POST" }),
   extractPbeNewsDraft: (orgId: string, url: string) =>
     request<import("./types").PbeNewsExtractDraft>(`/api/v1/organizations/${orgId}/pbe-news/extract`, { method: "POST", body: JSON.stringify({ url }) }),
 };

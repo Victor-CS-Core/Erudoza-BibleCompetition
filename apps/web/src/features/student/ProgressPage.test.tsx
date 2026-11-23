@@ -170,7 +170,7 @@ describe("ProgressPage recorded evidence", () => {
   it("lets a student act on due reviews in the recorded season", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ reviewDueCount: 2 }));
     renderProgress("/student/progress");
-    expect(await screen.findByRole("link", { name: "Start due reviews" })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=season-1");
+    expect(await screen.findByRole("link", { name: "Start due reviews" })).toHaveAttribute("href", "/student/study?mode=Review&format=Memory&seasonId=season-1");
   });
   it("keeps review actions unavailable for an inactive season", async () => {
     vi.mocked(api.progress).mockResolvedValue(progress({ reviewDueCount: 2, seasonStatus: "Draft" }));

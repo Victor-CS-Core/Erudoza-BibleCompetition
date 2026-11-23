@@ -152,7 +152,7 @@ it("shows the retired Progress page's contents on HQ: activity totals, the picke
   // Review action — and the retired panels are gone.
   const upNext = await screen.findByTestId("passage-picker-upnext");
   expect(within(upNext).getByText("Daniel 1:1")).toBeInTheDocument();
-  expect(within(upNext).getByRole("link", { name: /Review this passage/ })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=s");
+  expect(within(upNext).getByRole("link", { name: /Review this passage/ })).toHaveAttribute("href", "/student/study?mode=Review&format=Memory&knowledgeUnitId=ku-1&seasonId=s");
   expect(screen.getByTestId("passage-picker")).toBeInTheDocument();
   expect(screen.queryByTestId("progress-needs-attention")).not.toBeInTheDocument();
   expect(screen.queryByTestId("progress-mastery")).not.toBeInTheDocument();
@@ -196,7 +196,7 @@ it("folds the choose-passages notice into the assignment card for an adult with 
   expect(screen.getByRole("link", { name: "My assignments" })).toBeInTheDocument();
   // Due reviews are one integrated row: count + primary action, no DUE badge.
   expect(screen.getByText("1 review due")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Start due reviews" })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=s");
+  expect(screen.getByRole("link", { name: "Start due reviews" })).toHaveAttribute("href", "/student/study?mode=Review&format=Memory&seasonId=s");
   expect(screen.queryByLabelText("DUE")).not.toBeInTheDocument();
   expect(screen.getByText("0 of 0 cards completed")).toBeInTheDocument();
 });

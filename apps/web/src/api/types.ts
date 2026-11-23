@@ -515,7 +515,8 @@ export type PbeMaterialDiff = {
 };
 
 export type PbeMaterialWatchDraft = { proposalId: string; yearLabel: string; title: string; sourceUrl: string };
-export type PbeMaterialWatchResult = { checkedAt: string; mediaChecked: number; drafted: PbeMaterialWatchDraft[] };
+export type PbeNewsWatchDraft = { articleId: string; title: string; sourceUrl: string };
+export type PbeMaterialWatchResult = { checkedAt: string; mediaChecked: number; drafted: PbeMaterialWatchDraft[]; newsDrafted: PbeNewsWatchDraft[] };
 
 /** One section of a PBE news article body. */
 export type PbeNewsSection = { heading: string; body: string };

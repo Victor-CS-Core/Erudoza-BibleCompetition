@@ -449,8 +449,12 @@ async function runWatchCore(ctx: RequestContext): Promise<WatcherResult> {
     for (const u of [m.sourceUrls.versesPdf, m.sourceUrls.commentaryPdf, m.sourceUrls.resourcesPage]) if (u) materialSources.add(u);
   const articleSources = new Set<string>();
   for (const a of await listLib<PbeNewsArticle>(ctx, 'pbe-news-article')) if (a.sourceUrl) articleSources.add(a.sourceUrl);
+  // Suggestions a coach dismissed (or that expired) retire their source: the
+  // watcher never drafts the same announcement twice.
+  const retiredSources = await retiredNewsSources(ctx);
 
   const draftNews = async (article: PbeNewsArticle): Promise<void> => {
+    if (article.sourceUrl && retiredSources.has(article.sourceUrl)) return;
     await insertLib(ctx, 'pbe-news-article', article.id, article).run();
     articleSources.add(article.sourceUrl ?? '');
     newsDrafted.push({ articleId: article.id, title: article.title, sourceUrl: article.sourceUrl ?? '' });
@@ -475,11 +479,13 @@ async function runWatchCore(ctx: RequestContext): Promise<WatcherResult> {
       await insertLib(ctx, 'pbe-material-proposal', proposalId, proposal).run();
       drafted.push({ proposalId, yearLabel, title, sourceUrl: item.source_url });
       await draftNews({
-        id: id(), title: `New PBE materials detected: ${title}`,
-        summary: `NAD posted a new ${isCommentary ? 'Commentary' : 'Bible verses'} PDF for the ${yearLabel} competition year.`,
-        sections: [{ heading: 'Detected by the NAD watcher', body: `The NAD watcher found "${title}" on nadpbe.org (${item.source_url}). A matching release proposal was drafted for master-admin review; the roster and commentary still need to be completed before approval.` }],
+        id: id(), title: `New for ${yearLabel}: ${title}`,
+        summary: `The ${isCommentary ? 'commentary' : 'Bible verses'} PDF for the ${yearLabel} season just went up on nadpbe.org.`,
+        sections: [{ heading: 'What showed up', body: `"${title}" was posted on nadpbe.org. A matching release is waiting in PBE materials for the Owner to look over — once it's approved there, your club can study straight from it.` }],
         sourceUrl: item.source_url, sourceLabel: 'nadpbe.org',
-        articleType: 'announcement', keyPoints: [], linkedMaterials: [],
+        articleType: 'study-material',
+        keyPoints: [isCommentary ? 'New commentary PDF' : 'New verses PDF', `${yearLabel} season`],
+        linkedMaterials: [{ label: title, href: item.source_url, hint: 'PDF · nadpbe.org' }],
         status: 'draft', createdBy: 'nad-watcher', createdAtUtc: checkedAt, updatedAtUtc: checkedAt,
       });
     }
@@ -489,16 +495,20 @@ async function runWatchCore(ctx: RequestContext): Promise<WatcherResult> {
   for (const item of searchItems) {
     if (!item.url) continue;
     if (articleSources.has(item.url)) continue;
+    if (retiredSources.has(item.url)) continue;
     const title = stripTags(item.title) || item.url;
     await draftNews({
-      id: id(), title, summary: 'New announcement on nadpbe.org.',
-      sections: [{ heading: 'Announcement', body: `"${title}" was posted on nadpbe.org. Open the original announcement for the full details.` }],
+      id: id(), title, summary: 'A new announcement just went up on nadpbe.org.',
+      sections: [{ heading: 'Announcement', body: `"${title}" is live on nadpbe.org now. Open the original announcement to read the whole thing.` }],
       sourceUrl: item.url, sourceLabel: 'nadpbe.org',
       articleType: 'announcement', keyPoints: [], linkedMaterials: [],
       status: 'draft', createdBy: 'nad-watcher', createdAtUtc: checkedAt, updatedAtUtc: checkedAt,
     });
   }
 
+  // Generation is the second sweep point: a burst of new suggestions is
+  // capped immediately, and anything already stale clears out with the run.
+  await pruneNewsSuggestions(ctx, new Date(checkedAt));
   return { checkedAt, mediaChecked, drafted, newsDrafted };
 }
 
@@ -531,6 +541,59 @@ export async function runScheduledWatch(env: Env): Promise<WatcherResult> {
   const result = await runWatchCore(ctx);
   await recordWatchRun(ctx, result, 'scheduled');
   return result;
+}
+
+/* ---------------- news suggestion retention ---------------- */
+
+/**
+ * Watcher suggestions must not pile up forever. The watcher runs weekly, so a
+ * suggestion a coach has not touched in 30 days is stale news; it is deleted
+ * (and its source retired, below) on the coach list read and after every
+ * watcher run. A burst cap keeps at most the 25 newest pending suggestions.
+ * Only watcher-created drafts are touched — a coach's own drafts and every
+ * published article are exempt, always.
+ */
+export const NEWS_SUGGESTION_TTL_DAYS = 30;
+export const NEWS_SUGGESTION_KEEP = 25;
+const NEWS_SUGGESTION_TTL_MS = NEWS_SUGGESTION_TTL_DAYS * 86400_000;
+
+/** kind='pbe-news-retired-source' — source URLs of suggestions that were dismissed or expired. */
+export interface PbeNewsRetiredSource { sourceUrl: string; retiredAtUtc: string; reason: 'dismissed' | 'expired' | 'deleted' }
+
+async function retiredNewsSources(ctx: RequestContext): Promise<Set<string>> {
+  const rows = await listLib<PbeNewsRetiredSource>(ctx, 'pbe-news-retired-source');
+  return new Set(rows.map(r => r.sourceUrl).filter(Boolean));
+}
+
+async function retireNewsSource(ctx: RequestContext, sourceUrl: string | undefined, reason: PbeNewsRetiredSource['reason']): Promise<void> {
+  if (!sourceUrl) return;
+  const existing = await listLib<PbeNewsRetiredSource>(ctx, 'pbe-news-retired-source');
+  if (existing.some(r => r.sourceUrl === sourceUrl)) return;
+  const record: PbeNewsRetiredSource = { sourceUrl, retiredAtUtc: new Date().toISOString(), reason };
+  await insertLib(ctx, 'pbe-news-retired-source', id(), record).run();
+}
+
+/** Delete stale watcher suggestions (expired or beyond the newest-25 cap). Returns rows deleted. */
+export async function pruneNewsSuggestions(ctx: RequestContext, now: Date = new Date()): Promise<number> {
+  const articles = await listLib<PbeNewsArticle>(ctx, 'pbe-news-article');
+  const suggestions = articles
+    .filter(a => a.status === 'draft' && a.createdBy === 'nad-watcher')
+    .sort((a, b) => b.createdAtUtc.localeCompare(a.createdAtUtc) || b.id.localeCompare(a.id));
+  const cutoff = now.getTime() - NEWS_SUGGESTION_TTL_MS;
+  let removed = 0;
+  for (const [index, article] of suggestions.entries()) {
+    const expired = Date.parse(article.createdAtUtc) < cutoff;
+    if (!expired && index < NEWS_SUGGESTION_KEEP) continue;
+    const stored = await getLib<PbeNewsArticle>(ctx, 'pbe-news-article', article.id);
+    if (!stored || stored.value.status !== 'draft' || stored.value.createdBy !== 'nad-watcher') continue;
+    const result = await ctx.env.DB.prepare("DELETE FROM Records WHERE kind='pbe-news-article' AND id=? AND org_id=? AND revision=?")
+      .bind(article.id, LIBRARY_ORG, stored.revision).run();
+    if (result.meta.changes === 1) {
+      removed++;
+      await retireNewsSource(ctx, article.sourceUrl, 'expired');
+    }
+  }
+  return removed;
 }
 
 /* ---------------- news ---------------- */
@@ -625,6 +688,9 @@ async function publishedNews(ctx: RequestContext): Promise<PbeNewsArticle[]> {
 }
 
 async function allArticles(ctx: RequestContext): Promise<PbeNewsArticle[]> {
+  // Reading the coach pipeline is a natural sweep point: stale watcher
+  // suggestions clear themselves here even between watcher runs.
+  await pruneNewsSuggestions(ctx);
   return (await listLib<PbeNewsArticle>(ctx, 'pbe-news-article'))
     .sort((a, b) => b.createdAtUtc.localeCompare(a.createdAtUtc) || b.id.localeCompare(a.id));
 }
@@ -680,6 +746,29 @@ async function deleteArticle(ctx: RequestContext, articleId: string): Promise<{ 
   const result = await ctx.env.DB.prepare("DELETE FROM Records WHERE kind='pbe-news-article' AND id=? AND org_id=? AND revision=?")
     .bind(articleId, LIBRARY_ORG, stored.revision).run();
   if (result.meta.changes !== 1) throw new HttpError(409, 'The record changed. Refresh and retry.');
+  // Deleting a watcher suggestion retires its source, exactly like dismissing
+  // it — the watcher must not quietly re-draft what a coach threw away.
+  if (stored.value.status === 'draft' && stored.value.createdBy === 'nad-watcher')
+    await retireNewsSource(ctx, stored.value.sourceUrl, 'deleted');
+  return { ok: true as const };
+}
+
+/**
+ * One-tap triage for watcher suggestions: any content role (Owner or Content
+ * Manager) can dismiss a suggestion, which deletes the draft and retires its
+ * source so the watcher never suggests the same announcement twice. A coach's
+ * own drafts and published articles are not dismissible — they use Delete.
+ */
+async function dismissArticle(ctx: RequestContext, articleId: string): Promise<{ ok: true }> {
+  contentAccess(ctx.actor);
+  const stored = await getLib<PbeNewsArticle>(ctx, 'pbe-news-article', articleId);
+  if (!stored) throw new HttpError(404, 'Article was not found.');
+  if (stored.value.status !== 'draft' || stored.value.createdBy !== 'nad-watcher')
+    throw new HttpError(400, 'Only watcher suggestions can be dismissed. Use Delete for other articles.');
+  const result = await ctx.env.DB.prepare("DELETE FROM Records WHERE kind='pbe-news-article' AND id=? AND org_id=? AND revision=?")
+    .bind(articleId, LIBRARY_ORG, stored.revision).run();
+  if (result.meta.changes !== 1) throw new HttpError(409, 'The record changed. Refresh and retry.');
+  await retireNewsSource(ctx, stored.value.sourceUrl, 'dismissed');
   return { ok: true as const };
 }
 
@@ -783,8 +872,8 @@ async function extractArticleDraft(ctx: RequestContext): Promise<ExtractedNewsDr
   try { sourceLabel = new URL(finalUrl).hostname.replace(/^www\./, ''); } catch { sourceLabel = ''; }
   return {
     title: title || finalUrl,
-    summary: summary || 'Imported from the original announcement — add a summary before publishing.',
-    sections: paragraphs.length ? [{ heading: 'Extracted content', body: paragraphs.join('\n\n') }] : [],
+    summary: summary || 'Worth a look — the full announcement is at the source.',
+    sections: paragraphs.length ? [{ heading: 'From the announcement', body: paragraphs.join('\n\n') }] : [],
     articleType: 'announcement',
     keyPoints: [],
     linkedMaterials: [],
@@ -850,6 +939,8 @@ export async function pbeMaterials(ctx: RequestContext): Promise<Response | null
     contentAccess(ctx.actor);
     return json(await extractArticleDraft(ctx));
   }
+  const dismissMatch = path.match(/^\/pbe-news\/articles\/([^/]+)\/dismiss$/);
+  if (dismissMatch && method === 'POST') return json(await dismissArticle(ctx, dismissMatch[1]));
   const publishMatch = path.match(/^\/pbe-news\/articles\/([^/]+)\/(publish|unpublish)$/);
   if (publishMatch && method === 'POST') return json(await setPublishState(ctx, publishMatch[1], publishMatch[2] === 'publish'));
   const articleMatch = path.match(/^\/pbe-news\/articles\/([^/]+)$/);

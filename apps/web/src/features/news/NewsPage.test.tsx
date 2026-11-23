@@ -45,6 +45,19 @@ it("renders feed cards with type kickers, summaries, dates, and source chips", a
   expect(api.pbeNews).toHaveBeenCalledWith("org-1");
 });
 
+it("badges articles published in the last week as New, and features the latest card", async () => {
+  vi.mocked(api.pbeNews).mockResolvedValue([
+    { id: "art-new", title: "Just posted", summary: "Fresh off the press.", publishedAtUtc: new Date().toISOString() },
+    ...articles,
+  ]);
+  renderNews("/news");
+  expect(await screen.findByText("Just posted")).toBeInTheDocument();
+  expect(screen.getByText("New", { selector: ".news-new-badge" })).toBeInTheDocument();
+  const cards = document.querySelectorAll(".news-card");
+  expect(cards[0]).toHaveClass("news-card-featured");
+  expect(cards[1]).not.toHaveClass("news-card-featured");
+});
+
 it("opens the article reader from a card link", async () => {
   vi.mocked(api.pbeNewsArticle).mockResolvedValue({ ...fullArticle, id: "art-2", title: "Event update" } as never);
   renderNews("/news", "/news");
@@ -56,7 +69,7 @@ it("opens the article reader from a card link", async () => {
 it("shows the empty state when nothing is published", async () => {
   vi.mocked(api.pbeNews).mockResolvedValue([]);
   renderNews("/news");
-  expect(await screen.findByText("No PBE news yet")).toBeInTheDocument();
+  expect(await screen.findByText("Nothing new yet")).toBeInTheDocument();
 });
 
 it("reports feed load failures with a retry", async () => {
@@ -98,7 +111,7 @@ it("omits the view-original link when the article has no source URL", async () =
 it("explains when an article is unavailable (draft or unknown)", async () => {
   vi.mocked(api.pbeNewsArticle).mockRejectedValue(new Error("Not found"));
   renderNews("/news/nope");
-  expect(await screen.findByText(/not available/)).toBeInTheDocument();
+  expect(await screen.findByText(/isn't available/)).toBeInTheDocument();
 });
 
 it("uses the coach base path for back navigation", async () => {

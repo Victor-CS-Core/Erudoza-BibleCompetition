@@ -93,6 +93,12 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const queryClient = useQueryClient();
   const selectedSeasonId = params.get("seasonId") || undefined;
   const missionId = params.get("missionId") || undefined;  const missionRevision = params.get("missionRevision");
+  // Passage CTAs (quest rows, picker tiles, passage browser) scope the
+  // session to one passage: an assignment range or a single verse. The
+  // server resolves and enforces the scope; these params only carry it.
+  const passageAssignmentId = params.get("assignmentId") || undefined;
+  const passageKnowledgeUnitId = params.get("knowledgeUnitId") || undefined;
+  const passageScope = passageAssignmentId ? { assignmentId: passageAssignmentId } : passageKnowledgeUnitId ? { knowledgeUnitId: passageKnowledgeUnitId } : undefined;
   const requestedStep = params.get("step");
   const step = requestedStep === "Review" || requestedStep === "Practice" ? requestedStep : undefined;
   const missionReview = step === "Review" && mode === "Review" && !!missionId;
@@ -111,7 +117,10 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const feedbackRef = useRef<HTMLDivElement>(null);
   const [purposeChoice,setPurposeChoice]=useState<{seasonId:string;purpose:"Warmup"|"Advanced"}|null>(null);
   const memoryChallenge=purposeChoice?.seasonId===progress.data?.seasonId?purposeChoice?.purpose:undefined;
-  const choosePurpose=!!progress.data?.pbeEnabled&&!requestedSessionId&&!memoryChallenge;
+  // Warmup/Advanced are Practice purposes. Review and Simulation start
+  // directly — a due-review entry must land in the review session itself,
+  // not in a Practice-purpose chooser.
+  const choosePurpose=mode==="Practice"&&!!progress.data?.pbeEnabled&&!requestedSessionId&&!memoryChallenge;
   const trackReady = progress.isSuccess && (canStartAcademyTrack(track, progress.data) || (missionReview && progress.data.seasonStatus === "Active"));
   const [sessionId, setSessionId] = useState<string | null>(null);
   const loadedSession = useRef<string | null>(null);
@@ -132,7 +141,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
 
   const start = useMutation({
     mutationFn: (sessionMode: "Practice" | "Review" | "Simulation") => {
-      const key = JSON.stringify([me?.organizationId, me?.userId, progress.data!.seasonId, sessionMode, missionId, missionRevision, step, memoryChallenge]);
+      const key = JSON.stringify([me?.organizationId, me?.userId, progress.data!.seasonId, sessionMode, missionId, missionRevision, step, memoryChallenge, passageAssignmentId, passageKnowledgeUnitId]);
       if (startIntent.current?.key !== key) {
         startIntent.current = { key, context: {
           clientStartId: params.get("startId") || crypto.randomUUID(),
@@ -147,6 +156,9 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
         nextParams.set("startId", context.clientStartId);
         setParams(nextParams, { replace: true });
       }
+      // Unscoped starts keep the exact call shape they have always used;
+      // only a passage-scoped start passes the scope argument.
+      if (passageScope) return api.startSession(progress.data!.seasonId, sessionMode, context, "Memory", memoryChallenge, undefined, passageScope);
       return memoryChallenge ? api.startSession(progress.data!.seasonId, sessionMode, context, "Memory", memoryChallenge) : api.startSession(progress.data!.seasonId, sessionMode, context);
     },
   });

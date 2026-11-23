@@ -115,6 +115,10 @@ export type TrainingToday = {
     };
     /** True when the streak is paused — the client shows a gentle nudge banner. */
     streakNudge: boolean;
+    /** PBE today only: published questions with a target review due,
+     * capped at the 8-question review set — the PBE counterpart of
+     * Progress.reviewDueCount, so format-specific counts never mix. */
+    pbeReviewDueCount?: number;
 };
 export type SessionRecap = {
     version: "training-v1" | "legacy-counts" | "pbe-daily-v2";

@@ -53,6 +53,9 @@
 .newsroom-import-row .ds-input{flex:1;min-width:0}
 .newsroom-editor-idle{display:grid;gap:var(--er-space-4);align-content:start;justify-items:start}
 .newsroom-art-preview{margin-top:calc(var(--er-space-2) * -1)}
+.newsroom-preview{display:grid;gap:var(--er-space-2)}
+.newsroom-preview .news-card{margin:0}
+.newsroom-suggestion-meta{display:block;color:var(--er-muted-ink)}
 .newsroom-kicker{margin:0;font-size:var(--er-text-xs);font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--er-teal)}
 .newsroom-group-heading{margin:var(--er-space-2) 0 0;font-size:var(--er-text-base)}
 .newsroom-group-sub{font-weight:400;font-size:var(--er-text-sm);color:var(--er-muted-ink)}

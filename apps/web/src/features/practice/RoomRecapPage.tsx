@@ -73,7 +73,7 @@ export function RoomRecapPage() {
           </dl>
           {!data.xp.tracked && <p><small>This room was played before room XP tracking, so it shows no XP. Newer rooms earn XP automatically.</small></p>}
           <p><small>Completed <time dateTime={data.completedAtUtc!}>{evidenceDate(data.completedAtUtc!)}</time></small></p>
-          <div className="training-recap-actions"><LinkButton to={link("/student/practice")}>Back to Team Practice</LinkButton></div>
+          <div className="training-recap-actions"><LinkButton to={link(`/student/practice/${encodeURIComponent(roomId)}`)}>Review answers</LinkButton><LinkButton variant="secondary" to={link("/student/practice")}>Back to Team Practice</LinkButton></div>
           {shareText && <div className="training-recap-share">
             <Button variant="secondary" onClick={() => void share()}>{shareState === "copied" ? "Copied to clipboard" : "Share your progress"}</Button>
             {shareState === "failed" && <p><small>Copy didn’t work on this device. Your summary: {shareText}</small></p>}

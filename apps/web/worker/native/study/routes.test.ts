@@ -327,3 +327,58 @@ it('caps the student progress review-due count at the 8-passage mission set (D2)
   for(const [i,id] of dueIds.entries()) await record('mastery',`due-mastery-${i+1}`,{id:`due-mastery-${i+1}`,studentUserId:TEST_USER,seasonId:season,sourceUnitId:id,knowledgeUnitId:id,algorithmVersion:MASTERY_VERSION,reviewDueAt:'2000-01-01T00:00:00Z',lastSeenAt:'2000-01-01T00:00:00Z',streak:0,recognition:50,exactWording:50,reference:0,sequence:0,factualRecall:0,level:'Review'},season,TEST_USER);
   expect(await (await request(`/api/v1/progress/me?seasonId=${season}`)).json()).toMatchObject({reviewDueCount:8});
 },30000);
+
+it('scopes a Practice session to a single verse from the passage picker', async () => {
+  const start = await request('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Practice', passageScope: { knowledgeUnitId: sourceIds[1] } });
+  expect(start.status).toBe(200);
+  const session = await start.json() as { id: string };
+  const saved = JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(session.id).first<{ data: string }>())!.data);
+  expect(saved.passageScope.knowledgeUnitIds).toEqual([sourceIds[1]]);
+  expect(new Set(saved.deckOrder as string[])).toEqual(new Set([sourceIds[1]]));
+  for (let n = 0; n < 3; n++) {
+    const card = await (await request(`/api/v1/study/sessions/${session.id}/next`)).json() as { citation: string };
+    expect(card.citation).toBe('Genesis 1:2');
+  }
+});
+
+it('scopes a Practice session to an assignment range from the HQ quest rows', async () => {
+  await record('assignment', 'assignment-2', { id: 'assignment-2', seasonId: season, studentUserId: TEST_USER, contentPackId: pack, type: 'PrimarySpecialist', bookKey: 'GEN', startChapter: 1, startVerse: 2, endChapter: 1, endVerse: 3 }, season, TEST_USER);
+  const start = await request('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Practice', passageScope: { assignmentId: 'assignment-2' } });
+  expect(start.status).toBe(200);
+  const session = await start.json() as { id: string };
+  const saved = JSON.parse((await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(session.id).first<{ data: string }>())!.data);
+  expect(new Set(saved.passageScope.knowledgeUnitIds as string[])).toEqual(new Set([sourceIds[1], sourceIds[2]]));
+  const card = await (await request(`/api/v1/study/sessions/${session.id}/next`)).json() as { citation: string };
+  expect(['Genesis 1:2', 'Genesis 1:3']).toContain(card.citation);
+});
+
+it('scopes Review to the due verses of the chosen passage only', async () => {
+  await record('mastery', 'scope-due-1', { id: 'scope-due-1', studentUserId: TEST_USER, seasonId: season, sourceUnitId: sourceIds[0], knowledgeUnitId: sourceIds[0], algorithmVersion: MASTERY_VERSION, reviewDueAt: '2000-01-01T00:00:00Z', lastSeenAt: '2000-01-01T00:00:00Z', streak: 0, recognition: 50, exactWording: 50, reference: 0, sequence: 0, factualRecall: 0, level: 'Review' }, season, TEST_USER);
+  const scoped = await request('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Review', passageScope: { knowledgeUnitId: sourceIds[0] } });
+  expect(scoped.status).toBe(200);
+  const session = await scoped.json() as { id: string; targetCardCount: number };
+  expect(session.targetCardCount).toBeGreaterThanOrEqual(1);
+  for (let n = 0; n < 2; n++) {
+    const card = await (await request(`/api/v1/study/sessions/${session.id}/next`)).json() as { citation: string };
+    expect(card.citation).toBe('Genesis 1:1');
+  }
+  // The same passage with nothing due is an honest refusal, not an empty deck.
+  // (The review-cap test above left every verse due; push this one out.)
+  await app.db.prepare("UPDATE Records SET data=json_set(data,'$.reviewDueAt','2999-01-01T00:00:00.000Z'),revision=revision+1 WHERE kind='mastery' AND json_extract(data,'$.knowledgeUnitId')=?").bind(sourceIds[1]).run();
+  const notDue = await request('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Review', passageScope: { knowledgeUnitId: sourceIds[1] } });
+  expect(notDue.status).toBe(400);
+  expect(await notDue.json()).toMatchObject({ detail: 'There are no passages due for review.' });
+});
+
+it('rejects passage scopes it cannot honor', async () => {
+  const simulation = await request('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Simulation', passageScope: { knowledgeUnitId: sourceIds[0] } });
+  expect(simulation.status).toBe(400);
+  const unknownAssignment = await request('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Practice', passageScope: { assignmentId: 'not-mine' } });
+  expect(unknownAssignment.status).toBe(400);
+  expect(await unknownAssignment.json()).toMatchObject({ detail: 'That assignment is not part of your season.' });
+  const unknownUnit = await request('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Practice', passageScope: { knowledgeUnitId: 'not-assigned' } });
+  expect(unknownUnit.status).toBe(400);
+  expect(await unknownUnit.json()).toMatchObject({ detail: 'That passage is not in your assigned material.' });
+  const both = await request('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Practice', passageScope: { assignmentId: 'assignment', knowledgeUnitId: sourceIds[0] } });
+  expect(both.status).toBe(400);
+});

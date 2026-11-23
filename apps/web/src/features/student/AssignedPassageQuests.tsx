@@ -87,7 +87,9 @@ export function AssignedPassageQuests({ items, mastery, seasonId }: { items: Ass
     <ul className="game-passage-quests">{visible.map(({ item, progress }) => {
       const citation = formatPassageCitation(item);
       const due = progress?.due ?? false;
-      const href = trainingLink(`/student/study?mode=${due ? "Review" : "Practice"}`, seasonId);
+      // The action names this passage, so the session is scoped to this
+      // assignment's verses (server-resolved from the assignment id).
+      const href = trainingLink(`/student/study?mode=${due ? "Review&format=Memory" : "Practice"}&assignmentId=${encodeURIComponent(item.id)}`, seasonId);
       const actionLabel = due ? "Review this passage" : progress?.state === "not-started" ? "Start this passage" : "Practice this passage";
       return <li key={item.id} className={`game-passage-quest${progress ? ` is-${progress.state}` : ""}`} data-testid="assigned-passage-quest">
         <div className="game-passage-quest__head">

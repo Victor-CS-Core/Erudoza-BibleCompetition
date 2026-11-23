@@ -71,3 +71,22 @@ it('preserves simulation unlock evidence while reconciled eligibility gates prof
  await app.db.prepare("UPDATE Records SET data=json_set(data,'$.eligible',json('false')) WHERE kind='simulation-eligibility' AND id=? AND org_id=?").bind(eligibility.id,TEST_ORG).run();
  expect(await (await request('/api/v1/profile/me')).json()).toMatchObject({avatarHonorKey:null});expect(await (await request(`/api/v1/profile/identities?userId=${TEST_USER}`)).json()).toEqual([{userId:TEST_USER,avatarHonorKey:null,avatarKind:'initials',character:null}]);expect((await store.get('mastery-honor',id,TEST_ORG))?.value).toEqual(unlock);
 });
+
+it('marks one notification read by id and leaves the rest unread', async () => {
+  const insert = (id: string) => app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) VALUES('notification',?,?,?,?,?)").bind(id, TEST_ORG, 'season', TEST_USER, JSON.stringify({ id, seasonId: 'season', seasonName: 'Daniel', studentUserId: TEST_USER, actorUserId: 'coach', actorDisplayName: 'Coach Maya', action: 'added', citation: 'John 3:16–18', readAtUtc: null, createdAtUtc: new Date().toISOString() })).run();
+  await insert('note-1'); await insert('note-2');
+  const one = await request('/api/v1/profile/me/notifications/read', 'POST', { id: 'note-1' });
+  expect(one.status).toBe(200);
+  expect(await one.json()).toMatchObject({ unreadCount: 1 });
+  const list = await (await request('/api/v1/profile/me/notifications')).json() as { notifications: { id: string; readAtUtc: string | null }[]; unreadCount: number };
+  expect(list.unreadCount).toBe(1);
+  expect(list.notifications.find(n => n.id === 'note-1')?.readAtUtc).not.toBeNull();
+  expect(list.notifications.find(n => n.id === 'note-2')?.readAtUtc).toBeNull();
+  // Another user's id is not ours to mark.
+  const foreign = await request('/api/v1/profile/me/notifications/read', 'POST', { id: 'note-2' });
+  expect(await foreign.json()).toMatchObject({ unreadCount: 0 });
+  // No body keeps the original mark-everything behavior.
+  await insert('note-3');
+  const all = await request('/api/v1/profile/me/notifications/read', 'POST');
+  expect(await all.json()).toMatchObject({ unreadCount: 0 });
+});

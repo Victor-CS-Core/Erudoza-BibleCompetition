@@ -2,7 +2,7 @@ import type { IconName } from "../AppIcon";
 import type { AdultRole } from "../../api/onboarding";
 export type Destination = { id: string; label: string; to: string; icon: IconName; testId?: string; children?: Destination[]; searchOnly?: boolean };
 const child = (id: string, label: string, to: string, icon: IconName = "arrow"): Destination => ({ id, label, to, icon });
-export function navigation(coach: boolean, selectedSeason?: string | null, personalAssignments = false, adultRole?: AdultRole | null): Destination[] {
+export function navigation(coach: boolean, selectedSeason?: string | null, personalAssignments = false, adultRole?: AdultRole | null, teamPracticeEnabled = true): Destination[] {
   const student = (path: string) => selectedSeason ? `${path}${path.includes("?") ? "&" : "?"}seasonId=${encodeURIComponent(selectedSeason)}` : path;
   const all: Destination[] = coach ? [
     { id: "overview", label: "Overview", to: "/admin", icon: "home", testId: "coach-tab-overview" },
@@ -22,15 +22,20 @@ export function navigation(coach: boolean, selectedSeason?: string | null, perso
     { id: "practice", label: "Team Practice", to: student("/student/practice"), icon: "users", testId: "nav-team-practice", children: [child("events", "Your events", student("/student/practice") + "#events"), child("invitations", "Invitations", student("/student/practice") + "#invitations")] },
     { id: "profile", label: "Your profile", to: student("/student/profile"), icon: "users" },
   ];
+  // Team Practice disabled for the org: the hub itself stays reachable (it
+  // explains enablement), but its section children (#events, #rooms, …)
+  // would land at the top of a disabled hub — drop them until it is on.
+  const gated = teamPracticeEnabled ? all : all.map(item => item.id === "practice" ? { ...item, children: undefined } : item);
   /** Content Managers see only PBE materials and PBE news. Regular Admins (and
    *  unknown roles) see every other coach area but never PBE materials/news or the
    *  invitation controls. Owners see everything. */
-  if (!coach) return all;
-  if (adultRole === "Content Manager") return all.filter(item => item.id === "materials" || item.id === "news");
-  if (adultRole !== "Owner") return all
+  if (!coach) return gated;
+  const allCoach = gated;
+  if (adultRole === "Content Manager") return allCoach.filter(item => item.id === "materials" || item.id === "news");
+  if (adultRole !== "Owner") return allCoach
     .filter(item => item.id !== "materials" && item.id !== "news")
     .map(item => item.id === "coaches" ? { ...item, children: item.children?.filter(entry => entry.id !== "invite-coach") } : item);
-  return all;
+  return allCoach;
 }
 /** Search-only destinations: reachable via the command dialog but not shown in the nav. */
 export function studentSearchExtras(personalAssignments: boolean, selectedSeason?: string | null): Destination[] {

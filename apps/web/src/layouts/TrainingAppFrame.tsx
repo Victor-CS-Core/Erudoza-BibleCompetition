@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../api/client";
+import { practiceApi } from "../api/practice";
 import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
 import { PathfinderBackdrop } from "../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../components/AppIcon";
@@ -35,7 +36,12 @@ function CommandFrame({ coach }: { coach: boolean }) {
   const pathSeason = coach ? location.pathname.match(/^\/admin\/seasons\/([^/]+)/)?.[1] : undefined;
   const switchSeason = (pathSeason && pathSeason !== "new" ? pathSeason : null) ?? selectedSeason ?? rememberedSeason;
   useEffect(() => { if (selectedSeason) { try { sessionStorage.setItem(seasonStorageKey, selectedSeason); } catch { /* Storage is optional. */ } } }, [seasonStorageKey, selectedSeason]);
-  const items = navigation(coach, coach ? switchSeason : selectedSeason, canSwitch, me?.kind === "Adult" && me.role !== "Student" ? me.role : null);
+  // Team Practice section children only make sense when the org has Team
+  // Practice on; the bootstrap query is the same one the hub uses, so this
+  // costs no extra request once the hub has been visited. Until it resolves
+  // (or if it fails) the children stay — hiding nav on a guess is worse.
+  const practiceBootstrap = useQuery({ queryKey: ["practice", me?.organizationId], queryFn: () => practiceApi.bootstrap(me!.organizationId), enabled: !!me?.organizationId, staleTime: 60_000 });
+  const items = navigation(coach, coach ? switchSeason : selectedSeason, canSwitch, me?.kind === "Adult" && me.role !== "Student" ? me.role : null, practiceBootstrap.data ? practiceBootstrap.data.enabled : true);
   const searchItems = coach ? items : [...items, ...studentSearchExtras(canSwitch, selectedSeason)];
   const active = currentDestination(items, location.pathname);
   const route = location.pathname + location.search + location.hash;

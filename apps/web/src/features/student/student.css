@@ -478,6 +478,14 @@
 .passage-row-bar > span.is-mastered { background: var(--er-thread-gold); }
 .passage-row-score { font-size: var(--er-text-sm); color: var(--er-muted-ink); text-align: right; font-variant-numeric: tabular-nums; }
 .passage-row-legacy { grid-column: 1 / -1; font-size: var(--er-text-xs); color: var(--er-muted-ink); }
+/* The row's title link stretches over the whole row (stretched-link
+   pattern): the full 44px row is the tap target for the verse's session. */
+.passage-compact-rows > li:has(.passage-row-action) { position: relative; }
+.passage-row-action { color: inherit; text-decoration: none; }
+.passage-row-action::after { content: ""; position: absolute; inset: 0; }
+.passage-row-action:hover { text-decoration: underline; }
+.passage-row-action:focus-visible { outline: none; }
+.passage-row-action:focus-visible::after { box-shadow: var(--er-focus); border-radius: 8px; }
 .progress-disclosure > summary { cursor: pointer; list-style: none; }
 .progress-disclosure > summary::-webkit-details-marker { display: none; }
 .progress-disclosure > summary h2 { display: inline; }

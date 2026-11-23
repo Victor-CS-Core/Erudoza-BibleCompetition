@@ -70,15 +70,21 @@ function OptInPrompt({ season = false, onOptIn }: { season?: boolean; onOptIn?: 
 
 function BoardRows({ board }: { board: LeaderboardResponse }) {
   const top = board.entries.slice(0, 5);
-  return <ol className="leaderboard-list">
-    {top.map((entry, index) => <li key={entry.userId} className={board.me?.userId === entry.userId ? "is-me" : ""} data-testid={`leaderboard-row-${index + 1}`}>
-      <span className="leaderboard-rank" aria-label={`Position ${index + 1}`}>{index + 1}</span>
-      <EntryAvatar avatar={entry.avatar} name={entry.displayName} />
-      <span className="leaderboard-name">{entry.displayName}{board.me?.userId === entry.userId && <Badge tone="info">You</Badge>}</span>
-      <span className="leaderboard-xp"><strong>{entry.xp}</strong> XP</span>
-      <Badge tone="neutral">Level {entry.level}</Badge>
-    </li>)}
-  </ol>;
+  return <>
+    <ol className="leaderboard-list">
+      {top.map((entry, index) => <li key={entry.userId} className={board.me?.userId === entry.userId ? "is-me" : ""} data-testid={`leaderboard-row-${index + 1}`}>
+        <span className="leaderboard-rank" aria-label={`Position ${index + 1}`}>{index + 1}</span>
+        <EntryAvatar avatar={entry.avatar} name={entry.displayName} />
+        <span className="leaderboard-name">{entry.displayName}{board.me?.userId === entry.userId && <Badge tone="info">You</Badge>}</span>
+        <span className="leaderboard-xp"><strong>{entry.xp}</strong> XP</span>
+        <Badge tone="neutral">Level {entry.level}</Badge>
+      </li>)}
+    </ol>
+    {/* The weekly board has no full-board page of its own (the full board
+        is the season board), so say plainly that this is the top 5 rather
+        than implying a "see all" that goes nowhere. */}
+    {board.entries.length > top.length && <p className="ds-caption">Top {top.length} this week.</p>}
+  </>;
 }
 
 /**
@@ -151,19 +157,16 @@ export function LeaderboardCard({ seasonId }: { seasonId?: string | null } = {})
 function WeeklyLeaderboardCard() {
   const board = useLeaderboard();
   const optIn = useOptInMutation();
-  const fullBoard = null;
   return <Panel className="leaderboard-card" data-testid="leaderboard-card">
     <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="chart" /><h2>Team leaderboard</h2></div>{board.data && <Badge tone="neutral">This week</Badge>}</div>
     {board.isPending ? <LoadingState label="Loading the leaderboard…" /> : board.isError || !board.data ? <Notice tone="danger">The leaderboard couldn’t load. <Button variant="secondary" size="compact" onClick={() => void board.refetch()}>Try again</Button></Notice> :
       board.data.me === null ? <>
         {/* Coach view: full board, full names. */}
         {board.data.entries.length === 0 ? <p>No practice recorded this week yet.</p> : <BoardRows board={board.data} />}
-        {fullBoard}
       </> : !board.data.me.optedIn ? <OptInPrompt /> : <>
         {board.data.entries.length === 0 ? <p>No teammates have joined the board yet — you’re first.</p> : <BoardRows board={board.data} />}
         {board.data.me.rank !== null && board.data.me.rank > 5 && <p className="leaderboard-own-rank">You’re <strong>#{board.data.me.rank}</strong> with {board.data.me.xp} XP this week.</p>}
         {board.data.me.rank === null && <p className="leaderboard-own-rank">You have {board.data.me.xp} XP this week.</p>}
-        {fullBoard}
         <Button variant="ghost" size="compact" onClick={() => optIn.mutate(false)} disabled={optIn.isPending}>{optIn.isPending ? "Updating…" : "Hide me from the board"}</Button>
         {optIn.isError && <Notice tone="danger">Couldn’t update your choice. Try again.</Notice>}
       </>}

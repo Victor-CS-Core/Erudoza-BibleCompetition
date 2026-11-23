@@ -21,7 +21,10 @@ import type { GeneratedActivity, MasteryScores, RuleProfile, StudyMode } from '.
 export interface Card extends GeneratedActivity { id: string; sequence: number; createdAtUtc: string; source: Source; answerSource: Source; blankShuffles?: number }
 export interface Result { submittedAnswer?: string; missingWordAnswers?: MissingWordAnswer[]; missingWordResults?: MissingWordResult[]; attemptId: string; isCorrect: boolean; score: number; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; skillKey: string; skillLabel: string; skillScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean; /** XP this attempt actually earned (cap-aware session xpEarned delta, including any bonus the attempt triggered). */ xpEarned?: number; /** Trailing consecutive correct attempts in this session, including this one. */ sessionStreak?: number; /** Server-computed reward snapshot (earned XP + level state before/after) powering the per-answer XP animation; stored on the result so replays carry the same numbers. */ xpReward?: import('../training/xp').XpReward }
 export interface Attempt { clientHintsUsed?: boolean; answerPayload?: MissingWordAnswerPayload; id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; score: number; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean; previousAttemptId?: string; before?: SkillScores; after?: SkillScores }
-export interface Session { readerAssistedCardIds?: string[]; deckOrder?: string[]; memoryChallenge?: 'Warmup' | 'Advanced'; memoryChallengeRequest?: 'Warmup' | 'Advanced'; generatorVersion?: string; evidenceProfile?: import('./engine').MemoryEvidenceProfile; id: string; studentUserId: string; seasonId: string; status: string; mode: StudyMode; difficulty: string; targetCardCount: number; ruleProfile: RuleProfile & { showReference: boolean }; cards: Card[]; attempts: Attempt[]; createdAtUtc: string; completedAtUtc?: string; training?: SessionTraining; recap?: SessionRecap }
+export interface Session { readerAssistedCardIds?: string[]; deckOrder?: string[]; memoryChallenge?: 'Warmup' | 'Advanced'; memoryChallengeRequest?: 'Warmup' | 'Advanced'; generatorVersion?: string; evidenceProfile?: import('./engine').MemoryEvidenceProfile; /** Passage-scoped start (from a passage CTA): the resolved knowledge-unit
+   * set this session may draw cards from, plus the original request so a
+   * replayed client start ID with a different scope is rejected. */
+  passageScope?: { knowledgeUnitIds: string[] }; passageScopeRequest?: { assignmentId: string } | { knowledgeUnitId: string }; id: string; studentUserId: string; seasonId: string; status: string; mode: StudyMode; difficulty: string; targetCardCount: number; ruleProfile: RuleProfile & { showReference: boolean }; cards: Card[]; attempts: Attempt[]; createdAtUtc: string; completedAtUtc?: string; training?: SessionTraining; recap?: SessionRecap }
 export interface Mastery extends MasteryScores { id: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; algorithmVersion: string; reviewDueAt: string; lastSeenAt: string; lastAttemptId?: string; streak: number }
 type Submission = import('../../../src/api/types').SubmitAttemptBody;
 function validateSubmission(input: Submission) {
@@ -167,32 +170,61 @@ function drawPracticeSource(session: Session, eligible: Source[]): Source {
   const nextId = session.deckOrder.shift()!;
   return eligible.find(s => s.id === nextId)!;
 }
-async function start(ctx: RequestContext, input: { seasonId: string; mode?: StudyMode; training?: StartTrainingContext; memoryChallenge?: 'Warmup' | 'Advanced' }) {
+/** A passage CTA start request: exactly one of the student's own assignment
+ * (the whole passage range) or a single knowledge unit (one verse). */
+type PassageScopeRequest = { assignmentId: string } | { knowledgeUnitId: string };
+function normalizePassageScope(raw: unknown): PassageScopeRequest | undefined {
+  if (raw === undefined) return undefined;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail('Choose a valid passage.');
+  const value = raw as { assignmentId?: unknown; knowledgeUnitId?: unknown };
+  const hasAssignment = typeof value.assignmentId === 'string' && value.assignmentId.length > 0;
+  const hasUnit = typeof value.knowledgeUnitId === 'string' && value.knowledgeUnitId.length > 0;
+  if (hasAssignment === hasUnit) fail('Choose a valid passage.');
+  return hasAssignment ? { assignmentId: value.assignmentId as string } : { knowledgeUnitId: value.knowledgeUnitId as string };
+}
+async function start(ctx: RequestContext, input: { seasonId: string; mode?: StudyMode; training?: StartTrainingContext; memoryChallenge?: 'Warmup' | 'Advanced'; passageScope?: unknown }) {
   const seasonId = requiredString(input.seasonId, 'Season'), mode = input.mode ?? 'Practice';
   if (!['Practice', 'Review', 'Simulation'].includes(mode)) fail('Choose Practice, Review, or Simulation.');
   if(input.memoryChallenge!==undefined&&!['Warmup','Advanced'].includes(input.memoryChallenge))fail('Choose Warmup or Advanced.');
+  const scopeRequest = normalizePassageScope(input.passageScope);
+  if (scopeRequest && mode === 'Simulation') fail('Passage practice is not available for Simulation. Start the passage from Practice or Review.');
   return retry(async () => {
     if (input.training?.clientStartId && typeof input.training.clientStartId === 'string') {
       const row = await ctx.env.DB.prepare("SELECT data FROM Records WHERE kind='session' AND org_id=? AND owner_id=? AND json_extract(data,'$.training.clientStartId')=? LIMIT 1").bind(ctx.orgId,ctx.actor.userId,input.training.clientStartId).first<{data:string}>();
-      if(row){const existing=JSON.parse(row.data) as Session;if(existing.memoryChallengeRequest!==input.memoryChallenge||existing.training?.startPayload!==startPayload(seasonId,mode,input.training))fail('This start ID was already used with a different payload.');return json(sessionDto(existing));}
+      if(row){const existing=JSON.parse(row.data) as Session;if(existing.memoryChallengeRequest!==input.memoryChallenge||existing.training?.startPayload!==startPayload(seasonId,mode,input.training)||JSON.stringify(existing.passageScopeRequest ?? null)!==JSON.stringify(scopeRequest ?? null))fail('This start ID was already used with a different payload.');return json(sessionDto(existing));}
     }
     const scope = await activeScope(ctx, seasonId, ctx.actor.userId);
+    // Passage-scoped starts narrow the card sources to the chosen passage;
+    // every other session semantic (missions, XP, reader stamping) is
+    // unchanged because the scope only filters which sources may be drawn.
+    let cardSources = scope.sources;
+    if (scopeRequest) {
+      if ('assignmentId' in scopeRequest) {
+        const assignments = await listAll<Assignment>(ctx, 'assignment', { seasonId, ownerId: ctx.actor.userId });
+        const assignment = assignments.find(a => a.id === scopeRequest.assignmentId) ?? fail('That assignment is not part of your season.');
+        cardSources = scope.sources.filter(s => assignment.contentPackId === s.contentPackId && contains(assignment, s));
+      } else {
+        cardSources = scope.sources.filter(s => knowledgeId(s) === scopeRequest.knowledgeUnitId);
+      }
+      if (!cardSources.length) fail('That passage is not in your assigned material.');
+    }
     const member = await ctx.store.get<Membership>('membership', memberId(seasonId, ctx.actor.userId), ctx.orgId);
     let targetCardCount = mode === 'Simulation' ? 10 : 8;
     if (mode === 'Review' && !input.training?.step) {
       const mastery = await listAll<Mastery>(ctx, 'mastery', { seasonId, ownerId: ctx.actor.userId });
-      const due = mastery.filter(m => Date.parse(m.reviewDueAt) <= Date.now() && scope.sources.some(s => knowledgeId(s) === m.knowledgeUnitId));
+      const due = mastery.filter(m => Date.parse(m.reviewDueAt) <= Date.now() && cardSources.some(s => knowledgeId(s) === m.knowledgeUnitId));
       if (!due.length) fail('There are no passages due for review.');
       targetCardCount = Math.min(8, due.length);
     }
-    const session: Session = { id: id(), studentUserId: ctx.actor.userId, seasonId, status: 'Created', mode, difficulty: member?.value.difficulty ?? 'Standard', targetCardCount, ruleProfile: { ...defaultRules }, cards: [], attempts: [], createdAtUtc: trainingNow() };
+    const session: Session = { id: id(), studentUserId: ctx.actor.userId, seasonId, status: 'Created', mode, difficulty: member?.value.difficulty ?? 'Standard', targetCardCount, ruleProfile: { ...defaultRules }, cards: [], attempts: [], createdAtUtc: trainingNow(), ...(scopeRequest ? { passageScope: { knowledgeUnitIds: [...new Set(cardSources.map(knowledgeId))] }, passageScopeRequest: scopeRequest } : {}) };
     const season=await ctx.store.require<Season>('season',seasonId,ctx.orgId);
     if(input.memoryChallenge!==undefined&&season.value.pbeEnabled!==true)fail('Memory study aids are not enabled for this season.');
     if(input.memoryChallenge==='Advanced'&&session.difficulty!=='Advanced')fail('Your coach must set Advanced difficulty before this challenge.');
     if(season.value.pbeEnabled===true){session.memoryChallenge=input.memoryChallenge??'Warmup';session.memoryChallengeRequest=input.memoryChallenge;session.generatorVersion='memory-v3';session.evidenceProfile=session.memoryChallenge==='Advanced'?'memory-honor-v2':'memory-cued-v3';}
     // Practice draws verses in random order (like the PBE draw), not
-    // verse-by-verse: persist a shuffled deck of the scope at start.
-    if (mode === 'Practice') session.deckOrder = shuffleRandom(scope.sources.map(s => s.id));
+    // verse-by-verse: persist a shuffled deck of the scope at start. A
+    // passage-scoped start decks only that passage's verses.
+    if (mode === 'Practice') session.deckOrder = shuffleRandom(cardSources.map(s => s.id));
     const trainingWrites = await prepareStart(ctx,session,scope.sources,input.training);
     await atomic(ctx, 'study.session.start', [...trainingWrites.statements,ctx.store.insertion('session', session.id, ctx.orgId, session, { seasonId, ownerId: ctx.actor.userId })], [...trainingWrites.guards,...selectedGuards(scope.guards)]);
     return json(sessionDto(session));
@@ -223,12 +255,17 @@ async function next(ctx: RequestContext, sessionId: string) {
       }
       if(session.mode==='Review')frozen=new Set(session.training.reviewKnowledgeUnitIds.filter(id=>!mission.acceptedReviewKnowledgeUnitIds.includes(id)));
     }
-    const eligible = scope.sources.filter(s => session.mode !== 'Review' || (frozen?frozen.has(knowledgeId(s)):due.has(knowledgeId(s))));
+    // A passage-scoped session draws only from its passage: the eligible set
+    // and the WhatComesNext chain stay inside the stored knowledge-unit set.
+    // Distractor citations and the TrueFalse word pool below deliberately
+    // keep the full scope — they are activity aids, not cards.
+    const inPassage = (s: Source) => !session.passageScope || session.passageScope.knowledgeUnitIds.includes(knowledgeId(s));
+    const eligible = scope.sources.filter(s => inPassage(s) && (session.mode !== 'Review' || (frozen?frozen.has(knowledgeId(s)):due.has(knowledgeId(s)))));
     if (!eligible.length) fail('There are no passages due for review.');
     // Practice draws from the session's shuffled deck; Review keeps its
     // due-order selection and Simulation its balanced deterministic order.
     const source = session.mode === 'Practice' ? drawPracticeSource(session, eligible) : eligible.sort((a, b) => count(session.cards, a) - count(session.cards, b) || (exposure.get(a.id)?.count ?? 0) - (exposure.get(b.id)?.count ?? 0) || Number(due.has(knowledgeId(b))) - Number(due.has(knowledgeId(a))) || Number(primary(b)) - Number(primary(a)) || last(a) - last(b) || a.ordinal - b.ordinal || knowledgeId(a).localeCompare(knowledgeId(b)))[0];
-    const nextSource = scope.sources.find(s => s.contentPackId === source.contentPackId && s.ordinal === source.ordinal + 1 && (!frozen || frozen.has(knowledgeId(s))));
+    const nextSource = scope.sources.find(s => s.contentPackId === source.contentPackId && s.ordinal === source.ordinal + 1 && inPassage(s) && (!frozen || frozen.has(knowledgeId(s))));
     const alternate = closestAlternateSource(scope.sources, source), sequence = session.cards.length + 1;
     const trueFalseWordPool = [...new Set(scope.sources.filter(s => s.id !== source.id && s.bookKey === source.bookKey && s.chapter === source.chapter).flatMap(s => s.canonicalText.split(' ')).map(w => w.trim()).filter(Boolean))];
     const request = { generatorVersion:session.generatorVersion,evidenceProfile:session.evidenceProfile,sourceUnit: sourceUnit(source), knowledgeUnitId: knowledgeId(source), sessionId, sequence, difficulty: normalizeDifficulty(session.difficulty), mode: session.mode, ruleProfile: session.ruleProfile, nextSourceUnit: nextSource ? sourceUnit(nextSource) : null, nextKnowledgeUnitId: nextSource ? knowledgeId(nextSource) : null, alternateSourceUnit: alternate ? sourceUnit(alternate) : null, trueFalseWordPool, distractorCitations: orderDistractorCitations(scope.sources, source), usedActivityTypes: session.cards.map(c => c.activityType), targetCardCount: session.targetCardCount };
@@ -426,7 +463,7 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
     }
     return json(discovered);
   }
-  if (path === '/api/v1/study/sessions' && method === 'POST') { const input = await body<{seasonId:string;format?:string;mode?:StudyMode;progressScope?:unknown}>(request); if(!input||typeof input!=='object'||Array.isArray(input))throw new HttpError(400,'Provide a study request.'); if(input.mode!==undefined&&!['Practice','Review','Simulation'].includes(input.mode))throw new HttpError(400,'Choose a valid study mode.'); if(input.format === 'Pbe') return startPbeSession(ctx,input as Parameters<typeof startPbeSession>[1]); if(input.progressScope!==undefined)throw new HttpError(400,'Progress scope requires Pbe.'); if(input.format!==undefined&&input.format!=='Memory')throw new HttpError(400,'Choose Memory or Pbe.'); return start(ctx,input); }
+  if (path === '/api/v1/study/sessions' && method === 'POST') { const input = await body<{seasonId:string;format?:string;mode?:StudyMode;progressScope?:unknown;passageScope?:unknown}>(request); if(!input||typeof input!=='object'||Array.isArray(input))throw new HttpError(400,'Provide a study request.'); if(input.mode!==undefined&&!['Practice','Review','Simulation'].includes(input.mode))throw new HttpError(400,'Choose a valid study mode.'); if(input.format === 'Pbe') return startPbeSession(ctx,input as Parameters<typeof startPbeSession>[1]); if(input.progressScope!==undefined)throw new HttpError(400,'Progress scope requires Pbe.'); if(input.format!==undefined&&input.format!=='Memory')throw new HttpError(400,'Choose Memory or Pbe.'); return start(ctx,input); }
   const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete|source|shuffle|reblank))?$/);
   if (!match) return null;
   const sessionId = match[1], action = match[2];

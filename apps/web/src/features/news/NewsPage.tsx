@@ -36,10 +36,14 @@ function InsideArticle({ keyPoints, linkedMaterials }: { keyPoints: string[]; li
 
 function NewsMeta({ article }: { article: { publishedAtUtc?: string | null; readMinutes?: number | null; sourceUrl?: string | null; sourceLabel?: string | null } }) {
   const read = readTimeLabel(article.readMinutes);
+  // Join only the parts that exist — a leading "·" with no date in front of
+  // it (drafts in the coach preview, dateless records) reads as a typo.
+  const items: ReactNode[] = [];
+  if (article.publishedAtUtc) items.push(<time key="date" dateTime={article.publishedAtUtc}>{formatNewsDate(article.publishedAtUtc)}</time>);
+  if (read) items.push(<span key="read">{read}</span>);
+  if (article.sourceUrl) items.push(<NewsDeepLink key="source" href={article.sourceUrl} className="news-source-chip">{article.sourceLabel ?? "View source"}</NewsDeepLink>);
   return <div className="news-meta">
-    {article.publishedAtUtc && <time dateTime={article.publishedAtUtc}>{formatNewsDate(article.publishedAtUtc)}</time>}
-    {read && <><span aria-hidden="true">·</span><span>{read}</span></>}
-    {article.sourceUrl && <><span aria-hidden="true">·</span><NewsDeepLink href={article.sourceUrl} className="news-source-chip">{article.sourceLabel ?? "View source"}</NewsDeepLink></>}
+    {items.flatMap((item, index) => index === 0 ? [item] : [<span key={`sep-${index}`} aria-hidden="true">·</span>, item])}
   </div>;
 }
 
@@ -53,21 +57,34 @@ function NewsFeed({ base }: { base: string }) {
   const { me } = useAuth();
   const org = me!.organizationId;
   const feed = useQuery({ queryKey: ["pbe-news", org], queryFn: () => api.pbeNews(org), retry: false });
-  return <div className="training-page news-page"><PageHeader title="PBE news" description="Announcements, new materials, and event updates for Pathfinder Bible Experience." />
+  return <div className="training-page news-page"><PageHeader title="PBE news" description="Fresh drops for your PBE season — new study materials, event updates, and rule changes from NAD and your coaches." />
     {feed.isPending ? <LoadingState label="Loading PBE news…" /> : feed.isError ? <Notice tone="danger">The news feed could not load. <Button variant="secondary" onClick={() => void feed.refetch()}>Try again</Button></Notice>
-      : feed.data.length === 0 ? <EmptyState title="No PBE news yet" description="Published announcements and material updates will appear here." />
+      : feed.data.length === 0 ? <EmptyState title="Nothing new yet" description="When NAD posts new materials or your coaches share an update, it lands here first. Swing back after your next practice." />
       : <div className="news-feed">
-        {feed.data.map(article => <NewsCard key={article.id} base={base} article={article} />)}
+        {feed.data.map((article, index) => <NewsCard key={article.id} base={base} article={article} featured={index === 0} />)}
       </div>}
   </div>;
 }
 
-function NewsCard({ base, article }: { base: string; article: PbeNewsArticleSummary }) {
+/** Articles published in the last week carry a "New" badge on the feed card. */
+const NEW_BADGE_WINDOW_MS = 7 * 86400_000;
+export function isFreshArticle(publishedAtUtc?: string | null) {
+  if (!publishedAtUtc) return false;
+  const age = Date.now() - Date.parse(publishedAtUtc);
+  return Number.isFinite(age) && age >= 0 && age < NEW_BADGE_WINDOW_MS;
+}
+
+export function NewsCard({ base, article, featured = false }: { base: string; article: PbeNewsArticleSummary; featured?: boolean }) {
   const type = normalizeArticleType(article.articleType);
-  return <Panel as="article" className="news-card" aria-labelledby={`news-card-${article.id}`}>
+  return <Panel as="article" className={`news-card${featured ? " news-card-featured" : ""}`} aria-labelledby={`news-card-${article.id}`}>
     <ArticleTypeArt type={type} />
-    <p className="news-kicker">{articleTypeLabel(type)}</p>
-    <h3 id={`news-card-${article.id}`}><Link to={`${base}/${encodeURIComponent(article.id)}`}>{article.title}</Link></h3>
+    <div className="news-card-top">
+      <p className="news-kicker">{articleTypeLabel(type)}</p>
+      {isFreshArticle(article.publishedAtUtc) && <span className="news-new-badge">New</span>}
+    </div>
+    <h3 id={`news-card-${article.id}`}>{article.id
+      ? <Link to={`${base}/${encodeURIComponent(article.id)}`}>{article.title}</Link>
+      : article.title}</h3>
     <p className="news-summary">{article.summary}</p>
     <InsideArticle keyPoints={article.keyPoints ?? []} linkedMaterials={article.linkedMaterials ?? []} />
     <NewsMeta article={article} />
@@ -79,7 +96,7 @@ function NewsArticleReader({ base, id }: { base: string; id: string }) {
   const org = me!.organizationId;
   const article = useQuery({ queryKey: ["pbe-news-article", org, id], queryFn: () => api.pbeNewsArticle(org, id), retry: false });
   return <div className="training-page news-page"><LinkButton variant="secondary" to={base}>← All news</LinkButton>
-    {article.isPending ? <LoadingState label="Loading the article…" /> : article.isError ? <Notice tone="danger">This article is not available. It may be an unpublished draft. <LinkButton variant="secondary" to={base}>Back to the news feed</LinkButton></Notice>
+    {article.isPending ? <LoadingState label="Loading the article…" /> : article.isError ? <Notice tone="danger">This article isn't available anymore. <LinkButton variant="secondary" to={base}>Back to the news feed</LinkButton></Notice>
       : (() => {
         const data = article.data;
         const type = normalizeArticleType(data.articleType);
@@ -92,7 +109,7 @@ function NewsArticleReader({ base, id }: { base: string; id: string }) {
           <p className="news-lede">{data.summary}</p>
           {data.sections.map((section, index) => <section key={index} aria-label={section.heading}><h2>{section.heading}</h2><p className="news-section-body">{section.body}</p></section>)}
           {materials.length > 0 && <section className="news-materials" aria-label="Reading material">
-            <h2>Reading material — open directly</h2>
+            <h2>Jump to the reading material</h2>
             <ul>{materials.map((material, index) => <li key={index} className="news-material-row">
               <div className="news-material-detail"><strong>{material.label}</strong>{material.hint && <small>{material.hint}</small>}</div>
               <NewsDeepLink href={material.href} className="news-open-button">Open</NewsDeepLink>

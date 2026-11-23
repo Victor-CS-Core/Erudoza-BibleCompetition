@@ -9,12 +9,14 @@ import type {
   PbeMaterialWatchResult,
   PbeNewsArticle,
   PbeNewsArticleInput,
+  PbeNewsArticleSummary,
   PbeNewsArticleType,
 } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, EmptyState, ExternalLinkButton, HelpTip, Input, LinkButton, LoadingState, Notice, PageHeader, Panel, Select, Textarea } from "../../components/ui";
 import { ConfirmationDialog } from "../../components/ui/ConfirmationDialog";
 import { ArticleTypeArt, PBE_NEWS_TYPES, articleTypeLabel, normalizeArticleType } from "../news/articleTypeArt";
+import { NewsCard } from "../news/NewsPage";
 import "./materials.css";
 
 export function formatPbeYearLabel(yearLabel: string) {
@@ -222,7 +224,9 @@ function ReleasesList({ org, onReview }: { org: string; onReview: (id: string) =
         <LinkButton variant="secondary" size="compact" to={`/admin/materials?tab=releases&proposal=${encodeURIComponent(draft.proposalId)}`}>Review {formatPbeYearLabel(draft.yearLabel)}</LinkButton>
         <span>{draft.title}</span>
       </li>)}</ul>}
-      <p className="materials-hint">Watcher news suggestions appear under the News tab.</p>
+      {watchResult.newsDrafted.length > 0
+        ? <p className="materials-hint">{watchResult.newsDrafted.length} new news suggestion{watchResult.newsDrafted.length === 1 ? "" : "s"} waiting under the News tab.</p>
+        : <p className="materials-hint">No new news suggestions this check — they appear under the News tab when the watcher finds one.</p>}
     </Notice>}
     {showNewForm && <Panel><h2>New proposal<HelpTip label="About new proposals">Draft a yearly release. It stays a draft until the club Owner approves it.</HelpTip></h2>
       {createError && <Notice tone="danger">{createError}</Notice>}
@@ -341,7 +345,7 @@ function ProposalDetail({ org, id, isOwner, viewerId, onBack }: { org: string; i
 
 type LinkedMaterialRow = { label: string; href: string; hint: string };
 
-function NewsArticleForm({ initial, submitLabel, reviewLabel, pending, onSubmit, onCancel }: {
+export function NewsArticleForm({ initial, submitLabel, reviewLabel, pending, onSubmit, onCancel }: {
   initial?: PbeNewsArticleInput;
   submitLabel: string;
   reviewLabel?: string;
@@ -412,6 +416,22 @@ function NewsArticleForm({ initial, submitLabel, reviewLabel, pending, onSubmit,
     <label>Title<Input value={title} onChange={event => setTitle(event.target.value)} disabled={pending} required /></label>
     <label>Summary (1–2 sentences for the feed card)<Textarea rows={2} value={summary} onChange={event => setSummary(event.target.value)} disabled={pending} required /></label>
     <span className="materials-hint">This is all most students will read. Say what they will find inside the article.</span>
+    <div className="newsroom-preview">
+      <span className="materials-label">Student preview <small>Exactly what students see on the news feed — updates as you type.</small></span>
+      <NewsCard base="" article={{
+        id: "",
+        title: title.trim() || "Untitled draft",
+        summary: summary.trim() || "Your summary will appear here.",
+        articleType,
+        keyPoints: keyPoints.map(point => point.trim()).filter(Boolean),
+        linkedMaterials: materials.filter(material => material.label.trim() && material.href.trim())
+          .map(material => ({ label: material.label.trim(), href: material.href.trim(), ...(material.hint.trim() ? { hint: material.hint.trim() } : {}) })),
+        ...(readMinutes.trim() !== "" && Number.isInteger(Number(readMinutes)) && Number(readMinutes) >= 1 ? { readMinutes: Number(readMinutes) } : {}),
+        ...(sourceUrl.trim() ? { sourceUrl: sourceUrl.trim() } : {}),
+        ...(sourceLabel.trim() ? { sourceLabel: sourceLabel.trim() } : {}),
+        publishedAtUtc: null,
+      } satisfies PbeNewsArticleSummary} />
+    </div>
     <div className="materials-form-block">
       <span className="materials-label">Key points <small>Shown on the student card as chips — up to 6.</small></span>
       {keyPoints.length > 0 && <ul className="materials-keypoint-list">{keyPoints.map((point, index) => <li key={index}>
@@ -543,7 +563,20 @@ function NewsManager({ org, isOwner }: { org: string; isOwner: boolean }) {
     finally { setImporting(false); }
   }
 
+  function openEditor(article: PbeNewsArticle) {
+    setEditor({ mode: "edit", articleId: article.id, initial: toInput(article) });
+    // On phones the editor column stacks above the pipeline, far from the row
+    // just tapped — bring it into view instead of leaving the coach hunting.
+    requestAnimationFrame(() => document.getElementById("newsroom-editor")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+
   function pipelineRow(article: PbeNewsArticle) {
+    const isSuggestion = article.status === "draft" && article.createdBy === "nad-watcher";
+    // Mirrors NEWS_SUGGESTION_TTL_DAYS in the worker: an untouched watcher
+    // suggestion clears itself 30 days after it was suggested.
+    const suggestionExpiry = isSuggestion
+      ? new Date(Date.parse(article.createdAtUtc) + 30 * 86400_000).toLocaleDateString(undefined, { dateStyle: "medium" })
+      : null;
     return <li key={article.id} className="newsroom-row">
       <div className="materials-list-detail">
         <span className="newsroom-kicker">{articleTypeLabel(article.articleType)}</span>
@@ -554,16 +587,18 @@ function NewsManager({ org, isOwner }: { org: string; isOwner: boolean }) {
         </div>
         <p className="materials-news-summary">{article.summary}</p>
         <small>Created {formatDateTime(article.createdAtUtc)}{article.publishedAtUtc ? ` · published ${formatDateTime(article.publishedAtUtc)}` : ""}</small>
+        {isSuggestion && <small className="newsroom-suggestion-meta">Watcher suggestion — if it isn't published, it clears itself on {suggestionExpiry}.</small>}
         <details className="materials-news-preview"><summary>Preview article</summary>
           {article.sections.map((section, index) => <section key={index}><h4>{section.heading}</h4><p className="materials-section-body">{section.body}</p></section>)}
           {article.sourceUrl && <p><a href={article.sourceUrl} target="_blank" rel="noreferrer">{article.sourceLabel ?? "View original announcement"}</a></p>}
         </details>
       </div>
       <div className="materials-row-actions">
-        <Button variant="secondary" size="compact" disabled={!!busyId} onClick={() => setEditor({ mode: "edit", articleId: article.id, initial: toInput(article) })}>Edit</Button>
+        <Button variant="secondary" size="compact" disabled={!!busyId} onClick={() => openEditor(article)}>Edit</Button>
         {article.status === "published"
           ? <Button variant="secondary" size="compact" disabled={!isOwner || !!busyId} aria-describedby={!isOwner ? "materials-news-owner-notice" : undefined} onClick={() => void mutate(article.id, () => api.unpublishPbeNewsArticle(org, article.id))}>{busyId === article.id ? "Saving…" : "Unpublish"}</Button>
           : <Button size="compact" disabled={!isOwner || !!busyId} aria-describedby={!isOwner ? "materials-news-owner-notice" : undefined} onClick={() => void mutate(article.id, () => api.publishPbeNewsArticle(org, article.id))}>{busyId === article.id ? "Saving…" : "Publish"}</Button>}
+        {isSuggestion && <Button variant="ghost" size="compact" disabled={!!busyId} onClick={() => void mutate(article.id, () => api.dismissPbeNewsArticle(org, article.id))}>Dismiss</Button>}
         {isOwner && <Button variant="danger" size="compact" disabled={!!busyId} onClick={() => setConfirmDeleteId(article.id)}>Delete</Button>}
       </div>
     </li>;
@@ -579,12 +614,14 @@ function NewsManager({ org, isOwner }: { org: string; isOwner: boolean }) {
     <div className="newsroom">
       <section className="newsroom-col" aria-label="Sources">
         <h2>Sources</h2>
-        <p className="materials-hint">Pull the latest PBE developments. The weekly NAD watcher drafts suggestions automatically; import any announcement link into a draft you can edit.</p>
+        <p className="materials-hint">Pull the latest from nadpbe.org. The watcher drafts suggestions on its own every week — check now if you're expecting something, or import any announcement link into a draft you can polish.</p>
         <Button onClick={() => void checkNewsWatcher()} disabled={watching}>{watching ? "Checking nadpbe.org…" : "Check for new NAD materials"}</Button>
         {watchError && <Notice tone="danger">{watchError}</Notice>}
         {watchResult && <Notice tone="success">
           <p>Checked nadpbe.org at {formatDateTime(watchResult.checkedAt)} — {watchResult.mediaChecked} media items checked, {watchResult.drafted.length} new draft{watchResult.drafted.length === 1 ? "" : "s"}.</p>
-          <p className="materials-hint">Watcher news suggestions appear in the Pipeline column.</p>
+          {watchResult.newsDrafted.length > 0
+            ? <p className="materials-hint">{watchResult.newsDrafted.length} new news suggestion{watchResult.newsDrafted.length === 1 ? "" : "s"} waiting in the Pipeline — publish the good ones, dismiss the rest.</p>
+            : <p className="materials-hint">No new news suggestions this check.</p>}
         </Notice>}
         <form className="newsroom-import" onSubmit={importFromUrl}>
           <h3>Import from URL</h3>
@@ -595,13 +632,13 @@ function NewsManager({ org, isOwner }: { org: string; isOwner: boolean }) {
           {importError && <Notice tone="danger">{importError}</Notice>}
         </form>
       </section>
-      <section className="newsroom-col newsroom-editor-col" aria-label="Article editor">
+      <section className="newsroom-col newsroom-editor-col" id="newsroom-editor" aria-label="Article editor">
         <h2>Article editor</h2>
         {editor ? (editor.mode === "new"
           ? <NewsArticleForm initial={editor.initial} submitLabel="Save draft article" reviewLabel="Send for review" pending={busyId === "new"} onSubmit={saveNew} onCancel={() => setEditor(null)} />
           : <NewsArticleForm initial={editor.initial} submitLabel="Save changes" pending={busyId === editor.articleId} onSubmit={input => saveEdit(editor.articleId!, input)} onCancel={() => setEditor(null)} />)
           : <div className="newsroom-editor-idle">
-            <p className="materials-hint">Pick Edit on a pipeline article, import a source URL, or start a fresh draft. Articles stay drafts until the club Owner publishes them.</p>
+            <p className="materials-hint">Pick Edit on a pipeline article to polish it here — the editor shows exactly what students will see as you type. Or import a source URL, or start a fresh draft. Articles stay drafts until the club Owner publishes them.</p>
             <Button variant="secondary" onClick={() => setEditor({ mode: "new" })}>New article</Button>
           </div>}
       </section>
@@ -610,9 +647,9 @@ function NewsManager({ org, isOwner }: { org: string; isOwner: boolean }) {
         {articles.isPending ? <LoadingState label="Loading articles…" /> : articles.isError ? <Notice tone="danger">Articles could not load. <Button variant="secondary" size="compact" onClick={() => void articles.refetch()}>Try again</Button></Notice>
           : articles.data!.length === 0 ? <EmptyState title="No news articles yet" description="Import a source URL, run “Check for new NAD materials”, or start the first draft." />
           : <>
-            <h3 className="newsroom-group-heading">Drafts{!isOwner && <span className="newsroom-group-sub"> — awaiting Owner review</span>}</h3>
+            <h3 className="newsroom-group-heading">Drafts ({drafts.length}){!isOwner && <span className="newsroom-group-sub"> — awaiting Owner review</span>}</h3>
             {drafts.length === 0 ? <p className="materials-hint">No drafts right now.</p> : <ul className="newsroom-list">{drafts.map(pipelineRow)}</ul>}
-            <h3 className="newsroom-group-heading">Published</h3>
+            <h3 className="newsroom-group-heading">Published ({published.length})</h3>
             {published.length === 0 ? <p className="materials-hint">Nothing published yet.</p> : <ul className="newsroom-list">{published.map(pipelineRow)}</ul>}
           </>}
       </section>

@@ -17,7 +17,7 @@ const startOfLocalDayMs = () => {
   return d.getTime();
 };
 
-type AttentionItem = { key: string; icon: IconName; text: string };
+type AttentionItem = { key: string; icon: IconName; text: string; /** Deep link to the Students view already filtered to this item's students. */ to?: string };
 
 export function AdminHomePage() {
   const { me } = useAuth();
@@ -29,7 +29,7 @@ export function AdminHomePage() {
   const rows = coverage.data?.students ?? [];
   const studentCount = new Set(rows.map((s) => s.studentUserId)).size;
   const reviewStudentIds = new Set(rows.filter((s) => s.reviewDueCount > 0).map((s) => s.studentUserId));
-  const notStartedStudents = rows.filter((s) => s.attemptCount === 0);
+  const notStartedStudentIds = new Set(rows.filter((s) => s.attemptCount === 0).map((s) => s.studentUserId));
   const seasonStudentIds = new Set(rows.map((s) => s.studentUserId));
   const engagement = useQuery({
     queryKey: ["engagement", orgId],
@@ -53,19 +53,19 @@ export function AdminHomePage() {
   const formatName = selected?.pbeEnabled ? "PBE" : "Memory";
 
   const attention: AttentionItem[] = [];
-  if (reviewStudentIds.size) attention.push({ key: "review", icon: "review", text: `${reviewStudentIds.size} of ${studentCount} ${studentCount === 1 ? "student has" : "students have"} passages due for review.` });
-  if (idleStudents.length) attention.push({ key: "idle", icon: "users", text: `${idleStudents.length} ${idleStudents.length === 1 ? "student hasn't" : "students haven't"} practiced this week.` });
-  if (notStartedStudents.length) attention.push({ key: "not-started", icon: "flag", text: `${notStartedStudents.length} ${notStartedStudents.length === 1 ? "student hasn't" : "students haven't"} started the assigned passage yet.` });
+  if (reviewStudentIds.size) attention.push({ key: "review", icon: "review", text: `${reviewStudentIds.size} of ${studentCount} ${studentCount === 1 ? "student has" : "students have"} passages due for review.`, to: `/admin/students?filter=review&seasonId=${selected?.id ?? ""}` });
+  if (idleStudents.length) attention.push({ key: "idle", icon: "users", text: `${idleStudents.length} ${idleStudents.length === 1 ? "student hasn't" : "students haven't"} practiced this week.`, to: `/admin/students?tab=engagement&seasonId=${selected?.id ?? ""}` });
+  if (notStartedStudentIds.size) attention.push({ key: "not-started", icon: "flag", text: `${notStartedStudentIds.size} ${notStartedStudentIds.size === 1 ? "student hasn't" : "students haven't"} started the assigned passage yet.`, to: `/admin/students?filter=not-started&seasonId=${selected?.id ?? ""}` });
 
   return <div>
     <PageHeader title="Season overview" description={`Manage your ${formatName} season and see which students need practice.`} action={<LinkButton data-testid="create-season" to="/admin/seasons/new">Create season</LinkButton>} />
     {seasons.isPending ? <Notice>Loading seasons…</Notice> : seasons.isError ? <Notice tone="danger"><p>Seasons could not load.</p><Button variant="secondary" onClick={() => void seasons.refetch()}>Try again</Button></Notice> : !selected ? <Panel className="training-empty"><h2>Your team’s season</h2><p>No seasons yet. Create a season to define Scripture scope and assign your students.</p></Panel> : <>
       <div className="training-season-toolbar"><label className="training-season-picker" htmlFor="overview-season"><span>Season</span><Select id="overview-season" value={selected.id} onChange={(e) => setSelectedId(e.target.value)}>{seasons.data?.map((s) => <option value={s.id} key={s.id}>{s.name}</option>)}</Select></label><div className="training-season-meta"><SeasonStatusBadge status={selected.status} /><Link to={`/admin/seasons/${selected.id}`}>Manage season →</Link></div></div>
       {coverage.isError ? <Notice tone="danger"><p>Student progress could not load.</p><Button variant="secondary" onClick={() => void coverage.refetch()}>Retry progress</Button></Notice> : coverage.isPending ? <Notice>Loading student progress…</Notice> : <>
-        <div className="training-stats"><Panel as="div"><span className="training-icon-tile"><AppIcon name="users" /></span><div><strong>{studentCount}</strong><small>Assigned students</small></div></Panel><Link to="/admin/students" className="ds-panel training-stat-link" aria-label={`${reviewStudentIds.size} ${reviewStudentIds.size === 1 ? "student needs" : "students need"} review — open the student directory`}><span className="training-icon-tile training-due"><AppIcon name="review" /></span><div><strong>{reviewStudentIds.size}</strong><small>Need review</small></div></Link><Link to={`/admin/seasons/${selected.id}?step=students`} className="ds-panel training-stat-link" aria-label={`${selected.assignmentCount} ${selected.assignmentCount === 1 ? "assignment" : "assignments"} — open the assignment editor`}><span className="training-icon-tile"><AppIcon name="book" /></span><div><strong>{selected.assignmentCount}</strong><small>Assignments</small></div></Link></div>
+        <div className="training-stats"><Panel as="div"><span className="training-icon-tile"><AppIcon name="users" /></span><div><strong>{studentCount}</strong><small>Assigned students</small></div></Panel><Link to={`/admin/students?filter=review&seasonId=${selected.id}`} className="ds-panel training-stat-link" aria-label={`${reviewStudentIds.size} ${reviewStudentIds.size === 1 ? "student needs" : "students need"} review — open the students who need review`}><span className="training-icon-tile training-due"><AppIcon name="review" /></span><div><strong>{reviewStudentIds.size}</strong><small>Need review</small></div></Link><Link to={`/admin/seasons/${selected.id}?step=students`} className="ds-panel training-stat-link" aria-label={`${selected.assignmentCount} ${selected.assignmentCount === 1 ? "assignment" : "assignments"} — open the assignment editor`}><span className="training-icon-tile"><AppIcon name="book" /></span><div><strong>{selected.assignmentCount}</strong><small>Assignments</small></div></Link></div>
         {(attention.length > 0 || engagement.data) && <Panel className="training-attention">
           <div className="training-panel-title"><h2>Needs attention</h2></div>
-          {attention.length > 0 ? <ul>{attention.map(item => <li key={item.key}><span className="training-icon-tile training-due"><AppIcon name={item.icon} /></span><p>{item.text}</p></li>)}</ul> : <p className="training-attention-clear">Everyone is practicing and up to date.</p>}
+          {attention.length > 0 ? <ul>{attention.map(item => <li key={item.key}>{item.to ? <Link to={item.to} className="training-attention-link"><span className="training-icon-tile training-due"><AppIcon name={item.icon} /></span><p>{item.text}</p></Link> : <><span className="training-icon-tile training-due"><AppIcon name={item.icon} /></span><p>{item.text}</p></>}</li>)}</ul> : <p className="training-attention-clear">Everyone is practicing and up to date.</p>}
           <div className="training-attention-footer">
             {engagement.data && seasonEngagement.length > 0 && <small>This week {practicedThisWeek} of {seasonEngagement.length} practiced{practicedToday > 0 && <> · {practicedToday} today</>}</small>}
             <Link to="/admin/students">Open student directory →</Link>

@@ -18,9 +18,9 @@ export function PracticeEventCard({ event, meUserId }: { event: PracticeEvent; m
   return <Panel id={`event-${event.id}`} className={`practice-event-card game-event-card ${state}`} aria-label={event.name}>
     <div className="practice-hub-list-title"><strong>{event.name}</strong><Badge tone={event.status === "Playing" ? "success" : event.status === "Open" || event.status === "Scheduled" ? "info" : "neutral"}>{event.status === "Open" ? "Open now" : event.status}</Badge></div>
     <p>{event.activity === "Simulation" ? "Full-event team rehearsal" : "Head-to-head practice"} · {event.seasonName}</p>
-    <p>{event.status === "Scheduled" && event.startsAtUtc ? `Starts ${new Date(event.startsAtUtc).toLocaleString()}` : event.status === "Open" ? "Your room is open — join your team." : event.status === "Playing" ? "Your match is in progress." : "Completed"}</p>
+    <p>{event.status === "Scheduled" && event.startsAtUtc ? `Starts ${new Date(event.startsAtUtc).toLocaleString()}` : event.status === "Open" ? (event.roomId ? "Your room is open — join your team." : "Your event is open — your room is being prepared.") : event.status === "Playing" ? "Your match is in progress." : "Completed"}</p>
     <p>{event.teamCount === 1 ? <>Your team: {event.roster.filter(entry => entry.team === 1).map(entry => entry.userId === meUserId ? "You" : entry.displayName).join(", ")}</> : <>You are on <strong>Team {event.myTeam}</strong> · Team 1: {event.roster.filter(entry => entry.team === 1).map(entry => entry.displayName).join(", ")} · Team 2: {event.roster.filter(entry => entry.team === 2).map(entry => entry.displayName).join(", ")}</>}</p>
-    {event.captainStartUserId === meUserId && event.status === "Open" && <p>You are the designated captain — you can start this event once your team is ready.</p>}
+    {event.captainStartUserId === meUserId && event.status === "Open" && <p>You are the designated captain — you can start this event once every seat is filled and everyone is ready.</p>}
     {(event.status === "Open" || event.status === "Playing") && event.roomId && <LinkButton to={roomLink(event)}>{event.status === "Playing" ? "Return to match" : "Join your team"}</LinkButton>}
     {event.status === "Completed" && event.roomId && <LinkButton variant="secondary" to={recapLink(event)}>View results</LinkButton>}
   </Panel>;

@@ -83,8 +83,23 @@ it("starts a Review session from a due tile and Practice from the rest", async (
     ] }),
   ]));
   view();
-  expect(await screen.findByRole("link", { name: /Daniel 1:1:/ })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=s");
-  expect(screen.getByRole("link", { name: /Daniel 1:2:/ })).toHaveAttribute("href", "/student/study?mode=Practice&seasonId=s");
+  expect(await screen.findByRole("link", { name: /Daniel 1:1:/ })).toHaveAttribute("href", "/student/study?mode=Review&format=Memory&knowledgeUnitId=d&seasonId=s");
+  expect(screen.getByRole("link", { name: /Daniel 1:2:/ })).toHaveAttribute("href", "/student/study?mode=Practice&knowledgeUnitId=p&seasonId=s");
+});
+
+it("carries Memory format on the detail card link only when its passage is due", async () => {
+  vi.mocked(trainingApi.journey).mockResolvedValue(journeyPage([
+    chapter({ eligibleCount: 2, passages: [
+      passage({ knowledgeUnitId: "d", title: "Daniel 1:1", level: "Review", dueAtUtc: "2026-01-01T00:00:00Z" }),
+      passage({ knowledgeUnitId: "p", title: "Daniel 1:2", level: "Learning" }),
+    ] }),
+  ]));
+  view();
+  expect(await screen.findByText("Passage details for Daniel 1")).toBeInTheDocument();
+  const links = document.querySelectorAll(".journey-practice-link");
+  expect(links).toHaveLength(2);
+  expect(links[0]).toHaveAttribute("href", "/student/study?mode=Review&format=Memory&knowledgeUnitId=d&seasonId=s");
+  expect(links[1]).toHaveAttribute("href", "/student/study?mode=Practice&knowledgeUnitId=p&seasonId=s");
 });
 
 it("puts a due review Up next ahead of a weaker unmastered passage", async () => {
@@ -101,7 +116,7 @@ it("puts a due review Up next ahead of a weaker unmastered passage", async () =>
   const card = await screen.findByTestId("passage-picker-upnext");
   expect(within(card).getByText("Daniel 1:8")).toBeInTheDocument();
   expect(within(card).getByText("Review due · Last score 62")).toBeInTheDocument();
-  expect(within(card).getByRole("link", { name: /Review this passage/ })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=s");
+  expect(within(card).getByRole("link", { name: /Review this passage/ })).toHaveAttribute("href", "/student/study?mode=Review&format=Memory&knowledgeUnitId=due1&seasonId=s");
 });
 
 it("falls back to the weakest unmastered passage when nothing is due", async () => {
@@ -114,7 +129,7 @@ it("falls back to the weakest unmastered passage when nothing is due", async () 
   const card = await screen.findByTestId("passage-picker-upnext");
   expect(within(card).getByText("Daniel 1:3")).toBeInTheDocument();
   expect(within(card).getByText("Needs practice · Last score 15")).toBeInTheDocument();
-  expect(within(card).getByRole("link", { name: /Practice this passage/ })).toHaveAttribute("href", "/student/study?mode=Practice&seasonId=s");
+  expect(within(card).getByRole("link", { name: /Practice this passage/ })).toHaveAttribute("href", "/student/study?mode=Practice&knowledgeUnitId=w2&seasonId=s");
 });
 
 it("shows no Up next card when every passage is mastered or strong", async () => {

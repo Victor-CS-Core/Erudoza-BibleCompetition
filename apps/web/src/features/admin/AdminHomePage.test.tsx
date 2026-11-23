@@ -30,9 +30,16 @@ it("counts a student once even with multiple assignments", async () => {
   expect(screen.getByText("Assigned students").parentElement).toHaveTextContent("1Assigned students");
   expect(screen.getByText("Need review").parentElement).toHaveTextContent("1Need review");
 });
-it("links the Need review stat card to the student directory", async () => {
+it("links the Need review stat card to the directory filtered to students who need review", async () => {
   home(); await screen.findByRole("table");
-  expect(screen.getByRole("link", { name: /needs review — open the student directory/ })).toHaveAttribute("href", "/admin/students");
+  expect(screen.getByRole("link", { name: /needs review — open the students who need review/ })).toHaveAttribute("href", "/admin/students?filter=review&seasonId=active");
+});
+
+it("links the attention items to their filtered student views", async () => {
+  vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [student, { ...student, studentUserId: "v", displayName: "Ruth", attemptCount: 0, reviewDueCount: 0 }] });
+  home(); await screen.findByRole("table");
+  expect(screen.getByRole("link", { name: /passages due for review/ })).toHaveAttribute("href", "/admin/students?filter=review&seasonId=active");
+  expect(screen.getByRole("link", { name: /hasn't started the assigned passage yet/ })).toHaveAttribute("href", "/admin/students?filter=not-started&seasonId=active");
 });
 it("shows no percentage for an empty scope", async () => {
   vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [{ ...student, eligibleUnitCount: 0, masteredCount: 0 }] });
@@ -45,4 +52,10 @@ it("preserves create-season access with an empty account", async () => {
 it("does not render zero progress after a coverage failure", async () => {
   vi.mocked(api.coverage).mockRejectedValue(new Error("offline")); home();
   expect(await screen.findByRole("alert")).toHaveTextContent("could not load"); expect(screen.queryByRole("table")).not.toBeInTheDocument();
+});
+it("counts a student once in the not-started attention item even with multiple unstarted assignments", async () => {
+  vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [{ ...student, attemptCount: 0 }, { ...student, startChapter: 2, attemptCount: 0 }] });
+  home(); await screen.findByRole("table");
+  expect(await screen.findByText("1 student hasn't started the assigned passage yet.")).toBeInTheDocument();
+  expect(screen.queryByText(/2 students haven't started/)).not.toBeInTheDocument();
 });

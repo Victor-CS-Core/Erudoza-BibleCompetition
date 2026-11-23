@@ -67,7 +67,16 @@ export async function handleProfile(ctx: RequestContext): Promise<Response | nul
     return json({ notifications, unreadCount: notifications.filter(n => !n.readAtUtc).length });
   }
   if (ctx.path === '/api/v1/profile/me/notifications/read' && ctx.request.method === 'POST') {
+    // A body of { id } marks just that notification (the bell marks an item
+    // read when its link is followed); no body keeps the original
+    // mark-everything behavior for the "Mark all read" action.
+    const input = await body<{ id?: unknown }>(ctx.request, 1024).catch(() => null);
     const readAtUtc = new Date().toISOString();
+    if (input && typeof input.id === 'string' && input.id) {
+      await ctx.env.DB.prepare("UPDATE Records SET data=json_set(data,'$.readAtUtc',?) WHERE kind='notification' AND org_id=? AND owner_id=? AND id=? AND json_extract(data,'$.readAtUtc') IS NULL").bind(readAtUtc, ctx.orgId, ctx.actor.userId, input.id).run();
+      const remaining = await ctx.env.DB.prepare("SELECT COUNT(*) AS count FROM Records WHERE kind='notification' AND org_id=? AND owner_id=? AND json_extract(data,'$.readAtUtc') IS NULL").bind(ctx.orgId, ctx.actor.userId).first<{ count: number }>();
+      return json({ unreadCount: remaining?.count ?? 0 });
+    }
     await ctx.env.DB.prepare("UPDATE Records SET data=json_set(data,'$.readAtUtc',?) WHERE kind='notification' AND org_id=? AND owner_id=? AND json_extract(data,'$.readAtUtc') IS NULL").bind(readAtUtc, ctx.orgId, ctx.actor.userId).run();
     return json({ unreadCount: 0 });
   }

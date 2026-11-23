@@ -73,7 +73,7 @@ it("presents a brand-new passage as a quest about to start, with a practice acti
   expect(await screen.findByText("0 of 54 verses strong or mastered")).toBeInTheDocument();
   expect(screen.getByText("Not started")).toBeInTheDocument();
   expect(screen.getByText(/The quest is about to start/)).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Start this passage/ })).toHaveAttribute("href", "/student/study?mode=Practice&seasonId=season");
+  expect(screen.getByRole("link", { name: /Start this passage/ })).toHaveAttribute("href", expect.stringMatching(/^\/student\/study\?mode=Practice&assignmentId=assignment-[^&]+&seasonId=season$/));
 });
 
 it("chips a fully mastered passage as Mastered and a due passage with a review action", async () => {
@@ -89,5 +89,5 @@ it("chips a fully mastered passage as Mastered and a due passage with a review a
   render(wrap(<AssignedPassages seasonId="season" seasonStatus="Active" mastery={mastery} />));
   expect(await screen.findByText("Mastered")).toBeInTheDocument();
   expect(screen.getByText("In progress")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Review this passage/ })).toHaveAttribute("href", "/student/study?mode=Review&seasonId=season");
+  expect(screen.getByRole("link", { name: /Review this passage/ })).toHaveAttribute("href", expect.stringMatching(/^\/student\/study\?mode=Review&format=Memory&assignmentId=assignment-[^&]+&seasonId=season$/));
 });

@@ -76,7 +76,7 @@ function PassageDetailCard({ passage, seasonId }: { passage: JourneyPassage; sea
       <div className="training-skill-list">{JOURNEY_SKILLS.map(([label, key]) => <div key={key}><span>{label}</span><ProgressMeter label={`${passage.title}: ${label}`} value={passage.skills[key]} max={100} /></div>)}</div>
     </details>}
     {passage.dueAtUtc && <p className="journey-due">Review due <time dateTime={passage.dueAtUtc}>{new Date(passage.dueAtUtc).toLocaleDateString()}</time></p>}
-    <Link className="journey-practice-link" to={trainingLink(`/student/study?mode=${passage.dueAtUtc ? "Review" : "Practice"}`, seasonId)}>Practice<AppIcon name="arrow" /></Link>
+    <Link className="journey-practice-link" to={trainingLink(`/student/study?mode=${passage.dueAtUtc ? "Review&format=Memory" : "Practice"}&knowledgeUnitId=${encodeURIComponent(passage.knowledgeUnitId)}`, seasonId)}>{passage.dueAtUtc ? "Review" : "Practice"}<AppIcon name="arrow" /></Link>
   </li>;
 }
 
@@ -104,9 +104,9 @@ type BookGroup = { key: string; name: string; chapters: JourneyChapter[]; seen: 
 /**
  * Training HQ's single passage surface ("Up next + two-step tiles"), replacing
  * the journey card list, the passage browser panel and "Worth another look".
- * Book chips → chapter strip → verse tiles; tapping a tile starts a general
- * Practice session, or a Review session when that verse is due — the same
- * links the old journey cards used (no session scoping in v1).
+ * Book chips → chapter strip → verse tiles; tapping a tile starts a session
+ * scoped to that verse (Practice, or Review when the verse is due) — the
+ * server resolves the knowledgeUnitId into the session's card scope.
  */
 export function PassagePicker({ seasonId, mastery, difficulty }: { seasonId: string; mastery?: MasteryItem[]; difficulty?: string }) {
   const { me } = useAuth();
@@ -180,7 +180,7 @@ export function PassagePicker({ seasonId, mastery, difficulty }: { seasonId: str
         <strong>{upNext.item.title}</strong>
         <span>{upNext.due ? "Review due" : "Needs practice"} · Last score {upNext.item.exactWordingScore}</span>
       </div>
-      <LinkButton variant="inverse" to={trainingLink(`/student/study?mode=${upNext.due ? "Review" : "Practice"}`, seasonId)}>{upNext.due ? "Review this passage" : "Practice this passage"}<AppIcon name="arrow" /></LinkButton>
+      <LinkButton variant="inverse" to={trainingLink(`/student/study?mode=${upNext.due ? "Review&format=Memory" : "Practice"}&knowledgeUnitId=${encodeURIComponent(upNext.item.knowledgeUnitId)}`, seasonId)}>{upNext.due ? "Review this passage" : "Practice this passage"}<AppIcon name="arrow" /></LinkButton>
     </div>}
     {books.length > 1 && <div className="passage-picker-books" role="group" aria-label="Assigned books">
       {books.map(candidate => <button key={candidate.key} type="button" className={`passage-picker-book${candidate.key === book.key ? " is-active" : ""}`} aria-pressed={candidate.key === book.key} aria-label={`${candidate.name}: ${candidate.seen} of ${candidate.eligible} passages practiced`} onClick={() => pickBook(candidate.key)}>{candidate.name}<span>{candidate.seen} of {candidate.eligible}</span></button>)}
@@ -201,7 +201,7 @@ export function PassagePicker({ seasonId, mastery, difficulty }: { seasonId: str
         const due = !!passage.dueAtUtc;
         const state = tileState(passage, masteryById.get(passage.knowledgeUnitId));
         const verse = verseOf(passage);
-        return <li key={passage.knowledgeUnitId}><Link className={`passage-picker-tile ${state.className}${due ? " is-due" : ""}`} aria-label={`${passage.title}: ${state.label}${due ? ", review due" : ""}`} to={trainingLink(`/student/study?mode=${due ? "Review" : "Practice"}`, seasonId)}>
+        return <li key={passage.knowledgeUnitId}><Link className={`passage-picker-tile ${state.className}${due ? " is-due" : ""}`} aria-label={`${passage.title}: ${state.label}${due ? ", review due" : ""}`} to={trainingLink(`/student/study?mode=${due ? "Review&format=Memory" : "Practice"}&knowledgeUnitId=${encodeURIComponent(passage.knowledgeUnitId)}`, seasonId)}>
           <span className="passage-picker-verse">{verse ?? "•"}</span>
           {state.mastered && <span className="passage-picker-check"><AppIcon name="check" /></span>}
           {due && <span className="passage-picker-due-dot" aria-hidden="true" />}

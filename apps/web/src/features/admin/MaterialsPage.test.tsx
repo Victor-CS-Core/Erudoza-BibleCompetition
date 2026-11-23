@@ -12,7 +12,7 @@ vi.mock("../../api/client", () => ({
     reviewPbeRelease: vi.fn(), watchNadMaterials: vi.fn(), pbeNewsArticles: vi.fn(),
     createPbeNewsArticle: vi.fn(), updatePbeNewsArticle: vi.fn(),
     publishPbeNewsArticle: vi.fn(), unpublishPbeNewsArticle: vi.fn(),
-    deletePbeNewsArticle: vi.fn(), extractPbeNewsDraft: vi.fn(),
+    deletePbeNewsArticle: vi.fn(), dismissPbeNewsArticle: vi.fn(), extractPbeNewsDraft: vi.fn(),
   },
 }));
 const useAuthMock = vi.fn();
@@ -72,11 +72,13 @@ it("checks the NAD watcher and surfaces drafted proposals", async () => {
   vi.mocked(api.watchNadMaterials).mockResolvedValue({
     checkedAt: "2026-09-17T14:00:00Z", mediaChecked: 42,
     drafted: [{ proposalId: "prop-9", yearLabel: "2026-27", title: "2026 Commentary", sourceUrl: "https://nadpbe.org/y.pdf" }],
+    newsDrafted: [{ articleId: "art-9", title: "Fresh announcement", sourceUrl: "https://nadpbe.org/post" }],
   });
   renderPage();
   await screen.findByRole("button", { name: "Review" });
   fireEvent.click(screen.getByRole("button", { name: "Check for new NAD materials" }));
   expect(await screen.findByText(/42 media items checked/)).toBeInTheDocument();
+  expect(screen.getByText(/1 new news suggestion waiting under the News tab/)).toBeInTheDocument();
   expect(screen.getByText("2026 Commentary")).toBeInTheDocument();
   expect(api.watchNadMaterials).toHaveBeenCalledWith("org-1");
 });
@@ -210,8 +212,9 @@ it("switches to the News tab and lists articles with status badges", async () =>
   renderPage("/admin/materials?tab=news");
   expect(await screen.findByText("New materials detected")).toBeInTheDocument();
   expect(screen.getByText("Draft")).toBeInTheDocument();
-  // "Published" appears on both the pipeline group heading and the status badge.
-  expect(screen.getAllByText("Published")).toHaveLength(2);
+  // The group heading carries the count; "Published" alone is the status badge.
+  expect(screen.getByText("Published (1)")).toBeInTheDocument();
+  expect(screen.getAllByText("Published")).toHaveLength(1);
   expect(screen.getAllByText("Watcher")).toHaveLength(2);
 });
 
@@ -224,6 +227,41 @@ it("publishes a watcher-suggested draft as the Owner", async () => {
   fireEvent.click(await screen.findByRole("button", { name: "Publish" }));
   await screen.findByText("Published");
   expect(api.publishPbeNewsArticle).toHaveBeenCalledWith("org-1", "art-1");
+});
+
+it("dismisses a watcher suggestion in one tap, for Content Managers too", async () => {
+  vi.mocked(api.pbeNewsArticles)
+    .mockResolvedValueOnce([newsArticle])
+    .mockResolvedValue([]);
+  vi.mocked(api.dismissPbeNewsArticle).mockResolvedValue({ ok: true });
+  renderPage("/admin/materials?tab=news", contentManager);
+  await screen.findByText("New materials detected");
+  // The row says plainly that an untouched suggestion clears itself.
+  expect(screen.getByText(/clears itself on/)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+  expect(api.dismissPbeNewsArticle).toHaveBeenCalledWith("org-1", "art-1");
+  await screen.findByText("No news articles yet");
+});
+
+it("offers no Dismiss on a coach-written draft", async () => {
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([{ ...newsArticle, createdBy: "owner-1" }]);
+  renderPage("/admin/materials?tab=news");
+  await screen.findByText("New materials detected");
+  expect(screen.queryByRole("button", { name: "Dismiss" })).not.toBeInTheDocument();
+  expect(screen.queryByText(/clears itself on/)).not.toBeInTheDocument();
+});
+
+it("shows a live student preview in the editor as the coach types", async () => {
+  vi.mocked(api.pbeNewsArticles).mockResolvedValue([]);
+  renderPage("/admin/materials?tab=news");
+  await screen.findByText("No news articles yet");
+  fireEvent.click(screen.getByRole("button", { name: "New article" }));
+  fireEvent.change(screen.getByLabelText("Title"), { target: { value: "Finals weekend is set" } });
+  fireEvent.change(screen.getByLabelText(/Summary/), { target: { value: "Division finals land April 4." } });
+  const preview = document.querySelector(".newsroom-preview .news-card");
+  expect(preview).not.toBeNull();
+  expect(within(preview as HTMLElement).getByRole("heading", { name: "Finals weekend is set" })).toBeInTheDocument();
+  expect(within(preview as HTMLElement).getByText("Division finals land April 4.")).toBeInTheDocument();
 });
 
 it("unpublishes an article as the Owner", async () => {
@@ -256,7 +294,8 @@ it("creates a news article from the form", async () => {
   fireEvent.change(screen.getByLabelText("Section heading"), { target: { value: "Details" } });
   fireEvent.change(screen.getByLabelText("Section body"), { target: { value: "All the details." } });
   fireEvent.click(screen.getByRole("button", { name: "Save draft article" }));
-  await screen.findByText("Big announcement");
+  // The Publish button only exists once the saved draft lands in the pipeline.
+  await screen.findByRole("button", { name: "Publish" });
   expect(api.createPbeNewsArticle).toHaveBeenCalledWith("org-1", {
     title: "Big announcement", summary: "Something happened.", articleType: "announcement",
     sections: [{ heading: "Details", body: "All the details." }],
@@ -297,7 +336,8 @@ it("imports a draft from a URL and prefills the editor", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Extract" }));
   expect(await screen.findByLabelText("Title")).toHaveValue("Imported title");
   expect(screen.getByLabelText(/Summary/)).toHaveValue("Imported summary.");
-  expect(screen.getByText("Point one")).toBeInTheDocument();
+  // The key point shows in the form's chip list and again in the live student preview.
+  expect(screen.getAllByText("Point one").length).toBeGreaterThan(0);
   expect(screen.getByLabelText("Source URL (optional)")).toHaveValue("https://nadpbe.org/imported");
   expect(api.extractPbeNewsDraft).toHaveBeenCalledWith("org-1", "https://nadpbe.org/imported");
 });

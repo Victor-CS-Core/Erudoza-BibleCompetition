@@ -146,7 +146,7 @@ export const ACADEMY_TRACKS: Record<AcademyTrackId, AcademyTrack> = {
     label: "Reviews",
     description: "Passages due for another look, before they fade.",
     ctaLabel: "Start due reviews",
-    href: "/student/study?mode=Review",
+    href: "/student/study?mode=Review&format=Memory",
     ctaTestId: "start-reviews",
   },
   rehearsal: {

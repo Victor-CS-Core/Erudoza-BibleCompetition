@@ -247,9 +247,14 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     const locked = !!result || submit.isPending || !!frozen.current;
     if (showReviewEntry) {
         const progressData = reviewProgress.data;
-        const dueItems = (progressData?.mastery ?? [])
+        // Mirror the daily mission review set (training/store.ts): distinct
+        // due knowledge units, earliest due first (unit id breaks ties),
+        // capped at 8 — the same population Progress.reviewDueCount counts.
+        // The uncapped list promised passages no review session would serve.
+        const dueItems = [...new Map((progressData?.mastery ?? [])
             .filter((entry) => entry.reviewDueAtUtc && Date.parse(entry.reviewDueAtUtc) <= Date.now())
-            .sort((a, b) => Date.parse(a.reviewDueAtUtc!) - Date.parse(b.reviewDueAtUtc!) || a.title.localeCompare(b.title));
+            .sort((a, b) => Date.parse(a.reviewDueAtUtc!) - Date.parse(b.reviewDueAtUtc!) || a.knowledgeUnitId.localeCompare(b.knowledgeUnitId))
+            .map((entry) => [entry.knowledgeUnitId, entry] as const)).values()].slice(0, 8);
         const hero = <header className="pbe-review-hero">
             <p className="pbe-review-crumb"><AppIcon name="review" />{framing.eyebrow}</p>
             <h1>Protect what you’ve learned</h1>
@@ -261,18 +266,24 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
             </ul>
         </header>;
         const startError = start.isError && !entryOverride ? <Notice tone="danger" role="alert">{start.error instanceof Error ? start.error.message : 'Review could not start.'}<Button variant="secondary" onClick={beginReview}>Retry start</Button></Notice> : null;
-        if (unavailable || entryOverride === 'noQuestions')
+        if (unavailable || entryOverride === 'noQuestions') {
+            // The server's unavailable explanation already ends with the
+            // coach/Memory guidance; append the local guidance only when the
+            // explanation does not carry it, so it renders exactly once.
+            const explanation = unavailable ?? 'No questions are ready for this yet.';
+            const guidance = /ask your coach/i.test(explanation) ? '' : ' Ask your coach to add questions for this season — or switch to Memory to keep practicing.';
             return <div className="er-study-stage space-y-4 pbe-review">{hero}
                 <div className="pbe-review-empty">
                     <div className="pbe-review-empty-art" aria-hidden="true"><AppIcon name="book" /></div>
                     <h2>No PBE questions to review</h2>
-                    <p>{unavailable ?? 'No questions are ready for this yet.'} Ask your coach to add questions for this season — or switch to Memory to keep practicing.</p>
+                    <p>{explanation}{guidance}</p>
                     <div className="pbe-review-empty-actions">
                         <LinkButton to={memory}>Choose Memory</LinkButton>
                         <LinkButton variant="ghost" to={entryHref}>Back to training</LinkButton>
                     </div>
                 </div>
             </div>;
+        }
         if (progressScopeIncomplete)
             return <div className="er-study-stage space-y-4 pbe-review">{hero}<Panel><Notice tone="danger">This chapter-practice link is incomplete. Return to chapter progress and choose Practice or Review again.</Notice></Panel></div>;
         if (reviewProgress.isPending)

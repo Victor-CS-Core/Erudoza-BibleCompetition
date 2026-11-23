@@ -16,7 +16,7 @@ export function AssignedPassages({ seasonId, seasonName, seasonStatus, mastery }
     enabled: !!me?.organizationId,
   });
   const items = [...(list.data ?? [])].sort((a, b) => a.bookKey.localeCompare(b.bookKey) || a.startChapter - b.startChapter || a.startVerse - b.startVerse);
-  return <Panel className="training-assigned-passages">
+  return <Panel className="training-assigned-passages" id="assigned-passages">
     <div className="training-panel-title"><h2>Your assigned passages</h2></div>
     {seasonStatus && <p className="training-assigned-state">{seasonName ? <><strong>{seasonName}</strong> · </> : null}{seasonStatus === "Active" ? "Ready to study — these are your passages for this season." : seasonStatus === "None" ? "Nothing assigned yet." : "Not started yet — your passages are saved here, and training opens when this season starts."}</p>}
     {list.isPending ? <LoadingState label="Loading assigned passages…" />

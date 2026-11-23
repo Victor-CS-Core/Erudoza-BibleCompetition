@@ -36,19 +36,28 @@ function formatLastActive(value: string | null): string {
   return `${days} days ago`;
 }
 
-/** Coach engagement overview (§7b): the at-a-glance "who's fading" table. */
-export function EngagementTab() {
+/** Coach engagement overview (§7b): the at-a-glance "who's fading" table.
+ *  `initialSeasonId` preselects the season filter (the coach overview's
+ *  "haven't practiced" deep link lands here with its season). */
+export function EngagementTab({ initialSeasonId }: { initialSeasonId?: string | null } = {}) {
   const { me } = useAuth();
   const [sortKey, setSortKey] = useState<SortKey>("practiceDaysThisWeek");
   const [ascending, setAscending] = useState(true);
+  const [seasonId, setSeasonId] = useState(initialSeasonId ?? "");
   const engagement = useQuery({
     queryKey: ["engagement", me?.organizationId],
     queryFn: () => api.engagement(me!.organizationId),
     enabled: !!me,
     staleTime: 30_000,
   });
+  const seasons = useQuery({ queryKey: ["seasons", me?.organizationId], queryFn: () => api.seasons(me!.organizationId), enabled: !!me });
+  // Engagement rows are org-wide; a season filter keeps the students the
+  // season's coverage says are assigned to it — the same membership the
+  // coach overview counts.
+  const coverage = useQuery({ queryKey: ["coverage", me?.organizationId, seasonId], queryFn: () => api.coverage(me!.organizationId, seasonId), enabled: !!me && !!seasonId });
+  const seasonMemberIds = useMemo(() => coverage.data ? new Set(coverage.data.students.map(s => s.studentUserId)) : null, [coverage.data]);
   const rows = useMemo(() => {
-    const data = engagement.data ?? [];
+    const data = (engagement.data ?? []).filter(row => !seasonId || (seasonMemberIds?.has(row.studentId) ?? false));
     const sorted = [...data].sort((a: EngagementRow, b: EngagementRow) => {
       const av = sortValue(a, sortKey), bv = sortValue(b, sortKey);
       if (av === null) return 1;
@@ -57,7 +66,7 @@ export function EngagementTab() {
       return ascending ? cmp : -cmp;
     });
     return sorted;
-  }, [engagement.data, sortKey, ascending]);
+  }, [engagement.data, sortKey, ascending, seasonId, seasonMemberIds]);
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) setAscending(!ascending);
@@ -70,6 +79,9 @@ export function EngagementTab() {
   return <Panel id="engagement" data-testid="engagement-tab">
     <h2>Engagement</h2>
     <p>Who's fading — streaks, XP and practice days at a glance. Choose a column heading to sort.</p>
+    {!!seasons.data?.length && <label>Season<Select value={seasonId} onChange={event => setSeasonId(event.target.value)} aria-label="Filter engagement by season"><option value="">All seasons</option>{seasons.data.map(season => <option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}
+    {seasonId && coverage.isPending && <LoadingState label="Loading the season's students…" />}
+    {seasonId && coverage.isError && <Notice tone="danger">The season filter could not load. <Button variant="secondary" size="compact" onClick={() => void coverage.refetch()}>Try again</Button></Notice>}
     {engagement.isPending && <LoadingState label="Loading engagement…" />}
     {engagement.isError && <Notice tone="danger">Engagement could not load. <Button variant="secondary" size="compact" onClick={() => void engagement.refetch()}>Try again</Button></Notice>}
     {engagement.data && (rows.length ? <>

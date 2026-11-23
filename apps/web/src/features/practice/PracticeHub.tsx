@@ -9,6 +9,7 @@ import { ThemedImage } from "../../components/brand/ThemedImage";
 import { CoachEvents } from "./CoachEvents";
 import { StudentPracticeInbox } from "./StudentPracticeInbox";
 import { useMyProfile } from "../profile/profile";
+import { UseAsProfileImageButton } from "../profile/UseAsProfileImageButton";
 import { HonorPatchCard } from "../profile/HonorPatchCard";
 import { MasteryHonorArtwork } from "../profile/MasteryHonorArtwork";
 import { evidenceDate } from "../student/trainingAssets";
@@ -63,7 +64,6 @@ export function PracticeHub() {
         <p>{coach ? "Enable Team Practice below to run events, simulations, and answer reviews for your club." : "Ask your coach to enable Team Practice for your club."}</p>
         {coach && <Button disabled={!!pending} onClick={() => void run("enable", () => practiceApi.enabled(org, true))}>{pending === "enable" ? "Enabling…" : "Enable Team Practice"}</Button>}
       </Panel> : coach ? <>
-        <label className="practice-active-season">Active season<Select value={selectedSeasonId} disabled={!data.seasons.length||!!pending} onChange={event=>setSeason(event.target.value)}>{!data.seasons.length&&<option value="">No active seasons</option>}{data.seasons.map(season=><option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>
         <CoachEvents org={org} seasons={data.seasons} />
         {(currentRoom||invitation)&&<Panel className="practice-current-strip" aria-label={currentRoom?'Current room':'Practice invitation'}><div><Badge tone="info">{currentRoom?.status??'Invitation'}</Badge><h2>{currentRoom?currentRoom.status==='Playing'?'Your match is in progress.':'Your room is waiting for players.':'You’re invited to practice.'}</h2><p>{currentRoom?`${seasonName(currentRoom.seasonId)} · ${roomSizeLabel(currentRoom)} · ${currentRoom.questionCount} questions · ${currentRoom.memberCount} players`: `${invitation!.inviterName} invited you to practice.`}</p>{currentRoom?.ownerId===me!.userId&&<p>You’re the room owner.</p>}</div><LinkButton to={currentRoom?roomLink(currentRoom.id,currentRoom.seasonId):`${base}#invitations`}>{currentRoom?currentRoom.status==='Playing'?'Return to match':'Open lobby':'View invitation'}</LinkButton></Panel>}
         {data.invitations.length > 0 && <Panel id="invitations" aria-labelledby="practice-invitations-title">
@@ -89,11 +89,11 @@ export function PracticeHub() {
         </div>
       </> : <StudentPracticeInbox org={org} data={data} />}
 
-      {!!data.simulationAchievements?.length&&<Panel id="simulation-achievements"><h2>Simulation patches<HelpTip label="About Simulation patches">Earned together through completed simulations. Choose an unlocked patch for your profile.</HelpTip></h2><div className="honor-patch-grid" aria-label="Simulation patches">{data.simulationAchievements.filter(h=>h.seasonId===selectedSeasonId).map(h=><HonorPatchCard key={h.key+h.seasonId}
+      {!!data.simulationAchievements?.length&&<Panel id="simulation-achievements"><h2>Simulation patches<HelpTip label="About Simulation patches">Earned together through completed simulations. Choose an unlocked patch for your profile.</HelpTip></h2>{data.seasons.length > 1 && <label className="practice-active-season">Season<Select value={selectedSeasonId} disabled={!!pending} onChange={event=>setSeason(event.target.value)}>{data.seasons.map(season=><option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}<div className="honor-patch-grid" aria-label="Simulation patches">{data.simulationAchievements.filter(h=>h.seasonId===selectedSeasonId).map(h=><HonorPatchCard key={h.key+h.seasonId}
         title={h.title}
         artwork={<MasteryHonorArtwork honorKey={h.key} size={208} muted={!h.earnedAtUtc} />}
         status={<><Badge tone={h.earnedAtUtc?"success":"neutral"}>{h.earnedAtUtc?"Earned":"Locked"}</Badge><span>{h.current} / {h.target}</span></>}
-        detail={<><MasteryHonorArtwork honorKey={h.key} size={192} muted={!h.earnedAtUtc} /><p>{h.requirement}</p><p>Progress: {h.current} of {h.target}</p>{h.earnedAtUtc?<><p>Earned <time dateTime={h.earnedAtUtc}>{evidenceDate(h.earnedAtUtc)}</time>. Your qualifying evidence is saved.</p><LinkButton variant="secondary" to={coach?"/admin/profile":"/student/profile"} aria-label={`Use ${h.title} as profile image`}>Use as profile image</LinkButton></>:<p>This patch is locked. Complete simulations together to unlock it for your profile.</p>}</>}
+        detail={<><MasteryHonorArtwork honorKey={h.key} size={192} muted={!h.earnedAtUtc} /><p>{h.requirement}</p><p>Progress: {h.current} of {h.target}</p>{h.earnedAtUtc?<><p>Earned <time dateTime={h.earnedAtUtc}>{evidenceDate(h.earnedAtUtc)}</time>. Your qualifying evidence is saved.</p><UseAsProfileImageButton honorKey={h.key} title={h.title} worn={profile.data?.avatarHonorKey === h.key} /></>:<p>This patch is locked. Complete simulations together to unlock it for your profile.</p>}</>}
       />)}</div></Panel>}
       <Panel id="achievements" aria-labelledby="practice-honors-title">
         <h2 id="practice-honors-title">Team Achievement patches<HelpTip label="About Team Achievement patches">Arcade mastery Achievement patches use finalized personal accuracy across distinct questions and passages. PBE team milestones record participation and finalized team scores separately.</HelpTip></h2>
@@ -101,7 +101,7 @@ export function PracticeHub() {
           title={honor.title}
           artwork={<MasteryHonorArtwork honorKey={honor.key} size={208} muted={!honor.earnedAtUtc} />}
           status={<><Badge tone={honor.earnedAtUtc ? "success" : "neutral"}>{honor.earnedAtUtc ? "Earned" : "Locked"}</Badge>{honor.earnedAtUtc && <span>Earned <time dateTime={honor.earnedAtUtc}>{evidenceDate(honor.earnedAtUtc)}</time></span>}</>}
-          detail={<><MasteryHonorArtwork honorKey={honor.key} size={192} muted={!honor.earnedAtUtc} /><p>{honor.category}</p><h3>How to unlock</h3><p>{honor.requirement}</p>{honor.earnedAtUtc ? <><p>Earned <time dateTime={honor.earnedAtUtc}>{evidenceDate(honor.earnedAtUtc)}</time>. Your qualifying evidence is saved.</p><LinkButton variant="secondary" to={coach ? "/admin/profile" : "/student/profile"} aria-label={`Use ${honor.title} as profile image`}>{profile.data?.avatarHonorKey === honor.key ? "Worn as profile image" : "Use as profile image"}</LinkButton></> : <p>This patch is locked. Meet every requirement to unlock it for your profile.</p>}</>}
+          detail={<><MasteryHonorArtwork honorKey={honor.key} size={192} muted={!honor.earnedAtUtc} /><p>{honor.category}</p><h3>How to unlock</h3><p>{honor.requirement}</p>{honor.earnedAtUtc ? <><p>Earned <time dateTime={honor.earnedAtUtc}>{evidenceDate(honor.earnedAtUtc)}</time>. Your qualifying evidence is saved.</p><UseAsProfileImageButton honorKey={honor.key} title={honor.title} worn={profile.data?.avatarHonorKey === honor.key} /></> : <p>This patch is locked. Meet every requirement to unlock it for your profile.</p>}</>}
         />)}</div>}
         <details className="ds-disclosure practice-milestone-history"><summary>Practice milestones<HelpTip label="About practice milestones">Team milestones record participation and finalized team scores. PBE milestones use their saved team rules and do not unlock profile images.</HelpTip></summary><div className="practice-awards">{data.achievements.map(award => <div key={award.key + "-" + award.seasonId}><MasteryHonorArtwork honorKey={"team:" + award.key.replace(/^pbe-team-v1:/, "")} size={72} /><strong>{award.title}</strong><small>{seasonName(award.seasonId)}</small><Badge>Milestone recorded</Badge></div>)}</div>{!data.achievements.length && <p className="practice-hub-secondary">No team milestones recorded.</p>}</details>
       </Panel>

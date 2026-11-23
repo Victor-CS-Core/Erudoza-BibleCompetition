@@ -77,3 +77,8 @@ it("incomplete rooms explain that the recap comes after completion", async () =>
   expect(await screen.findByRole("heading", { name: "This room has not completed yet" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Open room" })).toHaveAttribute("href", "/student/practice/room-1");
 });
+
+it("offers Review answers on the room page — the onward path, not a dead end", async () => {
+  page();
+  expect(await screen.findByRole("link", { name: "Review answers" })).toHaveAttribute("href", "/student/practice/room-1?seasonId=s");
+});
