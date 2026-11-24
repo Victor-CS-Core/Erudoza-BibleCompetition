@@ -1,44 +1,45 @@
 import { Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from "../components/ui";
 import { Navigate, createBrowserRouter, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { lazy, Suspense, type ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { LoginPage } from "../features/auth/LoginPage";
 import { CoachOnboardingPage } from "../features/auth/CoachOnboardingPage";
 import { LandingPage } from "../features/marketing/LandingPage";
 import { AppShell } from "../layouts/AppShell";
 import { RouteProblemPage } from "./RouteProblemPage";
 import { isMasterAdminEmail } from "../api/controlCenter";
+import { lazyPage } from "./lazyPage";
 // Route pages below are lazy-loaded so visitors only download the pages they
 // actually open. Landing/login/onboarding stay in the main bundle for first paint.
-const AdminHomePage = lazy(() => import("../features/admin/AdminHomePage").then(m => ({ default: m.AdminHomePage })));
-const SeasonWizardPage = lazy(() => import("../features/admin/SeasonWizardPage").then(m => ({ default: m.SeasonWizardPage })));
-const ContentPage = lazy(() => import("../features/admin/ContentPage").then(m => ({ default: m.ContentPage })));
-const AssignmentsPage = lazy(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.AssignmentsPage })));
-const SeasonsListPage = lazy(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.SeasonsListPage })));
-const StudentsPage = lazy(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.StudentsPage })));
-const CoachesPage = lazy(() => import("../features/admin/CoachesPage").then(m => ({ default: m.CoachesPage })));
-const MaterialsPage = lazy(() => import("../features/admin/MaterialsPage").then(m => ({ default: m.MaterialsPage })));
-const ControlCenterPage = lazy(() => import("../features/admin/ControlCenterPage"));
-const NewsPage = lazy(() => import("../features/news/NewsPage").then(m => ({ default: m.NewsPage })));
-const PrivacyPage = lazy(() => import("../features/legal/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
-const TermsPage = lazy(() => import("../features/legal/TermsPage").then(m => ({ default: m.TermsPage })));
-const ProgressPage = lazy(() => import("../features/student/ProgressPage").then(m => ({ default: m.ProgressPage })));
-const HonorsPage = lazy(() => import("../features/student/HonorsPage").then(m => ({ default: m.HonorsPage })));
-const MyAssignmentsPage = lazy(() => import("../features/student/MyAssignmentsPage").then(m => ({ default: m.MyAssignmentsPage })));
-const StudentHomePage = lazy(() => import("../features/student/StudentHomePage").then(m => ({ default: m.StudentHomePage })));
-const SeasonLeaderboardPage = lazy(() => import("../features/student/SeasonLeaderboardPage").then(m => ({ default: m.SeasonLeaderboardPage })));
-const ProfilePage = lazy(() => import("../features/profile/ProfilePage").then(m => ({ default: m.ProfilePage })));
-const SessionRecapPage = lazy(() => import("../features/student/SessionRecapPage").then(m => ({ default: m.SessionRecapPage })));
-const RoomRecapPage = lazy(() => import("../features/practice/RoomRecapPage").then(m => ({ default: m.RoomRecapPage })));
-const StudyPage = lazy(() => import("../features/student/StudyPage").then(m => ({ default: m.StudyPage })));
-const DesignSystemPage = lazy(() => import("../components/design-system/DesignSystemPage").then(m => ({ default: m.DesignSystemPage })));
-const WikiPage = lazy(() => import("../features/wiki/WikiPage").then(m => ({ default: m.WikiPage })));
+const AdminHomePage = lazyPage(() => import("../features/admin/AdminHomePage").then(m => ({ default: m.AdminHomePage })));
+const SeasonWizardPage = lazyPage(() => import("../features/admin/SeasonWizardPage").then(m => ({ default: m.SeasonWizardPage })));
+const ContentPage = lazyPage(() => import("../features/admin/ContentPage").then(m => ({ default: m.ContentPage })));
+const AssignmentsPage = lazyPage(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.AssignmentsPage })));
+const SeasonsListPage = lazyPage(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.SeasonsListPage })));
+const StudentsPage = lazyPage(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.StudentsPage })));
+const CoachesPage = lazyPage(() => import("../features/admin/CoachesPage").then(m => ({ default: m.CoachesPage })));
+const MaterialsPage = lazyPage(() => import("../features/admin/MaterialsPage").then(m => ({ default: m.MaterialsPage })));
+const ControlCenterPage = lazyPage(() => import("../features/admin/ControlCenterPage"));
+const NewsPage = lazyPage(() => import("../features/news/NewsPage").then(m => ({ default: m.NewsPage })));
+const PrivacyPage = lazyPage(() => import("../features/legal/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
+const TermsPage = lazyPage(() => import("../features/legal/TermsPage").then(m => ({ default: m.TermsPage })));
+const ProgressPage = lazyPage(() => import("../features/student/ProgressPage").then(m => ({ default: m.ProgressPage })));
+const HonorsPage = lazyPage(() => import("../features/student/HonorsPage").then(m => ({ default: m.HonorsPage })));
+const MyAssignmentsPage = lazyPage(() => import("../features/student/MyAssignmentsPage").then(m => ({ default: m.MyAssignmentsPage })));
+const StudentHomePage = lazyPage(() => import("../features/student/StudentHomePage").then(m => ({ default: m.StudentHomePage })));
+const SeasonLeaderboardPage = lazyPage(() => import("../features/student/SeasonLeaderboardPage").then(m => ({ default: m.SeasonLeaderboardPage })));
+const ProfilePage = lazyPage(() => import("../features/profile/ProfilePage").then(m => ({ default: m.ProfilePage })));
+const SessionRecapPage = lazyPage(() => import("../features/student/SessionRecapPage").then(m => ({ default: m.SessionRecapPage })));
+const RoomRecapPage = lazyPage(() => import("../features/practice/RoomRecapPage").then(m => ({ default: m.RoomRecapPage })));
+const StudyPage = lazyPage(() => import("../features/student/StudyPage").then(m => ({ default: m.StudyPage })));
+const DesignSystemPage = lazyPage(() => import("../components/design-system/DesignSystemPage").then(m => ({ default: m.DesignSystemPage })));
+const WikiPage = lazyPage(() => import("../features/wiki/WikiPage").then(m => ({ default: m.WikiPage })));
 /** Suspense boundary for a lazily-loaded route page. */
 function LazyPage({ label, children }: { label: string; children: ReactNode }) {
   return <Suspense fallback={<LoadingState label={label} />}>{children}</Suspense>;
 }
-const DisputeQueue = lazy(() => import("../features/practice/DisputeQueue").then(module=>({default:module.DisputeQueue})));
-const PracticePage = lazy(() => import("../features/practice/PracticePage").then(module => ({ default: module.PracticePage })));
+const DisputeQueue = lazyPage(() => import("../features/practice/DisputeQueue").then(module=>({default:module.DisputeQueue})));
+const PracticePage = lazyPage(() => import("../features/practice/PracticePage").then(module => ({ default: module.PracticePage })));
 function PracticeRoute() {
   return <Suspense fallback={<LoadingState label="Loading Team Practice…" />}><PracticePage /></Suspense>;
 }

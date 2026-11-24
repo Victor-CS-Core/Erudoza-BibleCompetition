@@ -165,7 +165,7 @@
 .cc-chart-panel .cc-panel-head h2 { font-size: 22px; }
 .cc-chart-panel .cc-panel-head p { color: #c3d4d8; }
 .cc-range { display: flex; border: 1px solid #52717b; border-radius: 7px; padding: 2px; flex: none; background: #153745; }
-.cc-range button { font: 600 11px/1 ui-monospace, monospace; padding: 6px; min-height: 32px; min-width: 34px; color: #d2e1e6; border-radius: 4px; background: none; border: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.cc-range button { font: 600 11px/1 ui-monospace, monospace; padding: 6px; min-height: 40px; min-width: 40px; color: #d2e1e6; border-radius: 4px; background: none; border: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .cc-range button[aria-pressed="true"] { background: #c2f6e5; color: #103831; }
 .cc-chart-meta { display: flex; align-items: center; gap: 8px; margin: 12px 0; color: #c3d4d8; font-size: 12px; }
 .cc-chart-meta b { font-size: 26px; color: #fff; line-height: 1.1; letter-spacing: -.045em; }

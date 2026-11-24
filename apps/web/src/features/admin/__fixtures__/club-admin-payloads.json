@@ -1,0 +1,877 @@
+{
+  "me": {
+    "status": 200,
+    "body": {
+      "userId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "organizationId": "11111111-1111-4111-8111-111111111111",
+      "organizationName": "Practice Club",
+      "displayName": "Coach",
+      "userName": "coach",
+      "email": null,
+      "kind": "Adult",
+      "role": "Owner"
+    }
+  },
+  "seasons": {
+    "status": 200,
+    "body": [
+      {
+        "id": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+        "organizationId": "11111111-1111-4111-8111-111111111111",
+        "name": "Summer 2027",
+        "yearLabel": "2027",
+        "ruleProfileKey": "PBE_STYLE_V1",
+        "ruleProfileVersion": 1,
+        "status": "Active",
+        "startDate": null,
+        "targetCompetitionDate": null,
+        "createdAtUtc": "2026-11-24T17:57:22.153Z",
+        "assignmentCount": 2,
+        "scopeUnitCount": 3
+      }
+    ]
+  },
+  "coverage": {
+    "status": 200,
+    "body": {
+      "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+      "seasonName": "Summer 2027",
+      "seasonStatus": "Active",
+      "students": [
+        {
+          "studentUserId": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+          "displayName": "Ana Example",
+          "userName": "ana",
+          "assignmentType": "PrimarySpecialist",
+          "bookKey": "DAN",
+          "startChapter": 1,
+          "startVerse": 1,
+          "endChapter": 1,
+          "endVerse": 3,
+          "eligibleUnitCount": 3,
+          "masteredCount": 0,
+          "reviewDueCount": 0,
+          "attemptCount": 0
+        },
+        {
+          "studentUserId": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+          "displayName": "Ben Example",
+          "userName": "ben",
+          "assignmentType": "PrimarySpecialist",
+          "bookKey": "DAN",
+          "startChapter": 1,
+          "startVerse": 1,
+          "endChapter": 1,
+          "endVerse": 3,
+          "eligibleUnitCount": 3,
+          "masteredCount": 0,
+          "reviewDueCount": 0,
+          "attemptCount": 0
+        }
+      ]
+    }
+  },
+  "students": {
+    "status": 200,
+    "body": [
+      {
+        "userId": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+        "userName": "ana",
+        "displayName": "Ana Example",
+        "email": null,
+        "isActive": true
+      },
+      {
+        "userId": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+        "userName": "ben",
+        "displayName": "Ben Example",
+        "email": null,
+        "isActive": true
+      }
+    ]
+  },
+  "engagement": {
+    "status": 200,
+    "body": [
+      {
+        "studentId": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+        "name": "Ana Example",
+        "streak": 0,
+        "xpThisWeek": 65,
+        "practiceDaysThisWeek": 0,
+        "lastActiveAtUtc": null,
+        "level": 1,
+        "levelName": "Seedling",
+        "honorsEarned": 0,
+        "quests": {
+          "completedThisWeek": 0,
+          "totalThisWeek": 0,
+          "rate": 0
+        }
+      },
+      {
+        "studentId": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+        "name": "Ben Example",
+        "streak": 0,
+        "xpThisWeek": 0,
+        "practiceDaysThisWeek": 0,
+        "lastActiveAtUtc": null,
+        "level": 1,
+        "levelName": "Seedling",
+        "honorsEarned": 0,
+        "quests": {
+          "completedThisWeek": 0,
+          "totalThisWeek": 0,
+          "rate": 0
+        }
+      }
+    ]
+  },
+  "coaches": {
+    "status": 200,
+    "body": [
+      {
+        "userId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "displayName": "Coach",
+        "email": null,
+        "role": "Owner"
+      }
+    ]
+  },
+  "coach-invitations": {
+    "status": 200,
+    "body": [
+      {
+        "id": "bf57c234-7aba-4a94-b0f1-5f5be9363f71",
+        "email": "newcoach@example.com",
+        "role": "Admin",
+        "createdAt": "2026-11-24T17:57:22.946Z",
+        "expiresAt": "2026-12-01T17:57:22.946Z",
+        "status": "pending"
+      }
+    ]
+  },
+  "coach-options": {
+    "status": 200,
+    "body": {
+      "available": false,
+      "turnstileSiteKey": null
+    }
+  },
+  "pbe-releases": {
+    "status": 200,
+    "body": [
+      {
+        "id": "bbbf784f-a515-459b-ab01-9ec3088bb6c3",
+        "yearLabel": "2027-28",
+        "status": "draft",
+        "origin": "manual",
+        "proposedBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "proposedAtUtc": "2026-11-24T17:57:22.671Z",
+        "decidedBy": null,
+        "decidedAtUtc": null,
+        "bookCount": 1,
+        "sectionCount": 1
+      },
+      {
+        "id": "1a2bd96d-6ce0-4731-82c6-50bdd7ac8a0f",
+        "yearLabel": "2026-27",
+        "status": "draft",
+        "origin": "manual",
+        "proposedBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "proposedAtUtc": "2026-11-24T17:57:22.661Z",
+        "decidedBy": null,
+        "decidedAtUtc": null,
+        "bookCount": 1,
+        "sectionCount": 1
+      }
+    ]
+  },
+  "pbe-release-detail": {
+    "status": 200,
+    "body": {
+      "proposal": {
+        "id": "1a2bd96d-6ce0-4731-82c6-50bdd7ac8a0f",
+        "yearLabel": "2026-27",
+        "status": "draft",
+        "origin": "manual",
+        "proposedBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "proposedAtUtc": "2026-11-24T17:57:22.661Z",
+        "material": {
+          "yearLabel": "2026-27",
+          "books": [
+            {
+              "bookKey": "ISA",
+              "bookName": "Isaiah",
+              "chapters": [
+                1,
+                2,
+                3
+              ]
+            }
+          ],
+          "commentary": {
+            "bookName": "Isaiah",
+            "title": "ISAIAH",
+            "sections": [
+              {
+                "heading": "Title and Authorship",
+                "body": "The superscription in Isaiah 1:1 gives the identity of the seer."
+              }
+            ]
+          },
+          "sourceUrls": {
+            "versesPdf": "https://nadpbe.org/wp-content/uploads/2025/10/isaiah-verses-manual.pdf",
+            "commentaryPdf": "https://nadpbe.org/wp-content/uploads/2025/10/isaiah-commentary-manual.pdf",
+            "resourcesPage": "https://nadpbe.org/pbe-resources/"
+          }
+        }
+      },
+      "diff": {
+        "booksChanged": true,
+        "rosterChanged": true,
+        "addedSections": [
+          "Title and Authorship"
+        ],
+        "removedSections": [],
+        "changedSections": []
+      },
+      "live": null
+    }
+  },
+  "pbe-materials": {
+    "status": 200,
+    "body": []
+  },
+  "pbe-news-articles": {
+    "status": 200,
+    "body": [
+      {
+        "id": "8ff20339-b7a5-4432-a107-07166e76bca9",
+        "title": "Regional finals recap",
+        "summary": "The new competition year is underway.",
+        "status": "draft",
+        "sections": [
+          {
+            "heading": "Details",
+            "body": "Everything you need to know."
+          }
+        ],
+        "articleType": "announcement",
+        "keyPoints": [
+          "Kickoff date confirmed"
+        ],
+        "linkedMaterials": [
+          {
+            "label": "PBE resources",
+            "href": "https://nadpbe.org/pbe-resources/"
+          }
+        ],
+        "readMinutes": 2,
+        "publishedAtUtc": null,
+        "publishedBy": null,
+        "sourceUrl": "https://nadpbe.org/announcement/",
+        "sourceLabel": "nadpbe.org",
+        "createdBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "createdAtUtc": "2026-11-24T17:57:22.769Z",
+        "updatedAtUtc": "2026-11-24T17:57:22.769Z"
+      },
+      {
+        "id": "1d75e0c0-f592-47e9-a1d0-ec5ac998bdb7",
+        "title": "PBE kickoff announced",
+        "summary": "The new competition year is underway.",
+        "status": "published",
+        "sections": [
+          {
+            "heading": "Details",
+            "body": "Everything you need to know."
+          }
+        ],
+        "articleType": "announcement",
+        "keyPoints": [
+          "Kickoff date confirmed"
+        ],
+        "linkedMaterials": [
+          {
+            "label": "PBE resources",
+            "href": "https://nadpbe.org/pbe-resources/"
+          }
+        ],
+        "readMinutes": 2,
+        "publishedAtUtc": "2026-11-20T00:00:00.000Z",
+        "publishedBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "sourceUrl": "https://nadpbe.org/announcement/",
+        "sourceLabel": "nadpbe.org",
+        "createdBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "createdAtUtc": "2026-11-24T17:57:22.756Z",
+        "updatedAtUtc": "2026-11-24T17:57:22.756Z"
+      }
+    ]
+  },
+  "disputes": {
+    "status": 200,
+    "body": {
+      "items": [],
+      "nextCursor": null
+    }
+  },
+  "training-today": {
+    "status": 200,
+    "body": {
+      "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+      "seasonName": "Summer 2027",
+      "seasonStatus": "Active",
+      "localDate": "2026-11-24",
+      "preferences": {
+        "timeZone": "UTC",
+        "weeklyTarget": 5,
+        "pending": null
+      },
+      "week": {
+        "weekStartLocalDate": "2026-11-23",
+        "timeZone": "UTC",
+        "target": 5,
+        "completedDays": 0,
+        "days": [
+          {
+            "localDate": "2026-11-23",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-24",
+            "credited": false,
+            "isToday": true
+          },
+          {
+            "localDate": "2026-11-25",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-26",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-27",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-28",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-29",
+            "credited": false,
+            "isToday": false
+          }
+        ]
+      },
+      "mission": {
+        "id": null,
+        "revision": null,
+        "status": "Suggested",
+        "scopeVersion": "c206ef4e81649e0cf45e3bd0163ddb6ef34f5b50ec83003bdb3f42900b9a93ce",
+        "steps": [
+          {
+            "kind": "Review",
+            "target": 0,
+            "completed": 0,
+            "status": "NotNeeded",
+            "sessionId": null
+          },
+          {
+            "kind": "Practice",
+            "target": 8,
+            "completed": 0,
+            "status": "Pending",
+            "sessionId": null
+          }
+        ],
+        "explanation": "Nothing is due for review."
+      },
+      "nextAction": {
+        "label": "Start practice drill",
+        "mode": "Practice",
+        "sessionId": null
+      },
+      "honors": [
+        {
+          "key": "exact-recall",
+          "ruleVersion": "training-v1",
+          "title": "Exact Recall",
+          "completed": 0,
+          "target": 5,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "reference-ready",
+          "ruleVersion": "training-v1",
+          "title": "Reference Ready",
+          "completed": 0,
+          "target": 10,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "chapter-strong",
+          "ruleVersion": "training-v1",
+          "title": "Chapter Strong",
+          "completed": 0,
+          "target": 3,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "full-coverage",
+          "ruleVersion": "training-v1",
+          "title": "Full Coverage",
+          "completed": 0,
+          "target": 3,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "steady-study",
+          "ruleVersion": "training-v1",
+          "title": "Steady Study",
+          "completed": 0,
+          "target": 4,
+          "earnedAtUtc": null,
+          "scopeLabel": "Academy practice weeks",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "review-complete",
+          "ruleVersion": "training-v1",
+          "title": "Review Complete",
+          "completed": 0,
+          "target": 1,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "streak-7",
+          "ruleVersion": "training-v1",
+          "title": "Week Streak",
+          "completed": 0,
+          "target": 7,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "streak-14",
+          "ruleVersion": "training-v1",
+          "title": "Fortnight Streak",
+          "completed": 0,
+          "target": 14,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "streak-30",
+          "ruleVersion": "training-v1",
+          "title": "Month Streak",
+          "completed": 0,
+          "target": 30,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        }
+      ],
+      "xp": {
+        "total": 0,
+        "level": 1,
+        "levelName": "Seedling",
+        "xpIntoLevel": 0,
+        "xpForNext": 100
+      },
+      "quests": [
+        {
+          "key": "marathon",
+          "title": "Marathon",
+          "description": "Finish a whole practice session",
+          "target": 1,
+          "progress": 0,
+          "completed": false,
+          "xpReward": 25
+        },
+        {
+          "key": "sharpshooter",
+          "title": "Sharpshooter",
+          "description": "Score 90% or better in one Practice session",
+          "target": 1,
+          "progress": 0,
+          "completed": false,
+          "xpReward": 25
+        },
+        {
+          "key": "explorer",
+          "title": "Explorer",
+          "description": "Practice a chapter you have barely started",
+          "target": 1,
+          "progress": 0,
+          "completed": false,
+          "xpReward": 25
+        }
+      ],
+      "streak": {
+        "current": 0,
+        "best": 0,
+        "state": "none"
+      },
+      "streakNudge": false
+    }
+  },
+  "notifications": {
+    "status": 200,
+    "body": {
+      "notifications": [],
+      "unreadCount": 0
+    }
+  },
+  "practice-bootstrap": {
+    "status": 200,
+    "body": {
+      "simulationAchievements": [
+        {
+          "key": "simulation:first-rehearsal",
+          "title": "First Rehearsal",
+          "category": "Simulation",
+          "requirement": "Complete one simulation.",
+          "target": 1,
+          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "current": 0,
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:event-ready",
+          "title": "Event Ready",
+          "category": "Simulation",
+          "requirement": "Complete a 90-question Full Event at standard time with halftime and two readings.",
+          "target": 1,
+          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "current": 0,
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:steady-team",
+          "title": "Steady Team",
+          "category": "Simulation",
+          "requirement": "Complete five simulations across at least three UTC dates.",
+          "target": 5,
+          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "current": 0,
+          "earnedAtUtc": null,
+          "distinctDays": 0
+        },
+        {
+          "key": "simulation:trusted-scribe",
+          "title": "Trusted Scribe",
+          "category": "Simulation",
+          "requirement": "Explicitly submit answers to 30 distinct questions as scribe in completed simulations.",
+          "target": 30,
+          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "current": 0,
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:team-precision",
+          "title": "Team Precision",
+          "category": "Simulation",
+          "requirement": "Resolve at least 30 distinct questions with aggregate team accuracy of at least 90%; latest results count and none may be pending.",
+          "target": 30,
+          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "current": 0,
+          "earnedAtUtc": null,
+          "accuracyPercent": 0,
+          "pendingCount": 0
+        }
+      ],
+      "enabled": true,
+      "seasons": [
+        {
+          "id": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "organizationId": "11111111-1111-4111-8111-111111111111",
+          "name": "Summer 2027",
+          "yearLabel": "2027",
+          "ruleProfileKey": "PBE_STYLE_V1",
+          "ruleProfileVersion": 1,
+          "status": "Active",
+          "startDate": null,
+          "targetCompetitionDate": null,
+          "createdAtUtc": "2026-11-24T17:57:22.153Z"
+        }
+      ],
+      "players": [
+        {
+          "id": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+          "displayName": "Ana Example"
+        },
+        {
+          "id": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+          "displayName": "Ben Example"
+        },
+        {
+          "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "displayName": "Coach"
+        }
+      ],
+      "rooms": [],
+      "invitations": [],
+      "achievements": [],
+      "questions": [],
+      "trends": []
+    }
+  },
+  "identities": {
+    "status": 200,
+    "body": [
+      {
+        "userId": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+        "avatarHonorKey": null,
+        "avatarKind": "initials",
+        "character": null
+      },
+      {
+        "userId": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+        "avatarHonorKey": null,
+        "avatarKind": "initials",
+        "character": null
+      },
+      {
+        "userId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "avatarHonorKey": null,
+        "avatarKind": "initials",
+        "character": null
+      }
+    ]
+  },
+  "profile-me": {
+    "status": 200,
+    "body": {
+      "userId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "displayName": "Coach",
+      "avatarHonorKey": null,
+      "honors": [
+        {
+          "key": "solo:exact-recall",
+          "title": "Exact Recall",
+          "category": "Scripture",
+          "requirement": "Reach 90 in exact wording on 12 distinct assigned passages.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "solo:reference-ready",
+          "title": "Reference Ready",
+          "category": "Scripture",
+          "requirement": "Reach 90 in reference recall on 20 distinct assigned passages.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "solo:chapter-strong",
+          "title": "Chapter Strong",
+          "category": "Scripture",
+          "requirement": "Bring every assigned passage in one chapter, with at least 10 passages, to the honor standard: exact wording 90, reference 80, recognition 80.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "solo:full-coverage",
+          "title": "Complete Mastery",
+          "category": "Scripture",
+          "requirement": "Bring every assigned passage in a scope of at least 30 passages to the honor standard: exact wording 90, reference 80, recognition 80.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "solo:steady-study",
+          "title": "Proven Retention",
+          "category": "Scripture",
+          "requirement": "Retain the honor standard (exact wording 90, reference 80, recognition 80) on 20 distinct passages and pass an unaided advanced typed retest at least 48 hours after first reaching that standard on each.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "solo:review-complete",
+          "title": "Review Complete",
+          "category": "Scripture",
+          "requirement": "Correctly answer 8 distinct due passages on the first accepted advanced typed review attempt, without hints, while meeting the honor standard (exact wording 90, reference 80, recognition 80).",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:first-fellowship",
+          "title": "First Fellowship",
+          "category": "Team Practice",
+          "requirement": "Reach 90% personal accuracy across 10 distinct manually submitted questions as scribe.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:team-steady",
+          "title": "Team Steady",
+          "category": "Team Practice",
+          "requirement": "Complete 3 matches with at least 90% team accuracy and reach 90% personal accuracy across 30 distinct manual questions.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:shared-scribe",
+          "title": "Shared Scribe",
+          "category": "Team Practice",
+          "requirement": "Reach 95% personal accuracy across 30 distinct manual questions from at least 10 passages.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:team-precision",
+          "title": "Team Precision",
+          "category": "Team Practice",
+          "requirement": "Reach 95% team accuracy across 50 distinct questions from 15 passages, plus 90% personal accuracy across 10 distinct manual questions.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:rehearsal-complete",
+          "title": "Rehearsal Complete",
+          "category": "Team Practice",
+          "requirement": "Complete a resolved coached 90-question rehearsal with 90% team accuracy, plus 90% personal accuracy across 10 distinct manual questions.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:first-rehearsal",
+          "title": "First Rehearsal",
+          "category": "Simulation",
+          "requirement": "Complete one simulation.",
+          "target": 1,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:event-ready",
+          "title": "Event Ready",
+          "category": "Simulation",
+          "requirement": "Complete a 90-question Full Event at standard time with halftime and two readings.",
+          "target": 1,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:steady-team",
+          "title": "Steady Team",
+          "category": "Simulation",
+          "requirement": "Complete five simulations across at least three UTC dates.",
+          "target": 5,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:trusted-scribe",
+          "title": "Trusted Scribe",
+          "category": "Simulation",
+          "requirement": "Explicitly submit answers to 30 distinct questions as scribe in completed simulations.",
+          "target": 30,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:team-precision",
+          "title": "Team Precision",
+          "category": "Simulation",
+          "requirement": "Resolve at least 30 distinct questions with aggregate team accuracy of at least 90%; latest results count and none may be pending.",
+          "target": 30,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        }
+      ],
+      "unlockedCosmetics": [],
+      "cosmeticLocks": [
+        {
+          "id": "background:starlight",
+          "requirement": "Reach a 7-day practice streak"
+        },
+        {
+          "id": "style:buzz",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:waves",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:locs",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:braids",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:natural-curls",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:low-bun",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "sash:2",
+          "requirement": "Earn any Team Practice Achievement patch"
+        },
+        {
+          "id": "sash:3",
+          "requirement": "Earn any Simulation Achievement patch"
+        }
+      ],
+      "character": {
+        "bodyType": "male",
+        "style": "curls",
+        "hairColor": "brown",
+        "skin": "medium",
+        "eyes": "brown",
+        "attire": "student",
+        "background": "sunrise",
+        "slots": [
+          null,
+          null,
+          null
+        ]
+      },
+      "avatarKind": "initials",
+      "characterVersion": 0,
+      "shareOptions": {
+        "showName": true,
+        "showBrand": true,
+        "showQR": true
+      },
+      "sharePatches": [],
+      "canUseMasterGuide": true
+    }
+  },
+  "meta": {
+    "status": 0,
+    "body": {
+      "orgId": "11111111-1111-4111-8111-111111111111",
+      "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+      "ownerId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "s1": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+      "s2": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+      "draftProposalId": "1a2bd96d-6ce0-4731-82c6-50bdd7ac8a0f"
+    }
+  }
+}

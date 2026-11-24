@@ -274,3 +274,16 @@ it("keeps the rest of the page usable when one panel fails", async () => {
   expect(await screen.findByText("Weekly digest")).toBeInTheDocument();
   expect(screen.getByText(/Nov 16–22, 2026/)).toBeInTheDocument();
 });
+
+it("isolates a panel RENDER throw: a malformed chart degrades only that panel (Nov 24 audit)", async () => {
+  // A future field drift that drops `chart` from the overview payload must
+  // not take the tab down the way the Content-tab drift did: the chart panel
+  // shows its own error box while metrics, digest and attention still render.
+  getFixtures.overview = { ...overview, chart: undefined };
+  page("/admin/control-center?tab=overview");
+  expect(await screen.findByText(/This section could not be displayed/)).toBeInTheDocument();
+  expect(await screen.findByText("Total users")).toBeInTheDocument();
+  expect(await screen.findByText("Today by club")).toBeInTheDocument();
+  expect(await screen.findByText("Weekly digest")).toBeInTheDocument();
+  expect(await screen.findByText("Needs attention")).toBeInTheDocument();
+});

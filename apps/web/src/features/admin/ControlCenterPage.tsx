@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Component, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { Badge, Button, EmptyState, Input, Notice, Select, Textarea, useToast } from "../../components/ui";
@@ -70,6 +70,28 @@ function PanelSkeleton({ label, rows = 3 }: { label: string; rows?: number }) {
   );
 }
 
+/** Render-throw isolation for one panel. QueryState already isolates query
+ *  ERRORS; this boundary isolates throws while RENDERING a successful
+ *  payload (the Nov 24 Content-tab crash class: a field-name drift made a
+ *  formatter throw inside the panel, and with no boundary here it escaped
+ *  to the app error page and took the whole tab down). A drifted panel now
+ *  degrades to its own error box with a retry; sibling panels keep working. */
+class PanelBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="cc-panel-error">
+          <Notice tone="danger">This section could not be displayed. The rest of the page is unaffected.</Notice>
+          <Button variant="secondary" size="compact" onClick={() => this.setState({ error: null })}>Retry</Button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function QueryState<T>({ query, label, skeleton, children }: { query: UseQueryResult<T>; label: string; skeleton?: ReactNode; children: (data: T) => ReactNode }) {
   if (query.isPending) return <>{skeleton ?? <div className="cc-panel"><PanelSkeleton label={label} /></div>}</>;
   if (query.isError || !query.data) {
@@ -80,7 +102,7 @@ function QueryState<T>({ query, label, skeleton, children }: { query: UseQueryRe
       </div>
     );
   }
-  return <>{children(query.data)}</>;
+  return <PanelBoundary>{children(query.data)}</PanelBoundary>;
 }
 
 function DeltaFoot({ current, previous }: { current: number; previous: number }) {
@@ -222,6 +244,14 @@ function DigestPanel() {
 interface AttentionItem { key: string; tone: "warning" | "danger"; count: number; label: string; to: string }
 
 function AttentionPanel() {
+  return (
+    <PanelBoundary>
+      <AttentionPanelBody />
+    </PanelBoundary>
+  );
+}
+
+function AttentionPanelBody() {
   const seasons = useQuery({ queryKey: ["control-center", "seasons"], queryFn: controlCenterApi.seasons });
   const content = useQuery({ queryKey: ["control-center", "content"], queryFn: controlCenterApi.content });
   const support = useQuery({ queryKey: ["control-center", "support"], queryFn: controlCenterApi.support });
@@ -299,8 +329,8 @@ function OverviewTab() {
               </Metric>
             </div>
             <div className="cc-split">
-              <PracticeChart data={data} />
-              <TodayByClub data={data} />
+              <PanelBoundary><PracticeChart data={data} /></PanelBoundary>
+              <PanelBoundary><TodayByClub data={data} /></PanelBoundary>
             </div>
           </>
         )}
@@ -418,7 +448,7 @@ function ContentTab() {
                 <div className="cc-right"><b>{num(data.releasesLive)} materials</b></div>
               </div>
               <div className="cc-data-row">
-                <div><strong>News</strong><small>{num(data.newsSuggestions)} suggestions · {num(data.newsDrafts)} drafts · Oldest suggestion {fmtDate(data.newsOldestSuggestionAtUtc)}</small></div>
+                <div><strong>News</strong><small>{num(data.newsSuggestions)} watcher suggestions · {num(data.newsDrafts)} drafts in total · Oldest suggestion {fmtDate(data.newsOldestSuggestionAtUtc)}</small></div>
                 <div className="cc-right"><b>{num(data.newsPublished)} published</b></div>
               </div>
               <div className="cc-data-row">
