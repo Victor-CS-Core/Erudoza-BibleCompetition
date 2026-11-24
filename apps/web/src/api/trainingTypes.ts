@@ -130,6 +130,8 @@ export type SessionRecap = {
     correct: number;
     /** PBE recaps only: answers that earned partial (not full) points. */
     partial?: number;
+    /** Memory recaps only: cards whose spelling slips were corrected with the second chance. */
+    spellingCorrected?: number;
     targetCardCount: number;
     fullTargetReached: boolean;
     newlyCreditedDay: boolean;

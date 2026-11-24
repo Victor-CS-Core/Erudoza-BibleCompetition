@@ -233,31 +233,34 @@ describe('production character profile', () => {
     expect(view.container.querySelector('.character-panel')).toBeNull();
   });
 
-  it('keeps one persistent face per tab: the stage tabs yield the header thumbnail and the strip', async () => {
+  it('keeps one identical sash home per tab: the combined header row, on all four tabs', async () => {
     const view = mount();
     await screen.findByRole('navigation', { name: 'Profile pages' });
-    const headerThumb = () => view.container.querySelector('.profile-header-card .profile-sash-thumb');
-    // Profile tab: header carries the face, and the collapsed strip stands by.
-    expect(headerThumb()).not.toBeNull();
-    expect(screen.getByTestId('profile-sash-strip')).toBeInTheDocument();
-    expect(view.container.querySelector('[data-testid="profile-sash-strip"] .character-portrait')).not.toBeNull();
-    // Character tab: the sticky character stage is the face's home — the
-    // header row keeps count + actions but drops its thumbnail, and no
-    // strip duplicates the stage's persistent preview.
+    // Uniformity (user report, Nov 23 evening): the sash row lives only in
+    // the combined header — same thumbnail, same count, same Edit + Share
+    // actions on every tab — and the collapsed strip stands by everywhere.
+    // The stage tabs used to drop the header thumbnail and render a second
+    // sash card (the .character-panel-mini) under the header instead.
+    for (const tab of ['Profile', 'Character', 'Achievement patches', 'Share'] as const) {
+      if (tab !== 'Profile') await page(tab);
+      expect(view.container.querySelectorAll('.profile-sash-row')).toHaveLength(1);
+      expect(view.container.querySelector('.character-panel-mini')).toBeNull();
+      const row = view.container.querySelector('.profile-header-card .profile-sash-row') as HTMLElement;
+      expect(row).not.toBeNull();
+      expect(row.querySelector('.profile-sash-thumb')).not.toBeNull();
+      expect(within(row).getByText('Sash · 0 of 3 Achievement patches selected')).toBeVisible();
+      expect(within(row).getByRole('button', { name: 'Edit' })).toBeVisible();
+      expect(within(row).getByRole('button', { name: 'Share' })).toBeVisible();
+      expect(within(row).queryByRole('button', { name: 'Profile' })).toBeNull();
+      expect(screen.getByTestId('profile-sash-strip')).toBeInTheDocument();
+      expect(view.container.querySelector('[data-testid="profile-sash-strip"] .character-portrait')).not.toBeNull();
+    }
+    // The desktop character stage itself is untouched on the stage tabs.
     await page('Character');
-    expect(headerThumb()).toBeNull();
-    expect(screen.queryByTestId('profile-sash-strip')).toBeNull();
     const panel = view.container.querySelector('.character-panel');
     expect(panel).not.toBeNull();
-    expect(panel!.querySelector('.character-mini-thumb')).not.toBeNull();
-    // Achievement patches tab: same treatment as Character.
+    expect(panel!.querySelector('.character-panel-full')).not.toBeNull();
     await page('Achievement patches');
-    expect(headerThumb()).toBeNull();
-    expect(screen.queryByTestId('profile-sash-strip')).toBeNull();
-    expect(view.container.querySelector('.character-panel')).not.toBeNull();
-    // Share tab: no stage, so the header + strip carry the face again.
-    await page('Share');
-    expect(headerThumb()).not.toBeNull();
-    expect(screen.getByTestId('profile-sash-strip')).toBeInTheDocument();
+    expect(view.container.querySelector('.character-panel .character-panel-full')).not.toBeNull();
   });
 });

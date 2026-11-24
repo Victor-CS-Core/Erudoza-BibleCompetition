@@ -162,13 +162,15 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
       <option value="">Empty · dotted</option>{profile.honors.map(honor => <option key={honor.key} value={honor.key} disabled={!honor.earnedAtUtc || config.slots.some((slot, i) => i !== index && slot === honor.key)}>{honor.title}{honor.earnedAtUtc ? '' : ' · Locked'}</option>)}
     </Select>}
   </div>; })}</div>;
-  // Avatar dedupe (Nov 23): the character's face has exactly one persistent
-  // home per tab. On Profile and Share there is no character stage, so the
-  // combined header's sash row carries the thumbnail and the sash strip
-  // takes over on scroll. On Character and Achievement patches the sticky
-  // character stage is that home, so the header row drops its thumbnail
-  // and no strip renders there.
-  const sashFace = page === 'Profile' || page === 'Share';
+  // Avatar dedupe (Nov 23): the character's face has exactly one sash home
+  // per tab — the combined header's sash row, identical on all four tabs
+  // (thumbnail, count, Edit + Share), with the sash strip as its collapsed
+  // state on scroll. The first pass split the tabs (header thumbnail only
+  // on Profile/Share; Character/Achievement patches relied on the stage
+  // plus a mini sash card), but at phone widths the stage is display:none
+  // and the mini card rendered as a SECOND sash row under the header —
+  // the duplication the user reported. The mini card is gone and the
+  // header is uniform; the desktop stage keeps its own figure caption.
   return <div className="training-page profile-page">
     <div className="profile-navigation"><span className="breadcrumb">Account <span aria-hidden="true">/</span> {page}</span><nav aria-label="Profile pages">{pages.map(item => <Button key={item} variant="ghost" aria-current={page === item ? 'page' : undefined} onClick={() => navigate(item)}>{item}</Button>)}</nav></div>
     <div ref={heading} tabIndex={-1} className="profile-heading"><PageHeader title={page === 'Profile' ? 'Your profile' : page === 'Character' ? 'Make your Pathfinder' : page === 'Achievement patches' ? 'Your displayed Achievement patches' : 'Share your character'} description={`${profile.displayName} · ${me?.organizationName ?? ''}`}/></div>
@@ -186,12 +188,12 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
       seasonLabel={today.data?.seasonName || undefined}
     >
       <div className="profile-sash-row">
-        {sashFace && <button type="button" className="profile-sash-thumb" onClick={openFullscreen} aria-label="View your character fullscreen"><CharacterPortrait appearance={config} onError={setRenderError}/></button>}
+        <button type="button" className="profile-sash-thumb" onClick={openFullscreen} aria-label="View your character fullscreen"><CharacterPortrait appearance={config} onError={setRenderError}/></button>
         <p className="figure-caption">Sash · {config.slots.filter(Boolean).length} of 3 Achievement patches selected</p>
-        <div className="figure-actions"><Button size="compact" onClick={() => navigate(page === 'Character' ? 'Profile' : 'Character')}>{page === 'Character' ? 'Profile' : 'Edit'}</Button><Button size="compact" variant="secondary" onClick={() => navigate('Share')}>Share</Button></div>
+        <div className="figure-actions"><Button size="compact" onClick={() => navigate('Character')}>Edit</Button><Button size="compact" variant="secondary" onClick={() => navigate('Share')}>Share</Button></div>
       </div>
     </PlayerCard>
-    {sashFace && <ProfileSashStrip appearance={config} name={profile.displayName} level={today.data ? `Level ${today.data.xp.level} · ${today.data.xp.levelName}` : null} onEdit={() => navigate('Character')} onShare={() => navigate('Share')} onOpenFullscreen={openFullscreen} onError={setRenderError}/>}
+    <ProfileSashStrip appearance={config} name={profile.displayName} level={today.data ? `Level ${today.data.xp.level} · ${today.data.xp.levelName}` : null} onEdit={() => navigate('Character')} onShare={() => navigate('Share')} onOpenFullscreen={openFullscreen} onError={setRenderError}/>
     {unavailable && <Notice><p>Some selected Achievement patches, attire, or character options are no longer available to your account. Remove those choices to keep editing the rest of your profile.</p><Button variant="secondary" disabled={save.isPending || reloading} onClick={removeUnavailable}>Remove unavailable choices</Button></Notice>}
     {saveError && <Notice tone="danger"><p>{saveError}</p><p>Your changes are still here.{conflict ? ' Reload the saved profile before making a new save.' : ' Review your choices and try again.'}</p>{conflict && <Button variant="secondary" disabled={save.isPending} onClick={() => setConfirmReload(true)}>Reload saved profile</Button>}</Notice>}
     {renderError && <Notice tone="danger"><p>{renderError}</p><Button variant="secondary" onClick={() => { setRenderError(''); setRendererVersion(version => version + 1); }}>Retry artwork</Button></Notice>}
@@ -203,7 +205,7 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
           options={draft.shareOptions} setOptions={(next: SetStateAction<ShareOptions>) => change(current => ({ ...current, shareOptions: applyState(next, current.shareOptions) }))}
           onEdit={() => navigate('Character')} onBrowseHonors={() => navigate('Achievement patches')} onError={setRenderError}/>
           : <div className={page === 'Profile' ? 'creator-layout creator-layout--solo' : 'creator-layout'}>
-            {page !== 'Profile' && <Panel className="character-panel"><div className="character-panel-full"><PreviewModeToggle mode={previewMode} onChange={setPreviewMode}/>{previewMode === 'animated' ? <AnimatedCharacterView config={config} onError={setRenderError} onActivate={openFullscreen}/> : <CharacterPreview config={config} onError={setRenderError} onActivate={openFullscreen}/>}<p className="figure-caption">Sash · {config.slots.filter(Boolean).length} of 3 Achievement patches selected</p><div className="figure-actions"><Button onClick={() => navigate(page === 'Character' ? 'Profile' : 'Character')}>{page === 'Character' ? 'Back to profile' : 'Edit character'}</Button><Button variant="secondary" onClick={() => navigate('Share')}>Share character</Button></div></div><div className="character-panel-mini"><button type="button" className="character-mini-thumb" onClick={openFullscreen} aria-label="View your character fullscreen"><CharacterPortrait appearance={config} onError={setRenderError}/></button><p className="figure-caption">Sash · {config.slots.filter(Boolean).length} of 3 Achievement patches selected</p><div className="figure-actions"><Button size="compact" onClick={() => navigate(page === 'Character' ? 'Profile' : 'Character')}>{page === 'Character' ? 'Profile' : 'Edit'}</Button><Button size="compact" variant="secondary" onClick={() => navigate('Share')}>Share</Button></div></div></Panel>}
+            {page !== 'Profile' && <Panel className="character-panel"><div className="character-panel-full"><PreviewModeToggle mode={previewMode} onChange={setPreviewMode}/>{previewMode === 'animated' ? <AnimatedCharacterView config={config} onError={setRenderError} onActivate={openFullscreen}/> : <CharacterPreview config={config} onError={setRenderError} onActivate={openFullscreen}/>}<p className="figure-caption">Sash · {config.slots.filter(Boolean).length} of 3 Achievement patches selected</p><div className="figure-actions"><Button onClick={() => navigate(page === 'Character' ? 'Profile' : 'Character')}>{page === 'Character' ? 'Back to profile' : 'Edit character'}</Button><Button variant="secondary" onClick={() => navigate('Share')}>Share character</Button></div></div></Panel>}
             <div className="editor-panels">
               {page === 'Profile' && <><Panel><h2>Profile image</h2><p className="help">Choose how you appear across Erudoza.</p><div className="avatar-options">
                 <Button variant={draft.avatarKind === 'honor' ? 'primary' : 'secondary'} aria-label="Achievement patch" aria-pressed={draft.avatarKind === 'honor'} disabled={!defaultHonor} onClick={() => chooseAvatar('honor', defaultHonor)}>{defaultHonor ? <MasteryHonorArtwork honorKey={defaultHonor} size={145}/> : <span className="avatar-empty"><span className="empty-ring"/></span>}<span>Achievement patch</span></Button>

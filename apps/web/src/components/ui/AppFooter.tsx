@@ -27,6 +27,12 @@ export function AppFooter({ variant = "workspace", supportEnabled = false }: Pro
         <InstallApp />
         <CoffeeFooter enabled={supportEnabled} />
       </div>
+      {variant !== "account" && (
+        <p className="ds-caption app-footer-independence">
+          Erudoza is an independent project and is not affiliated with or endorsed by the
+          Seventh-day Adventist Church. See the <Link to="/terms">Terms</Link> for details.
+        </p>
+      )}
     </div>
   </footer>;
 }

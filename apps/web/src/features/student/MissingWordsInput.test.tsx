@@ -59,7 +59,7 @@ it('announces one summary line instead of per-blank stacked feedback', () => {
   expect(screen.getByLabelText('Blank 2 of 4')).toHaveStyle({ borderBottom: '2px solid var(--er-coral)' });
 });
 
-it('calls out a spelling slip with the diff spelling styling and the PBE credit line, while a plainly wrong slot gets neither', () => {
+it('calls out a spelling slip with the diff spelling styling, while a plainly wrong slot gets neither', () => {
   render(<MissingWordsInput tokens={tokens} values={{ 2: 'baptised', 3: 'mail' }} disabled={false} onChange={vi.fn()}
     results={[
       { index: 2, isCorrect: false, expected: 'baptized', spelling: true },
@@ -71,7 +71,7 @@ it('calls out a spelling slip with the diff spelling styling and the PBE credit 
   expect(spellingSlot).toHaveAttribute('data-spelling-slip', 'true');
   expect(spellingSlot).toHaveStyle({ borderBottom: '2px solid var(--er-teal)' });
   const callout = screen.getByTestId('missing-words-spelling');
-  expect(callout).toHaveTextContent('Spelling: you wrote “baptised” for “baptized” — a spelling slip, not a wrong word; in PBE a misspelling can still earn credit.');
+  expect(callout).toHaveTextContent('Spelling: you wrote “baptised” for “baptized” — a spelling slip, not a wrong word.');
   // Scoring display is unchanged: the spelling slot still counts as wrong.
   expect(screen.getByTestId('missing-words-summary')).toHaveTextContent('0 of 4 correct — review blank 1, blank 2');
 
@@ -81,6 +81,50 @@ it('calls out a spelling slip with the diff spelling styling and the PBE credit 
   expect(wrongSlot).toHaveStyle({ borderBottom: '2px solid var(--er-coral)' });
   expect(callout).not.toHaveTextContent('mail');
   expect(callout).not.toHaveTextContent('letters');
+});
+
+it('fix mode re-opens only the listed blanks and silences their pre-fix spelling notes', () => {
+  const changed = vi.fn();
+  render(<MissingWordsInput tokens={tokens} values={{ 2: 'baptised', 3: 'letters' }} disabled={false} onChange={changed}
+    editableIndexes={[2]}
+    results={[
+      { index: 2, isCorrect: false, expected: 'baptized', spelling: true },
+      { index: 3, isCorrect: true, expected: 'letters' },
+    ]} />);
+
+  expect(screen.getByLabelText('Blank 1 of 4')).not.toBeDisabled();
+  expect(screen.getByLabelText('Blank 2 of 4')).toBeDisabled();
+  expect(screen.getByLabelText('Blank 3 of 4')).toBeDisabled();
+  expect(screen.queryByTestId('missing-words-spelling')).not.toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText('Blank 2 of 4'), { target: { value: 'changed' } });
+  expect(changed).not.toHaveBeenCalled();
+  fireEvent.change(screen.getByLabelText('Blank 1 of 4'), { target: { value: 'baptized' } });
+  expect(changed).toHaveBeenCalledWith(expect.objectContaining({ 2: 'baptized' }));
+});
+
+it('renders a corrected blank gold, counts it apart in the summary, and notes both fix outcomes', () => {
+  render(<MissingWordsInput tokens={tokens} values={{ 2: 'baptized', 3: 'letres', 8: 'sent' }} disabled onChange={vi.fn()}
+    results={[
+      { index: 2, isCorrect: true, expected: 'baptized', corrected: true },
+      { index: 3, isCorrect: false, expected: 'letters', spelling: true },
+      { index: 8, isCorrect: true, expected: 'sent' },
+    ]}
+    fixResults={[
+      { index: 2, isCorrect: true, expected: 'baptized' },
+      { index: 3, isCorrect: false, expected: 'letters' },
+    ]} />);
+
+  const correctedSlot = screen.getByLabelText('Blank 1 of 4');
+  expect(correctedSlot).toHaveAttribute('data-spelling-corrected', 'true');
+  expect(correctedSlot).toHaveStyle({ borderBottom: '2px solid var(--er-thread-gold)' });
+  expect(screen.getByTestId('missing-words-summary')).toHaveTextContent('1 of 4 correct · 1 fixed for spelling');
+  const notes = screen.getByTestId('missing-words-spelling-fix');
+  expect(notes).toHaveTextContent('Spelling fixed: “baptized” — that blank earns partial credit now.');
+  expect(notes).toHaveTextContent('The verse says “letters”.');
+  // The still-wrong fixed blank keeps its review ordinal; its pre-fix
+  // spelling note is replaced by the fix note.
+  expect(screen.getByTestId('missing-words-summary')).toHaveTextContent('review blank 2');
+  expect(screen.queryByTestId('missing-words-spelling')).not.toBeInTheDocument();
 });
 
 it('offers mobile Next and Done navigation without implicit submission or composition interruption', () => {

@@ -77,6 +77,7 @@ export function SessionRecapPage() {
           const tally = [
             { label: "Correct answers", value: data.correct },
             ...(data.partial && data.partial > 0 ? [{ label: "Partial answers", value: data.partial }] : []),
+            ...(data.spellingCorrected && data.spellingCorrected > 0 ? [{ label: "Spelling fixes", value: data.spellingCorrected }] : []),
             { label: "Answers given", value: data.attempted },
             { label: "Session goal (cards)", value: data.targetCardCount },
             { label: "XP earned", value: `+${data.xp.earned}` },

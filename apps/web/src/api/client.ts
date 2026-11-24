@@ -155,6 +155,8 @@ export const api = {
     request<{ sessionId: string; remaining: number }>(`/api/v1/study/sessions/${sessionId}/shuffle`, { method: "POST" }),
   reblankCard: (sessionId: string, challengeCardId: string) =>
     request<ChallengeCard>(`/api/v1/study/sessions/${sessionId}/reblank`, { method: "POST", body: JSON.stringify({ challengeCardId }) }),
+  fixSpelling: (sessionId: string, body: import('./types').SpellingFixBody) =>
+    request<import('./types').SpellingFixResponse>(`/api/v1/study/sessions/${sessionId}/spelling-fix`, { method: "POST", body: JSON.stringify(body) }),
   setDifficulty: (orgId: string, seasonId: string, studentId: string, difficulty: TrainingDifficulty, signal?: AbortSignal) =>
     request<{ difficulty: TrainingDifficulty }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/difficulty`, { method: "PUT", body: JSON.stringify({ difficulty }), signal }),
   assignedSeasons: () => request<{ id: string; name: string }[]>("/api/v1/progress/me/seasons"),

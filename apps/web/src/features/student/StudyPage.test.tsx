@@ -19,6 +19,7 @@ vi.mock("../../api/client", async importOriginal => ({
     resumeSession: vi.fn(),
     shuffleSession: vi.fn(),
     reblankCard: vi.fn(),
+    fixSpelling: vi.fn(),
   },
 }));
 
@@ -1047,7 +1048,7 @@ describe("StudyPage activity improvements (Q1-Q4, B1)", () => {
     fireEvent.change(await screen.findByRole("textbox", { name: "Blank 1 of 1" }), { target: { value: "baptised" } });
     fireEvent.click(screen.getByTestId("submit-answer"));
     await screen.findByTestId("challenge-feedback");
-    expect(screen.getByTestId("missing-words-spelling")).toHaveTextContent("Spelling: you wrote “baptised” for “baptized” — a spelling slip, not a wrong word; in PBE a misspelling can still earn credit.");
+    expect(screen.getByTestId("missing-words-spelling")).toHaveTextContent("Spelling: you wrote “baptised” for “baptized” — a spelling slip, not a wrong word.");
     expect(screen.getByRole("textbox", { name: "Blank 1 of 1" })).toHaveClass("diff-spelling");
   });
 
@@ -1197,6 +1198,114 @@ describe("StudyPage phone layout (Option D)", () => {
     // The dock lives inside the marked stage, so the :has() chrome rules
     // engage for exactly the session's lifetime.
     expect(submit.closest(".mobile-action-dock")?.closest(".er-study-stage")).toBe(stage);
+  });
+});
+
+describe("StudyPage spelling second chance", () => {
+  const twoBlankCard = {
+    id: "card-1", sessionId: "session-1", activityType: "MissingWords",
+    prompt: "In the ____ ____ created the heaven and the earth.",
+    citation: "Genesis 1:1",
+    tokens: [
+      { index: 0, display: "In", hidden: false },
+      { index: 2, display: "____", hidden: true },
+      { index: 3, display: "____", hidden: true },
+    ],
+    sequence: 1, total: 8,
+  };
+  const gradedWithSlip = {
+    attemptId: "a-fix", isCorrect: false, evaluationResult: "Incorrect", canonicalAnswer: "baptized created",
+    citation: "Genesis 1:1", sourceText: "In the baptized created the heaven and the earth.",
+    masteryLevel: "Learning", exactWordingScore: 0, skillKey: "exactWording", skillLabel: "Exact wording", skillScore: 0,
+    reviewDueAtUtc: null, alreadyProcessed: false, xpEarned: 2, sessionStreak: 1,
+    missingWordAnswers: [{ index: 2, text: "baptised" }, { index: 3, text: "created" }],
+    missingWordResults: [
+      { index: 2, isCorrect: false, expected: "baptized", spelling: true },
+      { index: 3, isCorrect: true, expected: "created" },
+    ],
+    spellingEligible: [2],
+  };
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(api.progress).mockResolvedValue(progress({ seasonStatus: "Active" }));
+    vi.mocked(trainingApi.today).mockResolvedValue(today());
+    vi.mocked(api.startSession).mockResolvedValue({ id: "session-1", seasonId: "season-1", status: "Created", mode: "Practice", targetCardCount: 8 });
+    vi.mocked(api.nextCard).mockResolvedValue(twoBlankCard);
+    vi.mocked(api.submitAttempt).mockResolvedValue(gradedWithSlip as never);
+  });
+
+  async function gradeWithSlip() {
+    renderStudy("/student/study?mode=Practice&seasonId=season-1");
+    fireEvent.change(await screen.findByRole("textbox", { name: "Blank 1 of 2" }), { target: { value: "baptised" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Blank 2 of 2" }), { target: { value: "created" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await screen.findByTestId("challenge-feedback");
+  }
+
+  it("offers the fix only for spelling slips, re-opens only those blanks, and renders the corrected state", async () => {
+    vi.mocked(api.fixSpelling).mockResolvedValue({
+      attemptId: "a-fix", cardId: "card-1", alreadyProcessed: false,
+      answers: [{ index: 2, text: "baptized" }],
+      results: [{ index: 2, isCorrect: true, expected: "baptized", spelling: false }],
+      correctedCount: 1, effectiveScore: 50, xpEarned: 3,
+    } as never);
+    await gradeWithSlip();
+    fireEvent.click(await screen.findByTestId("fix-spelling"));
+    // Only the spelling blank re-opens; the correct blank stays locked as graded.
+    expect(screen.getByRole("textbox", { name: "Blank 1 of 2" })).not.toBeDisabled();
+    expect(screen.getByRole("textbox", { name: "Blank 2 of 2" })).toBeDisabled();
+    expect(screen.getByRole("textbox", { name: "Blank 2 of 2" })).toHaveValue("created");
+    fireEvent.change(screen.getByRole("textbox", { name: "Blank 1 of 2" }), { target: { value: "baptized" } });
+    fireEvent.click(screen.getByTestId("submit-spelling-fix"));
+    await waitFor(() => expect(api.fixSpelling).toHaveBeenCalledWith("session-1", expect.objectContaining({
+      challengeCardId: "card-1",
+      answers: [{ index: 2, text: "baptized" }],
+      clientSubmissionId: expect.any(String),
+    })));
+    const summary = await screen.findByTestId("spelling-fix-summary");
+    expect(summary).toHaveTextContent("Spelling fix: 1 blank corrected — partial credit · +3 XP");
+    expect(screen.getByRole("textbox", { name: "Blank 1 of 2" })).toHaveAttribute("data-spelling-corrected", "true");
+    expect(screen.getByTestId("missing-words-summary")).toHaveTextContent("1 of 2 correct · 1 fixed for spelling");
+    expect(screen.getByTestId("missing-words-spelling-fix")).toHaveTextContent("Spelling fixed: “baptized” — that blank earns partial credit now.");
+    expect(screen.queryByTestId("fix-spelling")).not.toBeInTheDocument();
+  });
+
+  it("shows the verse spelling and no partial credit when the fix still misses", async () => {
+    vi.mocked(api.fixSpelling).mockResolvedValue({
+      attemptId: "a-fix", cardId: "card-1", alreadyProcessed: false,
+      answers: [{ index: 2, text: "baptised" }],
+      results: [{ index: 2, isCorrect: false, expected: "baptized", spelling: true }],
+      correctedCount: 0, effectiveScore: 25, xpEarned: 0,
+    } as never);
+    await gradeWithSlip();
+    fireEvent.click(await screen.findByTestId("fix-spelling"));
+    fireEvent.click(screen.getByTestId("submit-spelling-fix"));
+    expect(await screen.findByTestId("spelling-fix-summary")).toHaveTextContent("No blanks corrected that time");
+    expect(screen.getByTestId("missing-words-spelling-fix")).toHaveTextContent("The verse says “baptized”.");
+    expect(screen.queryByTestId("fix-spelling")).not.toBeInTheDocument();
+  });
+
+  it("offers no fix when no blank was a spelling slip", async () => {
+    vi.mocked(api.submitAttempt).mockResolvedValue({
+      ...gradedWithSlip, spellingEligible: undefined,
+      missingWordResults: [
+        { index: 2, isCorrect: false, expected: "baptized" },
+        { index: 3, isCorrect: true, expected: "created" },
+      ],
+    } as never);
+    await gradeWithSlip();
+    expect(screen.queryByTestId("fix-spelling")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("spelling-fix-offer")).not.toBeInTheDocument();
+  });
+
+  it("offers no fix in Simulation even when the graded result names a slip", async () => {
+    vi.mocked(api.startSession).mockResolvedValue({ id: "session-1", seasonId: "season-1", status: "Created", mode: "Simulation", targetCardCount: 8 });
+    renderStudy("/student/study?mode=Simulation&seasonId=season-1");
+    fireEvent.change(await screen.findByRole("textbox", { name: "Blank 1 of 2" }), { target: { value: "baptised" } });
+    fireEvent.change(screen.getByRole("textbox", { name: "Blank 2 of 2" }), { target: { value: "created" } });
+    fireEvent.click(screen.getByTestId("submit-answer"));
+    await screen.findByTestId("challenge-feedback");
+    expect(screen.queryByTestId("fix-spelling")).not.toBeInTheDocument();
   });
 });
 

@@ -75,6 +75,17 @@ describe("TermsPage", () => {
     expect(within(main).queryByText(/\[[A-Z][^\]]*\]/)).not.toBeInTheDocument();
     expect(within(main).getByText(/New King James Version \(NKJV\), copyright/)).toBeInTheDocument();
   });
+
+  it("states in section 8 that Erudoza is an individual-run independent project and that church references are descriptive only", () => {
+    renderAt("/terms", <TermsPage />);
+    const main = screen.getByRole("main");
+    const section = within(main).getByRole("heading", { level: 2, name: "8. Independent service; no official affiliation" }).closest("section");
+    expect(section).not.toBeNull();
+    const scope = within(section as HTMLElement);
+    expect(scope.getByText(/independent project created and operated by one individual/)).toBeInTheDocument();
+    expect(scope.getByText(/not affiliated with, authorized by, sponsored by, or endorsed by the General Conference Corporation of Seventh-day Adventists/)).toBeInTheDocument();
+    expect(scope.getByText(/are descriptive only/)).toBeInTheDocument();
+  });
 });
 
 describe("public footer legal links", () => {
@@ -84,6 +95,13 @@ describe("public footer legal links", () => {
     const legal = within(footer).getByRole("navigation", { name: "Legal" });
     expect(within(legal).getByRole("link", { name: "Privacy" })).toHaveAttribute("href", "/privacy");
     expect(within(legal).getByRole("link", { name: "Terms" })).toHaveAttribute("href", "/terms");
+  });
+
+  it("carries the short independence line in the landing page footer", () => {
+    renderAt("/", <LandingPage />);
+    const footer = screen.getByRole("contentinfo");
+    expect(within(footer).getByText(/Erudoza is an independent project and is not affiliated with or endorsed by the/)).toBeInTheDocument();
+    expect(within(footer).getByText(/Seventh-day Adventist Church/)).toBeInTheDocument();
   });
 });
 

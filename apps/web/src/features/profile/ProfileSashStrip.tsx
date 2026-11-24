@@ -18,9 +18,11 @@ const CharacterPortrait = lazy(() => import("./character/CharacterPreview").then
  * height to the scroller's scroll-padding, restored exactly on
  * hide/unmount.
  *
- * Rendered only on the Profile and Share tabs: on the Character and
- * Achievement patches tabs the sticky character stage already plays the
- * persistent-preview role, so a strip face there would duplicate it.
+ * Rendered on all four profile tabs: the header's sash row is identical
+ * everywhere, so its collapsed state is too. (At phone widths the
+ * character stage is display:none, so on the Character and Achievement
+ * patches tabs this strip is the only scroll-persistent face — the same
+ * role it plays on Profile and Share.)
  */
 export function ProfileSashStrip({ appearance, name, level, onEdit, onShare, onOpenFullscreen, onError }: {
   appearance: CharacterConfig;

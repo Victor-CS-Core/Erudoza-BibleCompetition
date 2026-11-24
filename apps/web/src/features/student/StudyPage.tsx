@@ -130,6 +130,12 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const [startRetry, setStartRetry] = useState(0);
   const [answer, setAnswer] = useState("");
   const [slotValues, setSlotValues] = useState<Record<number, string>>({});
+  // Spelling second chance (Fill in the Blank): fix mode re-opens only the
+  // spelling-slip blanks of the graded card; the fix submission id is
+  // minted on entry and kept for the card, so a retried fix replays.
+  const [fixMode, setFixMode] = useState(false);
+  const [fixValues, setFixValues] = useState<Record<number, string>>({});
+  const fixSubmission = useRef<{ id: string; cardId: string } | null>(null);
   const [chunks, setChunks] = useState<number[]>([]);
   const [readerOpened, setReaderOpened] = useState(false);
   const [readerOpen, setReaderOpen] = useState(false);
@@ -181,6 +187,10 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
     startedAt.current = Date.now();
     pendingAttempt.current = readPendingAttempt(sessionId!, card.data);
     submit.reset();
+    spellingFix.reset();
+    setFixMode(false);
+    setFixValues({});
+    fixSubmission.current = null;
     setShuffleNote(false);
     setReblankNote(false);
     setChunks([]);
@@ -301,6 +311,42 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   }, [requestedSessionId, progress.data?.seasonId, trackReady, mode, missionId, missionRevision, step, startRetry, choosePurpose, memoryChallenge]);
 
   const result = submit.data ?? (restoredAttempt?.cardId === card.data?.id ? restoredAttempt?.result : undefined);
+  // Spelling second chance derivation. Eligibility comes from the graded
+  // result: the server stamps spellingEligible from the same classifier
+  // that labels the feedback; the per-blank spelling flags are the fallback
+  // for results graded before the stamp existed. Simulation never offers
+  // a fix. A used fix (fresh or restored) replaces the eligible blanks'
+  // display verdicts; corrected blanks render gold via `corrected`.
+  const eligibleIndexes = result && card.data?.activityType === 'MissingWords' && mode !== 'Simulation'
+    ? (result.spellingEligible ?? result.missingWordResults?.filter(r => !r.isCorrect && r.spelling).map(r => r.index) ?? [])
+    : [];
+  const spellingFix = useMutation({
+    mutationFn: () => api.fixSpelling(sessionId!, {
+      clientSubmissionId: fixSubmission.current!.id,
+      challengeCardId: card.data!.id,
+      answers: eligibleIndexes.map(index => ({ index, text: fixValues[index] ?? "" })),
+    }),
+    onSuccess: (data) => {
+      setFixMode(false);
+      // The reward pop fires only for a fresh fix that actually earned XP;
+      // replays render the stored summary without the animation.
+      if (!data.alreadyProcessed && data.xpEarned > 0) xpReward.fire(data.xpReward);
+    },
+  });
+  const fixSummary = spellingFix.data ?? result?.spellingFix;
+  const canFixSpelling = eligibleIndexes.length > 0 && !fixSummary;
+  const gradedSlotValues = result?.missingWordAnswers ? Object.fromEntries(result.missingWordAnswers.map(slot => [slot.index, slot.text])) : slotValues;
+  const displaySlotValues = fixSummary
+    ? { ...gradedSlotValues, ...Object.fromEntries(fixSummary.answers.map(a => [a.index, a.text])) }
+    : fixMode ? { ...gradedSlotValues, ...fixValues } : gradedSlotValues;
+  const displayResults = result?.missingWordResults && fixSummary
+    ? result.missingWordResults.map(r => { const f = fixSummary.results.find(x => x.index === r.index); return f ? { index: f.index, isCorrect: f.isCorrect, expected: f.expected, spelling: f.spelling, corrected: f.isCorrect } : r; })
+    : result?.missingWordResults;
+  const enterFixMode = () => {
+    fixSubmission.current = { id: crypto.randomUUID(), cardId: card.data!.id };
+    setFixValues(Object.fromEntries(eligibleIndexes.map(index => [index, gradedSlotValues[index] ?? ""])));
+    setFixMode(true);
+  };
   // In-session game feedback (B1): newer results carry the XP the attempt
   // earned and the running session streak; legacy results omit both and
   // simply render no line.
@@ -462,9 +508,12 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
         </h2>}
         {current ? (
           current.activityType === 'MissingWords' ? <MissingWordsInput
-            key={current.id} tokens={current.tokens} values={result?.missingWordAnswers ? Object.fromEntries(result.missingWordAnswers.map(slot => [slot.index,slot.text])) : slotValues} onChange={setSlotValues}
-            disabled={accepted || submit.isPending || submit.isError || !!pendingAttempt.current}
-            results={result?.missingWordResults}
+            key={current.id} tokens={current.tokens} values={displaySlotValues}
+            onChange={fixMode ? (next) => setFixValues(prev => { const merged = { ...prev }; for (const index of eligibleIndexes) merged[index] = next[index] ?? ""; return merged; }) : setSlotValues}
+            disabled={fixMode ? spellingFix.isPending : accepted || submit.isPending || submit.isError || !!pendingAttempt.current}
+            results={displayResults}
+            editableIndexes={fixMode ? eligibleIndexes : undefined}
+            fixResults={fixSummary?.results}
           /> : <ChallengeInput
             card={current}
             answer={answer}
@@ -513,10 +562,23 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
             </p>
           )}
           <p className="mt-3 text-sm text-[var(--er-success-ink)]" data-testid="mastery-impact">
-            Your {result.skillLabel ?? "wording"} score: {result.skillScore ?? result.exactWordingScore} / 100 · Level: {result.masteryLevel}
+            Your {result.skillLabel ?? "wording"} score: {fixSummary?.skillScore ?? result.skillScore ?? result.exactWordingScore} / 100 · Level: {fixSummary?.masteryLevel ?? result.masteryLevel}
           </p>
           {typeof result?.xpEarned === "number" && <p className="mt-2 text-sm" data-testid="session-xp-line">
             +{result.xpEarned} XP{typeof result.sessionStreak === "number" && result.sessionStreak >= 2 ? ` · Session streak ${result.sessionStreak}` : ""}
+          </p>}
+          {canFixSpelling && !fixMode && <div className="mt-3" data-testid="spelling-fix-offer">
+            <p className="text-sm">{eligibleIndexes.length === 1 ? "One blank was a spelling slip." : `${eligibleIndexes.length} blanks were spelling slips.`} Fix the spelling for partial credit — one chance per card.</p>
+            <Button type="button" variant="secondary" className="mt-2" data-testid="fix-spelling" onClick={enterFixMode}>Fix your spelling</Button>
+          </div>}
+          {fixMode && <div className="mt-3" data-testid="spelling-fix-mode">
+            <p className="text-sm">Only the spelling blanks are open — everything else stays exactly as checked. Retype them, then check your fixes.</p>
+            <Button type="button" className="mt-2" data-testid="submit-spelling-fix" disabled={spellingFix.isPending} onClick={() => spellingFix.mutate()}>{spellingFix.isPending ? "Checking…" : "Check my fixes"}</Button>
+          </div>}
+          {fixSummary && <p className="mt-2 text-sm" data-testid="spelling-fix-summary">
+            {fixSummary.correctedCount > 0
+              ? `Spelling fix: ${fixSummary.correctedCount} ${fixSummary.correctedCount === 1 ? "blank" : "blanks"} corrected — partial credit${fixSummary.xpEarned > 0 ? ` · +${fixSummary.xpEarned} XP` : ""}. Your first try stays on record as graded.`
+              : "No blanks corrected that time — the verse above shows the right spelling. Your first try stays on record as graded."}
           </p>}
           <p className="mt-2 text-sm" data-testid="assistance-note">
             {readerOpened
@@ -533,7 +595,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           {shuffleDeckButton}
           {sessionPrimaryActions}
         </div>}
-        {(submit.isError || complete.isError || shuffle.isError || reblank.isError) && <p role="alert" className="study-action-note">{submit.isError ? "Your answer could not be saved. Please try again." : complete.isError ? "The session could not be finished. Please try again." : reblank.isError ? "The blanks could not be shuffled. Please try again." : "The remaining cards could not be shuffled. Please try again."}</p>}
+        {(submit.isError || complete.isError || shuffle.isError || reblank.isError || spellingFix.isError) && <p role="alert" className="study-action-note">{submit.isError ? "Your answer could not be saved. Please try again." : complete.isError ? "The session could not be finished. Please try again." : spellingFix.isError ? "Your spelling fix could not be saved. Please try again." : reblank.isError ? "The blanks could not be shuffled. Please try again." : "The remaining cards could not be shuffled. Please try again."}</p>}
         {shuffleNote && !shuffle.isPending && <p className="text-sm study-action-note" data-testid="shuffle-note">Deck shuffled — the order of the remaining cards has changed. This card stays as it is.</p>}
         {reblankNote && !reblank.isPending && <p className="text-sm study-action-note" data-testid="reblank-note">Blanks shuffled — same verse, new pattern, and your draft was cleared so this pattern starts fresh. Shuffling blanks is practice, not help: it never marks your attempt as assisted.</p>}
       </Panel>

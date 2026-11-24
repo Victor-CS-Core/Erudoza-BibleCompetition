@@ -57,9 +57,9 @@ function NewsFeed({ base }: { base: string }) {
   const { me } = useAuth();
   const org = me!.organizationId;
   const feed = useQuery({ queryKey: ["pbe-news", org], queryFn: () => api.pbeNews(org), retry: false });
-  return <div className="training-page news-page"><PageHeader title="PBE news" description="Fresh drops for your PBE season — new study materials, event updates, and rule changes from NAD and your coaches." />
+  return <div className="training-page news-page"><PageHeader title="PBE news" description="Fresh drops for your PBE season — new study materials, event updates, and rule changes spotted from NAD and shared by your coaches." />
     {feed.isPending ? <LoadingState label="Loading PBE news…" /> : feed.isError ? <Notice tone="danger">The news feed could not load. <Button variant="secondary" onClick={() => void feed.refetch()}>Try again</Button></Notice>
-      : feed.data.length === 0 ? <EmptyState title="Nothing new yet" description="When NAD posts new materials or your coaches share an update, it lands here first. Swing back after your next practice." />
+      : feed.data.length === 0 ? <EmptyState title="Nothing new yet" description="When new materials appear on NAD's site or your coaches share an update, it lands here. Swing back after your next practice." />
       : <div className="news-feed">
         {feed.data.map((article, index) => <NewsCard key={article.id} base={base} article={article} featured={index === 0} />)}
       </div>}

@@ -134,7 +134,33 @@ export type ChallengeCard = {
 };
 
 export interface MissingWordAnswer { index: number; text: string }
-export interface MissingWordResult { index: number; isCorrect: boolean; expected: string }
+export interface MissingWordResult { index: number; isCorrect: boolean; expected: string; /** True when the blank was wrong only by a small spelling slip (the same classifier that drives the feedback label and the second chance). */ spelling?: boolean }
+
+/** The spelling second chance on a graded Fill in the Blank card: the
+ * learner retyped only the spelling-slip blanks; corrected blanks earn
+ * partial credit and the first attempt stays on record as graded. */
+export interface SpellingFixSummary {
+  answers: MissingWordAnswer[];
+  results: MissingWordResult[];
+  correctedCount: number;
+  effectiveScore: number;
+  xpEarned: number;
+  xpReward?: import("./trainingTypes").XpReward;
+  masteryLevel?: string;
+  skillScore?: number;
+}
+
+export interface SpellingFixResponse extends SpellingFixSummary {
+  attemptId: string;
+  cardId: string;
+  alreadyProcessed: boolean;
+}
+
+export interface SpellingFixBody {
+  clientSubmissionId: string;
+  challengeCardId: string;
+  answers: MissingWordAnswer[];
+}
 export interface MissingWordAnswerPayload {
   format: 'missing-words-slots/v1';
   answers: MissingWordAnswer[];
@@ -150,6 +176,10 @@ export type AttemptResult = {
   submittedAnswer?: string;
   missingWordAnswers?: MissingWordAnswer[];
   missingWordResults?: MissingWordResult[];
+  /** Blank indexes eligible for the spelling second chance (spelling slips only; never in Simulation). */
+  spellingEligible?: number[];
+  /** Present once the card's spelling second chance has been used. */
+  spellingFix?: SpellingFixSummary;
   attemptId: string;
   isCorrect: boolean;
   score?: number;

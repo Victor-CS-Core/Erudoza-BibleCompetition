@@ -6,9 +6,10 @@ import { trainingNow } from '../training/clock';
 import type { StartTrainingContext, SessionRecap, SkillScores } from '../../../src/api/trainingTypes';
 import { applyAcceptedAttempt, prepareStart, makeRecap, recordPersonalBests, scopeVersion, startPayload, preference, resolvePreference } from '../training/store';
 import type { SessionTraining, MissionRecord, Writes } from '../training/store';
+import type { Stored } from '../store';
 import { fullTargetReached } from '../training/rules';
 import { resolveTrainingCalendar } from '../training/calendar';
-import { awardXp } from '../training/xp';
+import { awardXp, XP_VALUES, xpReward, type XpReward as XpRewardSnapshot } from '../training/xp';
 import { sessionCompleteQuests, QUEST_DEFS } from '../training/quests';
 import type { RequestContext } from '../types';
 import { admin, body, HttpError, json, requiredString } from '../types';
@@ -19,8 +20,13 @@ import { applyMastery, BLANK_SHUFFLE_LIMIT, chooseActivity, eligibleActivities, 
 import type { GeneratedActivity, MasteryScores, RuleProfile, StudyMode } from './engine';
 
 export interface Card extends GeneratedActivity { id: string; sequence: number; createdAtUtc: string; source: Source; answerSource: Source; blankShuffles?: number }
-export interface Result { submittedAnswer?: string; missingWordAnswers?: MissingWordAnswer[]; missingWordResults?: MissingWordResult[]; attemptId: string; isCorrect: boolean; score: number; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; skillKey: string; skillLabel: string; skillScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean; /** XP this attempt actually earned (cap-aware session xpEarned delta, including any bonus the attempt triggered). */ xpEarned?: number; /** Trailing consecutive correct attempts in this session, including this one. */ sessionStreak?: number; /** Server-computed reward snapshot (earned XP + level state before/after) powering the per-answer XP animation; stored on the result so replays carry the same numbers. */ xpReward?: import('../training/xp').XpReward }
-export interface Attempt { clientHintsUsed?: boolean; answerPayload?: MissingWordAnswerPayload; id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; score: number; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean; previousAttemptId?: string; before?: SkillScores; after?: SkillScores }
+/** The one spelling second chance on a graded Fill in the Blank card:
+ * the learner retyped only the blanks the grader flagged as spelling
+ * slips. Stored on the attempt, apart from the first grading — the first
+ * attempt's outcome fields are never rewritten. */
+export interface SpellingFix { clientSubmissionId: string; answers: MissingWordAnswer[]; results: MissingWordResult[]; correctedCount: number; effectiveScore: number; xpEarned: number; xpReward?: XpRewardSnapshot; masteryLevel?: string; skillScore?: number; at: string }
+export interface Result { submittedAnswer?: string; missingWordAnswers?: MissingWordAnswer[]; missingWordResults?: MissingWordResult[]; /** Blank indexes eligible for the spelling second chance (spelling slips only; stamped at grading from the same classifier that labels the feedback, and never in Simulation). */ spellingEligible?: number[]; attemptId: string; isCorrect: boolean; score: number; evaluationResult: string; canonicalAnswer: string; citation: string; sourceText: string; masteryLevel: string; exactWordingScore: number; skillKey: string; skillLabel: string; skillScore: number; reviewDueAtUtc: string; alreadyProcessed: boolean; /** XP this attempt actually earned (cap-aware session xpEarned delta, including any bonus the attempt triggered). */ xpEarned?: number; /** Trailing consecutive correct attempts in this session, including this one. */ sessionStreak?: number; /** Server-computed reward snapshot (earned XP + level state before/after) powering the per-answer XP animation; stored on the result so replays carry the same numbers. */ xpReward?: import('../training/xp').XpReward }
+export interface Attempt { clientHintsUsed?: boolean; answerPayload?: MissingWordAnswerPayload; spellingFix?: SpellingFix; id: string; sessionId: string; cardId: string; studentUserId: string; seasonId: string; sourceUnitId: string; knowledgeUnitId: string; clientSubmissionId: string; submittedAnswer: string; responseTimeMs: number; hintsUsed: boolean; isCorrect: boolean; score: number; evaluationResult: string; activityType: string; at: string; result: Result; isLegacyDuplicate?: boolean; previousAttemptId?: string; before?: SkillScores; after?: SkillScores }
 export interface Session { readerAssistedCardIds?: string[]; deckOrder?: string[]; memoryChallenge?: 'Warmup' | 'Advanced'; memoryChallengeRequest?: 'Warmup' | 'Advanced'; generatorVersion?: string; evidenceProfile?: import('./engine').MemoryEvidenceProfile; /** Passage-scoped start (from a passage CTA): the resolved knowledge-unit
    * set this session may draw cards from, plus the original request so a
    * replayed client start ID with a different scope is rejected. */
@@ -81,7 +87,10 @@ const knowledgeId = (s: Source) => s.knowledgeUnitId ?? s.id;
 const sessionDto = (s: Session) => ({ id: s.id, seasonId: s.seasonId, status: s.status, mode: s.mode, targetCardCount: s.targetCardCount, difficulty: s.difficulty, memoryChallenge:s.memoryChallenge,generatorVersion:s.generatorVersion,evidenceProfile:s.evidenceProfile });
 const cardDto = (s: Session, c: Card) => { const dto = toCardDto(c, { id: c.id, sessionId: s.id, sequence: c.sequence, total: s.targetCardCount }, sourceUnit(c.source), s.mode !== 'Simulation' || s.ruleProfile.showReference, false); return c.activityType === 'MissingWords' ? { ...dto, blankShuffles: c.blankShuffles ?? 0, blankShuffleLimit: BLANK_SHUFFLE_LIMIT } : dto; };
 const summary = (s: Session) => ({ sessionId: s.id, mode: s.mode, attempted: s.attempts.filter(a => !a.isLegacyDuplicate).length, correct: s.attempts.filter(a => !a.isLegacyDuplicate && a.isCorrect).length, targetCardCount: s.targetCardCount, status: s.status, ...(s.recap ? { recap: s.recap } : {}) });
-const replay = (a: Attempt) => ({ ...a.result, submittedAnswer: a.result.submittedAnswer ?? a.submittedAnswer, alreadyProcessed: true });
+/** The client-facing summary of a stored spelling fix (rides on replayed
+ * results so a restored attempt renders its post-fix state). */
+const spellingFixSummary = (fix: SpellingFix) => ({ answers: fix.answers, results: fix.results, correctedCount: fix.correctedCount, effectiveScore: fix.effectiveScore, xpEarned: fix.xpEarned, ...(fix.xpReward ? { xpReward: fix.xpReward } : {}), ...(fix.masteryLevel ? { masteryLevel: fix.masteryLevel } : {}), ...(fix.skillScore !== undefined ? { skillScore: fix.skillScore } : {}) });
+const replay = (a: Attempt) => ({ ...a.result, submittedAnswer: a.result.submittedAnswer ?? a.submittedAnswer, alreadyProcessed: true, ...(a.spellingFix ? { spellingFix: spellingFixSummary(a.spellingFix) } : {}) });
 
 async function listAll<T extends { id: string }>(ctx: RequestContext, kind: string, scope: { seasonId?: string; ownerId?: string } = {}) {
   const result: T[] = []; let after: string | undefined;
@@ -336,6 +345,110 @@ async function reblankCard(ctx: RequestContext, sessionId: string, input: { chal
     return json(cardDto(session, replacement));
   });
 }
+const spellingFixResponse = (attempt: Attempt, alreadyProcessed: boolean) => { const fix = attempt.spellingFix!; return { attemptId: attempt.id, cardId: attempt.cardId, ...spellingFixSummary(fix), alreadyProcessed }; };
+function validateSpellingFix(input: { challengeCardId?: unknown; clientSubmissionId?: unknown; answers?: unknown }) {
+  const challengeCardId = requiredString(input?.challengeCardId, 'Challenge card');
+  const clientSubmissionId = requiredString(input?.clientSubmissionId, 'Submission ID', 200);
+  const answers = input?.answers;
+  if (!Array.isArray(answers) || !answers.length || answers.some(a => !a || !Number.isSafeInteger(a.index) || typeof a.text !== 'string' || Object.keys(a).some(key => key !== 'index' && key !== 'text')) || new Set(answers.map(a => a.index)).size !== answers.length || answers.reduce((size, a) => size + a.text.length, 0) > 100000) fail('Invalid spelling fix answers.');
+  return { challengeCardId, clientSubmissionId, answers: answers as MissingWordAnswer[] };
+}
+/** Spelling second chance (Fill in the Blank, Memory sessions): after
+ * grading, the learner may retype ONLY the blanks the grader flagged as
+ * spelling slips — the same classifier output that drives the feedback
+ * label (MissingWordResult.spelling), read back from the stored attempt
+ * payload, so eligibility and feedback can never disagree. One fix per
+ * card, priced as partial credit: each corrected blank earns half of its
+ * share of the attempt's full XP value (the full value follows the first
+ * grading's own assistance pricing — hints rate when the attempt was
+ * assisted — and the total is floored once, the PBE partial precedent in
+ * pbeAttemptXp). Mastery is re-derived for this attempt alone: the
+ * attempt's stored `before` snapshot is re-run through applyMastery with
+ * the post-fix effective score (corrected blanks count half), so the fix
+ * strengthens the card's evidence as partial recall — never as a clean
+ * correct answer, and never as a second stacked attempt. The first
+ * attempt's recorded outcome is never rewritten; the fix lives on the
+ * attempt as its own record. Simulation cards stay exactly as graded. */
+async function spellingFix(ctx: RequestContext, sessionId: string, input: { challengeCardId?: unknown; clientSubmissionId?: unknown; answers?: unknown }) {
+  const { challengeCardId, clientSubmissionId, answers } = validateSpellingFix(input ?? {});
+  return retry(async () => {
+    const stored = await loadSession(ctx, sessionId), session = stored.value;
+    if (['Completed', 'Abandoned'].includes(session.status)) fail('The study session is already complete.');
+    if (session.mode === 'Simulation') fail('Spelling fixes are not available in Simulation.');
+    const card = session.cards.find(c => c.id === challengeCardId);
+    if (!card) return fail('Challenge card does not belong to this session.');
+    if (card.activityType !== 'MissingWords') fail('Only Fill in the Blank cards can fix spelling.');
+    const attempt = session.attempts.find(a => a.cardId === card.id && !a.isLegacyDuplicate);
+    if (!attempt) return fail('This card has not been answered yet.');
+    if (!attempt.answerPayload) return fail('This card has not been answered yet.');
+    if (attempt.spellingFix) {
+      const prior = attempt.spellingFix;
+      const same = prior.clientSubmissionId === clientSubmissionId && prior.answers.length === answers.length && prior.answers.every(saved => answers.some(answer => answer.index === saved.index && answer.text === saved.text));
+      if (same) return json(spellingFixResponse(attempt, true));
+      throw new HttpError(409, 'This card’s spelling fix was already used.');
+    }
+    const eligible = attempt.answerPayload.results.filter(r => !r.isCorrect && r.spelling).map(r => r.index);
+    if (!eligible.length) fail('This card has no spelling slips to fix.');
+    const eligibleSet = new Set(eligible);
+    if (answers.length !== eligible.length || answers.some(a => !eligibleSet.has(a.index))) fail('Fix only the spelling blanks highlighted on this card.');
+    validateCardSnapshot(session, card);
+    const scope = await sessionScope(ctx, session); cardInScope(card, scope.sources);
+    // Grade the merged answer set with the very evaluator that graded the
+    // first attempt, so a "corrected" verdict means exactly what a correct
+    // first answer would have meant.
+    const merged = attempt.answerPayload.answers.map(a => { const fix = answers.find(f => f.index === a.index); return fix ? { index: a.index, text: fix.text } : a; });
+    let evaluation: ReturnType<typeof evaluateMissingWordAnswers>;
+    try { evaluation = evaluateMissingWordAnswers(card.payload.tokens, merged); } catch { return fail('Invalid spelling fix answers.'); }
+    const results = evaluation.results.filter(r => eligibleSet.has(r.index));
+    const corrected = results.filter(r => r.isCorrect);
+    const totalBlanks = attempt.answerPayload.results.length;
+    const correctBefore = attempt.answerPayload.results.filter(r => r.isCorrect).length;
+    const effectiveScore = Math.round((correctBefore + corrected.length / 2) / totalBlanks * 100);
+    const now = trainingNow();
+    const w: Writes = { statements: [], guards: [] };
+    const full = attempt.hintsUsed ? XP_VALUES.attemptCorrectHints : XP_VALUES.attemptCorrectNoHints;
+    const delta = Math.floor(corrected.length * full / (2 * totalBlanks));
+    let xpEarned = 0, reward: XpRewardSnapshot | undefined;
+    if (delta > 0) {
+      const pref = await preference(ctx), p = resolvePreference(ctx, pref, now), cal = resolveTrainingCalendar(now, p);
+      const awarded = await awardXp(ctx, w, { seasonId: session.seasonId, localDate: cal.localDate, atUtc: now, events: [{ kind: 'attempt', amount: delta }] });
+      xpEarned = awarded.awarded;
+      if (xpEarned > 0) reward = xpReward(awarded.totalBefore, awarded.totalAfter);
+      if (session.training) {
+        session.training.xpEarned = (session.training.xpEarned ?? 0) + xpEarned;
+        if (awarded.leveledUp) session.training.leveledUp = { from: session.training.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
+      }
+    }
+    // Mastery re-derivation, only while this attempt is still the verse's
+    // latest evidence and its before snapshot survives; a superseded or
+    // legacy attempt keeps its mastery exactly as recorded.
+    let masteryStored: Stored<Mastery> | null = null, masteryUpdated: Mastery | null = null;
+    if (corrected.length && attempt.before) {
+      const priorId = await ctx.env.DB.prepare("SELECT id FROM Records WHERE kind='mastery' AND org_id=? AND season_id=? AND owner_id=? AND json_extract(data,'$.knowledgeUnitId')=? LIMIT 1").bind(ctx.orgId, session.seasonId, session.studentUserId, card.knowledgeUnitId).first<{ id: string }>();
+      const masteryId = priorId?.id ?? `${session.seasonId}:${session.studentUserId}:${card.knowledgeUnitId}`;
+      masteryStored = await ctx.store.get<Mastery>('mastery', masteryId, ctx.orgId);
+      if (masteryStored && masteryStored.value.lastAttemptId === attempt.id) {
+        // attempt.before is the pre-attempt MasteryScores snapshot (level
+        // included at runtime; the Attempt type keeps the SkillScores view).
+        const beforeScores: MasteryScores = { recognition: attempt.before.recognition, exactWording: attempt.before.exactWording, reference: attempt.before.reference, sequence: attempt.before.sequence, factualRecall: attempt.before.factualRecall, level: (attempt.before as MasteryScores).level ?? 'Unseen' };
+        const scores = applyMastery(beforeScores, { isCorrect: false, score: effectiveScore }, attempt.hintsUsed, card.activityType, card.answerMode, card.payload.difficulty, card.payload.evidenceProfile);
+        masteryUpdated = { ...masteryStored.value, ...scores, reviewDueAt: nextReview(now, effectiveScore, masteryStored.value.streak ?? 0), lastSeenAt: now };
+      } else masteryStored = null;
+    }
+    const skill = scoredSkill(card.activityType, card.answerMode);
+    attempt.spellingFix = { clientSubmissionId, answers: [...answers].sort((a, b) => a.index - b.index), results, correctedCount: corrected.length, effectiveScore, xpEarned, ...(reward ? { xpReward: reward } : {}), ...(masteryUpdated ? { masteryLevel: masteryUpdated.level, skillScore: masteryUpdated[skill.key] } : {}), at: now };
+    // The attempt also lives as its own record (the row reports read);
+    // it gets the same object, so both copies carry the fix and neither
+    // rewrites the first grading.
+    const attemptRow = await ctx.store.get<Attempt>('attempt', attempt.id, ctx.orgId);
+    const statements = [...w.statements, ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision)];
+    const guards: Guard[] = [...w.guards, { kind: 'session', id: sessionId, revision: stored.revision }];
+    if (attemptRow) { statements.push(ctx.store.update('attempt', attempt.id, ctx.orgId, attempt, attemptRow.revision)); guards.push({ kind: 'attempt', id: attempt.id, revision: attemptRow.revision }); }
+    if (masteryUpdated && masteryStored) { statements.push(ctx.store.update('mastery', masteryUpdated.id, ctx.orgId, masteryUpdated, masteryStored.revision)); guards.push({ kind: 'mastery', id: masteryUpdated.id, revision: masteryStored.revision }); }
+    await atomic(ctx, 'study.spelling-fix', statements, guards);
+    return json(spellingFixResponse(attempt, false));
+  });
+}
 async function submit(ctx: RequestContext, sessionId: string, input: Submission) {
   validateSubmission(input);
   return retry(async () => {
@@ -399,6 +512,13 @@ async function submit(ctx: RequestContext, sessionId: string, input: Submission)
     const attemptId = id(); mastery.lastAttemptId = attemptId;
     const skill = scoredSkill(card.activityType, card.answerMode);
     const result: Result = { ...(answerPayload?{missingWordAnswers:answerPayload.answers,missingWordResults:answerPayload.results}:{}), submittedAnswer, attemptId, isCorrect: evaluation.isCorrect, score: evaluation.score, evaluationResult: evaluation.evaluationCode, canonicalAnswer: card.answerKey.canonicalAnswer, citation: card.answerSource.citation, sourceText: card.answerSource.canonicalText, masteryLevel: mastery.level, exactWordingScore: mastery.exactWording, skillKey: skill.key, skillLabel: skill.label, skillScore: scores[skill.key], reviewDueAtUtc: mastery.reviewDueAt, alreadyProcessed: false };
+    // Spelling second chance eligibility is stamped here, from the same
+    // per-blank classifier that labels the feedback (MissingWordResult.
+    // spelling) — the two can never disagree. Simulation cards stay fixed.
+    if (answerPayload && session.mode !== 'Simulation') {
+      const eligible = answerPayload.results.filter(r => !r.isCorrect && r.spelling).map(r => r.index);
+      if (eligible.length) result.spellingEligible = eligible;
+    }
     const attempt: Attempt = { ...(answerPayload?{answerPayload}:{}), id: attemptId, sessionId, cardId: card.id, studentUserId: session.studentUserId, seasonId: session.seasonId, sourceUnitId: card.answerSource.id, knowledgeUnitId: card.knowledgeUnitId, clientSubmissionId: input.clientSubmissionId, submittedAnswer, responseTimeMs: input.responseTimeMs, clientHintsUsed: input.hintsUsed, hintsUsed, isCorrect: evaluation.isCorrect, score: evaluation.score, evaluationResult: evaluation.evaluationCode, activityType: card.activityType, at: now, result, previousAttemptId: previous?.value.lastAttemptId, before: { ...priorScores }, after: { ...scores } };
     session.attempts.push(attempt); session.status = 'Active';
     const recordScope = { seasonId: session.seasonId, ownerId: session.studentUserId };
@@ -464,13 +584,14 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
     return json(discovered);
   }
   if (path === '/api/v1/study/sessions' && method === 'POST') { const input = await body<{seasonId:string;format?:string;mode?:StudyMode;progressScope?:unknown;passageScope?:unknown}>(request); if(!input||typeof input!=='object'||Array.isArray(input))throw new HttpError(400,'Provide a study request.'); if(input.mode!==undefined&&!['Practice','Review','Simulation'].includes(input.mode))throw new HttpError(400,'Choose a valid study mode.'); if(input.format === 'Pbe') return startPbeSession(ctx,input as Parameters<typeof startPbeSession>[1]); if(input.progressScope!==undefined)throw new HttpError(400,'Progress scope requires Pbe.'); if(input.format!==undefined&&input.format!=='Memory')throw new HttpError(400,'Choose Memory or Pbe.'); return start(ctx,input); }
-  const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete|source|shuffle|reblank))?$/);
+  const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete|source|shuffle|reblank|spelling-fix))?$/);
   if (!match) return null;
   const sessionId = match[1], action = match[2];
   if((!action||action==='next')&&method==='GET'||['attempts','complete','source'].includes(action)&&method==='POST'){const response=await pbeSessionAction(ctx,sessionId,action,method==='POST'&&action!=='complete'?await request.clone().json():undefined);if(response)return response;}
   if (action === 'next' && method === 'GET') return next(ctx, sessionId);
   if (action === 'shuffle' && method === 'POST') return shufflePracticeDeck(ctx, sessionId);
   if (action === 'reblank' && method === 'POST') return reblankCard(ctx, sessionId, await body<{ challengeCardId?: unknown }>(request));
+  if (action === 'spelling-fix' && method === 'POST') return spellingFix(ctx, sessionId, await body(request));
   if (action === 'attempts' && method === 'POST') return submit(ctx, sessionId, await body(request));
   if (action === 'complete' && method === 'POST') return retry(async () => {
     const stored = await loadSession(ctx, sessionId), session = stored.value;
