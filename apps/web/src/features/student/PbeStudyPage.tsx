@@ -272,7 +272,7 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
             // explanation does not carry it, so it renders exactly once.
             const explanation = unavailable ?? 'No questions are ready for this yet.';
             const guidance = /ask your coach/i.test(explanation) ? '' : ' Ask your coach to add questions for this season — or switch to Memory to keep practicing.';
-            return <div className="er-study-stage space-y-4 pbe-review">{hero}
+            return <div className="er-study-stage pbe-review">{hero}
                 <div className="pbe-review-empty">
                     <div className="pbe-review-empty-art" aria-hidden="true"><AppIcon name="book" /></div>
                     <h2>No PBE questions to review</h2>
@@ -285,13 +285,13 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
             </div>;
         }
         if (progressScopeIncomplete)
-            return <div className="er-study-stage space-y-4 pbe-review">{hero}<Panel><Notice tone="danger">This chapter-practice link is incomplete. Return to chapter progress and choose Practice or Review again.</Notice></Panel></div>;
+            return <div className="er-study-stage pbe-review">{hero}<Panel><Notice tone="danger">This chapter-practice link is incomplete. Return to chapter progress and choose Practice or Review again.</Notice></Panel></div>;
         if (reviewProgress.isPending)
-            return <div className="er-study-stage space-y-4 pbe-review">{hero}<LoadingState label="Loading your due reviews…" /></div>;
+            return <div className="er-study-stage pbe-review">{hero}<LoadingState label="Loading your due reviews…" /></div>;
         if (reviewProgress.isError)
-            return <div className="er-study-stage space-y-4 pbe-review">{hero}<Notice tone="danger" role="alert">Your due reviews could not load.<Button variant="secondary" onClick={() => void reviewProgress.refetch()}>Try again</Button></Notice></div>;
+            return <div className="er-study-stage pbe-review">{hero}<Notice tone="danger" role="alert">Your due reviews could not load.<Button variant="secondary" onClick={() => void reviewProgress.refetch()}>Try again</Button></Notice></div>;
         if (entryOverride === 'caughtUp' || dueItems.length === 0)
-            return <div className="er-study-stage space-y-4 pbe-review">{hero}
+            return <div className="er-study-stage pbe-review">{hero}
                 <div className="pbe-review-empty">
                     <div className="pbe-review-empty-art" aria-hidden="true"><AppIcon name="check" /></div>
                     <h2>You’ve all caught up</h2>
@@ -307,7 +307,7 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
                 </div>
             </div>;
         const dueCount = dueItems.length;
-        return <div className="er-study-stage space-y-4 pbe-review">{hero}
+        return <div className="er-study-stage pbe-review">{hero}
             {startError}
             <div className="pbe-review-body">
                 <section aria-label="Due passages">
@@ -349,7 +349,7 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     // finish) rides the bottom action dock; on desktop it sits in the same
     // in-flow row as before. Identical elements either way.
     const sessionActions = <><Button data-testid="submit-answer" disabled={!!result || submit.isPending || !answers.some(a => a.trim()) || mode === 'Simulation' && (!presentation?.responseStartsAtMs || displayedNow < presentation.responseStartsAtMs)} onClick={() => submit.mutate()}>{submit.isPending ? 'Saving…' : timedReceipt ? 'Answer saved' : result ? 'Answer checked' : frozen.current ? 'Retry saved answer' : 'Check answer'}</Button>{result && card && card.sequence < card.total && <Button data-testid="next-card" disabled={next.isPending} onClick={() => { submit.reset(); next.mutate(session!.id); }}>Next card</Button>}<Button data-testid="complete-session" variant={result && card && card.sequence === card.total ? 'primary' : 'ghost'} disabled={!result || complete.isPending} onClick={() => complete.mutate()}>Finish session</Button></>;
-    return <div className="er-study-stage space-y-4" data-session-active="true">
+    return <div className="er-study-stage" data-session-active="true">
     <p className="study-eyebrow">{framing.eyebrow}</p>
     <PageHeader title={framingMode === 'Simulation' ? 'PBE rehearsal' : framingMode === 'Review' ? 'PBE review' : 'PBE practice'} description={<span className="study-blurb">{framing.blurb}</span>} action={<span className="study-cover-actions"><Badge>{mode === 'Simulation' ? 'Shortened timed practice' : `Untimed ${mode.toLowerCase()}`}</Badge></span>}/>
     {framingMode === 'Simulation' && <div className="study-exam-banner" data-testid="exam-mode-banner"><AppIcon name="flag" /><div><strong>Challenge mode</strong><p>Shortened timed practice. Answers freeze when time ends and feedback waits until the finish.</p><ul className="study-rules" aria-label="Challenge rules">{academyModeRules('rehearsal', 'Pbe').map(rule => <li key={rule}>{rule}</li>)}</ul></div></div>}

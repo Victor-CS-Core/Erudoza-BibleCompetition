@@ -330,7 +330,7 @@
 .study-exam-banner strong { display:block; font-size:var(--er-text-lg); }
 .study-exam-banner p { margin:4px 0 10px; font-size:var(--er-text-sm); opacity:0.85; }
 .study-exam-banner .study-rules li { background:color-mix(in srgb, var(--er-on-navy) 14%, transparent); border-color:transparent; color:var(--er-on-navy); }
-.study-aids { display:grid; gap:var(--er-space-4); }
+.study-aids { display:grid; gap:var(--er-space-6); }
 
 .training-assigned-passages .game-passage-quests{margin-top:var(--er-space-3)}
 

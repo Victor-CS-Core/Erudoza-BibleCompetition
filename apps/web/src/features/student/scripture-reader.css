@@ -3,9 +3,23 @@
 .scripture-reader-content { display: grid; gap: var(--er-space-4); margin-top: var(--er-space-6); }
 .scripture-reader-navigation { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 2fr); gap: var(--er-space-3); }
 .scripture-reader label { display: grid; gap: var(--er-space-2); min-width: 0; }
+.scripture-reader-focus-title { font-size: var(--er-text-sm); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--er-warning-ink); margin: 0; }
 .scripture-reader-verses { display: grid; gap: var(--er-space-4); max-width: 75ch; padding: 0; list-style: none; }
 .scripture-reader-verses li { min-width: 0; overflow-wrap: anywhere; }
 .scripture-reader-verses .er-scripture { margin-top: var(--er-space-2); }
+/* Focused view (Nov 23 spacing + life pass): the block composes on the
+   space-3 rhythm instead of the browse view's space-4 grid stacked on
+   the h3's own margin and a per-verse citation label (title→verse gap
+   measured 55px before, 8px after). The passage gets the game layer's
+   gold treatment — small-caps gold citation matching
+   .study-card-reference, a gold left rail, gold verse numbers — while
+   the serif text (DESIGN.md: serif for Scripture) keeps it calm. */
+.scripture-reader-content--focused { gap: var(--er-space-3); margin-top: var(--er-space-4); }
+.scripture-reader-hint { color: var(--er-muted-ink); }
+.scripture-reader-passage { display: grid; gap: var(--er-space-2); border-left: 3px solid var(--er-gold-fill); padding-left: var(--er-space-4); }
+.scripture-reader-verses--focused { gap: var(--er-space-3); }
+.scripture-reader-verses--focused .er-scripture { margin-top: 0; }
+.scripture-reader-verse-num { color: var(--er-warning-ink); font-weight: 700; font-size: .72em; margin-right: .4em; }
 @media (max-width: 480px) {
   .scripture-reader-navigation { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .scripture-reader-navigation label:first-child { grid-column: 1 / -1; }

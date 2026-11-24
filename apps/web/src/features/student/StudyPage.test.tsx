@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { api, ApiError } from "../../api/client";
@@ -660,10 +660,17 @@ describe("StudyPage assigned Scripture reading", () => {
     fireEvent.change(answer, { target: { value: "God" } });
     expect(scriptureApi.assigned).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
-    await screen.findByLabelText("Chapter");
+    // The reader opens focused on this card's passage — Genesis 2:1 is
+    // assigned too, but it is not what this card practices, so it is not
+    // shown until the learner deliberately browses the chapter.
+    const focused = await screen.findByTestId("reader-focused-passage");
+    expect(within(focused).getByText("In the beginning God created the heaven and the earth.")).toBeVisible();
+    expect(screen.queryByText("Thus the heavens and the earth were finished,")).not.toBeInTheDocument();
     // The draft was cleared the moment the passage opened, with the warning.
     expect(answer).toHaveValue("");
     expect(screen.getByTestId("attempt-reset-note")).toHaveTextContent("restarted this activity");
+    fireEvent.click(screen.getByRole("button", { name: "Browse the full chapter instead" }));
+    await screen.findByLabelText("Chapter");
     fireEvent.change(screen.getByLabelText("Chapter"), { target: { value: "2" } });
     fireEvent.change(screen.getByLabelText("Search assigned Scripture"), { target: { value: "Genesis 1:1" } });
     fireEvent.click(screen.getByRole("button", { name: "Hide passage" }));
@@ -680,7 +687,7 @@ describe("StudyPage assigned Scripture reading", () => {
     renderStudy("/student/study?mode=Practice");
     fireEvent.click(await screen.findByTestId("true-false-true"));
     fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
-    await screen.findByLabelText("Chapter");
+    await screen.findByTestId("reader-focused-passage");
     expect(screen.queryByTestId("attempt-reset-note")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Hide passage" }));
     // The selection survived browsing; the attempt is still marked assisted.
@@ -692,6 +699,7 @@ describe("StudyPage assigned Scripture reading", () => {
     renderStudy("/student/study?mode=Practice");
     fireEvent.change(await screen.findByRole("textbox",{name:"Blank 1 of 1"}), { target: { value: "God" } });
     fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Browse the full chapter instead" }));
     const search = await screen.findByLabelText("Search assigned Scripture");
     fireEvent.change(search, { target: { value: "Genesis 2:1" } });
     fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
@@ -713,6 +721,7 @@ describe("StudyPage assigned Scripture reading", () => {
     renderStudy("/student/study?mode=Practice");
     fireEvent.change(await screen.findByRole("textbox",{name:"Blank 1 of 1"}), { target: { value: "God" } });
     fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Browse the full chapter instead" }));
     const search = await screen.findByLabelText("Search assigned Scripture");
     fireEvent.change(search, { target: { value: "Genesis 2:1" } });
     fireEvent.click(screen.getByRole("button", { name: "Check answer" }));
@@ -749,7 +758,7 @@ describe("StudyPage assigned Scripture reading", () => {
     const payload = vi.mocked(api.submitAttempt).mock.calls[0][1];
     expect(payload.hintsUsed).toBe(false);
     fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
-    await screen.findByLabelText("Chapter");
+    await screen.findByTestId("reader-focused-passage");
     fireEvent.click(screen.getByRole("button", { name: "Retry saved answer" }));
     await waitFor(() => expect(api.submitAttempt).toHaveBeenCalledTimes(2));
     expect(vi.mocked(api.submitAttempt).mock.calls[1][1]).toEqual(payload);
@@ -760,6 +769,30 @@ describe("StudyPage assigned Scripture reading", () => {
     await screen.findByRole("textbox",{name:"Blank 1 of 1"});
     expect(screen.queryByRole("button", { name: "Read passage" })).not.toBeInTheDocument();
     expect(scriptureApi.assigned).not.toHaveBeenCalled();
+  });
+
+  it("focuses the reader on the next verse for What Comes Next", async () => {
+    vi.mocked(api.nextCard).mockResolvedValue({ id: "read-card-wcn", sessionId: "session-reader", activityType: "WhatComesNext", citation: "Genesis 1:1", prompt: "What comes next after Genesis 1:1? Write the full next verse. In the beginning God created the heaven and the earth.", tokens: [], sequence: 1, total: 2 });
+    renderStudy("/student/study?mode=Practice");
+    await screen.findByText(/What comes next after Genesis 1:1/);
+    fireEvent.click(await screen.findByRole("button", { name: "Read passage" }));
+    // The practiced item is the verse after the cited one — that is the
+    // passage the reader opens on, not the cited verse and not the chapter.
+    const focused = await screen.findByTestId("reader-focused-passage");
+    expect(within(focused).getByRole("heading", { name: "Genesis 2:1" })).toBeInTheDocument();
+    expect(within(focused).getByText("Thus the heavens and the earth were finished,")).toBeVisible();
+    expect(within(focused).queryByText("In the beginning God created the heaven and the earth.")).not.toBeInTheDocument();
+  });
+
+  it("keeps the chapter browser for Reference Match, whose reference the card withholds", async () => {
+    vi.mocked(api.nextCard).mockResolvedValue({ id: "read-card-rm", sessionId: "session-reader", activityType: "ReferenceMatch", citation: "Assigned passage", prompt: "In the beginning God created the heaven and the earth.", tokens: [], sequence: 1, total: 2, choices: ["Genesis 1:1", "Genesis 2:1"] });
+    renderStudy("/student/study?mode=Practice");
+    await screen.findByTestId("challenge-prompt");
+    fireEvent.click(await screen.findByRole("button", { name: "Read passage" }));
+    // Identifying the reference is the activity itself, so the server
+    // sends no citation to focus on; the reader stays a chapter browser.
+    expect(await screen.findByLabelText("Chapter")).toBeVisible();
+    expect(screen.queryByTestId("reader-focused-passage")).not.toBeInTheDocument();
   });
 });
 
@@ -825,7 +858,7 @@ describe("StudyPage mode select", () => {
   it("shows the streak and XP ticker from the game layer", async () => {
     renderStudy("/student/study?seasonId=season-1&format=Memory");
     expect(await screen.findByTestId("study-ticker-streak")).toHaveTextContent("5");
-    expect(screen.getByTestId("study-ticker-xp")).toHaveTextContent("Rank 3");
+    expect(screen.getByTestId("study-ticker-xp")).toHaveTextContent("Level 3");
   });
   it("explains the mode rules without starting a session", async () => {
     renderStudy("/student/study?seasonId=season-1&format=Memory");

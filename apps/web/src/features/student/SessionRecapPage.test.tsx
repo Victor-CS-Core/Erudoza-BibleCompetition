@@ -14,20 +14,20 @@ beforeEach(() => { vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture()
 it("shows XP earned and a level-up celebration when the session leveled up", async () => {
   vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ xp: { earned: 85, total: 285, level: 3, levelName: "Reader" }, levelUp: { from: 2, to: 3, fromName: "Seeker", toName: "Reader" } }));
   page();
-  expect(await screen.findByText("Rank up!")).toBeInTheDocument();
+  expect(await screen.findByText("Level up!")).toBeInTheDocument();
   expect(screen.getByText(/Seeker → Reader/)).toBeInTheDocument();
   expect(screen.getByText("+85")).toBeInTheDocument();
 });
 it("shows XP earned without a level-up line on ordinary sessions", async () => {
   page();
   expect(await screen.findByText("+80")).toBeInTheDocument();
-  expect(screen.queryByText("Rank up!")).not.toBeInTheDocument();
+  expect(screen.queryByText("Level up!")).not.toBeInTheDocument();
 });
-it("renders the three MomentCard levels: Big for rank-ups, Line for personal bests, Silent otherwise", async () => {
+it("renders the three MomentCard levels: Big for level-ups, Line for personal bests, Silent otherwise", async () => {
   vi.mocked(trainingApi.recap).mockResolvedValue(recapFixture({ xp: { earned: 85, total: 285, level: 3, levelName: "Reader" }, levelUp: { from: 2, to: 3, fromName: "Seeker", toName: "Reader" } }));
   const big = render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter initialEntries={["/student/sessions/session/recap"]}><Routes><Route path="/student/sessions/:sessionId/recap" element={<SessionRecapPage />} /></Routes></MemoryRouter></QueryClientProvider>);
   const bigCard = await screen.findByTestId("moment-card-big");
-  expect(bigCard).toHaveTextContent("Rank up!");
+  expect(bigCard).toHaveTextContent("Level up!");
   expect(bigCard).toHaveTextContent("+85");
   expect(bigCard).toHaveTextContent("Correct answers");
   expect(screen.queryByTestId("moment-card-silent")).not.toBeInTheDocument();

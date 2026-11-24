@@ -7,7 +7,10 @@ import type { QuestDto } from "../../api/trainingTypes";
 // real stylesheet from disk (Node builtins are untyped in this tsconfig, so
 // the specifier is built dynamically and loaded with a top-level await).
 const nodeFs = "node:" + "fs";
-const { readFileSync } = (await import(/* @vite-ignore */ nodeFs)) as { readFileSync(path: string, encoding: string): string };
+const { readFileSync, readdirSync } = (await import(/* @vite-ignore */ nodeFs)) as {
+  readFileSync(path: string, encoding: string): string;
+  readdirSync(path: string, options: { withFileTypes: true }): { name: string; isDirectory(): boolean }[];
+};
 const cwd = (globalThis as { process?: { cwd(): string } }).process?.cwd() ?? ".";
 const gameLayerCss = readFileSync(`${cwd}/src/components/game/game-layer.css`, "utf8");
 
@@ -67,10 +70,12 @@ describe("ChaseBar", () => {
 });
 
 describe("PlayerCard", () => {
-  it("carries identity, crest, captioned XPBar and chip states", () => {
-    render(<PlayerCard name="Sam Rivera" xp={{ total: 612, xpIntoLevel: 112, xpForNext: 288, nextLevelName: "Scribe", level: 4, levelName: "Keeper" }} streak={6} streakState="active" seasonLabel="Daniel" />);
+  it("carries identity, level text (no crest), captioned XPBar and chip states", () => {
+    const { container } = render(<PlayerCard name="Sam Rivera" xp={{ total: 612, xpIntoLevel: 112, xpForNext: 288, nextLevelName: "Scribe", level: 4, levelName: "Keeper" }} streak={6} streakState="active" seasonLabel="Daniel" />);
     expect(screen.getByText("Sam Rivera")).toBeInTheDocument();
     expect(screen.getByText("Level 4 · Keeper")).toBeInTheDocument();
+    // The level is spelled out in text, so the card carries no crest.
+    expect(container.querySelector(".game-level-crest")).toBeNull();
     expect(screen.getByText(/288 XP to Scribe/)).toBeInTheDocument();
     expect(screen.getByText("6-day streak")).toBeInTheDocument();
     expect(screen.getByText("Daniel")).toBeInTheDocument();
@@ -128,9 +133,9 @@ describe("PatchDisplay", () => {
 
 describe("MomentCard", () => {
   it("big moments carry a tally receipt", () => {
-    render(<MomentCard level="big" title="Rank up!" tally={[{ label: "XP earned", value: "+85" }, { label: "Correct answers", value: 7 }]} />);
+    render(<MomentCard level="big" title="Level up!" tally={[{ label: "XP earned", value: "+85" }, { label: "Correct answers", value: 7 }]} />);
     const card = screen.getByTestId("moment-card-big");
-    expect(card).toHaveTextContent("Rank up!");
+    expect(card).toHaveTextContent("Level up!");
     expect(card).toHaveTextContent("+85");
     expect(card).toHaveTextContent("Correct answers");
   });
@@ -226,14 +231,49 @@ describe("Podium", () => {
     expect(second).toBeGreaterThan(third);
     expect(first - second).toBeGreaterThanOrEqual(16);
     expect(second - third).toBeGreaterThanOrEqual(16);
-    // The zero-state plinths step the same way.
-    const zeroFirst = heightOf(".season-board-zero-plinth.is-rank-1");
-    const zeroSecond = heightOf(".season-board-zero-plinth");
-    const zeroThird = heightOf(".season-board-zero-plinth.is-rank-3");
-    expect(zeroFirst).toBeGreaterThan(zeroSecond);
-    expect(zeroSecond).toBeGreaterThan(zeroThird);
-    expect(zeroFirst - zeroSecond).toBeGreaterThanOrEqual(16);
-    expect(zeroSecond - zeroThird).toBeGreaterThanOrEqual(16);
+    // Ghost spots share the winner block geometry: the ghost override sets
+    // no height of its own, so a partial podium steps exactly like a full one.
+    const ghostRule = gameLayerCss.match(/\.game-podium__item\.is-ghost \.game-podium__block--ghost \{[^}]*\}/)?.[0] ?? "";
+    expect(ghostRule).not.toContain("height:");
+    // The empty board's dashed wireframe plinths are gone for good.
+    expect(gameLayerCss).not.toContain(".season-board-zero-plinth");
+    expect(gameLayerCss).not.toMatch(/border: \dpx dashed/);
+  });
+
+  it("fills unclaimed spots with soft ghost spots when fillGhosts is set (partial boards)", () => {
+    const one = [{ userId: "a", displayName: "Ada L.", xp: 500 }];
+    const { unmount } = render(<Podium entries={one} modeLabel="Season" fillGhosts />);
+    const podium = screen.getByTestId("leaderboard-podium");
+    const items = [...podium.querySelectorAll("li")];
+    // Display order centers the winner: ghost 2nd, winner 1st, ghost 3rd.
+    expect(items.map(item => item.getAttribute("data-testid"))).toEqual(["leaderboard-podium-ghost-2", "leaderboard-podium-1", "leaderboard-podium-ghost-3"]);
+    expect(screen.getByTestId("leaderboard-podium-1")).toHaveTextContent("Ada L.");
+    expect(screen.getByTestId("leaderboard-podium-1")).toHaveTextContent("500 XP");
+    for (const rank of [2, 3]) {
+      const ghost = screen.getByTestId(`leaderboard-podium-ghost-${rank}`);
+      expect(ghost).toHaveTextContent("Open spot");
+      expect(ghost).toHaveTextContent(String(rank));
+      // No fake winner: no name plate, no XP, no avatar, no "?" placeholder.
+      expect(ghost.querySelector(".game-podium__block")).toHaveClass("game-podium__block--ghost");
+      expect(ghost.querySelector(".game-podium__xp")).toBeNull();
+      expect(ghost.querySelector("[data-entry-avatar]")).toBeNull();
+      expect(ghost).not.toHaveTextContent("?");
+      expect(screen.queryByTestId(`leaderboard-podium-${rank}`)).not.toBeInTheDocument();
+    }
+    unmount();
+
+    const two = [one[0], { userId: "b", displayName: "Grace H.", xp: 400 }];
+    render(<Podium entries={two} modeLabel="Season" fillGhosts />);
+    const items2 = [...screen.getByTestId("leaderboard-podium").querySelectorAll("li")];
+    expect(items2.map(item => item.getAttribute("data-testid"))).toEqual(["leaderboard-podium-2", "leaderboard-podium-1", "leaderboard-podium-ghost-3"]);
+    expect(screen.getByTestId("leaderboard-podium-2")).toHaveTextContent("Grace H.");
+  });
+
+  it("renders no ghost spots without fillGhosts (single-entry podium stays a single item)", () => {
+    render(<Podium entries={[{ userId: "a", displayName: "Ada L.", xp: 500 }]} modeLabel="Season" />);
+    const items = [...screen.getByTestId("leaderboard-podium").querySelectorAll("li")];
+    expect(items.map(item => item.getAttribute("data-testid"))).toEqual(["leaderboard-podium-1"]);
+    expect(screen.queryByTestId("leaderboard-podium-ghost-2")).not.toBeInTheDocument();
   });
 });
 
@@ -252,7 +292,7 @@ describe("circle fidelity (regression: discs and crests stretched into ellipses)
     return match?.[0] ?? "";
   };
   it("pins square sizing on every circular game-layer element", () => {
-    for (const selector of [".game-level-crest", ".game-initials-disc", ".game-entry-avatar", ".season-board-zero-crest"]) {
+    for (const selector of [".game-level-crest", ".game-initials-disc", ".game-entry-avatar", ".game-podium__ghost-ring"]) {
       expect(rule(selector), selector).toContain("aspect-ratio: 1");
       expect(rule(selector), selector).toContain("flex: none");
       expect(rule(selector), selector).toContain("border-radius: 50%");
@@ -260,7 +300,7 @@ describe("circle fidelity (regression: discs and crests stretched into ellipses)
   });
   it("never flexes every span in the starting-line row (the ellipse root cause)", () => {
     expect(gameLayerCss).not.toContain(".season-board-zero-line li span");
-    expect(rule(".season-board-zero-line__name")).toContain("flex: 1");
+    expect(rule(".season-board-zero-line__who")).toContain("flex: 1");
   });
   it("keeps quest pips at their fixed ratio under flex stretch", () => {
     expect(rule(".game-quest-card__pips span")).toContain("flex: none");
@@ -296,10 +336,53 @@ describe("PlayerCard avatar slot", () => {
   it("renders no avatar element when avatar is null (character appears once per screen)", () => {
     const { container } = render(<PlayerCard name="Sam Rivera" avatar={null} xp={{ total: 612, xpIntoLevel: 112, xpForNext: 288, nextLevelName: "Scribe", level: 4, levelName: "Keeper" }} />);
     expect(container.querySelector(".game-player-card__avatar")).not.toBeInTheDocument();
-    expect(screen.getByRole("img", { name: /Level 4/ })).toBeInTheDocument();
+    // The level rides as text under the name — no crest image carries it.
+    expect(screen.getByText("Level 4 · Keeper")).toBeInTheDocument();
+    expect(screen.queryByRole("img", { name: /Level 4/ })).not.toBeInTheDocument();
   });
   it("falls back to the initials disc when no avatar is passed", () => {
     const { container } = render(<PlayerCard name="Sam Rivera" />);
     expect(container.querySelector(".game-player-card__avatar .game-initials-disc")).toHaveTextContent("SR");
+  });
+});
+
+describe("level wording consistency (guard)", () => {
+  // Canonical level wording (Nov 23 audit): identity is "Level N · <Name>",
+  // progress names the next level ("… XP to <NextName>", bar label
+  // "Progress to the next level", top state "Top level reached — <Name>"),
+  // and the level-up announcement is "Level up!". "Rank" means board
+  // position only. This scan fails if a non-canonical level format is
+  // introduced in any shipped source file (client or worker, tests
+  // excluded — fixtures may quote the old strings to assert their absence).
+  const forbidden: [RegExp, string][] = [
+    [/Rank \{/, "JSX 'Rank {level}' — the tier is worded 'Level {level} · {levelName}'"],
+    [/Rank \$\{/, "template 'Rank ${level}' — the tier is worded 'Level ${level} · ${levelName}'"],
+    [/Rank up!/, "'Rank up!' — the announcement is 'Level up!'"],
+    [/next rank/i, "'next rank' — say 'next level' (or name it: 'XP to <NextName>')"],
+    [/Top rank/, "'Top rank reached' — the top state is 'Top level reached — <Name>'"],
+    [/\bLvl\b/, "'Lvl' — always spell out 'Level'"],
+  ];
+  const sourceFiles: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) walk(path);
+      else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)) sourceFiles.push(path);
+    }
+  };
+  walk(`${cwd}/src`);
+  walk(`${cwd}/worker`);
+  it("scans a real source tree", () => {
+    expect(sourceFiles.length).toBeGreaterThan(100);
+  });
+  it("no shipped source words a learner's level non-canonically", () => {
+    const offenders: string[] = [];
+    for (const file of sourceFiles) {
+      const text = readFileSync(file, "utf8");
+      for (const [pattern, rule] of forbidden) {
+        if (pattern.test(text)) offenders.push(`${file.replace(`${cwd}/`, "")}: ${rule}`);
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });

@@ -204,16 +204,17 @@ describe('production character profile', () => {
     expect(fillSrc()).toContain('basecamp');
   });
 
-  it('combines the player card and the sash into one crest-anchored header card', async () => {
+  it('combines the player card and the sash into one header card (level in text, no crest)', async () => {
     const view = mount();
     await screen.findByRole('navigation', { name: 'Profile pages' });
     // The header card and its collapsed strip both spell the level out.
     await screen.findAllByText('Level 4 · Keeper');
     const card = view.container.querySelector('.profile-header-card') as HTMLElement;
     expect(card).not.toBeNull();
-    // No avatar slot in the identity row — the level crest anchors the card.
+    // No avatar slot and no crest in the identity row — the level is
+    // spelled out in text beside the name (asserted above).
     expect(card.querySelector('.game-player-card__avatar')).toBeNull();
-    expect(card.querySelector('.game-level-crest')).not.toBeNull();
+    expect(card.querySelector('.game-level-crest')).toBeNull();
     // The sash row lives inside the same card: thumbnail, count, actions.
     const row = card.querySelector('.profile-sash-row') as HTMLElement;
     expect(row).not.toBeNull();

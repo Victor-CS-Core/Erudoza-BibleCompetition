@@ -77,7 +77,7 @@ function BoardRows({ board }: { board: LeaderboardResponse }) {
         <EntryAvatar avatar={entry.avatar} name={entry.displayName} />
         <span className="leaderboard-name">{entry.displayName}{board.me?.userId === entry.userId && <Badge tone="info">You</Badge>}</span>
         <span className="leaderboard-xp"><strong>{entry.xp}</strong> XP</span>
-        <Badge tone="neutral">Level {entry.level}</Badge>
+        <Badge tone="neutral">Level {entry.level} · {entry.levelName}</Badge>
       </li>)}
     </ol>
     {/* The weekly board has no full-board page of its own (the full board
@@ -118,6 +118,15 @@ function SeasonLeaderboardMini({ seasonId }: { seasonId: string }) {
   const above = myIndex > 0 ? sorted[myIndex - 1] : undefined;
   const raceNotStarted = !sorted.length || sorted[0].seasonXp <= 0;
   const act = activity.data;
+  // Footer dedupe (Nov 23): when the race hasn't started, the card
+  // already says "be the first on the board" — a quiet team week must
+  // not repeat the be-first call in the footer. In that state the
+  // footer keeps only what the headline doesn't say (the team size),
+  // and disappears entirely when even that is absent. Once the race
+  // has started, the be-first line is the only one of its kind in the
+  // card and stays; a week with real practice always shows its counts.
+  const quietUnstarted = raceNotStarted && act?.practicedThisWeek === 0;
+  const showFooter = !!act && (!quietUnstarted || act.memberCount > 1);
   return <Panel className="leaderboard-card game-leaderboard-mini" data-testid="leaderboard-card">
     <div className="training-panel-title"><div className="training-streak-title"><AppIcon name="chart" /><h2>Season leaderboard</h2></div>{data && <Badge tone="neutral">{data.seasonName}</Badge>}</div>
     {board.isPending ? <LoadingState label="Loading the leaderboard…" /> : board.isError || !data ? <Notice tone="danger">The leaderboard couldn’t load. <Button variant="secondary" size="compact" onClick={() => void board.refetch()}>Try again</Button></Notice> :
@@ -142,9 +151,11 @@ function SeasonLeaderboardMini({ seasonId }: { seasonId: string }) {
           {data.me && <Button variant="ghost" size="compact" onClick={() => optIn.mutate(false)} disabled={optIn.isPending}>{optIn.isPending ? "Updating…" : "Hide me from the board"}</Button>}
         </div>
         {optIn.isError && <Notice tone="danger">Couldn’t update your choice. Try again.</Notice>}
-        {act && <p className="game-leaderboard-mini__footer" data-testid="leaderboard-mini-team-line"><AppIcon name="users" /><span>{act.practicedThisWeek === 0
-          ? "Be the first on your team to practice today — your teammates will see the momentum."
-          : <><strong>{act.practicedThisWeek} {act.practicedThisWeek === 1 ? "teammate" : "teammates"}</strong> practiced this week{act.practicedToday > 0 && <> · <strong>{act.practicedToday}</strong> today</>}</>}{act.memberCount > 1 && <> · {act.memberCount} Pathfinders on your team</>}</span></p>}
+        {showFooter && act && <p className="game-leaderboard-mini__footer" data-testid="leaderboard-mini-team-line"><AppIcon name="users" /><span>{quietUnstarted
+          ? <>{act.memberCount} Pathfinders on your team</>
+          : <>{act.practicedThisWeek === 0
+            ? "Be the first on your team to practice today — your teammates will see the momentum."
+            : <><strong>{act.practicedThisWeek} {act.practicedThisWeek === 1 ? "teammate" : "teammates"}</strong> practiced this week{act.practicedToday > 0 && <> · <strong>{act.practicedToday}</strong> today</>}</>}{act.memberCount > 1 && <> · {act.memberCount} Pathfinders on your team</>}</>}</span></p>}
       </>}
   </Panel>;
 }

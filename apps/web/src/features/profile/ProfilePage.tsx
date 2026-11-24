@@ -173,8 +173,9 @@ function ProfileEditor({ profile: value, refreshing, refresh }: { profile: MyPro
     <div className="profile-navigation"><span className="breadcrumb">Account <span aria-hidden="true">/</span> {page}</span><nav aria-label="Profile pages">{pages.map(item => <Button key={item} variant="ghost" aria-current={page === item ? 'page' : undefined} onClick={() => navigate(item)}>{item}</Button>)}</nav></div>
     <div ref={heading} tabIndex={-1} className="profile-heading"><PageHeader title={page === 'Profile' ? 'Your profile' : page === 'Character' ? 'Make your Pathfinder' : page === 'Achievement patches' ? 'Your displayed Achievement patches' : 'Share your character'} description={`${profile.displayName} · ${me?.organizationName ?? ''}`}/></div>
     {/* Combined header card (Nov 23): the player card and the sash card
-        are one card — identity up top (level crest anchors; no avatar
-        slot, the HQ hero treatment) and the sash row beneath it. */}
+        are one card — identity up top (level spelled out in text beside
+        the name, no crest; no avatar slot, the HQ hero treatment) and
+        the sash row beneath it. */}
     <PlayerCard
       className="profile-header-card"
       name={profile.displayName}

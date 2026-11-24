@@ -101,11 +101,11 @@ export function StudyModeSelect() {
           <div className="study-xp" data-testid="study-ticker-xp">
             <div className="study-xp-row">
               <strong>
-                Rank {gameLayer.xp.level} · {gameLayer.xp.levelName}
+                Level {gameLayer.xp.level} · {gameLayer.xp.levelName}
               </strong>
               <span>{gameLayer.xp.total} XP</span>
             </div>
-            <div className="study-xp-bar" role="progressbar" aria-valuenow={xpPct} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to next rank">
+            <div className="study-xp-bar" role="progressbar" aria-valuenow={xpPct} aria-valuemin={0} aria-valuemax={100} aria-label="Progress to the next level">
               <span style={{ width: `${xpPct}%` }} />
             </div>
             {quest && (

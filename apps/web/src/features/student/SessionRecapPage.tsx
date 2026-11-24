@@ -69,7 +69,7 @@ export function SessionRecapPage() {
       <div className="training-recap-layout">
         <div className="training-recap-main-col">
         {(() => {
-          // Moment levels: Big only for a rank up or an earned milestone
+          // Moment levels: Big only for a level up or an earned milestone
           // (the single CelebrationBurst lives inside the Big MomentCard);
           // personal bests, the weekly goal and quest completions are Lines;
           // everything else is a Silent tally. Every figure below is one of
@@ -81,7 +81,7 @@ export function SessionRecapPage() {
             { label: "Session goal (cards)", value: data.targetCardCount },
             { label: "XP earned", value: `+${data.xp.earned}` },
           ];
-          if (data.levelUp) return <MomentCard level="big" title="Rank up!" description={`${data.levelUp.fromName} → ${data.levelUp.toName}`} artwork={<LevelCrest level={data.levelUp.to} levelName={data.levelUp.toName} size="moment" />} tally={tally} />;
+          if (data.levelUp) return <MomentCard level="big" title="Level up!" description={`${data.levelUp.fromName} → ${data.levelUp.toName}`} artwork={<LevelCrest level={data.levelUp.to} levelName={data.levelUp.toName} size="moment" />} tally={tally} />;
           if (featuredMilestone) return <MomentCard level="big" title={featuredMilestone.title} description={featuredMilestone.scopeLabel} artwork={<HonorArtwork {...honorAsset(featuredMilestone.key)} size={176} />} tally={tally}>
             <Badge tone="success">Milestone recorded</Badge>
             <p><small><time dateTime={featuredMilestone.earnedAtUtc!}>{evidenceDate(featuredMilestone.earnedAtUtc!)}</time></small></p>

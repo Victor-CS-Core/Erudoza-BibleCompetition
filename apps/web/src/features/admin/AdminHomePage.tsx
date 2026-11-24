@@ -77,7 +77,7 @@ export function AdminHomePage() {
         })}</tbody></table></div> : <div className="training-empty"><p>No students assigned to this season yet.</p><Link to={`/admin/seasons/${selected.id}?step=students`}>Assign your first passage →</Link></div>}</Panel>
       </>}
       <div className="training-coach-actions"><div className="training-controls"><LinkButton to={`/admin/seasons/${selected.id}?step=students`}>Manage assignments <AppIcon name="arrow" /></LinkButton><LinkButton variant="secondary" to="/admin/practice">Plan team practice <AppIcon name="arrow" /></LinkButton></div></div>
-      <Panel as="div" className="training-your-training"><span className="training-icon-tile"><AppIcon name="flame" /></span><div><strong>Your training</strong><small>{myStreak && myStreak.current > 0 && myXp ? `${myStreak.current}-day streak · Rank ${myXp.level} · ${myXp.total} XP` : "Practice in student mode to keep your own streak."}</small></div><Link to="/student">Open your Training HQ →</Link></Panel>
+      <Panel as="div" className="training-your-training"><span className="training-icon-tile"><AppIcon name="flame" /></span><div><strong>Your training</strong><small>{myStreak && myStreak.current > 0 && myXp ? `${myStreak.current}-day streak · Level ${myXp.level} · ${myXp.levelName} · ${myXp.total} XP` : "Practice in student mode to keep your own streak."}</small></div><Link to="/student">Open your Training HQ →</Link></Panel>
     </>}
   </div>;
 }

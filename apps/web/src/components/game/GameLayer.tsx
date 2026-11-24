@@ -136,20 +136,24 @@ export function PlayerCard({
     <div className="game-player-card__content">
       {title ? <h1 id={titleId} className="game-player-card__title">{title}</h1> : null}
       {description ? <p className="game-player-card__description">{description}</p> : null}
+      {/* No level crest in the identity row: the level is spelled out in
+          text directly under the name, so a crest circle beside it only
+          repeats it (owner direction, Nov 23 — the same rule as the
+          sticky strips). Crests stay on leaderboard rows, which carry no
+          level text. */}
       <div className="game-player-card__identity">
         {avatar !== null && <span className="game-player-card__avatar">{avatar ?? <InitialsDisc name={name} size="card" />}</span>}
         <div className="game-player-card__who">
           <strong>{name}</strong>
           {xp && <span>Level {xp.level} · {xp.levelName}</span>}
         </div>
-        {xp && <LevelCrest level={xp.level} levelName={xp.levelName} size="card" />}
       </div>
       {(streakText || seasonLabel || formatLabel) && <div className="game-player-card__chips">
         {streakText && <span className={`game-player-chip ${streakState === "paused" ? "is-urgent" : ""}`}><AppIcon name="flame" />{streakText}</span>}
         {seasonLabel && <span className="game-player-chip">{seasonLabel}</span>}
         {formatLabel && <span className="game-player-chip">{formatLabel}</span>}
       </div>}
-      {xp && <XPBar xp={xp} label="Progress to the next rank" />}
+      {xp && <XPBar xp={xp} label="Progress to the next level" />}
       {children}
     </div>
   </>;
@@ -289,13 +293,28 @@ export type PodiumEntry = {
   avatar?: BoardAvatar | null;
 };
 
-export function Podium({ entries, isMe, modeLabel }: { entries: PodiumEntry[]; isMe?: (entry: PodiumEntry) => boolean; modeLabel: string }) {
+export function Podium({ entries, isMe, modeLabel, fillGhosts = false }: { entries: PodiumEntry[]; isMe?: (entry: PodiumEntry) => boolean; modeLabel: string; fillGhosts?: boolean }) {
   const top = entries.slice(0, 3);
   if (!top.length) return null;
-  const display = top.length === 3 ? [top[1], top[0], top[2]] : top;
-  return <ol className="game-podium" aria-label={`Top ${top.length} · ${modeLabel}`} data-testid="leaderboard-podium">
-    {display.map(entry => {
-      const rank = top.indexOf(entry) + 1;
+  // With fillGhosts, unclaimed spots up to a full podium render as soft ghost
+  // spots (partial boards: 1–2 scored) instead of letting unscored members
+  // pose as winners. Spots are built by rank so the display order below can
+  // center the winner exactly as the full podium does.
+  const spotCount = fillGhosts ? 3 : top.length;
+  const byRank: (PodiumEntry | null)[] = Array.from({ length: spotCount }, (_, index) => top[index] ?? null);
+  const display = spotCount === 3 ? [byRank[1], byRank[0], byRank[2]] : byRank;
+  return <ol className="game-podium" aria-label={`Top ${spotCount} · ${modeLabel}`} data-testid="leaderboard-podium">
+    {display.map((entry, position) => {
+      const rank = spotCount === 3 ? [2, 1, 3][position] : position + 1;
+      if (!entry) return <li key={`ghost-${rank}`} className={`game-podium__item is-rank-${rank} is-ghost`} data-testid={`leaderboard-podium-ghost-${rank}`}>
+        <span className="game-podium__face">
+          <span className="game-podium__ghost-ring" aria-hidden="true" />
+        </span>
+        <span className="game-podium__block game-podium__block--ghost">
+          <span className="game-podium__open">Open spot</span>
+          <span className="game-podium__numeral">{rank}</span>
+        </span>
+      </li>;
       return <li key={entry.userId} className={`game-podium__item is-rank-${rank} ${isMe?.(entry) ? "is-me" : ""}`} data-testid={`leaderboard-podium-${rank}`}>
         <span className="game-podium__face">
           <EntryAvatar avatar={entry.avatar} name={entry.displayName} size={rank === 1 ? "moment" : "card"} />

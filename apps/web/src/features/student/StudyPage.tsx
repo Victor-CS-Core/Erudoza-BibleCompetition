@@ -315,7 +315,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   const sessionMeta = game.data?.streak && game.data?.xp ? (
     <div className="study-session-meta" aria-label="Training progress">
       <span className="study-meta-chip"><AppIcon name="flame" />{game.data.streak.current}-day streak</span>
-      <span className="study-meta-chip">Rank {game.data.xp.level} · {game.data.xp.levelName}</span>
+      <span className="study-meta-chip">Level {game.data.xp.level} · {game.data.xp.levelName}</span>
       {quest && <span className="study-meta-chip">Quest: {quest.title} · +{quest.xpReward ?? 25} XP</span>}
     </div>
   ) : null;
@@ -415,20 +415,20 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   );
 
   if ([start.error, card.error, submit.error, resume.error, complete.error].some(error => error instanceof ApiError && error.status === 409)) {
-    return <div className="er-study-stage space-y-4">{cover}<Notice tone="info">Your assignment or session changed. Return to Training HQ to continue with your current plan. Accepted answers remain saved.</Notice><LinkButton to={`/student?seasonId=${encodeURIComponent(sessionSnapshot?.seasonId ?? selectedSeasonId ?? progress.data?.seasonId ?? "")}`} onClick={() => {
+    return <div className="er-study-stage">{cover}<Notice tone="info">Your assignment or session changed. Return to Training HQ to continue with your current plan. Accepted answers remain saved.</Notice><LinkButton to={`/student?seasonId=${encodeURIComponent(sessionSnapshot?.seasonId ?? selectedSeasonId ?? progress.data?.seasonId ?? "")}`} onClick={() => {
       for (const key of ["progress", "training-today", "training-honors", "training-journey"]) void queryClient.invalidateQueries({ queryKey: [key] });
     }}>Return to Training HQ</LinkButton></div>;
   }
 
   if (!requestedSessionId && progress.isSuccess && !trackReady) {
     return (
-      <div className="er-study-stage space-y-4">
+      <div className="er-study-stage">
         {cover}
       </div>
     );
   }
 
-  if (choosePurpose && trackReady) return <div className="er-study-stage space-y-4">{cover}<Panel>
+  if (choosePurpose && trackReady) return <div className="er-study-stage">{cover}<Panel>
     <h2>Choose your Memory practice</h2><p>Warmups use varied gaps and phrase building. Advanced mastery challenges require coach-set Advanced difficulty.</p>
     <div className="student-study-actions">
       <Button onClick={()=>setPurposeChoice({seasonId:progress.data!.seasonId,purpose:'Warmup'})}>Start Memory warmup</Button>
@@ -437,7 +437,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
   </Panel></div>;
 
   return (
-    <div className="er-study-stage space-y-4" data-session-active="true">
+    <div className="er-study-stage" data-session-active="true">
       {cover}
       {returnBanner}
       {examBanner}
@@ -544,6 +544,7 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           key={sessionSnapshot.seasonId}
           seasonId={sessionSnapshot.seasonId}
           citation={current.citation}
+          focus={current.activityType === "ReferenceMatch" ? undefined : { citation: current.citation, nextVerse: current.activityType === "WhatComesNext" }}
           open={readerOpen}
           onOpenChange={(next) => {
             readerOpenRef.current = next; setReaderOpen(next);

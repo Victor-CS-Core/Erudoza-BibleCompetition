@@ -23,7 +23,7 @@ vi.mock("../../auth/AuthContext", () => ({
   useAuth: () => ({ me: authState.me }),
 }));
 
-import { SeasonLeaderboardPage } from "./SeasonLeaderboardPage";
+import { SeasonLeaderboardPage, ZeroState, ZERO_ROSTER_CAP } from "./SeasonLeaderboardPage";
 const initialsAvatar = { avatarKind: "initials", avatarHonorKey: null, character: null } as const;
 
 const baseBoard: SeasonLeaderboardResponse = {
@@ -62,7 +62,7 @@ describe("SeasonLeaderboardPage", () => {
     // 650 (Jonah, directly above) − 612 = 38 XP behind.
     expect(card).toHaveTextContent("38 XP");
     expect(card).toHaveTextContent("behind Jonah K.");
-    expect(card).toHaveTextContent("Progress to next rank");
+    expect(card).toHaveTextContent("Progress to Scribe");
     expect(card).toHaveTextContent("Scribe");
     expect(card).toHaveTextContent("612 / 900 XP");
     expect(card).toHaveTextContent("Level 4 · Keeper");
@@ -155,6 +155,82 @@ describe("SeasonLeaderboardPage", () => {
     expect(screen.getByRole("link", { name: "Start practice" })).toBeInTheDocument();
     expect(screen.queryByTestId("leaderboard-podium")).not.toBeInTheDocument();
     expect(screen.queryByTestId("season-board-row-1")).not.toBeInTheDocument();
+    // The wireframe podium never renders in the empty state: no plinths, no
+    // dashed "?" spots, no empty gold plate, no "Open spot" labels.
+    expect(zero.querySelector(".season-board-zero-plinth")).toBeNull();
+    expect(zero.querySelector(".season-board-zero-base")).toBeNull();
+    expect(zero).not.toHaveTextContent("Open spot");
+    expect(zero).not.toHaveTextContent("?");
+    // Roster rows are proper rows: face, name, the canonical level pair, 0 XP.
+    // (All-zero XP sorts by name, so find Maya's row by her name.)
+    const rows = [...zero.querySelectorAll(".season-board-zero-line li")];
+    expect(rows).toHaveLength(3);
+    const mayaRow = rows.find(row => row.textContent?.includes("Maya R."));
+    expect(mayaRow).toHaveTextContent("Level 5 · Scribe");
+    expect(mayaRow).toHaveTextContent("0 XP");
+    expect(mayaRow?.querySelector(".game-level-crest")).toBeNull();
+    expect(mayaRow?.querySelector("[data-entry-avatar]")).not.toBeNull();
+  });
+
+  it("seats only the scorer on the podium and ghosts the unclaimed spots when one member has scored", async () => {
+    apiMocks.seasonLeaderboard.mockResolvedValue({
+      ...baseBoard,
+      entries: baseBoard.entries.map(entry => entry.userId === "maya" ? entry : { ...entry, xp: 0, seasonXp: 0, weekXp: 0 }),
+      me: { ...baseBoard.me!, seasonXp: 0, weekXp: 0, totalXp: 0, level: 1, levelName: "Seedling", nextLevelName: "Seeker", xpIntoLevel: 0, xpForNext: 100, avatar: initialsAvatar },
+    });
+    renderPage();
+    await screen.findByTestId("season-board-row-1");
+    expect(screen.queryByTestId("season-board-zero")).not.toBeInTheDocument();
+    const first = screen.getByTestId("leaderboard-podium-1");
+    expect(first).toHaveTextContent("Maya R.");
+    expect(first).toHaveTextContent("845 XP");
+    // Jonah and Sam have not scored: their spots are ghosts, not fake winners.
+    expect(screen.queryByTestId("leaderboard-podium-2")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("leaderboard-podium-3")).not.toBeInTheDocument();
+    for (const rank of [2, 3]) {
+      const ghost = screen.getByTestId(`leaderboard-podium-ghost-${rank}`);
+      expect(ghost).toHaveTextContent("Open spot");
+      expect(ghost.querySelector(".game-podium__block")).toHaveClass("game-podium__block--ghost");
+      expect(ghost.querySelector(".game-podium__xp")).toBeNull();
+      expect(ghost).not.toHaveTextContent("Jonah K.");
+      expect(ghost).not.toHaveTextContent("Sam R.");
+      expect(ghost).not.toHaveTextContent("?");
+    }
+    // The flat list still shows everyone, unscored members included.
+    expect(screen.getByTestId("season-board-row-3")).toHaveTextContent("Sam R.");
+  });
+
+  it("ghosts only third place when two members have scored", async () => {
+    apiMocks.seasonLeaderboard.mockResolvedValue({
+      ...baseBoard,
+      entries: baseBoard.entries.map(entry => entry.userId === "me" ? { ...entry, xp: 0, seasonXp: 0, weekXp: 0 } : entry),
+      me: { ...baseBoard.me!, seasonXp: 0, weekXp: 0, totalXp: 0, level: 1, levelName: "Seedling", nextLevelName: "Seeker", xpIntoLevel: 0, xpForNext: 100, avatar: initialsAvatar },
+    });
+    renderPage();
+    await screen.findByTestId("season-board-row-1");
+    expect(screen.getByTestId("leaderboard-podium-1")).toHaveTextContent("Maya R.");
+    expect(screen.getByTestId("leaderboard-podium-2")).toHaveTextContent("Jonah K.");
+    expect(screen.queryByTestId("leaderboard-podium-3")).not.toBeInTheDocument();
+    expect(screen.getByTestId("leaderboard-podium-ghost-3")).toHaveTextContent("Open spot");
+    expect(screen.queryByTestId("leaderboard-podium-ghost-2")).not.toBeInTheDocument();
+  });
+
+  it("recomputes scored spots per mode: a season scorer with no week XP ghosts on the This week board", async () => {
+    apiMocks.seasonLeaderboard.mockResolvedValue({
+      ...baseBoard,
+      entries: baseBoard.entries.map(entry => entry.userId === "jonah" ? entry : { ...entry, weekXp: 0 }),
+    });
+    renderPage();
+    await screen.findByTestId("season-board-row-1");
+    // Season board is full: all three scored this season.
+    expect(screen.getByTestId("leaderboard-podium-3")).toHaveTextContent("Sam R.");
+    fireEvent.click(screen.getByRole("button", { name: "This week" }));
+    // This week only Jonah (240) has scored.
+    expect(screen.getByTestId("leaderboard-podium-1")).toHaveTextContent("Jonah K.");
+    expect(screen.getByTestId("leaderboard-podium-1")).toHaveTextContent("240 XP");
+    expect(screen.queryByTestId("leaderboard-podium-2")).not.toBeInTheDocument();
+    expect(screen.getByTestId("leaderboard-podium-ghost-2")).toHaveTextContent("Open spot");
+    expect(screen.getByTestId("leaderboard-podium-ghost-3")).toHaveTextContent("Open spot");
   });
 
   it("shows the opt-in prompt with accurate name-privacy copy for students who have not joined", async () => {
@@ -173,5 +249,33 @@ describe("SeasonLeaderboardPage", () => {
     expect(await screen.findByTestId("season-board-row-1")).toHaveTextContent("Maya R.");
     expect(screen.queryByTestId("season-board-your-rank")).not.toBeInTheDocument();
     expect(screen.getByText("Every student assigned in this season is shown.")).toBeInTheDocument();
+  });
+});
+
+describe("ZeroState roster", () => {
+  const rosterEntry = (index: number) => ({
+    userId: `u${index}`, displayName: `Student ${index}`, xp: 0, seasonXp: 0, weekXp: 0,
+    streak: 0, level: 1, levelName: "Seedling", avatar: initialsAvatar,
+  });
+
+  it("caps the starting-line roster and folds the rest into a +N more Pathfinders line", () => {
+    const entries = Array.from({ length: ZERO_ROSTER_CAP + 3 }, (_, index) => rosterEntry(index + 1));
+    render(<MemoryRouter><ZeroState entries={entries} seasonId="season-1" mode="season" /></MemoryRouter>);
+    const zero = screen.getByTestId("season-board-zero");
+    const rows = [...zero.querySelectorAll(".season-board-zero-line li:not(.season-board-zero-line__more)")];
+    expect(rows).toHaveLength(ZERO_ROSTER_CAP);
+    expect(zero).toHaveTextContent("+3 more Pathfinders");
+    expect(zero).not.toHaveTextContent("Student 9");
+    // Every shown row carries the level pair and the 0 XP score context.
+    expect(rows[0]).toHaveTextContent("Level 1 · Seedling");
+    expect(rows[0]).toHaveTextContent("0 XP");
+  });
+
+  it("shows the week wording and no cap line at exactly the cap", () => {
+    const entries = Array.from({ length: ZERO_ROSTER_CAP }, (_, index) => rosterEntry(index + 1));
+    render(<MemoryRouter><ZeroState entries={entries} seasonId="season-1" mode="week" /></MemoryRouter>);
+    const zero = screen.getByTestId("season-board-zero");
+    expect(zero).toHaveTextContent("Nobody has scored yet this week");
+    expect(zero).not.toHaveTextContent("more Pathfinders");
   });
 });

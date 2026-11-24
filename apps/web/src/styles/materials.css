@@ -1032,6 +1032,36 @@
   z-index: 1;
 }
 
+/* The stage child that CONTAINS the phone action dock (the challenge
+   panel in Study/PBE sessions — the dock is its last child) paints
+   above its stage siblings. The dock is position:fixed with z-index 29,
+   but that z-index only competes inside the panel's stacking context,
+   so at the shared z-index 1 the later aids section painted over the
+   dock while scrolling (Nov 23 bug report: recitation + reader panels
+   sliding over the Check answer bar). In-flow stage children never
+   overlap each other, so lifting the dock's host changes nothing but
+   the dock's paint order. Same specificity as the rule above; it wins
+   by coming later. */
+.er-study-stage > *:not(.er-field-guide-chrome):has(.mobile-action-dock),
+.er-progress-stage > *:not(.er-field-guide-chrome):has(.mobile-action-dock) {
+  z-index: 2;
+}
+
+/* Session stage rhythm (Nov 23): stage children stack on the app's
+   card-stack step — the same space-6 (24px) the HQ dashboard and the
+   profile layouts use — replacing the Tailwind space-y-4 utility the
+   stage divs used to carry (16px where the utility is generated, and
+   nothing at all where it isn't: the challenge panel sat directly on
+   the aids section). The challenge panel and the Learning aids section
+   are both stage children, and .study-aids matches the same step, so a
+   live session reads as one even stack of cards. Sibling margins
+   collapse as before, so the header's existing 24px (its PageHeader
+   margin showing through the cover) is unchanged. */
+.er-study-stage > *:not(.er-field-guide-chrome):not(.mobile-action-dock) + *:not(.er-field-guide-chrome):not(.mobile-action-dock),
+.er-progress-stage > *:not(.er-field-guide-chrome):not(.mobile-action-dock) + *:not(.er-field-guide-chrome):not(.mobile-action-dock) {
+  margin-top: var(--er-space-6);
+}
+
 .er-chrome-motto {
   position: absolute;
   top: 11.5rem;

@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { beforeEach, expect, it, vi } from "vitest";
 import { scriptureApi } from "../../api/scripture";
 import type { SourceUnit } from "../../api/types";
-import { ScriptureReader, searchScripture } from "./ScriptureReader";
+import { ScriptureReader, focusVerses, searchScripture, type ReaderFocus } from "./ScriptureReader";
 
 vi.mock("../../api/scripture", () => ({ scriptureApi: { assigned: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "student", organizationId: "org" } }) }));
@@ -18,6 +18,13 @@ function mount(citation = "Genesis 1:1") {
   const onRead = vi.fn();
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
     <ScriptureReader seasonId="season" citation={citation} onRead={onRead} />
+  </QueryClientProvider>);
+  return onRead;
+}
+function mountFocused(focus: ReaderFocus, citation?: string) {
+  const onRead = vi.fn();
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <ScriptureReader seasonId="season" citation={citation ?? focus.citation} focus={focus} onRead={onRead} />
   </QueryClientProvider>);
   return onRead;
 }
@@ -97,6 +104,74 @@ it("paginates all 176 verses of Psalm 119 and finds its final verse", async () =
   fireEvent.change(screen.getByLabelText("Search assigned Scripture"), { target: { value: "PSA 119:176" } });
   expect(screen.getByText("1 verse")).toBeVisible();
   expect(screen.getByText(verses[3].canonicalText)).toBeVisible();
+});
+
+it("resolves focus to exactly the practiced verses", () => {
+  expect(focusVerses(verses, { citation: "Genesis 1:10" }).map(v => v.id)).toEqual(["2"]);
+  expect(focusVerses(verses, { citation: "Genesis 1:1-10" }).map(v => v.id)).toEqual(["1", "2"]);
+  expect(focusVerses(verses, { citation: "GEN 1:10" }).map(v => v.id)).toEqual(["2"]);
+  // What Comes Next practices the verse after the cited one.
+  expect(focusVerses(verses, { citation: "Genesis 1:10", nextVerse: true }).map(v => v.id)).toEqual(["3"]);
+  // Unresolvable references resolve to nothing, so the reader falls back.
+  expect(focusVerses(verses, { citation: "John 3:16" })).toEqual([]);
+  expect(focusVerses(verses, { citation: "Assigned passage" })).toEqual([]);
+  expect(focusVerses(verses, { citation: "Psalms 119:176", nextVerse: true })).toEqual([]);
+});
+
+it("opens on the card's passage only — no sibling verses from the chapter", async () => {
+  const onRead = mountFocused({ citation: "Genesis 1:10" });
+  fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+  const panel = await screen.findByTestId("reader-focused-passage");
+  expect(within(panel).getByRole("heading", { name: "Genesis 1:10" })).toBeInTheDocument();
+  expect(within(panel).getByText(verses[1].canonicalText)).toBeVisible();
+  // Genesis 1:1 sits in the same chapter but is not this card's passage.
+  expect(screen.queryByText(verses[0].canonicalText)).not.toBeInTheDocument();
+  expect(screen.queryByText(verses[2].canonicalText)).not.toBeInTheDocument();
+  expect(screen.queryByLabelText("Chapter")).not.toBeInTheDocument();
+  // The focused read still records the hint, exactly like a chapter read.
+  expect(onRead).toHaveBeenCalled();
+});
+
+it("focuses the next verse for What Comes Next", async () => {
+  mountFocused({ citation: "Genesis 1:10", nextVerse: true });
+  fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+  const panel = await screen.findByTestId("reader-focused-passage");
+  expect(within(panel).getByRole("heading", { name: "Genesis 2:1" })).toBeInTheDocument();
+  expect(within(panel).getByText(verses[2].canonicalText)).toBeVisible();
+  expect(screen.queryByText(verses[1].canonicalText)).not.toBeInTheDocument();
+});
+
+it("shows every verse of a ranged passage, and nothing outside it", async () => {
+  mountFocused({ citation: "Genesis 1:1-10" });
+  fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+  const panel = await screen.findByTestId("reader-focused-passage");
+  expect(within(panel).getByRole("heading", { name: "Genesis 1:1–10" })).toBeInTheDocument();
+  expect(within(panel).getByText(verses[0].canonicalText)).toBeVisible();
+  expect(within(panel).getByText(verses[1].canonicalText)).toBeVisible();
+  expect(screen.queryByText(verses[2].canonicalText)).not.toBeInTheDocument();
+});
+
+it("escapes to the full chapter browser and back to the card's passage", async () => {
+  mountFocused({ citation: "Genesis 1:10" });
+  fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+  await screen.findByTestId("reader-focused-passage");
+  fireEvent.click(screen.getByRole("button", { name: "Browse the full chapter instead" }));
+  // The whole chapter is one click away, under the same assisted read.
+  expect(await screen.findByLabelText("Chapter")).toBeVisible();
+  expect(screen.getByText(verses[0].canonicalText)).toBeVisible();
+  expect(screen.getByText(verses[1].canonicalText)).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Back to this card's passage" }));
+  const panel = await screen.findByTestId("reader-focused-passage");
+  expect(within(panel).getByText(verses[1].canonicalText)).toBeVisible();
+  expect(screen.queryByText(verses[0].canonicalText)).not.toBeInTheDocument();
+});
+
+it("falls back to the chapter browser when the focus is not assigned", async () => {
+  mountFocused({ citation: "John 3:16" });
+  fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+  expect(await screen.findByLabelText("Chapter")).toBeVisible();
+  expect(screen.queryByTestId("reader-focused-passage")).not.toBeInTheDocument();
+  expect(screen.getByText(verses[0].canonicalText)).toBeVisible();
 });
 
 it("explains empty assignments without recording a hint", async () => {

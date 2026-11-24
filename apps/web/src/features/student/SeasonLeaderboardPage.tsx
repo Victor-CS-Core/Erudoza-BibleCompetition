@@ -50,7 +50,10 @@ export function SeasonLeaderboardPage() {
   const myEntry = myIndex >= 0 ? sorted[myIndex] : undefined;
   const above = myIndex > 0 ? sorted[myIndex - 1] : undefined;
   const leaderXp = sorted.length ? modeXp(sorted[0], mode) : 0;
-  const raceNotStarted = leaderXp <= 0;
+  // "Scored" is per active mode: a member with season XP but no XP this week
+  // has not scored on the This week board. The podium seats only scorers.
+  const scored = sorted.filter(entry => modeXp(entry, mode) > 0);
+  const raceNotStarted = scored.length === 0;
 
   return <div className="training-dashboard season-board">
     <p className="season-board-caption">Current season</p>
@@ -80,11 +83,12 @@ export function SeasonLeaderboardPage() {
           {data.me && myEntry && <YourPosition data={data} mode={mode} rank={myIndex + 1} entry={myEntry} xp={modeXp(myEntry, mode)} above={above} aboveXp={above ? modeXp(above, mode) : null} />}
 
           {raceNotStarted ? <ZeroState entries={sorted} seasonId={seasonId} mode={mode} /> : <>
-            {sorted.length >= 2 && <Podium
-              entries={sorted.map(entry => ({ userId: entry.userId, displayName: entry.displayName, xp: modeXp(entry, mode), avatar: entry.avatar }))}
+            <Podium
+              entries={scored.map(entry => ({ userId: entry.userId, displayName: entry.displayName, xp: modeXp(entry, mode), avatar: entry.avatar }))}
               isMe={entry => data.me?.userId === entry.userId}
               modeLabel={mode === "season" ? "Season" : "This week"}
-            />}
+              fillGhosts
+            />
             <ol className="season-board-list">
               {sorted.map((entry, index) => <BoardRow key={entry.userId} entry={entry} rank={index + 1} mode={mode} leaderXp={leaderXp} isMe={data.me?.userId === entry.userId} />)}
             </ol>
@@ -122,36 +126,42 @@ function YourPosition({ data, mode, rank, entry, xp, above, aboveXp }: {
         ? <ChaseBar value={xp} max={aboveXp} ariaLabel={`Your ${xp} XP compared with ${above.displayName}'s ${aboveXp} XP`} caption={<><strong>{aboveXp - xp} XP</strong> behind {above.displayName} — one strong practice day catches up.</>} />
         : <p className="season-board-yr-note">You’re leading {period} — keep it going.</p>}
       {me.xpForNext > 0
-        ? <p className="season-board-yr-progress">Progress to next rank — <b>{me.nextLevelName}</b> · {me.totalXp} / {me.totalXp + me.xpForNext} XP</p>
-        : <p className="season-board-yr-note">Top rank reached — {me.levelName}.</p>}
+        ? <p className="season-board-yr-progress">Progress to <b>{me.nextLevelName}</b> — {me.totalXp} / {me.totalXp + me.xpForNext} XP</p>
+        : <p className="season-board-yr-note">Top level reached — {me.levelName}.</p>}
     </PlayerCard>
   </div>;
 }
 
+/**
+ * The starting-line panel: before anyone has scored (in the active mode)
+ * the wireframe podium does not render at all. One composed card — flag
+ * eyebrow, headline, the one explanation line, the roster as proper rows
+ * (face, name, level pair, 0 XP), and the Start practice call. The roster
+ * caps at ZERO_ROSTER_CAP rows so a big club stays content-sized; the rest
+ * fold into a "+N more Pathfinders" line.
+ */
+export const ZERO_ROSTER_CAP = 8;
+
 export function ZeroState({ entries, seasonId, mode }: { entries: SeasonLeaderboardEntry[]; seasonId?: string; mode: BoardMode }) {
+  const shown = entries.slice(0, ZERO_ROSTER_CAP);
+  const extra = entries.length - shown.length;
   return <Panel className="season-board-zero" data-testid="season-board-zero">
-    <div className="season-board-zero-plinths" aria-hidden="true">
-      {[2, 1, 3].map(rank => <span key={rank} className={`season-board-zero-plinth is-rank-${rank}`}>
-        <span className="season-board-zero-rank">{rank === 1 ? "1st" : rank === 2 ? "2nd" : "3rd"}</span>
-        <span className="season-board-zero-crest">?</span>
-        <span className="season-board-zero-open">Open spot</span>
-        <span className="season-board-zero-base" />
-      </span>)}
-    </div>
+    <p className="season-board-zero-eyebrow"><span className="season-board-zero-flag"><AppIcon name="flag" /></span> At the starting line</p>
     <h3>The race is about to start</h3>
     {entries.length === 0
       ? <p>No scores yet — be the first on the board</p>
       : <p>Nobody has scored yet {mode === "season" ? "this season" : "this week"} — the first practice session takes the top spot.</p>}
-    {entries.length > 0 && <>
-      <p className="season-board-zero-line-label">At the starting line</p>
-      <ul className="season-board-zero-line">
-        {entries.map(entry => <li key={entry.userId}>
-          <EntryAvatar avatar={entry.avatar} name={entry.displayName} />
+    {entries.length > 0 && <ul className="season-board-zero-line">
+      {shown.map(entry => <li key={entry.userId}>
+        <EntryAvatar avatar={entry.avatar} name={entry.displayName} />
+        <span className="season-board-zero-line__who">
           <span className="season-board-zero-line__name">{entry.displayName}</span>
-          <LevelCrest level={entry.level} levelName={entry.levelName} />
-        </li>)}
-      </ul>
-    </>}
+          <span className="season-board-zero-line__level">Level {entry.level} · {entry.levelName}</span>
+        </span>
+        <span className="season-board-zero-line__xp">0 XP</span>
+      </li>)}
+      {extra > 0 && <li className="season-board-zero-line__more">+{extra} more Pathfinders</li>}
+    </ul>}
     <LinkButton to={trainingLink("/student/study", seasonId)}>Start practice</LinkButton>
   </Panel>;
 }

@@ -60,9 +60,6 @@
 .game-player-card--banner .training-hq-banner { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right center; }
 .game-player-card--banner::after { content: ""; position: absolute; z-index: -1; inset: 0; pointer-events: none; background: linear-gradient(90deg, var(--er-navy-surface) 0%, var(--er-navy-surface) 34%, transparent 82%); }
 .game-player-card--banner .game-player-card__content { padding: var(--er-space-8); width: 62%; }
-/* The HQ hero's crest carries the identity moment (the mockup's large
-   gold-ring disc): one size up from the standard card crest, hero only. */
-.training-hq-hero .game-level-crest--card { width: 56px; height: 56px; font-size: var(--er-text-lg); }
 @media (max-width: 760px) {
   .game-player-card--banner { aspect-ratio: auto; min-height: 344px; align-items: flex-start; }
   .game-player-card--banner .game-player-card__content { width: 100%; padding: var(--er-space-6); padding-bottom: var(--er-space-8); }
@@ -81,6 +78,12 @@
   .training-hq-hero .game-player-card__content { gap: var(--er-space-2); padding: var(--er-space-4); }
   .training-hq-hero .game-player-card__description { font-size: var(--er-text-sm); }
   .training-hq-hero .game-player-chip { min-height: 26px; padding: 2px 8px; font-size: var(--er-text-xs); }
+  /* Even chips (Nov 23): with the crest gone, the chips row carries the
+     hero's bottom edge — equal-width columns with centered content, so
+     three chips read as one composed row instead of a 2+1 leftover
+     wrap. Two chips split the row; a lone chip takes it whole. */
+  .training-hq-hero .game-player-card__chips { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+  .training-hq-hero .game-player-chip { justify-content: center; text-align: center; }
 }
 @media (forced-colors: active) { .game-player-card--banner .training-hq-banner, .game-player-card--banner::after { display: none; } }
 
@@ -190,6 +193,14 @@
 .game-podium__xp { font-weight: 750; font-variant-numeric: tabular-nums; opacity: .85; }
 .game-podium__numeral { margin-top: auto; font-size: 28px; font-weight: 800; line-height: 1; }
 .game-podium__item.is-rank-1 .game-podium__numeral { font-size: 36px; }
+/* Ghost spots (partial boards): a soft solid block and an empty ring at the
+   winner's disc size — no wireframe outline, no "?", and never a winner's
+   plate color: the name+XP plate renders only with a name on it. */
+.game-podium__ghost-ring { display: block; flex: none; aspect-ratio: 1; width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--er-border); background: var(--er-surface-soft); }
+.game-podium__item.is-rank-1 .game-podium__ghost-ring { width: 72px; height: 72px; }
+.game-podium__item.is-ghost .game-podium__block--ghost { background: var(--er-surface-soft); color: var(--er-muted-ink); }
+.game-podium__open { font-size: var(--er-text-sm); font-weight: 600; }
+.game-podium__block--ghost .game-podium__numeral { opacity: .5; }
 @media (max-width: 440px) { .game-podium { gap: var(--er-space-2); } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -252,21 +263,16 @@
 .season-board-yr-progress b { color: var(--er-on-navy); }
 .season-board-zero { max-width: 640px; display: grid; gap: var(--er-space-3); justify-items: start; }
 .season-board-zero h3, .season-board-zero p { margin: 0; }
-.season-board-zero-plinths { display: grid; grid-template-columns: 1fr 1.12fr 1fr; gap: var(--er-space-3); align-items: end; width: 100%; max-width: 420px; }
-.season-board-zero-plinth { display: grid; justify-items: center; align-content: start; gap: var(--er-space-2); height: 152px; background: transparent; border: 1px dashed var(--er-border); border-bottom: 0; border-radius: var(--er-radius-control) var(--er-radius-control) 0 0; padding: var(--er-space-3) var(--er-space-2) 0; }
-.season-board-zero-plinth.is-rank-1 { height: 196px; padding-top: var(--er-space-4); }
-.season-board-zero-plinth.is-rank-3 { height: 116px; }
-.season-board-zero-rank { font-size: var(--er-text-xs); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--er-muted-ink); }
-.season-board-zero-plinth.is-rank-1 .season-board-zero-rank { color: var(--er-warning-ink); }
-.season-board-zero-crest { display: grid; place-items: center; flex: none; aspect-ratio: 1; width: 38px; height: 38px; border-radius: 50%; border: 2px dashed var(--er-kraft); color: var(--er-muted-ink); font-weight: 800; }
-.season-board-zero-plinth.is-rank-1 .season-board-zero-crest { width: 46px; height: 46px; border-color: var(--er-thread-gold); color: var(--er-warning-ink); }
-.season-board-zero-open { font-size: var(--er-text-xs); color: var(--er-muted-ink); }
-.season-board-zero-base { display: block; width: calc(100% + 2 * var(--er-space-2)); height: 10px; margin-top: auto; background: var(--er-border); }
-.season-board-zero-plinth.is-rank-1 .season-board-zero-base { height: 22px; background: var(--er-thread-gold); }
-.season-board-zero-line-label { font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--er-muted-ink); }
+.season-board-zero-eyebrow { display: flex; align-items: center; gap: var(--er-space-2); font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--er-warning-ink); }
+.season-board-zero-flag { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 50%; background: color-mix(in srgb, var(--er-thread-gold) 22%, var(--er-card)); color: var(--er-warning-ink); }
+.season-board-zero-flag svg { width: 16px; height: 16px; }
 .season-board-zero-line { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--er-space-2); width: 100%; }
 .season-board-zero-line li { display: flex; align-items: center; gap: var(--er-space-3); }
-.season-board-zero-line__name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.season-board-zero-line__who { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.season-board-zero-line__name { overflow-wrap: anywhere; }
+.season-board-zero-line__level { font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.season-board-zero-line__xp { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--er-muted-ink); }
+.season-board-zero-line li.season-board-zero-line__more { font-size: var(--er-text-sm); font-weight: 600; color: var(--er-muted-ink); }
 
 /* HQ leaderboard mini: podium strip + chase row + team footer line. */
 .game-leaderboard-mini__strip { list-style: none; margin: 0 0 var(--er-space-3); padding: 0; display: grid; gap: var(--er-space-2); }
