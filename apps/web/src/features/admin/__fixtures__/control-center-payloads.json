@@ -278,21 +278,21 @@
       },
       "inbox": [
         {
-          "id": "ea6c7c75-ede9-42e1-99d2-0ea01cc8a430",
+          "id": "d974ce58-3521-4288-958c-0bbc054a1145",
           "sourceMessageId": "capture-1",
           "requesterName": "Ana Ruiz",
           "requesterEmail": "ana@example.com",
           "subject": "Cannot sign in",
           "snippet": "",
           "body": "The code never arrives.",
-          "receivedAtUtc": "2026-11-24T17:57:22.667Z",
+          "receivedAtUtc": "2026-11-24T22:26:51.730Z",
           "ticketId": null,
           "ticketNumber": null
         }
       ],
       "tickets": [
         {
-          "id": "d580a075-d6f6-44b0-b3ff-91fa04d370ca",
+          "id": "6618f4ad-24c4-4b5c-b2e2-62bf5feed638",
           "number": 101,
           "label": "#S-101",
           "source": "manual",
@@ -302,8 +302,8 @@
           "subject": "Question about seasons",
           "body": "When does the next season open?",
           "status": "New",
-          "createdAtUtc": "2026-11-24T17:57:22.739Z",
-          "updatedAtUtc": "2026-11-24T17:57:22.739Z",
+          "createdAtUtc": "2026-11-24T22:26:51.749Z",
+          "updatedAtUtc": "2026-11-24T22:26:51.749Z",
           "ageHours": 0
         }
       ]

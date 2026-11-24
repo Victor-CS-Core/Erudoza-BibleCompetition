@@ -307,7 +307,19 @@ export async function handleSupportIngest(request: Request, env: RequestContext[
   if (path !== "/api/v1/support/ingest" || request.method !== "POST") return null;
   if (!env.SUPPORT_INGEST_TOKEN) throw new HttpError(404, "Route not found.");
   const auth = request.headers.get("Authorization") ?? "";
-  if (auth !== `Bearer ${env.SUPPORT_INGEST_TOKEN}`) throw new HttpError(403, "Support ingest token denied.");
+  // Compare SHA-256 digests, not the raw strings: a plain string compare
+  // short-circuits on the first differing character, leaking how much of a
+  // guessed bearer token is right. Digests are fixed-length, so the XOR
+  // loop does the same work for every candidate.
+  const encoder = new TextEncoder();
+  const [givenDigest, expectedDigest] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(auth)),
+    crypto.subtle.digest("SHA-256", encoder.encode(`Bearer ${env.SUPPORT_INGEST_TOKEN}`)),
+  ]);
+  const given = new Uint8Array(givenDigest), expected = new Uint8Array(expectedDigest);
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= (given[i] ?? 0) ^ (expected[i] ?? 0);
+  if (diff !== 0) throw new HttpError(403, "Support ingest token denied.");
   const input = await body<{ messageId?: unknown; fromName?: unknown; fromEmail?: unknown; subject?: unknown; snippet?: unknown; body?: unknown; receivedAt?: unknown }>(request);
   const messageId = requiredString(input.messageId, "Message id", 300);
   const fromName = requiredString(input.fromName, "Sender name", 120);

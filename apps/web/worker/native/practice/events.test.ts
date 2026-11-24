@@ -43,6 +43,24 @@ it('opens an event now with the roster pre-seeded and writes assigned notificati
  }finally{await f.app.runtime.dispose();}
 },60000);
 
+it('rejects the organizing coach on their own event roster',async()=>{
+ const f=await probeFixture();try{const base=`/organizations/${TEST_ORG}/practice`;
+  const selfRostered={...arcade(f),roster:[...arcade(f).roster.slice(0,3),{userId:TEST_USER,team:2}]};
+  const denied=await f.call(-1,`${base}/events`,selfRostered);expect(denied.status).toBe(400);expect((await denied.json() as {title:string}).title).toContain("can't also play in it");
+ }finally{await f.app.runtime.dispose();}
+},60000);
+
+it('ignores a forged internal event-creation header on direct room creation',async()=>{
+ const f=await probeFixture();try{const base=`/organizations/${TEST_ORG}/practice`;
+  const forged=await f.call(-1,`${base}/rooms`,{actorUserId:TEST_USER,creation:{seasonId:f.season,teamSize:2,teamCount:1,questionCount:10,format:'Pbe',eventId:'forged-event',roster:[{userId:f.players[0].id,team:1},{userId:f.players[1].id,team:1}]}},{'x-erudoza-event-internal':'1'});
+  // The header is stripped at the routing boundary, so the DO treats this as
+  // a normal direct creation by the caller — and the nested event payload is
+  // not a valid direct creation, so no room is created for the forged event.
+  expect(forged.status).not.toBe(200);
+  expect(await f.store.list('room',TEST_ORG)).toHaveLength(0);
+ }finally{await f.app.runtime.dispose();}
+},60000);
+
 it('requires exact seat fill and season-roster membership',async()=>{
  const f=await probeFixture();try{const base=`/organizations/${TEST_ORG}/practice`;
   const short={...arcade(f),roster:arcade(f).roster.slice(0,3)};

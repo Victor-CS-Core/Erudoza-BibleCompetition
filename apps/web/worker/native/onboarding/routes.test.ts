@@ -17,8 +17,8 @@ beforeEach(async()=>{
   deliveries=[];providerStatus=200;turnstileResult={success:true,hostname:"erudoza.test"};hashGate=undefined;
   app=await createNativeTestApp({bindings,beforePasswordHash:async()=>{await hashGate?.();},outboundService:async request=>{
     if(request.url==="https://challenges.cloudflare.com/turnstile/v0/siteverify") {
-      const form=await request.json() as {response:string};
-      return TestResponse.json({...turnstileResult,action:turnstileResult.action??form.response});
+      const form=new URLSearchParams(await request.text());
+      return TestResponse.json({...turnstileResult,action:turnstileResult.action??form.get("response")});
     }
     if(request.url==="https://api.resend.com/emails") {
       expect(request.headers.get("Idempotency-Key")).toBeTruthy();

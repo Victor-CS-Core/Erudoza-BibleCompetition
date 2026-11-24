@@ -2,7 +2,7 @@ import { handleProfile } from './mastery/profile';
 import { disputeRoutes } from './pbe/disputes';
 import { handleTraining } from './training/routes';
 import type { Env } from "./types";
-import { HttpError, json } from "./types";
+import { HttpError, json, withoutInternalHeader } from "./types";
 import { authenticate, checkOrigin, handleAuth, me } from "./auth";
 import { Store } from "./store";
 import { handleApplication } from "./application";
@@ -39,7 +39,7 @@ export default {
       if(live&&["GET","POST"].includes(request.method)){
         if(!env.ROOMS)throw new HttpError(503,"Room storage is not configured.");
         if(request.method==="POST"&&!url.pathname.endsWith("/commands"))throw new HttpError(404,"Route not found.");
-        return await env.ROOMS.getByName(`${live[1].toLowerCase()}:${live[2].toLowerCase()}`).fetch(request as never) as unknown as Response;
+        return await env.ROOMS.getByName(`${live[1].toLowerCase()}:${live[2].toLowerCase()}`).fetch(new Request(request, { headers: withoutInternalHeader(request.headers) }) as never) as unknown as Response;
       }
       if(url.pathname==="/api/v1/health"&&request.method==="GET") { await env.DB.prepare("SELECT 1").first(); return json({status:"ok",database:true,runtime:"cloudflare",timing:"server-event-time-v1",version:APP_VERSION}); }
       // Support ingest is token-guarded, not session-guarded: the caller is

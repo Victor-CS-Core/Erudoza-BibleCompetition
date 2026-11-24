@@ -104,6 +104,7 @@ async function parseEventInput(ctx: RequestContext, raw: Record<string, unknown>
     need(user && user.active === 1, "An assigned player is no longer available.");
     const learnerKind = (user!.kind === "Student" && user!.role === "Student") || (user!.kind === "Adult" && ["Owner", "Admin"].includes(user!.role));
     need(learnerKind, "Assigned players must be students or coaches in learner mode.");
+    need(entry.userId !== ctx.actor.userId, "You organize this event, so you can't also play in it. Assign another coach as a player instead.");
     need(memberIds.has(entry.userId) || user!.kind === "Adult", `${user!.displayName} is not on this season's roster. Assign their passages first.`);
   }
   if (simulation) {

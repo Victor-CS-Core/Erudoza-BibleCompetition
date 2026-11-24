@@ -157,6 +157,25 @@ it("loads the remaining journey pages automatically — no Load more button", as
   expect(screen.queryByRole("button", { name: "Load more passages" })).not.toBeInTheDocument();
 });
 
+it("merges a chapter split across two journey pages instead of doubling it", async () => {
+  vi.mocked(trainingApi.journey)
+    .mockResolvedValueOnce(journeyPage([
+      chapter({ eligibleCount: 3, seenCount: 1, passages: [passage(), passage({ knowledgeUnitId: "k2", title: "Daniel 1:2" })] }),
+    ], "cursor"))
+    .mockResolvedValue(journeyPage([
+      chapter({ eligibleCount: 3, seenCount: 1, passages: [passage({ knowledgeUnitId: "k3", title: "Daniel 1:3" })] }),
+      chapter({ bookKey: "JON", passages: [passage({ knowledgeUnitId: "j1", title: "Jonah 1:1" })] }),
+    ]));
+  view();
+  // Book totals count the split chapter once (1 of 3, not 2 of 6).
+  expect(await screen.findByRole("button", { name: /Daniel: 1 of 3 passages practiced/ })).toBeInTheDocument();
+  // One chapter entry in the strip, and every verse from both fragments has a tile.
+  expect(screen.getAllByRole("button", { name: /Chapter 1:/ })).toHaveLength(1);
+  expect(screen.getByRole("link", { name: /Daniel 1:1:/ })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Daniel 1:2:/ })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: /Daniel 1:3:/ })).toBeInTheDocument();
+});
+
 it("keeps per-passage skill breakdowns and chapter stats in the chapter details", async () => {
   vi.mocked(trainingApi.journey).mockResolvedValue(journeyPage([chapter({ eligibleCount: 2 })]));
   view();

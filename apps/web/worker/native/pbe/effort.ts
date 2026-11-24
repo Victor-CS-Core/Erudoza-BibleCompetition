@@ -5,7 +5,7 @@ import type { DayRecord, WeekRecord, Writes } from '../training/store';
 import { awardStreakBadges, identity, preference, recordBests, resolvePreference, write } from '../training/store';
 import type { BestsInput } from '../training/store';
 import { awardXp, xpReward, xpSummary, XP_VALUES, type XpEvent } from '../training/xp';
-import { getDailyQuests, inTeamRoom, progressQuests, questDto, type QuestKey } from '../training/quests';
+import { getDailyQuests, inTeamRoom, progressQuests, questDto, QUEST_DEFS, type QuestKey } from '../training/quests';
 import { bestStreak, creditedDates, streakCount, streakStatus } from '../training/streak';
 import { addDays, resolveTrainingCalendar } from '../training/calendar';
 export interface PbeMission {
@@ -190,6 +190,13 @@ export async function preparePbeEffort(ctx: RequestContext, s: PbeSession, at: s
         }
     });
     xpEvents.push(...questRes.xpEvents);
+    // Record mid-session quest completions on the session as they happen:
+    // the recap lists every quest the session completed, not only the
+    // finish-line pair stamped at completion. XP is unaffected — it was
+    // awarded through questRes.xpEvents above.
+    for (const key of questRes.completedNow)
+        if (!s.questsCompleted?.some(q => q.key === key))
+            (s.questsCompleted ??= []).push({ key, title: QUEST_DEFS[key].title });
     if (xpEvents.length) {
         const awarded = await awardXp(ctx, w, { seasonId: s.seasonId, localDate: cal.localDate, atUtc: at, events: xpEvents });
         s.xpEarned = (s.xpEarned ?? 0) + awarded.awarded;
@@ -236,7 +243,7 @@ export async function pbeToday(ctx: RequestContext, season: import('../applicati
     const steps: import('../../../src/api/trainingTypes').TrainingStep[] = s && !stale ? pbeMissionSteps(s).map(step => ({ ...step, status: step.status as 'Active' | 'Complete' })) : [{ kind: 'Practice', target: Math.min(8, bank.questions.length), completed: 0, status: 'Pending', sessionId: null }];
     const complete = steps.every(step => step.status === 'Complete'), next = steps.find(step => step.status !== 'Complete');
     // Recheck every captured raw guard in one bounded query after the bank/mission reads.
-    const changed = await ctx.env.DB.prepare(`SELECT count(*) AS changed FROM json_each(?) g WHERE CASE WHEN json_extract(g.value,'$.kind') IN ('@active-user','@active-admin') THEN NOT EXISTS(SELECT 1 FROM Users u WHERE u.id=json_extract(g.value,'$.id') AND u.org_id=? AND u.active=1) ELSE NOT EXISTS(SELECT 1 FROM Records r WHERE (r.org_id=? OR ${builtInContentSql('r')}) AND r.kind=json_extract(g.value,'$.kind') AND r.id=json_extract(g.value,'$.id') AND r.revision=json_extract(g.value,'$.revision')) END`).bind(JSON.stringify(scope.guards), ctx.orgId, ctx.orgId).first<{
+    const changed = await ctx.env.DB.prepare(`SELECT count(*) AS changed FROM json_each(?) g WHERE CASE WHEN json_extract(g.value,'$.kind') IN ('@active-user','@active-admin','@active-learner') THEN NOT EXISTS(SELECT 1 FROM Users u WHERE u.id=json_extract(g.value,'$.id') AND u.org_id=? AND u.active=1) ELSE NOT EXISTS(SELECT 1 FROM Records r WHERE (r.org_id=? OR ${builtInContentSql('r')}) AND r.kind=json_extract(g.value,'$.kind') AND r.id=json_extract(g.value,'$.id') AND r.revision=json_extract(g.value,'$.revision')) END`).bind(JSON.stringify(scope.guards), ctx.orgId, ctx.orgId).first<{
         changed: number;
     }>();
     if (changed?.changed)

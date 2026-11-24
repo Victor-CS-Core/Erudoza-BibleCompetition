@@ -9,7 +9,7 @@ import type {SimulationSettings} from './simulation';
 import {pbeRoutes} from "../pbe/routes";
 import {practiceEventRoutes} from "./events";
 import type {RequestContext} from "../types";
-import {body,HttpError,json} from "../types";
+import {body,HttpError,json,withoutInternalHeader} from "../types";
 import {questionRoutes,setEnabled,enabled,isLegacyQuestion} from "./questions";
 import type {QuestionRecord} from "./questions";
 import {listRoomSummaries} from "./room-history";
@@ -62,12 +62,12 @@ export async function handlePractice(ctx:RequestContext):Promise<Response|null>{
   // Rooms are created by coaches (directly or, normally, by opening a team
   // practice event). Students join assigned events; they cannot create rooms.
   if(!(ctx.actor.kind==="Adult"&&["Owner","Admin"].includes(ctx.actor.role)))throw new HttpError(403,"Only a coach can create team practice events.");
-  const id=crypto.randomUUID(),url=new URL(ctx.request.url);url.pathname+=`/${id}`;return ctx.env.ROOMS.getByName(`${ctx.orgId}:${id}`).fetch(new Request(url,ctx.request) as never) as unknown as Promise<Response>;
+  const id=crypto.randomUUID(),url=new URL(ctx.request.url);url.pathname+=`/${id}`;return ctx.env.ROOMS.getByName(`${ctx.orgId}:${id}`).fetch(new Request(url,{method:ctx.request.method,headers:withoutInternalHeader(ctx.request.headers),body:ctx.request.body,duplex:"half"} as RequestInit) as never) as unknown as Promise<Response>;
  }
  const accept=ctx.path.match(/^\/practice\/invitations\/([^/]+)\/accept$/);
  if(accept&&ctx.request.method==="POST"){
   const rooms=await ctx.store.list<Directory>("room",ctx.orgId),room=rooms.find(r=>r.invitations.some(i=>i.id===accept[1]&&i.userId===ctx.actor.userId));if(!room)throw new HttpError(404,"Invitation not found.");
-  const input=await body<{team?:number}>(ctx.request,1024);const url=new URL(ctx.request.url);url.pathname=`/api/v1/organizations/${ctx.orgId}/practice/rooms/${room.id}/accept`;return ctx.env.ROOMS.getByName(`${ctx.orgId}:${room.id}`).fetch(new Request(url,{method:"POST",headers:ctx.request.headers,body:JSON.stringify({...input,invitationId:accept[1]})}) as never) as unknown as Promise<Response>;
+  const input=await body<{team?:number}>(ctx.request,1024);const url=new URL(ctx.request.url);url.pathname=`/api/v1/organizations/${ctx.orgId}/practice/rooms/${room.id}/accept`;return ctx.env.ROOMS.getByName(`${ctx.orgId}:${room.id}`).fetch(new Request(url,{method:"POST",headers:withoutInternalHeader(ctx.request.headers),body:JSON.stringify({...input,invitationId:accept[1]})}) as never) as unknown as Promise<Response>;
  }
  return null;
 }

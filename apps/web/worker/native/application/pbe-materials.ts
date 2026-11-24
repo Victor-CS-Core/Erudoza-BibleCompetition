@@ -397,10 +397,16 @@ function guessYearLabel(item: WpMediaItem): { yearLabel: string; guessNote?: str
 
 async function fetchNadJson(url: string): Promise<unknown[]> {
   let res: Response;
+  // Bounded like the article extractor below: a hung upstream must fail the
+  // watcher run with a 502, not hang the request/cron behind it.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), EXTRACT_TIMEOUT_MS);
   try {
-    res = await fetch(url);
+    res = await fetch(url, { signal: controller.signal });
   } catch (error) {
     throw new HttpError(502, `The NAD watcher could not reach nadpbe.org (${url}): ${error instanceof Error ? error.message : 'network error'}.`);
+  } finally {
+    clearTimeout(timer);
   }
   if (!res.ok) throw new HttpError(502, `The NAD watcher request failed with status ${res.status} (${url}).`);
   try {

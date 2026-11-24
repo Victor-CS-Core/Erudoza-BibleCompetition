@@ -166,6 +166,33 @@ it("escapes to the full chapter browser and back to the card's passage", async (
   expect(screen.queryByText(verses[0].canonicalText)).not.toBeInTheDocument();
 });
 
+it("reveals the top of the reader card when expanding to the full chapter", async () => {
+  mountFocused({ citation: "Genesis 1:10" });
+  fireEvent.click(screen.getByRole("button", { name: "Read passage" }));
+  await screen.findByTestId("reader-focused-passage");
+  // jsdom has no layout engine, so observe the reveal call itself: the
+  // reader card is scrolled to its top (not left wherever the browser's
+  // scroll anchoring parks the tapped bottom-of-card spot), and focus
+  // moves into the region the reader toggle controls, because the escape
+  // button unmounts in the swap.
+  const card = document.querySelector(".scripture-reader") as HTMLElement;
+  const scrollSpy = vi.fn();
+  card.scrollIntoView = scrollSpy;
+  fireEvent.click(screen.getByRole("button", { name: "Browse the full chapter instead" }));
+  await screen.findByLabelText("Chapter");
+  await waitFor(() => expect(scrollSpy).toHaveBeenCalledWith(expect.objectContaining({ block: "start" })));
+  const toggle = screen.getByRole("button", { name: "Hide passage" });
+  const region = document.getElementById(toggle.getAttribute("aria-controls")!);
+  expect(document.activeElement).toBe(region);
+  // Collapsing swaps the "Back" button out the same way: focus stays in
+  // the region instead of dropping to the page body (no scroll is needed
+  // — the shrunken card lands in view on its own).
+  fireEvent.click(screen.getByRole("button", { name: "Back to this card's passage" }));
+  await screen.findByTestId("reader-focused-passage");
+  await waitFor(() => expect(document.activeElement).toBe(region));
+  expect(scrollSpy).toHaveBeenCalledTimes(1);
+});
+
 it("falls back to the chapter browser when the focus is not assigned", async () => {
   mountFocused({ citation: "John 3:16" });
   fireEvent.click(screen.getByRole("button", { name: "Read passage" }));

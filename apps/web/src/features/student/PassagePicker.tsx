@@ -125,9 +125,19 @@ export function PassagePicker({ seasonId, mastery, difficulty }: { seasonId: str
     const byBook = new Map<string, BookGroup>();
     for (const chapter of chapters) {
       const group = byBook.get(chapter.bookKey) ?? { key: chapter.bookKey, name: bookNameOf(chapter), chapters: [], seen: 0, eligible: 0 };
-      group.chapters.push(chapter);
-      group.seen += chapter.seenCount;
-      group.eligible += chapter.eligibleCount;
+      // A chapter can straddle a journey page boundary: the server emits it
+      // once per page with the FULL chapter counts each time. Merge the
+      // fragments into one chapter (passages concatenated) and count the
+      // chapter once — otherwise it lists twice, its totals double, and the
+      // second fragment's verses have no tile.
+      const existing = group.chapters.find(candidate => candidate.chapter === chapter.chapter);
+      if (existing) {
+        existing.passages = [...existing.passages, ...chapter.passages];
+      } else {
+        group.chapters.push(chapter);
+        group.seen += chapter.seenCount;
+        group.eligible += chapter.eligibleCount;
+      }
       byBook.set(chapter.bookKey, group);
     }
     return [...byBook.values()];

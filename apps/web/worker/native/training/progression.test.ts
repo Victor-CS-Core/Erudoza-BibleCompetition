@@ -327,6 +327,23 @@ it('does not let the device zone override an explicitly chosen calendar zone', a
         mock.mockRestore();
     }
 }, 30000);
+it('recap lists quests completed mid-session, not only finish-line quests', async () => {
+    // Reset the daily quest slate and mission so Warmup starts incomplete:
+    // it completes when this Review session's step completes, mid-session.
+    await app.db.prepare("DELETE FROM Records WHERE kind='training-quest' AND owner_id=?").bind(TEST_USER).run();
+    await app.db.prepare("DELETE FROM Records WHERE kind='daily-mission'").run();
+    const startResponse = await request('/api/v1/study/sessions', 'POST', { seasonId: season, mode: 'Review', training: { clientStartId: 'recap-quests', step: 'Review' } });
+    expect(startResponse.status).toBe(200);
+    const { id } = await startResponse.json() as { id: string };
+    const session = await saved(id);
+    expect(session.training.reviewKnowledgeUnitIds.length).toBeGreaterThan(0);
+    for (let i = 0; i < session.targetCardCount; i++)
+        await attempt(id, i);
+    const complete = await request(`/api/v1/study/sessions/${id}/complete`, 'POST');
+    expect(complete.status).toBe(200);
+    const recap = await (await request(`/api/v1/study/sessions/${id}/recap`)).json() as { questsCompleted: { key: string }[] };
+    expect(recap.questsCompleted.map(q => q.key)).toContain('warmup');
+}, 30000);
 it('honors reports the same streak progress as today (route must not default the streak to 0)', async () => {
     const mock = vi.spyOn(clock, 'trainingNow').mockReturnValue('2027-01-20T12:00:00.000Z');
     const db = app.db as unknown as Env['DB'];

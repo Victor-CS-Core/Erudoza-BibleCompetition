@@ -23,6 +23,11 @@ export function requiredString(value: unknown, name: string, max = 200): string 
   if (typeof value !== "string" || !value.trim() || value.length > max) throw new HttpError(400, `${name} is required and must be at most ${max} characters.`);
   return value.trim();
 }
+/** Copy headers for a client→DO forward with the worker-internal signal
+ * header removed: only worker-constructed calls (the events layer, the
+ * season wipe) may present it, so external routing must never pass a
+ * client-supplied one through. */
+export function withoutInternalHeader(headers: HeadersInit): Headers { const copy = new Headers(headers); copy.delete("x-erudoza-event-internal"); return copy; }
 export async function body<T>(request: Request, maxBytes = 1_048_576): Promise<T> {
   const reader = request.body?.getReader();
   if (!reader) throw new HttpError(400, "A JSON request body is required.");

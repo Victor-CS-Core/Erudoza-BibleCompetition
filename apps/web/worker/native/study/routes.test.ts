@@ -30,6 +30,10 @@ beforeAll(async () => {
   for (const [i,id] of sourceIds.entries()) await record('source',id,{id,knowledgeUnitId:id,contentPackId:pack,citation:`Genesis 1:${i+1}`,bookKey:'GEN',chapter:1,verse:i+1,ordinal:i+1,canonicalText:`Synthetic verse ${i+1} has words for this exercise.`,isActive:true},null,pack);
 },30000);
 afterAll(async()=>{await app?.runtime.dispose();});
+it('rejects an oversized PBE attempt body at the shared size cap instead of parsing it unbounded',async()=>{
+  const res=await request(`/api/v1/study/sessions/${season}/attempts`,'POST',{pad:'x'.repeat(1_100_000)});
+  expect(res.status).toBe(413);
+});
 it('persists immutable cards, concurrent original attempts and resumable summaries',async()=>{
   const start=await request('/api/v1/study/sessions','POST',{seasonId:season,mode:'Practice'});
   expect(start.status).toBe(200);

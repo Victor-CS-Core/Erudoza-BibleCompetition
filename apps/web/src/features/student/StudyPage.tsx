@@ -577,8 +577,8 @@ function MemoryStudyPage({initialSaved}:{initialSaved?:ResumedSession}) {
           </div>}
           {fixSummary && <p className="mt-2 text-sm" data-testid="spelling-fix-summary">
             {fixSummary.correctedCount > 0
-              ? `Spelling fix: ${fixSummary.correctedCount} ${fixSummary.correctedCount === 1 ? "blank" : "blanks"} corrected — partial credit${fixSummary.xpEarned > 0 ? ` · +${fixSummary.xpEarned} XP` : ""}. Your first try stays on record as graded.`
-              : "No blanks corrected that time — the verse above shows the right spelling. Your first try stays on record as graded."}
+              ? `Spelling fix: ${fixSummary.correctedCount} ${fixSummary.correctedCount === 1 ? "blank" : "blanks"} corrected — partial credit${fixSummary.xpEarned > 0 ? ` · +${fixSummary.xpEarned} XP` : ""}. Your first try stays on record as checked.`
+              : "No blanks corrected that time — the verse above shows the right spelling. Your first try stays on record as checked."}
           </p>}
           <p className="mt-2 text-sm" data-testid="assistance-note">
             {readerOpened

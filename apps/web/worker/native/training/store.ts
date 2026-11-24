@@ -11,7 +11,7 @@ import { addDays, effectivePreferences, resolveTrainingCalendar, validateZone } 
 import { badgeCounters, fullTargetReached } from './rules';
 import { creditedDates, streakCount } from './streak';
 import { awardXp, levelNameFor, xpReward, xpSummary, XP_VALUES, type XpEvent } from './xp';
-import { inTeamRoom, progressQuests, type QuestKey } from './quests';
+import { inTeamRoom, progressQuests, QUEST_DEFS, type QuestKey } from './quests';
 export interface PreferenceRecord extends TrainingPreferences {
     id: string;
     lastEventAtUtc: string;
@@ -334,6 +334,13 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
             api.complete('teammate');
     });
     xpEvents.push(...questRes.xpEvents);
+    // Record mid-session quest completions on the training record as they
+    // happen: the recap lists every quest the session completed, not only
+    // the finish-line pair stamped at completion. XP is unaffected — it was
+    // awarded through questRes.xpEvents above.
+    for (const key of questRes.completedNow)
+        if (!training.questsCompleted?.some(q => q.key === key))
+            (training.questsCompleted ??= []).push({ key, title: QUEST_DEFS[key].title });
     if (xpEvents.length) {
         const awarded = await awardXp(ctx, w, { seasonId: session.seasonId, localDate: xpDate, atUtc: at, events: xpEvents });
         training.xpEarned = (training.xpEarned ?? 0) + awarded.awarded;

@@ -95,9 +95,11 @@ export function SeasonLeaderboardPage() {
             <p className="season-board-note">{data.me === null
               ? "Every student assigned in this season is shown."
               : "Only teammates who joined the board are shown. Names show as first name + last initial."}</p>
-            {data.me && <Button variant="ghost" size="compact" onClick={() => optIn.mutate(false)} disabled={optIn.isPending}>{optIn.isPending ? "Updating…" : "Hide me from the board"}</Button>}
-            {optIn.isError && <Notice tone="danger">Couldn’t update your choice. Try again.</Notice>}
           </>}
+          {/* The hide control belongs to both board states: a joined member
+              must be able to leave even before anyone has scored. */}
+          {data.me && <Button variant="ghost" size="compact" onClick={() => optIn.mutate(false)} disabled={optIn.isPending}>{optIn.isPending ? "Updating…" : "Hide me from the board"}</Button>}
+          {optIn.isError && <Notice tone="danger">Couldn’t update your choice. Try again.</Notice>}
         </>}
   </div>;
 }

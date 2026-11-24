@@ -80,9 +80,11 @@ export class PracticeRoom extends DurableObject<Env> {
  private broadcast(){if(maintenanceOffline(this.env))return;for(const socket of this.ctx.getWebSockets()){try{socket.send(JSON.stringify({type:"Changed"}));}catch{socket.close(1011,"Reconnect");}}}
  /** Worker-internal event materialization: the events layer (coach HTTP open
   *  or the scheduled scan) asks this object to create the room for an event
-  *  with its roster pre-seeded. External routing never produces this header
-  *  (same trust model as /wipe above); the acting coach is re-resolved from
-  *  the Users table and must be an active Adult Owner/Admin. */
+  *  with its roster pre-seeded. External routing strips this header from
+  *  client requests (withoutInternalHeader in types.ts), so only
+  *  worker-constructed calls can present it (same trust model as /wipe
+  *  above); the acting coach is re-resolved from the Users table and must
+  *  be an active Adult Owner/Admin. */
  private async internalCreate(orgId:string,roomId:string,input:Record<string,unknown>|null):Promise<Response>{
   const existing=await this.load();if(existing)return json({id:existing.id,status:existing.status,eventId:existing.eventId??null});
   const creation=input?.creation as (Parameters<typeof makeRoom>[2]&{roster?:{userId:string;team:number}[]})|undefined;

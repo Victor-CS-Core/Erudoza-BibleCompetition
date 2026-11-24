@@ -588,7 +588,7 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
   const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete|source|shuffle|reblank|spelling-fix))?$/);
   if (!match) return null;
   const sessionId = match[1], action = match[2];
-  if((!action||action==='next')&&method==='GET'||['attempts','complete','source'].includes(action)&&method==='POST'){const response=await pbeSessionAction(ctx,sessionId,action,method==='POST'&&action!=='complete'?await request.clone().json():undefined);if(response)return response;}
+  if((!action||action==='next')&&method==='GET'||['attempts','complete','source'].includes(action)&&method==='POST'){const response=await pbeSessionAction(ctx,sessionId,action,method==='POST'&&action!=='complete'?await body(request.clone() as Request):undefined);if(response)return response;}
   if (action === 'next' && method === 'GET') return next(ctx, sessionId);
   if (action === 'shuffle' && method === 'POST') return shufflePracticeDeck(ctx, sessionId);
   if (action === 'reblank' && method === 'POST') return reblankCard(ctx, sessionId, await body<{ challengeCardId?: unknown }>(request));
@@ -606,7 +606,13 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
       const qAttempts = session.attempts.filter(a => !a.isLegacyDuplicate), qCorrect = qAttempts.filter(a => a.isCorrect).length;
       const questRes = await sessionCompleteQuests(ctx, qw, { localDate: qLocalDate, timeZone: pcal.timeZone, seasonId: session.seasonId, atUtc: session.completedAtUtc }, { mode: session.mode, accuracy: qAttempts.length ? qCorrect / qAttempts.length * 100 : 0, fullTargetReached: fullTargetReached(session.targetCardCount, session.attempts) });
       const questXp = questRes.xpEvents;
-      session.training.questsCompleted = questRes.completedNow.map(key => ({ key, title: QUEST_DEFS[key].title }));
+      // Finish-line quests merge with any completed mid-session (recorded on
+      // the training record as attempts landed) so the recap lists them all.
+      const mergedQuests = new Map((session.training.questsCompleted ?? []).map(q => [q.key, q] as const));
+      for (const key of questRes.completedNow)
+        if (!mergedQuests.has(key))
+          mergedQuests.set(key, { key, title: QUEST_DEFS[key].title });
+      session.training.questsCompleted = [...mergedQuests.values()];
       if (questXp.length) {
         const awarded = await awardXp(ctx, qw, { seasonId: session.seasonId, localDate: qLocalDate, atUtc: session.completedAtUtc, events: questXp });
         session.training.xpEarned = (session.training.xpEarned ?? 0) + awarded.awarded;

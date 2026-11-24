@@ -23,6 +23,38 @@ async function soloDisputeXp(answers:string[],pointsByPart:number[]){
  const adjustments=await store.list<{xpDelta?:number}>('pbe-grade-adjustment',TEST_ORG,{seasonId:season});
  return {before,after,replayed,attemptDate,season,adjustments};
 }
+async function seedAdultLearner(fixture:Awaited<ReturnType<typeof disputeFixture>>){
+ const {app,store,season,players}=fixture;
+ const adultId=crypto.randomUUID(),name='dispute-coach-learner';
+ await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) SELECT ?,org_id,?,?,'Adult','Admin',password_hash,credential_version FROM Users WHERE id=?").bind(adultId,name,name,TEST_USER).run();
+ const membership=(await store.list<{seasonId:string;userId:string;difficulty:string}>('membership',TEST_ORG,{seasonId:season,ownerId:players[0].id}))[0];
+ await store.insert('membership',`${season}:${adultId}`,TEST_ORG,{...membership,userId:adultId},{seasonId:season,ownerId:adultId});
+ const assignment=(await store.list<Record<string,unknown>>('assignment',TEST_ORG,{seasonId:season,ownerId:players[0].id}))[0];
+ await store.insert('assignment',crypto.randomUUID(),TEST_ORG,{...assignment,studentUserId:adultId},{seasonId:season,ownerId:adultId});
+ const login=await app.fetch('/api/v1/auth/login',{method:'POST',headers:{Origin:'https://erudoza.test'},body:JSON.stringify({identifier:name,password:'Testing!123'})});expect(login.status).toBe(200);
+ const cookie=login.headers.get('set-cookie')!.split(';')[0];
+ const call=async(path:string,data?:unknown)=>app.fetch(`/api/v1${path}`,{method:data?'POST':'GET',headers:{Cookie:cookie,Origin:'https://erudoza.test'},...(data?{body:JSON.stringify(data)}:{})});
+ return {adultId,call};
+}
+async function playSoloSession(call:(path:string,data?:unknown)=>Promise<Response>,season:string){
+ const started=await call('/study/sessions',{seasonId:season,format:'Pbe',mode:'Practice'});expect(started.status,await started.clone().text()).toBe(200);const sessionId=(await started.json() as {id:string}).id;
+ const card=await (await call(`/study/sessions/${sessionId}/next`)).json() as {id:string};
+ const accepted=await call(`/study/sessions/${sessionId}/attempts`,{clientSubmissionId:crypto.randomUUID(),challengeCardId:card.id,answers:['Alpha','wrong'],hintsUsed:false});expect(accepted.status,await accepted.clone().text()).toBe(200);const attemptId=(await accepted.json() as {attemptId:string}).attemptId;
+ expect((await call(`/study/sessions/${sessionId}/complete`,{})).status).toBe(200);
+ return {sessionId,attemptId};
+}
+it('lets a coach in learner mode start and play a Solo PBE session',async()=>{
+ const fixture=await disputeFixture('xp-recredit');app=fixture.app;
+ const {call}=await seedAdultLearner(fixture);
+ await playSoloSession(call,fixture.season);
+},30000);
+it('lets a coach in learner mode flag their own Solo answer',async()=>{
+ const fixture=await disputeFixture('xp-recredit');app=fixture.app;
+ const {call}=await seedAdultLearner(fixture);
+ const {sessionId,attemptId}=await playSoloSession(call,fixture.season);
+ const flag=await call('/pbe/disputes',{activity:'Solo',sessionId,attemptId,reason:'Please recheck this answer.'});
+ expect(flag.status,await flag.clone().text()).toBe(201);
+},30000);
 it('re-credits +8 XP when a Solo dispute win turns a fully incorrect answer fully correct (D10)',async()=>{
  const r=await soloDisputeXp(['wrong','wrong'],[1,1]); // priced 2 → 10, no hints
  expect(r.adjustments).toHaveLength(1);expect(r.adjustments[0].xpDelta).toBe(8);

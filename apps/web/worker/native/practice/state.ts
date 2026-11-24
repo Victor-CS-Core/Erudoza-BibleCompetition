@@ -47,7 +47,11 @@ export function participant(r:Room,a:Actor):boolean{return r.ownerId===a.userId|
 function need(ok:unknown,message:string,status=400):asserts ok {if(!ok)throw new HttpError(status,message);}
 export function resetReady(r:Room){r.members.forEach(m=>m.ready=false);}
 export function repairRoles(r:Room){for(const t of activeTeams(r)) {const ms=r.members.filter(m=>m.team===t); if(ms.length&&!ms.some(m=>m.captain))ms[0].captain=true;if(ms.length&&!ms.some(m=>m.scribe))ms[0].scribe=true;}}
-export function join(r:Room,a:Actor,team:number){need(r.status==="Lobby","Teams are locked.");need(activeTeams(r).includes(team),"Choose a team.");need(a.userId!==r.coachId&&(!isPbeRoom(r)||a.kind==='Student'),"The coach cannot play.");const existing=r.members.find(m=>m.userId===a.userId);if(existing)return;need(r.members.filter(m=>m.team===team).length<r.teamSize,"That team is full.");r.members.push({userId:a.userId,displayName:a.displayName,team,ready:false,captain:false,scribe:false});repairRoles(r);resetReady(r);}
+/** Who may sit in a PBE room seat: any learner — a Student, or an Adult
+ * Owner/Admin in learner mode (standing parity rule) — except the room's
+ * organizer, who oversees the room instead of playing in it. */
+export const isRoomLearner=(r:Room,a:Actor):boolean=>a.kind==='Student'||(a.kind==='Adult'&&['Owner','Admin'].includes(a.role)&&a.userId!==r.ownerId);
+export function join(r:Room,a:Actor,team:number){need(r.status==="Lobby","Teams are locked.");need(activeTeams(r).includes(team),"Choose a team.");need(a.userId!==r.coachId&&(!isPbeRoom(r)||isRoomLearner(r,a)),"The coach cannot play.");const existing=r.members.find(m=>m.userId===a.userId);if(existing)return;need(r.members.filter(m=>m.team===team).length<r.teamSize,"That team is full.");r.members.push({userId:a.userId,displayName:a.displayName,team,ready:false,captain:false,scribe:false});repairRoles(r);resetReady(r);}
 export function makeRoom(id:string,a:Actor,input:{seasonId:string;teamSize:number;questionCount:number;coached?:boolean;bookKey?:string;format?:'Arcade'|'Pbe';teamCount?:1|2;simulation?:SimulationSettings;eventId?:string;captainStartUserId?:string|null},epoch:string,now:number,options:{simulationMembers?:string[]}={}):Room {
  need(input.format===undefined||['Arcade','Pbe'].includes(input.format),'Choose Arcade or Pbe.');
  const pbe=input.format==='Pbe';need(input.teamCount===undefined||[1,2].includes(input.teamCount),'Choose one or two teams.');need(pbe||input.teamCount===undefined||input.teamCount===2,'Arcade requires two teams.');
@@ -143,7 +147,7 @@ export function applyCommand(r:Room,a:Actor,c:Command,ingress:number,now:number,
    if(r.audioReadingComplete&&scribes.every(id=>r.coachReadyScribeIds?.includes(id))){schedule(r,now);r.acknowledged=scribes;}
   }else if(r.coached){
    if(c.action==='present'){need(r.coachId===a.userId&&canCoach(r,a),'Only the designated non-playing coach can confirm readings.',403);need(c.delivery==='Coach','Confirm both coach readings.');r.coachReading={questionId:current(r).id,coachId:a.userId,completedAtMs:ingress};}
-   else{player();need(m!.scribe&&a.kind==='Student','Only the current student scribe can confirm readiness.',403);need(!c.delivery,'Readiness does not confirm a delivery method.');r.coachReadyScribeIds=[...new Set([...(r.coachReadyScribeIds??[]),a.userId])];}
+   else{player();need(m!.scribe&&(a.kind==='Student'||a.kind==='Adult'&&['Owner','Admin'].includes(a.role)),'Only the current scribe can confirm readiness.',403);need(!c.delivery,'Readiness does not confirm a delivery method.');r.coachReadyScribeIds=[...new Set([...(r.coachReadyScribeIds??[]),a.userId])];}
    if(r.coachReading&&scribes.every(id=>r.coachReadyScribeIds?.includes(id))){r.presentationDelivery=Object.fromEntries(scribes.map(id=>[id,'Coach']));schedule(r,now);r.acknowledged=scribes;}
   }else{player();need(c.action==='present'&&m!.scribe,'Only the current scribe can confirm the readings.');need(c.delivery==='Audio'||c.delivery==='TextFallback','Confirm two readings using audio or text.');
    const state=acknowledgePresentation({questionId:current(r).id,revision:r.revision,delivery:c.delivery,requiredScribeIds:scribes,readyScribeIds:Object.keys(r.presentationDelivery??{}),responseStartsAtMs:null,responseEndsAtMs:null},a.userId,c.questionId,now,points(current(r)));
@@ -167,7 +171,7 @@ export function seedEventRoster(r:Room,entries:{actor:Actor;team:number}[]):void
  // Event rooms start from the assigned roster only: drop the creator's
  // automatic seat (makeRoom joins an independent organizer) and seat each
  // assignee through the normal join rules (team capacity, coach-cannot-play,
- // PBE student eligibility all keep applying).
+ // PBE learner eligibility all keep applying).
  r.members=[];r.invitations=[];
  for(const entry of entries)join(r,entry.actor,entry.team);
  if(r.captainStartUserId){

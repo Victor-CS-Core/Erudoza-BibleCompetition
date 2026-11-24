@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { makeRoom, join, applyCommand, advance, recover, view } from './state';
+import { makeRoom, join, applyCommand, advance, recover, view, seedEventRoster } from './state';
 import type { Actor } from '../types';
 const actor=(n:number):Actor=>({userId:`player-${n}`,organizationId:'org',organizationName:'Org',displayName:`Player ${n}`,userName:`p${n}`,email:null,kind:'Student',role:'Student',credentialVersion:'v1'});
 const question=(n:number)=>({schemaVersion:2 as const,id:`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`,version:1,contentPackId:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',sourceUnitId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',sourceUnitIds:['bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'],sourceKind:'Scripture' as const,kind:'ExactWords' as const,prompt:`Quote ${n}`,reference:'Synthetic 1:1',evidence:'the answer',ordered:true,parts:[{targetId:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',acceptedAnswers:['the answer'],points:2}]});
@@ -40,6 +40,32 @@ it('does not erase a locked team answer or restart an armed window after clock l
  c(0,'submit',{questionId:r.questions[0].id,answers:['the answer']});recover(r,'replacement',now+1,'runtime-replacement');
  expect(r.status).toBe('Interrupted');expect(r.submissions).toHaveLength(1);expect(r.submissions[0].accuracyHundredths).toBe(200);
 });
+it('seats a coach in learner mode from an event roster but keeps the organizer and non-learners out',()=>{
+ const organizer:Actor={...actor(9),kind:'Adult',role:'Owner'};
+ const r=makeRoom('room',organizer,{seasonId:'season',format:'Pbe',teamCount:1,teamSize:2,questionCount:10,eventId:'event-1'},'epoch',1000);
+ const fellowCoach:Actor={...actor(8),kind:'Adult',role:'Admin'};
+ seedEventRoster(r,[{actor:fellowCoach,team:1},{actor:actor(0),team:1}]);
+ expect(r.members.map(m=>m.userId)).toEqual(['player-8','player-0']);
+ expect(()=>join(r,organizer,1)).toThrow(/coach cannot play/);
+ const cm:Actor={...actor(7),kind:'Adult',role:'Content Manager'};
+ expect(()=>join(r,cm,1)).toThrow(/coach cannot play/);
+});
+
+it('lets a coach-learner scribe confirm readiness in a coached room',()=>{
+ const coach:Actor={...actor(9),kind:'Adult',role:'Admin'};
+ const r=makeRoom('room',coach,{seasonId:'season',format:'Pbe',coached:true,teamCount:2,teamSize:2,questionCount:10},'epoch',1000);
+ const fellowCoach:Actor={...actor(8),kind:'Adult',role:'Admin'};
+ join(r,fellowCoach,1);join(r,actor(0),1);join(r,actor(1),2);join(r,actor(2),2);
+ r.members.forEach(m=>m.ready=true);
+ const c=(a:Actor,action:string,extra:Record<string,unknown>={})=>applyCommand(r,a,{commandId:crypto.randomUUID(),revision:r.revision,action,...extra},1000,1000,{questions:Array.from({length:11},(_,n)=>question(n+1))});
+ c(coach,'start');const q=r.questions[0].id;
+ c(coach,'present',{questionId:q,delivery:'Coach'});
+ expect(r.members.find(m=>m.team===1&&m.scribe)?.userId).toBe('player-8');
+ c(fellowCoach,'present-ready',{questionId:q});
+ c(actor(1),'present-ready',{questionId:q});
+ expect(r.phase).toBe('Scheduled');
+});
+
 it('keeps the original armed schedule after a late ack and retains delivery and lock metadata',()=>{
  let now=1000;const r=makeRoom('room',actor(0),{seasonId:'season',teamSize:2,teamCount:1,questionCount:10,format:'Pbe'},'epoch',now);join(r,actor(1),1);r.members.forEach(m=>m.ready=true);
  const c=(action:string,extra:Record<string,unknown>={})=>applyCommand(r,actor(0),{commandId:crypto.randomUUID(),revision:r.revision,action,...extra},now,now,{questions:Array.from({length:11},(_,n)=>question(n+1))});

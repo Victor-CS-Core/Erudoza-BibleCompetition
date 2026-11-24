@@ -275,7 +275,14 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
             const earned = s.attempts.reduce((n, a) => n + a.result.earnedPoints, 0), available = s.attempts.reduce((n, a) => n + a.result.availablePoints, 0);
             const questRes = await sessionCompleteQuests(ctx, qw, { localDate: qLocalDate, timeZone: pcal.timeZone, seasonId: s.seasonId, atUtc: s.completedAtUtc }, { mode: s.mode, accuracy: available ? earned / available * 100 : 0, fullTargetReached: s.cards.length > 0 && s.attempts.length === s.cards.length });
             const questXp = [...simDayEvents, ...questRes.xpEvents];
-            s.questsCompleted = questRes.completedNow.map(key => ({ key, title: QUEST_DEFS[key].title }));
+            // Finish-line quests merge with any completed mid-session
+            // (recorded on the session as attempts landed) so the recap
+            // lists them all.
+            const mergedQuests = new Map((s.questsCompleted ?? []).map(q => [q.key, q] as const));
+            for (const key of questRes.completedNow)
+                if (!mergedQuests.has(key))
+                    mergedQuests.set(key, { key, title: QUEST_DEFS[key].title });
+            s.questsCompleted = [...mergedQuests.values()];
             if (questXp.length) {
                 const awarded = await awardXp(ctx, qw, { seasonId: s.seasonId, localDate: qLocalDate, atUtc: s.completedAtUtc, events: questXp });
                 s.xpEarned = (s.xpEarned ?? 0) + awarded.awarded;

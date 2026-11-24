@@ -16,7 +16,7 @@
     "status": 200,
     "body": [
       {
-        "id": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+        "id": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
         "organizationId": "11111111-1111-4111-8111-111111111111",
         "name": "Summer 2027",
         "yearLabel": "2027",
@@ -25,7 +25,7 @@
         "status": "Active",
         "startDate": null,
         "targetCompetitionDate": null,
-        "createdAtUtc": "2026-11-24T17:57:22.153Z",
+        "createdAtUtc": "2026-11-24T22:26:39.635Z",
         "assignmentCount": 2,
         "scopeUnitCount": 3
       }
@@ -34,14 +34,14 @@
   "coverage": {
     "status": 200,
     "body": {
-      "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+      "seasonId": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
       "seasonName": "Summer 2027",
       "seasonStatus": "Active",
       "students": [
         {
-          "studentUserId": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
-          "displayName": "Ana Example",
-          "userName": "ana",
+          "studentUserId": "eb1a2621-b106-447d-a7dc-6a805db0e9ad",
+          "displayName": "Ben Example",
+          "userName": "ben",
           "assignmentType": "PrimarySpecialist",
           "bookKey": "DAN",
           "startChapter": 1,
@@ -54,9 +54,9 @@
           "attemptCount": 0
         },
         {
-          "studentUserId": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
-          "displayName": "Ben Example",
-          "userName": "ben",
+          "studentUserId": "389dc57e-90be-463a-9562-5509006a6d02",
+          "displayName": "Ana Example",
+          "userName": "ana",
           "assignmentType": "PrimarySpecialist",
           "bookKey": "DAN",
           "startChapter": 1,
@@ -75,14 +75,14 @@
     "status": 200,
     "body": [
       {
-        "userId": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+        "userId": "389dc57e-90be-463a-9562-5509006a6d02",
         "userName": "ana",
         "displayName": "Ana Example",
         "email": null,
         "isActive": true
       },
       {
-        "userId": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+        "userId": "eb1a2621-b106-447d-a7dc-6a805db0e9ad",
         "userName": "ben",
         "displayName": "Ben Example",
         "email": null,
@@ -94,7 +94,7 @@
     "status": 200,
     "body": [
       {
-        "studentId": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+        "studentId": "389dc57e-90be-463a-9562-5509006a6d02",
         "name": "Ana Example",
         "streak": 0,
         "xpThisWeek": 65,
@@ -110,7 +110,7 @@
         }
       },
       {
-        "studentId": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+        "studentId": "eb1a2621-b106-447d-a7dc-6a805db0e9ad",
         "name": "Ben Example",
         "streak": 0,
         "xpThisWeek": 0,
@@ -142,11 +142,11 @@
     "status": 200,
     "body": [
       {
-        "id": "bf57c234-7aba-4a94-b0f1-5f5be9363f71",
+        "id": "1191e478-dd59-416b-9fdb-40c4ba302de5",
         "email": "newcoach@example.com",
         "role": "Admin",
-        "createdAt": "2026-11-24T17:57:22.946Z",
-        "expiresAt": "2026-12-01T17:57:22.946Z",
+        "createdAt": "2026-11-24T22:26:40.772Z",
+        "expiresAt": "2026-12-01T22:26:40.772Z",
         "status": "pending"
       }
     ]
@@ -162,24 +162,24 @@
     "status": 200,
     "body": [
       {
-        "id": "bbbf784f-a515-459b-ab01-9ec3088bb6c3",
+        "id": "dad3196c-099c-4408-a9e1-8d257f33dcba",
         "yearLabel": "2027-28",
         "status": "draft",
         "origin": "manual",
         "proposedBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-        "proposedAtUtc": "2026-11-24T17:57:22.671Z",
+        "proposedAtUtc": "2026-11-24T22:26:40.458Z",
         "decidedBy": null,
         "decidedAtUtc": null,
         "bookCount": 1,
         "sectionCount": 1
       },
       {
-        "id": "1a2bd96d-6ce0-4731-82c6-50bdd7ac8a0f",
+        "id": "a6b9ca9a-14d9-42f4-8054-3fbbeefe93bd",
         "yearLabel": "2026-27",
         "status": "draft",
         "origin": "manual",
         "proposedBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-        "proposedAtUtc": "2026-11-24T17:57:22.661Z",
+        "proposedAtUtc": "2026-11-24T22:26:40.445Z",
         "decidedBy": null,
         "decidedAtUtc": null,
         "bookCount": 1,
@@ -191,12 +191,12 @@
     "status": 200,
     "body": {
       "proposal": {
-        "id": "1a2bd96d-6ce0-4731-82c6-50bdd7ac8a0f",
+        "id": "a6b9ca9a-14d9-42f4-8054-3fbbeefe93bd",
         "yearLabel": "2026-27",
         "status": "draft",
         "origin": "manual",
         "proposedBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-        "proposedAtUtc": "2026-11-24T17:57:22.661Z",
+        "proposedAtUtc": "2026-11-24T22:26:40.445Z",
         "material": {
           "yearLabel": "2026-27",
           "books": [
@@ -247,7 +247,7 @@
     "status": 200,
     "body": [
       {
-        "id": "8ff20339-b7a5-4432-a107-07166e76bca9",
+        "id": "5d2ba08d-a61d-40d9-9916-c4a5b3c43a0c",
         "title": "Regional finals recap",
         "summary": "The new competition year is underway.",
         "status": "draft",
@@ -273,11 +273,11 @@
         "sourceUrl": "https://nadpbe.org/announcement/",
         "sourceLabel": "nadpbe.org",
         "createdBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-        "createdAtUtc": "2026-11-24T17:57:22.769Z",
-        "updatedAtUtc": "2026-11-24T17:57:22.769Z"
+        "createdAtUtc": "2026-11-24T22:26:40.629Z",
+        "updatedAtUtc": "2026-11-24T22:26:40.629Z"
       },
       {
-        "id": "1d75e0c0-f592-47e9-a1d0-ec5ac998bdb7",
+        "id": "78359304-4a6e-4f1e-8eeb-be4048a87e9e",
         "title": "PBE kickoff announced",
         "summary": "The new competition year is underway.",
         "status": "published",
@@ -303,8 +303,8 @@
         "sourceUrl": "https://nadpbe.org/announcement/",
         "sourceLabel": "nadpbe.org",
         "createdBy": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-        "createdAtUtc": "2026-11-24T17:57:22.756Z",
-        "updatedAtUtc": "2026-11-24T17:57:22.756Z"
+        "createdAtUtc": "2026-11-24T22:26:40.561Z",
+        "updatedAtUtc": "2026-11-24T22:26:40.561Z"
       }
     ]
   },
@@ -318,7 +318,7 @@
   "training-today": {
     "status": 200,
     "body": {
-      "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+      "seasonId": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
       "seasonName": "Summer 2027",
       "seasonStatus": "Active",
       "localDate": "2026-11-24",
@@ -374,7 +374,7 @@
         "id": null,
         "revision": null,
         "status": "Suggested",
-        "scopeVersion": "c206ef4e81649e0cf45e3bd0163ddb6ef34f5b50ec83003bdb3f42900b9a93ce",
+        "scopeVersion": "71487091ea109a2832906445638d70c645d9bfa1a0dfe5d8a6bf609543abbfda",
         "steps": [
           {
             "kind": "Review",
@@ -551,7 +551,7 @@
           "category": "Simulation",
           "requirement": "Complete one simulation.",
           "target": 1,
-          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "seasonId": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
           "current": 0,
           "earnedAtUtc": null
         },
@@ -561,7 +561,7 @@
           "category": "Simulation",
           "requirement": "Complete a 90-question Full Event at standard time with halftime and two readings.",
           "target": 1,
-          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "seasonId": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
           "current": 0,
           "earnedAtUtc": null
         },
@@ -571,7 +571,7 @@
           "category": "Simulation",
           "requirement": "Complete five simulations across at least three UTC dates.",
           "target": 5,
-          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "seasonId": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
           "current": 0,
           "earnedAtUtc": null,
           "distinctDays": 0
@@ -582,7 +582,7 @@
           "category": "Simulation",
           "requirement": "Explicitly submit answers to 30 distinct questions as scribe in completed simulations.",
           "target": 30,
-          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "seasonId": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
           "current": 0,
           "earnedAtUtc": null
         },
@@ -592,7 +592,7 @@
           "category": "Simulation",
           "requirement": "Resolve at least 30 distinct questions with aggregate team accuracy of at least 90%; latest results count and none may be pending.",
           "target": 30,
-          "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "seasonId": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
           "current": 0,
           "earnedAtUtc": null,
           "accuracyPercent": 0,
@@ -602,7 +602,7 @@
       "enabled": true,
       "seasons": [
         {
-          "id": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+          "id": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
           "organizationId": "11111111-1111-4111-8111-111111111111",
           "name": "Summer 2027",
           "yearLabel": "2027",
@@ -611,16 +611,16 @@
           "status": "Active",
           "startDate": null,
           "targetCompetitionDate": null,
-          "createdAtUtc": "2026-11-24T17:57:22.153Z"
+          "createdAtUtc": "2026-11-24T22:26:39.635Z"
         }
       ],
       "players": [
         {
-          "id": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+          "id": "389dc57e-90be-463a-9562-5509006a6d02",
           "displayName": "Ana Example"
         },
         {
-          "id": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+          "id": "eb1a2621-b106-447d-a7dc-6a805db0e9ad",
           "displayName": "Ben Example"
         },
         {
@@ -639,13 +639,13 @@
     "status": 200,
     "body": [
       {
-        "userId": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
+        "userId": "389dc57e-90be-463a-9562-5509006a6d02",
         "avatarHonorKey": null,
         "avatarKind": "initials",
         "character": null
       },
       {
-        "userId": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
+        "userId": "eb1a2621-b106-447d-a7dc-6a805db0e9ad",
         "avatarHonorKey": null,
         "avatarKind": "initials",
         "character": null
@@ -867,11 +867,11 @@
     "status": 0,
     "body": {
       "orgId": "11111111-1111-4111-8111-111111111111",
-      "seasonId": "f90a51e6-e833-4696-a991-b550f5fc0c83",
+      "seasonId": "7edfa1b7-f2e4-40f8-ab67-c1d7ba2913ce",
       "ownerId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-      "s1": "a33c8eb3-b0bc-4b7e-bfd6-f35523f7184d",
-      "s2": "786fef35-c363-4ec2-800f-4d9cc96e84c9",
-      "draftProposalId": "1a2bd96d-6ce0-4731-82c6-50bdd7ac8a0f"
+      "s1": "389dc57e-90be-463a-9562-5509006a6d02",
+      "s2": "eb1a2621-b106-447d-a7dc-6a805db0e9ad",
+      "draftProposalId": "a6b9ca9a-14d9-42f4-8054-3fbbeefe93bd"
     }
   }
 }

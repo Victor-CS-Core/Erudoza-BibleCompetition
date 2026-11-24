@@ -1,4 +1,4 @@
-import {body,HttpError,json,requiredString,type RequestContext} from '../types';
+import {body,HttpError,json,requiredString,withoutInternalHeader,type RequestContext} from '../types';
 import {atomic,deletion} from '../application/model';
 import type {PbeSession} from './sessions';
 import type {PbeQuestion} from './types';
@@ -25,7 +25,7 @@ async function frozenAttempt(ctx:RequestContext,activity:'Solo'|'Team',sessionId
  if(activity==='Team'){
   await teamGate(ctx);if(!ctx.env.ROOMS)throw new HttpError(503,'Room storage is not configured.');
   const url=new URL(`/api/v1/organizations/${ctx.orgId}/practice/rooms/${sessionId}/review-attempt`,ctx.request.url);url.searchParams.set('attemptId',attemptId);
-  const response=await ctx.env.ROOMS.getByName(`${ctx.orgId}:${sessionId}`).fetch(new Request(url,{headers:ctx.request.headers}) as never);
+  const response=await ctx.env.ROOMS.getByName(`${ctx.orgId}:${sessionId}`).fetch(new Request(url,{headers:withoutInternalHeader(ctx.request.headers)}) as never);
   if(!response.ok){const problem=await response.json() as {detail?:string};throw new HttpError(response.status,problem.detail??'Saved result is unavailable.');}
   return response.json() as Promise<FrozenAttempt>;
  }
@@ -99,7 +99,9 @@ export async function disputeRoutes(ctx:RequestContext):Promise<Response|null>{
  if(ctx.path===base&&ctx.request.method==='POST'){
   const input=await body<{activity?:string;sessionId?:string;attemptId?:string;reason?:string}>(ctx.request,4096),reason=requiredString(input.reason,'Review reason',500);
   if(input.activity!=='Solo'&&input.activity!=='Team')throw new HttpError(400,'Choose a saved Solo or Team result.');
-  if(ctx.actor.kind!=='Student'||ctx.actor.role!=='Student')throw new HttpError(403,'Only a participant can flag this answer.');
+  // Learner parity: a coach playing in learner mode flags their own answers
+  // too — the participant check below is the real authorization.
+  if(!((ctx.actor.kind==='Student'&&ctx.actor.role==='Student')||(ctx.actor.kind==='Adult'&&['Owner','Admin'].includes(ctx.actor.role))))throw new HttpError(403,'Only a participant can flag this answer.');
   const sessionId=normalized(input.sessionId,'Session ID'),attemptId=normalized(input.attemptId,'Attempt ID'),activity=input.activity;
   const frozen=await frozenAttempt(ctx,activity,sessionId,attemptId);
   if(!frozen.participantIds.includes(ctx.actor.userId))throw new HttpError(403,'Only the saved participant can flag this answer.');
@@ -108,7 +110,7 @@ export async function disputeRoutes(ctx:RequestContext):Promise<Response|null>{
   const dispute:PbeDispute={...frozen,id,organizationId:ctx.orgId,activity,sessionId,attemptId,questionId:frozen.question.id,questionVersion:frozen.question.version,status:'Pending',reason,revision:1,partPoints:frozen.question.parts.map(p=>p.points),sourceEvidence:frozen.question.evidence,originalPointsByPart:gradePbe(frozen.question,frozen.answers).parts.map(p=>p.earnedPoints),resolution:null};
   const gates=activity==='Team'?[await teamGate(ctx)]:[];
   const overlay=await prepareResultOverlay(ctx,dispute),evidence=await prepareEvidenceDispute(ctx,dispute);
-  await atomic(ctx,'pbe-dispute.flag',[...evidence.statements,...overlay.statements,uniqueInsertion(ctx,'pbe-dispute',id,dispute,frozen.seasonId,frozen.participantIds[0]),uniqueInsertion(ctx,'pbe-dispute-pending',id,dispute,frozen.seasonId,activity)],[...evidence.guards,...overlay.guards,...gates,{kind:'@active-user',id:ctx.actor.userId,revision:0}]);
+  await atomic(ctx,'pbe-dispute.flag',[...evidence.statements,...overlay.statements,uniqueInsertion(ctx,'pbe-dispute',id,dispute,frozen.seasonId,frozen.participantIds[0]),uniqueInsertion(ctx,'pbe-dispute-pending',id,dispute,frozen.seasonId,activity)],[...evidence.guards,...overlay.guards,...gates,{kind:'@active-learner',id:ctx.actor.userId,revision:0}]);
   await reconcileTeamAwards(ctx,dispute);return json(publicDispute(dispute),201);
  }
  if(ctx.path===base&&ctx.request.method==='GET'){

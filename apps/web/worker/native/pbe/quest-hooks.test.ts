@@ -198,6 +198,35 @@ it('progresses explorer and comeback through preparePbeEffort with distinct coun
     expect(comeback3.countedIds).toEqual(['q1', 'q2']);
 });
 
+it('records mid-session quest completions on the session for the recap', async () => {
+    const ctx = studentCtx(STUDENT);
+    const store = new Store(app.db as unknown as Env['DB']);
+    const localDate = '2026-09-18', at = `${localDate}T12:00:00Z`;
+    const sid = 'pbe-quest-recap-session';
+    const mission: PbeMission = { id: sid, format: 'Pbe', ruleVersion: 'r', scoringVersion: 's', selectionVersion: 'sel', seasonId: 's1', sessionId: sid, scopeVersion: 'v', localDate, timeZone: 'UTC', mode: 'Practice', target: 5, completed: 0 };
+    await store.insert('pbe-daily-mission', sid, TEST_ORG, mission, { seasonId: 's1' });
+    const questState = (key: 'explorer'): QuestState => {
+        const d = QUEST_DEFS[key];
+        return { key, title: d.title, description: d.description, target: d.target, progress: 0, completed: false, xpAwarded: false };
+    };
+    const questId = `${TEST_ORG}:${STUDENT}:${localDate}`;
+    const seed: QuestRecord = { id: questId, localDate, timeZone: 'UTC', quests: [questState('explorer')], tripleAwarded: false };
+    await store.insert('training-quest', questId, TEST_ORG, seed, { ownerId: STUDENT });
+    const s: PbeSession = {
+        id: sid, format: 'Pbe', studentUserId: STUDENT, seasonId: 's1', mode: 'Practice', status: 'Active',
+        scopeVersion: 'v', ruleVersion: 'r', scoringVersion: 's', selectionVersion: 'sel',
+        questionIds: ['q1'],
+        cards: [card('c1', 'q1')],
+        attempts: [], createdAtUtc: at, startPayload: '{}', missionLocalDate: localDate, creditedLocalDate: null, newlyCreditedDay: false,
+    };
+    s.attempts.push(attempt('a1', 'c1', 0));
+    const w = await preparePbeEffort(ctx, s, at);
+    await atomic(ctx, 'pbe-quest-recap.test', w.statements, w.guards);
+    // Explorer completed mid-session (fresh question): the session itself now
+    // carries it, so the recap can list it alongside any finish-line quests.
+    expect(s.questsCompleted).toEqual([{ key: 'explorer', title: QUEST_DEFS.explorer.title }]);
+});
+
 it('stamps the reward snapshot with the partial-credit amount actually awarded (D3)', async () => {
     const student4 = '99999999-9999-4999-8999-999999999999';
     await insertStudent(student4, 'pbe-partial-student');

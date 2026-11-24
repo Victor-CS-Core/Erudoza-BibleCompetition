@@ -99,6 +99,9 @@ describe("SeasonLeaderboardPage", () => {
     expect(await screen.findByText("No scores yet — be the first on the board")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Start practice" })).toBeInTheDocument();
     expect(screen.queryByTestId("season-board-your-rank")).not.toBeInTheDocument();
+    // A joined member can still leave the board before anyone has scored.
+    fireEvent.click(screen.getByRole("button", { name: "Hide me from the board" }));
+    await waitFor(() => expect(apiMocks.setLeaderboardOptIn).toHaveBeenCalledWith(false));
   });
 
   it("puts the top three on a podium above the flat race-bar rows", async () => {

@@ -124,7 +124,7 @@
 /* Visual chapter progress: stat row + passage card grid (replaces the verse log list). */
 .journey-chapter-stats { display: flex; flex-wrap: wrap; gap: 12px 32px; margin: 4px 0 12px; }
 .journey-chapter-stats > div { display: grid; gap: 2px; }
-.journey-chapter-stats strong { font-size: var(--er-text-title); font-weight: 800; color: var(--er-ink-navy); line-height: 1; }
+.journey-chapter-stats strong { font-size: var(--er-text-title); font-weight: 800; color: var(--er-ink-navy); line-height: 1; font-variant-numeric: tabular-nums; }
 .journey-chapter-stats strong span { font-size: var(--er-text-base); font-weight: 600; color: var(--er-muted-ink); }
 .journey-chapter-stats > div > span:last-child { font-size: var(--er-text-xs); color: var(--er-muted-ink); text-transform: uppercase; letter-spacing: .04em; }
 .journey-chapter-stats .is-due strong { color: var(--er-stamp-red); }
@@ -160,7 +160,7 @@
 .passage-picker-chapter-progress > span { display: block; height: 100%; background: var(--er-teal); }
 .passage-picker-chapter.is-active { background: var(--er-selected); border-color: var(--er-teal); }
 .passage-picker-due-dot { position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--er-coral); }
-.passage-picker-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0; max-height: 244px; overflow-y: auto; }
+.passage-picker-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; list-style: none; padding: 0; margin: 0; max-height: 244px; overflow-y: auto; overscroll-behavior: contain; }
 .passage-picker-grid > li { min-width: 0; }
 .passage-picker-tile { position: relative; display: grid; place-items: center; min-height: 52px; border: 1px solid var(--er-border); border-radius: var(--er-radius-control); background: var(--er-card); color: var(--er-ink-navy); text-decoration: none; }
 .passage-picker-tile:hover .passage-picker-verse { text-decoration: underline; text-underline-offset: 3px; }

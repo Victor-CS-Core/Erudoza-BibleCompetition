@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { scriptureApi } from "../../api/scripture";
 import type { SourceUnit } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
@@ -73,6 +73,37 @@ export function ScriptureReader({ seasonId, citation, focus, onRead, open: openP
   const open = openProp ?? internalOpen;
   const setOpen = (next: boolean) => { if (onOpenChange) onOpenChange(next); else setInternalOpen(next); };
   const regionId = useId();
+  const regionRef = useRef<HTMLDivElement>(null);
+  // Expanding from the card's passage to the full chapter swaps a short
+  // block for a tall one, and the toggle that triggers it sits at the
+  // BOTTOM of the focused view. Left to the browser, scroll anchoring
+  // keeps the tapped spot in view as the chapter grows in above/below
+  // it, so the learner lands at the bottom of the expanded card and has
+  // to scroll all the way back up to verse 1. Instead, bring the card's
+  // top into view, and move focus into the region the reader toggle
+  // controls — the escape button unmounts in the swap, so without this
+  // focus drops to the page body (the TrainingAppFrame reveal pattern:
+  // scrollIntoView + focus with preventScroll). Reduced motion jumps
+  // instead of gliding, per the XpReward matchMedia pattern.
+  const revealChapterTop = () => {
+    requestAnimationFrame(() => {
+      const region = regionRef.current;
+      if (!region) return;
+      const card = region.closest(".scripture-reader") ?? region;
+      const reduce = typeof window.matchMedia === "function"
+        && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (typeof card.scrollIntoView === "function")
+        card.scrollIntoView({ block: "start", behavior: reduce ? "auto" : "smooth" });
+      region.focus({ preventScroll: true });
+    });
+  };
+  // Collapsing back to the card's passage needs no scroll (the shrunken
+  // card lands in view on its own), but the "Back" button unmounts in
+  // the swap just like the escape button does — keep focus in the region
+  // instead of dropping it to the page body, without moving the view.
+  const refocusRegion = () => {
+    requestAnimationFrame(() => regionRef.current?.focus({ preventScroll: true }));
+  };
   const assigned = useQuery({
     queryKey: ["assigned-scripture", seasonId, me?.organizationId, me?.userId],
     queryFn: () => scriptureApi.assigned(seasonId),
@@ -90,17 +121,17 @@ export function ScriptureReader({ seasonId, citation, focus, onRead, open: openP
         {open ? "Hide passage" : "Read passage"}
       </Button>
     </div>
-    <div id={regionId} hidden={!open}>
+    <div id={regionId} hidden={!open} ref={regionRef} tabIndex={-1}>
       {assigned.isFetching && <LoadingState label="Loading your assigned passages…" />}
       {assigned.isError && <Notice tone="danger">Your passages could not load. <Button variant="secondary" onClick={() => void assigned.refetch()}>Try loading passages again</Button></Notice>}
       {assigned.data && !assigned.isError && <div hidden={assigned.isFetching}>{assigned.data.verses.length
-        ? <ScripturePassages key={seasonId} verses={assigned.data.verses} citation={citation} focus={focus} />
+        ? <ScripturePassages key={seasonId} verses={assigned.data.verses} citation={citation} focus={focus} onExpandChapter={revealChapterTop} onCollapseToPassage={refocusRegion} />
         : <EmptyState title="No passages available" description="Your coach needs to assign readable passages in this season before they appear here." />}</div>}
     </div>
   </Panel>;
 }
 
-function ScripturePassages({ verses, citation, focus }: { verses: SourceUnit[]; citation?: string; focus?: ReaderFocus }) {
+function ScripturePassages({ verses, citation, focus, onExpandChapter, onCollapseToPassage }: { verses: SourceUnit[]; citation?: string; focus?: ReaderFocus; onExpandChapter?: () => void; onCollapseToPassage?: () => void }) {
   const preferred = verses.find(verse => verse.citation === citation) ?? verses[0];
   const [book, setBook] = useState(preferred.bookKey);
   const [chapter, setChapter] = useState(preferred.chapter);
@@ -127,7 +158,7 @@ function ScripturePassages({ verses, citation, focus }: { verses: SourceUnit[]; 
           {focused.map(verse => <li key={verse.id}><p className="er-scripture leading-relaxed"><sup className="scripture-reader-verse-num">{verse.verse}</sup>{verse.canonicalText}</p></li>)}
         </ol>
       </div>
-      <div><Button size="compact" variant="ghost" onClick={() => setEscapedKey(focusKey)}>Browse the full chapter instead</Button></div>
+      <div><Button size="compact" variant="ghost" onClick={() => { setEscapedKey(focusKey); onExpandChapter?.(); }}>Browse the full chapter instead</Button></div>
     </div>;
   }
   const books = [...new Map(verses.map(verse => [verse.bookKey, bookName(verse)])).entries()];
@@ -145,7 +176,7 @@ function ScripturePassages({ verses, citation, focus }: { verses: SourceUnit[]; 
 
   return <div className="scripture-reader-content">
     <p className="text-sm">Reading before checking an answer counts as using a study hint. Only passages assigned to you are available.</p>
-    {focused.length > 0 && <div><Button size="compact" variant="ghost" onClick={() => { setEscapedKey(null); setBrowseTouched(false); }}>Back to this card's passage</Button></div>}
+    {focused.length > 0 && <div><Button size="compact" variant="ghost" onClick={() => { setEscapedKey(null); setBrowseTouched(false); onCollapseToPassage?.(); }}>Back to this card's passage</Button></div>}
     <div className="scripture-reader-navigation">
       <label>Book<Select value={selectedBook} disabled={isSearching} onChange={event => { setBrowseTouched(true); setBook(event.target.value); setChapter(0); setVerseNumber(""); setPage(0); }}>
         {books.map(([key, name]) => <option key={key} value={key}>{name}</option>)}
