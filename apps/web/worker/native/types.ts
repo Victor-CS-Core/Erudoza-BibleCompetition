@@ -2,7 +2,7 @@ import type { D1Database, DurableObjectNamespace } from "@cloudflare/workers-typ
 import type { Store } from "./store";
 import type { PasswordCrypto } from "./password-crypto";
 import type { PerimeterEnv } from "./perimeter";
-export interface Env extends PerimeterEnv { DB: D1Database; ASSETS?: { fetch(request: Request): Promise<Response> }; ROOMS?: DurableObjectNamespace; REPORTS?: DurableObjectNamespace; PBE_SOLO?: DurableObjectNamespace; PASSWORD_CRYPTO?: DurableObjectNamespace<PasswordCrypto>; PUBLIC_ORIGIN?: string; RESEND_API_KEY?:string; AUTH_CODE_SECRET?:string; TURNSTILE_SECRET_KEY?:string; TURNSTILE_SITE_KEY?:string; AUTH_EMAIL_FROM?:string }
+export interface Env extends PerimeterEnv { DB: D1Database; ASSETS?: { fetch(request: Request): Promise<Response> }; ROOMS?: DurableObjectNamespace; REPORTS?: DurableObjectNamespace; PBE_SOLO?: DurableObjectNamespace; PASSWORD_CRYPTO?: DurableObjectNamespace<PasswordCrypto>; PUBLIC_ORIGIN?: string; RESEND_API_KEY?:string; AUTH_CODE_SECRET?:string; TURNSTILE_SECRET_KEY?:string; TURNSTILE_SITE_KEY?:string; AUTH_EMAIL_FROM?:string; SUPPORT_INGEST_TOKEN?:string }
 export interface Actor {
   userId: string; organizationId: string; organizationName: string; displayName: string; userName: string;
   email: string | null; kind: "Adult" | "Student"; role: "Owner" | "Admin" | "Content Manager" | "Student"; credentialVersion: string;
@@ -12,6 +12,13 @@ export class HttpError extends Error { constructor(public status: number, messag
 export function json(value: unknown, status = 200): Response { return Response.json(value, { status, headers: { "Cache-Control": "no-store" } }); }
 export function noContent(): Response { return new Response(null, { status: 204 }); }
 export function admin(actor: Actor): void { if (actor.kind !== "Adult" || !["Owner", "Admin"].includes(actor.role)) throw new HttpError(403, "Administrator access denied."); }
+/** The one master-admin account for the whole app. The Admin Control Center
+ *  (cross-club analytics, support tickets, system state) is gated to the
+ *  account carrying this email — there is no club-scoped version of it. The
+ *  client mirrors this constant for UX only; this gate is authoritative. */
+export const MASTER_ADMIN_EMAIL = "viticopq12@gmail.com";
+export function isMasterAdmin(actor: Actor): boolean { return actor.email?.trim().toLowerCase() === MASTER_ADMIN_EMAIL; }
+export function masterAdmin(actor: Actor): void { if (!isMasterAdmin(actor)) throw new HttpError(403, "Master administrator access denied."); }
 export function requiredString(value: unknown, name: string, max = 200): string {
   if (typeof value !== "string" || !value.trim() || value.length > max) throw new HttpError(400, `${name} is required and must be at most ${max} characters.`);
   return value.trim();

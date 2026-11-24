@@ -48,8 +48,8 @@ export async function completeCode(env:Env,purpose:Purpose,data:Record<string,un
       env.DB.prepare(`UPDATE AuthChallenges SET consumed_at=? WHERE user_id=? AND purpose='password' AND consumed_at IS NULL AND EXISTS(${claimed})`).bind(Date.now(),userId,id,claim)
     );
   } else {
-    statements.push(env.DB.prepare(`INSERT INTO Users(id,org_id,user_name,email,display_name,kind,role,password_hash,credential_version)
-      SELECT ?,?,?,?,?, 'Adult',?,?,? WHERE EXISTS(${claimed})`).bind(userId,orgId,candidate.email,candidate.email,displayName,purpose==="signup"?"Owner":invitationRole,hash,credentialVersion,id,claim));
+    statements.push(env.DB.prepare(`INSERT INTO Users(id,org_id,user_name,email,display_name,kind,role,password_hash,credential_version,created_at)
+      SELECT ?,?,?,?,?, 'Adult',?,?,?,? WHERE EXISTS(${claimed})`).bind(userId,orgId,candidate.email,candidate.email,displayName,purpose==="signup"?"Owner":invitationRole,hash,credentialVersion,Date.now(),id,claim));
     statements.push(env.DB.prepare(`INSERT INTO Sessions(token_hash,user_id,credential_version,expires_at) SELECT ?,?,?,? WHERE EXISTS(${claimed})`).bind(sessionHash,userId,credentialVersion,Date.now()+8*3600_000,id,claim));
     if(purpose==="invitation")statements.push(env.DB.prepare(`UPDATE CoachInvitations SET status='accepted',accepted_user_id=? WHERE id=? AND EXISTS(${claimed})`).bind(userId,candidate.invitation_id,id,claim));
   }

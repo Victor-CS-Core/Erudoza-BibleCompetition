@@ -1,4 +1,4 @@
-export type IconName = "home" | "book" | "review" | "chart" | "users" | "flag" | "arrow" | "logout" | "menu" | "close" | "search" | "pin" | "chevron" | "grid" | "plus" | "check" | "bell" | "flame" | "sun" | "moon";
+export type IconName = "home" | "book" | "review" | "chart" | "users" | "flag" | "arrow" | "logout" | "menu" | "close" | "search" | "pin" | "chevron" | "grid" | "plus" | "check" | "bell" | "flame" | "sun" | "moon" | "chat" | "server" | "activity" | "bolt" | "star" | "mail" | "clock" | "shield" | "link" | "calendar";
 const paths: Record<IconName, string> = {
   check: "m5 12 4 4L19 6",
   search: "M21 21l-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
@@ -20,6 +20,16 @@ const paths: Record<IconName, string> = {
   flame: "M12 2s6 5 6 11a6 6 0 0 1-12 0c0-2 1-4 2-5.2.6 1.6 1.6 2.6 3 3.2-.4-3 .1-6 1-9z",
   sun: "M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-15v2m0 16v2M4.2 4.2l1.4 1.4m13.2 13.2 1.4 1.4M2 12h2m16 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4",
   moon: "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z",
+  chat: "M3 4h18v13H9l-5 4v-4H3zM7 9h10M7 13h6",
+  server: "M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 16a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM7 6.5h.01M7 17.5h.01",
+  activity: "M2 13h5l3-8 4 14 3-8h5",
+  bolt: "m14 2-11 12h8l-1 8 11-13h-8z",
+  star: "m12 2 2.7 6.8 7.3.8-5.6 4.8 1.8 7.1-6.2-3.8-6.2 3.8 1.8-7.1L2 9.6l7.3-.8z",
+  mail: "M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 6l9 7 9-7",
+  clock: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM12 7v5l3 2",
+  shield: "m12 2 8 3v6c0 7-3.5 9.7-8 11-4.5-1.3-8-4-8-11V5zM8.5 11.5l2.5 2.5 4.5-5.5",
+  link: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3",
+  calendar: "M5 4h14a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM7 2v4m10-4v4M3 10h18",
 };
 export function AppIcon({ name }: { name: IconName }) {
   return <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>;

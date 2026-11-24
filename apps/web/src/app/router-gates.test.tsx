@@ -2,7 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import { useAuth } from "../auth/AuthContext";
-import { ContentManagerGate, MaterialsNewsGate } from "./router";
+import { ContentManagerGate, MasterAdminGate, MaterialsNewsGate } from "./router";
 
 vi.mock("../auth/AuthContext", () => ({ useAuth: vi.fn() }));
 
@@ -48,5 +48,27 @@ it("admits owners and admins to the other admin areas", () => {
     cleanup();
     renderGate("restricted", me);
     expect(screen.getByText("Management content")).toBeInTheDocument();
+  }
+});
+
+it("admits only the master admin account to the Control Center", () => {
+  authAs({ ...owner, email: "viticopq12@gmail.com" });
+  render(<MemoryRouter><MasterAdminGate><p>Management content</p></MasterAdminGate></MemoryRouter>);
+  expect(screen.getByText("Management content")).toBeInTheDocument();
+});
+
+it("matches the master email case-insensitively", () => {
+  authAs({ ...owner, email: "  Viticopq12@Gmail.com " });
+  render(<MemoryRouter><MasterAdminGate><p>Management content</p></MasterAdminGate></MemoryRouter>);
+  expect(screen.getByText("Management content")).toBeInTheDocument();
+});
+
+it("denies owners, admins, content managers, and students without the master email", () => {
+  for (const me of [{ ...owner, email: "owner@example.com" }, { ...admin, email: null }, contentManager, { kind: "Student", role: "Student", organizationId: "org-1", userId: "u-9", email: "student@example.com" }]) {
+    cleanup();
+    authAs(me);
+    render(<MemoryRouter><MasterAdminGate><p>Management content</p></MasterAdminGate></MemoryRouter>);
+    expect(screen.getByText(/limited to the master admin account/)).toBeInTheDocument();
+    expect(screen.queryByText("Management content")).not.toBeInTheDocument();
   }
 });

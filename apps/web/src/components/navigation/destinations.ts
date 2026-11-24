@@ -2,7 +2,7 @@ import type { IconName } from "../AppIcon";
 import type { AdultRole } from "../../api/onboarding";
 export type Destination = { id: string; label: string; to: string; icon: IconName; testId?: string; children?: Destination[]; searchOnly?: boolean };
 const child = (id: string, label: string, to: string, icon: IconName = "arrow"): Destination => ({ id, label, to, icon });
-export function navigation(coach: boolean, selectedSeason?: string | null, personalAssignments = false, adultRole?: AdultRole | null, teamPracticeEnabled = true): Destination[] {
+export function navigation(coach: boolean, selectedSeason?: string | null, personalAssignments = false, adultRole?: AdultRole | null, teamPracticeEnabled = true, masterAdmin = false): Destination[] {
   const student = (path: string) => selectedSeason ? `${path}${path.includes("?") ? "&" : "?"}seasonId=${encodeURIComponent(selectedSeason)}` : path;
   const all: Destination[] = coach ? [
     { id: "overview", label: "Overview", to: "/admin", icon: "home", testId: "coach-tab-overview" },
@@ -30,10 +30,12 @@ export function navigation(coach: boolean, selectedSeason?: string | null, perso
    *  unknown roles) see every other coach area but never PBE materials/news or the
    *  invitation controls. Owners see everything. */
   if (!coach) return gated;
-  const allCoach = gated;
+  // The Control Center entry appears for the master admin account only; the
+  // server gate on its endpoints is authoritative.
+  const allCoach = masterAdmin ? [...gated, { id: "control-center", label: "Control Center", to: "/admin/control-center", icon: "grid" as IconName }] : gated;
   if (adultRole === "Content Manager") return allCoach.filter(item => item.id === "materials" || item.id === "news");
   if (adultRole !== "Owner") return allCoach
-    .filter(item => item.id !== "materials" && item.id !== "news")
+    .filter(item => item.id !== "materials" && item.id !== "news" && item.id !== "control-center")
     .map(item => item.id === "coaches" ? { ...item, children: item.children?.filter(entry => entry.id !== "invite-coach") } : item);
   return allCoach;
 }

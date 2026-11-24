@@ -107,7 +107,7 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         await assertStorageCapacity(ctx, 'students');
         await administrationBudget(ctx, true);
         const userId = id(), password = await hashUserPassword(ctx.env, orgId, userId, input.password);
-        await atomic(ctx, 'student.create', [storageCapacityGuard(ctx, 'students'), ctx.env.DB.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,'Student','Student',?,?)").bind(userId, orgId, userName, displayName, password, id())]);
+        await atomic(ctx, 'student.create', [storageCapacityGuard(ctx, 'students'), ctx.env.DB.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version,created_at) VALUES(?,?,?,?,'Student','Student',?,?,?)").bind(userId, orgId, userName, displayName, password, id(), Date.now())]);
         return json({ userId, userName, displayName, email: null, isActive: true }, 201);
     }
     const studentMatch = path.match(/^\/students\/([^/]+)\/(password|state)$/);

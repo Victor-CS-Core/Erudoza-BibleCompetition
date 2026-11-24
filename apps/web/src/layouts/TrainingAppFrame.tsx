@@ -7,6 +7,7 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../api/client";
 import { practiceApi } from "../api/practice";
+import { isMasterAdminEmail } from "../api/controlCenter";
 import { ErudozaWordmark } from "../components/brand/ErudozaWordmark";
 import { PathfinderBackdrop } from "../components/brand/PathfinderBackdrop";
 import { AppIcon } from "../components/AppIcon";
@@ -41,7 +42,7 @@ function CommandFrame({ coach }: { coach: boolean }) {
   // costs no extra request once the hub has been visited. Until it resolves
   // (or if it fails) the children stay — hiding nav on a guess is worse.
   const practiceBootstrap = useQuery({ queryKey: ["practice", me?.organizationId], queryFn: () => practiceApi.bootstrap(me!.organizationId), enabled: !!me?.organizationId, staleTime: 60_000 });
-  const items = navigation(coach, coach ? switchSeason : selectedSeason, canSwitch, me?.kind === "Adult" && me.role !== "Student" ? me.role : null, practiceBootstrap.data ? practiceBootstrap.data.enabled : true);
+  const items = navigation(coach, coach ? switchSeason : selectedSeason, canSwitch, me?.kind === "Adult" && me.role !== "Student" ? me.role : null, practiceBootstrap.data ? practiceBootstrap.data.enabled : true, isMasterAdminEmail(me?.email));
   const searchItems = coach ? items : [...items, ...studentSearchExtras(canSwitch, selectedSeason)];
   const active = currentDestination(items, location.pathname);
   const route = location.pathname + location.search + location.hash;

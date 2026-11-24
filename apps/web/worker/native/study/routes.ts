@@ -3,6 +3,7 @@ import type { MissingWordAnswerPayload } from '../../../src/api/types';
 import { resolvePbeSources } from '../pbe/sources';
 import { startPbeSession, pbeSessionAction } from '../pbe/sessions';
 import { trainingNow } from '../training/clock';
+import { dailyActivityIncrement } from '../daily-activity';
 import type { StartTrainingContext, SessionRecap, SkillScores } from '../../../src/api/trainingTypes';
 import { applyAcceptedAttempt, prepareStart, makeRecap, recordPersonalBests, scopeVersion, startPayload, preference, resolvePreference } from '../training/store';
 import type { SessionTraining, MissionRecord, Writes } from '../training/store';
@@ -611,7 +612,7 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
         session.training.xpEarned = (session.training.xpEarned ?? 0) + awarded.awarded;
         if (awarded.leveledUp) session.training.leveledUp = { from: session.training.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
       }
-      session.recap ??= await makeRecap(ctx,session); const bests = await recordPersonalBests(ctx, session); if (bests.beaten.accuracyBeaten || bests.beaten.correctBeaten) session.recap.personalBest = bests.beaten; await atomic(ctx, 'study.session.complete', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision), ...bests.writes.statements, ...qw.statements], [{ kind: 'session', id: sessionId, revision: stored.revision }, ...bests.writes.guards, ...qw.guards]); }
+      session.recap ??= await makeRecap(ctx,session); const bests = await recordPersonalBests(ctx, session); if (bests.beaten.accuracyBeaten || bests.beaten.correctBeaten) session.recap.personalBest = bests.beaten; await atomic(ctx, 'study.session.complete', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision), ...bests.writes.statements, ...qw.statements, dailyActivityIncrement(ctx.env.DB, qLocalDate, ctx.orgId)], [{ kind: 'session', id: sessionId, revision: stored.revision }, ...bests.writes.guards, ...qw.guards]); }
     return json(summary(session));
   });
   if (!action && method === 'GET') {

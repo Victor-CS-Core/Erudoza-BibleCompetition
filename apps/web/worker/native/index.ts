@@ -15,6 +15,9 @@ import { runScheduledWatch } from "./application/pbe-materials";
 import { runTeamPracticeScan } from "./practice/events";
 import { runRetentionPurge } from "./retention";
 import { enforcePerimeter } from "./perimeter";
+import { handleControlCenter, handleSupportIngest, runMasterDigest } from "./control-center";
+import { recordErrorEvent } from "./error-events";
+import { APP_VERSION } from "./version";
 export { PracticeRoom } from "./practice/room";
 export { PracticeReports } from "./practice/reports";
 export { PbeSoloRound } from "./pbe/solo-round";
@@ -38,11 +41,18 @@ export default {
         if(request.method==="POST"&&!url.pathname.endsWith("/commands"))throw new HttpError(404,"Route not found.");
         return await env.ROOMS.getByName(`${live[1].toLowerCase()}:${live[2].toLowerCase()}`).fetch(request as never) as unknown as Response;
       }
-      if(url.pathname==="/api/v1/health"&&request.method==="GET") { await env.DB.prepare("SELECT 1").first(); return json({status:"ok",database:true,runtime:"cloudflare",timing:"server-event-time-v1"}); }
+      if(url.pathname==="/api/v1/health"&&request.method==="GET") { await env.DB.prepare("SELECT 1").first(); return json({status:"ok",database:true,runtime:"cloudflare",timing:"server-event-time-v1",version:APP_VERSION}); }
+      // Support ingest is token-guarded, not session-guarded: the caller is
+      // the mail triage flow, and the endpoint 404s until its secret is set.
+      const ingest=await handleSupportIngest(request,env); if(ingest) return ingest;
       const auth=await handleAuth(request,env); if(auth) return auth;
       const onboarding=await handleOnboarding(request,env); if(onboarding) return onboarding;
       const actor=await authenticate(request,env);
       if(url.pathname==="/api/v1/me"&&request.method==="GET") return json(me(actor));
+      // Admin Control Center: app-wide and master-admin gated inside the
+      // handler — deliberately before the organization match below, because
+      // none of its reads are scoped to the caller's club.
+      if(url.pathname.startsWith("/api/v1/admin/control-center")){const cc=await handleControlCenter({request,env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(env.DB)});if(cc)return cc;}
       if(url.pathname.startsWith('/api/v1/pbe/disputes')){const dispute=await disputeRoutes({request,env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(env.DB)});if(dispute)return dispute;}
       if(url.pathname.startsWith("/api/v1/profile/")){const profile=await handleProfile({request,env,actor,orgId:actor.organizationId,path:url.pathname,store:new Store(env.DB)});if(profile)return profile;}
       if(url.pathname.startsWith("/api/v1/study/")||url.pathname.startsWith("/api/v1/progress/")){
@@ -61,8 +71,13 @@ export default {
       const application=await handleApplication(context);if(application)return application;
       throw new HttpError(404,"Route not found.");
     } catch(error) {
-      if(error instanceof HttpError) return json({title:error.message,detail:error.message},error.status);
+      // Server errors land in the durable ErrorEvents log so the control
+      // center's System panel can show them; recording is best-effort and
+      // never changes the response. Client errors (4xx) are not recorded.
+      let pathname = ""; try { pathname = new URL(request.url).pathname; } catch { /* keep the response path simple */ }
+      if(error instanceof HttpError) { if(error.status>=500) await recordErrorEvent(env,pathname,error.status,"HttpError"); return json({title:error.message,detail:error.message},error.status); }
       console.error("Native API operation failed",error instanceof Error?error.name:"UnknownError");
+      await recordErrorEvent(env,pathname,503,error instanceof Error?error.name:"UnknownError");
       return json({title:"Service unavailable",detail:"The operation could not be completed. Please retry."},503);
     }
   },
@@ -92,6 +107,15 @@ export default {
       console.log(`Retention purge scheduled run: deleted ${purged.audit} audit rows and ${purged.notifications} notification rows.`);
     } catch (error) {
       console.error("Retention purge scheduled run failed", error instanceof Error ? error.message : "UnknownError");
+    }
+    // Master-admin Monday digest: compose the week that just ended, store it
+    // for the control center, and email it via the existing Resend path when
+    // configured. Independent of the jobs above, like they are of each other.
+    try {
+      const digest = await runMasterDigest(env);
+      console.log(`Master digest composed for week of ${digest.weekStart}: ${digest.newUsers} new users, ${digest.sessions} sessions, ${digest.openTickets} open tickets.`);
+    } catch (error) {
+      console.error("Master digest scheduled run failed", error instanceof Error ? error.message : "UnknownError");
     }
   }
 };

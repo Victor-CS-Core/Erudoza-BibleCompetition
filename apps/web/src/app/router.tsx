@@ -7,6 +7,7 @@ import { CoachOnboardingPage } from "../features/auth/CoachOnboardingPage";
 import { LandingPage } from "../features/marketing/LandingPage";
 import { AppShell } from "../layouts/AppShell";
 import { RouteProblemPage } from "./RouteProblemPage";
+import { isMasterAdminEmail } from "../api/controlCenter";
 // Route pages below are lazy-loaded so visitors only download the pages they
 // actually open. Landing/login/onboarding stay in the main bundle for first paint.
 const AdminHomePage = lazy(() => import("../features/admin/AdminHomePage").then(m => ({ default: m.AdminHomePage })));
@@ -17,6 +18,7 @@ const SeasonsListPage = lazy(() => import("../features/admin/SimpleAdminPages").
 const StudentsPage = lazy(() => import("../features/admin/SimpleAdminPages").then(m => ({ default: m.StudentsPage })));
 const CoachesPage = lazy(() => import("../features/admin/CoachesPage").then(m => ({ default: m.CoachesPage })));
 const MaterialsPage = lazy(() => import("../features/admin/MaterialsPage").then(m => ({ default: m.MaterialsPage })));
+const ControlCenterPage = lazy(() => import("../features/admin/ControlCenterPage"));
 const NewsPage = lazy(() => import("../features/news/NewsPage").then(m => ({ default: m.NewsPage })));
 const PrivacyPage = lazy(() => import("../features/legal/PrivacyPage").then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import("../features/legal/TermsPage").then(m => ({ default: m.TermsPage })));
@@ -76,6 +78,16 @@ function Restricted({ children }: { children: ReactNode }) {
 /** /admin/materials and /admin/news are Owner + Content Manager only. Regular
  *  Admins render this access-denied state instead; the worker 403 is the real
  *  enforcement, never just the hidden link. */
+/** The Control Center is app-wide and opens for the master admin account
+ *  only. The server enforces the same rule on every control-center endpoint;
+ *  this gate only shapes the experience. */
+export function MasterAdminGate({ children }: { children: ReactNode }) {
+  const { me, loading } = useAuth();
+  if (loading) return <main className="training-main"><LoadingState label="Checking access…" /></main>;
+  if (!isMasterAdminEmail(me?.email)) return <div className="training-page"><PageHeader title="Restricted area" description="The Control Center covers the whole app and is limited to the master admin account." /><Notice tone="info">Club administration — seasons, students, coaches, content — stays in the pages in your navigation.</Notice><p><LinkButton to="/admin">Back to Overview</LinkButton></p></div>;
+  return <>{children}</>;
+}
+
 export function MaterialsNewsGate({ children }: { children: ReactNode }) {
   const { me, loading } = useAuth();
   if (loading) return <main className="training-public public-recovery"><LoadingState label="Opening your workspace…" /></main>;
@@ -138,6 +150,19 @@ export const router = createBrowserRouter([
       { path: "practice", element: <Restricted><PracticeRoute /></Restricted> },
       { path: "practice/:roomId", element: <Restricted><PracticeRoute /></Restricted> },
     ],
+  },
+  {
+    // The Control Center renders its own shell (sidebar / top bar / bottom
+    // nav, per the approved control-center design), so it mounts outside
+    // AppShell. The path, the admin Guard and the master-admin gate are the
+    // same as when it was an /admin child route.
+    path: "/admin/control-center",
+    errorElement: <RouteProblemPage />,
+    element: (
+      <Guard role="admin">
+        <MasterAdminGate><LazyPage label="Loading control center…"><ControlCenterPage /></LazyPage></MasterAdminGate>
+      </Guard>
+    ),
   },
   {
     path: "/student",

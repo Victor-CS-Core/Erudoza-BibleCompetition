@@ -4,6 +4,7 @@ import type { RequestContext } from '../types';
 import { HttpError, json, requiredString } from '../types';
 import { atomic, id } from '../application/model';
 import { trainingNow } from '../training/clock';
+import { dailyActivityIncrement } from '../daily-activity';
 import { guid, loadFromResolvedSources } from './bank';
 import { resolvePbeSources, resolvePbeSessionSources, pbeAssignmentSetGuard } from './sources';
 import { gradePbe, questionView } from './grading';
@@ -281,7 +282,7 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
                 if (awarded.leveledUp)
                     s.leveledUp = { from: s.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
             }
-            await persist(scope, { statements: [...bests.writes.statements, ...qw.statements], guards: [...bests.writes.guards, ...qw.guards] });
+            await persist(scope, { statements: [...bests.writes.statements, ...qw.statements, dailyActivityIncrement(ctx.env.DB, qLocalDate, ctx.orgId)], guards: [...bests.writes.guards, ...qw.guards] });
         }
         return json(await reviewedPbeSummary(ctx,s));
     }

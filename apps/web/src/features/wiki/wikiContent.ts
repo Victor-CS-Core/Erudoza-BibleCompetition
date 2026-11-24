@@ -477,6 +477,25 @@ export const wikiArticles: WikiArticle[] = [
     related: ["seasons", "student-directory", "progress"],
   },
   {
+    id: "control-center",
+    title: "Control Center (master admin)",
+    audience: "Coach",
+    scope: "app",
+    summary: "The app-wide operations page for the master admin account: whole-app analytics, club health, support tickets, and system state across every club.",
+    featureIds: ["control-center"],
+    keywords: ["control center", "master admin", "analytics", "all clubs", "support tickets", "club health", "onboarding funnel", "weekly digest", "server errors", "system", "needs attention"],
+    links: [{ label: "Open Control Center", to: "/admin/control-center" }],
+    sections: [
+      { heading: "Who can open it", paragraphs: ["The Control Center is not a club page. It opens only for the one master admin account for the whole app; every other account — Owners, Admins, Content Managers, and students — sees a restricted notice, and the server denies its data endpoints to them. There is no per-club version: every number on the page covers all clubs and all users."] },
+      { heading: "The five tabs", paragraphs: ["The Control Center has its own shell: a sidebar on wide screens and a bottom navigation bar on phones, separate from the club workspace pages. Overview shows total users, users active this week, practice sessions today, and XP awarded this week, with a practice-activity chart that switches between the last 7 and 14 days, today's sessions broken down by club, the latest weekly digest, and a Needs attention panel that links straight to whatever needs work — aging tickets, material drafts awaiting review, open answer disputes, and recent server errors. Users & clubs lists a club health table (learners, active learners this week, sessions this week, and learners quiet for 7+ days), the newest accounts across clubs, and the onboarding funnel from invitations sent to accounts created to first practice to active this week — each funnel step names the records it is counted from. Content summarizes the shared library: the NAD watcher's last run, material drafts awaiting review, live releases, news counts, and the Scripture library size, plus seasons across clubs and open answer disputes. System shows service health, the live version, the weekly run schedule, which service secrets are present (names only, never values), server error counts for the last 24 hours and 7 days grouped by area of the app, and shortcuts into the club admin pages."] },
+      { heading: "Support & tickets", paragraphs: ["The Support & tickets tab is where user support requests are worked, queue first and the recent inbox below it. The app footer carries a Contact support link that opens an email to the support address; messages that arrive there appear in the tab's inbox. Make ticket on an inbox email opens a dialog with the ticket fields filled in from that email; New ticket opens the same dialog blank for requests that arrived another way. Converting the same email twice never creates a duplicate — the dialog reports the ticket that already exists. Each ticket has a requester, a subject, and a status — New, Open, Waiting, or Resolved — changed from the status control on the ticket; if a status change fails to save, the ticket keeps its last confirmed status and offers a retry. Header counts show new emails, open tickets, and aging: an open ticket older than 48 hours is flagged amber, and older than 7 days red, counted from when the ticket was opened. A How support works section at the bottom of the tab explains the flow end to end."] },
+      { heading: "Weekly digest", paragraphs: ["Every Monday at 10:00 UTC the weekly run composes a digest for the week just ended — new users, active clubs and users, sessions, XP awarded, open tickets, and server errors — stores it on the Overview tab, and emails it to the master admin when email is configured."] },
+      { heading: "Reading the numbers honestly", paragraphs: ["Join dates come from each account's recorded creation time; accounts created before that recording began show “Join date unavailable” rather than a guessed date. Practice-session history is kept in a daily rollup, so the 14-day chart survives long-term. Server errors are recorded by the worker when a request fails with a server error; the counts cover the last 30 days of records."] },
+    ],
+    steps: ["Open Control Center from the coach navigation (master admin account only).", "Pick a tab: Overview, Users & clubs, Content, Support & tickets, or System.", "In Support & tickets, turn inbox emails into tickets and update each ticket's status as it is worked.", "Use System to confirm the live version and check error counts after any incident."],
+    related: ["coach-overview", "coaches", "account-privacy"],
+  },
+  {
     id: "coach-content",
     title: "Coach Scripture content and reading",
     audience: "Coach",
@@ -624,7 +643,7 @@ export const publicWikiGroups: WikiGroup[] = [
 export const appWikiGroups: WikiGroup[] = [
   { id: "start", title: "Start here", description: "Navigation, search, and getting unstuck.", articleIds: ["workspace-navigation", "help-search", "troubleshooting"] },
   { id: "student", title: "Student guides", description: "Study Scripture, build evidence, and manage your profile.", articleIds: ["student-training-hq", "study-and-practice", "review-and-recap", "assignments", "profile-character"] },
-  { id: "coach", title: "Coach guides", description: "Build seasons, support students, and run the club workspace.", articleIds: ["coach-overview", "seasons", "student-directory", "coaches", "coach-content", "pbe-reviews"] },
+  { id: "coach", title: "Coach guides", description: "Build seasons, support students, and run the club workspace.", articleIds: ["coach-overview", "seasons", "student-directory", "coaches", "coach-content", "pbe-reviews", "control-center"] },
 ];
 
 export function wikiGroups(scope: WikiScope): WikiGroup[] {

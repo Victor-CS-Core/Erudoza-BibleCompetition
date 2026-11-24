@@ -30,9 +30,9 @@ export async function acceptDirectInvitation(request: Request, env: Env): Promis
   const results = await env.DB.batch([
     // The conditional insert keeps a concurrent double-accept from creating a
     // second account for the same email; the row count below detects the race.
-    env.DB.prepare(`INSERT INTO Users(id,org_id,user_name,email,display_name,kind,role,password_hash,credential_version)
-      SELECT ?,?,?,?,?, 'Adult',?,?,? WHERE NOT EXISTS(SELECT 1 FROM Users WHERE email=? OR user_name=?)`)
-      .bind(userId, invitation.org_id, email, email, displayName, role, hash, credentialVersion, email, email),
+    env.DB.prepare(`INSERT INTO Users(id,org_id,user_name,email,display_name,kind,role,password_hash,credential_version,created_at)
+      SELECT ?,?,?,?,?, 'Adult',?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM Users WHERE email=? OR user_name=?)`)
+      .bind(userId, invitation.org_id, email, email, displayName, role, hash, credentialVersion, now, email, email),
     env.DB.prepare("INSERT INTO Sessions(token_hash,user_id,credential_version,expires_at) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM Users WHERE id=?)")
       .bind(sessionHash, userId, credentialVersion, expiresAt, userId),
     env.DB.prepare("UPDATE CoachInvitations SET status='accepted',accepted_user_id=? WHERE id=? AND status='pending' AND EXISTS(SELECT 1 FROM Users WHERE id=?)").bind(userId, invitation.id, userId),
