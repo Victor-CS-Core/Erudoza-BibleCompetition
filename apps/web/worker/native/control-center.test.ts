@@ -118,8 +118,8 @@ it("aggregates the overview across both clubs", async () => {
   expect(body.chart.at(-1)).toEqual({ day: TODAY, sessions: 5 });
   expect(body.chart.at(-2)).toEqual({ day: "2026-11-23", sessions: 4 });
   expect(body.todayByClub).toEqual([
-    { organizationId: TEST_ORG, name: "Practice Club", sessions: 3, students: 2 },
-    { organizationId: ORG2, name: "Northgate Club", sessions: 2, students: 1 },
+    { orgId: TEST_ORG, name: "Practice Club", sessions: 3, students: 2 },
+    { orgId: ORG2, name: "Northgate Club", sessions: 2, students: 1 },
   ]);
 });
 
@@ -128,15 +128,17 @@ it("lists newest users across clubs with join dates where known", async () => {
   expect(body.clubs).toBe(2);
   expect(body.newest[0].displayName).toBe("studentb");
   expect(body.newest[0].joinedAtUtc).toBe("2026-11-05T00:00:00.000Z");
-  expect(body.newest[0].organizationName).toBe("Practice Club");
+  expect(body.newest[0]).toMatchObject({ userName: "studentb", email: null, orgName: "Practice Club" });
   const seed = body.newest.find((u: any) => u.id === STUDENT_C);
-  expect(seed.organizationName).toBe("Northgate Club");
+  expect(seed.orgName).toBe("Northgate Club");
+  const owner2 = body.newest.find((u: any) => u.id === OWNER2);
+  expect(owner2).toMatchObject({ userName: "owner2", email: "owner2@example.com", orgName: "Northgate Club" });
   expect(body.newest.at(-1).joinedAtUtc).toBeNull(); // unknown dates sort last, shown as a dash client-side
 });
 
 it("reports club health: active learners, sessions, and quiet learners per club", async () => {
   const body = await (await request(`/api/v1/admin/control-center/clubs${Q}`)).json() as Record<string, any>;
-  const byId = new Map(body.clubs.map((c: any) => [c.organizationId, c]));
+  const byId = new Map(body.clubs.map((c: any) => [c.orgId, c]));
   expect(byId.get(TEST_ORG)).toMatchObject({ learners: 2, activeLearners: 1, sessionsThisWeek: 7, quietLearners: 1 });
   expect(byId.get(ORG2)).toMatchObject({ learners: 1, activeLearners: 1, sessionsThisWeek: 2, quietLearners: 0 });
 });
@@ -151,18 +153,23 @@ it("builds the onboarding funnel with labeled sources", async () => {
 
 it("summarizes content, watcher, seasons, and open disputes", async () => {
   const content = await (await request("/api/v1/admin/control-center/content")).json() as Record<string, any>;
-  expect(content.watcher).toMatchObject({ checkedAt: "2026-11-23T10:00:00Z", mediaChecked: 12 });
-  expect(content).toMatchObject({ materialDrafts: 2, liveReleases: 1, newsSuggestions: 1, newsPublished: 1, libraryPacks: 1, libraryVerses: 3 });
+  // The endpoint speaks the client's contract dialect (apps/web/src/api/
+  // controlCenter.ts) — the Nov 24 production crash was this handler
+  // answering in its own dialect (materialDrafts/liveReleases/checkedAt/…)
+  // while the client rendered proposalsPending/releasesLive/checkedAtUtc.
+  expect(content.watcher).toEqual({ checkedAtUtc: "2026-11-23T10:00:00Z", mediaChecked: 12, notes: null });
+  expect(content).toMatchObject({ proposalsPending: 2, proposalsOldestAtUtc: "2026-11-20T00:00:00Z", releasesLive: 1, newsSuggestions: 1, newsDrafts: 1, newsPublished: 1, newsOldestSuggestionAtUtc: "2026-11-19T00:00:00Z", libraryPacks: 1, libraryVerses: 3 });
   const seasons = await (await request("/api/v1/admin/control-center/seasons")).json() as Record<string, any>;
   expect(seasons.seasons).toHaveLength(2);
-  expect(seasons.seasons.find((s: any) => s.id.endsWith("c1"))).toMatchObject({ students: 2, status: "Active", organizationName: "Practice Club" });
+  expect(seasons.seasons.find((s: any) => s.id.endsWith("c1"))).toMatchObject({ members: 2, status: "Active", orgName: "Practice Club" });
   expect(seasons.openDisputes).toBe(1);
-  expect(seasons.oldestDisputeAt).toBe("2026-11-22T09:00:00Z");
+  expect(seasons.oldestDisputeAtUtc).toBe("2026-11-22T09:00:00Z");
 });
 
 it("reports system state: version, cron, secret names only, ingest flag", async () => {
   const body = await (await request("/api/v1/admin/control-center/system")).json() as Record<string, any>;
   expect(body.version).toBe(APP_VERSION);
+  expect(body.database).toBe("ok"); // the client compares against the string "ok"
   expect(body.cron.expression).toBe("0 10 * * 1");
   expect(body.secrets.map((s: any) => s.name)).toEqual(["RESEND_API_KEY", "TURNSTILE_SECRET_KEY", "AUTH_CODE_SECRET"]);
   expect(body.supportIngestConfigured).toBe(true);
@@ -231,8 +238,10 @@ it("runs the ticket lifecycle: ingest, convert once, manual create, transitions,
   await old("ticket-stale", 151, now - 8 * 86_400_000);
   const support = await (await request("/api/v1/admin/control-center/support")).json() as Record<string, any>;
   expect(support.counts).toEqual({ newEmails: 0, openTickets: 3, aging48h: 2, stale7d: 1 });
+  expect(support.supportAddress).toBe("ktr0nn@muse.ai");
   expect(support.inbox).toHaveLength(1);
   expect(support.inbox[0].ticketId).toBe(ticket.id);
+  expect(support.inbox[0].ticketNumber).toBe(101); // the client renders "Ticket #S-101" from this field
   const stale = support.tickets.find((t: any) => t.id === "ticket-stale");
   expect(stale.ageHours).toBeGreaterThanOrEqual(192);
 });
@@ -316,4 +325,5 @@ it("composes and stores the Monday digest once per week", async () => {
   expect(storedAgain?.n).toBe(1);
   const endpoint = await (await request("/api/v1/admin/control-center/digest")).json() as Record<string, any>;
   expect(endpoint.digest.weekStart).toBe(run.weekStart);
+  expect(endpoint.digest.composedAtUtc).toBe(run.generatedAtUtc); // client contract name for the stored generatedAtUtc
 }, 30000);

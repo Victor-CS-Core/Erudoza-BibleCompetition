@@ -19,6 +19,7 @@ import { configured, sendEmail } from "./onboarding/providers";
 
 const DAY_MS = 86_400_000;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const SUPPORT_ADDRESS = "ktr0nn@muse.ai";
 
 function addDays(iso: string, days: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -58,10 +59,10 @@ async function overview(ctx: RequestContext) {
     xpWindow(ctx, w.prevStart, w.prevEnd),
     db.prepare("SELECT COALESCE(sum(sessions), 0) AS n FROM DailyActivity WHERE day = ?").bind(w.today).first<{ n: number }>(),
     db.prepare("SELECT day, sum(sessions) AS sessions FROM DailyActivity WHERE day BETWEEN ? AND ? GROUP BY day").bind(addDays(w.today, -13), w.today).all<{ day: string; sessions: number }>(),
-    db.prepare(`SELECT o.id AS organizationId, o.name AS name, COALESCE(a.sessions, 0) AS sessions,
+    db.prepare(`SELECT o.id AS orgId, o.name AS name, COALESCE(a.sessions, 0) AS sessions,
       (SELECT count(*) FROM Users u WHERE u.org_id = o.id AND u.kind = 'Student' AND u.active = 1) AS students
       FROM Organizations o LEFT JOIN DailyActivity a ON a.org_id = o.id AND a.day = ?
-      WHERE o.id != ? ORDER BY sessions DESC, o.name`).bind(w.today, LIBRARY_ORG).all<{ organizationId: string; name: string; sessions: number; students: number }>(),
+      WHERE o.id != ? ORDER BY sessions DESC, o.name`).bind(w.today, LIBRARY_ORG).all<{ orgId: string; name: string; sessions: number; students: number }>(),
   ]);
   const byDay = new Map(chartRows.results.map(r => [r.day, r.sessions]));
   const chart = Array.from({ length: 14 }, (_, i) => { const day = addDays(w.today, i - 13); return { day, sessions: byDay.get(day) ?? 0 }; });
@@ -80,13 +81,13 @@ async function users(ctx: RequestContext) {
   const db = ctx.env.DB;
   const [clubs, rows] = await Promise.all([
     db.prepare("SELECT count(*) AS n FROM Organizations WHERE id != ?").bind(LIBRARY_ORG).first<{ n: number }>(),
-    db.prepare(`SELECT u.id, u.display_name AS displayName, u.kind, u.role, u.active, u.created_at AS createdAtMs, o.name AS organizationName
+    db.prepare(`SELECT u.id, u.display_name AS displayName, u.user_name AS userName, u.email AS email, u.kind, u.role, u.active, u.created_at AS createdAtMs, o.name AS orgName
       FROM Users u JOIN Organizations o ON o.id = u.org_id
-      ORDER BY (u.created_at IS NULL), u.created_at DESC, u.display_name LIMIT 10`).all<{ id: string; displayName: string; kind: string; role: string; active: number; createdAtMs: number | null; organizationName: string }>(),
+      ORDER BY (u.created_at IS NULL), u.created_at DESC, u.display_name LIMIT 10`).all<{ id: string; displayName: string; userName: string; email: string | null; kind: string; role: string; active: number; createdAtMs: number | null; orgName: string }>(),
   ]);
   return json({
     clubs: clubs?.n ?? 0,
-    newest: rows.results.map(r => ({ ...r, active: r.active === 1, joinedAtUtc: r.createdAtMs ? new Date(r.createdAtMs).toISOString() : null })),
+    newest: rows.results.map(r => ({ id: r.id, displayName: r.displayName, userName: r.userName, email: r.email, kind: r.kind, role: r.role, orgName: r.orgName, active: r.active === 1, joinedAtUtc: r.createdAtMs ? new Date(r.createdAtMs).toISOString() : null })),
   });
 }
 
@@ -107,11 +108,24 @@ async function content(ctx: RequestContext) {
     lib("SELECT count(*) AS n FROM Records WHERE kind = 'source' AND org_id = ?").first<{ n: number }>(),
   ]);
   const drafts = proposals.results.find(r => r.status === "draft");
+  // The response speaks the client's contract dialect (api/controlCenter.ts
+  // ContentData). The stored watcher record keeps its own field names
+  // (checkedAt, no notes), so it is mapped explicitly — returning the raw
+  // record here is what crashed the Content tab in production on Nov 24.
+  let watcher: { checkedAtUtc: string | null; mediaChecked: number; notes: string | null } | null = null;
+  if (run) {
+    const parsed = JSON.parse(run.data) as { checkedAt?: unknown; mediaChecked?: unknown; notes?: unknown };
+    watcher = {
+      checkedAtUtc: typeof parsed.checkedAt === "string" ? parsed.checkedAt : null,
+      mediaChecked: typeof parsed.mediaChecked === "number" ? parsed.mediaChecked : 0,
+      notes: typeof parsed.notes === "string" ? parsed.notes : null,
+    };
+  }
   return json({
-    watcher: run ? JSON.parse(run.data) as unknown : null,
-    materialDrafts: drafts?.n ?? 0, materialDraftOldestAt: drafts?.oldest ?? null,
-    liveReleases: releases?.n ?? 0,
-    newsSuggestions: articles?.suggestions ?? 0, newsSuggestionOldestAt: articles?.suggestionOldest ?? null,
+    watcher,
+    proposalsPending: drafts?.n ?? 0, proposalsOldestAtUtc: drafts?.oldest ?? null,
+    releasesLive: releases?.n ?? 0,
+    newsSuggestions: articles?.suggestions ?? 0, newsOldestSuggestionAtUtc: articles?.suggestionOldest ?? null,
     newsDrafts: articles?.drafts ?? 0, newsPublished: articles?.published ?? 0,
     libraryPacks: packs?.n ?? 0, libraryVerses: verses?.n ?? 0,
   });
@@ -126,14 +140,17 @@ async function seasons(ctx: RequestContext) {
       ORDER BY o.name, name LIMIT 50`).all<{ organizationName: string; id: string; name: string; status: string; students: number }>(),
     db.prepare("SELECT count(*) AS n, min(json_extract(data, '$.acceptedAtUtc')) AS oldest FROM Records WHERE kind = 'pbe-dispute' AND json_extract(data, '$.status') = 'Pending'").first<{ n: number; oldest: string | null }>(),
   ]);
-  return json({ seasons: rows.results, openDisputes: disputes?.n ?? 0, oldestDisputeAt: disputes?.oldest ?? null });
+  return json({
+    seasons: rows.results.map(r => ({ id: r.id, name: r.name, status: r.status, orgName: r.organizationName, members: r.students })),
+    openDisputes: disputes?.n ?? 0, oldestDisputeAtUtc: disputes?.oldest ?? null,
+  });
 }
 
 async function clubs(ctx: RequestContext) {
   const w = windows(ctx.request);
   const db = ctx.env.DB;
   const quietCutoff = addDays(w.today, -7); // no XP day in the last 7 days, today included
-  const rows = await db.prepare(`SELECT o.id AS organizationId, o.name AS name,
+  const rows = await db.prepare(`SELECT o.id AS orgId, o.name AS name,
     (SELECT count(*) FROM Users u WHERE u.org_id = o.id AND u.kind = 'Student' AND u.active = 1) AS learners,
     (SELECT count(DISTINCT u.id) FROM Users u, Records r, json_each(r.data, '$.xpByDay') j
        WHERE u.org_id = o.id AND u.kind = 'Student' AND r.kind = 'training-xp' AND r.org_id = o.id AND r.id = o.id || ':' || u.id
@@ -142,7 +159,7 @@ async function clubs(ctx: RequestContext) {
     (SELECT count(*) FROM Users u WHERE u.org_id = o.id AND u.kind = 'Student' AND u.active = 1 AND NOT EXISTS
        (SELECT 1 FROM Records r, json_each(r.data, '$.xpByDay') j
          WHERE r.kind = 'training-xp' AND r.org_id = o.id AND r.id = o.id || ':' || u.id AND j.key >= ? AND CAST(j.value AS INTEGER) > 0)) AS quietLearners
-    FROM Organizations o WHERE o.id != ? ORDER BY learners DESC, o.name`).bind(w.weekStart, w.weekEnd, w.weekStart, w.weekEnd, quietCutoff, LIBRARY_ORG).all<{ organizationId: string; name: string; learners: number; activeLearners: number; sessionsThisWeek: number; quietLearners: number }>();
+    FROM Organizations o WHERE o.id != ? ORDER BY learners DESC, o.name`).bind(w.weekStart, w.weekEnd, w.weekStart, w.weekEnd, quietCutoff, LIBRARY_ORG).all<{ orgId: string; name: string; learners: number; activeLearners: number; sessionsThisWeek: number; quietLearners: number }>();
   return json({ weekStart: w.weekStart, clubs: rows.results });
 }
 
@@ -175,7 +192,7 @@ async function system(ctx: RequestContext) {
   await db.prepare("SELECT 1").first();
   const secret = (value: string | undefined) => value !== undefined && value.length > 0;
   return json({
-    version: APP_VERSION, database: true,
+    version: APP_VERSION, database: "ok",
     cron: { expression: "0 10 * * 1", label: "Mondays 10:00 UTC — NAD watcher, retention, Monday digest" },
     secrets: [
       { name: "RESEND_API_KEY", present: secret(ctx.env.RESEND_API_KEY) },
@@ -183,7 +200,7 @@ async function system(ctx: RequestContext) {
       { name: "AUTH_CODE_SECRET", present: secret(ctx.env.AUTH_CODE_SECRET) },
     ],
     supportIngestConfigured: secret(ctx.env.SUPPORT_INGEST_TOKEN),
-    supportAddress: "ktr0nn@muse.ai",
+    supportAddress: SUPPORT_ADDRESS,
     errors: { last24h: errors?.last24h ?? 0, last7d: errors?.last7d ?? 0, byArea: byArea.results },
   });
 }
@@ -204,10 +221,11 @@ const ticketDto = (r: TicketRow) => ({
   // the same field and thresholds (48h amber, 7d red).
   ageHours: Math.max(0, Math.floor((Date.now() - r.created_at) / 3_600_000)),
 });
-interface InboxRow { id: string; source_message_id: string; requester_name: string; requester_email: string | null; subject: string; snippet: string; body: string; received_at: number; ticket_id: string | null }
+interface InboxRow { id: string; source_message_id: string; requester_name: string; requester_email: string | null; subject: string; snippet: string; body: string; received_at: number; ticket_id: string | null; ticket_number?: number | null }
 const inboxDto = (r: InboxRow) => ({
   id: r.id, sourceMessageId: r.source_message_id, requesterName: r.requester_name, requesterEmail: r.requester_email,
   subject: r.subject, snippet: r.snippet, body: r.body, receivedAtUtc: new Date(r.received_at).toISOString(), ticketId: r.ticket_id,
+  ticketNumber: r.ticket_number ?? null,
 });
 
 async function support(ctx: RequestContext) {
@@ -219,10 +237,11 @@ async function support(ctx: RequestContext) {
       (SELECT count(*) FROM SupportTickets WHERE status != 'Resolved' AND created_at < ?) AS aging,
       (SELECT count(*) FROM SupportTickets WHERE status != 'Resolved' AND created_at < ?) AS stale`)
       .bind(now - AGING_MS, now - STALE_MS).first<{ newEmails: number; openTickets: number; aging: number; stale: number }>(),
-    db.prepare("SELECT * FROM SupportInbox ORDER BY received_at DESC LIMIT 20").all<InboxRow>(),
+    db.prepare("SELECT i.*, t.number AS ticket_number FROM SupportInbox i LEFT JOIN SupportTickets t ON t.id = i.ticket_id ORDER BY i.received_at DESC LIMIT 20").all<InboxRow>(),
     db.prepare("SELECT * FROM SupportTickets ORDER BY created_at DESC LIMIT 30").all<TicketRow>(),
   ]);
   return json({
+    supportAddress: SUPPORT_ADDRESS,
     counts: { newEmails: counts?.newEmails ?? 0, openTickets: counts?.openTickets ?? 0, aging48h: counts?.aging ?? 0, stale7d: counts?.stale ?? 0 },
     inbox: inbox.results.map(inboxDto), tickets: tickets.results.map(ticketDto),
   });
@@ -365,7 +384,11 @@ export async function runMasterDigest(env: RequestContext["env"]): Promise<Weekl
 
 async function digest(ctx: RequestContext) {
   const row = await ctx.env.DB.prepare("SELECT data FROM Records WHERE kind = 'master-digest' AND org_id = ? ORDER BY id DESC LIMIT 1").bind(LIBRARY_ORG).first<{ data: string }>();
-  return json({ digest: row ? JSON.parse(row.data) as WeeklyDigest : null });
+  if (!row) return json({ digest: null });
+  const d = JSON.parse(row.data) as WeeklyDigest;
+  // The stored record calls the timestamp generatedAtUtc; the client
+  // contract (DigestData) calls it composedAtUtc.
+  return json({ digest: { weekStart: d.weekStart, weekEnd: d.weekEnd, newUsers: d.newUsers, activeClubs: d.activeClubs, activeUsers: d.activeUsers, sessions: d.sessions, xpAwarded: d.xpAwarded, openTickets: d.openTickets, errors7d: d.errors7d, composedAtUtc: d.generatedAtUtc } });
 }
 
 /* ---------------- Routing ---------------- */

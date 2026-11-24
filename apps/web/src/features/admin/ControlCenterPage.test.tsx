@@ -28,6 +28,18 @@ const support = {
   tickets: [ticket(), ticket({ id: "t2", number: 102, subject: "Question about seasons", status: "Open", ageHours: 60 }), ticket({ id: "t3", number: 103, subject: "Old request", status: "Waiting", ageHours: 200 })],
 };
 
+// Production-shaped payloads (Nov 24, sanitized): the values the live
+// endpoint serves for the real young workspace — a manual watcher run that
+// morning, 17 watcher drafts waiting since September, one live release, no
+// news suggestions, 66 packs / 31,102 verses, three seasons, no disputes.
+const prodContent = { watcher: { checkedAtUtc: "2026-11-24T00:17:48.370Z", mediaChecked: 18, notes: null }, proposalsPending: 17, proposalsOldestAtUtc: "2026-09-20T10:02:11.742Z", releasesLive: 1, newsSuggestions: 0, newsDrafts: 0, newsPublished: 3, newsOldestSuggestionAtUtc: null, libraryPacks: 66, libraryVerses: 31102 };
+const prodSeasons = { openDisputes: 0, oldestDisputeAtUtc: null, seasons: [{ id: "s1", name: "Test01", status: "ContentReady", orgName: "Practice Club", members: 1 }, { id: "s2", name: "26-27", status: "Active", orgName: "Northgate Club", members: 1 }, { id: "s3", name: "Summer 2027", status: "Active", orgName: "Riverside Pathfinders", members: 3 }] };
+// The pre-fix server dialect, byte-for-byte the shape production served
+// while the Content tab crashed (the worker's own field names, which the
+// client never rendered). The tab must degrade, never crash, on it.
+const legacyContent = { watcher: { id: "ac0e10e3-7d51-421e-af6d-122068376d25", checkedAt: "2026-11-24T00:17:48.370Z", trigger: "manual", mediaChecked: 18, drafted: 0, newsDrafted: 3 }, materialDrafts: 17, materialDraftOldestAt: "2026-09-20T10:02:11.742Z", liveReleases: 1, newsSuggestions: 0, newsSuggestionOldestAt: null, newsDrafts: 0, newsPublished: 3, libraryPacks: 66, libraryVerses: 31102 };
+const legacySeasons = { seasons: [{ organizationName: "Practice Club", id: "s1", name: "Test01", status: "ContentReady", students: 1 }, { organizationName: "Riverside Pathfinders", id: "s3", name: "Summer 2027", status: "Active", students: 3 }], openDisputes: 0, oldestDisputeAt: null };
+
 const getFixtures: Record<string, unknown> = { overview, users, clubs, funnel, content, seasons, system, digest, support };
 let failOverview = false;
 let failStatusOnce = false;
@@ -64,6 +76,7 @@ function sidebar() {
 beforeEach(() => {
   vi.clearAllMocks();
   failOverview = false; failStatusOnce = false; duplicateConvert = false;
+  getFixtures.content = content; getFixtures.seasons = seasons;
   HTMLDialogElement.prototype.showModal = function () { this.setAttribute("open", ""); };
   HTMLDialogElement.prototype.close = function () { this.removeAttribute("open"); };
   mockRequest();
@@ -131,6 +144,37 @@ it("honors a deep-linked tab and renders Content panels", async () => {
   expect(screen.getByText("12 items checked")).toBeInTheDocument();
   expect(await screen.findByText("Seasons & teams")).toBeInTheDocument();
   expect(screen.getByText("Answer disputes")).toBeInTheDocument();
+});
+
+it("renders the Content tab with the production-shaped payload", async () => {
+  getFixtures.content = prodContent; getFixtures.seasons = prodSeasons;
+  const { container } = page("/admin/control-center?tab=content");
+  expect(await screen.findByText("Materials & news")).toBeInTheDocument();
+  // Badge/value text is split across inline elements; match on full text.
+  await waitFor(() => expect(container.textContent).toContain("17 awaiting review"));
+  expect(container.textContent).toContain("Oldest submitted Sep 20, 2026");
+  expect(container.textContent).toContain("1 materials");
+  expect(container.textContent).toContain("3 published");
+  expect(container.textContent).toContain("66 packs · 31,102 verses");
+  expect(await screen.findByText("NAD watcher")).toBeInTheDocument();
+  expect(container.textContent).toContain("18 items checked");
+  expect(await screen.findByText("Seasons & teams")).toBeInTheDocument();
+  expect(screen.getByText("Summer 2027")).toBeInTheDocument();
+  expect(container.textContent).toContain("Riverside Pathfinders · 3 members");
+  expect(screen.getByText("None open")).toBeInTheDocument();
+});
+
+it("never crashes the Content tab on the pre-fix server dialect (regression: Nov 24 production crash)", async () => {
+  getFixtures.content = legacyContent; getFixtures.seasons = legacySeasons;
+  const { container } = page("/admin/control-center?tab=content");
+  // Before the fix, num(data.releasesLive) read .toLocaleString of undefined
+  // and the whole tab fell to the app error boundary.
+  expect(await screen.findByText("Materials & news")).toBeInTheDocument();
+  expect(await screen.findByText("NAD watcher")).toBeInTheDocument();
+  expect(await screen.findByText("Seasons & teams")).toBeInTheDocument();
+  await waitFor(() => expect(container.textContent).toContain("Summer 2027"));
+  expect(container.textContent).toContain("0 materials"); // degraded, not crashed
+  expect(screen.queryByText(/interrupted/i)).not.toBeInTheDocument();
 });
 
 it("renders System with version, secret presence only, error counts, and shortcuts", async () => {

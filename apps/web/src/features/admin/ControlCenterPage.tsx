@@ -26,13 +26,17 @@ const TABS = [
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
-const num = (n: number) => n.toLocaleString("en-US");
+// Defensive by design: a missing or malformed aggregate renders as 0
+// instead of throwing the whole tab into the app error boundary (the
+// Nov 24 production Content-tab crash was num(undefined) after a
+// client/server field-name drift).
+const num = (n: number | null | undefined) => (typeof n === "number" && Number.isFinite(n) ? n : 0).toLocaleString("en-US");
 const fmtDate = (iso: string | null) => iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
 const fmtDateTime = (iso: string | null) => iso ? new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
 const dayDate = (day: string) => new Date(`${day}T12:00:00`);
 const fmtMonthDay = (day: string) => dayDate(day).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 const fmtDayLong = (day: string) => dayDate(day).toLocaleDateString("en-US", { month: "long", day: "numeric" });
-const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]!.toUpperCase()).join("") || "?";
+const initials = (name: string | null | undefined) => (name ?? "").split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]!.toUpperCase()).join("") || "?";
 const TINTS = ["cc-tint-0", "cc-tint-1", "cc-tint-2"] as const;
 const STRIP_COLORS = ["#169985", "#6e9bd5", "#a78cb9"];
 
@@ -288,7 +292,7 @@ function OverviewTab() {
                 <DeltaFoot current={data.activeThisWeek} previous={data.activeLastWeek} />
               </Metric>
               <Metric icon="bolt" tile="amber" label="Sessions today" value={num(data.sessionsToday)}>
-                <div className="cc-foot">Prior 13-day average · {Number.isInteger(data.sessionsDailyAverage) ? num(data.sessionsDailyAverage) : data.sessionsDailyAverage.toFixed(1)}</div>
+                <div className="cc-foot">Prior 13-day average · {Number.isInteger(data.sessionsDailyAverage ?? 0) ? num(data.sessionsDailyAverage) : (data.sessionsDailyAverage ?? 0).toFixed(1)}</div>
               </Metric>
               <Metric icon="star" tile="purple" label="Weekly XP" value={num(data.xpThisWeek)}>
                 <DeltaFoot current={data.xpThisWeek} previous={data.xpLastWeek} />

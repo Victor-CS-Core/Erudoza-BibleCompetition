@@ -39,7 +39,7 @@ export interface FunnelData {
   steps: Array<{ key: string; label: string; count: number; source: string }>;
 }
 export interface ContentData {
-  watcher: { checkedAtUtc: string; mediaChecked: number; notes: string | null } | null;
+  watcher: { checkedAtUtc: string | null; mediaChecked: number; notes: string | null } | null;
   proposalsPending: number;
   proposalsOldestAtUtc: string | null;
   releasesLive: number;
