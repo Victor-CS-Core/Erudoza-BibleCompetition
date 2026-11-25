@@ -49,7 +49,7 @@ Also inspect the existing training summary types and routes that own XP, quests,
 
 This package is being tracked as public GitHub Requested cards. Do not start implementation from the mockup alone.
 
-1. Resolve the blocking CTA card first. Until it is decided, keep the CTA presentation-only and do not add learner-created rooms.
+1. The CTA decision is resolved in [GitHub issue #48](https://github.com/Victor-CS-Core/Erudoza-BibleCompetition/issues/48). Implement only the approved role-aware destinations and do not add learner-created rooms.
 2. Before user-facing behavior changes, read the repository board/status guidance and the relevant product wiki/release-gate guidance. Keep the card state and implementation notes synchronized.
 3. Move work through the repository’s normal Requested → in-progress → review flow. Do not open a PR as a substitute for the board card or silently bypass review.
 4. Before merge or deployment, run the repository’s required CodeQL/security, CI, TypeScript, ESLint, native-build, focused-test, and relevant E2E gates. Record exact results in the handoff.
@@ -162,9 +162,9 @@ Do not celebrate a provisional or unresolved result as a final win. Do not award
 
 ## CTA and contract rules
 
-- Student primary CTA: `Open assigned room` when an assignment/invitation exists; otherwise `Continue assigned study` through the existing Study/Training HQ route.
+- Student primary CTA: `Open assigned room` when an assignment/invitation exists; otherwise `Continue assigned study` through the existing Study/Training HQ route. This decision is resolved in issue #48.
 - Coach primary CTA: `Create team event` through the existing Coach event form.
-- Do not render “Start a 10-question warm-up” as a working room creator. It may appear as a clearly labelled concept/intent card only while the product decision is unresolved.
+- Do not render “Start a 10-question warm-up” as a working room creator. The approved Student CTA is assigned room or Study; the approved Coach CTA is event creation. A warm-up card may remain informational only.
 - A CTA is not complete until its destination, authorization, loading, empty, and error states are covered by a real route or existing command.
 - Do not add `PracticeProgress.nextAction` or another guessed DTO to make the composition convenient. Reuse the contract found in the training summary source.
 
