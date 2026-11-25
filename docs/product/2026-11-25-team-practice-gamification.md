@@ -258,3 +258,24 @@ Keep current privacy boundaries: team chat is private to teammates, authorized C
 - Live question, phase, authoritative timer, score, scribe controls, discussion, reconnect, and recovery remain usable.
 - Team 1/team 2 and one-team PBE layouts do not fabricate an opponent or winner.
 
+### Recap
+
+- Finality is explicit: finalized, review pending, interrupted, or incomplete.
+- Arcade speed bonus is not shown for PBE.
+- XP and quests match the server ledger.
+- Pending appeals do not award finalized celebration or patch progress.
+- The learner receives one sensible next action.
+
+### Quality
+
+- No horizontal overflow at 320, 390, or 1440 CSS pixels.
+- TypeScript, lint, focused unit tests, native build, and existing practice E2E flows are rerun.
+- Test fixtures are not silently rewritten by routine tests.
+- Mockup data remains outside production bundles.
+- No public ranks, fabricated counts, official PBE claims, or private student details are introduced.
+
+## Source-grounded notes
+
+The previous Team Practice redesign in this repository already approved a hub/lobby/live/review/results hierarchy, patch artwork, mobile navigation, and room-state constraints. This brief extends that work by moving gamification to the top of the player experience and explicitly connecting existing XP, quests, streaks, recaps, milestones, and patches into one loop. It does not replace the existing room authority or scoring contracts.
+
+The live production session was signed out during this pass, so this review is source-grounded against the public repository and its existing design documents. The public mockup is intentionally marked as sample data and is not evidence that the proposed progression fields already exist in the current bootstrap response.
