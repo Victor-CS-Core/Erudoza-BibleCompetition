@@ -1,6 +1,6 @@
 # Team Practice Gamification redesign
 
-**Status:** public implementation brief and UI concept  
+**Status:** public implementation brief and UI concept; CTA decision gate pending  
 **Date:** November 25, 2026  
 **Scope:** Team Practice hub, room entry, active-room feedback, recap, rewards, and progress presentation
 
@@ -36,6 +36,27 @@ Make Team Practice the **Practice HQ**: the place where a learner or Coach can i
 
 The redesign must keep the activity honest: no fabricated global rank, online-player count, public matchmaking, official PBE standings, or individual Scripture mastery derived from team evidence.
 
+## Review decision gate — November 25, 2026
+
+The external package is a strong composition proposal, but its “Start a 10-question warm-up” CTA assumes a learner-created room flow that the product does not currently support. Rooms are Coach-created and students see assigned rooms/invitations. This is a blocking product decision, not a copy change.
+
+Recommended behavior for the first implementation:
+
+| Role | Primary CTA | Supported destination |
+| --- | --- | --- |
+| Student | `Open assigned room` when an assignment/invitation is available; otherwise `Continue assigned study` | Existing assigned-room route or Training HQ/Study route |
+| Coach | `Create team event` | Existing Team Practice event form |
+
+Do not create a learner-owned warm-up room or silently add a new room type. A student-created warm-up can be considered later as a separate product card with its own authorization, scoring, and reward rules.
+
+Other scope decisions for this package:
+
+- The Student hub is player-first. The Coach hub remains operations-capable: event authoring and answer review stay prominent for Coach users, with the progress/room pulse composed around them rather than forcing the same order on both roles.
+- Team momentum remains room-local/team-local until a server-backed season aggregate exists. Do not infer a global roster metric in the browser.
+- Average response time may be shown only when present in finalized `PracticeTrend.averageResponseMs`; otherwise omit it. It is not a new client-computed metric.
+- Server-composed progress is presentation-only in phase 1. Reuse the existing training summary and practice bootstrap contracts; do not add the proposed `PracticeProgress.nextAction` shape without first matching the real DTO and route contract.
+- The mockup is a concept, not a production specification. Sample values must obey the real level/reward rules and the artifact must be checked in both themes and at 320/390px widths.
+
 ## What the public mockup demonstrates
 
 The mockup is a self-contained, sample-data concept. It does not call production APIs and does not claim that the demonstration numbers are real.
@@ -43,7 +64,7 @@ The mockup is a self-contained, sample-data concept. It does not call production
 ### 1. Progress-first hero
 
 - Selected season context: `Summer 2027`.
-- One primary CTA: **Start a 10-question warm-up**.
+- One role-aware primary CTA: **Open assigned room** or **Continue assigned study** for Students; **Create team event** for Coaches.
 - Secondary CTA: browse team rooms.
 - Existing shared XP/level is visible as one progression bar.
 - Team streak and best streak are visible without implying a public leaderboard.
@@ -69,7 +90,7 @@ A compact card gives the learner a low-friction option when a room is not ready:
 - current weekly progress;
 - a direct continuation action.
 
-The app should use the existing `nextAction`, mission, streak, and weekly-goal data rather than inventing a second streak ledger.
+The app should use the existing training-summary `nextAction`, mission, streak, and weekly-goal data rather than inventing a second streak ledger or a new `PracticeProgress` contract.
 
 ### 4. Live room action
 
@@ -90,15 +111,15 @@ The pulse summarizes effort, not prestige:
 - team streak;
 - finalized accuracy;
 - patch progress;
-- average response time.
+- average response time, only when supplied by finalized `PracticeTrend.averageResponseMs`.
 
-Use finalized evidence. If appeals are pending, label the metric as provisional and exclude pending answers from finalized accuracy, matching the current trend/recap behavior.
+Use finalized evidence. If appeals are pending, label the metric as provisional and exclude pending answers from finalized accuracy, matching the current trend/recap behavior. If the trend field is absent, omit response time instead of calculating a competing client metric.
 
 ### 6. Three run types
 
 The main choice is organized around the actual supported modes:
 
-- **Warm-up sprint:** a short, low-pressure run. The implementation can route to the existing room/session creation path; it should not silently create an unsupported new format.
+- **Warm-up sprint:** a short, low-pressure concept card. It is not currently a learner-created room flow. Until a product decision authorizes that flow, a Student CTA must route to assigned Study and a Coach CTA to event creation; the card must not create an unsupported room.
 - **Head-to-head practice:** existing Arcade scoring with accuracy and the existing speed bonus.
 - **Full rehearsal:** existing Coach-led PBE simulation/rehearsal with rubric points, readiness, review, breaks, and interruption safeguards.
 
@@ -142,7 +163,7 @@ The full history can remain behind the existing trend/history route.
 
 ### A. Replace the long panel stack with an action hierarchy
 
-Recommended hub order:
+Recommended Student hub order:
 
 1. context + primary next action;
 2. current mission and streak rescue;
@@ -152,9 +173,9 @@ Recommended hub order:
 6. team momentum;
 7. patches;
 8. recent activity;
-9. Coach operations and question authoring.
+9. Coach operations and question authoring (reachable, but not part of the Student loop).
 
-Coach-only answer reviews, event authoring, and question-bank editing remain available, but they should not push the learner’s game loop below the fold. Keep their existing route anchors for deep links and accessibility.
+For the Coach hub, retain answer reviews and event authoring as operational entry points, then compose progress, room status, recap finality, momentum, and patches around those controls. Keep existing route anchors for deep links and accessibility. Do not make the Coach hub pretend to be a Student hub.
 
 ### B. Make room entry a progress step
 
@@ -177,19 +198,7 @@ A pending appeal must not trigger a “win” celebration or finalized patch pro
 
 ### D. Use one progression ledger
 
-Do not create a second Team Practice XP system. Compose the hub from the existing training XP/level, quests, streak, weekly goal, and honors data. If one request is required for performance, add a server-composed `practiceProgress` field to the bootstrap response with explicit versioning; do not derive authoritative rewards in React.
-
-Suggested response shape:
-
-```ts
-type PracticeProgress = {
-  xp: { total: number; level: number; levelName: string; xpIntoLevel: number; xpForNext: number };
-  streak: { current: number; best: number; state: "active" | "at-risk" | "broken" };
-  weeklyGoal: { target: number; completedDays: number; complete: boolean };
-  quests: { key: string; title: string; description: string; progress: number; target: number; completed: boolean }[];
-  nextAction: { kind: "Review" | "Warmup" | "Room" | "Recap"; label: string; href: string };
-};
-```
+Do not create a second Team Practice XP system. Phase 1 is presentation-only: compose the hub from the existing training XP/level, quests, streak, weekly goal, honors, and practice bootstrap data. Do not introduce a guessed `PracticeProgress` DTO or `nextAction` union; the existing DTO, route, and action kinds are authoritative. Consider a versioned server-composed field only after measuring request fan-out and documenting an exact contract match; never derive authoritative rewards in React.
 
 The server remains the authority for XP caps, quest completion, day credit, time zones, appeals, and award eligibility.
 
@@ -220,7 +229,7 @@ Keep current privacy boundaries: team chat is private to teammates, authorized C
 ### Phase 2 — server-backed progression composition
 
 1. Reuse the training summary source for XP, quests, streak, mission, weekly goal, and next action.
-2. Add a versioned composed `practiceProgress` response only if the existing query fan-out is too expensive.
+2. Add a versioned composed response only if the existing query fan-out is too expensive and the new type exactly mirrors the real summary/action contract.
 3. Keep participant-scoped and season-scoped boundaries explicit.
 4. Add tests for empty progress, pending appeal, legacy room with untracked XP, disabled Team Practice, no active season, Coach/student bootstrap, and one-team PBE with no fabricated opponent.
 
@@ -246,11 +255,11 @@ Keep current privacy boundaries: team chat is private to teammates, authorized C
 ### Hub
 
 - A learner can identify the next action in under five seconds.
-- The primary CTA routes to a real supported flow, not a demo-only mode.
+- The primary CTA is role- and context-aware: assigned room/Study for Students, event creation for Coaches. It routes to a real supported flow, not a demo-only mode.
 - A current room or invitation appears before historical panels.
 - XP, quest, streak, weekly goal, and patch progress are sourced from server data.
 - Empty, disabled, loading, and error states remain understandable.
-- Coach-only authoring and answer-review controls remain reachable without dominating the learner hub.
+- Coach-only authoring and answer-review controls remain reachable; Student and Coach hubs are not required to share identical ordering.
 
 ### Room
 
@@ -274,6 +283,7 @@ Keep current privacy boundaries: team chat is private to teammates, authorized C
 - Test fixtures are not silently rewritten by routine tests.
 - Mockup data remains outside production bundles.
 - No public ranks, fabricated counts, official PBE claims, or private student details are introduced.
+- No learner-created warm-up room is implied until the blocking CTA/product decision is resolved.
 
 ## Source-grounded notes
 
