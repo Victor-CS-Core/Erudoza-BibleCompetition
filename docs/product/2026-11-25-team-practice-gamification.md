@@ -278,4 +278,15 @@ Keep current privacy boundaries: team chat is private to teammates, authorized C
 
 The previous Team Practice redesign in this repository already approved a hub/lobby/live/review/results hierarchy, patch artwork, mobile navigation, and room-state constraints. This brief extends that work by moving gamification to the top of the player experience and explicitly connecting existing XP, quests, streaks, recaps, milestones, and patches into one loop. It does not replace the existing room authority or scoring contracts.
 
-The live production session was signed out during this pass, so this review is source-grounded against the public repository and its existing design documents. The public mockup is intentionally marked as sample data and is not evidence that the proposed progression fields already exist in the current bootstrap response.
+## Live verification — November 25, 2026
+
+After authentication, the Coach Team Practice hub and an existing lobby were inspected at `erudoza.com` without creating or modifying data.
+
+- The hub loaded the active Summer 2027 season, one existing 2v2 lobby, the PBE answer-review link, event creation, rooms, invitations, simulation patches, Team Achievement patches, team progress, and the question bank.
+- At a 936px desktop viewport, the full practice hub measured approximately **4,894px** of content. The event-creation panel measured approximately **1,169px** by itself. This confirms that gamification is currently separated from the primary play action by a long operational page.
+- The live page puts the banner, PBE answer reviews, and event authoring before the current room. The first achievement/progress surfaces begin around the middle of the document rather than next to the next action.
+- The existing lobby correctly showed a 2v2 independent room, one occupied seat, three more players needed, zero of four ready, and a disabled Start match action. Team rosters, role labels, invitation destination choices, and roster-management controls were present.
+- The event form correctly exposed the supported activity choices, Arcade/PBE mode distinction, 1v1–5v5 sizes, 10/30/90 question lengths, Independent/Coach-led format, passage scope, who-can-start, open-now/scheduled timing, and roster assignment. The season roster appeared after a short loading state.
+- No event, invitation, roster, score, question, or published content was changed during this review.
+
+The public mockup is intentionally marked as sample data and is not evidence that the proposed progression fields already exist in the current bootstrap response. The implementation agent should preserve the measured operational controls while moving the game loop above them.
