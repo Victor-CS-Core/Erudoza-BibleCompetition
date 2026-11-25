@@ -1,6 +1,6 @@
 # Team Practice Gamification redesign
 
-**Status:** public implementation brief and UI concept; CTA decision gate pending  
+**Status:** public implementation brief and UI concept; CTA decision resolved  
 **Date:** November 25, 2026  
 **Scope:** Team Practice hub, room entry, active-room feedback, recap, rewards, and progress presentation
 
@@ -36,11 +36,9 @@ Make Team Practice the **Practice HQ**: the place where a learner or Coach can i
 
 The redesign must keep the activity honest: no fabricated global rank, online-player count, public matchmaking, official PBE standings, or individual Scripture mastery derived from team evidence.
 
-## Review decision gate — November 25, 2026
+## Review decision — November 25, 2026
 
-The external package is a strong composition proposal, but its “Start a 10-question warm-up” CTA assumes a learner-created room flow that the product does not currently support. Rooms are Coach-created and students see assigned rooms/invitations. This is a blocking product decision, not a copy change.
-
-Recommended behavior for the first implementation:
+The external package is a strong composition proposal, but its “Start a 10-question warm-up” CTA assumes a learner-created room flow that the product does not currently support. Rooms are Coach-created and students see assigned rooms/invitations. This was a blocking product decision, and it is now resolved. The approved behavior for the first implementation is:
 
 | Role | Primary CTA | Supported destination |
 | --- | --- | --- |
@@ -48,6 +46,8 @@ Recommended behavior for the first implementation:
 | Coach | `Create team event` | Existing Team Practice event form |
 
 Do not create a learner-owned warm-up room or silently add a new room type. A student-created warm-up can be considered later as a separate product card with its own authorization, scoring, and reward rules.
+
+Decision recorded in [GitHub issue #48](https://github.com/Victor-CS-Core/Erudoza-BibleCompetition/issues/48), which is closed as completed.
 
 Other scope decisions for this package:
 
