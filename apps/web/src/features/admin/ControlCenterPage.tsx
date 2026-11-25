@@ -7,7 +7,7 @@ import { AppIcon, type IconName } from "../../components/AppIcon";
 import {
   controlCenterApi, MASTER_ADMIN_EMAIL, SUPPORT_ADDRESS,
   type ClubsData, type ContentData, type DigestData, type FunnelData, type OverviewData,
-  type SeasonsData, type SupportData, type SupportInboxEntry, type SupportTicket, type SystemData, type TicketStatus, type UsersData,
+  type SeasonsData, type SupportData, type SupportInboxEntry, type SupportTicket, type SystemData, type TicketFilter, type TicketStatus, type UsersData,
 } from "../../api/controlCenter";
 import { ApiError } from "../../api/client";
 import "./control-center.css";
@@ -31,6 +31,8 @@ type TabId = (typeof TABS)[number]["id"];
 // Nov 24 production Content-tab crash was num(undefined) after a
 // client/server field-name drift).
 const num = (n: number | null | undefined) => (typeof n === "number" && Number.isFinite(n) ? n : 0).toLocaleString("en-US");
+/** Singular label for a count of exactly 1 ("1 session", "1 member"). */
+const plural = (n: number | null | undefined, one: string, many?: string) => (typeof n === "number" && n === 1 ? one : (many ?? `${one}s`));
 const fmtDate = (iso: string | null) => iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
 const fmtDateTime = (iso: string | null) => iso ? new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "—";
 const dayDate = (day: string) => new Date(`${day}T12:00:00`);
@@ -155,13 +157,13 @@ function PracticeChart({ data }: { data: OverviewData }) {
           <button type="button" aria-pressed={range === 14} onClick={() => setRange(14)}>14D</button>
         </div>
       </div>
-      <div className="cc-chart-meta"><b>{num(data.sessionsToday)}</b> sessions today</div>
+      <div className="cc-chart-meta"><b>{num(data.sessionsToday)}</b> {plural(data.sessionsToday, "session")} today</div>
       <div className="cc-plot">
         <div className="cc-axis" aria-hidden="true"><span>{fmtTick(axisMax)}</span><span>{fmtTick(axisMax / 2)}</span><span>0</span></div>
         <div className="cc-plotbars" role="group" aria-label="Daily practice sessions">
           {series.map(d => (
-            <div className="cc-day" key={d.day} title={`${fmtDayLong(d.day)} · ${d.sessions} sessions`}>
-              <span className="cc-sr">{fmtDayLong(d.day)}, {d.sessions} sessions</span>
+            <div className="cc-day" key={d.day} title={`${fmtDayLong(d.day)} · ${d.sessions} ${plural(d.sessions, "session")}`}>
+              <span className="cc-sr">{fmtDayLong(d.day)}, {d.sessions} {plural(d.sessions, "session")}</span>
               <div className="cc-barwell" aria-hidden="true">
                 <div className={`cc-bar${d.day === today ? " cc-bar-today" : ""}`} style={{ height: `${(d.sessions / axisMax) * 100}%` }}>
                   <span className="cc-bar-value">{d.sessions}</span>
@@ -189,7 +191,7 @@ function TodayByClub({ data }: { data: OverviewData }) {
         ? <p className="cc-empty-line">No practice sessions recorded yet today.</p>
         : (
           <>
-            <div className="cc-total"><b>{num(total)}</b> sessions</div>
+            <div className="cc-total"><b>{num(total)}</b> {plural(total, "session")}</div>
             <div className="cc-strip" aria-hidden="true">
               {data.todayByClub.map((club, i) => <i key={club.orgId} style={{ flex: Math.max(0, club.sessions), background: STRIP_COLORS[i % STRIP_COLORS.length] }} />)}
             </div>
@@ -198,7 +200,7 @@ function TodayByClub({ data }: { data: OverviewData }) {
                 <span className={`cc-crest ${TINTS[i % TINTS.length]}`}>{initials(club.name)}</span>
                 <div>
                   <div className="cc-club-name">{club.name}</div>
-                  <div className="cc-detail">{num(club.students)} students</div>
+                  <div className="cc-detail">{num(club.students)} {plural(club.students, "student")}</div>
                 </div>
                 <b className="cc-count">{num(club.sessions)}</b>
               </div>
@@ -254,16 +256,16 @@ function AttentionPanel() {
 function AttentionPanelBody() {
   const seasons = useQuery({ queryKey: ["control-center", "seasons"], queryFn: controlCenterApi.seasons });
   const content = useQuery({ queryKey: ["control-center", "content"], queryFn: controlCenterApi.content });
-  const support = useQuery({ queryKey: ["control-center", "support"], queryFn: controlCenterApi.support });
+  const support = useQuery({ queryKey: ["control-center", "support"], queryFn: () => controlCenterApi.support() });
   const system = useQuery({ queryKey: ["control-center", "system"], queryFn: controlCenterApi.system });
   const queries = [seasons, content, support, system];
   const items: AttentionItem[] = [];
   if (support.data) {
     const stale = support.data.tickets.filter(t => t.status !== "Resolved" && t.ageHours >= 24 * 7);
-    if (support.data.counts.stale7d > 0) items.push({ key: "stale", tone: "danger", count: support.data.counts.stale7d, label: "Tickets open 7+ days", to: support.data.counts.stale7d === 1 && stale.length === 1 ? `?tab=support&focus=ticket-${stale[0].number}` : "?tab=support" });
+    if (support.data.counts.stale7d > 0) items.push({ key: "stale", tone: "danger", count: support.data.counts.stale7d, label: "Tickets open 7+ days", to: support.data.counts.stale7d === 1 && stale.length === 1 ? `?tab=support&ticketStatus=open&focus=ticket-${stale[0].number}` : "?tab=support&ticketStatus=open" });
     const agingCount = support.data.counts.aging48h - support.data.counts.stale7d;
     const aging = support.data.tickets.filter(t => t.status !== "Resolved" && t.ageHours >= 48 && t.ageHours < 24 * 7);
-    if (agingCount > 0) items.push({ key: "aging", tone: "warning", count: agingCount, label: "Tickets open 48h+", to: agingCount === 1 && aging.length === 1 ? `?tab=support&focus=ticket-${aging[0].number}` : "?tab=support" });
+    if (agingCount > 0) items.push({ key: "aging", tone: "warning", count: agingCount, label: "Tickets open 48h+", to: agingCount === 1 && aging.length === 1 ? `?tab=support&ticketStatus=open&focus=ticket-${aging[0].number}` : "?tab=support&ticketStatus=open" });
   }
   if (content.data && content.data.proposalsPending > 0) items.push({ key: "drafts", tone: "warning", count: content.data.proposalsPending, label: "Material drafts awaiting review", to: "?tab=content&focus=materials" });
   if (seasons.data && seasons.data.openDisputes > 0) items.push({ key: "disputes", tone: "warning", count: seasons.data.openDisputes, label: "Open answer disputes", to: "?tab=content&focus=seasons" });
@@ -381,7 +383,7 @@ function UsersTab() {
           <QueryState query={users} label="Loading users…" skeleton={<PanelSkeleton label="Loading users…" rows={3} />}>
             {(data: UsersData) => (
               <>
-                <PanelHead title="Newest users" note={`${num(data.clubs)} clubs with accounts`} />
+                <PanelHead title="Newest users" note={`${num(data.clubs)} ${plural(data.clubs, "club")} with accounts`} />
                 {data.newest.length === 0
                   ? <EmptyState title="No accounts yet" description="Accounts appear here as soon as the first club member signs up." />
                   : data.newest.map((user, i) => (
@@ -445,15 +447,15 @@ function ContentTab() {
               </div>
               <div className="cc-data-row">
                 <div><strong>Live releases</strong><small>Published to all clubs</small></div>
-                <div className="cc-right"><b>{num(data.releasesLive)} materials</b></div>
+                <div className="cc-right"><b>{num(data.releasesLive)} {plural(data.releasesLive, "material")}</b></div>
               </div>
               <div className="cc-data-row">
-                <div><strong>News</strong><small>{num(data.newsSuggestions)} watcher suggestions · {num(data.newsDrafts)} drafts in total · Oldest suggestion {fmtDate(data.newsOldestSuggestionAtUtc)}</small></div>
+                <div><strong>News</strong><small>{num(data.newsSuggestions)} watcher {plural(data.newsSuggestions, "suggestion")} · {num(data.newsDrafts)} {plural(data.newsDrafts, "draft")} in total · Oldest suggestion {fmtDate(data.newsOldestSuggestionAtUtc)}</small></div>
                 <div className="cc-right"><b>{num(data.newsPublished)} published</b></div>
               </div>
               <div className="cc-data-row">
                 <div><strong>Scripture library</strong><small>New King James Version (NKJV)</small></div>
-                <div className="cc-right"><b>{num(data.libraryPacks)} packs · {num(data.libraryVerses)} verses</b></div>
+                <div className="cc-right"><b>{num(data.libraryPacks)} {plural(data.libraryPacks, "pack")} · {num(data.libraryVerses)} {plural(data.libraryVerses, "verse")}</b></div>
               </div>
             </>
           )}
@@ -494,7 +496,7 @@ function ContentTab() {
                     <>
                       {data.seasons.map(season => (
                         <div className="cc-data-row" key={season.id}>
-                          <div><strong>{season.name}</strong><small>{season.orgName} · {num(season.members)} members</small></div>
+                          <div><strong>{season.name}</strong><small>{season.orgName} · {num(season.members)} {plural(season.members, "member")}</small></div>
                           <div className="cc-right"><Badge tone={season.status === "Active" ? "success" : "neutral"}>{season.status}</Badge></div>
                         </div>
                       ))}
@@ -516,6 +518,17 @@ function ContentTab() {
 /* ---------------- Support & tickets ---------------- */
 
 const TICKET_STATUSES: TicketStatus[] = ["New", "Open", "Waiting", "Resolved"];
+/** Page sizes mirror worker/native/control-center.ts (TICKET_PAGE_SIZE / INBOX_PAGE_SIZE). */
+const TICKET_PAGE_SIZE = 30, INBOX_PAGE_SIZE = 20;
+const TICKET_FILTERS: { value: TicketFilter; label: string }[] = [
+  { value: "all", label: "All tickets" },
+  { value: "open", label: "Open (unresolved)" },
+  { value: "New", label: "New only" },
+  { value: "Open", label: "Open only" },
+  { value: "Waiting", label: "Waiting only" },
+  { value: "Resolved", label: "Resolved only" },
+];
+const filterFromParam = (value: string | null): TicketFilter => value === "open" || (TICKET_STATUSES as string[]).includes(value ?? "") ? value as TicketFilter : "all";
 
 function ticketAge(ticket: SupportTicket): { className: string; badge: ReactNode } {
   const open = ticket.status !== "Resolved";
@@ -616,7 +629,17 @@ function TicketDialog({ editor, onClose }: { editor: EditorState | null; onClose
 function SupportTab({ onMakeTicket }: { onMakeTicket: (entry: SupportInboxEntry) => void }) {
   const queryClient = useQueryClient();
   const toast = useToast();
-  const support = useQuery({ queryKey: ["control-center", "support"], queryFn: controlCenterApi.support });
+  // The queue view lives in the URL (?ticketStatus=) like the tab itself, so
+  // Needs-attention alerts can deep-link to the filtered queue.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const ticketStatus = filterFromParam(searchParams.get("ticketStatus"));
+  const [ticketOffset, setTicketOffset] = useState(0);
+  const [inboxOffset, setInboxOffset] = useState(0);
+  const chooseFilter = (value: TicketFilter) => {
+    setTicketOffset(0);
+    setSearchParams(prev => { const next = new URLSearchParams(prev); if (value === "all") next.delete("ticketStatus"); else next.set("ticketStatus", value); return next; }, { preventScrollReset: true });
+  };
+  const support = useQuery({ queryKey: ["control-center", "support", ticketStatus, ticketOffset, inboxOffset], queryFn: () => controlCenterApi.support({ ticketStatus, ticketOffset, inboxOffset }) });
   const invalidate = () => void queryClient.invalidateQueries({ queryKey: ["control-center", "support"] });
   const [statusFailure, setStatusFailure] = useState<{ id: string; number: number; status: TicketStatus } | null>(null);
   const setStatus = useMutation({
@@ -661,6 +684,9 @@ function SupportTab({ onMakeTicket }: { onMakeTicket: (entry: SupportInboxEntry)
                 <div className="cc-foot">Needs follow-up</div>
               </Metric>
             </div>
+            {!data.supportIngestConfigured && (
+              <Notice tone="info">Email intake is off, so messages sent to {data.supportAddress} are not collected here automatically. Check that mailbox directly, or track a request by adding it with <strong>New ticket</strong>.</Notice>
+            )}
             <div className="cc-split">
               <section className="cc-panel" aria-label="Ticket queue">
                 <PanelHead title="Ticket queue" note="Requests and current status" />
@@ -670,8 +696,18 @@ function SupportTab({ onMakeTicket }: { onMakeTicket: (entry: SupportInboxEntry)
                     <Button variant="secondary" size="compact" disabled={setStatus.isPending} onClick={() => setStatus.mutate({ id: statusFailure.id, status: statusFailure.status })}>Retry</Button>
                   </Notice>
                 )}
+                <div className="cc-queue-tools">
+                  <label>Show
+                    <Select aria-label="Ticket status filter" value={ticketStatus} onChange={event => chooseFilter(event.target.value as TicketFilter)}>
+                      {TICKET_FILTERS.map(filter => <option key={filter.value} value={filter.value}>{filter.label}</option>)}
+                    </Select>
+                  </label>
+                  <span>{num(data.ticketsTotal)} {plural(data.ticketsTotal, "ticket")} in this view</span>
+                </div>
                 {data.tickets.length === 0
-                  ? <EmptyState title="No tickets yet" description="Create a ticket from an email, or add one with New ticket." />
+                  ? ticketStatus === "all" && data.ticketsTotal === 0
+                    ? <EmptyState title="No tickets yet" description="Create a ticket from an email, or add one with New ticket." />
+                    : <EmptyState title="No tickets in this view" description="No tickets match this status right now. Choose another view to see the rest of the queue." />
                   : data.tickets.map(ticket => {
                     const age = ticketAge(ticket);
                     return (
@@ -689,12 +725,21 @@ function SupportTab({ onMakeTicket }: { onMakeTicket: (entry: SupportInboxEntry)
                       </article>
                     );
                   })}
+                {data.ticketsTotal > TICKET_PAGE_SIZE && (
+                  <div className="cc-pager">
+                    <Button variant="secondary" size="compact" disabled={ticketOffset === 0} onClick={() => setTicketOffset(offset => Math.max(0, offset - TICKET_PAGE_SIZE))}>Newer</Button>
+                    <span>Page {Math.floor(ticketOffset / TICKET_PAGE_SIZE) + 1} of {Math.ceil(data.ticketsTotal / TICKET_PAGE_SIZE)}</span>
+                    <Button variant="secondary" size="compact" disabled={ticketOffset + data.tickets.length >= data.ticketsTotal} onClick={() => setTicketOffset(offset => offset + TICKET_PAGE_SIZE)}>Older</Button>
+                  </div>
+                )}
               </section>
               <div className="cc-stack">
                 <section className="cc-panel" aria-label="Recent support email">
                   <PanelHead title="Recent support email" note={data.supportAddress} />
                   {data.inbox.length === 0
-                    ? <EmptyState title="No support email yet" description={`Messages sent to ${data.supportAddress} appear here. Each one can be turned into a tracked ticket.`} />
+                    ? data.supportIngestConfigured
+                      ? <EmptyState title="No support email yet" description={`Messages sent to ${data.supportAddress} appear here. Each one can be turned into a tracked ticket.`} />
+                      : <EmptyState title="Email intake is off" description={`Messages sent to ${data.supportAddress} are not collected here automatically. Check that mailbox directly, or add a ticket with New ticket.`} />
                     : data.inbox.map(entry => (
                       <article className="cc-email" key={entry.id}>
                         <h3>{entry.subject}</h3>
@@ -705,12 +750,21 @@ function SupportTab({ onMakeTicket }: { onMakeTicket: (entry: SupportInboxEntry)
                           : <Button variant="secondary" size="compact" onClick={() => onMakeTicket(entry)}>Make ticket</Button>}
                       </article>
                     ))}
+                  {data.inboxTotal > INBOX_PAGE_SIZE && (
+                    <div className="cc-pager">
+                      <Button variant="secondary" size="compact" disabled={inboxOffset === 0} onClick={() => setInboxOffset(offset => Math.max(0, offset - INBOX_PAGE_SIZE))}>Newer</Button>
+                      <span>Page {Math.floor(inboxOffset / INBOX_PAGE_SIZE) + 1} of {Math.ceil(data.inboxTotal / INBOX_PAGE_SIZE)}</span>
+                      <Button variant="secondary" size="compact" disabled={inboxOffset + data.inbox.length >= data.inboxTotal} onClick={() => setInboxOffset(offset => offset + INBOX_PAGE_SIZE)}>Older</Button>
+                    </div>
+                  )}
                 </section>
                 <details className="cc-panel cc-how">
                   <summary>How support works</summary>
                   <ul>
                     <li>Contact support in the app footer opens an email to {SUPPORT_ADDRESS}.</li>
-                    <li>Incoming mail is triaged in the inbox. Replies are drafted for review, and consequential answers wait for approval.</li>
+                    {data.supportIngestConfigured
+                    ? <li>Incoming mail is triaged in the inbox. Replies are drafted for review, and consequential answers wait for approval.</li>
+                    : <li>Email intake is off, so new mail is not collected here yet — check the {data.supportAddress} mailbox directly and track requests with New ticket.</li>}
                     <li>Tickets track each request to resolution. Open tickets are flagged at 48 hours and again at 7 days.</li>
                   </ul>
                 </details>
@@ -820,7 +874,7 @@ export default function ControlCenterPage() {
   const [editor, setEditor] = useState<EditorState | null>(null);
   const mainRef = useRef<HTMLElement>(null);
   const system = useQuery({ queryKey: ["control-center", "system"], queryFn: controlCenterApi.system });
-  const support = useQuery({ queryKey: ["control-center", "support"], queryFn: controlCenterApi.support });
+  const support = useQuery({ queryKey: ["control-center", "support"], queryFn: () => controlCenterApi.support() });
   const openTickets = support.data?.counts.openTickets ?? 0;
   const health = system.isPending
     ? { text: "Checking service…", tone: "cc-dot-idle", label: "Service status is being checked. View System" }

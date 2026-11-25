@@ -113,7 +113,7 @@ export function RecitationPanel({ compareSourceText }: {
 
   return (
     <Panel>
-      <details>
+      <details className="recitation-disclosure">
         <summary>Optional full-verse recitation</summary>
         <p>Recite aloud or type from memory, then compare with the passage reader. This private practice is not scored and does not earn mastery evidence.</p>
         <label>

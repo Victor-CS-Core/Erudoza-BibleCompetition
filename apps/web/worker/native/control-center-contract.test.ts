@@ -110,7 +110,10 @@ it("serves the client contract on every endpoint (no field drift)", async () => 
   expectKeys(digest.digest, ["weekStart", "weekEnd", "newUsers", "activeClubs", "activeUsers", "sessions", "xpAwarded", "openTickets", "errors7d", "composedAtUtc"], "digest");
 
   const support = await (await get("support")).json() as Record<string, any>;
-  expectKeys(support, ["supportAddress", "counts", "inbox", "tickets"], "support");
+  expectKeys(support, ["supportAddress", "supportIngestConfigured", "counts", "inbox", "tickets", "ticketStatus", "ticketsTotal", "inboxTotal"], "support");
+  expect(support.ticketStatus).toBe("all"); // default view: the whole queue, first page
+  expect(support.ticketsTotal).toBe(support.tickets.length);
+  expect(support.inboxTotal).toBe(support.inbox.length);
   expectKeys(support.counts, ["newEmails", "openTickets", "aging48h", "stale7d"], "support.counts");
   expectKeys(support.inbox[0], ["id", "requesterName", "requesterEmail", "subject", "snippet", "body", "receivedAtUtc", "ticketId", "ticketNumber"], "support.inbox[]");
 

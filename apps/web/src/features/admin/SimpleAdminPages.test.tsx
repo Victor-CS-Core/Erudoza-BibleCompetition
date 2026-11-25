@@ -16,7 +16,7 @@ function season(id: string, name: string, status: string): Season {
   return { id, name, status, organizationId: "org-1", yearLabel: "2026", ruleProfileKey: "PBE_STYLE_V1", ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, scopeUnitCount: 4, assignmentCount: 2 };
 }
 const student = { userId: "student-1", userName: "daniel.student", displayName: "Daniel Student", email: null };
-const coverage: SeasonCoverage = { seasonId: "active", seasonName: "Daniel", seasonStatus: "Active", students: [{ studentUserId: "student-1", displayName: "Daniel Student", userName: "daniel.student", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 4, eligibleUnitCount: 4, masteredCount: 1, reviewDueCount: 0, attemptCount: 2 }] };
+const coverage: SeasonCoverage = { seasonId: "active", seasonName: "Daniel", seasonStatus: "Active", students: [{ studentUserId: "student-1", displayName: "Daniel Student", userName: "daniel.student", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 4, rangeCount: 1, otherRanges: [], eligibleUnitCount: 4, masteredCount: 1, reviewDueCount: 0, attemptCount: 2 }] };
 function Location() { return <output data-testid="location">{useLocation().search}</output>; }
 /** Mimics the context nav links "Student directory" / "Add student". */
 function HashJumper({ hash, label }: { hash: string; label: string }) {
@@ -129,6 +129,13 @@ describe("Coach directory pages", () => {
     await waitFor(() => expect(api.coverage).toHaveBeenCalledWith("org-1", "active"));
     expect(screen.getByTestId("location")).toHaveTextContent("seasonId=active");
   });
+  it("labels multi-range coverage with the extra ranges and a total", async () => {
+    vi.mocked(api.coverage).mockResolvedValue({ ...coverage, students: [{ ...coverage.students[0], rangeCount: 2, otherRanges: [{ bookKey: "DAN", startChapter: 2, startVerse: 1, endChapter: 2, endVerse: 5 }], eligibleUnitCount: 9 }] });
+    renderPage(<AssignmentsPage />);
+    const table = await screen.findByTestId("coverage-table");
+    expect(table).toHaveTextContent("DAN 1:1–4 and 1 more range");
+    expect(table).toHaveTextContent("9 verses total");
+  });
   it("gives unassigned seasons a visible next step", async () => {
     vi.mocked(api.coverage).mockResolvedValue({ ...coverage, students: [] });
     renderPage(<AssignmentsPage />);
@@ -159,7 +166,7 @@ describe("Coach directory pages", () => {
     vi.mocked(api.students).mockResolvedValue([student, ruth]);
     vi.mocked(api.coverage).mockResolvedValue({ ...coverage, students: [
       { ...coverage.students[0], reviewDueCount: 2 },
-      { studentUserId: "student-2", displayName: "Ruth Student", userName: "ruth.student", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 4, eligibleUnitCount: 4, masteredCount: 0, reviewDueCount: 0, attemptCount: 3 },
+      { studentUserId: "student-2", displayName: "Ruth Student", userName: "ruth.student", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 4, rangeCount: 1, otherRanges: [], eligibleUnitCount: 4, masteredCount: 0, reviewDueCount: 0, attemptCount: 3 },
     ] });
     renderPage(<StudentsPage />, "/admin/students?filter=review&seasonId=active");
     expect(await screen.findByText(/Showing 1 student who has passages due for review in Daniel/)).toBeInTheDocument();

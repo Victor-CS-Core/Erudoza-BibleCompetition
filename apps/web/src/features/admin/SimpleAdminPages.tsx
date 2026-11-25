@@ -13,7 +13,7 @@ import { StudentTable } from "./StudentTable";
 import { StudentDashboardPanel } from "./StudentDashboardPanel";
 import { EngagementTab } from "./EngagementTab";
 import { SeasonStatusBadge } from "./SeasonStatusBadge";
-import { formatPassageCitation } from "./passageRanges";
+import { formatCoverageScope } from "./passageRanges";
 
 function QueryError({ retry, children }: { retry: () => void; children: string }) {
   return <Notice tone="danger">{children} <Button variant="secondary" onClick={retry}>Try again</Button></Notice>;
@@ -28,7 +28,7 @@ export function SeasonsListPage() {
     {seasons.isError && <QueryError retry={() => void seasons.refetch()}>Unable to load seasons.</QueryError>}
     <ul className="training-list">{seasons.data?.map(season => <li key={season.id}>
       <Panel as="div" className="season-list-item"><Link className="training-season-card" to={`/admin/seasons/${season.id}`}>
-        <div><h2>{season.name}</h2><p>{season.yearLabel} · {season.scopeUnitCount} verses · {season.assignmentCount} assignments</p></div>
+        <div><h2>{season.name}</h2><p>{season.yearLabel} · {season.scopeUnitCount} {season.scopeUnitCount === 1 ? "verse" : "verses"} · {season.assignmentCount} {season.assignmentCount === 1 ? "assignment" : "assignments"}</p></div>
         <SeasonStatusBadge status={season.status} />
       </Link></Panel></li>)}</ul>
     {seasons.data?.length === 0 && <Panel><p>No seasons yet. Create your first season to get started.</p></Panel>}
@@ -191,9 +191,9 @@ export function AssignmentsPage() {
       {coverage.data?.students.length === 0 && <p>No assigned students yet. Choose a student above to assign their first passage.</p>}
       {!!coverage.data?.students.length && <div className="training-table-scroll assignment-coverage-scroll" role="region" aria-label="Assigned passage coverage" tabIndex={0}><table className="training-table" data-testid="coverage-table"><thead><tr><th>Student</th><th>Assignment</th><th>Passages</th><th>Mastered</th><th>Due</th><th>Attempts</th><th>Actions</th></tr></thead><tbody>
         {coverage.data.students.filter(student => !studentId || student.studentUserId === studentId).map((student, index) => <tr key={`${student.studentUserId}-${student.assignmentType}-${student.bookKey}-${student.startChapter}-${student.startVerse}-${student.endChapter}-${student.endVerse}-${index}`}>
-          <td><span className="profile-person"><ProfileAvatar userId={student.studentUserId} displayName={student.displayName} /><span><Link to={`/admin/seasons/${season.id}/students/${student.studentUserId}/progress`}>{student.displayName}</Link><p>{student.userName}</p></span></span></td>
-          <td>{assignmentLabels[student.assignmentType] ?? "Assigned study"}</td><td>{formatPassageCitation(student)}<p>{student.eligibleUnitCount} verses</p></td>
-          <td>{student.masteredCount}</td><td>{student.reviewDueCount}</td><td>{student.attemptCount}</td><td><LinkButton size="compact" variant="secondary" to={`?seasonId=${encodeURIComponent(season.id)}&studentId=${encodeURIComponent(student.studentUserId)}`}>Manage assignments<span className="sr-only"> for {student.displayName}</span></LinkButton></td>
+          <td><span className="profile-person"><ProfileAvatar userId={student.studentUserId} displayName={student.displayName} size={40} /><span><Link to={`/admin/seasons/${season.id}/students/${student.studentUserId}/progress`}>{student.displayName}</Link><p>{student.userName}<span className="assignment-type-inline"> · {assignmentLabels[student.assignmentType] ?? "Assigned study"}</span></p></span></span></td>
+          <td>{assignmentLabels[student.assignmentType] ?? "Assigned study"}</td><td>{formatCoverageScope(student)}<p>{student.eligibleUnitCount} {student.eligibleUnitCount === 1 ? "verse" : "verses"}{student.rangeCount > 1 ? " total" : ""}</p></td>
+          <td data-label="Mastered">{student.masteredCount}</td><td data-label="Due">{student.reviewDueCount}</td><td data-label="Attempts">{student.attemptCount}</td><td><LinkButton size="compact" variant="secondary" to={`?seasonId=${encodeURIComponent(season.id)}&studentId=${encodeURIComponent(student.studentUserId)}`}>Manage<span className="assignment-manage-more"> assignments</span><span className="sr-only"> for {student.displayName}</span></LinkButton></td>
         </tr>)}
       </tbody></table></div>}
     </Panel>}

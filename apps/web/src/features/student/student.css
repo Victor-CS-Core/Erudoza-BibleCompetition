@@ -20,6 +20,7 @@
 .diff-spelling { background: color-mix(in srgb, var(--er-teal) 22%, transparent); font-weight: 600; text-decoration: underline wavy; text-underline-offset: 3px; }
 /* Recitation mic: pulsing ring while listening; reduced motion gets a
    static outline instead of the animation. */
+.recitation-disclosure > summary { cursor: pointer; min-height: 44px; align-content: center; }
 .recitation-mic.is-listening { animation: recitation-pulse 1.4s ease-in-out infinite; }
 @keyframes recitation-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--er-teal) 45%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
 @media (prefers-reduced-motion: reduce) { .recitation-mic.is-listening { animation: none; outline: 2px solid var(--er-teal); outline-offset: 2px; } }

@@ -270,6 +270,7 @@
     "status": 200,
     "body": {
       "supportAddress": "ktr0nn@muse.ai",
+      "supportIngestConfigured": true,
       "counts": {
         "newEmails": 1,
         "openTickets": 1,
@@ -278,21 +279,21 @@
       },
       "inbox": [
         {
-          "id": "d974ce58-3521-4288-958c-0bbc054a1145",
+          "id": "141d1930-b567-49a8-93ce-9fad88eb6b5a",
           "sourceMessageId": "capture-1",
           "requesterName": "Ana Ruiz",
           "requesterEmail": "ana@example.com",
           "subject": "Cannot sign in",
           "snippet": "",
           "body": "The code never arrives.",
-          "receivedAtUtc": "2026-11-24T22:26:51.730Z",
+          "receivedAtUtc": "2026-11-25T06:25:37.896Z",
           "ticketId": null,
           "ticketNumber": null
         }
       ],
       "tickets": [
         {
-          "id": "6618f4ad-24c4-4b5c-b2e2-62bf5feed638",
+          "id": "aac6b556-7a7c-4098-846b-974bf8e48994",
           "number": 101,
           "label": "#S-101",
           "source": "manual",
@@ -302,11 +303,14 @@
           "subject": "Question about seasons",
           "body": "When does the next season open?",
           "status": "New",
-          "createdAtUtc": "2026-11-24T22:26:51.749Z",
-          "updatedAtUtc": "2026-11-24T22:26:51.749Z",
+          "createdAtUtc": "2026-11-25T06:25:37.911Z",
+          "updatedAtUtc": "2026-11-25T06:25:37.911Z",
           "ageHours": 0
         }
-      ]
+      ],
+      "ticketStatus": "all",
+      "ticketsTotal": 1,
+      "inboxTotal": 1
     }
   }
 }

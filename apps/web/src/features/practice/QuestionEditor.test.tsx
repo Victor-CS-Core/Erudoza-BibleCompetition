@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
-import type { PracticeBootstrap } from "../../api/practice";
+import { practiceApi, type PracticeBootstrap } from "../../api/practice";
 import { QuestionEditor } from "./QuestionEditor";
 import { ToastProvider } from "../../components/ui";
 
@@ -45,6 +45,80 @@ describe("Coach question discovery", () => {
     mount();
     expect(await screen.findByRole("button", { name: "Retry season passages" })).toBeInTheDocument();
     expect(screen.getByLabelText("Source unit")).toBeDisabled();
+  });
+});
+
+describe("Preview invalidation (stale-preview regression)", () => {
+  function mockSources() {
+    vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "pack", includes: [{ bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3 }], excludes: [] });
+    vi.mocked(api.sourceUnits).mockResolvedValue([
+      { id: "verse", bookKey: "DAN", chapter: 1, verse: 1, ordinal: 1, citation: "Daniel 1:1", canonicalText: "Fixture one" },
+      { id: "verse2", bookKey: "DAN", chapter: 1, verse: 2, ordinal: 2, citation: "Daniel 1:2", canonicalText: "Fixture two" },
+    ]);
+  }
+  async function previewDraft() {
+    fireEvent.click(screen.getByText("Create a question"));
+    await screen.findByRole("option", { name: "DAN" });
+    fireEvent.change(screen.getByLabelText("Source book"), { target: { value: "pack" } });
+    await screen.findByRole("option", { name: "Daniel 1:1" });
+    fireEvent.change(screen.getByLabelText("Source unit"), { target: { value: "verse" } });
+    fireEvent.change(screen.getByLabelText("Prompt"), { target: { value: "Original prompt" } });
+    fireEvent.change(screen.getByLabelText("Reference"), { target: { value: "Daniel 1:1" } });
+    fireEvent.change(screen.getByLabelText("Evidence"), { target: { value: "Scripture" } });
+    fireEvent.change(screen.getByLabelText("Part 1 accepted answers"), { target: { value: "A prophet" } });
+    fireEvent.click(screen.getByRole("button", { name: "Preview question" }));
+    expect(await screen.findByRole("button", { name: "Save validated drafts" })).toBeInTheDocument();
+  }
+  it("drops the preview when the prompt changes, and a fresh preview saves the corrected prompt", async () => {
+    mockSources();
+    vi.mocked(practiceApi.import).mockResolvedValue(undefined);
+    mount();
+    await previewDraft();
+    fireEvent.change(screen.getByLabelText("Prompt"), { target: { value: "Corrected prompt" } });
+    expect(screen.queryByRole("button", { name: "Save validated drafts" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Original prompt")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Preview question" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Save validated drafts" }));
+    expect(await screen.findByText("Saved. Drafts require publication before matches can use them.")).toBeInTheDocument();
+    expect(practiceApi.import).toHaveBeenCalledWith("org", "daniel", [expect.objectContaining({ prompt: "Corrected prompt" })]);
+  });
+  it("drops the preview when the source unit changes", async () => {
+    mockSources();
+    mount();
+    await previewDraft();
+    fireEvent.change(screen.getByLabelText("Source unit"), { target: { value: "verse2" } });
+    expect(screen.queryByRole("button", { name: "Save validated drafts" })).not.toBeInTheDocument();
+  });
+  it("drops the preview when scoring points change", async () => {
+    mockSources();
+    mount();
+    await previewDraft();
+    fireEvent.change(screen.getByLabelText("Part 1 points"), { target: { value: "3" } });
+    expect(screen.queryByRole("button", { name: "Save validated drafts" })).not.toBeInTheDocument();
+  });
+  it("drops the preview when accepted answers change", async () => {
+    mockSources();
+    mount();
+    await previewDraft();
+    fireEvent.change(screen.getByLabelText("Part 1 accepted answers"), { target: { value: "A prophet\nA seer" } });
+    expect(screen.queryByRole("button", { name: "Save validated drafts" })).not.toBeInTheDocument();
+  });
+  it("shows a singular point label in the preview for a one-point part", async () => {
+    mockSources();
+    mount();
+    await previewDraft();
+    expect(screen.getByText(/\(1 point\)/)).toBeInTheDocument();
+  });
+});
+
+describe("Per-action confirmations", () => {
+  it("confirms publication with a published-state message, not the draft message", async () => {
+    vi.mocked(practiceApi.publish).mockResolvedValue(undefined);
+    mount();
+    fireEvent.click(screen.getByRole("button", { name: "Publish reviewed question" }));
+    expect(await screen.findByText("Published. Matches can now use this question.")).toBeInTheDocument();
+    expect(screen.queryByText(/Drafts require publication/)).not.toBeInTheDocument();
+    expect(practiceApi.publish).toHaveBeenCalledWith("org", "draft");
   });
 });
 

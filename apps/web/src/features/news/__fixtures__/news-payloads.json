@@ -1,0 +1,71 @@
+{
+  "feed": {
+    "status": 200,
+    "body": [
+      {
+        "id": "news-capture-1",
+        "title": "New PBE materials detected",
+        "summary": "NAD posted a new Commentary PDF for the 2026–27 competition year.",
+        "publishedAtUtc": "2026-11-19T12:00:00Z",
+        "articleType": "study-material",
+        "keyPoints": [
+          "New commentary PDF"
+        ],
+        "linkedMaterials": [
+          {
+            "label": "PBE resources",
+            "href": "https://nadpbe.org/pbe-resources/"
+          }
+        ],
+        "readMinutes": 2,
+        "sourceUrl": "https://nadpbe.org/wp-content/uploads/x.pdf",
+        "sourceLabel": "nadpbe.org"
+      },
+      {
+        "id": "news-capture-2",
+        "title": "Event update",
+        "summary": "Division finals moved to April.",
+        "publishedAtUtc": "2026-11-10T12:00:00Z",
+        "articleType": "announcement",
+        "keyPoints": [],
+        "linkedMaterials": [],
+        "readMinutes": null,
+        "sourceUrl": null,
+        "sourceLabel": null
+      }
+    ]
+  },
+  "article": {
+    "status": 200,
+    "body": {
+      "id": "news-capture-1",
+      "title": "New PBE materials detected",
+      "summary": "NAD posted a new Commentary PDF for the 2026–27 competition year.",
+      "sections": [
+        {
+          "heading": "What changed",
+          "body": "The commentary file was replaced on the resources page."
+        }
+      ],
+      "status": "published",
+      "createdBy": "nad-watcher",
+      "createdAtUtc": "2026-11-18T00:00:00Z",
+      "updatedAtUtc": "2026-11-19T00:00:00Z",
+      "publishedAtUtc": "2026-11-19T12:00:00Z",
+      "publishedBy": "coach",
+      "articleType": "study-material",
+      "keyPoints": [
+        "New commentary PDF"
+      ],
+      "linkedMaterials": [
+        {
+          "label": "PBE resources",
+          "href": "https://nadpbe.org/pbe-resources/"
+        }
+      ],
+      "readMinutes": 2,
+      "sourceUrl": "https://nadpbe.org/wp-content/uploads/x.pdf",
+      "sourceLabel": "nadpbe.org"
+    }
+  }
+}

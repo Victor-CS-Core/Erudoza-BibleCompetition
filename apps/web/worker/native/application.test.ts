@@ -30,6 +30,47 @@ it('excludes legacy mastery from current coverage without dropping review eviden
  await store.put('mastery','legacy-test',TEST_ORG,{...value,algorithmVersion:'v2-skill-evidence'},1);
  coverage=await (await call(`/seasons/${season.id}/coverage`)).json() as typeof coverage;expect(coverage.students[0].masteredCount).toBe(1);
 });
+it('reports every assignment range in coverage while keeping the deduplicated verse total', async () => {
+ const twoBook = { packKey: 'coverage-ranges', version: 1, locale: 'en', sourceType: 'Scripture', documents: [
+  { name: 'Daniel', units: [1, 2, 3].map(n => ({ citation: `Daniel 1:${n}`, bookKey: 'DAN', chapter: 1, verse: n, ordinal: n, text: `Canonical Daniel verse ${n} for coverage ranges.` })) },
+  { name: 'Numbers', units: [1, 2, 3].map(n => ({ citation: `Numbers 1:${n}`, bookKey: 'NUM', chapter: 1, verse: n, ordinal: 100 + n, text: `Canonical Numbers verse ${n} for coverage ranges.` })) },
+ ] };
+ const packResponse = await call('/content-packs/import', 'POST', twoBook);
+ expect(packResponse.status).toBe(200);
+ const pack = await packResponse.json() as { id: string };
+ const season = await (await call('/seasons', 'POST', { name: 'coverage-ranges', yearLabel: '2026', ruleProfileKey: 'PBE_STYLE_V1' })).json() as { id: string };
+ const full = [{ bookKey: 'DAN', startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3 }, { bookKey: 'NUM', startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 3 }];
+ expect((await call(`/seasons/${season.id}/scope`, 'POST', { contentPackId: pack.id, includes: full, excludes: [] })).status).toBe(204);
+ const mkStudent = async (name: string) => (await (await call('/students', 'POST', { userName: name, displayName: name, password: 'Testing!123' })).json()) as { userId: string };
+ const assign = async (studentUserId: string, type: string, range: object) => expect((await call(`/seasons/${season.id}/assignments`, 'POST', { studentUserId, contentPackId: pack.id, type, range })).status).toBe(200);
+ type CoverageRow = { studentUserId: string; bookKey: string; startVerse: number; endVerse: number; rangeCount: number; otherRanges: { bookKey: string; startVerse: number; endVerse: number }[]; eligibleUnitCount: number };
+ const row = async (studentUserId: string) => { const cov = await (await call(`/seasons/${season.id}/coverage`)).json() as { students: CoverageRow[] }; return cov.students.find(s => s.studentUserId === studentUserId)!; };
+ const dan = (startVerse: number, endVerse: number) => ({ bookKey: 'DAN', startChapter: 1, startVerse, endChapter: 1, endVerse });
+ const num = (startVerse: number, endVerse: number) => ({ bookKey: 'NUM', startChapter: 1, startVerse, endChapter: 1, endVerse });
+
+ const single = await mkStudent('cov-single');
+ await assign(single.userId, 'PrimarySpecialist', dan(1, 2));
+ expect(await row(single.userId)).toMatchObject({ bookKey: 'DAN', startVerse: 1, endVerse: 2, rangeCount: 1, otherRanges: [], eligibleUnitCount: 2 });
+
+ const disjoint = await mkStudent('cov-disjoint');
+ await assign(disjoint.userId, 'PrimarySpecialist', dan(1, 1));
+ await assign(disjoint.userId, 'RequiredCoverage', dan(3, 3));
+ const disjointRow = await row(disjoint.userId);
+ expect(disjointRow).toMatchObject({ rangeCount: 2, eligibleUnitCount: 2 });
+ expect(disjointRow.otherRanges).toEqual([dan(3, 3)]);
+
+ const overlapping = await mkStudent('cov-overlap');
+ await assign(overlapping.userId, 'PrimarySpecialist', dan(1, 2));
+ await assign(overlapping.userId, 'RequiredCoverage', dan(2, 3));
+ expect(await row(overlapping.userId)).toMatchObject({ rangeCount: 2, eligibleUnitCount: 3 }); // verse 2 counted once
+
+ const multiBook = await mkStudent('cov-books');
+ await assign(multiBook.userId, 'PrimarySpecialist', dan(1, 2));
+ await assign(multiBook.userId, 'RequiredCoverage', num(1, 2));
+ const multiBookRow = await row(multiBook.userId);
+ expect(multiBookRow).toMatchObject({ rangeCount: 2, eligibleUnitCount: 4 });
+ expect(multiBookRow.otherRanges).toEqual([num(1, 2)]);
+}, 30000);
 it('atomically rejects assignment writes after a student has become inactive',async()=>{
  const {student,season}=await setup('inactive-transaction');await app.db.prepare('UPDATE Users SET active=0 WHERE id=?').bind(student.userId).run();
  const db=app.db as unknown as D1Database,store=new Store(db),ctx={env:{DB:db},orgId:TEST_ORG,actor:{userId:'coach'},store} as unknown as RequestContext;

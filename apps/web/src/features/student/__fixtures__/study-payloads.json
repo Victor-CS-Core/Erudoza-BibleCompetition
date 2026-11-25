@@ -1,0 +1,467 @@
+{
+  "seasons": {
+    "status": 200,
+    "body": [
+      {
+        "id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "name": "Synthetic study"
+      }
+    ]
+  },
+  "progress": {
+    "status": 200,
+    "body": {
+      "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "seasonName": "Synthetic study",
+      "seasonStatus": "Active",
+      "assignments": [
+        {
+          "id": "assignment",
+          "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+          "studentUserId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "contentPackId": "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+          "type": "PrimarySpecialist",
+          "bookKey": "GEN",
+          "startChapter": 1,
+          "startVerse": 1,
+          "endChapter": 1,
+          "endVerse": 3,
+          "difficulty": "Foundation"
+        }
+      ],
+      "masteredCount": 0,
+      "reviewDueCount": 0,
+      "attemptCount": 1,
+      "mastery": [
+        {
+          "knowledgeUnitId": "dddddddd-dddd-4ddd-8ddd-000000000001",
+          "title": "Genesis 1:1",
+          "level": "Review",
+          "exactWordingScore": 18,
+          "recognitionScore": 10,
+          "referenceScore": 0,
+          "sequenceScore": 0,
+          "factualRecallScore": 0,
+          "bookKey": "GEN",
+          "chapter": 1,
+          "verse": 1,
+          "algorithmVersion": "v3-partial-credit",
+          "reviewDueAtUtc": "2026-11-26T06:25:35.880Z"
+        }
+      ],
+      "studentUserId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "studentDisplayName": "Coach",
+      "recentAttempts": [
+        {
+          "id": "84f28b9a-b736-40d7-a6ed-34078b308373",
+          "title": "Genesis 1:1",
+          "activityType": "MissingWords",
+          "isCorrect": true,
+          "submittedAnswer": "Synthetic",
+          "evaluationResult": "ExactMatch",
+          "createdAtUtc": "2026-11-25T06:25:35.880Z"
+        }
+      ],
+      "pbeEnabled": false
+    }
+  },
+  "start": {
+    "status": 200,
+    "body": {
+      "id": "aef2b088-03cc-47a0-83f2-13926aef0c64",
+      "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "status": "Created",
+      "mode": "Practice",
+      "targetCardCount": 8,
+      "difficulty": "Foundation"
+    }
+  },
+  "card": {
+    "status": 200,
+    "body": {
+      "id": "ba682540-44d6-405a-a6b5-f5fa3da653c4",
+      "sessionId": "aef2b088-03cc-47a0-83f2-13926aef0c64",
+      "sequence": 1,
+      "total": 8,
+      "activityType": "MissingWords",
+      "citation": "Genesis 1:1",
+      "prompt": "____ verse 1 has words for this exercise.",
+      "tokens": [
+        {
+          "display": "____",
+          "hidden": true,
+          "index": 0
+        },
+        {
+          "display": "verse",
+          "hidden": false,
+          "index": 1
+        },
+        {
+          "display": "1",
+          "hidden": false,
+          "index": 2
+        },
+        {
+          "display": "has",
+          "hidden": false,
+          "index": 3
+        },
+        {
+          "display": "words",
+          "hidden": false,
+          "index": 4
+        },
+        {
+          "display": "for",
+          "hidden": false,
+          "index": 5
+        },
+        {
+          "display": "this",
+          "hidden": false,
+          "index": 6
+        },
+        {
+          "display": "exercise.",
+          "hidden": false,
+          "index": 7
+        }
+      ],
+      "choices": null,
+      "debugAnswer": null,
+      "blankShuffles": 0,
+      "blankShuffleLimit": 3
+    }
+  },
+  "attempt": {
+    "status": 200,
+    "body": {
+      "submittedAnswer": "Synthetic",
+      "attemptId": "84f28b9a-b736-40d7-a6ed-34078b308373",
+      "isCorrect": true,
+      "score": 100,
+      "evaluationResult": "ExactMatch",
+      "canonicalAnswer": "Synthetic",
+      "citation": "Genesis 1:1",
+      "sourceText": "Synthetic verse 1 has words for this exercise.",
+      "masteryLevel": "Review",
+      "exactWordingScore": 18,
+      "skillKey": "exactWording",
+      "skillLabel": "Exact wording",
+      "skillScore": 18,
+      "reviewDueAtUtc": "2026-11-26T06:25:35.880Z",
+      "alreadyProcessed": false,
+      "xpReward": {
+        "earned": 35,
+        "before": {
+          "total": 0,
+          "level": 1,
+          "levelName": "Seedling",
+          "xpIntoLevel": 0,
+          "xpForNext": 100
+        },
+        "after": {
+          "total": 35,
+          "level": 1,
+          "levelName": "Seedling",
+          "xpIntoLevel": 35,
+          "xpForNext": 65
+        }
+      },
+      "xpEarned": 35,
+      "sessionStreak": 1
+    }
+  },
+  "resume": {
+    "status": 200,
+    "body": {
+      "session": {
+        "id": "aef2b088-03cc-47a0-83f2-13926aef0c64",
+        "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "status": "Active",
+        "mode": "Practice",
+        "targetCardCount": 8,
+        "difficulty": "Foundation"
+      },
+      "card": {
+        "id": "ba682540-44d6-405a-a6b5-f5fa3da653c4",
+        "sessionId": "aef2b088-03cc-47a0-83f2-13926aef0c64",
+        "sequence": 1,
+        "total": 8,
+        "activityType": "MissingWords",
+        "citation": "Genesis 1:1",
+        "prompt": "____ verse 1 has words for this exercise.",
+        "tokens": [
+          {
+            "display": "____",
+            "hidden": true,
+            "index": 0
+          },
+          {
+            "display": "verse",
+            "hidden": false,
+            "index": 1
+          },
+          {
+            "display": "1",
+            "hidden": false,
+            "index": 2
+          },
+          {
+            "display": "has",
+            "hidden": false,
+            "index": 3
+          },
+          {
+            "display": "words",
+            "hidden": false,
+            "index": 4
+          },
+          {
+            "display": "for",
+            "hidden": false,
+            "index": 5
+          },
+          {
+            "display": "this",
+            "hidden": false,
+            "index": 6
+          },
+          {
+            "display": "exercise.",
+            "hidden": false,
+            "index": 7
+          }
+        ],
+        "choices": null,
+        "debugAnswer": null,
+        "blankShuffles": 0,
+        "blankShuffleLimit": 3
+      },
+      "attempt": {
+        "submittedAnswer": "Synthetic",
+        "attemptId": "84f28b9a-b736-40d7-a6ed-34078b308373",
+        "isCorrect": true,
+        "score": 100,
+        "evaluationResult": "ExactMatch",
+        "canonicalAnswer": "Synthetic",
+        "citation": "Genesis 1:1",
+        "sourceText": "Synthetic verse 1 has words for this exercise.",
+        "masteryLevel": "Review",
+        "exactWordingScore": 18,
+        "skillKey": "exactWording",
+        "skillLabel": "Exact wording",
+        "skillScore": 18,
+        "reviewDueAtUtc": "2026-11-26T06:25:35.880Z",
+        "alreadyProcessed": true,
+        "xpReward": {
+          "earned": 35,
+          "before": {
+            "total": 0,
+            "level": 1,
+            "levelName": "Seedling",
+            "xpIntoLevel": 0,
+            "xpForNext": 100
+          },
+          "after": {
+            "total": 35,
+            "level": 1,
+            "levelName": "Seedling",
+            "xpIntoLevel": 35,
+            "xpForNext": 65
+          }
+        },
+        "xpEarned": 35,
+        "sessionStreak": 1
+      },
+      "summary": null
+    }
+  },
+  "complete": {
+    "status": 200,
+    "body": {
+      "sessionId": "aef2b088-03cc-47a0-83f2-13926aef0c64",
+      "mode": "Practice",
+      "attempted": 1,
+      "correct": 1,
+      "targetCardCount": 8,
+      "status": "Completed",
+      "recap": {
+        "version": "training-v1",
+        "sessionId": "aef2b088-03cc-47a0-83f2-13926aef0c64",
+        "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "mode": "Practice",
+        "completedAtUtc": "2026-11-25T06:25:35.920Z",
+        "attempted": 1,
+        "correct": 1,
+        "spellingCorrected": 0,
+        "targetCardCount": 8,
+        "fullTargetReached": false,
+        "newlyCreditedDay": false,
+        "missionLocalDate": null,
+        "creditedLocalDate": null,
+        "weeklyGoalComplete": false,
+        "personalBest": {
+          "accuracyBeaten": true,
+          "correctBeaten": true
+        },
+        "xp": {
+          "earned": 60,
+          "total": 60,
+          "level": 1,
+          "levelName": "Seedling"
+        },
+        "levelUp": null,
+        "missionSteps": [],
+        "earnedBadges": [],
+        "questsCompleted": [
+          {
+            "key": "explorer",
+            "title": "Explorer"
+          },
+          {
+            "key": "sharpshooter",
+            "title": "Sharpshooter"
+          }
+        ],
+        "passageChanges": [
+          {
+            "knowledgeUnitId": "dddddddd-dddd-4ddd-8ddd-000000000001",
+            "title": "Genesis 1:1",
+            "delta": {
+              "exactWording": 18,
+              "recognition": 10,
+              "reference": 0,
+              "sequence": 0,
+              "factualRecall": 0
+            },
+            "before": {
+              "exactWording": 0,
+              "recognition": 0,
+              "reference": 0,
+              "sequence": 0,
+              "factualRecall": 0
+            },
+            "after": {
+              "exactWording": 18,
+              "recognition": 10,
+              "reference": 0,
+              "sequence": 0,
+              "factualRecall": 0
+            },
+            "events": [
+              {
+                "attemptId": "84f28b9a-b736-40d7-a6ed-34078b308373",
+                "acceptedAtUtc": "2026-11-25T06:25:35.880Z",
+                "before": {
+                  "exactWording": 0,
+                  "recognition": 0,
+                  "reference": 0,
+                  "sequence": 0,
+                  "factualRecall": 0
+                },
+                "after": {
+                  "exactWording": 18,
+                  "recognition": 10,
+                  "reference": 0,
+                  "sequence": 0,
+                  "factualRecall": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "recap": {
+    "status": 200,
+    "body": {
+      "version": "training-v1",
+      "sessionId": "aef2b088-03cc-47a0-83f2-13926aef0c64",
+      "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "mode": "Practice",
+      "completedAtUtc": "2026-11-25T06:25:35.920Z",
+      "attempted": 1,
+      "correct": 1,
+      "spellingCorrected": 0,
+      "targetCardCount": 8,
+      "fullTargetReached": false,
+      "newlyCreditedDay": false,
+      "missionLocalDate": null,
+      "creditedLocalDate": null,
+      "weeklyGoalComplete": false,
+      "personalBest": {
+        "accuracyBeaten": true,
+        "correctBeaten": true
+      },
+      "xp": {
+        "earned": 60,
+        "total": 60,
+        "level": 1,
+        "levelName": "Seedling"
+      },
+      "levelUp": null,
+      "missionSteps": [],
+      "earnedBadges": [],
+      "questsCompleted": [
+        {
+          "key": "explorer",
+          "title": "Explorer"
+        },
+        {
+          "key": "sharpshooter",
+          "title": "Sharpshooter"
+        }
+      ],
+      "passageChanges": [
+        {
+          "knowledgeUnitId": "dddddddd-dddd-4ddd-8ddd-000000000001",
+          "title": "Genesis 1:1",
+          "delta": {
+            "exactWording": 18,
+            "recognition": 10,
+            "reference": 0,
+            "sequence": 0,
+            "factualRecall": 0
+          },
+          "before": {
+            "exactWording": 0,
+            "recognition": 0,
+            "reference": 0,
+            "sequence": 0,
+            "factualRecall": 0
+          },
+          "after": {
+            "exactWording": 18,
+            "recognition": 10,
+            "reference": 0,
+            "sequence": 0,
+            "factualRecall": 0
+          },
+          "events": [
+            {
+              "attemptId": "84f28b9a-b736-40d7-a6ed-34078b308373",
+              "acceptedAtUtc": "2026-11-25T06:25:35.880Z",
+              "before": {
+                "exactWording": 0,
+                "recognition": 0,
+                "reference": 0,
+                "sequence": 0,
+                "factualRecall": 0
+              },
+              "after": {
+                "exactWording": 18,
+                "recognition": 10,
+                "reference": 0,
+                "sequence": 0,
+                "factualRecall": 0
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -23,6 +23,10 @@ const digest = { digest: { weekStart: "2026-11-16", weekEnd: "2026-11-22", newUs
 const ticket = (over: Record<string, unknown> = {}) => ({ id: "t1", number: 101, source: "email", requesterName: "Ana Ruiz", requesterEmail: "ana@example.com", subject: "Cannot sign in", body: "The code never arrives.", status: "New", createdAtUtc: "2026-11-24T08:00:00Z", updatedAtUtc: "2026-11-24T08:00:00Z", ageHours: 1, ...over });
 const support = {
   supportAddress: "ktr0nn@muse.ai",
+  supportIngestConfigured: true,
+  ticketStatus: "all",
+  ticketsTotal: 3,
+  inboxTotal: 1,
   counts: { newEmails: 1, openTickets: 3, aging48h: 2, stale7d: 1 },
   inbox: [{ id: "in1", requesterName: "Ana Ruiz", requesterEmail: "ana@example.com", subject: "Cannot sign in", body: "The code never arrives.", snippet: "The code never arrives.", receivedAtUtc: "2026-11-24T08:00:00Z", ticketId: null, ticketNumber: null }],
   tickets: [ticket(), ticket({ id: "t2", number: 102, subject: "Question about seasons", status: "Open", ageHours: 60 }), ticket({ id: "t3", number: 103, subject: "Old request", status: "Waiting", ageHours: 200 })],
@@ -94,8 +98,8 @@ it("defaults to Overview with the shell nav, KPIs, chart, clubs, digest, and att
   expect(await screen.findByText("Weekly digest")).toBeInTheDocument();
   expect(screen.getByText(/Nov 16–22, 2026/)).toBeInTheDocument();
   expect(await screen.findByText("Needs attention")).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: /Tickets open 7\+ days/ })).toHaveAttribute("href", "/admin/control-center?tab=support&focus=ticket-103");
-  expect(screen.getByRole("link", { name: /Tickets open 48h\+/ })).toHaveAttribute("href", "/admin/control-center?tab=support&focus=ticket-102");
+  expect(screen.getByRole("link", { name: /Tickets open 7\+ days/ })).toHaveAttribute("href", "/admin/control-center?tab=support&ticketStatus=open&focus=ticket-103");
+  expect(screen.getByRole("link", { name: /Tickets open 48h\+/ })).toHaveAttribute("href", "/admin/control-center?tab=support&ticketStatus=open&focus=ticket-102");
   expect(screen.getByRole("link", { name: /Material drafts awaiting review/ })).toHaveAttribute("href", "/admin/control-center?tab=content&focus=materials");
   expect(screen.getByRole("link", { name: /Open answer disputes/ })).toHaveAttribute("href", "/admin/control-center?tab=content&focus=seasons");
   expect(screen.getByRole("link", { name: /Server errors in the last 24 hours/ })).toHaveAttribute("href", "/admin/control-center?tab=system");
@@ -153,7 +157,7 @@ it("renders the Content tab with the production-shaped payload", async () => {
   // Badge/value text is split across inline elements; match on full text.
   await waitFor(() => expect(container.textContent).toContain("17 awaiting review"));
   expect(container.textContent).toContain("Oldest submitted Sep 20, 2026");
-  expect(container.textContent).toContain("1 materials");
+  expect(container.textContent).toContain("1 material");
   expect(container.textContent).toContain("3 published");
   expect(container.textContent).toContain("66 packs · 31,102 verses");
   expect(await screen.findByText("NAD watcher")).toBeInTheDocument();

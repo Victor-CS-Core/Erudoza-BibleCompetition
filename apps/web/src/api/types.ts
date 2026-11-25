@@ -275,6 +275,11 @@ export type CoverageStudent = {
   startVerse: number;
   endChapter: number;
   endVerse: number;
+  /** How many assignment ranges the row covers; the label fields above name
+   *  the first one and otherRanges lists the rest, while eligibleUnitCount
+   *  is the deduplicated verse total across all of them. */
+  rangeCount: number;
+  otherRanges: PassageRange[];
   eligibleUnitCount: number;
   masteredCount: number;
   reviewDueCount: number;

@@ -26,9 +26,11 @@ it("renders one row per student with streak, XP, level and last-active", async (
   expect(await screen.findByTestId("engagement-table")).toBeInTheDocument();
   expect(screen.getByText("Ava")).toBeInTheDocument();
   expect(screen.getByText("12 days")).toBeInTheDocument();
-  expect(screen.getByText("Scribe")).toBeInTheDocument();
+  expect(screen.getByText("5 · Scribe")).toBeInTheDocument();
   expect(screen.getByText("No practice this week")).toBeInTheDocument();
   expect(screen.getByText("3 days ago")).toBeInTheDocument();
+  expect(screen.getByText("Active today")).toBeInTheDocument();
+  expect(screen.getByText("Never active")).toBeInTheDocument();
   expect(api.engagement).toHaveBeenCalledWith("org");
 });
 

@@ -43,3 +43,38 @@
 .assignment-overview>.ds-panel>h2{overflow-wrap:anywhere}
 .assignment-coverage-scroll .training-table{min-width:900px}
 .assignment-coverage-scroll td:first-child{min-width:240px;max-width:320px}
+/* The assignment type joins the username line only in the phone rows;
+   the desktop table keeps its Assignment column. */
+.assignment-type-inline{display:none}
+
+/* Assignment coverage on phones: rows instead of a 900px table — head
+   line (avatar + name + username · type, Manage right), scope on one
+   line, then a divided Mastered | Due | Attempts strip. All seven
+   columns of information stay visible; nothing scrolls sideways. */
+@media(max-width:600px){
+.assignment-coverage-scroll{overflow:visible}
+.assignment-coverage-scroll .training-table{min-width:0;display:block}
+.assignment-coverage-scroll .training-table thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.assignment-coverage-scroll .training-table tbody{display:block}
+.assignment-coverage-scroll .training-table tr{display:flex;flex-wrap:wrap;align-items:center;padding:12px 0 14px;border-bottom:1px solid var(--er-border)}
+.assignment-coverage-scroll .training-table tbody tr:first-child{padding-top:2px}
+.assignment-coverage-scroll .training-table tbody tr:last-child{border-bottom:0;padding-bottom:2px}
+.assignment-coverage-scroll .training-table tbody tr:hover{background:transparent}
+.assignment-coverage-scroll .training-table td{display:block;border:0;padding:0;white-space:normal}
+.assignment-coverage-scroll td:first-child{min-width:0;max-width:none;flex:1 1 0}
+.assignment-coverage-scroll td:nth-child(2){display:none}
+.assignment-coverage-scroll td:nth-child(7){flex:0 0 auto}
+/* Flex order: head line (student + actions), then scope, then the stat
+   strip — DOM order alone would put the scope ahead of the actions. */
+.assignment-coverage-scroll td:nth-child(3){order:1}
+.assignment-coverage-scroll td:nth-child(4),.assignment-coverage-scroll td:nth-child(5),.assignment-coverage-scroll td:nth-child(6){order:2}
+.assignment-type-inline{display:inline}
+.assignment-manage-more{display:none}
+.assignment-coverage-scroll td:nth-child(3){flex:1 0 100%;margin:8px 0 0;padding-left:52px;color:var(--er-graphite);font-size:var(--er-text-sm)}
+.assignment-coverage-scroll td:nth-child(3) p{display:inline;color:inherit;font-size:inherit}
+.assignment-coverage-scroll td:nth-child(3) p::before{content:" · "}
+.assignment-coverage-scroll td:nth-child(4),.assignment-coverage-scroll td:nth-child(5),.assignment-coverage-scroll td:nth-child(6){display:flex;align-items:baseline;gap:6px;font-size:var(--er-text-base);font-weight:600}
+.assignment-coverage-scroll td:nth-child(4){margin:10px 0 0 52px}
+.assignment-coverage-scroll td:nth-child(5),.assignment-coverage-scroll td:nth-child(6){border-left:1px solid var(--er-border);padding-left:14px;margin:10px 0 0 14px}
+.assignment-coverage-scroll td[data-label]::before{content:attr(data-label);font-size:var(--er-text-xs);font-weight:400;color:var(--er-muted-ink)}
+}

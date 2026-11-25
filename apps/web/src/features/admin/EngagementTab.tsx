@@ -4,6 +4,7 @@ import { api } from "../../api/client";
 import type { EngagementRow } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LoadingState, Notice, Panel, Select } from "../../components/ui";
+import { ProfileAvatar } from "../profile/ProfileAvatar";
 
 type SortKey = "name" | "streak" | "xpThisWeek" | "practiceDaysThisWeek" | "quests" | "level" | "honorsEarned" | "lastActiveAtUtc";
 
@@ -34,6 +35,15 @@ function formatLastActive(value: string | null): string {
   if (days <= 0) return "Today";
   if (days === 1) return "Yesterday";
   return `${days} days ago`;
+}
+
+/** Phone head-line caption: the same last-active fact, phrased as a status. */
+function formatLastActiveCaption(value: string | null): string {
+  if (!value) return "Never active";
+  const days = Math.floor((Date.now() - Date.parse(value)) / 86400000);
+  if (days <= 0) return "Active today";
+  if (days === 1) return "Active yesterday";
+  return `Active ${days} days ago`;
 }
 
 /** Coach engagement overview (§7b): the at-a-glance "who's fading" table.
@@ -101,12 +111,12 @@ export function EngagementTab({ initialSeasonId }: { initialSeasonId?: string | 
         </tr></thead>
         <tbody>{rows.map(row =>
           <tr key={row.studentId}>
-            <td data-label="Student"><strong>{row.name}</strong>{row.practiceDaysThisWeek === 0 && <><br /><Badge tone="neutral">No practice this week</Badge></>}</td>
+            <td data-label="Student"><div className="engagement-head"><span className="profile-person"><ProfileAvatar userId={row.studentId} displayName={row.name} /><strong>{row.name}</strong></span><span className="engagement-active">{formatLastActiveCaption(row.lastActiveAtUtc)}</span></div>{row.practiceDaysThisWeek === 0 && <p className="engagement-flag"><Badge tone="neutral">No practice this week</Badge></p>}</td>
             <td data-label="Streak">{row.streak} {row.streak === 1 ? "day" : "days"}</td>
             <td data-label="XP this week">{row.xpThisWeek.toLocaleString()}</td>
-            <td data-label="Practice days · 7d">{row.practiceDaysThisWeek} / 7</td>
+            <td data-label="Practice days">{row.practiceDaysThisWeek} / 7</td>
             <td data-label="Quests">{formatQuests(row.quests)}</td>
-            <td data-label="Level">{row.levelName}<br /><small>Level {row.level}</small></td>
+            <td data-label="Level">{row.level} · {row.levelName}</td>
             <td data-label="Honors">{row.honorsEarned}</td>
             <td data-label="Last active">{formatLastActive(row.lastActiveAtUtc)}</td>
           </tr>)}

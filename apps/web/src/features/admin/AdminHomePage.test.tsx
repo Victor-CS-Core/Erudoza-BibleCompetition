@@ -5,10 +5,10 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { api } from "../../api/client";
 import type { Season, CoverageStudent } from "../../api/types";
 import { AdminHomePage } from "./AdminHomePage";
-vi.mock("../../api/client", () => ({ request: vi.fn().mockResolvedValue([]), api: { seasons: vi.fn(), coverage: vi.fn() } }));
+vi.mock("../../api/client", () => ({ request: vi.fn().mockResolvedValue([]), api: { seasons: vi.fn(), coverage: vi.fn(), engagement: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org", organizationName: "Academy" } }) }));
 const season = (id: string, status: string): Season => ({ id, organizationId: "org", name: id, status, yearLabel: "2026", ruleProfileKey: "PBE_STYLE_V1", ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, scopeUnitCount: 10, assignmentCount: 2 });
-const student: CoverageStudent = { studentUserId: "u", displayName: "Daniel", userName: "daniel", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 10, eligibleUnitCount: 10, masteredCount: 7, reviewDueCount: 2, attemptCount: 12 };
+const student: CoverageStudent = { studentUserId: "u", displayName: "Daniel", userName: "daniel", assignmentType: "PrimarySpecialist", bookKey: "DAN", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 10, rangeCount: 1, otherRanges: [], eligibleUnitCount: 10, masteredCount: 7, reviewDueCount: 2, attemptCount: 12 };
 function home() { render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter><AdminHomePage /></MemoryRouter></QueryClientProvider>); }
 beforeEach(() => { vi.clearAllMocks(); vi.mocked(api.seasons).mockResolvedValue([season("draft", "Draft"), season("active", "Active")]); vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [student] }); });
 it("defaults to the active season and shows real coverage", async () => {
@@ -40,6 +40,22 @@ it("links the attention items to their filtered student views", async () => {
   home(); await screen.findByRole("table");
   expect(screen.getByRole("link", { name: /passages due for review/ })).toHaveAttribute("href", "/admin/students?filter=review&seasonId=active");
   expect(screen.getByRole("link", { name: /hasn't started the assigned passage yet/ })).toHaveAttribute("href", "/admin/students?filter=not-started&seasonId=active");
+});
+it("labels a multi-range row with the first range plus the extra range count", async () => {
+  vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [{ ...student, endVerse: 3, masteredCount: 3, rangeCount: 2, otherRanges: [{ bookKey: "DAN", startChapter: 2, startVerse: 1, endChapter: 2, endVerse: 2 }], eligibleUnitCount: 5 }] });
+  home(); const table = await screen.findByRole("table");
+  expect(within(table).getByText("DAN 1:1–3 and 1 more range")).toBeInTheDocument();
+  expect(within(table).getByText("3 of 5 verses")).toBeInTheDocument(); // the total spans both ranges, and the label now says so
+});
+it("joins the streak and last-practiced caption from the engagement payload", async () => {
+  vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [student, { ...student, studentUserId: "v", displayName: "Ruth" }] });
+  vi.mocked(api.engagement).mockResolvedValue([
+    { studentId: "u", name: "Daniel", streak: 4, xpThisWeek: 40, practiceDaysThisWeek: 2, level: 2, levelName: "Seeker", honorsEarned: 0, lastActiveAtUtc: new Date().toISOString(), quests: { completedThisWeek: 1, totalThisWeek: 3, rate: 1 / 3 } },
+    { studentId: "v", name: "Ruth", streak: 0, xpThisWeek: 0, practiceDaysThisWeek: 0, level: 1, levelName: "Seedling", honorsEarned: 0, lastActiveAtUtc: null, quests: { completedThisWeek: 0, totalThisWeek: 0, rate: 0 } },
+  ]);
+  home(); await screen.findByRole("table");
+  expect(await screen.findByText("Streak 4 · practiced today")).toBeInTheDocument();
+  expect(screen.getByText("No practice yet")).toBeInTheDocument();
 });
 it("shows no percentage for an empty scope", async () => {
   vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [{ ...student, eligibleUnitCount: 0, masteredCount: 0 }] });

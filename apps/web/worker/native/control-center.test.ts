@@ -246,6 +246,48 @@ it("runs the ticket lifecycle: ingest, convert once, manual create, transitions,
   expect(stale.ageHours).toBeGreaterThanOrEqual(192);
 });
 
+it("pages and filters the support queue so every ticket and email stays reachable", async () => {
+  const get = async (qs: string) => (await (await request(`/api/v1/admin/control-center/support${qs}`)).json()) as Record<string, any>;
+  const before = await get("");
+  expect(before.supportIngestConfigured).toBe(true); // this app configures the ingest token
+  const now = Date.now();
+  const insTicket = (id: string, number: number, status: string, at: number) => app.db.prepare("INSERT INTO SupportTickets(id, number, source, requester_name, subject, status, created_at, updated_at) VALUES(?,?,'manual','Pager',?,?,?,?)").bind(id, number, id, status, at, at).run();
+  // 31 more tickets: the oldest is Open and 10 days old; the other 30 are
+  // Resolved and newer, so the old ticket falls off the first page — exactly
+  // what the fixed LIMIT 30 used to hide for good.
+  await insTicket("ticket-oldest-open", 900, "Open", now - 10 * 86_400_000);
+  for (let i = 0; i < 30; i++) await insTicket(`ticket-bulk-${i}`, 901 + i, "Resolved", now - i * 60_000);
+  const firstPage = await get("");
+  expect(firstPage.ticketStatus).toBe("all");
+  expect(firstPage.ticketsTotal).toBe(before.ticketsTotal + 31);
+  expect(firstPage.tickets).toHaveLength(30);
+  expect(firstPage.tickets.some((t: any) => t.id === "ticket-oldest-open")).toBe(false);
+  const secondPage = await get("?ticketOffset=30");
+  expect(secondPage.tickets.some((t: any) => t.id === "ticket-oldest-open")).toBe(true);
+  const openOnly = await get("?ticketStatus=open");
+  expect(openOnly.ticketStatus).toBe("open");
+  expect(openOnly.ticketsTotal).toBe(before.counts.openTickets + 1);
+  expect(openOnly.tickets.some((t: any) => t.id === "ticket-oldest-open")).toBe(true);
+  const resolvedOnly = await get("?ticketStatus=Resolved");
+  expect(resolvedOnly.ticketsTotal).toBe(30 + (before.ticketsTotal - before.counts.openTickets));
+  expect(resolvedOnly.tickets.every((t: any) => t.status === "Resolved")).toBe(true);
+  expect((await get("?ticketStatus=Bogus")).ticketStatus).toBe("all"); // unknown filters fall back to the full queue
+  // The oldest open ticket is updatable from the filtered view.
+  const updated = await request("/api/v1/admin/control-center/support/tickets/ticket-oldest-open/status", "coach", "POST", { status: "Waiting" });
+  expect(updated.status).toBe(200);
+  expect((await updated.json() as Record<string, any>).ticket.status).toBe("Waiting");
+
+  // Inbox paging: 21 more messages push the oldest past the old LIMIT 20.
+  const insMail = (id: string, at: number) => app.db.prepare("INSERT INTO SupportInbox(id, source_message_id, requester_name, subject, received_at) VALUES(?,?, 'Mail', ?, ?)").bind(id, `src-${id}`, id, at).run();
+  for (let i = 0; i < 21; i++) await insMail(`mail-${i}`, now - i * 60_000);
+  const inboxFirst = await get("");
+  expect(inboxFirst.inboxTotal).toBe(before.inboxTotal + 21);
+  expect(inboxFirst.inbox).toHaveLength(20);
+  expect(inboxFirst.inbox.some((e: any) => e.id === "mail-20")).toBe(false);
+  const inboxSecond = await get("?inboxOffset=20");
+  expect(inboxSecond.inbox.some((e: any) => e.id === "mail-20")).toBe(true);
+});
+
 it("404s the ingest endpoint when its token is not configured", async () => {
   const bare = await createNativeTestApp();
   try {

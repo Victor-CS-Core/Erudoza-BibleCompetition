@@ -12,8 +12,11 @@
 .command-trigger>span { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .command-trigger svg { flex-shrink:0; }
 .command-trigger kbd { margin-left:auto; flex-shrink:0; }
-.command-menu-wrap { position:relative; min-width:0; }
+.command-menu-wrap { position:relative; min-width:0; flex:0 1 auto; }
 .command-account-cluster { grid-area:account; display:flex; align-items:center; gap:4px; min-width:0; }
+/* A squeezed cluster compresses the account button (its name ellipsizes)
+   instead of letting the button's contents spill past the masthead. */
+.command-masthead .command-menu-wrap>.ds-button { max-width:100%; }
 .command-bell-wrap { position:relative; flex-shrink:0; }
 .command-bell { position:relative; color:var(--er-on-navy); }
 .command-bell:hover,.command-bell[aria-expanded=true] { background:color-mix(in srgb,var(--er-on-navy) 12%,transparent); }
@@ -48,7 +51,7 @@
 .command-shortcut-bar { background:var(--er-card); border-bottom:1px solid var(--er-border); }
 .command-shortcut-inner { max-width:1600px; margin:auto; display:flex; align-items:center; gap:20px; padding:16px 36px; min-width:0; }
 .command-shortcuts { display:flex; gap:12px; overflow-x:auto; padding:3px; flex:1; min-width:0; }
-.command-shortcut { display:flex; align-items:center; flex-shrink:0; border:1px solid var(--er-border); border-radius:var(--er-radius-control); min-height:42px; }
+.command-shortcut { display:flex; align-items:center; flex-shrink:0; border:1px solid var(--er-border); border-radius:var(--er-radius-control); min-height:44px; }
 .command-shortcut>a { display:flex; gap:8px; align-items:center; padding:10px 4px 10px 12px; white-space:nowrap; font-size:var(--er-text-sm); }
 .command-shortcut.is-current { border-color:var(--er-teal); background:var(--er-selected); color:var(--er-action-blue); }
 .command-shortcut svg { width:18px; height:18px; }
@@ -111,9 +114,15 @@
 }
 @media (pointer:coarse) { .command-pin.ds-button { min-width:44px; min-height:44px; }.command-context-links>a { min-height:44px; } }
 
-/* Center the phone wordmark between equal search and account touch targets. */
+/* Center the phone wordmark between equal search and account touch targets.
+   The tracks stay auto / 1fr / auto exactly like the base rule: the compact
+   phone look comes from the item rules below (44px icon buttons, hidden name
+   and chevron), which size the auto tracks to 44px on their own. Fixed 44px
+   tracks are deliberately NOT redeclared here — they are the one masthead
+   declaration that can shove the account cluster past the right edge if it
+   is ever applied at a wider layout (the 1440px practice-page overflow). */
 @media(max-width:760px) {
-  .command-masthead-inner { grid-template-columns:44px minmax(0,1fr) 44px; grid-template-areas:"search brand account"; min-height:64px; padding:10px 12px; gap:4px; }
+  .command-masthead-inner { grid-template-areas:"search brand account"; min-height:64px; padding:10px 12px; gap:4px; }
   .command-brand { justify-self:center; }
   .command-brand .er-wordmark { gap:8px; }
   .command-brand .er-wordmark-name { font-size:23px; }

@@ -1,0 +1,466 @@
+{
+  "today": {
+    "status": 200,
+    "body": {
+      "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "seasonName": "Synthetic study",
+      "seasonStatus": "Active",
+      "localDate": "2026-11-25",
+      "preferences": {
+        "timeZone": "UTC",
+        "weeklyTarget": 5,
+        "pending": null
+      },
+      "week": {
+        "weekStartLocalDate": "2026-11-23",
+        "timeZone": "UTC",
+        "target": 5,
+        "completedDays": 0,
+        "days": [
+          {
+            "localDate": "2026-11-23",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-24",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-25",
+            "credited": false,
+            "isToday": true
+          },
+          {
+            "localDate": "2026-11-26",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-27",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-28",
+            "credited": false,
+            "isToday": false
+          },
+          {
+            "localDate": "2026-11-29",
+            "credited": false,
+            "isToday": false
+          }
+        ]
+      },
+      "mission": {
+        "id": null,
+        "revision": null,
+        "status": "Suggested",
+        "scopeVersion": "8fb1a9adcad20ac93818fbea50da90d485dfaf2472b4b9f0809114b4d7250e8a",
+        "steps": [
+          {
+            "kind": "Review",
+            "target": 0,
+            "completed": 0,
+            "status": "NotNeeded",
+            "sessionId": null
+          },
+          {
+            "kind": "Practice",
+            "target": 8,
+            "completed": 0,
+            "status": "Pending",
+            "sessionId": null
+          }
+        ],
+        "explanation": "Nothing is due for review."
+      },
+      "nextAction": {
+        "label": "Start practice drill",
+        "mode": "Practice",
+        "sessionId": null
+      },
+      "honors": [
+        {
+          "key": "exact-recall",
+          "ruleVersion": "training-v1",
+          "title": "Exact Recall",
+          "completed": 0,
+          "target": 5,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "reference-ready",
+          "ruleVersion": "training-v1",
+          "title": "Reference Ready",
+          "completed": 0,
+          "target": 10,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "chapter-strong",
+          "ruleVersion": "training-v1",
+          "title": "Chapter Strong",
+          "completed": 0,
+          "target": 3,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "full-coverage",
+          "ruleVersion": "training-v1",
+          "title": "Full Coverage",
+          "completed": 1,
+          "target": 3,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "steady-study",
+          "ruleVersion": "training-v1",
+          "title": "Steady Study",
+          "completed": 0,
+          "target": 4,
+          "earnedAtUtc": null,
+          "scopeLabel": "Academy practice weeks",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "review-complete",
+          "ruleVersion": "training-v1",
+          "title": "Review Complete",
+          "completed": 0,
+          "target": 1,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "streak-7",
+          "ruleVersion": "training-v1",
+          "title": "Week Streak",
+          "completed": 0,
+          "target": 7,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "streak-14",
+          "ruleVersion": "training-v1",
+          "title": "Fortnight Streak",
+          "completed": 0,
+          "target": 14,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        },
+        {
+          "key": "streak-30",
+          "ruleVersion": "training-v1",
+          "title": "Month Streak",
+          "completed": 0,
+          "target": 30,
+          "earnedAtUtc": null,
+          "scopeLabel": "Assigned scope",
+          "evidenceSessionId": null
+        }
+      ],
+      "xp": {
+        "total": 60,
+        "level": 1,
+        "levelName": "Seedling",
+        "xpIntoLevel": 60,
+        "xpForNext": 40
+      },
+      "quests": [
+        {
+          "key": "sharpshooter",
+          "title": "Sharpshooter",
+          "description": "Score 90% or better in one Practice session",
+          "target": 1,
+          "progress": 1,
+          "completed": true,
+          "xpReward": 25
+        },
+        {
+          "key": "marathon",
+          "title": "Marathon",
+          "description": "Finish a whole practice session",
+          "target": 1,
+          "progress": 0,
+          "completed": false,
+          "xpReward": 25
+        },
+        {
+          "key": "explorer",
+          "title": "Explorer",
+          "description": "Practice a chapter you have barely started",
+          "target": 1,
+          "progress": 1,
+          "completed": true,
+          "xpReward": 25
+        }
+      ],
+      "streak": {
+        "current": 0,
+        "best": 0,
+        "state": "none"
+      },
+      "streakNudge": false
+    }
+  },
+  "honors": {
+    "status": 200,
+    "body": [
+      {
+        "key": "exact-recall",
+        "ruleVersion": "training-v1",
+        "title": "Exact Recall",
+        "completed": 0,
+        "target": 5,
+        "earnedAtUtc": null,
+        "scopeLabel": "Assigned scope",
+        "evidenceSessionId": null
+      },
+      {
+        "key": "reference-ready",
+        "ruleVersion": "training-v1",
+        "title": "Reference Ready",
+        "completed": 0,
+        "target": 10,
+        "earnedAtUtc": null,
+        "scopeLabel": "Assigned scope",
+        "evidenceSessionId": null
+      },
+      {
+        "key": "chapter-strong",
+        "ruleVersion": "training-v1",
+        "title": "Chapter Strong",
+        "completed": 0,
+        "target": 3,
+        "earnedAtUtc": null,
+        "scopeLabel": "Assigned scope",
+        "evidenceSessionId": null
+      },
+      {
+        "key": "full-coverage",
+        "ruleVersion": "training-v1",
+        "title": "Full Coverage",
+        "completed": 1,
+        "target": 3,
+        "earnedAtUtc": null,
+        "scopeLabel": "Assigned scope",
+        "evidenceSessionId": null
+      },
+      {
+        "key": "steady-study",
+        "ruleVersion": "training-v1",
+        "title": "Steady Study",
+        "completed": 0,
+        "target": 4,
+        "earnedAtUtc": null,
+        "scopeLabel": "Academy practice weeks",
+        "evidenceSessionId": null
+      },
+      {
+        "key": "review-complete",
+        "ruleVersion": "training-v1",
+        "title": "Review Complete",
+        "completed": 0,
+        "target": 1,
+        "earnedAtUtc": null,
+        "scopeLabel": "Assigned scope",
+        "evidenceSessionId": null
+      },
+      {
+        "key": "streak-7",
+        "ruleVersion": "training-v1",
+        "title": "Week Streak",
+        "completed": 0,
+        "target": 7,
+        "earnedAtUtc": null,
+        "scopeLabel": "Assigned scope",
+        "evidenceSessionId": null
+      },
+      {
+        "key": "streak-14",
+        "ruleVersion": "training-v1",
+        "title": "Fortnight Streak",
+        "completed": 0,
+        "target": 14,
+        "earnedAtUtc": null,
+        "scopeLabel": "Assigned scope",
+        "evidenceSessionId": null
+      },
+      {
+        "key": "streak-30",
+        "ruleVersion": "training-v1",
+        "title": "Month Streak",
+        "completed": 0,
+        "target": 30,
+        "earnedAtUtc": null,
+        "scopeLabel": "Assigned scope",
+        "evidenceSessionId": null
+      }
+    ]
+  },
+  "journey": {
+    "status": 200,
+    "body": {
+      "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "scopeVersion": "8fb1a9adcad20ac93818fbea50da90d485dfaf2472b4b9f0809114b4d7250e8a",
+      "after": null,
+      "chapters": [
+        {
+          "bookKey": "GEN",
+          "chapter": 1,
+          "scopeLabel": "Assigned scope",
+          "eligibleCount": 3,
+          "seenCount": 1,
+          "strongCount": 0,
+          "passages": [
+            {
+              "knowledgeUnitId": "dddddddd-dddd-4ddd-8ddd-000000000001",
+              "title": "Genesis 1:1",
+              "level": "Unseen",
+              "algorithmVersion": "Unknown",
+              "skills": {
+                "exactWording": 0,
+                "recognition": 0,
+                "reference": 0,
+                "sequence": 0,
+                "factualRecall": 0
+              },
+              "dueAtUtc": null
+            },
+            {
+              "knowledgeUnitId": "dddddddd-dddd-4ddd-8ddd-000000000002",
+              "title": "Genesis 1:2",
+              "level": "Unseen",
+              "algorithmVersion": "Unknown",
+              "skills": {
+                "exactWording": 0,
+                "recognition": 0,
+                "reference": 0,
+                "sequence": 0,
+                "factualRecall": 0
+              },
+              "dueAtUtc": null
+            },
+            {
+              "knowledgeUnitId": "dddddddd-dddd-4ddd-8ddd-000000000003",
+              "title": "Genesis 1:3",
+              "level": "Review",
+              "algorithmVersion": "v3-partial-credit",
+              "skills": {
+                "exactWording": 18,
+                "recognition": 10,
+                "reference": 0,
+                "sequence": 0,
+                "factualRecall": 0
+              },
+              "dueAtUtc": "2026-11-26T06:24:26.883Z"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "chapters": {
+    "status": 200,
+    "body": {
+      "seasonId": "cccccccc-0000-0000-0000-000000000001",
+      "ruleVersion": "pbe-chapter-v1",
+      "scopeVersion": null,
+      "snapshotId": null,
+      "chapterKey": null,
+      "work": {
+        "id": null,
+        "state": "NotStarted",
+        "stage": null,
+        "reason": null
+      },
+      "currentAvailable": true,
+      "historyAvailable": false,
+      "asOfUtc": null,
+      "dueRefreshAtUtc": null,
+      "nextCursor": null,
+      "view": "Chapters",
+      "items": []
+    }
+  },
+  "chapterStamps": {
+    "status": 200,
+    "body": {
+      "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      "ruleVersion": "pbe-chapter-v1",
+      "scopeVersion": null,
+      "snapshotId": null,
+      "chapterKey": null,
+      "work": {
+        "id": null,
+        "state": "Blocked",
+        "stage": null,
+        "reason": "PbeDisabled"
+      },
+      "currentAvailable": false,
+      "historyAvailable": false,
+      "asOfUtc": null,
+      "dueRefreshAtUtc": null,
+      "nextCursor": null,
+      "view": "Stamps",
+      "items": []
+    }
+  },
+  "cooperation": {
+    "status": 200,
+    "body": {
+      "seasonId": "cccccccc-0000-0000-0000-000000000001",
+      "ruleVersion": "pbe-cooperation-v1",
+      "scopeVersion": null,
+      "snapshotId": null,
+      "state": "NotStarted",
+      "reason": null,
+      "checkedAtUtc": null,
+      "dueRefreshAtUtc": null,
+      "rosterStudents": 0,
+      "unknownStudents": 0,
+      "scripture": null,
+      "introduction": null,
+      "own": null,
+      "work": {
+        "id": null,
+        "next": "Continue"
+      }
+    }
+  },
+  "teamActivity": {
+    "status": 200,
+    "body": {
+      "practicedToday": 0,
+      "practicedThisWeek": 0,
+      "memberCount": 1
+    }
+  },
+  "preferences": {
+    "status": 200,
+    "body": {
+      "timeZone": "UTC",
+      "weeklyTarget": 5,
+      "pending": {
+        "weeklyTarget": 4,
+        "timeZone": "America/New_York",
+        "effectiveAtUtc": "2026-11-30T00:00:00.000Z"
+      }
+    }
+  }
+}

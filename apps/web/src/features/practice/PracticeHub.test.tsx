@@ -125,6 +125,18 @@ describe("Coach Team Practice events", () => {
     expect(within(current).getByText(/4 players/)).toBeInTheDocument();
   });
 
+  it("uses singular labels for one-question, one-player rooms", async () => {
+    vi.mocked(practiceApi.bootstrap).mockResolvedValue({ ...data, rooms: [
+      { id: "solo", seasonId: "daniel", status: "Lobby", teamSize: 2, questionCount: 1, coached: false, ownerId: "other", memberCount: 1 },
+      { id: "pair", seasonId: "daniel", status: "Lobby", teamSize: 2, questionCount: 2, coached: true, ownerId: "other", memberCount: 2 },
+    ] });
+    mount();
+    const current = await screen.findByRole("region", { name: "Current room" });
+    expect(within(current).getByText(/1 question · 1 player/)).toBeInTheDocument();
+    expect(screen.getByText(/2 questions · Coach-led · 2 players/)).toBeInTheDocument();
+    expect(screen.queryByText(/1 questions|1 players/)).not.toBeInTheDocument();
+  });
+
   it("tells a coach to enable Team Practice and lets them enable it", async () => {
     vi.mocked(practiceApi.bootstrap).mockResolvedValueOnce({ ...data, enabled: false }).mockResolvedValue(data);
     mount();

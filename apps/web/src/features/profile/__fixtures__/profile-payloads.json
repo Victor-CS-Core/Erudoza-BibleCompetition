@@ -1,0 +1,264 @@
+{
+  "me": {
+    "status": 200,
+    "body": {
+      "userId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      "displayName": "Coach",
+      "avatarHonorKey": "solo:exact-recall",
+      "honors": [
+        {
+          "key": "solo:exact-recall",
+          "title": "Exact Recall",
+          "category": "Scripture",
+          "requirement": "Reach 90 in exact wording on 12 distinct assigned passages.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": "2026-11-20T00:00:00Z"
+        },
+        {
+          "key": "solo:reference-ready",
+          "title": "Reference Ready",
+          "category": "Scripture",
+          "requirement": "Reach 90 in reference recall on 20 distinct assigned passages.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "solo:chapter-strong",
+          "title": "Chapter Strong",
+          "category": "Scripture",
+          "requirement": "Bring every assigned passage in one chapter, with at least 10 passages, to the honor standard: exact wording 90, reference 80, recognition 80.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "solo:full-coverage",
+          "title": "Complete Mastery",
+          "category": "Scripture",
+          "requirement": "Bring every assigned passage in a scope of at least 30 passages to the honor standard: exact wording 90, reference 80, recognition 80.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "solo:steady-study",
+          "title": "Proven Retention",
+          "category": "Scripture",
+          "requirement": "Retain the honor standard (exact wording 90, reference 80, recognition 80) on 20 distinct passages and pass an unaided advanced typed retest at least 48 hours after first reaching that standard on each.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "solo:review-complete",
+          "title": "Review Complete",
+          "category": "Scripture",
+          "requirement": "Correctly answer 8 distinct due passages on the first accepted advanced typed review attempt, without hints, while meeting the honor standard (exact wording 90, reference 80, recognition 80).",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:first-fellowship",
+          "title": "First Fellowship",
+          "category": "Team Practice",
+          "requirement": "Reach 90% personal accuracy across 10 distinct manually submitted questions as scribe.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:team-steady",
+          "title": "Team Steady",
+          "category": "Team Practice",
+          "requirement": "Complete 3 matches with at least 90% team accuracy and reach 90% personal accuracy across 30 distinct manual questions.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:shared-scribe",
+          "title": "Shared Scribe",
+          "category": "Team Practice",
+          "requirement": "Reach 95% personal accuracy across 30 distinct manual questions from at least 10 passages.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:team-precision",
+          "title": "Team Precision",
+          "category": "Team Practice",
+          "requirement": "Reach 95% team accuracy across 50 distinct questions from 15 passages, plus 90% personal accuracy across 10 distinct manual questions.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "team:rehearsal-complete",
+          "title": "Rehearsal Complete",
+          "category": "Team Practice",
+          "requirement": "Complete a resolved coached 90-question rehearsal with 90% team accuracy, plus 90% personal accuracy across 10 distinct manual questions.",
+          "ruleVersion": "mastery-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:first-rehearsal",
+          "title": "First Rehearsal",
+          "category": "Simulation",
+          "requirement": "Complete one simulation.",
+          "target": 1,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:event-ready",
+          "title": "Event Ready",
+          "category": "Simulation",
+          "requirement": "Complete a 90-question Full Event at standard time with halftime and two readings.",
+          "target": 1,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:steady-team",
+          "title": "Steady Team",
+          "category": "Simulation",
+          "requirement": "Complete five simulations across at least three UTC dates.",
+          "target": 5,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:trusted-scribe",
+          "title": "Trusted Scribe",
+          "category": "Simulation",
+          "requirement": "Explicitly submit answers to 30 distinct questions as scribe in completed simulations.",
+          "target": 30,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "simulation:team-precision",
+          "title": "Team Precision",
+          "category": "Simulation",
+          "requirement": "Resolve at least 30 distinct questions with aggregate team accuracy of at least 90%; latest results count and none may be pending.",
+          "target": 30,
+          "ruleVersion": "simulation-v1",
+          "earnedAtUtc": null
+        }
+      ],
+      "unlockedCosmetics": [],
+      "cosmeticLocks": [
+        {
+          "id": "background:starlight",
+          "requirement": "Reach a 7-day practice streak"
+        },
+        {
+          "id": "style:buzz",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:waves",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:locs",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:braids",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:natural-curls",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "style:low-bun",
+          "requirement": "Reach level 4 (Keeper)"
+        },
+        {
+          "id": "sash:2",
+          "requirement": "Earn any Team Practice Achievement patch"
+        },
+        {
+          "id": "sash:3",
+          "requirement": "Earn any Simulation Achievement patch"
+        }
+      ],
+      "character": {
+        "bodyType": "male",
+        "style": "curls",
+        "hairColor": "brown",
+        "skin": "medium",
+        "eyes": "brown",
+        "attire": "student",
+        "background": "sunrise",
+        "slots": [
+          "solo:exact-recall",
+          null,
+          null
+        ]
+      },
+      "avatarKind": "character",
+      "characterVersion": 1,
+      "shareOptions": {
+        "showName": true,
+        "showBrand": true,
+        "showQR": false
+      },
+      "sharePatches": [],
+      "canUseMasterGuide": true
+    }
+  },
+  "notifications": {
+    "status": 200,
+    "body": {
+      "notifications": [
+        {
+          "id": "notif-unread",
+          "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+          "seasonName": "Synthetic study",
+          "studentUserId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "actorUserId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb9",
+          "actorDisplayName": "Coach Pat",
+          "action": "added",
+          "citation": "Genesis 1:1",
+          "readAtUtc": null,
+          "createdAtUtc": "2026-11-24T09:00:00Z",
+          "summary": "Coach Pat added Genesis 1:1"
+        },
+        {
+          "id": "notif-read",
+          "seasonId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+          "seasonName": "Synthetic study",
+          "studentUserId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          "actorUserId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb9",
+          "actorDisplayName": "Coach Pat",
+          "action": "removed",
+          "citation": "Genesis 1:2",
+          "readAtUtc": "2026-11-24T10:00:00Z",
+          "createdAtUtc": "2026-11-23T09:00:00Z",
+          "summary": "Coach Pat removed Genesis 1:2"
+        }
+      ],
+      "unreadCount": 1
+    }
+  },
+  "identities": {
+    "status": 200,
+    "body": [
+      {
+        "userId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "avatarHonorKey": "solo:exact-recall",
+        "avatarKind": "character",
+        "character": {
+          "bodyType": "male",
+          "style": "curls",
+          "hairColor": "brown",
+          "skin": "medium",
+          "eyes": "brown"
+        }
+      },
+      {
+        "userId": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb9",
+        "avatarHonorKey": null,
+        "avatarKind": "initials",
+        "character": null
+      }
+    ]
+  }
+}

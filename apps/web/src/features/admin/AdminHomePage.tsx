@@ -4,18 +4,30 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../../api/client";
 import { trainingApi } from "../../api/training";
+import type { EngagementRow } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
 import { AppIcon } from "../../components/AppIcon";
 import type { IconName } from "../../components/AppIcon";
 import { Badge, Button, LinkButton, Notice, PageHeader, Panel, Select } from "../../components/ui";
 import { SeasonStatusBadge } from "./SeasonStatusBadge";
-import { formatPassageCitation } from "./passageRanges";
+import { formatCoverageScope } from "./passageRanges";
 
 const startOfLocalDayMs = () => {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   return d.getTime();
 };
+
+/** Phone progress-row caption: the student's streak and last practice,
+ *  joined from the engagement payload this page already fetches. Returns
+ *  null when the student has no engagement row, so the line drops out. */
+function progressActivity(row: EngagementRow | undefined): string | null {
+  if (!row) return null;
+  if (!row.lastActiveAtUtc) return "No practice yet";
+  const days = Math.floor((Date.now() - Date.parse(row.lastActiveAtUtc)) / 86400000);
+  const when = days <= 0 ? "practiced today" : days === 1 ? "practiced yesterday" : `practiced ${days} days ago`;
+  return `Streak ${row.streak} · ${when}`;
+}
 
 type AttentionItem = { key: string; icon: IconName; text: string; /** Deep link to the Students view already filtered to this item's students. */ to?: string };
 
@@ -38,6 +50,7 @@ export function AdminHomePage() {
     staleTime: 30_000,
   });
   const seasonEngagement = (engagement.data ?? []).filter((row) => seasonStudentIds.has(row.studentId));
+  const engagementByStudentId = new Map((engagement.data ?? []).map((row) => [row.studentId, row]));
   const idleStudents = seasonEngagement.filter((row) => row.practiceDaysThisWeek === 0);
   const todayStartMs = startOfLocalDayMs();
   // Compare the UTC activity timestamp against the coach's local day start:
@@ -73,7 +86,8 @@ export function AdminHomePage() {
         </Panel>}
         <Panel><div className="training-section-heading"><h2>Student progress</h2><Link to="/admin/students">Student directory →</Link></div>{rows.length ? <div className="training-table-scroll"><table className="training-table training-progress-table"><thead><tr><th>Student</th><th>Assigned passage</th><th>Mastery</th><th>Review</th></tr></thead><tbody>{rows.map((s, index) => {
           const percent = s.eligibleUnitCount > 0 ? Math.min(100, Math.round(s.masteredCount / s.eligibleUnitCount * 100)) : null;
-          return <tr key={`${s.studentUserId}-${index}`}><td><Link className="training-student-link" to={`/admin/seasons/${selected.id}/students/${s.studentUserId}/progress`}><ProfileAvatar userId={s.studentUserId} displayName={s.displayName} /><strong>{s.displayName}</strong></Link></td><td data-label="Assigned passage">{formatPassageCitation(s)}</td><td data-label="Mastery"><div className="training-table-mastery"><strong>{percent === null ? "—" : `${percent}%`}</strong>{percent !== null && <progress value={percent} max={100} aria-label={`${s.displayName} assigned passage mastery`} />}</div><small>{s.masteredCount} / {s.eligibleUnitCount} verses</small></td><td data-label="Review"><Badge tone={s.reviewDueCount ? "warning" : "neutral"}>{s.reviewDueCount ? `${s.reviewDueCount} due` : s.attemptCount ? "Up to date" : "Not started"}</Badge></td></tr>;
+          const activity = progressActivity(engagementByStudentId.get(s.studentUserId));
+          return <tr key={`${s.studentUserId}-${index}`}><td><Link className="training-student-link" to={`/admin/seasons/${selected.id}/students/${s.studentUserId}/progress`}><ProfileAvatar userId={s.studentUserId} displayName={s.displayName} size={40} /><strong>{s.displayName}</strong></Link></td><td data-label="Assigned passage">{formatCoverageScope(s)}</td><td data-label="Mastery"><div className="training-table-mastery"><strong>{percent === null ? "—" : `${percent}%`}</strong>{percent !== null && <progress value={percent} max={100} aria-label={`${s.displayName} assigned passage mastery`} />}</div><small>{s.masteredCount} of {s.eligibleUnitCount} verses</small>{activity && <p className="training-progress-activity">{activity}</p>}</td><td data-label="Review"><Badge tone={s.reviewDueCount ? "warning" : "neutral"}>{s.reviewDueCount ? `${s.reviewDueCount} due` : s.attemptCount ? "Up to date" : "Not started"}</Badge></td></tr>;
         })}</tbody></table></div> : <div className="training-empty"><p>No students assigned to this season yet.</p><Link to={`/admin/seasons/${selected.id}?step=students`}>Assign your first passage →</Link></div>}</Panel>
       </>}
       <div className="training-coach-actions"><div className="training-controls"><LinkButton to={`/admin/seasons/${selected.id}?step=students`}>Manage assignments <AppIcon name="arrow" /></LinkButton><LinkButton variant="secondary" to="/admin/practice">Plan team practice <AppIcon name="arrow" /></LinkButton></div></div>

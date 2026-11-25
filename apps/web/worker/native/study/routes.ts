@@ -613,12 +613,14 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
         if (!mergedQuests.has(key))
           mergedQuests.set(key, { key, title: QUEST_DEFS[key].title });
       session.training.questsCompleted = [...mergedQuests.values()];
+      let completionXpTotal: number | undefined;
       if (questXp.length) {
         const awarded = await awardXp(ctx, qw, { seasonId: session.seasonId, localDate: qLocalDate, atUtc: session.completedAtUtc, events: questXp });
         session.training.xpEarned = (session.training.xpEarned ?? 0) + awarded.awarded;
+        completionXpTotal = awarded.totalAfter;
         if (awarded.leveledUp) session.training.leveledUp = { from: session.training.leveledUp?.from ?? awarded.leveledUp.from, to: awarded.leveledUp.to };
       }
-      session.recap ??= await makeRecap(ctx,session); const bests = await recordPersonalBests(ctx, session); if (bests.beaten.accuracyBeaten || bests.beaten.correctBeaten) session.recap.personalBest = bests.beaten; await atomic(ctx, 'study.session.complete', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision), ...bests.writes.statements, ...qw.statements, dailyActivityIncrement(ctx.env.DB, qLocalDate, ctx.orgId)], [{ kind: 'session', id: sessionId, revision: stored.revision }, ...bests.writes.guards, ...qw.guards]); }
+      session.recap ??= await makeRecap(ctx,session,completionXpTotal); const bests = await recordPersonalBests(ctx, session); if (bests.beaten.accuracyBeaten || bests.beaten.correctBeaten) session.recap.personalBest = bests.beaten; await atomic(ctx, 'study.session.complete', [ctx.store.update('session', sessionId, ctx.orgId, session, stored.revision), ...bests.writes.statements, ...qw.statements, dailyActivityIncrement(ctx.env.DB, qLocalDate, ctx.orgId)], [{ kind: 'session', id: sessionId, revision: stored.revision }, ...bests.writes.guards, ...qw.guards]); }
     return json(summary(session));
   });
   if (!action && method === 'GET') {

@@ -228,22 +228,40 @@ const inboxDto = (r: InboxRow) => ({
   ticketNumber: r.ticket_number ?? null,
 });
 
+export const TICKET_PAGE_SIZE = 30, INBOX_PAGE_SIZE = 20;
+const secretPresent = (value: string | undefined) => value !== undefined && value.length > 0;
+/** Queue views the support endpoint can serve: every ticket, only the
+ *  unresolved ones, or one exact status. Anything else falls back to "all". */
+export type TicketFilter = "all" | "open" | TicketStatus;
+
 async function support(ctx: RequestContext) {
   const db = ctx.env.DB, now = Date.now();
-  const [counts, inbox, tickets] = await Promise.all([
+  const q = new URL(ctx.request.url).searchParams;
+  const statusParam = q.get("ticketStatus");
+  const ticketStatus: TicketFilter = statusParam === "open" || (TICKET_STATUSES as readonly string[]).includes(statusParam ?? "") ? statusParam as TicketFilter : "all";
+  const offsetParam = (name: string) => { const n = Number.parseInt(q.get(name) ?? "", 10); return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0; };
+  const ticketOffset = offsetParam("ticketOffset"), inboxOffset = offsetParam("inboxOffset");
+  const filter = ticketStatus === "open" ? { where: "status != 'Resolved'", binds: [] as string[] }
+    : ticketStatus === "all" ? { where: "1 = 1", binds: [] as string[] }
+    : { where: "status = ?", binds: [ticketStatus] };
+  const [counts, inbox, inboxTotal, tickets, ticketsTotal] = await Promise.all([
     db.prepare(`SELECT
       (SELECT count(*) FROM SupportInbox WHERE ticket_id IS NULL) AS newEmails,
       (SELECT count(*) FROM SupportTickets WHERE status != 'Resolved') AS openTickets,
       (SELECT count(*) FROM SupportTickets WHERE status != 'Resolved' AND created_at < ?) AS aging,
       (SELECT count(*) FROM SupportTickets WHERE status != 'Resolved' AND created_at < ?) AS stale`)
       .bind(now - AGING_MS, now - STALE_MS).first<{ newEmails: number; openTickets: number; aging: number; stale: number }>(),
-    db.prepare("SELECT i.*, t.number AS ticket_number FROM SupportInbox i LEFT JOIN SupportTickets t ON t.id = i.ticket_id ORDER BY i.received_at DESC LIMIT 20").all<InboxRow>(),
-    db.prepare("SELECT * FROM SupportTickets ORDER BY created_at DESC LIMIT 30").all<TicketRow>(),
+    db.prepare("SELECT i.*, t.number AS ticket_number FROM SupportInbox i LEFT JOIN SupportTickets t ON t.id = i.ticket_id ORDER BY i.received_at DESC LIMIT ? OFFSET ?").bind(INBOX_PAGE_SIZE, inboxOffset).all<InboxRow>(),
+    db.prepare("SELECT count(*) AS total FROM SupportInbox").first<{ total: number }>(),
+    db.prepare(`SELECT * FROM SupportTickets WHERE ${filter.where} ORDER BY created_at DESC LIMIT ? OFFSET ?`).bind(...filter.binds, TICKET_PAGE_SIZE, ticketOffset).all<TicketRow>(),
+    db.prepare(`SELECT count(*) AS total FROM SupportTickets WHERE ${filter.where}`).bind(...filter.binds).first<{ total: number }>(),
   ]);
   return json({
     supportAddress: SUPPORT_ADDRESS,
+    supportIngestConfigured: secretPresent(ctx.env.SUPPORT_INGEST_TOKEN),
     counts: { newEmails: counts?.newEmails ?? 0, openTickets: counts?.openTickets ?? 0, aging48h: counts?.aging ?? 0, stale7d: counts?.stale ?? 0 },
     inbox: inbox.results.map(inboxDto), tickets: tickets.results.map(ticketDto),
+    ticketStatus, ticketsTotal: ticketsTotal?.total ?? 0, inboxTotal: inboxTotal?.total ?? 0,
   });
 }
 

@@ -86,7 +86,7 @@
 .ds-button:active:not(:disabled) { transform: translateY(1px); }
 .ds-button:disabled, fieldset:disabled .ds-button { color: var(--er-muted-ink); background: var(--er-surface-soft); border-color: var(--er-border-strong); }
 .ds-button-compact { min-height:32px; padding:4px var(--er-space-3); font-size:var(--er-text-xs); }
-@media(pointer:coarse){.ds-button-compact{min-height:44px}}
+@media(pointer:coarse){.ds-button-compact{min-height:44px;min-width:44px}}
 .ds-input { appearance: auto; width: 100%; min-width: 0; min-height: var(--er-control-height); padding: 10px var(--er-space-3); border: 1px solid var(--er-border-strong); border-radius: var(--er-radius-control); background: var(--er-card); color: var(--er-ink-navy); font: 400 var(--er-text-base)/1.5 var(--er-font-ui); accent-color: var(--er-teal); }
 .ds-select { padding-right: var(--er-space-7); }
 .ds-textarea { min-height: 120px; resize: vertical; }
@@ -137,8 +137,11 @@
 .ds-table-scroll, .training-table-scroll { position: relative; overflow-x: auto; }
 /* Sortable table headers: button reset so the heading style comes from the th. */
 .ds-table-sort { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; text-align: left; min-height: 44px; }
-/* Engagement "who's fading" view: mobile sort controls + card layout for the table. */
+/* Engagement "who's fading" view: mobile sort controls + row layout for the table. */
 .engagement-mobile-controls, .engagement-sort-caption { display: none; }
+/* The last-active caption belongs to the phone head line; the desktop
+   table keeps its Last active column. */
+.engagement-active { display: none; }
 @media (max-width: 760px) {
   .engagement-mobile-controls { display: flex; align-items: end; gap: var(--er-space-2); margin: var(--er-space-4) 0 var(--er-space-1); }
   .engagement-mobile-controls > label { display: grid; gap: var(--er-space-1); flex: 1; min-width: 0; font-size: var(--er-text-sm); font-weight: 600; }
@@ -147,13 +150,24 @@
   #engagement .training-table-scroll { overflow: visible; }
   #engagement .training-table thead { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   #engagement .training-table, #engagement .training-table tbody { display: block; }
-  #engagement .training-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--er-space-3); border: 1px solid var(--er-border); border-radius: var(--er-radius-card); background: var(--er-card); padding: var(--er-space-4); margin-bottom: var(--er-space-3); }
-  #engagement .training-table tbody tr:hover { background: var(--er-card); }
-  #engagement .training-table td { display: block; border: 0; padding: 0; }
-  #engagement .training-table td::before { content: attr(data-label); display: block; font-size: var(--er-text-xs); color: var(--er-muted-ink); margin-bottom: var(--er-space-1); }
-  #engagement .training-table td:first-child { grid-column: 1 / -1; }
+  /* Hairline rows, not bordered cards: head line (avatar + name, last
+     active right), the no-practice badge on its own line, then six stats
+     in a fixed 3×2 divided grid — identical geometry for every student. */
+  #engagement .training-table tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 12px 0 14px; border-bottom: 1px solid var(--er-border); }
+  #engagement .training-table tbody tr:first-child { padding-top: 6px; }
+  #engagement .training-table tbody tr:last-child { border-bottom: 0; padding-bottom: 2px; }
+  #engagement .training-table tbody tr:hover { background: transparent; }
+  #engagement .training-table td { display: block; border: 0; padding: 2px 6px 2px 0; font-size: var(--er-text-base); font-weight: 600; }
+  #engagement .training-table td::before { content: attr(data-label); display: block; font-size: var(--er-text-xs); font-weight: 400; color: var(--er-muted-ink); margin-bottom: 2px; }
+  #engagement .training-table td:first-child { grid-column: 1 / -1; padding: 0; font-weight: 400; }
   #engagement .training-table td:first-child::before { content: none; }
-  #engagement .training-table td:first-child strong { font-size: var(--er-text-base); }
+  #engagement .training-table td:nth-child(3), #engagement .training-table td:nth-child(4), #engagement .training-table td:nth-child(6), #engagement .training-table td:nth-child(7) { border-left: 1px solid var(--er-border); padding-left: 10px; }
+  #engagement .training-table td:nth-child(n+5) { margin-top: 10px; }
+  #engagement .training-table td:last-child { display: none; }
+  #engagement .engagement-head { display: flex; align-items: center; gap: 10px; }
+  #engagement .engagement-head strong { font-size: var(--er-text-base); }
+  #engagement .engagement-active { display: block; margin-left: auto; color: var(--er-muted-ink); font-size: var(--er-text-xs); text-align: right; white-space: nowrap; }
+  #engagement .engagement-flag { margin: 8px 0 0 46px; }
 }
 /* Simple tab toggle row (e.g. Students directory / engagement). */
 .ds-tablist { display: flex; gap: var(--er-space-2); margin-bottom: var(--er-space-4); }
@@ -209,7 +223,7 @@
   background: var(--er-card); border-top: 1px solid var(--er-border-strong); border-inline-start: 1px solid var(--er-border-strong);
   transform: rotate(45deg);
 }
-@media(pointer:coarse) { .ds-help-tip-trigger { width: 40px; height: 40px; } }
+@media(pointer:coarse) { .ds-help-tip-trigger { width: 44px; height: 44px; } }
 @media(prefers-reduced-motion:no-preference) {
   .ds-help-tip-trigger { transition: border-color var(--er-duration), color var(--er-duration), background-color var(--er-duration); }
   .ds-help-tip-box { animation: ds-help-tip-in var(--er-duration) ease-out; }

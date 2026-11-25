@@ -28,13 +28,13 @@ export function ChapterPicker({ chapters, selected, onChange, bookName }: {
           disabled={assigned} onClick={() => onChange(selected.includes(chapter.chapter) ? selected.filter(value => value !== chapter.chapter) : [...selected, chapter.chapter].sort((a, b) => a - b))}>
           Chapter {chapter.chapter}
         </Button>
-        <small id={description}>{assigned ? "Assigned" : partlyAssigned ? `${chapter.remaining.length} verses to add` : chapter.partial ? "Partial chapter" : `${chapter.available.length} verses`}</small>
+        <small id={description}>{assigned ? "Assigned" : partlyAssigned ? `${chapter.remaining.length} ${chapter.remaining.length === 1 ? "verse" : "verses"} to add` : chapter.partial ? "Partial chapter" : `${chapter.available.length} ${chapter.available.length === 1 ? "verse" : "verses"}`}</small>
       </div>;
     })}</div>
     {chapters.some(chapter => chapter.partial) && <details className="season-advanced-passages">
       <summary>Included verses in partial chapters</summary>
       <ul>{chapters.filter(chapter => chapter.partial).map(chapter => <li key={chapter.chapter}>Chapter {chapter.chapter}: {segmentRanges(chapter.available, chapter.available).map(range => range.startVerse === range.endVerse ? String(range.startVerse) : `${range.startVerse}–${range.endVerse}`).join(", ")}</li>)}</ul>
     </details>}
-    <p role="status" className="season-chapter-summary">{chosen.length ? `${bookName} · Chapters ${chosen.map(chapter => chapter.chapter).join(", ")} · ${chosen.reduce((count, chapter) => count + chapter.remaining.length, 0)} verses to add` : "Select chapters to assign."}</p>
+    <p role="status" className="season-chapter-summary">{chosen.length ? `${bookName} · Chapters ${chosen.map(chapter => chapter.chapter).join(", ")} · ${chosen.reduce((count, chapter) => count + chapter.remaining.length, 0)} ${chosen.reduce((count, chapter) => count + chapter.remaining.length, 0) === 1 ? "verse" : "verses"} to add` : "Select chapters to assign."}</p>
   </fieldset>;
 }

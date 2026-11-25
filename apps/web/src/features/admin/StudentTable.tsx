@@ -46,7 +46,7 @@ export function StudentTable({ students, renderPlan, renderActions }: {
     </div>
     {!filtered.length && <p>{students.length ? status === "all" ? "No students match your search." : "No students match your search or status filter." : "No students yet."}</p>}
     <nav className="student-pagination" aria-label="Student pagination">
-      <span role="status">{filtered.length ? `${start + 1}–${Math.min(start + pageSize, filtered.length)} of ${filtered.length} students` : "0 students"}</span>
+      <span role="status">{filtered.length ? `${start + 1}–${Math.min(start + pageSize, filtered.length)} of ${filtered.length} ${filtered.length === 1 ? "student" : "students"}` : "0 students"}</span>
       <div><Button size="compact" variant="secondary" disabled={page === 1} onClick={() => update({ page: String(page - 1) })}>Previous</Button><span>Page {page} of {pages}</span><Button size="compact" variant="secondary" disabled={page === pages} onClick={() => update({ page: String(page + 1) })}>Next</Button></div>
     </nav>
   </div>;

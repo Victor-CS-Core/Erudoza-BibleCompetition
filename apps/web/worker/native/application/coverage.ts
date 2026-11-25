@@ -27,7 +27,12 @@ export async function coverage(ctx: RequestContext, season: Season) {
         const assigned = assignments.filter(a => a.studentUserId === userId).sort((a, b) => ['PrimarySpecialist', 'RequiredCoverage', 'OptionalReview'].indexOf(a.type) - ['PrimarySpecialist', 'RequiredCoverage', 'OptionalReview'].indexOf(b.type));
         const a = assigned[0], eligibleIds = new Set(sources.filter(u => assigned.some(a => a.contentPackId === u.contentPackId && contains(a, u))).map(u => u.id));
         const studentMastery = mastery.filter(m => m.studentUserId === userId && eligibleIds.has(m.sourceUnitId));
-        rows.push({ studentUserId: userId, displayName: user.displayName, userName: user.userName, assignmentType: a.type, bookKey: a.bookKey, startChapter: a.startChapter, startVerse: a.startVerse, endChapter: a.endChapter, endVerse: a.endVerse, eligibleUnitCount: eligibleIds.size, masteredCount: studentMastery.filter(m => m.level === 'Mastered' && isScoredMasteryVersion(m.algorithmVersion)).length, reviewDueCount: studentMastery.filter(m => m.reviewDueAt && Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount: countByStudent.get(userId) ?? 0 });
+        // The label fields name the FIRST assignment's range, while
+        // eligibleUnitCount is the deduplicated union across all of the
+        // student's assignments — so the row also carries the range count
+        // and the other ranges, letting the UI label the total's scope
+        // instead of pairing one passage with every assignment's verses.
+        rows.push({ studentUserId: userId, displayName: user.displayName, userName: user.userName, assignmentType: a.type, bookKey: a.bookKey, startChapter: a.startChapter, startVerse: a.startVerse, endChapter: a.endChapter, endVerse: a.endVerse, rangeCount: assigned.length, otherRanges: assigned.slice(1).map(r => ({ bookKey: r.bookKey, startChapter: r.startChapter, startVerse: r.startVerse, endChapter: r.endChapter, endVerse: r.endVerse })), eligibleUnitCount: eligibleIds.size, masteredCount: studentMastery.filter(m => m.level === 'Mastered' && isScoredMasteryVersion(m.algorithmVersion)).length, reviewDueCount: studentMastery.filter(m => m.reviewDueAt && Date.parse(m.reviewDueAt) <= Date.now()).length, attemptCount: countByStudent.get(userId) ?? 0 });
     }
     return { seasonId, seasonName: season.name, seasonStatus: season.status, students: rows };
 }

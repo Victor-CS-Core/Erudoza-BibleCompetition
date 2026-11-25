@@ -25,7 +25,7 @@ const empty: Record<string, unknown> = {
   seasons: { openDisputes: 0, oldestDisputeAtUtc: null, seasons: [] },
   system: { version: "2026.11.1", database: "ok", cron: { expression: "0 10 * * 1", label: "Mondays 10:00 UTC" }, secrets: [], supportIngestConfigured: false, supportAddress: "ktr0nn@muse.ai", errors: { last24h: 0, last7d: 0, byArea: [] } },
   digest: { digest: null },
-  support: { supportAddress: "ktr0nn@muse.ai", counts: { newEmails: 0, openTickets: 0, aging48h: 0, stale7d: 0 }, inbox: [], tickets: [] },
+  support: { supportAddress: "ktr0nn@muse.ai", supportIngestConfigured: false, counts: { newEmails: 0, openTickets: 0, aging48h: 0, stale7d: 0 }, inbox: [], tickets: [], ticketStatus: "all", ticketsTotal: 0, inboxTotal: 0 },
 };
 
 let mode: "real" | "empty" = "real";
@@ -91,6 +91,12 @@ it("renders Support from real server payloads", async () => {
   await screen.findByText("Cannot sign in"); // ingested inbox email
   expect(screen.getByText("Question about seasons")).toBeTruthy(); // manual ticket
   expect(screen.getAllByText("#S-101").length).toBeGreaterThan(0);
+  // Queue reachability controls: the status filter and the view total, with
+  // the singular label for a one-ticket view. The capture app configures
+  // ingest, so no intake-off messaging appears.
+  expect(screen.getByLabelText("Ticket status filter")).toBeTruthy();
+  expect(screen.getByText("1 ticket in this view")).toBeTruthy();
+  expect(document.body.textContent).not.toContain("Email intake is off");
   expect(document.body.textContent).not.toContain("could not be displayed");
 }, 30000);
 
@@ -120,5 +126,8 @@ it("renders every tab from an all-empty payload set without crashing", async () 
   const support = page("support");
   await settle();
   expect(document.body.textContent).toContain("No tickets yet");
+  // The empty payload set has ingest unconfigured: the tab must say so and
+  // point staff at the mailbox / manual tickets instead of promising mail.
+  expect(document.body.textContent).toContain("Email intake is off");
   support.unmount();
 }, 60000);

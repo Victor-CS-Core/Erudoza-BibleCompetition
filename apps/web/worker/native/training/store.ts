@@ -10,7 +10,7 @@ import type { BadgeProgress, TrainingPreferences, TrainingStep, SkillScores, Ses
 import { addDays, effectivePreferences, resolveTrainingCalendar, validateZone } from './calendar';
 import { badgeCounters, fullTargetReached } from './rules';
 import { creditedDates, streakCount } from './streak';
-import { awardXp, levelNameFor, xpReward, xpSummary, XP_VALUES, type XpEvent } from './xp';
+import { awardXp, levelForXp, levelNameFor, xpReward, xpSummary, XP_VALUES, type XpEvent } from './xp';
 import { inTeamRoom, progressQuests, QUEST_DEFS, type QuestKey } from './quests';
 export interface PreferenceRecord extends TrainingPreferences {
     id: string;
@@ -356,9 +356,14 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
     return w;
 }
 const skills = (s: SkillScores): SkillScores => ({ exactWording: s.exactWording, recognition: s.recognition, reference: s.reference, sequence: s.sequence, factualRecall: s.factualRecall });
-export async function makeRecap(ctx: RequestContext, s: Session): Promise<SessionRecap> {
+export async function makeRecap(ctx: RequestContext, s: Session, xpTotalOverride?: number): Promise<SessionRecap> {
     const t = s.training, mission = t?.missionId ? await ctx.store.get<MissionRecord>('daily-mission', t.missionId, ctx.orgId) : null;
-    const xp = await xpSummary(ctx);
+    // The session-completion path builds the recap BEFORE its quest-XP award
+    // commits (same atomic batch), so a DB read here would snapshot the
+    // pre-award total and the stored recap would under-report the learner's
+    // total — and level — forever. That caller passes awardXp's totalAfter
+    // as the override; read-time callers omit it and read the committed row.
+    const xp = xpTotalOverride === undefined ? await xpSummary(ctx) : { total: xpTotalOverride, ...levelForXp(xpTotalOverride) };
     const changes: SessionRecap['passageChanges'] = [];
     for (const id of new Set(s.attempts.filter(a => a.before && a.after && !a.isLegacyDuplicate).map(a => a.knowledgeUnitId))) {
         const attempts = s.attempts.filter(a => a.knowledgeUnitId === id && a.before && a.after && !a.isLegacyDuplicate), events = attempts.map(a => ({ attemptId: a.id, acceptedAtUtc: a.at, before: skills(a.before!), after: skills(a.after!) }));

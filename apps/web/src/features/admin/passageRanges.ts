@@ -24,6 +24,13 @@ export function storedRange(range: PassageRange, units: Coordinate[], all: Coord
 }
 export const firstRange = (units: Coordinate[]): PassageRange | undefined => { const first=orderCoordinates(units)[0]; return first ? { bookKey:first.bookKey,startChapter:first.chapter,startVerse:first.verse,endChapter:first.chapter,endVerse:first.verse } : undefined; };
 export const segmentRanges = (allowed: Coordinate[], all: Coordinate[]): PassageRange[] => passageSegments(allowed,all).map(segment => ({ bookKey:segment[0].bookKey,startChapter:segment[0].chapter,startVerse:segment[0].verse,endChapter:segment.at(-1)!.chapter,endVerse:segment.at(-1)!.verse }));
+/** Coverage-row scope label: the first range's citation, plus how many more
+ *  ranges the row's verse total spans ("Daniel 1:1–3 and 1 more range"), so a
+ *  summary never pairs one passage label with several assignments' verses. */
+export function formatCoverageScope(row: PassageRange & { rangeCount?: number }): string {
+  const extra = (row.rangeCount ?? 1) - 1;
+  return extra > 0 ? `${formatPassageCitation(row)} and ${extra} more ${extra === 1 ? "range" : "ranges"}` : formatPassageCitation(row);
+}
 /** Verse-aware citation: "John 3:16", "John 3:16–18", or "John 3:16–4:3". */
 export function formatPassageCitation(range: PassageRange): string {
   const { bookKey, startChapter, startVerse, endChapter, endVerse } = range;

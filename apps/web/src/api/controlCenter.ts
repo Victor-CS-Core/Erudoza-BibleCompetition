@@ -92,11 +92,16 @@ export interface SupportInboxEntry {
   ticketId: string | null;
   ticketNumber: number | null;
 }
+export type TicketFilter = "all" | "open" | TicketStatus;
 export interface SupportData {
   supportAddress: string;
+  supportIngestConfigured: boolean;
   counts: { newEmails: number; openTickets: number; aging48h: number; stale7d: number };
   inbox: SupportInboxEntry[];
   tickets: SupportTicket[];
+  ticketStatus: TicketFilter;
+  ticketsTotal: number;
+  inboxTotal: number;
 }
 
 const BASE = "/api/v1/admin/control-center";
@@ -114,7 +119,14 @@ export const controlCenterApi = {
   seasons: () => request<SeasonsData>(`${BASE}/seasons`),
   system: () => request<SystemData>(`${BASE}/system`),
   digest: () => request<DigestData>(`${BASE}/digest`),
-  support: () => request<SupportData>(`${BASE}/support`),
+  support: (view: { ticketStatus?: TicketFilter; ticketOffset?: number; inboxOffset?: number } = {}) => {
+    const params = new URLSearchParams();
+    if (view.ticketStatus && view.ticketStatus !== "all") params.set("ticketStatus", view.ticketStatus);
+    if (view.ticketOffset) params.set("ticketOffset", String(view.ticketOffset));
+    if (view.inboxOffset) params.set("inboxOffset", String(view.inboxOffset));
+    const qs = params.toString();
+    return request<SupportData>(`${BASE}/support${qs ? `?${qs}` : ""}`);
+  },
   createTicketFromInbox: (inboxId: string) => request<{ ticket: SupportTicket; alreadyProcessed: boolean }>(`${BASE}/support/tickets`, { method: "POST", body: JSON.stringify({ inboxId }) }),
   createTicketManual: (input: { requesterName: string; requesterEmail?: string; subject: string; body?: string }) => request<{ ticket: SupportTicket; alreadyProcessed: boolean }>(`${BASE}/support/tickets`, { method: "POST", body: JSON.stringify(input) }),
   setTicketStatus: (id: string, status: TicketStatus) => request<{ ticket: SupportTicket }>(`${BASE}/support/tickets/${id}/status`, { method: "POST", body: JSON.stringify({ status }) }),

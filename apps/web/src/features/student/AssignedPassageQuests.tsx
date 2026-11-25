@@ -101,7 +101,7 @@ export function AssignedPassageQuests({ items, mastery, seasonId }: { items: Ass
           <ProgressMeter label={`${citation}: verses strong or mastered`} value={progress.strong} max={progress.total} hideCaption />
           {progress.state === "not-started" && <p className="game-passage-quest__invite">The quest is about to start — every verse here is waiting for its first practice.</p>}
           <div className="game-passage-quest__foot">
-            <span className="game-passage-quest__count">{progress.strong} of {progress.total} verses strong or mastered</span>
+            <span className="game-passage-quest__count">{progress.strong} of {progress.total} {progress.total === 1 ? "verse" : "verses"} strong or mastered</span>
             <Link className="game-passage-quest__action" to={href}>{actionLabel}<AppIcon name="arrow" /></Link>
           </div>
         </>}
