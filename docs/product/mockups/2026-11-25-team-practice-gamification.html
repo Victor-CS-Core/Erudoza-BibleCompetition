@@ -12,7 +12,7 @@
   --radius:22px;--small-radius:14px;
 }
 *{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#edf4f5 0,#fafaf7 32rem);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+body{margin:0;background:linear-gradient(180deg,#edf4f5 0,#fafaf7 32rem);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden}
 button{font:inherit}
 a{color:inherit}
 .shell{max-width:1240px;margin:auto;padding:20px 28px 60px}
@@ -24,7 +24,7 @@ a{color:inherit}
 .brand-mark svg{width:23px}
 .nav{display:flex;align-items:center;gap:5px;flex:1}.nav button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:10px 12px;cursor:pointer}.nav button.active{background:#e0f6f1;color:var(--teal-dark);font-weight:800}
 .profile{display:flex;align-items:center;gap:9px}.avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#f5d9ad;color:#57391b;font-weight:900;border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
-.profile small{display:block;color:var(--muted);font-size:11px}.profile strong{font-size:13px}
+.profile small{display:block;color:var(--muted);font-size:11px}.profile strong{font-size:13px}.role-switch{display:flex;gap:6px;align-items:center}.role-btn{padding:8px 10px;font-size:11px}.role-btn.active{background:#dff7f1;border-color:#6bd7c8;color:#0a625b;font-weight:850}
 button.primary,button.secondary,.cta{border:0;border-radius:11px;padding:11px 16px;font-weight:850;cursor:pointer;transition:transform .16s,box-shadow .16s}
 button.primary,.cta{background:var(--teal);color:#062c31;box-shadow:0 5px 0 #0b8276}
 button.secondary{background:#edf2f7;color:var(--ink);border:1px solid var(--line)}
@@ -32,7 +32,7 @@ button.primary:hover,button.secondary:hover,.cta:hover{transform:translateY(-1px
 .hero{margin-top:16px;background:linear-gradient(115deg,#0d1b3d 0,#173568 58%,#125d67 100%);border-radius:28px;color:#fff;padding:30px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr);gap:25px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
 .hero:after{content:"";position:absolute;width:330px;height:330px;border-radius:50%;right:-90px;top:-130px;background:rgba(77,166,255,.16);box-shadow:0 0 0 50px rgba(255,255,255,.03),0 0 0 100px rgba(255,255,255,.02)}
 .eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:11px;color:#94eade;font-weight:850}.hero h1{font:clamp(32px,4vw,52px)/1.02 Georgia,serif;margin:8px 0 12px;max-width:620px}.hero p{margin:0;color:#d5e1f1;max-width:620px}.hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}.hero .primary{background:#83f1de}.hero .secondary{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:#fff}
-.level-card{position:relative;z-index:1;align-self:stretch;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:19px;display:flex;flex-direction:column;justify-content:space-between}.level-row{display:flex;justify-content:space-between;align-items:center;gap:12px}.level-name{font-weight:900;font-size:20px}.level-no{color:#a7bdd9;font-size:12px}.xp{margin-top:17px}.xp-label{display:flex;justify-content:space-between;color:#d9ebf2;font-size:12px;margin-bottom:7px}.xp-track{height:10px;border-radius:20px;background:rgba(255,255,255,.16);overflow:hidden}.xp-track span{display:block;width:68%;height:100%;background:linear-gradient(90deg,#83f1de,#4da6ff);border-radius:inherit}.level-foot{display:flex;justify-content:space-between;margin-top:15px;color:#c8d8e8;font-size:12px}.level-foot b{color:#fff}
+.level-card{position:relative;z-index:1;align-self:stretch;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:19px;display:flex;flex-direction:column;justify-content:space-between}.level-row{display:flex;justify-content:space-between;align-items:center;gap:12px}.level-name{font-weight:900;font-size:20px}.level-no{color:#a7bdd9;font-size:12px}.xp{margin-top:17px}.xp-label{display:flex;justify-content:space-between;color:#d9ebf2;font-size:12px;margin-bottom:7px}.xp-track{height:10px;border-radius:20px;background:rgba(255,255,255,.16);overflow:hidden}.xp-track span{display:block;width:76%;height:100%;background:linear-gradient(90deg,#83f1de,#4da6ff);border-radius:inherit}.level-foot{display:flex;justify-content:space-between;margin-top:15px;color:#c8d8e8;font-size:12px}.level-foot b{color:#fff}
 .grid{display:grid;gap:18px;margin-top:20px}.three{grid-template-columns:1.2fr .85fr .85fr}.two{grid-template-columns:1.15fr .85fr}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:21px;box-shadow:0 8px 26px rgba(13,27,61,.06)}.card h2{margin:0;font-size:18px;letter-spacing:-.02em}.sub{color:var(--muted);font-size:13px;margin:5px 0 0}.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:16px}.link{color:var(--teal-dark);font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap}
 .mission{border-color:#b9e8df;background:linear-gradient(135deg,#f5fffd,#fff)}.mission-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 8px;border-radius:999px;background:#dff7f1;color:#0a625b;font-size:11px;font-weight:850}.mission h2{margin-top:10px;font:25px/1.1 Georgia,serif}.mission-copy{color:var(--muted);max-width:470px}.steps{display:grid;gap:9px;margin:17px 0}.step{display:grid;grid-template-columns:23px 1fr auto;align-items:center;gap:9px;font-size:13px}.check{width:21px;height:21px;border-radius:7px;border:2px solid #a8bdc3;display:grid;place-items:center;color:white;font-size:12px;font-weight:900}.step.done .check{background:var(--teal);border-color:var(--teal)}.step.done .step-text{text-decoration:line-through;color:#809096}.step small{color:var(--muted);font-size:11px}.mission .cta{display:inline-block;text-decoration:none;margin-top:3px}
@@ -48,7 +48,8 @@ button.primary:hover,button.secondary:hover,.cta:hover{transform:translateY(-1px
 .toast{position:fixed;right:22px;bottom:22px;z-index:5;background:var(--ink);color:#fff;padding:13px 16px;border-radius:13px;box-shadow:var(--shadow);font-size:13px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:none}
 @media(max-width:950px){.three{grid-template-columns:1fr 1fr}.three>.mission{grid-column:1/-1}.hero{grid-template-columns:1fr}.level-card{min-height:180px}}
 @media(max-width:650px){
- body{background:#fafaf7}.shell{padding:0 15px 80px}.demo-bar{margin:0 -15px 7px;padding:7px 15px;font-size:10px}.demo-bar span{display:none}.topbar{min-height:58px}.brand{font-size:16px}.brand-mark{width:32px;height:32px}.nav{display:none}.profile>div{display:none}.topbar{justify-content:space-between}.hero{margin-top:7px;border-radius:22px;padding:22px 19px;gap:18px}.hero h1{font-size:36px}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.hero-actions button{width:100%}.level-card{min-height:165px}.grid,.three,.two{grid-template-columns:1fr;gap:14px;margin-top:14px}.stat-grid{grid-template-columns:repeat(2,1fr)}.card{border-radius:18px;padding:17px}.mode-tabs{display:grid;grid-template-columns:1fr}.mode-tabs button{display:grid;grid-template-columns:1fr auto;align-items:center}.collection{margin-right:-9px}.mobile-dock{position:fixed;display:grid;grid-template-columns:repeat(4,1fr);bottom:0;left:0;right:0;background:rgba(255,255,255,.96);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:4}.mobile-dock button{border:0;background:transparent;color:#69758a;font-size:10px;font-weight:800;padding:5px}.mobile-dock button.active{color:var(--teal-dark)}.mobile-dock span{display:block;font-size:17px;margin-bottom:1px}.footer-note{padding:0 10px}}
+ html,body{overflow-x:hidden;max-width:100%} body{background:#fafaf7}.shell{width:100%;max-width:100%;overflow:hidden;padding:0 15px 80px}.demo-bar{margin:0 -15px 7px;padding:7px 15px;font-size:10px}.demo-bar span{display:none}.topbar{min-height:58px;gap:8px}.brand{font-size:16px}.brand-mark{width:32px;height:32px}.nav{display:none}.profile{min-width:0}.profile>div{display:none}.profile>button:last-child{display:none}.role-switch{gap:3px;min-width:0}.role-btn{padding:7px 8px;font-size:10px;white-space:nowrap}.topbar{justify-content:space-between}.hero{margin-top:7px;border-radius:22px;padding:22px 19px;gap:18px}.hero h1{font-size:36px}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.hero-actions button{width:100%;min-width:0}.level-card{min-height:165px}.level-row,.level-foot,.team-row{min-width:0}.team-row>b{font-size:10px;white-space:nowrap}.grid,.three,.two{grid-template-columns:1fr;gap:14px;margin-top:14px}.stat-grid{grid-template-columns:repeat(2,1fr)}.card{border-radius:18px;padding:17px}.mode-tabs{display:grid;grid-template-columns:1fr}.mode-tabs button{display:grid;grid-template-columns:1fr auto;align-items:center}.collection{margin-right:-9px}.mobile-dock{position:fixed;display:grid;grid-template-columns:repeat(4,1fr);bottom:0;left:0;right:0;background:rgba(255,255,255,.96);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:4}.mobile-dock button{border:0;background:transparent;color:#69758a;font-size:10px;font-weight:800;padding:5px}.mobile-dock button.active{color:var(--teal-dark)}.mobile-dock span{display:block;font-size:17px;margin-bottom:1px}.footer-note{padding:0 10px}}
+body[data-theme="dark"]{--ink:#f3f7ff;--ink-2:#dbe7f7;--paper:#0b1632;--card:#102348;--line:#2a4167;--muted:#afc0d8;background:linear-gradient(180deg,#09132a 0,#0d1b3d 32rem);color:var(--ink)}body[data-theme="dark"] .demo-bar{background:#071126}body[data-theme="dark"] .nav button.active{background:#123f52;color:#8af5e2}body[data-theme="dark"] button.secondary{background:#172e54;color:#f3f7ff;border-color:#36537d}body[data-theme="dark"] .card,body[data-theme="dark"] .stat,body[data-theme="dark"] .mode-tabs button{background:#102348;border-color:#2a4167}body[data-theme="dark"] .mission{background:linear-gradient(135deg,#103b43,#102348);border-color:#267e78}body[data-theme="dark"] .action-card{background:#27334d;border-color:#3d5578}body[data-theme="dark"] .mobile-dock{background:rgba(9,19,42,.96)}
 </style>
 </head>
 <body>
@@ -57,20 +58,20 @@ button.primary:hover,button.secondary:hover,.cta:hover{transform:translateY(-1px
   <header class="topbar">
     <div class="brand"><div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5.5 12 3l8 2.5v11L12 21l-8-4.5v-11Z"/><path d="M12 3v18M4 5.5l8 4 8-4"/></svg></div>Erudoza</div>
     <nav class="nav" aria-label="Main navigation"><button>Overview</button><button>Study</button><button class="active">Practice HQ</button><button>Honors</button></nav>
-    <div class="profile"><div class="avatar">VM</div><div><strong>Victor</strong><small>Level 4 · Pathfinder</small></div><button class="secondary">⌄</button></div>
+    <div class="role-switch" aria-label="Mockup role"><button class="secondary role-btn active" data-role="student">Student</button><button class="secondary role-btn" data-role="coach">Coach</button></div><div class="profile"><div class="avatar">VM</div><div><strong>Victor</strong><small>Level 4 · Keeper</small></div><button class="secondary" data-action="theme" aria-pressed="false" title="Toggle dark theme">☾</button><button class="secondary">⌄</button></div>
   </header>
 
   <main>
     <section class="hero">
       <div>
-        <div class="eyebrow">Team Practice · Summer 2027</div>
-        <h1>Turn practice into your next win.</h1>
-        <p>Build momentum with your team, earn XP through honest practice, and unlock Achievement patches as your Scripture skills grow.</p>
-        <div class="hero-actions"><button class="primary" data-action="warmup">Start a 10-question warm-up</button><button class="secondary" data-action="rooms">Browse team rooms</button></div>
+        <div class="eyebrow" id="hero-eyebrow">Team Practice · Summer 2027</div>
+        <h1 id="hero-title">Keep your assigned practice moving.</h1>
+        <p id="hero-copy">Open an assigned room when your team is ready, or continue Study when no room is available. Team evidence stays honest and private.</p>
+        <div class="hero-actions"><button class="primary" id="primary-action" data-action="student-primary">Open assigned room</button><button class="secondary" id="secondary-action" data-action="student-secondary">Continue assigned study</button></div>
       </div>
       <aside class="level-card" aria-label="Progression">
-        <div class="level-row"><div><div class="level-name">Pathfinder</div><div class="level-no">Level 4 · 680 XP total</div></div><span class="status wait">68% to Level 5</span></div>
-        <div class="xp"><div class="xp-label"><span>Season progress</span><b>680 / 1,000 XP</b></div><div class="xp-track"><span></span></div></div>
+        <div class="level-row"><div><div class="level-name">Keeper</div><div class="level-no">Level 4 · 680 XP total</div></div><span class="status wait">76% to Scribe</span></div>
+        <div class="xp"><div class="xp-label"><span>Season progress</span><b>680 / 900 XP</b></div><div class="xp-track"><span></span></div></div>
         <div class="level-foot"><span>Team streak <b>4 days</b></span><span>Best <b>7 days</b></span></div>
       </aside>
     </section>
@@ -81,7 +82,7 @@ button.primary:hover,button.secondary:hover,.cta:hover{transform:translateY(-1px
         <div class="steps">
           <div class="step done"><span class="check">✓</span><span class="step-text">Complete one review session</span><small>+25 XP</small></div>
           <div class="step"><span class="check"></span><span class="step-text">Answer 10 practice questions</span><small>6 / 10</small></div>
-          <div class="step"><span class="check"></span><span class="step-text">Finish a team room</span><small>+50 XP</small></div>
+          <div class="step"><span class="check"></span><span class="step-text">Finish a team room</span><small>+25 XP</small></div>
         </div>
         <a class="cta" href="#modes">Choose your next run →</a>
       </section>
@@ -101,7 +102,7 @@ button.primary:hover,button.secondary:hover,.cta:hover{transform:translateY(-1px
         <div class="stat"><strong>4</strong><span>Team streak</span><em>↑ 1 from last week</em></div>
         <div class="stat"><strong>82%</strong><span>Finalized accuracy</span><em>Across 24 questions</em></div>
         <div class="stat"><strong>3/8</strong><span>Team patches</span><em>1 close to unlocking</em></div>
-        <div class="stat"><strong>2.4s</strong><span>Average response</span><em>Best: 1.8s</em></div>
+        <div class="stat"><strong>—</strong><span>Average response</span><em>Finalized trend only</em></div>
       </div>
     </section>
 
@@ -130,8 +131,8 @@ button.primary:hover,button.secondary:hover,.cta:hover{transform:translateY(-1px
       <section class="card">
         <div class="card-head"><div><h2>Team momentum</h2><p class="sub">Celebrate contribution, not just the final score.</p></div><a class="link" href="#rooms">Manage roster</a></div>
         <div class="team-list">
-          <div class="team-row"><div class="mini-avatars"><div class="avatar">EV</div><div class="avatar" style="background:#c9e8e3">LA</div><div class="avatar" style="background:#d9e4f6">MR</div></div><div><strong>WinterPark · Team 1</strong><small>3 players · 68% of the next team patch</small><div class="bar teal"><span style="width:68%"></span></div></div><b>+120 XP</b></div>
-          <div class="team-row"><div class="mini-avatars"><div class="avatar" style="background:#ffd5c9">SA</div><div class="avatar" style="background:#e8d6ba">JO</div></div><div><strong>Apison Pathfinders · Team 2</strong><small>2 players · 42% of the next team patch</small><div class="bar coral"><span style="width:42%"></span></div></div><b>+70 XP</b></div>
+          <div class="team-row"><div class="mini-avatars"><div class="avatar">EV</div><div class="avatar" style="background:#c9e8e3">LA</div><div class="avatar" style="background:#d9e4f6">MR</div></div><div><strong>WinterPark · Team 1</strong><small>3 players · 68% of the next team patch</small><div class="bar teal"><span style="width:68%"></span></div></div><b>Verified</b></div>
+          <div class="team-row"><div class="mini-avatars"><div class="avatar" style="background:#ffd5c9">SA</div><div class="avatar" style="background:#e8d6ba">JO</div></div><div><strong>Apison Pathfinders · Team 2</strong><small>2 players · 42% of the next team patch</small><div class="bar coral"><span style="width:42%"></span></div></div><b>Verified</b></div>
         </div>
         <p class="sub" style="margin-top:15px">Private team evidence remains separate from individual Scripture mastery.</p>
       </section>
@@ -150,8 +151,8 @@ button.primary:hover,button.secondary:hover,.cta:hover{transform:translateY(-1px
     <section class="card" id="history">
       <div class="card-head"><div><h2>Recent activity</h2><p class="sub">A clear trail from practice to progress.</p></div><a class="link" href="#history">Full history</a></div>
       <div class="history">
-        <div class="history-row"><div class="patch a">✓</div><div><strong>Completed Warm-up sprint</strong><small>Today · 8 / 10 correct · mission progress updated</small></div><span class="xp-pill">+80 XP</span></div>
-        <div class="history-row"><div class="patch duo">⚔</div><div><strong>Team room completed</strong><small>Yesterday · WinterPark · provisional result resolved</small></div><span class="xp-pill">+120 XP</span></div>
+        <div class="history-row"><div class="patch a">✓</div><div><strong>Completed Warm-up sprint</strong><small>Today · 8 / 10 correct · mission progress updated</small></div><span class="xp-pill">XP earned</span></div>
+        <div class="history-row"><div class="patch duo">⚔</div><div><strong>Team room completed</strong><small>Yesterday · WinterPark · provisional result resolved</small></div><span class="xp-pill">XP earned</span></div>
         <div class="history-row"><div class="patch b">↗</div><div><strong>New quest started</strong><small>Yesterday · Answer 10 practice questions · 6 / 10</small></div><span class="xp-pill">Active</span></div>
       </div>
     </section>
@@ -164,19 +165,42 @@ button.primary:hover,button.secondary:hover,.cta:hover{transform:translateY(-1px
 const toast=document.getElementById('toast');
 function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>toast.classList.remove('show'),2600)}
 const modes={
- warmup:['Warm-up sprint','Low-pressure reps that count toward today’s mission and your weekly streak.'],
+ warmup:['Warm-up sprint','Intent card only until a learner-created room is approved. Students continue assigned Study; Coaches create an event.'],
  arcade:['Head-to-head practice','Compete on accuracy with the existing speed bonus. Results stay practice evidence.'],
  pbe:['Full rehearsal','Coach-led PBE rehearsal using rubric points, readiness and review safeguards.']
 };
+const roleCopy={
+ student:{eyebrow:'Team Practice · Summer 2027',title:'Keep your assigned practice moving.',copy:'Open an assigned room when your team is ready, or continue Study when no room is available. Team evidence stays honest and private.',primary:'Open assigned room',secondary:'Continue assigned study'},
+ coach:{eyebrow:'Coach Practice HQ · Summer 2027',title:'Run the next team rehearsal.',copy:'Create a supported event, review finality, and keep your team’s practice loop moving without fabricating outcomes.',primary:'Create team event',secondary:'Open current room'}
+};
+function setRole(role){
+ document.querySelectorAll('[data-role]').forEach(item=>item.classList.toggle('active',item.dataset.role===role));
+ const copy=roleCopy[role];
+ document.getElementById('hero-eyebrow').textContent=copy.eyebrow;
+ document.getElementById('hero-title').textContent=copy.title;
+ document.getElementById('hero-copy').textContent=copy.copy;
+ const primary=document.getElementById('primary-action');const secondary=document.getElementById('secondary-action');
+ primary.textContent=copy.primary;primary.dataset.action=role==='student'?'student-primary':'coach-primary';
+ secondary.textContent=copy.secondary;secondary.dataset.action=role==='student'?'student-secondary':'coach-secondary';
+}
+document.querySelectorAll('[data-role]').forEach(button=>button.addEventListener('click',()=>setRole(button.dataset.role)));
 document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>{
  document.querySelectorAll('[data-mode]').forEach(item=>item.classList.remove('active'));button.classList.add('active');
  const [title,copy]=modes[button.dataset.mode];document.getElementById('mode-title').textContent=title;document.getElementById('mode-copy').textContent=copy;
 }));
 document.querySelectorAll('[data-action]').forEach(button=>button.addEventListener('click',()=>{
  const action=button.dataset.action;
- if(action==='rooms'||action==='room'){document.getElementById('rooms').scrollIntoView({behavior:'smooth'});showToast('Demo navigation: connect to the existing room route.');}
+ if(action==='rooms'||action==='room'||action==='student-primary'||action==='coach-secondary'){document.getElementById('rooms').scrollIntoView({behavior:'smooth'});showToast(action==='student-primary'?'Demo navigation: connect to the assigned-room route.': 'Demo navigation: connect to the existing room route.');}
+ else if(action==='student-secondary'){showToast('Demo navigation: connect to the existing Study/Training HQ route.');}
+ else if(action==='coach-primary'){showToast('Demo navigation: connect to the existing Coach event form.');}
  else if(action==='review'){showToast('Demo action: continue the existing Review session.');}
- else if(action==='warmup'||action==='start-mode'){showToast('Demo action: connect this CTA to the existing room/session creation flow.');}
+ else if(action==='start-mode'){
+   const mode=document.querySelector('[data-mode].active')?.dataset.mode;
+   showToast(mode==='warmup'?'Demo intent only: use assigned Study; no learner-created room.':'Demo action: connect to the existing supported practice flow.');
+ }
+ else if(action==='theme'){
+   const dark=document.body.dataset.theme==='dark';document.body.dataset.theme=dark?'':'dark';button.setAttribute('aria-pressed',String(!dark));button.textContent=dark?'☾':'☀';
+ }
 }));
 </script>
 </body>
