@@ -5,6 +5,7 @@
 **Scope:** Team Practice hub, room entry, active-room feedback, recap, rewards, and progress presentation
 
 - [Interactive public mockup](./mockups/2026-11-25-team-practice-gamification.html)
+- [Developer-agent implementation instructions](./2026-11-25-team-practice-gamification-agent-instructions.md)
 - [Current hub implementation](../../apps/web/src/features/practice/PracticeHub.tsx)
 - [Current room implementation](../../apps/web/src/features/practice/PracticePage.tsx)
 - [Current practice API types](../../apps/web/src/api/practice.ts)
