@@ -134,7 +134,14 @@ describe("Coach directory pages", () => {
     renderPage(<AssignmentsPage />);
     const table = await screen.findByTestId("coverage-table");
     expect(table).toHaveTextContent("DAN 1:1–4 and 1 more range");
-    expect(table).toHaveTextContent("9 verses total");
+    expect(table).toHaveTextContent("9 required verses total");
+  });
+  it("shows optional-only verses as their own line, never in the coverage count (cards 43 + 46)", async () => {
+    vi.mocked(api.coverage).mockResolvedValue({ ...coverage, students: [{ ...coverage.students[0], eligibleUnitCount: 4, requiredUnitCount: 4, optionalUnitCount: 3, allAssignedUnitCount: 7 }] });
+    renderPage(<AssignmentsPage />);
+    const table = await screen.findByTestId("coverage-table");
+    expect(table).toHaveTextContent("4 required verses");
+    expect(table).toHaveTextContent("Plus 3 optional verses — not counted toward coverage");
   });
   it("gives unassigned seasons a visible next step", async () => {
     vi.mocked(api.coverage).mockResolvedValue({ ...coverage, students: [] });

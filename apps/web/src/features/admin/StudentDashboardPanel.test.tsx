@@ -11,6 +11,7 @@ vi.mock("../../api/client", () => ({ api: {
   studentSessionRecap: vi.fn(),
   studentSessionHistory: vi.fn(async () => ({ sessions: [], nextBefore: null })),
   studentExportCsvUrl: (org: string, student: string) => `/api/v1/organizations/${org}/students/${student}/export.csv`,
+  setDifficulty: vi.fn(),
 } }));
 
 beforeEach(() => { vi.clearAllMocks(); });
@@ -47,6 +48,18 @@ const dashboard: StudentDashboard = {
 function mount() {
   return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><StudentDashboardPanel student={student} onClose={() => {}} /></QueryClientProvider>);
 }
+
+it("saves a new training difficulty from the assignments section", async () => {
+  vi.mocked(api.studentDashboard).mockResolvedValue(dashboard);
+  vi.mocked(api.setDifficulty).mockResolvedValue({ difficulty: "Advanced" });
+  mount();
+  const panel = await screen.findByTestId("student-dashboard-assignments");
+  const select = within(panel).getByLabelText("Training difficulty");
+  expect(select).toHaveValue("Standard");
+  fireEvent.change(select, { target: { value: "Advanced" } });
+  fireEvent.click(within(panel).getByRole("button", { name: "Save difficulty" }));
+  await waitFor(() => expect(api.setDifficulty).toHaveBeenCalledWith("org", "season-1", "student-1", "Advanced"));
+});
 
 it("renders every dashboard section with the student's data", async () => {
   vi.mocked(api.studentDashboard).mockResolvedValue(dashboard);

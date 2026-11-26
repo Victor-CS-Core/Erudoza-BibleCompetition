@@ -49,7 +49,7 @@ export function StudyPage() {
   const { me } = useAuth();
   const [params, setParams] = useSearchParams();
   const modeParam = params.get("mode");
-  const sessionMode = modeParam === "Practice" || modeParam === "Review" || modeParam === "Simulation" ? modeParam : null;
+  const sessionMode = modeParam === "Practice" || modeParam === "Review" || modeParam === "Simulation" || modeParam === "Rescue" || modeParam === "Checkpoint" || modeParam === "MockHalf" || modeParam === "MockFull" ? modeParam : null;
   const libraryMode = modeParam === "Library";
   const sessionId = params.get('sessionId'), seasonId = params.get('seasonId') || undefined;
   const formatParam = params.get('format');

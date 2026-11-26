@@ -4,6 +4,7 @@ import { authenticate, checkOrigin } from '../auth';
 import { Store } from '../store';
 import { body, HttpError, json, requiredString, type Actor, type Env, type RequestContext } from '../types';
 import { acknowledgePresentation, type PresentationState } from './presentation';
+import { isTimedPbeMode } from './rules';
 import { SOLO_STORAGE_WIPE_TTL_MS, soloWipeDue } from './solo-wipe';
 import { reviewedPbeSummary, submitTimedPbeSession, type PbeSession } from './sessions';
 
@@ -38,7 +39,7 @@ export class PbeSoloRound extends DurableObject<Env>{
   private context(request:Request,actor:Actor):RequestContext{return{request,env:this.env,actor,orgId:actor.organizationId,path:new URL(request.url).pathname,store:new Store(this.env.DB)};}
   private async session(actor:Actor,id:string){
     const row=await new Store(this.env.DB).get<PbeSession>('pbe-session',id,actor.organizationId);
-    if(!row||row.value.studentUserId!==actor.userId||row.value.mode!=='Simulation')throw new HttpError(404,'Timed rehearsal was not found.');
+    if(!row||row.value.studentUserId!==actor.userId||!isTimedPbeMode(row.value.mode))throw new HttpError(404,'Timed rehearsal was not found.');
     return row.value;
   }
   private view(state:SoloState){return{questionId:state.questionId,revision:state.revision,delivery:state.delivery,requiredScribeIds:state.requiredScribeIds,readyScribeIds:state.readyScribeIds,responseStartsAtMs:state.responseStartsAtMs,responseEndsAtMs:state.responseEndsAtMs,status:state.status,serverNow:new Date().toISOString(),feedbackDeferred:true};}
@@ -102,7 +103,7 @@ export class PbeSoloRound extends DurableObject<Env>{
         if(state?.status==='Interrupted'){
           await this.recordInterruption(state);
           if(request.method==='GET')return json({status:'Interrupted',restartAllowed:true,session:{id:session.id,format:session.format,seasonId:session.seasonId,mode:session.mode,status:'Interrupted',targetCardCount:session.cards.length},summary:await reviewedPbeSummary({store:new Store(this.env.DB),orgId:actor.organizationId},session,true),interruption:{status:'Interrupted',restartAllowed:true}});
-          throw new HttpError(409,'This rehearsal was interrupted. Start another shortened timed practice.');
+          throw new HttpError(409,session.mode==='Simulation'?'This rehearsal was interrupted. Start another shortened timed practice.':'This timed run was interrupted. Start another timed run.');
         }
         if(request.method==='GET'&&expected){
           const historical=state?.history.find(entry=>entry.questionId===expected);

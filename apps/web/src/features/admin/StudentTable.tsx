@@ -27,10 +27,11 @@ export function StudentTable({ students, renderPlan, renderActions }: {
   }
   return <div className="student-directory">
     <div className="student-table-tools">
-      <label>Search students<Input className="ds-input-compact" type="search" placeholder="Name or username" value={search} onChange={event => update({ search: event.target.value, page: "1" })} /></label>
-      <label>Status<Select className="ds-input-compact" value={status} onChange={event => update({ studentStatus: event.target.value, page: "1" })}><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></Select></label>
-      <label>Sort by<Select className="ds-input-compact" value={sort} onChange={event => update({ studentSort: event.target.value, page: "1" })}><option value="asc">Name A–Z</option><option value="desc">Name Z–A</option></Select></label>
-      <label>Rows per page<Select className="ds-input-compact" value={pageSize} onChange={event => update({ pageSize: event.target.value, page: "1" })}>{[10, 25, 50].map(size => <option key={size} value={size}>{size}</option>)}</Select></label>
+      <label className="student-tool-search">Search students<Input className="ds-input-compact" type="search" placeholder="Name or username" value={search} onChange={event => update({ search: event.target.value, page: "1" })} /></label>
+      <div className="student-tool-filters">
+        <label>Status<Select className="ds-input-compact" value={status} onChange={event => update({ studentStatus: event.target.value, page: "1" })}><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></Select></label>
+        <label>Sort by<Select className="ds-input-compact" value={sort} onChange={event => update({ studentSort: event.target.value, page: "1" })}><option value="asc">Name A–Z</option><option value="desc">Name Z–A</option></Select></label>
+      </div>
     </div>
     <div className="student-table-scroll" role="region" aria-label="Student directory table" tabIndex={0}>
       <table className="training-table student-table" data-testid="student-list">
@@ -47,6 +48,7 @@ export function StudentTable({ students, renderPlan, renderActions }: {
     {!filtered.length && <p>{students.length ? status === "all" ? "No students match your search." : "No students match your search or status filter." : "No students yet."}</p>}
     <nav className="student-pagination" aria-label="Student pagination">
       <span role="status">{filtered.length ? `${start + 1}–${Math.min(start + pageSize, filtered.length)} of ${filtered.length} ${filtered.length === 1 ? "student" : "students"}` : "0 students"}</span>
+      <label className="student-pagination-size">Rows per page<Select className="ds-input-compact" value={pageSize} onChange={event => update({ pageSize: event.target.value, page: "1" })}>{[10, 25, 50].map(size => <option key={size} value={size}>{size}</option>)}</Select></label>
       <div><Button size="compact" variant="secondary" disabled={page === 1} onClick={() => update({ page: String(page - 1) })}>Previous</Button><span>Page {page} of {pages}</span><Button size="compact" variant="secondary" disabled={page === pages} onClick={() => update({ page: String(page + 1) })}>Next</Button></div>
     </nav>
   </div>;

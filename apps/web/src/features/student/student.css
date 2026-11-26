@@ -183,6 +183,22 @@
 .passage-picker-details .journey-chapter-stats { margin-top: 12px; }
 .passage-picker-details-scope { margin: 12px 0 0; }
 .pbe-chapter-journey > .training-panel-title { align-items: end; }
+.pbe-readiness-stack { display: grid; gap: 20px; }
+.pbe-readiness-hero { display: grid; gap: 10px; justify-items: start; }
+.pbe-readiness-hero h2, .pbe-readiness-hero p { margin: 0; }
+.pbe-readiness-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--er-teal); }
+.pbe-run-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.pbe-run-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--er-border, rgba(127, 127, 127, 0.25)); }
+.pbe-run-row:first-child { border-top: 0; }
+.pbe-run-copy { display: grid; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.pbe-run-copy span { color: var(--er-muted-ink); }
+.pbe-patch-strip { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+@media (max-width: 560px) { .pbe-run-row { flex-wrap: wrap; } .pbe-run-copy { flex-basis: 100%; } }
+.pbe-readiness-list { display: grid; gap: 16px; margin: 0; padding: 0; list-style: none; }
+.pbe-readiness-row { display: grid; gap: 6px; }
+.pbe-readiness-row p { margin: 0; }
+.pbe-readiness-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 24px; }
+.pbe-readiness-percent { font-weight: 700; font-variant-numeric: tabular-nums; }
 .pbe-chapter-card { display: grid; gap: 16px; }
 .pbe-chapter-card h3, .pbe-chapter-card p, .pbe-season-coverage h2, .pbe-season-coverage h3, .pbe-season-coverage p { margin: 0; }
 .pbe-chapter-card > .training-panel-title > div, .pbe-season-coverage > .training-panel-title > div { display: grid; gap: 4px; }
@@ -342,6 +358,11 @@
 .training-celebration { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--er-teal) 10%, transparent); border: 1px solid color-mix(in srgb, var(--er-teal) 35%, transparent); }
 .training-celebration svg { flex: none; margin-top: 2px; color: var(--er-teal); }
 .training-recap-share { flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.training-recap-finality { flex: 1 1 100%; display: flex; gap: 10px; align-items: flex-start; }
+.training-recap-finality .ds-badge { flex: none; }
+.training-recap-finality p { margin: 0; font-size: var(--er-text-sm); color: var(--er-muted-ink); }
+.training-recap-recorded { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--er-border); }
+.training-recap-recorded svg { flex: none; margin-top: 2px; color: var(--er-muted-ink); }
 .training-streak-panel .training-week-count { margin-bottom: 8px; }
 .training-streak-title { display: flex; align-items: center; gap: 8px; }
 .training-streak-title svg { color: var(--er-teal); }

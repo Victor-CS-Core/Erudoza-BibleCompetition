@@ -13,8 +13,16 @@ beforeAll(async()=>{app=await createNativeTestApp();cookie=(await app.login()).h
 afterAll(async()=>app?.runtime.dispose());
 it('self assigns without changing readiness or student reporting, studies and preserves history',async()=>{
  const payload={contentPackId:pack,range,type:'PrimarySpecialist',difficulty:'Foundation'};
+ // Difficulty cannot be set before an assignment exists — assigning is what
+ // creates the membership the setting lives on.
+ expect((await req(`${base}/my-difficulty`,'PUT',{difficulty:'Foundation'})).status).toBe(400);
  const response=await req(`${base}/my-assignments`,'POST',payload);expect(response.status).toBe(200);let assignment=await response.json() as {id:string;studentUserId:string};expect(assignment.studentUserId).toBe(TEST_USER);
  expect(await(await req(base)).json()).toMatchObject({status:'ContentReady',assignmentCount:0});expect(await(await req(`${base}/assignments`)).json()).toEqual([]);expect(await(await req(`${base}/coverage`)).json()).toMatchObject({students:[]});
+ // The difficulty carried by the assign payload is ignored: assignment saves
+ // never move difficulty, so the membership keeps its Standard default…
+ expect(await(await req(`${base}/my-assignments`)).json()).toMatchObject([{id:assignment.id,difficulty:'Standard'}]);
+ // …until the explicit self endpoint sets it.
+ expect((await req(`${base}/my-difficulty`,'PUT',{difficulty:'Foundation'})).status).toBe(200);
  expect(await(await req(`${base}/my-assignments`)).json()).toMatchObject([{id:assignment.id,difficulty:'Foundation'}]);
  const extra=await(await req(`${base}/my-assignments`,'POST',payload)).json() as {id:string};
  expect((await req(`${base}/my-assignments/${extra.id}`,'DELETE')).status).toBe(204);
@@ -24,7 +32,9 @@ it('self assigns without changing readiness or student reporting, studies and pr
  expect((await req('/api/v1/study/sessions','POST',{seasonId:season})).status).toBe(400);
  expect((await req(`${base}/activate`,'POST')).status).toBe(200);
  const reader=await req(`/api/v1/study/seasons/${season}/scripture`);expect(reader.status).toBe(200);expect((await reader.json() as {verses:unknown[]}).verses).toHaveLength(3);
- const start=await req('/api/v1/study/sessions','POST',{seasonId:season});expect(start.status).toBe(200);const session=await start.json() as {id:string};const study=`/api/v1/study/sessions/${session.id}`;
+ const start=await req('/api/v1/study/sessions','POST',{seasonId:season});expect(start.status).toBe(200);const session=await start.json() as {id:string;difficulty:string};const study=`/api/v1/study/sessions/${session.id}`;
+ // The session snapshots the membership difficulty set through the endpoint.
+ expect(session.difficulty).toBe('Foundation');
  const card=await(await req(`${study}/next`)).json() as {id:string};expect(card.id).toBeTruthy();expect((await req(`${study}/attempts`,'POST',{clientSubmissionId:'coach-attempt',challengeCardId:card.id,submittedAnswer:'wrong',responseTimeMs:10,hintsUsed:false})).status).toBe(200);
  expect((await req(`${study}/complete`,'POST')).status).toBe(200);expect(await(await req(`/api/v1/progress/me?seasonId=${season}`)).json()).toMatchObject({attemptCount:1});
  expect((await req(`${base}/my-assignments`,'POST',{...payload,studentUserId:'another-user'})).status).toBe(400);
@@ -78,6 +88,12 @@ it('lets a signed-in student read and self-assign through my-assignments',async(
  const selfAssigned=await sreq(`${learnerBase}/my-assignments`,'POST',{contentPackId:pack,range,type:'OptionalReview'});
  expect(selfAssigned.status).toBe(200);
  const selfId=(await selfAssigned.json() as {id:string}).id;
+ // A signed-in learner sets their own difficulty through the self endpoint…
+ expect((await sreq(`${learnerBase}/my-difficulty`,'PUT',{difficulty:'Advanced'})).status).toBe(200);
+ const mine=await(await sreq(`${learnerBase}/my-assignments`)).json() as {difficulty:string}[];
+ expect(mine.length).toBe(2);expect(mine.every(a=>a.difficulty==='Advanced')).toBe(true);
+ // …while the coach difficulty endpoint stays behind the admin gate.
+ expect((await sreq(`${learnerBase}/students/${created.userId}/difficulty`,'PUT',{difficulty:'Standard'})).status).toBe(403);
  expect((await sreq(`${learnerBase}/my-assignments/${selfId}`,'DELETE')).status).toBe(204);
  // The admin gate still applies to every other application route for students.
  expect((await sreq(`${orgBase}/students`)).status).toBe(403);

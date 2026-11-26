@@ -14,7 +14,7 @@ import { awardXp, XP_VALUES, xpReward, type XpReward as XpRewardSnapshot } from 
 import { sessionCompleteQuests, QUEST_DEFS } from '../training/quests';
 import type { RequestContext } from '../types';
 import { admin, body, HttpError, json, requiredString } from '../types';
-import { atomic, contains, effectiveSources, fail, id, memberId, student, requireLearner } from '../application/model';
+import { atomic, contains, effectiveSources, fail, id, memberId, student, requireLearner, requiredSources } from '../application/model';
 import type { Assignment, Membership, Season, Source } from '../application/model';
 import { builtInContentSql, scopeEntriesSql } from '../application/library-access';
 import { applyMastery, BLANK_SHUFFLE_LIMIT, chooseActivity, eligibleActivities, evaluateAnswer, generateActivity, isScoredMasteryVersion, MASTERY_VERSION, nextReview, normalizeDifficulty, scoredSkill, shuffleRandom, toCardDto } from './engine';
@@ -222,7 +222,10 @@ async function start(ctx: RequestContext, input: { seasonId: string; mode?: Stud
     let targetCardCount = mode === 'Simulation' ? 10 : 8;
     if (mode === 'Review' && !input.training?.step) {
       const mastery = await listAll<Mastery>(ctx, 'mastery', { seasonId, ownerId: ctx.actor.userId });
-      const due = mastery.filter(m => Date.parse(m.reviewDueAt) <= Date.now() && cardSources.some(s => knowledgeId(s) === m.knowledgeUnitId));
+      // Card 46: optional-only passages never become due for review.
+      const roleAssignments = await listAll<Assignment>(ctx, 'assignment', { seasonId, ownerId: ctx.actor.userId });
+      const requiredKids = new Set(requiredSources(scope.sources, roleAssignments).map(knowledgeId));
+      const due = mastery.filter(m => Date.parse(m.reviewDueAt) <= Date.now() && requiredKids.has(m.knowledgeUnitId) && cardSources.some(s => knowledgeId(s) === m.knowledgeUnitId));
       if (!due.length) fail('There are no passages due for review.');
       targetCardCount = Math.min(8, due.length);
     }
@@ -249,7 +252,12 @@ async function next(ctx: RequestContext, sessionId: string) {
     if (unanswered) { cardInScope(unanswered, scope.sources); return json(cardDto(session, unanswered)); }
     if (session.cards.length >= session.targetCardCount) fail('The session target has been reached.');
     const mastery = await listAll<Mastery>(ctx, 'mastery', { seasonId: session.seasonId, ownerId: session.studentUserId });
-    const due = new Set(mastery.filter(m => Date.parse(m.reviewDueAt) <= Date.now()).map(m => m.knowledgeUnitId));
+    // Card 46: the due set excludes passages covered only by Optional review
+    // assignments (strictest covering role wins), so Review sessions never
+    // draw them even when their mastery record says a review time has come.
+    const roleAssignments = await listAll<Assignment>(ctx, 'assignment', { seasonId: session.seasonId, ownerId: session.studentUserId });
+    const requiredKids = new Set(requiredSources(scope.sources, roleAssignments).map(knowledgeId));
+    const due = new Set(mastery.filter(m => Date.parse(m.reviewDueAt) <= Date.now() && requiredKids.has(m.knowledgeUnitId)).map(m => m.knowledgeUnitId));
     const exposures = await ctx.env.DB.prepare(`SELECT json_extract(card.value,'$.sourceUnitId') AS sourceId,count(*) AS count,max(json_extract(card.value,'$.createdAtUtc')) AS lastAt FROM Records s,json_each(s.data,'$.cards') card WHERE s.kind='session' AND s.org_id=? AND s.season_id=? AND s.owner_id=? GROUP BY json_extract(card.value,'$.sourceUnitId')`).bind(ctx.orgId, session.seasonId, session.studentUserId).all<{ sourceId: string; count: number; lastAt: string }>();
     const exposure = new Map(exposures.results.map(e => [e.sourceId, e]));
     const assignments = await listAll<Assignment>(ctx, 'assignment', { seasonId: session.seasonId, ownerId: session.studentUserId });
@@ -560,7 +568,8 @@ async function progress(ctx: RequestContext, studentId: string, requested: strin
   const attemptCount = (await ctx.env.DB.prepare(`SELECT count(*) AS n FROM Records INDEXED BY Records_training_scope WHERE kind='attempt' AND org_id=? AND season_id=? AND owner_id=? AND ${notDuplicate}`).bind(ctx.orgId, season.id, studentId).first<{ n: number }>())?.n ?? 0;
   const recentAttempts = (await ctx.env.DB.prepare(`SELECT data FROM Records INDEXED BY Records_training_scope WHERE kind='attempt' AND org_id=? AND season_id=? AND owner_id=? AND ${notDuplicate} ORDER BY json_extract(data,'$.at') DESC, id ASC LIMIT 20`).bind(ctx.orgId, season.id, studentId).all<{ data: string }>()).results.map(r => JSON.parse(r.data) as Attempt);
   const member = await ctx.store.get<Membership>('membership', memberId(season.id, studentId), ctx.orgId);
-  return json({ ...empty, pbeEnabled:season.pbeEnabled===true, seasonId: season.id, seasonName: season.name, seasonStatus: season.status, assignments: assignments.filter(a => a.seasonId === season.id).map(a => ({ ...a, difficulty: member?.value.difficulty ?? 'Standard' })), masteredCount: states.filter(m => m.level === 'Mastered' && isScoredMasteryVersion(m.algorithmVersion)).length, reviewDueCount: Math.min(8, new Set(states.filter(m => Date.parse(m.reviewDueAt) <= Date.now()).map(m => m.knowledgeUnitId)).size), attemptCount, mastery: states.map(m => ({ knowledgeUnitId: m.knowledgeUnitId, title: byKnowledge.get(m.knowledgeUnitId)?.citation ?? 'Passage', level: m.level, exactWordingScore: m.exactWording, recognitionScore: m.recognition, referenceScore: m.reference, sequenceScore: m.sequence, factualRecallScore: m.factualRecall, bookKey: byKnowledge.get(m.knowledgeUnitId)?.bookKey, chapter: byKnowledge.get(m.knowledgeUnitId)?.chapter, verse: byKnowledge.get(m.knowledgeUnitId)?.verse, algorithmVersion: m.algorithmVersion, reviewDueAtUtc: m.reviewDueAt })), recentAttempts: recentAttempts.map(a => ({ id: a.id, title: a.result?.citation ?? byKnowledge.get(a.knowledgeUnitId)?.citation ?? 'Passage', activityType: a.activityType, isCorrect: a.isCorrect, submittedAnswer: a.submittedAnswer, evaluationResult: a.evaluationResult, createdAtUtc: a.at })) });
+  const requiredKids = new Set(requiredSources(sources, assignments.filter(a => a.seasonId === season.id)).map(knowledgeId));
+  return json({ ...empty, pbeEnabled:season.pbeEnabled===true, seasonId: season.id, seasonName: season.name, seasonStatus: season.status, assignments: assignments.filter(a => a.seasonId === season.id).map(a => ({ ...a, difficulty: member?.value.difficulty ?? 'Standard' })), masteredCount: states.filter(m => m.level === 'Mastered' && isScoredMasteryVersion(m.algorithmVersion)).length, reviewDueCount: Math.min(8, new Set(states.filter(m => Date.parse(m.reviewDueAt) <= Date.now() && requiredKids.has(m.knowledgeUnitId)).map(m => m.knowledgeUnitId)).size), attemptCount, mastery: states.map(m => ({ knowledgeUnitId: m.knowledgeUnitId, title: byKnowledge.get(m.knowledgeUnitId)?.citation ?? 'Passage', level: m.level, exactWordingScore: m.exactWording, recognitionScore: m.recognition, referenceScore: m.reference, sequenceScore: m.sequence, factualRecallScore: m.factualRecall, bookKey: byKnowledge.get(m.knowledgeUnitId)?.bookKey, chapter: byKnowledge.get(m.knowledgeUnitId)?.chapter, verse: byKnowledge.get(m.knowledgeUnitId)?.verse, algorithmVersion: m.algorithmVersion, reviewDueAtUtc: m.reviewDueAt })), recentAttempts: recentAttempts.map(a => ({ id: a.id, title: a.result?.citation ?? byKnowledge.get(a.knowledgeUnitId)?.citation ?? 'Passage', activityType: a.activityType, isCorrect: a.isCorrect, submittedAnswer: a.submittedAnswer, evaluationResult: a.evaluationResult, createdAtUtc: a.at })) });
 }
 export async function handleStudy(ctx: RequestContext): Promise<Response | null> {
   const { path, request } = ctx, method = request.method;
@@ -584,11 +593,11 @@ export async function handleStudy(ctx: RequestContext): Promise<Response | null>
     }
     return json(discovered);
   }
-  if (path === '/api/v1/study/sessions' && method === 'POST') { const input = await body<{seasonId:string;format?:string;mode?:StudyMode;progressScope?:unknown;passageScope?:unknown}>(request); if(!input||typeof input!=='object'||Array.isArray(input))throw new HttpError(400,'Provide a study request.'); if(input.mode!==undefined&&!['Practice','Review','Simulation'].includes(input.mode))throw new HttpError(400,'Choose a valid study mode.'); if(input.format === 'Pbe') return startPbeSession(ctx,input as Parameters<typeof startPbeSession>[1]); if(input.progressScope!==undefined)throw new HttpError(400,'Progress scope requires Pbe.'); if(input.format!==undefined&&input.format!=='Memory')throw new HttpError(400,'Choose Memory or Pbe.'); return start(ctx,input); }
-  const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete|source|shuffle|reblank|spelling-fix))?$/);
+  if (path === '/api/v1/study/sessions' && method === 'POST') { const input = await body<{seasonId:string;format?:string;mode?:StudyMode;progressScope?:unknown;passageScope?:unknown}>(request); if(!input||typeof input!=='object'||Array.isArray(input))throw new HttpError(400,'Provide a study request.'); if(input.mode!==undefined&&!['Practice','Review','Simulation'].includes(input.mode)&&!(input.format==='Pbe'&&['Rescue','Checkpoint','MockHalf','MockFull'].includes(input.mode)))throw new HttpError(400,'Choose a valid study mode.'); if(input.format === 'Pbe') return startPbeSession(ctx,input as Parameters<typeof startPbeSession>[1]); if(input.progressScope!==undefined)throw new HttpError(400,'Progress scope requires Pbe.'); if(input.format!==undefined&&input.format!=='Memory')throw new HttpError(400,'Choose Memory or Pbe.'); return start(ctx,input); }
+  const match = path.match(/^\/api\/v1\/study\/sessions\/([^/]+)(?:\/(next|attempts|complete|source|break|shuffle|reblank|spelling-fix))?$/);
   if (!match) return null;
   const sessionId = match[1], action = match[2];
-  if((!action||action==='next')&&method==='GET'||['attempts','complete','source'].includes(action)&&method==='POST'){const response=await pbeSessionAction(ctx,sessionId,action,method==='POST'&&action!=='complete'?await body(request.clone() as Request):undefined);if(response)return response;}
+  if((!action||action==='next')&&method==='GET'||['attempts','complete','source','break'].includes(action)&&method==='POST'){const response=await pbeSessionAction(ctx,sessionId,action,method==='POST'&&action!=='complete'?await body(request.clone() as Request):undefined);if(response)return response;}
   if (action === 'next' && method === 'GET') return next(ctx, sessionId);
   if (action === 'shuffle' && method === 'POST') return shufflePracticeDeck(ctx, sessionId);
   if (action === 'reblank' && method === 'POST') return reblankCard(ctx, sessionId, await body<{ challengeCardId?: unknown }>(request));

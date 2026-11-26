@@ -18,10 +18,10 @@ beforeAll(async () => {
   for (const [user, org] of [[otherUser, TEST_ORG], [foreignUser, foreignOrg]]) await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) SELECT ?,?,?,'Fixture','Student','Student',password_hash,'v1' FROM Users WHERE id=?").bind(user, org, user, TEST_USER).run();
 }, 30000);
 afterAll(async () => { await app?.runtime.dispose(); });
-it('returns16 locked definitions read-only and rejects arbitrary, unauthenticated and legacy selections', async () => {
+it('returns 22 locked definitions read-only and rejects arbitrary, unauthenticated and legacy selections', async () => {
   const before = await rows(), result = await request('/api/v1/profile/me'); expect(result.status).toBe(200);
   const profile = await result.json() as { honors: { earnedAtUtc: string | null }[]; avatarHonorKey: string | null };
-  expect(profile.honors).toHaveLength(16); expect(profile.honors.every(h => h.earnedAtUtc === null)).toBe(true); expect(profile.avatarHonorKey).toBeNull(); expect(await rows()).toBe(before);
+  expect(profile.honors).toHaveLength(22); expect(profile.honors.every(h => h.earnedAtUtc === null)).toBe(true); expect(profile.avatarHonorKey).toBeNull(); expect(await rows()).toBe(before);
   expect((await app.fetch('/api/v1/profile/me')).status).toBe(401);
   for (const key of ['https://evil.invalid/avatar.png', 'first-fellowship', 'solo:unknown']) expect((await request('/api/v1/profile/me/avatar', 'PUT', { honorKey: key })).status).toBe(400);
   expect((await request('/api/v1/profile/me/avatar', 'PUT', {})).status).toBe(400);

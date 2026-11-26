@@ -141,7 +141,19 @@ export async function applyRoomCompletionGamification(env: Env, r: RoomHistorySu
         const dayResult = await env.DB.prepare(
             `INSERT OR IGNORE INTO Records(kind,id,org_id,season_id,owner_id,data,revision) VALUES('training-day',?,?,?,?,?,1)`
         ).bind(dayId, r.orgId, null, p.userId, JSON.stringify(day)).run();
-        const dayCredited = (dayResult.meta.changes ?? 0) === 1;
+        let dayCredited = (dayResult.meta.changes ?? 0) === 1;
+        if (!dayCredited) {
+            // Retry recovery: the insert above runs immediately, ahead of the
+            // caller's publication batch, so a crashed first attempt for THIS
+            // room can leave the day record behind while its XP/week writes
+            // never committed. When the surviving record names this room as
+            // its session, the credit belongs to this publication — converge
+            // (award the day XP and week credit now) instead of dropping them
+            // while the day record itself keeps counting the day. A record
+            // from a different session keeps dayCredited false.
+            const existingDay = await ctx.store.get<DayRecord>('training-day', dayId, r.orgId);
+            if (existingDay?.value.sessionId === `room:${r.id}`) dayCredited = true;
+        }
         if (dayCredited) {
             const wid = identity(ctx, calendar.weekStartLocalDate);
             const oldWeek = await ctx.store.get<WeekRecord>('training-week', wid, r.orgId);

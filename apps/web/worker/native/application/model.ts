@@ -93,6 +93,17 @@ export function range(value: unknown): Range { if (!value || typeof value !== 'o
     return fail('Choose a valid passage range.'); const v = value as Range; const r = { bookKey: requiredString(v.bookKey, 'Book', 20).toUpperCase(), startChapter: integer(v.startChapter, 'Start chapter', 200), startVerse: integer(v.startVerse, 'Start verse', 1000), endChapter: integer(v.endChapter, 'End chapter', 200), endVerse: integer(v.endVerse, 'End verse', 1000) }; if (r.endChapter < r.startChapter || r.endChapter === r.startChapter && r.endVerse < r.startVerse)
     return fail('Choose a valid passage range.'); return r; }
 export const contains = (r: Range, s: Source) => r.bookKey.toUpperCase() === s.bookKey.toUpperCase() && (s.chapter > r.startChapter || s.chapter === r.startChapter && s.verse >= r.startVerse) && (s.chapter < r.endChapter || s.chapter === r.endChapter && s.verse <= r.endVerse);
+/** Assignment roles, strictest first. A passage covered by several roles
+ *  behaves as the strictest covering role (card 46): OptionalReview only
+ *  makes a passage optional when NOTHING stricter also covers it. */
+export const ASSIGNMENT_ROLE_ORDER = ['PrimarySpecialist', 'RequiredCoverage', 'OptionalReview'] as const;
+export const coveringAssignments = (assignments: Assignment[], s: Source) => assignments.filter(a => a.contentPackId === s.contentPackId && contains(a, s));
+/** True when every assignment covering this source is OptionalReview. Such
+ *  sources stay studyable voluntarily but never enter due/review queues and
+ *  never count in coverage denominators or the full-coverage honor. */
+export const isOptionalOnlySource = (assignments: Assignment[], s: Source) => { const covering = coveringAssignments(assignments, s); return covering.length > 0 && covering.every(a => a.type === 'OptionalReview'); };
+export const requiredSources = (sources: Source[], assignments: Assignment[]) => sources.filter(s => !isOptionalOnlySource(assignments, s));
+export const optionalOnlySources = (sources: Source[], assignments: Assignment[]) => sources.filter(s => isOptionalOnlySource(assignments, s));
 export function editable(s: Season): void { if (['Completed', 'Archived'].includes(s.status))
     fail('This season is closed. Saved passages and student plans are read-only.'); }
 export function difficulty(v: unknown): string { if (typeof v !== 'string' || !['Foundation', 'Standard', 'Advanced'].includes(v))

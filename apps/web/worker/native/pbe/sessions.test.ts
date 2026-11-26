@@ -567,3 +567,150 @@ it('freezes a saved draft and projects it through an actual alarm after authorit
     for(let attempt=0;attempt<20&&(await store.list('pbe-attempt',TEST_ORG,{ownerId:student})).length===0;attempt++)await new Promise(resolve=>setTimeout(resolve,100));
     const saved=await store.list<{answers:string[]}>('pbe-attempt',TEST_ORG,{ownerId:student});expect(saved).toHaveLength(1);expect(saved[0].answers).toEqual(['Alpha','Beta']);
 },10000);
+it('runs a Checkpoint as exactly 10 questions on the official clock through the timed authority', async () => {
+    const { send, store } = await setup(10);
+    const started = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'Checkpoint' });
+    expect(started.status).toBe(200);
+    const session = await started.json() as {id:string;mode:string;targetCardCount:number};
+    expect(session).toMatchObject({ mode: 'Checkpoint', targetCardCount: 10 });
+    // A Checkpoint is not a daily mission: no mission record is prepared.
+    expect(await store.list('pbe-daily-mission', TEST_ORG, { seasonId: season })).toEqual([]);
+    for (let n = 0; n < 10; n++) {
+        const card = await (await send(`/study/sessions/${session.id}/next`)).json() as {id:string;question:{points:number}};
+        const answer = {clientSubmissionId:crypto.randomUUID(),challengeCardId:card.id,answers:['Alpha','Beta'],hintsUsed:false};
+        // Timed runs reject direct attempts: the authority owns the window.
+        expect((await send(`/study/sessions/${session.id}/attempts`,answer)).status).toBe(409);
+        const present = await (await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as {revision:number};
+        const armed = await (await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:card.id,revision:present.revision,delivery:'TextFallback'})).json() as {responseStartsAtMs:number;responseEndsAtMs:number};
+        // Official timing (2023/24 How-to Guide): 20s + 5s per point; the
+        // fixture question is worth 2 points, so the window is exactly 30s.
+        expect(armed.responseEndsAtMs - armed.responseStartsAtMs).toBe(30000);
+        // Advance the authority's virtual clock to just inside the window
+        // (relative to the armed start, not real time, so the loop is
+        // deterministic at any machine speed).
+        await send(`/study/sessions/${session.id}/timed?questionId=${card.id}`, undefined, false, { 'x-test-solo-now': String(armed.responseStartsAtMs + 100) });
+        const accepted = await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:answer.answers,clientSubmissionId:answer.clientSubmissionId});
+        expect(accepted.status).toBe(200);
+        const receipt = await accepted.json();
+        expect(receipt).toMatchObject({ feedbackDeferred: true, alreadyProcessed: false });
+        expect(JSON.stringify(receipt)).not.toMatch(/earnedPoints|expectedParts/);
+    }
+    expect((await send(`/study/sessions/${session.id}/complete`,{})).status).toBe(200);
+    const completed = await (await send(`/study/sessions/${session.id}`)).json() as {summary:{mode:string;attempted:number;results:{earnedPoints:number}[];recap:{newlyCreditedDay:boolean}}};
+    expect(completed.summary).toMatchObject({ mode: 'Checkpoint', attempted: 10 });
+    expect(completed.summary.results).toHaveLength(10);
+    expect(completed.summary.results.every(r => r.earnedPoints === 2)).toBe(true);
+    expect(completed.summary.recap.newlyCreditedDay).toBe(true);
+    expect(await store.list('training-day', TEST_ORG, { ownerId: student })).toHaveLength(1);
+}, 20000);
+it('refuses a Checkpoint when the published bank cannot deal exactly 10 questions', async () => {
+    const { send } = await setup(9);
+    const started = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'Checkpoint' });
+    expect(started.status).toBe(409);
+    expect(await started.json()).toMatchObject({ code: 'PBE_COVERAGE_UNAVAILABLE' });
+}, 15000);
+it('deals a Rescue run only from questions with a failed target, untimed, and says so when nothing needs repair', async () => {
+    const { send, store } = await setup(2);
+    const fresh = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'Rescue' });
+    expect(fresh.status).toBe(409);
+    expect(await fresh.json()).toMatchObject({ code: 'PBE_NOTHING_TO_REPAIR' });
+    // Fail one target in Practice so a repair candidate exists.
+    const practice = await (await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'Practice' })).json() as {id:string};
+    const practiceCard = await (await send(`/study/sessions/${practice.id}/next`)).json() as {id:string};
+    expect((await send(`/study/sessions/${practice.id}/attempts`, { clientSubmissionId: crypto.randomUUID(), challengeCardId: practiceCard.id, answers: ['Alpha', 'wrong'], hintsUsed: false })).status).toBe(200);
+    const started = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'Rescue' });
+    expect(started.status).toBe(200);
+    const rescue = await started.json() as {id:string;mode:string;targetCardCount:number};
+    expect(rescue.mode).toBe('Rescue');
+    expect(rescue.targetCardCount).toBeGreaterThan(0);
+    expect(rescue.targetCardCount).toBeLessThanOrEqual(3);
+    // Rescue is untimed: direct attempts return full feedback immediately.
+    for (let n = 0; n < rescue.targetCardCount; n++) {
+        const card = await (await send(`/study/sessions/${rescue.id}/next`)).json() as {id:string};
+        const accepted = await send(`/study/sessions/${rescue.id}/attempts`, { clientSubmissionId: crypto.randomUUID(), challengeCardId: card.id, answers: ['Alpha', 'Beta'], hintsUsed: false });
+        expect(accepted.status).toBe(200);
+        expect(await accepted.json()).toMatchObject({ earnedPoints: 2, alreadyProcessed: false });
+    }
+    const done = await send(`/study/sessions/${rescue.id}/complete`, {});
+    expect(done.status).toBe(200);
+    expect(await done.json()).toMatchObject({ mode: 'Rescue', recap: { newlyCreditedDay: true } });
+    expect(await store.list('training-day', TEST_ORG, { ownerId: student })).toHaveLength(1);
+}, 20000);
+// Card 51: the published-bank fixture is setup(count) itself — the same
+// seeding path gives CI coverage for the 10 (Checkpoint, above), 45 and
+// 90-question run types against published heads only.
+async function runTimedCard(send: Awaited<ReturnType<typeof setup>>['send'], sessionId: string) {
+    const card = await (await send(`/study/sessions/${sessionId}/next`)).json() as {id:string;sequence:number;total:number};
+    const present = await (await send(`/study/sessions/${sessionId}/timed`,{action:'present',delivery:'TextFallback'})).json() as {revision:number};
+    const armed = await (await send(`/study/sessions/${sessionId}/timed`,{action:'ack',questionId:card.id,revision:present.revision,delivery:'TextFallback'})).json() as {responseStartsAtMs:number;responseEndsAtMs:number};
+    expect(armed.responseEndsAtMs - armed.responseStartsAtMs).toBe(30000);
+    await send(`/study/sessions/${sessionId}/timed?questionId=${card.id}`, undefined, false, { 'x-test-solo-now': String(armed.responseStartsAtMs + 100) });
+    const accepted = await send(`/study/sessions/${sessionId}/timed`,{action:'submit',questionId:card.id,revision:present.revision,answers:['Alpha','Beta'],clientSubmissionId:crypto.randomUUID()});
+    expect(accepted.status).toBe(200);
+    expect(await accepted.json()).toMatchObject({ feedbackDeferred: true, alreadyProcessed: false });
+    return card;
+}
+it('runs a MockHalf as exactly 45 questions on the official clock with no intermission', async () => {
+    const { send, store } = await setup(45);
+    const started = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'MockHalf' });
+    expect(started.status).toBe(200);
+    const session = await started.json() as {id:string;mode:string;targetCardCount:number};
+    expect(session).toMatchObject({ mode: 'MockHalf', targetCardCount: 45 });
+    expect(await store.list('pbe-daily-mission', TEST_ORG, { seasonId: season })).toEqual([]);
+    // Every next serves a card — a 45-question mock never pauses at its
+    // own finish line (the #50 report's break-at-45 slip, corrected).
+    for (let n = 0; n < 45; n++) {
+        const card = await runTimedCard(send, session.id);
+        expect(card.sequence).toBe(n + 1);
+        expect(card.total).toBe(45);
+    }
+    expect((await send(`/study/sessions/${session.id}/complete`,{})).status).toBe(200);
+    const completed = await (await send(`/study/sessions/${session.id}`)).json() as {summary:{mode:string;attempted:number;results:{earnedPoints:number}[];recap:{newlyCreditedDay:boolean}}};
+    expect(completed.summary).toMatchObject({ mode: 'MockHalf', attempted: 45 });
+    expect(completed.summary.results).toHaveLength(45);
+    expect(completed.summary.recap.newlyCreditedDay).toBe(true);
+}, 120000);
+it('refuses a MockHalf when the published bank cannot deal exactly 45 questions', async () => {
+    const { send } = await setup(44);
+    const started = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'MockHalf' });
+    expect(started.status).toBe(409);
+    expect(await started.json()).toMatchObject({ code: 'PBE_COVERAGE_UNAVAILABLE' });
+}, 15000);
+it('pauses a MockFull after question 45 and resumes into question 46 only on the break action', async () => {
+    const { send, store } = await setup(90);
+    const started = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'MockFull' });
+    expect(started.status).toBe(200);
+    const session = await started.json() as {id:string;mode:string;targetCardCount:number};
+    expect(session).toMatchObject({ mode: 'MockFull', targetCardCount: 90 });
+    expect(await store.list('pbe-daily-mission', TEST_ORG, { seasonId: season })).toEqual([]);
+    for (let n = 0; n < 45; n++) await runTimedCard(send, session.id);
+    // After attempt 45 the next card is NOT served: the run is at its
+    // halftime break, and asking again changes nothing (idempotent).
+    const breakOne = await (await send(`/study/sessions/${session.id}/next`)).json() as {break?:{afterAttempts:number;resumedAtMs:number|null};id?:string};
+    expect(breakOne.break).toMatchObject({ afterAttempts: 45, resumedAtMs: null });
+    expect(breakOne.id).toBeUndefined();
+    const breakTwo = await (await send(`/study/sessions/${session.id}/next`)).json() as {break?:{afterAttempts:number;resumedAtMs:number|null};id?:string};
+    expect(breakTwo.break).toMatchObject({ afterAttempts: 45, resumedAtMs: null });
+    expect(breakTwo.id).toBeUndefined();
+    // The break action resumes the run and serves question 46.
+    const resumed = await (await send(`/study/sessions/${session.id}/break`, {})).json() as {id:string;sequence:number;total:number};
+    expect(resumed.sequence).toBe(46);
+    expect(resumed.total).toBe(90);
+    // Present + answer question 46 through the authority like any card.
+    const present = await (await send(`/study/sessions/${session.id}/timed`,{action:'present',delivery:'TextFallback'})).json() as {revision:number};
+    const armed = await (await send(`/study/sessions/${session.id}/timed`,{action:'ack',questionId:resumed.id,revision:present.revision,delivery:'TextFallback'})).json() as {responseStartsAtMs:number};
+    await send(`/study/sessions/${session.id}/timed?questionId=${resumed.id}`, undefined, false, { 'x-test-solo-now': String(armed.responseStartsAtMs + 100) });
+    expect((await send(`/study/sessions/${session.id}/timed`,{action:'submit',questionId:resumed.id,revision:present.revision,answers:['Alpha','Beta'],clientSubmissionId:crypto.randomUUID()})).status).toBe(200);
+    for (let n = 46; n < 90; n++) await runTimedCard(send, session.id);
+    expect((await send(`/study/sessions/${session.id}/complete`,{})).status).toBe(200);
+    const completed = await (await send(`/study/sessions/${session.id}`)).json() as {summary:{mode:string;attempted:number;results:{earnedPoints:number}[]}};
+    expect(completed.summary).toMatchObject({ mode: 'MockFull', attempted: 90 });
+    expect(completed.summary.results).toHaveLength(90);
+    expect(completed.summary.results.every(r => r.earnedPoints === 2)).toBe(true);
+}, 180000);
+it('refuses a MockFull when the published bank cannot deal exactly 90 questions', async () => {
+    const { send } = await setup(89);
+    const started = await send('/study/sessions', { seasonId: season, format: 'Pbe', mode: 'MockFull' });
+    expect(started.status).toBe(409);
+    expect(await started.json()).toMatchObject({ code: 'PBE_COVERAGE_UNAVAILABLE' });
+}, 15000);

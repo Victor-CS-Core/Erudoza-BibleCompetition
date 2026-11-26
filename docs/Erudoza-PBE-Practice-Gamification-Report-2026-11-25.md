@@ -309,7 +309,7 @@ The primary button should never promise an unavailable learner-created competiti
 ## Public implementation handoff
 
 - Repository audited: `https://github.com/Victor-CS-Core/Erudoza-BibleCompetition`
-- Existing QA baseline: `Erudoza-Practice-Mode-QA-Handoff-2026-11-25.md`
+- Existing QA baseline: `docs/qa/Erudoza-QA-Handoff.md`
 - Companion mockup: see the separately published `Erudoza-PBE-Practice-HQ-Mockup-2026-11-25.html`.
 
 ## Research sources

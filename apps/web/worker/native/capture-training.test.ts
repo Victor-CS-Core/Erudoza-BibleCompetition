@@ -5,17 +5,20 @@
 // records are genuine, seeds a PBE season the way
 // pbe/chapter-progress.integration.test.ts does, then (a) pins every payload
 // to the CLIENT contract (src/api/trainingTypes.ts + src/api/pbeTypes.ts)
-// and (b) saves the exact server-emitted payloads as fixtures for
-// src/features/student/training-real.test.tsx. Re-run when the training
-// contract changes:
-//   npx vitest run worker/native/capture-training.test.ts
+// and (b) captures the exact server-emitted payloads as fixtures for
+// src/features/student/training-real.test.tsx. A routine run COMPARES
+// against the checked-in fixture and fails on drift (card 28); regenerate
+// only after an intentional contract change:
+//   UPDATE_FIXTURES=1 npx vitest run worker/native/capture-training.test.ts
 // A hand-edited fixture is no evidence at all — regenerate, never patch.
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { writeFileSync } from "node:fs";
-import { createNativeTestApp, TEST_ORG, TEST_USER } from "./test-runtime";
+import { createNativeTestApp, persistCaptureFixture, TEST_ORG, TEST_USER } from "./test-runtime";
 import { Store } from "./store";
 import { sourceProof } from "./pbe/bank";
 import type { PbeQuestion, PbeTarget } from "./pbe/types";
+import type { ChallengeCard, Session, TeamActivity } from "../../src/api/types";
+import type { BadgeProgress, PassageJourneyPage, TrainingPreferences, TrainingToday } from "../../src/api/trainingTypes";
+import type { ChapterPage, CooperationSnapshot } from "../../src/api/pbeTypes";
 
 const season = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const pack = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
@@ -31,9 +34,9 @@ let cookie = "";
 async function record(kind: string, id: string, value: unknown, seasonId: string | null = null, owner: string | null = null) {
   await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) VALUES(?,?,?,?,?,?)").bind(kind, id, TEST_ORG, seasonId, owner, JSON.stringify(value)).run();
 }
-async function request(path: string, method = "GET", value?: unknown) {
+async function request<T>(path: string, method = "GET", value?: unknown): Promise<{ status: number; body: T }> {
   const res = await app.fetch(path, { method, headers: { Cookie: cookie, Origin: "https://erudoza.test", "Content-Type": "application/json" }, ...(value === undefined ? {} : { body: JSON.stringify(value) }) });
-  return { status: res.status, body: await res.json() as Record<string, any> };
+  return { status: res.status, body: await res.json() as T };
 }
 function expectKeys(obj: Record<string, unknown>, required: string[], context: string) {
   for (const key of required) expect(obj, `${context} missing ${key}`).toHaveProperty(key);
@@ -72,16 +75,16 @@ afterAll(async () => { await app?.runtime.dispose(); });
 
 it("captures real training payloads and pins them to the client contract", async () => {
   // One real Memory session so today/honors/journey carry genuine values.
-  const start = await request("/api/v1/study/sessions", "POST", { seasonId: season, mode: "Practice" });
+  const start = await request<Session>("/api/v1/study/sessions", "POST", { seasonId: season, mode: "Practice" });
   expect(start.status).toBe(200);
   const base = `/api/v1/study/sessions/${start.body.id}`;
-  const card = await request(`${base}/next`);
+  const card = await request<ChallengeCard>(`${base}/next`);
   const row = await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(start.body.id).first<{ data: string }>();
   const savedCard = (JSON.parse(row!.data).cards as { id: string; answerKey: { canonicalAnswer: string } }[]).find(c => c.id === card.body.id)!;
   expect((await request(`${base}/attempts`, "POST", { clientSubmissionId: "capture-t1", challengeCardId: card.body.id, submittedAnswer: savedCard.answerKey.canonicalAnswer, responseTimeMs: 30, hintsUsed: false })).status).toBe(200);
   expect((await request(`${base}/complete`, "POST")).status).toBe(200);
 
-  const today = await request(`/api/v1/progress/me/today?seasonId=${season}`);
+  const today = await request<TrainingToday>(`/api/v1/progress/me/today?seasonId=${season}`);
   expect(today.status).toBe(200);
   // TrainingToday: the HQ contract.
   expectKeys(today.body, ["seasonId", "seasonName", "seasonStatus", "localDate", "preferences", "week", "mission", "nextAction", "honors", "xp", "quests", "streak", "streakNudge"], "today");
@@ -95,13 +98,13 @@ it("captures real training payloads and pins them to the client contract", async
   for (const quest of today.body.quests) expectKeys(quest, ["key", "title", "description", "target", "progress", "completed"], "today.quests[]");
   expectKeys(today.body.streak, ["current", "best", "state"], "today.streak");
 
-  const honors = await request(`/api/v1/progress/me/honors?seasonId=${season}`);
+  const honors = await request<BadgeProgress[]>(`/api/v1/progress/me/honors?seasonId=${season}`);
   expect(honors.status).toBe(200);
   expect(Array.isArray(honors.body)).toBe(true);
-  expect((honors.body as unknown[]).length).toBeGreaterThan(0);
-  for (const badge of honors.body as Record<string, unknown>[]) expectKeys(badge, ["key", "ruleVersion", "title", "completed", "target", "earnedAtUtc", "scopeLabel", "evidenceSessionId"], "honors[]");
+  expect(honors.body.length).toBeGreaterThan(0);
+  for (const badge of honors.body) expectKeys(badge, ["key", "ruleVersion", "title", "completed", "target", "earnedAtUtc", "scopeLabel", "evidenceSessionId"], "honors[]");
 
-  const journey = await request(`/api/v1/progress/me/journey?seasonId=${season}`);
+  const journey = await request<PassageJourneyPage>(`/api/v1/progress/me/journey?seasonId=${season}`);
   expect(journey.status).toBe(200);
   expectKeys(journey.body, ["seasonId", "scopeVersion", "after", "chapters"], "journey");
   expect(journey.body.chapters.length).toBeGreaterThan(0);
@@ -113,14 +116,14 @@ it("captures real training payloads and pins them to the client contract", async
     }
   }
 
-  const chapters = await request(`/api/v1/progress/me/chapters?seasonId=${pbeSeason}`);
+  const chapters = await request<ChapterPage>(`/api/v1/progress/me/chapters?seasonId=${pbeSeason}`);
   expect(chapters.status).toBe(200);
   // ChapterPage (pbeTypes).
   expectKeys(chapters.body, ["seasonId", "ruleVersion", "scopeVersion", "snapshotId", "chapterKey", "work", "currentAvailable", "historyAvailable", "asOfUtc", "dueRefreshAtUtc", "nextCursor", "view", "items"], "chapters");
   expectKeys(chapters.body.work, ["id", "state", "stage", "reason"], "chapters.work");
   expect(chapters.body.view).toBe("Chapters");
 
-  const cooperation = await request(`/api/v1/progress/me/pbe-cooperation?seasonId=${pbeSeason}`);
+  const cooperation = await request<CooperationSnapshot>(`/api/v1/progress/me/pbe-cooperation?seasonId=${pbeSeason}`);
   expect(cooperation.status).toBe(200);
   // CooperationSnapshot (pbeTypes).
   expectKeys(cooperation.body, ["seasonId", "ruleVersion", "scopeVersion", "snapshotId", "state", "reason", "checkedAtUtc", "dueRefreshAtUtc", "rosterStudents", "unknownStudents", "scripture", "introduction", "own", "work"], "cooperation");
@@ -128,24 +131,24 @@ it("captures real training payloads and pins them to the client contract", async
 
   // The Honors page reads the Stamps view for the student's season (here the
   // Memory season — the PBE projection reports itself blocked, by design).
-  const chapterStamps = await request(`/api/v1/progress/me/chapters?seasonId=${season}&view=Stamps`);
+  const chapterStamps = await request<ChapterPage>(`/api/v1/progress/me/chapters?seasonId=${season}&view=Stamps`);
   expect(chapterStamps.status).toBe(200);
   expectKeys(chapterStamps.body, ["seasonId", "ruleVersion", "scopeVersion", "snapshotId", "chapterKey", "work", "currentAvailable", "historyAvailable", "asOfUtc", "dueRefreshAtUtc", "nextCursor", "view", "items"], "chapterStamps");
   expect(chapterStamps.body.view).toBe("Stamps");
   expect(chapterStamps.body.items).toEqual([]);
 
-  const teamActivity = await request("/api/v1/progress/me/team-activity");
+  const teamActivity = await request<TeamActivity>("/api/v1/progress/me/team-activity");
   expect(teamActivity.status).toBe(200);
   expectKeys(teamActivity.body, ["practicedToday", "practicedThisWeek", "memberCount"], "team-activity");
 
-  const preferences = await request("/api/v1/progress/me/preferences", "PUT", { weeklyTarget: 4, timeZone: "America/New_York" });
+  const preferences = await request<TrainingPreferences>("/api/v1/progress/me/preferences", "PUT", { weeklyTarget: 4, timeZone: "America/New_York" });
   expect(preferences.status).toBe(200);
   // TrainingPreferences.
   expectKeys(preferences.body, ["timeZone", "weeklyTarget", "pending"], "preferences");
   // A mid-week change is deferred by design: the response reports the
   // still-effective values and carries the requested change in `pending`.
   expect(preferences.body.pending).toMatchObject({ weeklyTarget: 4, timeZone: "America/New_York" });
-  expectKeys(preferences.body.pending, ["timeZone", "weeklyTarget", "effectiveAtUtc"], "preferences.pending");
+  expectKeys(preferences.body.pending!, ["timeZone", "weeklyTarget", "effectiveAtUtc"], "preferences.pending");
 
   const out = {
     today: { status: today.status, body: today.body },
@@ -157,5 +160,5 @@ it("captures real training payloads and pins them to the client contract", async
     teamActivity: { status: teamActivity.status, body: teamActivity.body },
     preferences: { status: preferences.status, body: preferences.body },
   };
-  writeFileSync(new URL("../../src/features/student/__fixtures__/training-payloads.json", import.meta.url), JSON.stringify(out, null, 2));
+  persistCaptureFixture(new URL("../../src/features/student/__fixtures__/training-payloads.json", import.meta.url), JSON.stringify(out, null, 2));
 }, 60000);

@@ -1,4 +1,5 @@
 import { mkdir, readFile } from "node:fs/promises";
+import { readFileSync, writeFileSync } from "node:fs";
 import { createHash, pbkdf2Sync } from "node:crypto";
 import { build } from "esbuild";
 import { Miniflare, Response as TestServiceResponse } from "miniflare";
@@ -207,4 +208,42 @@ export async function disposeSharedNativeTestApps(): Promise<void> {
   const apps = [...sharedApps.values()];
   sharedApps.clear();
   for (const pending of apps) { try { await (await pending).runtime.dispose(); } catch { /* already disposed */ } }
+}
+
+// Cross-wire capture fixtures (card 28): a routine capture-suite run COMPARES
+// the freshly served payloads against the checked-in fixture and fails on
+// contract drift — that comparison is the contract guard. The comparison is
+// STRUCTURAL (key sets, nesting, array lengths, value types), not bytewise:
+// captures embed per-run UUIDs and wall-clock stamps, so values legitimately
+// differ every run while the shape — the contract — must not. Writing is
+// explicit only: run with UPDATE_FIXTURES=1 (or `npm run
+// fixtures:regenerate`) after an intentional contract change, then review
+// the diff like any other change.
+function fixtureShapeLines(value: unknown, path: string, out: string[]): void {
+  if (value === null) { out.push(`${path}: null`); return; }
+  if (Array.isArray(value)) {
+    out.push(`${path}: array(${value.length})`);
+    value.forEach((item, index) => fixtureShapeLines(item, `${path}[${index}]`, out));
+    return;
+  }
+  if (typeof value === "object") {
+    out.push(`${path}: object`);
+    for (const key of Object.keys(value).sort()) fixtureShapeLines((value as Record<string, unknown>)[key], path ? `${path}.${key}` : key, out);
+    return;
+  }
+  out.push(`${path}: ${typeof value}`);
+}
+
+export function persistCaptureFixture(url: URL, serialized: string): void {
+  if (process.env.UPDATE_FIXTURES) { writeFileSync(url, serialized); return; }
+  let current: string | null = null;
+  try { current = readFileSync(url, "utf8"); } catch { current = null; }
+  if (current === null)
+    throw new Error(`Capture fixture missing: ${url.pathname}. Regenerate with UPDATE_FIXTURES=1 (npm run fixtures:regenerate) and commit the result.`);
+  const expected: string[] = []; fixtureShapeLines(JSON.parse(current), "", expected);
+  const actual: string[] = []; fixtureShapeLines(JSON.parse(serialized), "", actual);
+  for (let i = 0; i < Math.max(expected.length, actual.length); i++) {
+    if (expected[i] !== actual[i])
+      throw new Error(`Capture fixture drift in ${url.pathname}: fixture has \`${expected[i] ?? "<absent>"}\`, server emitted \`${actual[i] ?? "<absent>"}\`. If the contract changed on purpose, regenerate with UPDATE_FIXTURES=1 and review the diff; never hand-edit the fixture.`);
+  }
 }

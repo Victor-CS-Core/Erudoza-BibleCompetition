@@ -2,7 +2,8 @@ import { prepareSoloHonors } from '../mastery/store';
 import type { D1PreparedStatement } from '@cloudflare/workers-types';
 import type { RequestContext } from '../types';
 import { HttpError } from '../types';
-import type { Source } from '../application/model';
+import { requiredSources } from '../application/model';
+import type { Assignment, Source } from '../application/model';
 import type { Stored } from '../store';
 import type { Session, Attempt, Mastery } from '../study/routes';
 import { isScoredMasteryVersion, nextReview } from '../study/engine';
@@ -171,7 +172,11 @@ export async function prepareStart(ctx: RequestContext, session: Session, source
     if (prior && (prior.value.invalidated || prior.value.scopeVersion !== fingerprint) && training.missionId)
         throw new HttpError(409, 'The assignment changed. Reload Training HQ and start a new mission.');
     const mastery = await ctx.store.list<Mastery>('mastery', ctx.orgId, { seasonId: session.seasonId, ownerId: ctx.actor.userId });
-    const due = [...new Set(mastery.filter(m => Date.parse(m.reviewDueAt) <= Date.parse(session.createdAtUtc) && sources.some(s => kid(s) === m.knowledgeUnitId)).sort((a, b) => a.reviewDueAt.localeCompare(b.reviewDueAt) || a.knowledgeUnitId.localeCompare(b.knowledgeUnitId)).map(m => m.knowledgeUnitId))].slice(0, 8);
+    // Card 46: the mission's review set is built from the required set only —
+    // passages covered only by Optional review assignments never become due.
+    const roleAssignments = await ctx.store.list<Assignment>('assignment', ctx.orgId, { seasonId: session.seasonId, ownerId: ctx.actor.userId });
+    const requiredKids = new Set(requiredSources(sources, roleAssignments).map(kid));
+    const due = [...new Set(mastery.filter(m => Date.parse(m.reviewDueAt) <= Date.parse(session.createdAtUtc) && requiredKids.has(m.knowledgeUnitId)).sort((a, b) => a.reviewDueAt.localeCompare(b.reviewDueAt) || a.knowledgeUnitId.localeCompare(b.knowledgeUnitId)).map(m => m.knowledgeUnitId))].slice(0, 8);
     const replacing = !!prior && (prior.value.scopeVersion !== fingerprint || prior.value.invalidated);
     if (replacing) {
         mid = `${headId}:${(head?.value.revision ?? prior.value.revision) + 1}`;
@@ -274,12 +279,17 @@ export async function applyAcceptedAttempt(ctx: RequestContext, session: Session
         seen.push(attempt.knowledgeUnitId);
     const states = (await ctx.store.list<Mastery>('mastery', ctx.orgId, { seasonId: session.seasonId, ownerId: ctx.actor.userId })).filter(m => m.knowledgeUnitId !== mastery.knowledgeUnitId);
     states.push(mastery);
-    const masteryWrites = await prepareSoloHonors(ctx, session, attempt, sources, states, mastery, dueAtUtc);
+    // Card 46: honors and the full-coverage badge judge the required set —
+    // optional-only passages stay out of those denominators.
+    const roleAssignments = await ctx.store.list<Assignment>('assignment', ctx.orgId, { seasonId: session.seasonId, ownerId: ctx.actor.userId });
+    const required = requiredSources(sources, roleAssignments);
+    const masteryWrites = await prepareSoloHonors(ctx, session, attempt, sources, states, mastery, dueAtUtc, required);
     w.statements.push(...masteryWrites.writes.statements);
     w.guards.push(...masteryWrites.writes.guards);
     if (masteryWrites.newAwards.length)
         xpEvents.push({ kind: 'honor', amount: XP_VALUES.profileHonor * masteryWrites.newAwards.length });
     const counters = badgeCounters(sources.map(s => ({ id: kid(s), bookKey: s.bookKey, chapter: s.chapter })), states, seen, p.qualifyingWeekStarts.length, review, streak);
+    counters['full-coverage'] = [required.filter(s => seen.includes(kid(s))).length, required.length];
     // Review-complete progress is cumulative: `review` only describes the
     // current mission, so a later attempt under a new, incomplete mission
     // must not overwrite an already-reached [1, 1] back to [0, 1].

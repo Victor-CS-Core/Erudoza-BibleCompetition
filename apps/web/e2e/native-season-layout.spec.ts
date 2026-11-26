@@ -2,6 +2,15 @@ import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { assertNoOverflow, login } from './helpers';
 
+// Chapter choices are toggle BUTTONS in the chapter strip (ChapterStrip):
+// aria-pressed marks a pending selection; saved chapters render disabled
+// with an "(already saved)" name suffix. (Card 26 selector refresh — the
+// old .planner-chapter-choice checkboxes were replaced by the strip.)
+const chapterStrip = (page: Page, book: string) => page.getByRole('group', { name: new RegExp(`^${book} chapters\\.`) });
+const chapterButtons = (page: Page, book: string) => chapterStrip(page, book).getByRole('button', { name: /^Chapter \d+/ });
+const pressedChapters = (page: Page, book: string) => chapterStrip(page, book).locator('button[aria-pressed="true"]');
+const savedChapters = (page: Page, book: string) => chapterStrip(page, book).getByRole('button', { name: /\(already saved\)$/ });
+
 async function expectFullWidthEditor(page: Page) {
   await expect(page.getByLabel('Student or coach')).toBeVisible();
   await expect(page.locator('.planner-roster')).toBeHidden();
@@ -37,9 +46,10 @@ test('season editor retains selections and usable layout through rotation', asyn
     await page.setViewportSize({ width: 390, height: 844 });
   }
   await page.getByRole('button', { name: 'Save & assign students →' }).click();
-  await expect(page.locator('.planner-chapter-choice')).toHaveCount(40);
+  await expect(chapterButtons(page, 'Exodus')).toHaveCount(40);
   const student = await page.getByLabel('Student or coach').inputValue();
-  await page.getByRole('checkbox', { name: 'Select all chapters in Exodus' }).check();
+  await page.getByRole('button', { name: 'Select all chapters', exact: true }).click();
+  await expect(pressedChapters(page, 'Exodus')).toHaveCount(40);
   await page.getByText('Plan settings · Standard', { exact: true }).click();
   await page.getByLabel('Training difficulty').selectOption('Advanced');
   const role = await page.getByLabel('Assignment role').inputValue();
@@ -50,11 +60,11 @@ test('season editor retains selections and usable layout through rotation', asyn
       await page.setViewportSize(viewport);
       await expectFullWidthEditor(page);
       await expect(page.getByLabel('Student or coach')).toHaveValue(student);
-      await expect(page.locator('.planner-chapter-choice input:checked')).toHaveCount(40);
+      await expect(pressedChapters(page, 'Exodus')).toHaveCount(40);
       await expect(page.getByLabel('Assignment role')).toHaveValue(role);
       await expect(page.getByLabel('Training difficulty')).toHaveValue('Advanced');
       if (viewport.width > viewport.height) {
-        expect((await page.locator('.planner-chapter-grid').boundingBox())!.height).toBeLessThan(250);
+        expect((await page.locator('.planner-strip').boundingBox())!.height).toBeLessThan(250);
       }
       const save = page.getByRole('button', { name: 'Save assignments', exact: true });
       await save.scrollIntoViewIfNeeded();
@@ -79,26 +89,26 @@ test('season editor retains selections and usable layout through rotation', asyn
       await page.setViewportSize(viewport);
       await expect(page.locator('.planner-roster')).toBeVisible();
       await expect(page.getByLabel('Student or coach')).toBeHidden();
-      await expect(page.locator('.planner-chapter-choice input:checked')).toHaveCount(40);
+      await expect(pressedChapters(page, 'Exodus')).toHaveCount(40);
       await assertNoOverflow(page);
     }
   }
   await page.getByRole('button', { name: 'Save assignments', exact: true }).click();
   await expect(page.getByText('Assignments saved.', { exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.locator('.planner-chapter-choice input:checked:disabled')).toHaveCount(40);
+  await expect(savedChapters(page, 'Exodus')).toHaveCount(40);
   await expect(page.getByRole('button', { name: 'Start season', exact: true })).toBeEnabled();
   if (phone) {
     // The same responsive editor also supports the coach's own study plan.
     await page.getByLabel('Student or coach').selectOption({ label: 'My assignments' });
-    await page.getByRole('checkbox', { name: 'Chapter 1', exact: true }).check();
+    await chapterStrip(page, 'Exodus').getByRole('button', { name: 'Chapter 1', exact: true }).click();
     await page.setViewportSize({ width: 844, height: 390 });
     await expectFullWidthEditor(page);
-    await expect(page.getByRole('checkbox', { name: 'Chapter 1', exact: true })).toBeChecked();
+    await expect(chapterStrip(page, 'Exodus').getByRole('button', { name: 'Chapter 1', exact: true })).toHaveAttribute('aria-pressed', 'true');
     await page.getByRole('button', { name: 'Save assignments', exact: true }).click();
     await expect(page.getByText('Assignments saved.', { exact: true })).toBeVisible();
     await page.reload();
-    await expect(page.locator('.planner-chapter-choice input:checked:disabled')).toHaveCount(1);
+    await expect(savedChapters(page, 'Exodus')).toHaveCount(1);
     await expect(page.getByRole('link', { name: 'Open Student Mode' })).toBeVisible();
     // Minimizing support gives the form its space back; rotation does not change the preference.
     await page.getByRole('button', { name: 'Minimize support widget' }).click();

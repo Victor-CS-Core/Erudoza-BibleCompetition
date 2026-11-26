@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import { practiceApi } from "../../api/practice";
+import { trainingApi } from "../../api/training";
+import type { TrainingToday } from "../../api/trainingTypes";
+import { PracticeHero, PracticeMilestones, PracticeMissionCard, PracticeMomentum, PracticePulse, PracticeRoomCard, PracticeStreakCard, SimulationPatchCard, TeamPracticePatchCard, honorPatchState, invitationDestinationText, shelfOrder, shelfSummary, simulationPatchState, type HubCta } from "./PracticeHubSections";
 import { nativeCloudflare } from "../../api/practiceTransport";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, HelpTip, LinkButton, LoadingState, Notice, PageHeader, Panel, Select } from "../../components/ui";
@@ -9,12 +12,8 @@ import { ThemedImage } from "../../components/brand/ThemedImage";
 import { CoachEvents } from "./CoachEvents";
 import { StudentPracticeInbox } from "./StudentPracticeInbox";
 import { useMyProfile } from "../profile/profile";
-import { UseAsProfileImageButton } from "../profile/UseAsProfileImageButton";
-import { HonorPatchCard } from "../profile/HonorPatchCard";
-import { MasteryHonorArtwork } from "../profile/MasteryHonorArtwork";
-import { evidenceDate } from "../student/trainingAssets";
 import { QuestionEditor } from "./QuestionEditor";
-import { points, roomSizeLabel } from "./practiceUtils";
+import { roomSizeLabel } from "./practiceUtils";
 import "./practice.css";
 import "./practice-hub.css";
 
@@ -29,6 +28,12 @@ export function PracticeHub() {
   const profile = useMyProfile();
   const teamHonors = profile.data?.honors.filter(honor => honor.category === "Team Practice") ?? [];
   const bootstrap = useQuery({ queryKey: ["practice", org], queryFn: () => practiceApi.bootstrap(org), refetchInterval: nativeCloudflare ? 60000 : 15000 });
+  // Practice HQ Phase 1: the hub composes the existing training summary
+  // (XP/level, mission, quests, streak, weekly goal, nextAction) beside the
+  // practice bootstrap. Same query key as the profile page so the two share
+  // one cached read; a failed summary only hides the loop sections.
+  const todayQuery = useQuery({ queryKey: ["training-today", undefined, org, me?.userId], queryFn: () => trainingApi.today(undefined), staleTime: 60_000, retry: false });
+  const today: TrainingToday | null = todayQuery.data ?? null;
   const [error, setError] = useState("");
   const [pending, setPending] = useState<"join" | "enable" | null>(null);
   const [seasonId, setSeason] = useState(() => new URLSearchParams(location.search).get("seasonId") ?? "");
@@ -38,6 +43,29 @@ export function PracticeHub() {
   const currentRoom = data?.rooms.find(room => room.status === "Playing") || data?.rooms.find(room => room.status === "Lobby");
   const invitation = data?.invitations[0];
   const seasonName = (id: string) => data?.seasons.find(season => season.id === id)?.name || "Past season";
+  // The summary's nextAction routed through the existing Study flow (the
+  // same link shape Training HQ builds, minus its mission bookkeeping).
+  const studyHref = (action: NonNullable<TrainingToday["nextAction"]>) => {
+    const search = new URLSearchParams({ mode: action.mode });
+    if (today?.format) search.set("format", today.format);
+    if (action.sessionId) search.set("sessionId", action.sessionId);
+    return `/student/study?${search}`;
+  };
+  const continueHref = today?.nextAction ? studyHref(today.nextAction) : "/student/study";
+  // Decided CTA (GitHub #48): a Student with an assigned room or invitation
+  // opens it; otherwise they continue assigned study. A Coach creates a team
+  // event. No learner-created rooms exist in this scope.
+  const studentCta: HubCta = currentRoom
+    ? { label: "Open assigned room", to: roomLink(currentRoom.id, currentRoom.seasonId) }
+    : invitation
+      ? { label: "Open assigned room", to: `${base}#invitations` }
+      : { label: "Continue assigned study", to: continueHref };
+  const coachCta: HubCta = { label: "Create team event", to: `${base}#create-event` };
+  const heroSeason = today?.seasonName || seasonName(selectedSeasonId);
+  const loopSections = today && <>
+    <PracticeMissionCard today={today} continueHref={continueHref} />
+    {!currentRoom && !invitation && <PracticeStreakCard today={today} continueHref={continueHref} />}
+  </>;
 
   async function run(action: NonNullable<typeof pending>, work: () => Promise<unknown>) {
     setPending(action);
@@ -64,12 +92,16 @@ export function PracticeHub() {
         <p>{coach ? "Enable Team Practice below to run events, simulations, and answer reviews for your club." : "Ask your coach to enable Team Practice for your club."}</p>
         {coach && <Button disabled={!!pending} onClick={() => void run("enable", () => practiceApi.enabled(org, true))}>{pending === "enable" ? "Enabling…" : "Enable Team Practice"}</Button>}
       </Panel> : coach ? <>
+        <PracticeHero seasonLabel={heroSeason} heading="Build a steady team." today={today} cta={coachCta} />
+        {loopSections}
+        <PracticePulse trends={data.trends} today={today} achievements={data.simulationAchievements} seasonId={today?.seasonId ?? selectedSeasonId} />
         <CoachEvents org={org} seasons={data.seasons} />
-        {(currentRoom||invitation)&&<Panel className="practice-current-strip" aria-label={currentRoom?'Current room':'Practice invitation'}><div><Badge tone="info">{currentRoom?.status??'Invitation'}</Badge><h2>{currentRoom?currentRoom.status==='Playing'?'Your match is in progress.':'Your room is waiting for players.':'You’re invited to practice.'}</h2><p>{currentRoom?`${seasonName(currentRoom.seasonId)} · ${roomSizeLabel(currentRoom)} · ${currentRoom.questionCount} ${currentRoom.questionCount === 1 ? "question" : "questions"} · ${currentRoom.memberCount} ${currentRoom.memberCount === 1 ? "player" : "players"}`: `${invitation!.inviterName} invited you to practice.`}</p>{currentRoom?.ownerId===me!.userId&&<p>You’re the room owner.</p>}</div><LinkButton to={currentRoom?roomLink(currentRoom.id,currentRoom.seasonId):`${base}#invitations`}>{currentRoom?currentRoom.status==='Playing'?'Return to match':'Open lobby':'View invitation'}</LinkButton></Panel>}
+        {currentRoom ? <PracticeRoomCard room={currentRoom} meUserId={me!.userId} seasonLabel={seasonName(currentRoom.seasonId)} roomHref={roomLink(currentRoom.id, currentRoom.seasonId)} />
+        : invitation && <Panel className="practice-current-strip" aria-label="Practice invitation"><div><Badge tone="info">Invitation</Badge><h2>You’re invited to practice.</h2><p>{invitation.inviterName} invited you to practice.</p>{invitationDestinationText(data.rooms.find(room => room.id === invitation.roomId), seasonName) && <p>{invitationDestinationText(data.rooms.find(room => room.id === invitation.roomId), seasonName)}</p>}<p>Expires {new Date(invitation.expiresAt).toLocaleString()}</p></div><LinkButton to={`${base}#invitations`}>View invitation</LinkButton></Panel>}
         {data.invitations.length > 0 && <Panel id="invitations" aria-labelledby="practice-invitations-title">
           <div className="practice-hub-section-heading"><h2 id="practice-invitations-title">Invitations</h2><Badge tone="info">{data.invitations.length} pending</Badge></div>
           <ul className="practice-hub-invitations">{data.invitations.map(invite => <li key={invite.id}>
-            <div><strong>{invite.inviterName} invited you {invite.team ? `to Team ${invite.team}` : "to a room"}.</strong><p>Expires {new Date(invite.expiresAt).toLocaleString()}</p></div>
+            <div><strong>{invite.inviterName} invited you {invite.team ? `to Team ${invite.team}` : "to a room"}.</strong>{invitationDestinationText(data.rooms.find(room => room.id === invite.roomId), seasonName) && <p>{invitationDestinationText(data.rooms.find(room => room.id === invite.roomId), seasonName)}</p>}<p>Expires {new Date(invite.expiresAt).toLocaleString()}</p></div>
             <div className="practice-actions">{(invite.team ? [invite.team] : invite.teamCount===1?[1]:[1, 2]).map(team => <Button key={team} disabled={!!pending} variant="secondary" onClick={() => void run("join", async () => {
               const room = await practiceApi.accept(org, invite.id, team);
               navigate(roomLink(room.id, room.seasonId));
@@ -87,33 +119,20 @@ export function PracticeHub() {
             {!data.invitations.length && <section id="invitations" className="practice-hub-no-invitations" aria-labelledby="practice-invitations-title"><h3 id="practice-invitations-title">Invitations</h3><p>No pending invitations.</p></section>}
           </Panel>
         </div>
-      </> : <StudentPracticeInbox org={org} data={data} />}
+      </> : <>
+        <PracticeHero seasonLabel={heroSeason} heading="Keep your assigned practice moving." today={today} cta={studentCta} />
+        {loopSections}
+        {currentRoom && <PracticeRoomCard room={currentRoom} meUserId={me!.userId} seasonLabel={seasonName(currentRoom.seasonId)} roomHref={roomLink(currentRoom.id, currentRoom.seasonId)} />}
+        <PracticePulse trends={data.trends} today={today} achievements={data.simulationAchievements} seasonId={today?.seasonId ?? selectedSeasonId} />
+        <StudentPracticeInbox org={org} data={data} />
+      </>}
 
-      {!!data.simulationAchievements?.length&&<Panel id="simulation-achievements"><h2>Simulation patches<HelpTip label="About Simulation patches">Earned together through completed simulations. Choose an unlocked patch for your profile.</HelpTip></h2>{data.seasons.length > 1 && <label className="practice-active-season">Season<Select value={selectedSeasonId} disabled={!!pending} onChange={event=>setSeason(event.target.value)}>{data.seasons.map(season=><option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}<div className="honor-patch-grid" aria-label="Simulation patches">{data.simulationAchievements.filter(h=>h.seasonId===selectedSeasonId).map(h=><HonorPatchCard key={h.key+h.seasonId}
-        title={h.title}
-        artwork={<MasteryHonorArtwork honorKey={h.key} size={208} muted={!h.earnedAtUtc} />}
-        status={<><Badge tone={h.earnedAtUtc?"success":"neutral"}>{h.earnedAtUtc?"Earned":"Locked"}</Badge><span>{h.current} / {h.target}</span></>}
-        detail={<><MasteryHonorArtwork honorKey={h.key} size={192} muted={!h.earnedAtUtc} /><p>{h.requirement}</p><p>Progress: {h.current} of {h.target}</p>{h.earnedAtUtc?<><p>Earned <time dateTime={h.earnedAtUtc}>{evidenceDate(h.earnedAtUtc)}</time>. Your qualifying evidence is saved.</p><UseAsProfileImageButton honorKey={h.key} title={h.title} worn={profile.data?.avatarHonorKey === h.key} /></>:<p>This patch is locked. Complete simulations together to unlock it for your profile.</p>}</>}
-      />)}</div></Panel>}
+      <PracticeMomentum trends={data.trends} seasonName={seasonName} />
+      {!!data.simulationAchievements?.length&&<Panel id="simulation-achievements"><h2>Simulation patches<HelpTip label="About Simulation patches">Earned together through completed simulations. Choose an unlocked patch for your profile.</HelpTip></h2><p className="practice-shelf-summary">Profile patches · earned together through completed simulations · {shelfSummary(data.simulationAchievements.filter(h=>h.seasonId===selectedSeasonId).map(simulationPatchState))}</p>{data.seasons.length > 1 && <label className="practice-active-season">Season<Select value={selectedSeasonId} disabled={!!pending} onChange={event=>setSeason(event.target.value)}>{data.seasons.map(season=><option key={season.id} value={season.id}>{season.name}</option>)}</Select></label>}<div className="honor-patch-grid" aria-label="Simulation patches">{shelfOrder(data.simulationAchievements.filter(h=>h.seasonId===selectedSeasonId), simulationPatchState).map(h=><SimulationPatchCard key={h.key+h.seasonId} achievement={h} worn={profile.data?.avatarHonorKey === h.key} />)}</div></Panel>}
       <Panel id="achievements" aria-labelledby="practice-honors-title">
         <h2 id="practice-honors-title">Team Achievement patches<HelpTip label="About Team Achievement patches">Arcade mastery Achievement patches use finalized personal accuracy across distinct questions and passages. PBE team milestones record participation and finalized team scores separately.</HelpTip></h2>
-        {profile.isPending ? <LoadingState label="Loading Team Achievement patches…" /> : profile.isError ? <Notice tone="danger">Team Achievement patches could not load. <Button variant="secondary" onClick={() => void profile.refetch()}>Retry Team Achievement patches</Button></Notice> : <div className="honor-patch-grid" aria-label="Team Achievement patches">{teamHonors.map(honor => <HonorPatchCard key={honor.key}
-          title={honor.title}
-          artwork={<MasteryHonorArtwork honorKey={honor.key} size={208} muted={!honor.earnedAtUtc} />}
-          status={<><Badge tone={honor.earnedAtUtc ? "success" : "neutral"}>{honor.earnedAtUtc ? "Earned" : "Locked"}</Badge>{honor.earnedAtUtc && <span>Earned <time dateTime={honor.earnedAtUtc}>{evidenceDate(honor.earnedAtUtc)}</time></span>}</>}
-          detail={<><MasteryHonorArtwork honorKey={honor.key} size={192} muted={!honor.earnedAtUtc} /><p>{honor.category}</p><h3>How to unlock</h3><p>{honor.requirement}</p>{honor.earnedAtUtc ? <><p>Earned <time dateTime={honor.earnedAtUtc}>{evidenceDate(honor.earnedAtUtc)}</time>. Your qualifying evidence is saved.</p><UseAsProfileImageButton honorKey={honor.key} title={honor.title} worn={profile.data?.avatarHonorKey === honor.key} /></> : <p>This patch is locked. Meet every requirement to unlock it for your profile.</p>}</>}
-        />)}</div>}
-        <details className="ds-disclosure practice-milestone-history"><summary>Practice milestones<HelpTip label="About practice milestones">Team milestones record participation and finalized team scores. PBE milestones use their saved team rules and do not unlock profile images.</HelpTip></summary><div className="practice-awards">{data.achievements.map(award => <div key={award.key + "-" + award.seasonId}><MasteryHonorArtwork honorKey={"team:" + award.key.replace(/^pbe-team-v1:/, "")} size={72} /><strong>{award.title}</strong><small>{seasonName(award.seasonId)}</small><Badge>Milestone recorded</Badge></div>)}</div>{!data.achievements.length && <p className="practice-hub-secondary">No team milestones recorded.</p>}</details>
-      </Panel>
-      <Panel id="practice-progress" aria-labelledby="practice-progress-title">
-        <h2 id="practice-progress-title">Team practice progress<HelpTip label="About team practice progress">Your finalized match evidence, grouped by season, passage scope, team size, and rules. These measures describe team practice, not individual Scripture mastery.</HelpTip></h2>
-        {!data.trends?.length && <p className="practice-hub-secondary">Complete a match and resolve its appeals to see your progress.</p>}
-        {data.trends?.map(trend => <article className="practice-review" key={`${trend.seasonId}-${trend.teamSize}-${trend.bookKey}-${trend.format}-${trend.teamCount}-${trend.ruleVersion}-${trend.scoringVersion}`}>
-          <h3>{seasonName(trend.seasonId)} · {roomSizeLabel(trend)} · {trend.bookKey || "Season scope"}</h3>
-          {trend.provisional && <p><Badge tone="warning">Review pending</Badge> {trend.pendingCount} answer{trend.pendingCount === 1 ? "" : "s"} awaiting review. Pending answers are excluded from finalized accuracy.</p>}
-          <dl className="practice-stats"><div><dt>{trend.format === "Pbe" ? "Finalized accuracy" : "Accuracy"}</dt><dd>{trend.availableHundredths ? Math.round(trend.accuracyHundredths / trend.availableHundredths * 100) : 0}%</dd></div>{trend.format!=='Pbe'&&<div><dt>Speed bonus</dt><dd>{points(trend.speedHundredths)}</dd></div>}<div><dt>Completed</dt><dd>{trend.matches}</dd></div>{trend.format!=='Pbe'&&trend.teamCount!==1&&<div><dt>Wins / draws</dt><dd>{trend.wins} / {trend.draws}</dd></div>}<div><dt>Average response</dt><dd>{(trend.averageResponseMs / 1000).toFixed(1)}s</dd></div></dl>
-          <p>{trend.distinctQuestions} distinct {trend.distinctQuestions === 1 ? "question" : "questions"} · {trend.distinctPassages} {trend.distinctPassages === 1 ? "passage" : "passages"} · {trend.participatedQuestions} {trend.participatedQuestions === 1 ? "question" : "questions"} with your participation · {trend.unansweredQuestions} unanswered {trend.unansweredQuestions === 1 ? "question" : "questions"}.</p><small>Rules: {trend.ruleVersion}</small>
-        </article>)}
+        {profile.isPending ? <LoadingState label="Loading Team Achievement patches…" /> : profile.isError ? <Notice tone="danger">Team Achievement patches could not load. <Button variant="secondary" onClick={() => void profile.refetch()}>Retry Team Achievement patches</Button></Notice> : <><p className="practice-shelf-summary">Profile patches · from your finalized Team Practice mastery · {shelfSummary(teamHonors.map(honorPatchState))}</p><div className="honor-patch-grid" aria-label="Team Achievement patches">{shelfOrder(teamHonors, honorPatchState).map(honor => <TeamPracticePatchCard key={honor.key} honor={honor} worn={profile.data?.avatarHonorKey === honor.key} />)}</div></>}
+        <PracticeMilestones achievements={data.achievements} seasonName={seasonName} />
       </Panel>
     </>}
     {data && coach && <div id="question-bank"><QuestionEditor org={org} data={data} /></div>}

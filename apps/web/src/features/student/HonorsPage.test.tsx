@@ -64,7 +64,7 @@ it("preserves the original milestone progress and Advanced requirement inside hi
   const milestones = screen.getByText("Practice milestones", { selector: "summary" }).closest("details")!;
   fireEvent.click(within(milestones).getByRole("button", { name: "Exact Recall: view details" }));
   expect(screen.getByRole("dialog")).toHaveTextContent("Get a wording score of 80 or more on 5 different passages.");
-  expect(screen.getByRole("dialog")).toHaveTextContent("Foundation caps wording scores at 40 and Standard at 70.");
+  expect(screen.getByRole("dialog")).toHaveTextContent("Foundation tops wording mastery at 70, while Standard and Advanced can climb to 100.");
   expect(within(screen.getByRole("dialog")).queryByRole("link", { name: /profile image/ })).not.toBeInTheDocument();
 });
 it("preserves milestone earning date, scope and evidence-session route", async () => {

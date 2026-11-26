@@ -40,6 +40,9 @@
 .ds-student-dashboard-overall .ds-progress { flex: 1 1 auto; }
 .ds-student-dashboard-overall span { font-size: var(--er-text-sm); font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ds-student-dashboard-chapters, .ds-student-dashboard-list { list-style: none; margin: var(--er-space-4) 0 0; padding: 0; }
+.ds-student-dashboard-difficulty { display: flex; align-items: end; gap: var(--er-space-3); flex-wrap: wrap; margin-top: var(--er-space-5); padding-top: var(--er-space-4); border-top: 1px solid var(--er-border); }
+.ds-student-dashboard-difficulty label { display: grid; gap: var(--er-space-2); min-width: 180px; flex: 1 1 180px; }
+.ds-student-dashboard-difficulty p { flex-basis: 100%; margin: 0; }
 .ds-student-dashboard-chapters > li { display: grid; gap: var(--er-space-2); padding: var(--er-space-3) 0; border-top: 1px solid var(--er-border); }
 .ds-student-dashboard-chapters > li > div { display: flex; align-items: baseline; justify-content: space-between; gap: var(--er-space-3); }
 .ds-student-dashboard-chapters small, .ds-student-dashboard-list small { display: block; color: var(--er-muted-ink); font-size: var(--er-text-xs); margin-top: 2px; }

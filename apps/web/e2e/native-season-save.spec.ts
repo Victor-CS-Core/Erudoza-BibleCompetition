@@ -2,6 +2,36 @@ import { expect, test, type Page } from "@playwright/test";
 import { assertNoOverflow, login } from "./helpers";
 import type { Assignment, Me, PassageRange, ScriptureLibrary, Student } from "../src/api/types";
 
+// Chapter choices are toggle BUTTONS in the chapter strip (ChapterStrip):
+// only the ACTIVE book's strip renders, so selecting across books goes
+// through the book tabs (selection state is per book and survives tab
+// switches). aria-pressed marks a pending selection; saved chapters render
+// disabled with an "(already saved)" name suffix. (Card 26 selector
+// refresh — replaces the old per-book "Select all chapters in X" checkboxes
+// and .planner-chapter-choice inputs.)
+const chapterStrip = (page: Page, book: string) => page.getByRole("group", { name: new RegExp(`^${book} chapters\\.`) });
+const pressedChapters = (page: Page, book: string) => chapterStrip(page, book).locator("button[aria-pressed=\"true\"]");
+const savedChapters = (page: Page, book: string) => chapterStrip(page, book).getByRole("button", { name: /\(already saved\)$/ });
+
+async function selectBookTab(page: Page, book: string) {
+  // The book tablist renders only when the season has more than one book;
+  // a single-book season shows its one strip directly.
+  const tab = page.getByRole("tab", { name: new RegExp(book) });
+  if (await tab.count()) await tab.click();
+}
+
+async function selectAllChapters(page: Page, book: string) {
+  await selectBookTab(page, book);
+  await page.getByRole("button", { name: "Select all chapters", exact: true }).click();
+}
+
+async function expectSavedChapterCounts(page: Page, counts: [string, number][]) {
+  for (const [book, count] of counts) {
+    await selectBookTab(page, book);
+    await expect(savedChapters(page, book)).toHaveCount(count);
+  }
+}
+
 async function identity(page: Page) {
   const me = await (await page.request.get("/api/v1/me")).json() as Me;
   const org = `/api/v1/organizations/${me.organizationId}`;
@@ -20,7 +50,7 @@ async function smallSeason(page: Page, name: string) {
   const range = { bookKey: book.bookKey, startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 24 };
   expect((await page.request.post(`${org}/seasons/${season.id}/scope`, { data: { contentPackId: book.contentPackId, includes: [range], excludes: [] } })).ok()).toBe(true);
   await page.goto(`/admin/seasons/${season.id}?step=students&studentId=${student.userId}`);
-  await page.getByRole("checkbox", { name: "Select all chapters in Ephesians" }).check();
+  await selectAllChapters(page, "Ephesians");
   return { endpoint, student };
 }
 
@@ -48,8 +78,8 @@ test("all 190 chapters save in two writes, persist for student and coach, and un
     if (writes.length === 1) await hold;
     await route.continue();
   });
-  await page.getByRole("checkbox", { name: "Select all chapters in Exodus" }).check();
-  await page.getByRole("checkbox", { name: "Select all chapters in Psalms" }).check();
+  await selectAllChapters(page, "Exodus");
+  await selectAllChapters(page, "Psalms");
   await page.getByText("Plan settings · Standard", { exact: true }).click();
   await page.getByLabel("Training difficulty").selectOption("Advanced");
   await page.getByRole("button", { name: "Save assignments", exact: true }).click();
@@ -74,7 +104,9 @@ test("all 190 chapters save in two writes, persist for student and coach, and un
   expect(saved).toHaveLength(2);
   expect(saved.every(item => item.studentUserId === student.userId && item.difficulty === "Advanced")).toBe(true);
   await page.reload();
-  await expect(page.locator('.planner-chapter-choice input:checked:disabled')).toHaveCount(190);
+  // All 190 chapters persisted and locked: 40 Exodus + 150 Psalms, counted
+  // per book tab because only the active book's strip renders.
+  await expectSavedChapterCounts(page, [["Exodus", 40], ["Psalms", 150]]);
   await page.getByRole("button", { name: "Start season", exact: true }).scrollIntoViewIfNeeded();
   await assertNoOverflow(page);
   await page.screenshot({ path: info.outputPath("saved-320.png") });
@@ -82,13 +114,13 @@ test("all 190 chapters save in two writes, persist for student and coach, and un
   await page.goto(`/admin/seasons/${seasonId}?step=students&studentId=${me.userId}`);
   let selfWrites = 0;
   page.on("request", request => { if (request.url().endsWith(`/seasons/${seasonId}/my-assignments`) && request.method() === "POST") selfWrites++; });
-  await page.getByRole("checkbox", { name: "Select all chapters in Exodus" }).check();
-  await page.getByRole("checkbox", { name: "Select all chapters in Psalms" }).check();
+  await selectAllChapters(page, "Exodus");
+  await selectAllChapters(page, "Psalms");
   await page.getByRole("button", { name: "Save assignments", exact: true }).click();
   await expect(page.getByText("Assignments saved.", { exact: true })).toBeVisible();
   expect(selfWrites).toBe(2);
   await page.reload();
-  await expect(page.locator('.planner-chapter-choice input:checked:disabled')).toHaveCount(190);
+  await expectSavedChapterCounts(page, [["Exodus", 40], ["Psalms", 150]]);
   await expect(page.getByRole("link", { name: "Open Student Mode" })).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -106,7 +138,7 @@ test("a stalled write times out, keeps selections, and retries once after fresh 
   });
   await page.getByRole("button", { name: "Save assignments", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("timed out", { timeout: 35_000 });
-  await expect(page.getByRole("checkbox", { name: "Select all chapters in Ephesians" })).toBeChecked();
+  await expect(pressedChapters(page, "Ephesians")).toHaveCount(6);
   await expect(page.getByRole("button", { name: "Save assignments", exact: true })).toBeEnabled();
   await expect(page.getByRole("button", { name: "Start season", exact: true })).toBeDisabled();
   expect(attempts).toBe(1);

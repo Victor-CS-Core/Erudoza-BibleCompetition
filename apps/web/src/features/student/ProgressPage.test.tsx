@@ -107,14 +107,14 @@ describe("ProgressPage recorded evidence", () => {
     vi.mocked(trainingApi.journey).mockResolvedValue({ seasonId: "season-1", scopeVersion: "scope-1", after: null, chapters: [] });
     vi.mocked(api.studentProgress).mockResolvedValue(progress({ studentDisplayName: "Daniel Student", reviewDueCount: 2 }));
   });
-  it.each(["/student/progress", "/admin/seasons/season-1/students/student-1/progress"])("shows coach difficulty prerequisites at %s",async path=>{
+  it.each(["/student/progress", "/admin/seasons/season-1/students/student-1/progress"])("shows training difficulty prerequisites at %s",async path=>{
     const data=progress({assignments:[{difficulty:"Standard"} as Progress['assignments'][number]]});
     vi.mocked(api.progress).mockResolvedValue(data);vi.mocked(api.studentProgress).mockResolvedValue(data);
     renderProgress(path);
     // Scoring detail lives in the HelpTip now, not visible paragraphs.
     fireEvent.click(await screen.findByRole("button", { name: "About passage scoring" }));
-    expect(screen.getByText(/Coach-set difficulty: Standard/)).toBeVisible();
-    expect(screen.getByText(/Foundation wording evidence stops at 40/)).toHaveTextContent("Standard at 70");
+    expect(screen.getByText(/Training difficulty: Standard/)).toBeVisible();
+    expect(screen.getByText(/At Foundation, wording mastery tops out at 70/)).toHaveTextContent("At Standard and Advanced, wording mastery can climb to 100");
     expect(screen.getByText(/Advanced mastery challenges require/)).toHaveTextContent("Your difficulty does not change automatically");
   });
   it("shows real learner records without trusting an old route-state recap", async () => {

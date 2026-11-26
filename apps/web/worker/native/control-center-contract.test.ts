@@ -2,6 +2,7 @@
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { createNativeTestApp, TEST_ORG, TEST_USER } from "./test-runtime";
 import { LIBRARY_ORG } from "./application/library-access";
+import type { ClubsData, ContentData, DigestData, FunnelData, OverviewData, SeasonsData, SupportData, SupportTicket, SystemData, UsersData } from "../../src/api/controlCenter";
 
 /** Control Center CONTRACT guard (Nov 24 audit). The production Content-tab
  *  crash came from client/server field-name drift where each side's tests
@@ -60,8 +61,11 @@ beforeAll(async () => {
 afterAll(async () => { await app?.runtime.dispose(); });
 
 const get = (path: string, withCookie = true) => app.fetch(`${BASE}/${path}`, { headers: { Origin: "https://erudoza.test", ...(withCookie ? { Cookie: cookie } : {}) } });
+// Bodies are typed with the CLIENT contract DTOs (src/api/controlCenter.ts)
+// so this guard reads the wire exactly the way the page does.
+async function getJson<T>(path: string): Promise<T> { return await (await get(path)).json() as T; }
 
-function expectKeys(obj: Record<string, unknown>, required: string[], context: string) {
+function expectKeys(obj: object, required: string[], context: string) {
   for (const key of required) expect(obj, `${context} missing ${key}`).toHaveProperty(key);
 }
 const LEGACY_DIALECT = ["liveReleases", "materialDrafts", "materialDraftOldestAt", "newsSuggestionOldestAt", "organizationName", "organizationId", "checkedAt", "generatedAtUtc", "students"];
@@ -75,30 +79,30 @@ it("rejects anonymous callers with 401 on every endpoint", async () => {
 });
 
 it("serves the client contract on every endpoint (no field drift)", async () => {
-  const overview = await (await get(`overview${Q}`)).json() as Record<string, any>;
+  const overview = await getJson<OverviewData>(`overview${Q}`);
   expectKeys(overview, ["totalUsers", "newThisMonth", "xpThisWeek", "xpLastWeek", "activeThisWeek", "activeLastWeek", "sessionsToday", "sessionsDailyAverage", "chart", "todayByClub"], "overview");
-  expectKeys(overview.chart[0], ["day", "sessions"], "overview.chart[]");
-  expectKeys(overview.todayByClub[0], ["orgId", "name", "sessions", "students"], "overview.todayByClub[]");
+  expectKeys(overview.chart[0]!, ["day", "sessions"], "overview.chart[]");
+  expectKeys(overview.todayByClub[0]!, ["orgId", "name", "sessions", "students"], "overview.todayByClub[]");
 
-  const users = await (await get("users")).json() as Record<string, any>;
+  const users = await getJson<UsersData>("users");
   expectKeys(users, ["clubs", "newest"], "users");
-  expectKeys(users.newest[0], ["id", "displayName", "userName", "email", "kind", "role", "orgName", "active", "joinedAtUtc"], "users.newest[]");
+  expectKeys(users.newest[0]!, ["id", "displayName", "userName", "email", "kind", "role", "orgName", "active", "joinedAtUtc"], "users.newest[]");
 
-  const clubs = await (await get(`clubs${Q}`)).json() as Record<string, any>;
-  expectKeys(clubs.clubs[0], ["orgId", "name", "learners", "activeLearners", "sessionsThisWeek", "quietLearners"], "clubs[]");
+  const clubs = await getJson<ClubsData>(`clubs${Q}`);
+  expectKeys(clubs.clubs[0]!, ["orgId", "name", "learners", "activeLearners", "sessionsThisWeek", "quietLearners"], "clubs[]");
 
-  const funnel = await (await get(`funnel${Q}`)).json() as Record<string, any>;
-  expectKeys(funnel.steps[0], ["key", "label", "count", "source"], "funnel.steps[]");
+  const funnel = await getJson<FunnelData>(`funnel${Q}`);
+  expectKeys(funnel.steps[0]!, ["key", "label", "count", "source"], "funnel.steps[]");
 
-  const content = await (await get("content")).json() as Record<string, any>;
+  const content = await getJson<ContentData>("content");
   expectKeys(content, ["watcher", "proposalsPending", "proposalsOldestAtUtc", "releasesLive", "newsSuggestions", "newsDrafts", "newsPublished", "newsOldestSuggestionAtUtc", "libraryPacks", "libraryVerses"], "content");
-  expectKeys(content.watcher, ["checkedAtUtc", "mediaChecked", "notes"], "content.watcher");
+  expectKeys(content.watcher!, ["checkedAtUtc", "mediaChecked", "notes"], "content.watcher");
 
-  const seasons = await (await get("seasons")).json() as Record<string, any>;
+  const seasons = await getJson<SeasonsData>("seasons");
   expectKeys(seasons, ["openDisputes", "oldestDisputeAtUtc", "seasons"], "seasons");
-  expectKeys(seasons.seasons[0], ["id", "name", "status", "orgName", "members"], "seasons.seasons[]");
+  expectKeys(seasons.seasons[0]!, ["id", "name", "status", "orgName", "members"], "seasons.seasons[]");
 
-  const system = await (await get("system")).json() as Record<string, any>;
+  const system = await getJson<SystemData>("system");
   expectKeys(system, ["version", "database", "cron", "secrets", "supportIngestConfigured", "supportAddress", "errors"], "system");
   expect(system.database).toBe("ok");
   expectKeys(system.cron, ["expression", "label"], "system.cron");
@@ -106,32 +110,32 @@ it("serves the client contract on every endpoint (no field drift)", async () => 
   // Secret entries carry a NAME and a presence flag only — never a value.
   for (const secret of system.secrets) expect(Object.keys(secret).sort()).toEqual(["name", "present"]);
 
-  const digest = await (await get("digest")).json() as Record<string, any>;
-  expectKeys(digest.digest, ["weekStart", "weekEnd", "newUsers", "activeClubs", "activeUsers", "sessions", "xpAwarded", "openTickets", "errors7d", "composedAtUtc"], "digest");
+  const digest = await getJson<DigestData>("digest");
+  expectKeys(digest.digest!, ["weekStart", "weekEnd", "newUsers", "activeClubs", "activeUsers", "sessions", "xpAwarded", "openTickets", "errors7d", "composedAtUtc"], "digest");
 
-  const support = await (await get("support")).json() as Record<string, any>;
+  const support = await getJson<SupportData>("support");
   expectKeys(support, ["supportAddress", "supportIngestConfigured", "counts", "inbox", "tickets", "ticketStatus", "ticketsTotal", "inboxTotal"], "support");
   expect(support.ticketStatus).toBe("all"); // default view: the whole queue, first page
   expect(support.ticketsTotal).toBe(support.tickets.length);
   expect(support.inboxTotal).toBe(support.inbox.length);
   expectKeys(support.counts, ["newEmails", "openTickets", "aging48h", "stale7d"], "support.counts");
-  expectKeys(support.inbox[0], ["id", "requesterName", "requesterEmail", "subject", "snippet", "body", "receivedAtUtc", "ticketId", "ticketNumber"], "support.inbox[]");
+  expectKeys(support.inbox[0]!, ["id", "requesterName", "requesterEmail", "subject", "snippet", "body", "receivedAtUtc", "ticketId", "ticketNumber"], "support.inbox[]");
 
   // Convert the ingested email and pin the ticket DTO + both POST responses.
-  const inboxId = support.inbox[0].id as string;
+  const inboxId = support.inbox[0]!.id;
   const created = await app.fetch(`${BASE}/support/tickets`, { method: "POST", headers: { Cookie: cookie, Origin: "https://erudoza.test", "Content-Type": "application/json" }, body: JSON.stringify({ inboxId }) });
   expect(created.status).toBe(201);
-  const createdBody = await created.json() as Record<string, any>;
+  const createdBody = await created.json() as { ticket: SupportTicket; alreadyProcessed: boolean };
   expectKeys(createdBody, ["ticket", "alreadyProcessed"], "createTicket response");
   expectKeys(createdBody.ticket, ["id", "number", "source", "requesterName", "requesterEmail", "subject", "body", "status", "createdAtUtc", "updatedAtUtc", "ageHours"], "ticket");
-  const after = await (await get("support")).json() as Record<string, any>;
-  expectKeys(after.tickets[0], ["id", "number", "source", "requesterName", "requesterEmail", "subject", "body", "status", "createdAtUtc", "updatedAtUtc", "ageHours"], "support.tickets[]");
-  expect(after.inbox[0].ticketNumber).toBe(after.tickets[0].number);
+  const after = await getJson<SupportData>("support");
+  expectKeys(after.tickets[0]!, ["id", "number", "source", "requesterName", "requesterEmail", "subject", "body", "status", "createdAtUtc", "updatedAtUtc", "ageHours"], "support.tickets[]");
+  expect(after.inbox[0]!.ticketNumber).toBe(after.tickets[0]!.number);
 
   // No legacy-dialect field name in the payload it once corrupted (scoped:
   // "students" is a legitimate todayByClub field — it was only wrong inside
   // seasons rows, where the client reads "members").
-  const scoped: [string, Record<string, unknown>][] = [
+  const scoped: [string, object][] = [
     ["content", content], ["seasons", seasons], ["users", users], ["clubs", clubs], ["digest", digest],
   ];
   for (const [name, payload] of scoped) {

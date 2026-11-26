@@ -7,7 +7,7 @@ import { api } from "../../api/client";
 import { MyAssignmentsPage } from "./MyAssignmentsPage";
 import { ToastProvider } from "../../components/ui";
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { userId: "coach", displayName: "Demo Coach", organizationId: "org", kind: "Adult", role: "Owner" } }) }));
-vi.mock("../../api/client", () => ({ api: { library: vi.fn(), seasons: vi.fn(), seasonScope: vi.fn(), sourceUnits: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
+vi.mock("../../api/client", () => ({ api: { library: vi.fn(), seasons: vi.fn(), seasonScope: vi.fn(), sourceUnits: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn(), setMyDifficulty: vi.fn() } }));
 const range = { bookKey: "Daniel", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 };
 beforeEach(() => {
  vi.clearAllMocks();
@@ -21,15 +21,26 @@ beforeEach(() => {
  vi.mocked(api.removeMyAssignment).mockResolvedValue();
 });
 function mount() { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}><MemoryRouter initialEntries={["/student/assignments?seasonId=season"]}><ToastProvider><MyAssignmentsPage /></ToastProvider></MemoryRouter></QueryClientProvider>); }
-it("adds a personal assignment using permitted passages and Standard difficulty", async () => {
+it("adds a personal assignment using permitted passages", async () => {
  mount();
  const add = await screen.findByRole("button", { name: "Save assignments" });
  fireEvent.click(await screen.findByRole("button", { name: /^Chapter 1/ }));
  await waitFor(() => expect(add).toBeEnabled());
+ // Difficulty shows its Standard default but is not part of the chapter save.
  expect(screen.getByLabelText("Training difficulty")).toHaveValue("Standard");
  fireEvent.click(add);
- await waitFor(() => expect(api.assignMyself).toHaveBeenCalledWith("org", "season", { contentPackId: "pack", type: "PrimarySpecialist", difficulty: "Standard", range }, expect.any(AbortSignal)));
+ await waitFor(() => expect(api.assignMyself).toHaveBeenCalledWith("org", "season", { contentPackId: "pack", type: "PrimarySpecialist", range }, expect.any(AbortSignal)));
  expect(await screen.findByText("Assignments saved.")).toBeInTheDocument();
+});
+it("saves difficulty on its own, without a chapter save", async () => {
+ vi.mocked(api.myAssignments).mockResolvedValue([{ id: "mine", studentUserId: "coach", ...range, type: "PrimarySpecialist", difficulty: "Standard", contentPackId: "pack" }] as never);
+ vi.mocked(api.setMyDifficulty).mockResolvedValue({ difficulty: "Advanced" });
+ mount();
+ fireEvent.change(await screen.findByLabelText("Training difficulty"), { target: { value: "Advanced" } });
+ fireEvent.click(screen.getByRole("button", { name: "Save difficulty" }));
+ await waitFor(() => expect(api.setMyDifficulty).toHaveBeenCalledWith("org", "season", "Advanced", expect.any(AbortSignal)));
+ expect(api.assignMyself).not.toHaveBeenCalled();
+ expect(await screen.findByText("Difficulty saved.")).toBeInTheDocument();
 });
 it("shows an empty organization without offering season creation", async () => {
  vi.mocked(api.seasons).mockResolvedValue([]); mount();
@@ -64,7 +75,7 @@ it("refines a checked chapter to specific verses before saving", async () => {
  expect([...(screen.getByLabelText("To verse in chapter 1") as HTMLSelectElement).options].map(item => item.value)).toEqual(["1", "2"]);
  fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
  await waitFor(() => expect(api.assignMyself).toHaveBeenCalledWith("org", "season",
-   { contentPackId: "pack", type: "PrimarySpecialist", difficulty: "Standard", range: { bookKey: "Daniel", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 } },
+   { contentPackId: "pack", type: "PrimarySpecialist", range: { bookKey: "Daniel", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 2 } },
    expect.any(AbortSignal)));
  expect(await screen.findByText("Assignments saved.")).toBeInTheDocument();
 });

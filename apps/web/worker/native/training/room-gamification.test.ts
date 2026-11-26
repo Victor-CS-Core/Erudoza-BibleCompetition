@@ -162,6 +162,29 @@ it('does not credit a second day when another room completes the same local day'
     expect(days.results).toHaveLength(1);
 });
 
+it('recovers day credit when a crashed first publication already wrote this room’s day record', async () => {
+    const S4 = '66666666-6666-4666-8666-666666666666';
+    await app.db.prepare("INSERT INTO Users(id,org_id,user_name,display_name,kind,role,password_hash,credential_version) VALUES(?,?,?,?,?,?,?,?)")
+        .bind(S4, TEST_ORG, 's4', 's4', 'Student', 'Student', 'x', 'v1').run();
+    // Simulate the crashed first attempt for room-retry: the hook's immediate
+    // day-record insert landed (it runs ahead of the caller's batch), but the
+    // publication batch — XP, week, participation — never committed. The
+    // retry must converge: the day record names this room as its session, so
+    // the day credit belongs to this publication.
+    const dayId = `${TEST_ORG}:${S4}:${LOCAL_DATE}`;
+    await app.db.prepare(`INSERT INTO Records(kind,id,org_id,season_id,owner_id,data,revision) VALUES('training-day',?,?,?,?,?,1)`)
+        .bind(dayId, TEST_ORG, null, S4, JSON.stringify({ id: dayId, localDate: LOCAL_DATE, timeZone: 'UTC', firstQualifiedAtUtc: COMPLETED_AT, sessionId: 'room:room-retry', credited: true })).run();
+    const r = room('room-retry', { members: [member(S4)], submissions: [sub(S4, 'q1'), sub(S4, 'q2')], services: [] });
+    await apply(r, false);
+    const xp = (await xpOf(S4))!.value;
+    expect(xp.totalXp).toBe(54); // 2 distinct questions × 2 XP + 50 day credit
+    const week = (await weekOf(S4))!.value;
+    expect(week.creditedDates).toContain(LOCAL_DATE);
+    const part = JSON.parse((await participationOf('room-retry', S4))!.data);
+    expect(part.dayCredited).toBe(true);
+    expect(part.xpAwarded).toBe(54);
+});
+
 it('awards profile-Honor XP only for honors newly created by the publication', async () => {
     const honor = (id: string, owner: string) =>
         app.db.prepare(`INSERT INTO Records(kind,id,org_id,season_id,owner_id,data,revision) VALUES('mastery-honor',?,?,?,?,?,1)`)

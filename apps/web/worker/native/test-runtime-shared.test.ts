@@ -86,7 +86,7 @@ it('does not serve a previous test\u2019s scope sources over HTTP after reset (w
 }, 30000);
 
 it('refuses a different per-test callback identity instead of silently reusing the first closure', async () => {
-  const first = async (_sql: string) => {};
+  const first = async () => {};
   await getSharedNativeTestApp({ beforeD1Statement: first });
-  await expect(getSharedNativeTestApp({ beforeD1Statement: async (_sql: string) => {} })).rejects.toThrow(/per-test callbacks differ/);
+  await expect(getSharedNativeTestApp({ beforeD1Statement: async () => {} })).rejects.toThrow(/per-test callbacks differ/);
 }, 30000);

@@ -12,7 +12,7 @@ import { SeasonAssignmentEditor, SeasonWizardPage } from "./SeasonWizardPage";
 import { ToastProvider } from "../../components/ui";
 import { multiScope } from "./passageRanges";
 
-vi.mock("../../api/client", () => ({ api: { library: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn(), scriptureCatalog: vi.fn(), students: vi.fn(), season: vi.fn(), seasonScope: vi.fn(), assignments: vi.fn(), defineScope: vi.fn(), assign: vi.fn(), setDifficulty: vi.fn(), createSeason: vi.fn(), activate: vi.fn(), deleteSeason: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
+vi.mock("../../api/client", () => ({ api: { library: vi.fn(), contentPacks: vi.fn(), sourceUnits: vi.fn(), scriptureCatalog: vi.fn(), students: vi.fn(), season: vi.fn(), seasonScope: vi.fn(), assignments: vi.fn(), defineScope: vi.fn(), assign: vi.fn(), setDifficulty: vi.fn(), setMyDifficulty: vi.fn(), createSeason: vi.fn(), activate: vi.fn(), deleteSeason: vi.fn(), myAssignments: vi.fn(), assignMyself: vi.fn(), removeMyAssignment: vi.fn() } }));
 vi.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ me: { organizationId: "org-1", userId: "coach", displayName: "Coach", kind: "Adult", role: "Owner" } }) }));
 const range = { bookKey: "DAN", startChapter: 2, startVerse: 1, endChapter: 2, endVerse: 8 };
 const season = { id: "season-1", organizationId: "org-1", name: "Daniel 2026", yearLabel: "2026", status: "ContentReady", ruleProfileKey: "PBE_STYLE_V1", ruleProfileVersion: 1, startDate: null, targetCompetitionDate: null, scopeUnitCount: 8, assignmentCount: 0 };
@@ -34,10 +34,11 @@ beforeEach(() => {
   vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "pack-1", includes: [range], excludes: [] });
   vi.mocked(api.assignments).mockResolvedValue([]);
   vi.mocked(api.myAssignments).mockResolvedValue([]);
-  vi.mocked(api.assignMyself).mockImplementation(async (_org, _season, input) => ({ ...assignment, id: `self-${input.range.startChapter}-${input.range.startVerse}`, ...input.range, contentPackId: input.contentPackId, studentUserId: "coach", type: input.type, difficulty: input.difficulty ?? "Standard" }));
+  vi.mocked(api.assignMyself).mockImplementation(async (_org, _season, input) => ({ ...assignment, id: `self-${input.range.startChapter}-${input.range.startVerse}`, ...input.range, contentPackId: input.contentPackId, studentUserId: "coach", type: input.type }));
   vi.mocked(api.defineScope).mockResolvedValue(undefined);
-  vi.mocked(api.assign).mockImplementation(async (_org, _season, input) => ({ ...assignment, id: `a-${input.range.startChapter}-${input.range.startVerse}`, ...input.range, contentPackId: input.contentPackId, studentUserId: input.studentUserId, type: input.type, difficulty: input.difficulty ?? "Standard" }));
+  vi.mocked(api.assign).mockImplementation(async (_org, _season, input) => ({ ...assignment, id: `a-${input.range.startChapter}-${input.range.startVerse}`, ...input.range, contentPackId: input.contentPackId, studentUserId: input.studentUserId, type: input.type }));
   vi.mocked(api.setDifficulty).mockResolvedValue({ difficulty: "Advanced" });
+  vi.mocked(api.setMyDifficulty).mockResolvedValue({ difficulty: "Advanced" });
   vi.mocked(api.createSeason).mockResolvedValue(season);
   vi.mocked(api.activate).mockResolvedValue({ activated: true, blockingProblems: [] });
   vi.mocked(practiceApi.bootstrap).mockResolvedValue({ enabled: true, seasons: [], players: [], rooms: [], invitations: [], achievements: [], questions: [] });
@@ -76,7 +77,7 @@ describe("Two-step season planner", () => {
     expect(await screen.findByRole("heading", { name: "Sarah Student" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Daniel Student/ })).toBeInTheDocument();
     expect(api.assign).toHaveBeenCalledWith("org-1", "season-1", expect.objectContaining({ studentUserId: "student-1" }), expect.any(AbortSignal));
-    expect(document.querySelector(".planner-strip-count")).toHaveTextContent("0 of 1 chapters selected");
+    expect(document.querySelector(".planner-strip-count")).toHaveTextContent("0 of 1 chapter selected");
   });
   it("shows one book at a time in tabs and keeps each book's selection while switching", async () => {
     vi.mocked(api.seasonScope).mockResolvedValue(multiScope([
@@ -92,7 +93,7 @@ describe("Two-step season planner", () => {
     expect(screen.getAllByRole("button", { name: /^Chapter \d+$/ }).length).toBe(6);
     fireEvent.click(screen.getByRole("button", { name: "Chapter 1" }));
     expect(ephTab).toHaveTextContent("1 selected");
-    expect(screen.getByLabelText("Selection summary")).toHaveTextContent("Ephesians 1");
+    expect(screen.getByLabelText("Selection summary")).toHaveTextContent("EPH 1:1–3");
     fireEvent.click(judeTab);
     expect(judeTab).toHaveAttribute("aria-selected", "true");
     expect(screen.getAllByRole("button", { name: /^Chapter \d+$/ }).length).toBe(1);
@@ -106,7 +107,7 @@ describe("Two-step season planner", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save & next student →" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Offline");
     expect(screen.getByRole("heading", { name: "Daniel Student" })).toBeInTheDocument();
-    expect(document.querySelector(".planner-strip-count")).toHaveTextContent("1 of 1 chapters selected");
+    expect(document.querySelector(".planner-strip-count")).toHaveTextContent("1 of 1 chapter selected");
   });
   it("uses personal assignments for the coach and links to that season in Student Mode", async () => {
     renderWizard("/admin/seasons/season-1?step=students&studentId=coach");
@@ -303,7 +304,7 @@ it("keeps a failed save retryable when reconciliation and background refresh als
   fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Write response lost");
   await waitFor(() => expect(screen.getByRole("button", { name: "Save assignments" })).toBeEnabled());
-  expect(document.querySelector(".planner-strip-count")).toHaveTextContent("1 of 1 chapters selected");
+  expect(document.querySelector(".planner-strip-count")).toHaveTextContent("1 of 1 chapter selected");
   expect(screen.getByRole("button", { name: "Start season" })).toBeDisabled();
 });
 
@@ -322,35 +323,48 @@ it("lets a coach start a season with only their own study plan", async () => {
   await waitFor(() => expect(api.activate).toHaveBeenCalled());
 });
 
-it("retains confirmed difficulty for subsequent saves while refresh stalls", async () => {
+it("shows a student's difficulty as read-only in the coach assignment editor", async () => {
   vi.mocked(api.assignments).mockResolvedValue([assignment]);
   renderWizard();
   await screen.findByRole("heading", { name: "Daniel Student" });
-  fireEvent.change(screen.getByLabelText("Training difficulty"), { target: { value: "Advanced" } });
-  vi.mocked(api.setDifficulty).mockImplementationOnce(async () => {
-    vi.mocked(api.assignments).mockImplementation(() => new Promise(() => {}));
-    return { difficulty: "Advanced" };
-  });
-  fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
-  await screen.findByText("Assignments saved.");
-  expect(screen.getByLabelText("Training difficulty")).toHaveValue("Advanced");
+  // Difficulty moved to the student's dashboard: the editor displays the
+  // current value but offers no difficulty control, and there is no
+  // difficulty-only save — with no chapters selected, Save stays disabled.
+  expect(screen.queryByLabelText("Training difficulty")).not.toBeInTheDocument();
+  expect(screen.getByText("Foundation", { selector: ".planner-format-field p" })).toBeInTheDocument();
+  expect(screen.getByText(/change it from this student's dashboard/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Save assignments" })).toBeDisabled();
+  expect(api.setDifficulty).not.toHaveBeenCalled();
 });
 
+it("sends chapter saves without difficulty from the coach editor", async () => {
+  renderWizard();
+  fireEvent.click(await screen.findByRole("button", { name: "Select all chapters" }));
+  fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
+  await screen.findByText("Assignments saved.");
+  expect(api.assign).toHaveBeenCalled();
+  expect(vi.mocked(api.assign).mock.calls[0][2]).not.toHaveProperty("difficulty");
+  expect(api.setDifficulty).not.toHaveBeenCalled();
+});
 
-it("keeps coach difficulty confirmed by a new chapter when refresh stalls", async () => {
+it("keeps a difficulty edit separate from chapter saves in the self editor", async () => {
   const existing = { ...assignment, ...{ bookKey: "EPH", startChapter: 1, endChapter: 1, startVerse: 1, endVerse: 3 }, studentUserId: "coach", contentPackId: "eph" };
   vi.mocked(api.myAssignments).mockResolvedValue([existing]);
   vi.mocked(api.seasonScope).mockResolvedValue({ contentPackId: "eph", includes: [{ bookKey: "EPH", startChapter: 1, startVerse: 1, endChapter: 6, endVerse: 3 }], excludes: [] });
   renderWizard("/admin/seasons/season-1?step=students&studentId=coach");
   fireEvent.click(await screen.findByRole("button", { name: "Chapter 2" }));
   fireEvent.change(screen.getByLabelText("Training difficulty"), { target: { value: "Advanced" } });
-  vi.mocked(api.assignMyself).mockImplementationOnce(async (_org, _season, input) => {
-    vi.mocked(api.myAssignments).mockImplementation(() => new Promise(() => {}));
-    return { ...existing, id: "new-chapter", ...input.range, difficulty: "Advanced" };
-  });
   fireEvent.click(screen.getByRole("button", { name: "Save assignments" }));
   await screen.findByText("Assignments saved.");
+  // The chapter save carried no difficulty, and the unsaved edit is still
+  // sitting in the control afterwards.
+  expect(vi.mocked(api.assignMyself).mock.calls[0][2]).not.toHaveProperty("difficulty");
+  expect(api.setMyDifficulty).not.toHaveBeenCalled();
   expect(screen.getByLabelText("Training difficulty")).toHaveValue("Advanced");
+  // Its own button saves it through the self difficulty endpoint.
+  fireEvent.click(screen.getByRole("button", { name: "Save difficulty" }));
+  await waitFor(() => expect(api.setMyDifficulty).toHaveBeenCalledWith("org-1", "season-1", "Advanced", expect.any(AbortSignal)));
+  expect(await screen.findByText("Difficulty saved.")).toBeInTheDocument();
 });
 
 describe("TeamPracticePanel", () => {

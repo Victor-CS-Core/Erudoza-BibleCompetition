@@ -5,10 +5,12 @@
 // material proposals, a live release, news draft + published article, a
 // pending coach invitation, non-zero XP) and dumps the real endpoint payloads
 // the six club-admin pages consume into the committed fixture JSON.
-// Re-run me when an endpoint contract changes, then re-check the diff.
+// A routine run COMPARES the fresh payloads' shape against the checked-in
+// fixture and fails on contract drift without writing anything (card 28).
+// Regenerate only when an endpoint contract changes, then re-check the diff:
+//   UPDATE_FIXTURES=1 npx vitest run worker/native/capture-links.test.ts
 import { afterAll, beforeAll, expect, it } from 'vitest';
-import { writeFileSync } from 'node:fs';
-import { createNativeTestApp, TEST_ORG, TEST_USER } from './test-runtime';
+import { createNativeTestApp, persistCaptureFixture, TEST_ORG, TEST_USER } from './test-runtime';
 import { LIBRARY_ORG } from './application/library-access';
 
 let app: Awaited<ReturnType<typeof createNativeTestApp>>, cookie: string;
@@ -103,7 +105,7 @@ it('captures real payloads for the six club-admin destinations', async () => {
   await grab('identities', await raw(`/api/v1/profile/identities?userId=${s1.userId}&userId=${s2.userId}&userId=${TEST_USER}`));
   await grab('profile-me', await raw('/api/v1/profile/me'));
   out['meta'] = { status: 0, body: { orgId: TEST_ORG, seasonId: season.id, ownerId: TEST_USER, s1: s1.userId, s2: s2.userId, draftProposalId: draft1.id } };
-  writeFileSync(new URL('../../src/features/admin/__fixtures__/club-admin-payloads.json', import.meta.url), JSON.stringify(out, null, 2));
+  persistCaptureFixture(new URL('../../src/features/admin/__fixtures__/club-admin-payloads.json', import.meta.url), JSON.stringify(out, null, 2));
   expect(out.seasons.status).toBe(200);
   expect((out['pbe-releases'].body as unknown[]).length).toBe(2);
   expect((out['pbe-news-articles'].body as unknown[]).length).toBe(2);

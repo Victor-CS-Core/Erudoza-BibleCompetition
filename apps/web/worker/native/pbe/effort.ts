@@ -1,5 +1,6 @@
 import { builtInContentSql } from '../application/library-access';
 import type { RequestContext } from '../types';
+import type { PbeMode } from './types';
 import type { PbeAttempt, PbeSession } from './sessions';
 import type { DayRecord, WeekRecord, Writes } from '../training/store';
 import { awardStreakBadges, identity, preference, recordBests, resolvePreference, write } from '../training/store';
@@ -19,7 +20,10 @@ export interface PbeMission {
     scopeVersion: string;
     localDate: string;
     timeZone: string;
-    mode: 'Practice' | 'Review' | 'Simulation';
+    /** Missions are only ever written for Practice/Review starts; the type
+     * carries the full run-mode union because the record mirrors the
+     * session it was prepared from. */
+    mode: PbeMode;
     target: number;
     completed: number;
 }
@@ -106,7 +110,9 @@ export async function creditPbePracticeDay(ctx: RequestContext, w: Writes, s: Pb
     }
     return true;
 }
-/** Attempt XP for PBE Simulation sessions (preparePbeEffort is bypassed there). */
+/** Attempt XP for the non-mission run modes — Simulation, Checkpoint and
+ * the other timed runs, plus Rescue (preparePbeEffort is bypassed there;
+ * those modes never create a daily mission). */
 export async function awardPbeSimulationAttemptXp(ctx: RequestContext, s: PbeSession, attempt: PbeAttempt, at: string): Promise<Writes> {
     const w: Writes = { statements: [], guards: [] };
     const old = await preference(ctx), p = resolvePreference(ctx, old, at), cal = resolveTrainingCalendar(at, p);
@@ -240,7 +246,10 @@ export async function pbeToday(ctx: RequestContext, season: import('../applicati
     // Published heads govern new admission; a compatible saved set remains resumable.
     const frozenAvailable = owned && !stale && s.cards.length > 0 && scope.sources.length > 0;
     const available = (frozenAvailable || bank.questions.length > 0) && scope.guards.some(g => g.kind === 'membership');
-    const steps: import('../../../src/api/trainingTypes').TrainingStep[] = s && !stale ? pbeMissionSteps(s).map(step => ({ ...step, status: step.status as 'Active' | 'Complete' })) : [{ kind: 'Practice', target: Math.min(8, bank.questions.length), completed: 0, status: 'Pending', sessionId: null }];
+    // The mission head only ever points at a Practice/Review session
+    // (preparePbeStartEffort runs for those modes alone), so the step kind
+    // is always a TrainingStepKind here.
+    const steps: import('../../../src/api/trainingTypes').TrainingStep[] = s && !stale ? pbeMissionSteps(s).map(step => ({ ...step, kind: step.kind as import('../../../src/api/trainingTypes').TrainingStepKind, status: step.status as 'Active' | 'Complete' })) : [{ kind: 'Practice', target: Math.min(8, bank.questions.length), completed: 0, status: 'Pending', sessionId: null }];
     const complete = steps.every(step => step.status === 'Complete'), next = steps.find(step => step.status !== 'Complete');
     // Recheck every captured raw guard in one bounded query after the bank/mission reads.
     const changed = await ctx.env.DB.prepare(`SELECT count(*) AS changed FROM json_each(?) g WHERE CASE WHEN json_extract(g.value,'$.kind') IN ('@active-user','@active-admin','@active-learner') THEN NOT EXISTS(SELECT 1 FROM Users u WHERE u.id=json_extract(g.value,'$.id') AND u.org_id=? AND u.active=1) ELSE NOT EXISTS(SELECT 1 FROM Records r WHERE (r.org_id=? OR ${builtInContentSql('r')}) AND r.kind=json_extract(g.value,'$.kind') AND r.id=json_extract(g.value,'$.id') AND r.revision=json_extract(g.value,'$.revision')) END`).bind(JSON.stringify(scope.guards), ctx.orgId, ctx.orgId).first<{

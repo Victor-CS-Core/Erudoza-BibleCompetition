@@ -145,3 +145,43 @@
 .practice-event-live li { display:flex; align-items:center; justify-content:space-between; gap:var(--er-space-3); }
 .practice-inbox-list { display:grid; gap:var(--er-space-4); margin-bottom:var(--er-space-5); }
 .practice-inbox-heading { margin-block:var(--er-space-2) var(--er-space-4); }
+
+/* Practice HQ Phase 1 (GitHub #45): hero, mission, streak rescue, pulse.
+   Composition only — colors, type and controls stay in the design system. */
+.practice-hq-hero { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:var(--er-space-6); align-items:center; }
+.practice-hq-eyebrow { margin:0 0 var(--er-space-2); color:var(--er-teal); font-size:var(--er-text-xs); font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+.practice-hq-hero-copy h2 { margin:0; font-size:var(--er-text-page); }
+.practice-hq-sub { margin:var(--er-space-2) 0 0; color:var(--er-muted-ink); font-size:var(--er-text-sm); }
+.practice-hq-actions { display:flex; flex-wrap:wrap; gap:var(--er-space-3); margin-top:var(--er-space-5); }
+.practice-hq-progress { display:grid; gap:var(--er-space-3); min-width:0; }
+.practice-hq-level { margin:0; font-weight:700; }
+.practice-hq-streak { margin:0; color:var(--er-muted-ink); font-size:var(--er-text-sm); }
+.practice-hq-streak strong { color:var(--er-ink-navy); }
+.practice-hq-steps { list-style:none; margin:0 0 var(--er-space-4); padding:0; display:grid; gap:var(--er-space-2); }
+.practice-hq-steps > li { display:flex; justify-content:space-between; gap:var(--er-space-4); font-size:var(--er-text-sm); }
+.practice-hq-step-count { color:var(--er-muted-ink); font-variant-numeric:tabular-nums; white-space:nowrap; }
+.practice-hq-quests { list-style:none; margin:0; padding:0; display:grid; gap:var(--er-space-3); }
+.practice-hq-card-action { margin-top:var(--er-space-4); }
+.practice-hq-week { color:var(--er-muted-ink); font-size:var(--er-text-sm); }
+.practice-hq-pulse-stats { margin:0; }
+.practice-hq-pulse-note { color:var(--er-muted-ink); font-size:var(--er-text-xs); margin:var(--er-space-3) 0 0; }
+@media(max-width:760px){ .practice-hq-hero{grid-template-columns:minmax(0,1fr); gap:var(--er-space-5);} .practice-hq-steps > li{flex-wrap:wrap; gap:var(--er-space-1);} }
+
+/* Practice HQ Phase 2 (GitHub #49): current-room card — seats, role,
+   readiness, and the exact start-waiting reason. Layout only. */
+.practice-room-card { display:flex; align-items:center; justify-content:space-between; gap:var(--er-space-5); }
+.practice-room-card-main { display:grid; gap:var(--er-space-1); min-width:0; }
+.practice-room-card-main h2 { margin-block:var(--er-space-1); }
+.practice-room-card-main p { margin:0; font-size:var(--er-text-sm); overflow-wrap:anywhere; }
+.practice-room-card-meta { color:var(--er-muted-ink); }
+.practice-room-card-seats { font-weight:600; }
+.practice-room-card-ready, .practice-room-card-waiting { color:var(--er-muted-ink); }
+@media(max-width:760px){ .practice-room-card{ align-items:start; flex-direction:column; } }
+
+/* Practice HQ Phase 4 (GitHub #47): team momentum + patch shelf.
+   Layout only — the separation note closes the momentum panel, shelf
+   tiles carry their state + requirement in the shared card status row. */
+.practice-momentum-note { border-top: 1px solid var(--er-border); margin: var(--er-space-4) 0 0; padding-top: var(--er-space-3); color: var(--er-muted-ink); font-size: var(--er-text-xs); }
+.practice-shelf-summary { color: var(--er-muted-ink); font-size: var(--er-text-sm); margin: 0 0 var(--er-space-4); }
+.practice-shelf-requirement { flex-basis: 100%; font-size: var(--er-text-xs); }
+.practice-shelf-category { color: var(--er-muted-ink); font-size: var(--er-text-sm); margin: var(--er-space-3) 0 0; }

@@ -103,7 +103,7 @@ export function StudentsPage() {
   });
   function onSubmit(event: FormEvent) { event.preventDefault(); if (!canCreate || create.isPending) return; setError(null); create.mutate(); }
 
-  return <div className="training-page">
+  return <div className="training-page students-page">
     <PageHeader title="Students" description="Add students and manage their sign-in details." />
 
     {error && !resetStudentId && <Notice tone="danger">{error}</Notice>}
@@ -117,12 +117,15 @@ export function StudentsPage() {
       {students.isPending && <p role="status">Loading students…</p>}
       {students.isError && <QueryError retry={() => void students.refetch()}>Unable to load students.</QueryError>}
       {visibleStudents && <StudentTable students={visibleStudents} renderActions={student => <>
-
+        <LinkButton size="compact" variant="primary" to={`/admin/assignments?studentId=${encodeURIComponent(student.userId)}`}>Manage assignments<span className="sr-only"> for {student.displayName}</span></LinkButton>
         <Button size="compact" variant="secondary" onClick={() => setDashboardStudent(student)}>Dashboard<span className="sr-only"> for {student.displayName}</span></Button>
-        <LinkButton size="compact" variant="secondary" to={`/admin/assignments?studentId=${encodeURIComponent(student.userId)}`}>Manage assignments<span className="sr-only"> for {student.displayName}</span></LinkButton>
-        <Button size="compact" variant="ghost" disabled={changeState.isPending} onClick={() => { changeState.reset(); setStateStudent(student); }}>{student.isActive === false ? "Reactivate" : "Deactivate"}<span className="sr-only"> {student.displayName}</span></Button>
-        <Button size="compact" type="button" data-testid={`reset-password-${student.userName}`} variant="ghost" disabled={reset.isPending}
-          onClick={() => { setResetStudentId(student.userId); setResetPassword(""); setError(null); }}>Reset password<span className="sr-only"> for {student.displayName}</span></Button>
+        <span className="student-row-actions-quiet">
+          <Button size="compact" type="button" data-testid={`reset-password-${student.userName}`} variant="ghost" className="ds-button-quiet" disabled={reset.isPending}
+            onClick={() => { setResetStudentId(student.userId); setResetPassword(""); setError(null); }}>Reset password<span className="sr-only"> for {student.displayName}</span></Button>
+          {student.isActive === false
+            ? <Button size="compact" variant="ghost" className="ds-button-quiet" disabled={changeState.isPending} onClick={() => { changeState.reset(); setStateStudent(student); }}>Reactivate<span className="sr-only"> {student.displayName}</span></Button>
+            : <Button size="compact" variant="danger" disabled={changeState.isPending} onClick={() => { changeState.reset(); setStateStudent(student); }}>Deactivate<span className="sr-only"> {student.displayName}</span></Button>}
+        </span>
       </>} />}
       {stateStudent && <ConfirmationDialog title={`${stateStudent.isActive === false ? "Reactivate" : "Deactivate"} ${stateStudent.displayName}?`}
         description={stateStudent.isActive === false ? "The student can sign in again using their existing password. Saved assignments and progress remain available." : "The student will be signed out and cannot sign in or study. Their assignments, attempts and progress are preserved. You can reactivate them later."}
@@ -192,7 +195,7 @@ export function AssignmentsPage() {
       {!!coverage.data?.students.length && <div className="training-table-scroll assignment-coverage-scroll" role="region" aria-label="Assigned passage coverage" tabIndex={0}><table className="training-table" data-testid="coverage-table"><thead><tr><th>Student</th><th>Assignment</th><th>Passages</th><th>Mastered</th><th>Due</th><th>Attempts</th><th>Actions</th></tr></thead><tbody>
         {coverage.data.students.filter(student => !studentId || student.studentUserId === studentId).map((student, index) => <tr key={`${student.studentUserId}-${student.assignmentType}-${student.bookKey}-${student.startChapter}-${student.startVerse}-${student.endChapter}-${student.endVerse}-${index}`}>
           <td><span className="profile-person"><ProfileAvatar userId={student.studentUserId} displayName={student.displayName} size={40} /><span><Link to={`/admin/seasons/${season.id}/students/${student.studentUserId}/progress`}>{student.displayName}</Link><p>{student.userName}<span className="assignment-type-inline"> · {assignmentLabels[student.assignmentType] ?? "Assigned study"}</span></p></span></span></td>
-          <td>{assignmentLabels[student.assignmentType] ?? "Assigned study"}</td><td>{formatCoverageScope(student)}<p>{student.eligibleUnitCount} {student.eligibleUnitCount === 1 ? "verse" : "verses"}{student.rangeCount > 1 ? " total" : ""}</p></td>
+          <td>{assignmentLabels[student.assignmentType] ?? "Assigned study"}</td><td>{formatCoverageScope(student)}<p>{student.eligibleUnitCount} required {student.eligibleUnitCount === 1 ? "verse" : "verses"}{student.rangeCount > 1 ? " total" : ""}</p>{!!student.optionalUnitCount && <p>Plus {student.optionalUnitCount} optional {student.optionalUnitCount === 1 ? "verse" : "verses"} — not counted toward coverage</p>}</td>
           <td data-label="Mastered">{student.masteredCount}</td><td data-label="Due">{student.reviewDueCount}</td><td data-label="Attempts">{student.attemptCount}</td><td><LinkButton size="compact" variant="secondary" to={`?seasonId=${encodeURIComponent(season.id)}&studentId=${encodeURIComponent(student.studentUserId)}`}>Manage<span className="assignment-manage-more"> assignments</span><span className="sr-only"> for {student.displayName}</span></LinkButton></td>
         </tr>)}
       </tbody></table></div>}

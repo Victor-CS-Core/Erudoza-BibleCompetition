@@ -20,7 +20,7 @@ describe("chapterOptions", () => {
     ]);
   });
 
-  it("allows overlap across students, roles, packs, and books", () => {
+  it("allows overlap across students, packs, and books, but a chapter assigned under ANY role counts as assigned", () => {
     const all = chapter(1, [1, 2, 3, 4, 5]);
     const existing = [
       assignment({ studentUserId: "student-b" }),
@@ -29,7 +29,15 @@ describe("chapterOptions", () => {
       assignment({ bookKey: "Mark", startVerse: 4, endVerse: 4 }),
       assignment({ startVerse: 5, endVerse: 5 }),
     ];
-    expect(chapterOptions(all, all, existing, context)[0]?.remaining).toEqual(chapter(1, [1, 2, 3, 4]));
+    // Verse 2 is already assigned as RequiredCoverage and verse 5 as
+    // PrimarySpecialist: neither may be offered again just because the
+    // editor's role dropdown names a different role (card 44).
+    expect(chapterOptions(all, all, existing, context)[0]?.remaining).toEqual(chapter(1, [1, 3, 4]));
+    expect(chapterOptions(all, all, existing, { ...context, type: "OptionalReview" })[0]?.remaining).toEqual(chapter(1, [1, 3, 4]));
+    expect(chapterRanges([1], all, all, existing, context)).toEqual([
+      { bookKey: "John", startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 1 },
+      { bookKey: "John", startChapter: 1, startVerse: 3, endChapter: 1, endVerse: 4 },
+    ]);
   });
 
   it("recognizes legacy assignments and multi-chapter bounds without changing the partial label", () => {

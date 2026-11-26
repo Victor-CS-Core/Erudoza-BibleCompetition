@@ -6,6 +6,7 @@ import type { PracticeBootstrap, PracticeEvent } from "../../api/practice";
 import { nativeCloudflare } from "../../api/practiceTransport";
 import { useAuth } from "../../auth/AuthContext";
 import { Badge, Button, LinkButton, LoadingState, Notice, Panel } from "../../components/ui";
+import { invitationDestinationText, roomSeatFacts, startWaitingText } from "./PracticeHubSections";
 
 /** One assigned team-practice event, presented as a game card: a status
  *  accent edge (teal while the room is live, gold once the result is in),
@@ -15,10 +16,17 @@ export function PracticeEventCard({ event, meUserId }: { event: PracticeEvent; m
   const roomLink = (e: PracticeEvent) => `/student/practice/${e.roomId}?seasonId=${encodeURIComponent(e.seasonId)}`;
   const recapLink = (e: PracticeEvent) => `/student/practice/rooms/${e.roomId}/recap?seasonId=${encodeURIComponent(e.seasonId)}`;
   const state = event.status === "Open" || event.status === "Playing" ? "is-live" : event.status === "Completed" ? "is-completed" : "is-scheduled";
+  // Seats/readiness from the event's own room snapshot (GitHub #49), using
+  // the same derivation as the hub's current-room card.
+  const roomShape = event.room ? { status: event.room.status, teamSize: event.teamSize, teamCount: event.teamCount, memberCount: event.room.memberCount, members: event.room.members } : null;
+  const roomFacts = roomShape && (event.status === "Open" || event.status === "Playing") ? roomSeatFacts(roomShape) : null;
+  const roomWaiting = roomShape && event.status === "Open" ? startWaitingText(roomShape) : null;
   return <Panel id={`event-${event.id}`} className={`practice-event-card game-event-card ${state}`} aria-label={event.name}>
     <div className="practice-hub-list-title"><strong>{event.name}</strong><Badge tone={event.status === "Playing" ? "success" : event.status === "Open" || event.status === "Scheduled" ? "info" : "neutral"}>{event.status === "Open" ? "Open now" : event.status}</Badge></div>
     <p>{event.activity === "Simulation" ? "Full-event team rehearsal" : "Head-to-head practice"} · {event.seasonName}</p>
     <p>{event.status === "Scheduled" && event.startsAtUtc ? `Starts ${new Date(event.startsAtUtc).toLocaleString()}` : event.status === "Open" ? (event.roomId ? "Your room is open — join your team." : "Your event is open — your room is being prepared.") : event.status === "Playing" ? "Your match is in progress." : "Completed"}</p>
+    {roomFacts && <p>{roomFacts.seatsFilled} of {roomFacts.seatsTotal} seats filled{roomFacts.readyCount !== null && event.room!.status === "Lobby" ? ` · ${roomFacts.readyCount} of ${roomFacts.seatsTotal} players ready` : ""}</p>}
+    {roomWaiting && <p>{roomWaiting}</p>}
     <p>{event.teamCount === 1 ? <>Your team: {event.roster.filter(entry => entry.team === 1).map(entry => entry.userId === meUserId ? "You" : entry.displayName).join(", ")}</> : <>You are on <strong>Team {event.myTeam}</strong> · Team 1: {event.roster.filter(entry => entry.team === 1).map(entry => entry.displayName).join(", ")} · Team 2: {event.roster.filter(entry => entry.team === 2).map(entry => entry.displayName).join(", ")}</>}</p>
     {event.captainStartUserId === meUserId && event.status === "Open" && <p>You are the designated captain — you can start this event once every seat is filled and everyone is ready.</p>}
     {(event.status === "Open" || event.status === "Playing") && event.roomId && <LinkButton to={roomLink(event)}>{event.status === "Playing" ? "Return to match" : "Join your team"}</LinkButton>}
@@ -74,7 +82,7 @@ export function StudentPracticeInbox({ org, data }: { org: string; data: Practic
       <div className="practice-hub-section-heading"><h2 id="practice-invitations-title">Invitations</h2><Badge tone="info">{data.invitations.length} pending</Badge></div>
       <p>Your coach sent you a seat in a room that is already open.</p>
       <ul className="practice-hub-invitations">{data.invitations.map(invite => <li key={invite.id}>
-        <div><strong>{invite.inviterName} invited you {invite.team ? `to Team ${invite.team}` : "to a room"}.</strong><p>Expires {new Date(invite.expiresAt).toLocaleString()}</p></div>
+        <div><strong>{invite.inviterName} invited you {invite.team ? `to Team ${invite.team}` : "to a room"}.</strong>{invitationDestinationText(data.rooms.find(room => room.id === invite.roomId), id => data.seasons.find(season => season.id === id)?.name || "Past season") && <p>{invitationDestinationText(data.rooms.find(room => room.id === invite.roomId), id => data.seasons.find(season => season.id === id)?.name || "Past season")}</p>}<p>Expires {new Date(invite.expiresAt).toLocaleString()}</p></div>
         <div className="practice-actions">{(invite.team ? [invite.team] : invite.teamCount === 1 ? [1] : [1, 2]).map(team => <Button key={team} disabled={pending} variant="secondary" onClick={() => void accept(invite.id, team)}>Join Team {team}</Button>)}</div>
       </li>)}</ul>
     </Panel>}

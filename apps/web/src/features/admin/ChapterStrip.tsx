@@ -1,5 +1,5 @@
 import { useRef, type KeyboardEvent } from "react";
-import { Button } from "../../components/ui";
+import { Button, HelpTip } from "../../components/ui";
 import type { ChapterOption, VerseSelection } from "./chapterAssignments";
 
 /**
@@ -107,13 +107,19 @@ export function ChapterStrip({ bookName, options, selected, verseRanges, disable
   }
 
   return <div className="planner-strip-wrap">
-    <ul className="planner-strip-legend" aria-label="Chapter cell meanings">
-      <li><span className="planner-strip-swatch" aria-hidden="true" />Available</li>
-      <li><span className="planner-strip-swatch is-selected" aria-hidden="true" />Selected</li>
-      <li><span className="planner-strip-swatch is-saved" aria-hidden="true" />Already saved</li>
-      <li><span className="planner-strip-swatch is-limited" aria-hidden="true" />Limited availability</li>
-      <li><span className="planner-strip-swatch is-refined" aria-hidden="true" />Verse ranges</li>
-    </ul>
+    <div className="planner-strip-head">
+      <HelpTip label="Chapter cell meanings">
+        <span className="planner-strip-legend">
+          <span className="planner-strip-legend-item"><span className="planner-strip-swatch" aria-hidden="true" />Available</span>
+          <span className="planner-strip-legend-item"><span className="planner-strip-swatch is-selected" aria-hidden="true" />Selected</span>
+          <span className="planner-strip-legend-item"><span className="planner-strip-swatch is-saved" aria-hidden="true" />Already saved</span>
+          <span className="planner-strip-legend-item"><span className="planner-strip-swatch is-limited" aria-hidden="true" />Limited availability</span>
+          <span className="planner-strip-legend-item"><span className="planner-strip-swatch is-refined" aria-hidden="true" />Verse ranges</span>
+        </span>
+        <span className="planner-strip-tip">Drag across chapters to select a range. On a keyboard, use the arrow keys to move and Enter to select.</span>
+      </HelpTip>
+      <p className="planner-strip-count" aria-live="polite"><strong>{selected.length}</strong> of {selectable.length} {selectable.length === 1 ? "chapter" : "chapters"} selected</p>
+    </div>
     <div ref={gridRef} className="planner-strip" role="group" onPointerUp={endGesture} onPointerCancel={endGesture} onPointerLeave={endGesture} onPointerMove={handleStripPointerMove} onKeyDown={handleKeyDown}
       aria-label={`${bookName} chapters. Activate a chapter to select it, or drag across chapters to select a range.`}>
       {options.map(option => {
@@ -130,7 +136,6 @@ export function ChapterStrip({ bookName, options, selected, verseRanges, disable
         </button>;
       })}
     </div>
-    <p className="planner-strip-count" aria-live="polite"><strong>{selected.length}</strong> of {selectable.length} chapters selected</p>
     {wholeSpans.length || refined.length ? <ul className="planner-strip-chips" aria-label={`Selected chapters in ${bookName}`}>
       {wholeSpans.map(span => {
         const label = formatChapterSpan(span);
@@ -145,13 +150,12 @@ export function ChapterStrip({ bookName, options, selected, verseRanges, disable
           <Button variant="ghost" size="compact" onClick={() => onRemoveChapter(chapter)} aria-label={`Remove chapter ${chapter}`}>✕</Button>
         </span></li>;
       })}
-    </ul> : <p className="planner-caption">No chapters selected yet.</p>}
+    </ul> : null}
     <div className="planner-strip-actions">
       <Button variant="secondary" size="compact" disabled={disabled || !selectableChapters.length || selected.length === selectableChapters.length}
         onClick={() => onSelect(selectableChapters, true)}>Select all chapters</Button>
       <Button variant="ghost" size="compact" disabled={disabled || !selected.length} onClick={() => onSelect([...selectedSet], false)}>Clear</Button>
     </div>
-    <p className="planner-caption">Tip: drag across chapters to select a range. On a keyboard, use the arrow keys to move and Enter to select.</p>
   </div>;
 }
 

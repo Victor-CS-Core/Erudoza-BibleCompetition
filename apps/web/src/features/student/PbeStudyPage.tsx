@@ -7,7 +7,8 @@ import type { Progress, Session, BoardAvatar } from '../../api/types';
 import { useProfileIdentity } from '../profile/profile';
 import { usePhoneLayout } from '../../hooks/useMediaQuery';
 import { XpRewardOverlay, useXpReward } from '../../components/game/XpReward';
-import type { PbeAttemptResult, PbePresentationState, PbeResumedSession, PbeSessionCard, PbeSubmission, PbeTimedReceipt } from '../../api/pbeTypes';
+import type { PbeAttemptResult, PbeBreakState, PbePresentationState, PbeResumedSession, PbeSessionCard, PbeSubmission, PbeTimedReceipt } from '../../api/pbeTypes';
+import { isTimedPbeMode, type PbeMode } from '../../api/pbeTypes';
 import { Badge, Button, LinkButton, LoadingState, Notice, PageHeader, Panel } from '../../components/ui';
 import { AppIcon } from '../../components/AppIcon';
 import { academyModeRules, studySessionFraming } from './academyTracks';
@@ -90,6 +91,67 @@ function PbePartFeedback({ expected, submitted, points, index }: { expected: str
         ].filter(Boolean).join(' ')}</p>
     </li>;
 }
+/**
+ * Card 50: every PBE card names its kind and what that kind expects before
+ * the learner answers — presentation only; grading and scoring are the
+ * server's and do not change. List framing covers order in words because
+ * the question view does not carry the rubric's ordered flag.
+ */
+export const PBE_KIND_FRAMING: Record<PbeSessionCard['question']['kind'], { label: string; framing: string }> = {
+    ShortAnswer: { label: 'Short answer', framing: 'Answer with the key facts — your own words are fine.' },
+    List: { label: 'List', framing: 'Give every part. When the parts come in an order, keep that order.' },
+    ExactWords: { label: 'Exact words', framing: 'Give the verse’s exact wording.' },
+    TrueFalse: { label: 'True or false', framing: 'Decide whether the statement is true or false.' },
+};
+/**
+ * Card 52: the who/what/where/when framing — a mechanical reading aid
+ * derived from the authored prompt's opening word, shown beside the
+ * kind framing. "Name…", "List…" and "Give…" prompts ask for a thing,
+ * so they read as "Asks what". No match, no chip: the framing never
+ * guesses at a prompt it cannot parse.
+ */
+export function pbeAskType(prompt: string): string | null {
+    const first = prompt.trim().split(/\s+/)[0]?.replace(/[^A-Za-z]/g, '').toLowerCase() ?? '';
+    if (first === 'who' || first === 'whom' || first === 'whose') return 'Asks who';
+    if (first === 'where') return 'Asks where';
+    if (first === 'when') return 'Asks when';
+    if (first === 'what' || first === 'name' || first === 'list' || first === 'give') return 'Asks what';
+    return null;
+}
+/**
+ * Card 52: post-answer study templates over the existing kinds —
+ * unscored cover-and-recall self-checks built only from this card's
+ * own graded result. They never change points, XP, or the stored
+ * attempt; server grading stays authoritative and untouched.
+ * "Turn it around" is the answer→reference template; "What comes
+ * next" is the continuation/sequence template (List: finish the
+ * list; Exact words: continue the wording). Introduction/context
+ * recall is not templated here: solo cards carry no introduction
+ * marker, and book introductions already have their own licensed
+ * surface in chapter progress.
+ */
+function PbeStudyTemplates({ kind, result }: { kind: PbeSessionCard['question']['kind']; result: PbeAttemptResult }) {
+    const [referenceShown, setReferenceShown] = useState(false), [nextShown, setNextShown] = useState(false);
+    const words = kind === 'ExactWords' ? (result.expectedParts[0] ?? '').split(/\s+/).filter(Boolean) : [];
+    const continuation = kind === 'List' && result.expectedParts.length >= 2
+        ? { lead: result.expectedParts.slice(0, -1).join(', '), hidden: result.expectedParts[result.expectedParts.length - 1], prompt: 'Finish the list — say the part that is still missing, then uncover it.' }
+        : kind === 'ExactWords' && words.length >= 4
+            ? { lead: words.slice(0, Math.ceil(words.length / 2)).join(' '), hidden: words.slice(Math.ceil(words.length / 2)).join(' '), prompt: 'Continue the verse — say the rest of the wording, then uncover it.' }
+            : null;
+    return <div className="mt-4" data-testid="pbe-study-templates">
+        <h3>Study this card</h3>
+        <p className="text-sm">Two quick self-checks from this card's own answers. They are practice only — they never change your points.</p>
+        <div className="mt-3">
+            <p><strong>Turn it around.</strong> The answer was “{result.expectedParts.join(', ')}”. Which passage is it from? Say the reference out loud, then uncover it.</p>
+            {referenceShown ? <p className="mt-2" data-testid="pbe-template-reference">{result.citation}</p> : <Button className="mt-2" variant="secondary" onClick={() => setReferenceShown(true)}>Uncover the reference</Button>}
+        </div>
+        {continuation && <div className="mt-3">
+            <p><strong>What comes next.</strong> {continuation.prompt}</p>
+            <p className="mt-2 er-scripture">{continuation.lead} …</p>
+            {nextShown ? <p className="mt-2" data-testid="pbe-template-next">{continuation.hidden}</p> : <Button className="mt-2" variant="secondary" onClick={() => setNextShown(true)}>Uncover what comes next</Button>}
+        </div>}
+    </div>;
+}
 type DueKind = 'Scheduled' | 'Refresh' | 'Retry';
 const DUE_KIND_COPY: Record<DueKind, { lead: string; fallback: string; tone: 'info' | 'warning' }> = {
   Scheduled: { lead: 'Review window reached', fallback: 'ready for a scheduled check-in', tone: 'info' },
@@ -115,6 +177,7 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     const { me } = useAuth();
     const phone = usePhoneLayout();
     const mode = saved?.session.mode ?? params.get('mode') ?? 'Practice';
+    const timed = isTimedPbeMode(mode);
     const isReviewMode = mode === 'Review';
     const progressScopeKey = params.get('progressScopeKey'), progressScopeVersion = params.get('progressScopeVersion');
     const progressScopeIncomplete = !saved && (!!progressScopeKey !== !!progressScopeVersion);
@@ -126,6 +189,9 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     const [session, setSession] = useState<Session | null>(saved?.session ?? null), [card, setCard] = useState<PbeSessionCard | null>(saved?.card ?? null), [result, setResult] = useState<PbeAttemptResult | null>(saved?.attempt && 'earnedPoints' in saved.attempt ? saved.attempt : null);
     const [answers, setAnswers] = useState<string[]>(() => saved?.card ? pending(saved.session.id, saved.card.id)?.answers ?? saved.card.question.partPoints.map(() => '') : []);
     const [presentation,setPresentation]=useState<PbePresentationState|null>(null),[timedReceipt,setTimedReceipt]=useState<PbeTimedReceipt|null>(saved?.attempt && 'feedbackDeferred' in saved.attempt && saved.attempt.questionId===saved.card?.id ? saved.attempt : null),[interruptionSummary,setInterruptionSummary]=useState(saved?.interruption?saved.summary:null),[timingError,setTimingError]=useState(''),[tick,setTick]=useState(0);
+    // MockFull halftime (card 51): a pending break carried by the session
+    // (or returned by `next` after attempt 45) pauses the run here.
+    const [breakState,setBreakState]=useState<PbeBreakState|null>(saved?.session.break && !saved.session.break.resumedAtMs ? saved.session.break : null);
     const warned=useRef(''), serverClock=useRef<{server:number;observed:number}|null>(null);
     // XP reward animation: fired from the submit success path only (never
     // for restored/replayed results or Simulation's deferred receipts), with
@@ -142,10 +208,12 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     const recapped = useRef(false);
     const complete = useMutation({ mutationFn: () => api.completeSession(session!.id), onSuccess: () => { for (const key of ['progress', 'training-today', 'training-journey', 'training-honors', 'pbe-chapters', 'pbe-cooperation'])
             void queries.invalidateQueries({ queryKey: [key] }); navigate(`/student/sessions/${session!.id}/recap?seasonId=${session!.seasonId}`); } });
-    const next = useMutation({ mutationFn: (id: string) => api.nextPbeCard(id), onSuccess: c => { setCard(c); setResult(null); setTimedReceipt(null); setPresentation(null); frozen.current = pending(c.sessionId, c.id); setAnswers(frozen.current?.answers ?? c.question.partPoints.map(() => '')); aid.reset(); } });
+    const applyCard = (c: PbeSessionCard) => { setCard(c); setResult(null); setTimedReceipt(null); setPresentation(null); frozen.current = pending(c.sessionId, c.id); setAnswers(frozen.current?.answers ?? c.question.partPoints.map(() => '')); aid.reset(); };
+    const next = useMutation({ mutationFn: (id: string) => api.nextPbeCard(id), onSuccess: c => { if ('break' in c) { setBreakState(c.break); setCard(null); setResult(null); setTimedReceipt(null); setPresentation(null); } else applyCard(c); } });
+    const resumeBreak = useMutation({ mutationFn: () => api.resumePbeBreak(session!.id), onSuccess: c => { setBreakState(null); applyCard(c); } });
     const start = useMutation({ mutationFn: () => {
             const training = { clientStartId: startId.current, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
-            return selection ? api.startSession(seasonId, mode as 'Practice' | 'Review' | 'Simulation', training, 'Pbe', undefined, selection) : api.startSession(seasonId, mode as 'Practice' | 'Review' | 'Simulation', training, 'Pbe');
+            return selection ? api.startSession(seasonId, mode as PbeMode, training, 'Pbe', undefined, selection) : api.startSession(seasonId, mode as PbeMode, training, 'Pbe');
         }, onSuccess: s => { setSession(s); setParams({ sessionId: s.id, seasonId: s.seasonId, mode: s.mode, format: 'Pbe' }, { replace: true }); },
         onError: error => {
             if (error instanceof ApiError && error.status === 409) {
@@ -157,8 +225,8 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     const submit = useMutation<PbeAttemptResult | PbeTimedReceipt | PbePresentationState>({ mutationFn: () => {
             frozen.current ??= { clientSubmissionId: crypto.randomUUID(), challengeCardId: card!.id, answers: [...answers], hintsUsed: card!.assisted };
             sessionStorage.setItem(`erudoza:pbe-attempt:${session!.id}`, JSON.stringify(frozen.current));
-            return mode === 'Simulation' ? api.pbeTimed(session!.id, { action: 'submit', questionId: card!.id, revision: presentation!.revision, answers: frozen.current.answers, clientSubmissionId: frozen.current.clientSubmissionId }) : api.submitPbeAttempt(session!.id, frozen.current);
-        }, onSuccess: r => { if (mode === 'Simulation') { setTimedReceipt(r as PbeTimedReceipt); if (card!.sequence === card!.total) complete.mutate(); else next.mutate(session!.id); } else { const pbeResult = r as PbeAttemptResult; setResult(pbeResult); // Full or partial credit only (scoreless answers trigger nothing), fresh results only — replays keep their stored numbers without re-animating.
+            return timed ? api.pbeTimed(session!.id, { action: 'submit', questionId: card!.id, revision: presentation!.revision, answers: frozen.current.answers, clientSubmissionId: frozen.current.clientSubmissionId }) : api.submitPbeAttempt(session!.id, frozen.current);
+        }, onSuccess: r => { if (timed) { setTimedReceipt(r as PbeTimedReceipt); if (card!.sequence === card!.total) complete.mutate(); else next.mutate(session!.id); } else { const pbeResult = r as PbeAttemptResult; setResult(pbeResult); // Full or partial credit only (scoreless answers trigger nothing), fresh results only — replays keep their stored numbers without re-animating.
             if (pbeResult.earnedPoints > 0 && !pbeResult.alreadyProcessed) xpReward.fire(pbeResult.xpReward); } sessionStorage.removeItem(`erudoza:pbe-attempt:${session!.id}`); frozen.current = null; } });
     useEffect(() => {
         if (saved?.summary && !recapped.current) {
@@ -168,10 +236,11 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
             return;
         }
         if (saved) {
-            if (saved.session.mode === 'Simulation' && saved.card && saved.attempt && 'feedbackDeferred' in saved.attempt && saved.attempt.questionId===saved.card.id) {
+            if (saved.session.break && !saved.session.break.resumedAtMs) return;
+            if (isTimedPbeMode(saved.session.mode) && saved.card && saved.attempt && 'feedbackDeferred' in saved.attempt && saved.attempt.questionId===saved.card.id) {
                 if (saved.card.sequence === saved.card.total) complete.mutate();
                 else next.mutate(saved.session.id);
-            } else if (saved.session.mode === 'Simulation' && saved.card) {
+            } else if (isTimedPbeMode(saved.session.mode) && saved.card) {
                 void api.pbeTimedStatus(saved.session.id,saved.card!.id).then(value => {
                     if ('attemptId' in value) { if(value.questionId===saved.card!.id){setTimedReceipt(value); if (saved.card!.sequence === saved.card!.total) complete.mutate(); else next.mutate(saved.session.id);} }
                     else if (value.status === 'Interrupted') setInterruptionSummary(value.summary??null);
@@ -202,13 +271,13 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
         start.mutate();
     };
     const showReviewEntry = needsReviewEntry && !session;
-    useEffect(() => { if (mode !== 'Simulation' || !presentation?.responseEndsAtMs) return; const timer = window.setInterval(() => setTick(value => value + 1), 250); return () => window.clearInterval(timer); }, [mode, presentation?.responseEndsAtMs]);
-    useEffect(() => { if (mode !== 'Simulation' || !presentation || !card || !session || !answers.length) return; const timer = window.setTimeout(() => { void api.pbeTimed(session.id, { action: 'draft', questionId: card.id, revision: presentation.revision, answers }).catch(() => {}); }, 300); return () => window.clearTimeout(timer); }, [answers, mode, presentation, card, session]);
+    useEffect(() => { if (!timed || !presentation?.responseEndsAtMs) return; const timer = window.setInterval(() => setTick(value => value + 1), 250); return () => window.clearInterval(timer); }, [timed, presentation?.responseEndsAtMs]);
+    useEffect(() => { if (!timed || !presentation || !card || !session || !answers.length) return; const timer = window.setTimeout(() => { void api.pbeTimed(session.id, { action: 'draft', questionId: card.id, revision: presentation.revision, answers }).catch(() => {}); }, 300); return () => window.clearTimeout(timer); }, [answers, timed, presentation, card, session]);
     void tick;
     const displayedNow=serverClock.current?serverClock.current.server+performance.now()-serverClock.current.observed:Date.now();
     const remaining = presentation?.responseEndsAtMs ? Math.max(0, Math.ceil((presentation.responseEndsAtMs - displayedNow) / 1000)) : null;
     useEffect(() => {
-        if (mode !== 'Simulation' || remaining !== 0 || !session || !card || timedReceipt) return;
+        if (!timed || remaining !== 0 || !session || !card || timedReceipt) return;
         let active=true,timer:number;
         const poll=async()=>{
             try {
@@ -239,10 +308,10 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     },[remaining,mode,session,card,timedReceipt]);
     if (card && remaining !== null && remaining <= 10 && warned.current !== card.id) warned.current = card.id;
     const home = `/student?seasonId=${encodeURIComponent(session?.seasonId ?? seasonId)}`, practice = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Pbe`, memory = `/student/study?seasonId=${encodeURIComponent(seasonId)}&mode=Practice&format=Memory`;
-    const framingMode = mode === 'Review' ? 'Review' : mode === 'Simulation' ? 'Simulation' : 'Practice';
+    const framingMode = mode === 'Review' ? 'Review' : timed ? 'Simulation' : 'Practice';
     const framing = studySessionFraming(framingMode, 'Pbe');
     const entryHref = `/student/study?seasonId=${encodeURIComponent(seasonId)}&format=Pbe`;
-    const error = start.error ?? next.error ?? submit.error ?? aid.error ?? complete.error;
+    const error = start.error ?? next.error ?? submit.error ?? aid.error ?? complete.error ?? resumeBreak.error;
     const staleScope = start.error instanceof ApiError && ['PBE_CHAPTER_SCOPE_STALE', 'PBE_CHAPTER_CURSOR_STALE'].includes(start.error.code ?? '');
     const locked = !!result || submit.isPending || !!frozen.current;
     if (showReviewEntry) {
@@ -348,23 +417,24 @@ export function PbeStudyPage({ saved, seasonId, unavailable }: {
     // Session actions, defined once: on phones the trio (check / next /
     // finish) rides the bottom action dock; on desktop it sits in the same
     // in-flow row as before. Identical elements either way.
-    const sessionActions = <><Button data-testid="submit-answer" disabled={!!result || submit.isPending || !answers.some(a => a.trim()) || mode === 'Simulation' && (!presentation?.responseStartsAtMs || displayedNow < presentation.responseStartsAtMs)} onClick={() => submit.mutate()}>{submit.isPending ? 'Saving…' : timedReceipt ? 'Answer saved' : result ? 'Answer checked' : frozen.current ? 'Retry saved answer' : 'Check answer'}</Button>{result && card && card.sequence < card.total && <Button data-testid="next-card" disabled={next.isPending} onClick={() => { submit.reset(); next.mutate(session!.id); }}>Next card</Button>}<Button data-testid="complete-session" variant={result && card && card.sequence === card.total ? 'primary' : 'ghost'} disabled={!result || complete.isPending} onClick={() => complete.mutate()}>Finish session</Button></>;
+    const sessionActions = <><Button data-testid="submit-answer" disabled={!!result || submit.isPending || !answers.some(a => a.trim()) || timed && (!presentation?.responseStartsAtMs || displayedNow < presentation.responseStartsAtMs)} onClick={() => submit.mutate()}>{submit.isPending ? 'Saving…' : timedReceipt ? 'Answer saved' : result ? 'Answer checked' : frozen.current ? 'Retry saved answer' : 'Check answer'}</Button>{result && card && card.sequence < card.total && <Button data-testid="next-card" disabled={next.isPending} onClick={() => { submit.reset(); next.mutate(session!.id); }}>Next card</Button>}<Button data-testid="complete-session" variant={result && card && card.sequence === card.total ? 'primary' : 'ghost'} disabled={!result || complete.isPending} onClick={() => complete.mutate()}>Finish session</Button></>;
     return <div className="er-study-stage" data-session-active="true">
     <p className="study-eyebrow">{framing.eyebrow}</p>
-    <PageHeader title={framingMode === 'Simulation' ? 'PBE rehearsal' : framingMode === 'Review' ? 'PBE review' : 'PBE practice'} description={<span className="study-blurb">{framing.blurb}</span>} action={<span className="study-cover-actions"><Badge>{mode === 'Simulation' ? 'Shortened timed practice' : `Untimed ${mode.toLowerCase()}`}</Badge></span>}/>
-    {framingMode === 'Simulation' && <div className="study-exam-banner" data-testid="exam-mode-banner"><AppIcon name="flag" /><div><strong>Challenge mode</strong><p>Shortened timed practice. Answers freeze when time ends and feedback waits until the finish.</p><ul className="study-rules" aria-label="Challenge rules">{academyModeRules('rehearsal', 'Pbe').map(rule => <li key={rule}>{rule}</li>)}</ul></div></div>}
+    <PageHeader title={mode === 'Checkpoint' ? 'PBE checkpoint' : mode === 'Rescue' ? 'PBE rescue' : mode === 'MockFull' ? 'PBE full mock' : mode === 'MockHalf' ? 'PBE half mock' : framingMode === 'Simulation' ? 'PBE rehearsal' : framingMode === 'Review' ? 'PBE review' : 'PBE practice'} description={<span className="study-blurb">{framing.blurb}</span>} action={<span className="study-cover-actions"><Badge>{mode === 'Simulation' ? 'Shortened timed practice' : mode === 'Checkpoint' ? 'Timed checkpoint · official clock' : mode === 'MockFull' ? 'Full mock · 90 questions · official clock' : mode === 'MockHalf' ? 'Half mock · 45 questions · official clock' : mode === 'Rescue' ? 'Untimed rescue' : `Untimed ${mode.toLowerCase()}`}</Badge></span>}/>
+    {framingMode === 'Simulation' && <div className="study-exam-banner" data-testid="exam-mode-banner"><AppIcon name="flag" /><div><strong>Challenge mode</strong><p>{mode === 'Simulation' ? 'Shortened timed practice. Answers freeze when time ends and feedback waits until the finish.' : 'Timed run on the official clock: 20 seconds plus 5 seconds for each point a question is worth. Answers freeze when time ends and feedback waits until the finish.'}</p><ul className="study-rules" aria-label="Challenge rules">{academyModeRules('rehearsal', 'Pbe').map(rule => <li key={rule}>{mode !== 'Simulation' && rule === 'Shortened timed practice' ? 'Official timing — 20 seconds plus 5 for each point' : rule}</li>)}</ul></div></div>}
     {framingMode === 'Review' && card && <div className="study-return-banner" data-testid="review-return-banner"><AppIcon name="review" /><div><strong>Back for another pass</strong><span>{card.question.reference} · {reviewReturnDetail(reviewProgress.data, card.question.reference) ?? 'due for review'} · no source aid in Review</span></div></div>}
   {unavailable || progressScopeIncomplete ? <Panel><Notice tone={progressScopeIncomplete ? 'danger' : 'info'}>{progressScopeIncomplete ? 'This link is missing a piece. Head back to your chapter progress and tap Practice or Review again.' : unavailable}</Notice></Panel> : <>
    {error && <Notice tone="danger">{staleScope ? <>This chapter action is out of date. Load current progress and choose Practice or Review again.<LinkButton variant="secondary" to={`/student?seasonId=${encodeURIComponent(seasonId)}`}>Return to chapter progress</LinkButton></> : <>{error.message}{start.isError && <Button variant="secondary" onClick={() => start.mutate()}>Retry start</Button>}{next.isError && session && <Button variant="secondary" onClick={() => next.mutate(session.id)}>Retry next card</Button>}</>}</Notice>}
    {timingError && <Notice tone="danger">{timingError}<Button variant="secondary" onClick={() => { setTimingError(''); setPresentation(null); }}>Retry presentation</Button></Notice>}
-   {interruptionSummary && <Panel><Notice tone="info">This shortened timed practice was interrupted. Earlier accepted answers are retained.</Notice>{interruptionSummary.results?.map(savedResult=><p key={savedResult.attemptId}>{savedResult.earnedPoints} / {savedResult.availablePoints} points</p>)}<LinkButton variant="secondary" to={`/student/sessions/${session?.id??saved?.session.id}/recap?seasonId=${encodeURIComponent(session?.seasonId??seasonId)}`}>View partial recap</LinkButton><LinkButton variant="primary" to={practice.replace('mode=Practice','mode=Simulation')}>Start another shortened timed practice</LinkButton></Panel>}
-   {!card && !start.isError && !next.isError && <LoadingState label="Loading your saved PBE questions…"/>}
-   {card && !interruptionSummary && mode === 'Simulation' && !presentation && <PbePresentation key={card.id} text={`For ${card.question.points} ${card.question.points === 1 ? 'point' : 'points'}. ${card.question.reference}. ${card.question.prompt}`} onReady={async delivery => { try { const shown = await api.pbeTimed(session!.id, { action: 'present', delivery }) as PbePresentationState; const armed = await api.pbeTimed(session!.id, { action: 'ack', questionId: card.id, revision: shown.revision, delivery }) as PbePresentationState; serverClock.current={server:Date.parse(armed.serverNow),observed:performance.now()}; setPresentation(armed); } catch(error) { setTimingError(error instanceof Error ? error.message : 'The timed rehearsal could not start.'); throw error; } }}/>}
-   {card && (mode !== 'Simulation' || presentation) && <Panel className="student-challenge" data-testid="challenge-card"><div className="flex flex-wrap items-center justify-between gap-3"><p className="study-card-reference">{card.question.reference}</p><Badge>{card.question.points} points</Badge><p data-testid="card-progress">{card.sequence} / {card.total}</p></div><progress className="training-session-progress" aria-label="Study session progress" value={card.sequence} max={card.total}/><h2 className="mt-6" data-testid="challenge-prompt">{card.question.prompt}</h2>
-    {mode === 'Simulation' && presentation && <><p role="timer">{presentation.responseStartsAtMs && displayedNow < presentation.responseStartsAtMs ? 'Response starts shortly' : `${remaining} seconds remaining`}</p>{warned.current === card.id && remaining !== null && remaining <= 10 && <Notice>Ten seconds remain.</Notice>}</>}
+   {interruptionSummary && <Panel><Notice tone="info">{mode === 'Simulation' ? 'This shortened timed practice was interrupted. Earlier accepted answers are retained.' : 'This timed run was interrupted. Earlier accepted answers are retained.'}</Notice>{interruptionSummary.results?.map(savedResult=><p key={savedResult.attemptId}>{savedResult.earnedPoints} / {savedResult.availablePoints} points</p>)}<LinkButton variant="secondary" to={`/student/sessions/${session?.id??saved?.session.id}/recap?seasonId=${encodeURIComponent(session?.seasonId??seasonId)}`}>View partial recap</LinkButton><LinkButton variant="primary" to={practice.replace('mode=Practice',`mode=${mode}`)}>{mode === 'Simulation' ? 'Start another shortened timed practice' : mode === 'Checkpoint' ? 'Start another checkpoint' : mode === 'MockHalf' || mode === 'MockFull' ? 'Start another mock round' : 'Start another timed run'}</LinkButton></Panel>}
+   {breakState && session && !interruptionSummary && <Panel data-testid="pbe-break"><Badge tone="info">Halftime</Badge><h2 className="mt-3">You’re halfway there</h2><p className="mt-2">You’ve answered {breakState.afterAttempts} of {session.targetCardCount} questions. Take a breather — the clock is paused and your answers so far are saved. When you’re ready, question {breakState.afterAttempts + 1} opens the second half.</p><div className="mt-4"><Button data-testid="resume-after-break" disabled={resumeBreak.isPending} onClick={() => resumeBreak.mutate()}>{resumeBreak.isPending ? 'Continuing…' : `Continue to question ${breakState.afterAttempts + 1}`}</Button></div></Panel>}
+   {!card && !breakState && !start.isError && !next.isError && <LoadingState label="Loading your saved PBE questions…"/>}
+   {card && !breakState && !interruptionSummary && timed && !presentation && <PbePresentation key={card.id} text={`For ${card.question.points} ${card.question.points === 1 ? 'point' : 'points'}. ${card.question.reference}. ${card.question.prompt}`} onReady={async delivery => { try { const shown = await api.pbeTimed(session!.id, { action: 'present', delivery }) as PbePresentationState; const armed = await api.pbeTimed(session!.id, { action: 'ack', questionId: card.id, revision: shown.revision, delivery }) as PbePresentationState; serverClock.current={server:Date.parse(armed.serverNow),observed:performance.now()}; setPresentation(armed); } catch(error) { setTimingError(error instanceof Error ? error.message : 'The timed rehearsal could not start.'); throw error; } }}/>}
+   {card && (!timed || presentation) && <Panel className="student-challenge" data-testid="challenge-card"><div className="flex flex-wrap items-center justify-between gap-3"><p className="study-card-reference">{card.question.reference}</p><Badge>{card.question.points} points</Badge><p data-testid="card-progress">{card.sequence} / {card.total}</p></div><progress className="training-session-progress" aria-label="Study session progress" value={card.sequence} max={card.total}/><p className="mt-4 flex flex-wrap items-center gap-2" data-testid="pbe-kind"><Badge tone="info">{PBE_KIND_FRAMING[card.question.kind].label}</Badge>{pbeAskType(card.question.prompt) && <Badge data-testid="pbe-ask">{pbeAskType(card.question.prompt)}</Badge>}<span className="text-sm">{PBE_KIND_FRAMING[card.question.kind].framing}</span></p><h2 className="mt-4" data-testid="challenge-prompt">{card.question.prompt}</h2>
+    {timed && presentation && <><p role="timer">{presentation.responseStartsAtMs && displayedNow < presentation.responseStartsAtMs ? 'Response starts shortly' : `${remaining} seconds remaining`}</p>{warned.current === card.id && remaining !== null && remaining <= 10 && <Notice>Ten seconds remain.</Notice>}</>}
     {card.question.kind === 'TrueFalse' ? <div className="mt-6 flex flex-wrap gap-3" aria-label="True or false">{['True', 'False'].map(value => <Button key={value} aria-pressed={answers[0] === value} variant={answers[0] === value ? 'primary' : 'secondary'} disabled={locked} onClick={() => setAnswers([value])}>{value}</Button>)}</div> : <PbeAnswerInput partPoints={card.question.partPoints} answers={answers} onChange={setAnswers} disabled={locked}/>}
     {frozen.current && !result && <Notice className="mt-4">Saved answer awaiting confirmation. Retry sends these exact answers.</Notice>}
-    {result && mode !== 'Simulation' && <div className="student-feedback" role="status" data-testid="challenge-feedback" ref={feedbackRef}><Badge tone={result.earnedPoints === result.availablePoints ? 'success' : 'warning'}>{result.earnedPoints} / {result.availablePoints} points</Badge><h3 className="mt-3">Expected answers</h3><ol className="space-y-3">{result.expectedParts.map((part, i) => <PbePartFeedback key={i} index={i} expected={part} submitted={answers[i] ?? ''} points={card.question.partPoints[i]} />)}</ol><p className="mt-3">{result.citation}</p><p className="er-scripture" data-testid="feedback-source">{result.sourceEvidence}</p><p className="mt-3">{result.unaided ? 'Unaided answer saved. Missed targets remain due for review.' : 'Practice with assistance saved. This answer does not establish unaided recall.'}</p></div>}
+    {result && !timed && <div className="student-feedback" role="status" data-testid="challenge-feedback" ref={feedbackRef}><Badge tone={result.earnedPoints === result.availablePoints ? 'success' : 'warning'}>{result.earnedPoints} / {result.availablePoints} points</Badge><h3 className="mt-3">Expected answers</h3><ol className="space-y-3">{result.expectedParts.map((part, i) => <PbePartFeedback key={i} index={i} expected={part} submitted={answers[i] ?? ''} points={card.question.partPoints[i]} />)}</ol><p className="mt-3">{result.citation}</p><p className="er-scripture" data-testid="feedback-source">{result.sourceEvidence}</p><p className="mt-3">{result.unaided ? 'Unaided answer saved. Missed targets remain due for review.' : 'Practice with assistance saved. This answer does not establish unaided recall.'}</p><PbeStudyTemplates kind={card.question.kind} result={result} /></div>}
     {phone ? <div className="student-study-actions mobile-action-dock" role="region" aria-label="Session actions">{sessionActions}</div> : <div className="student-study-actions">{sessionActions}</div>}
     {!result && mode === 'Practice' && <div className="mt-4"><Button variant="secondary" disabled={aid.isPending || locked} onClick={() => aid.mutate()}>Read source with assistance</Button>{card.assisted && <p>Source assistance is recorded for this card.</p>}{aid.data && <div className="mt-3">{aid.data.sources.map((source, i) => <div key={i}><h3>{source.citation}</h3><p className="er-scripture">{source.canonicalText}</p></div>)}</div>}</div>}
    </Panel>}

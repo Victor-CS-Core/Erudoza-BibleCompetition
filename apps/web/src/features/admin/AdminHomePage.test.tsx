@@ -45,7 +45,7 @@ it("labels a multi-range row with the first range plus the extra range count", a
   vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [{ ...student, endVerse: 3, masteredCount: 3, rangeCount: 2, otherRanges: [{ bookKey: "DAN", startChapter: 2, startVerse: 1, endChapter: 2, endVerse: 2 }], eligibleUnitCount: 5 }] });
   home(); const table = await screen.findByRole("table");
   expect(within(table).getByText("DAN 1:1–3 and 1 more range")).toBeInTheDocument();
-  expect(within(table).getByText("3 of 5 verses")).toBeInTheDocument(); // the total spans both ranges, and the label now says so
+  expect(within(table).getByText("3 of 5 required verses")).toBeInTheDocument(); // the total spans both ranges, and the label now says so
 });
 it("joins the streak and last-practiced caption from the engagement payload", async () => {
   vi.mocked(api.coverage).mockResolvedValue({ seasonId: "active", seasonName: "active", seasonStatus: "Active", students: [student, { ...student, studentUserId: "v", displayName: "Ruth" }] });

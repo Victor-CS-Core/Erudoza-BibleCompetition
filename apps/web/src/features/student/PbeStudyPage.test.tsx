@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { api, ApiError } from '../../api/client';
 import { trainingApi } from '../../api/training';
 import { StudyPage } from './StudyPage';
+import { pbeAskType } from './PbeStudyPage';
 import type { PbePresentationState, PbeResumedSession } from '../../api/pbeTypes';
 vi.mock('../../auth/AuthContext', () => ({ useAuth: () => ({ me: { organizationId: 'org', userId: 'student' } }) }));
 const saved: PbeResumedSession = { session: { id: 'pbe-session', seasonId: 'season', format: 'Pbe', mode: 'Practice', status: 'Active', targetCardCount: 2 }, card: { id: 'card', sessionId: 'pbe-session', format: 'Pbe', sequence: 1, total: 2, assisted: false, question: { id: 'question', version: 1, prompt: 'Name both labels.', reference: 'GEN 1:1', kind: 'List', partPoints: [1, 1], points: 2, durationSeconds: 30 } }, attempt: null, summary: null };
@@ -39,6 +40,64 @@ it('uses the saved PBE format despite a Memory URL and preserves server-recorded
     expect(screen.getByTestId('feedback-source')).toHaveTextContent('Alpha and Beta');
     expect(api.submitPbeAttempt).toHaveBeenCalledWith('pbe-session', expect.objectContaining({ answers: ['Alpha', ''], hintsUsed: true }));
 });
+it.each([
+    ['ShortAnswer', 'Short answer', 'Answer with the key facts — your own words are fine.'],
+    ['List', 'List', 'Give every part. When the parts come in an order, keep that order.'],
+    ['ExactWords', 'Exact words', 'Give the verse’s exact wording.'],
+    ['TrueFalse', 'True or false', 'Decide whether the statement is true or false.'],
+] as const)('labels a %s card with its kind and what that kind expects', async (kind, label, framing) => {
+    vi.mocked(api.resumeSession).mockResolvedValue({ ...saved, card: { ...saved.card!, question: { ...saved.card!.question, kind } } } as never);
+    mount('/student/study?sessionId=pbe-session');
+    const kindLine = await screen.findByTestId('pbe-kind');
+    expect(kindLine).toHaveTextContent(label);
+    expect(kindLine).toHaveTextContent(framing);
+});
+it('frames the ask from the prompt opening word (card 52)', async () => {
+    mount('/student/study?sessionId=pbe-session');
+    // The fixture prompt is "Name both labels." — a Name prompt asks what.
+    expect(await screen.findByTestId('pbe-ask')).toHaveTextContent('Asks what');
+});
+it.each([
+    ['Who carried the ark?', 'Asks who'],
+    ['Where was the ark kept?', 'Asks where'],
+    ['When did the flood begin?', 'Asks when'],
+    ['What does the verse call the light?', 'Asks what'],
+    ['Describe the scene at the river.', null],
+] as const)('derives the ask type for %s', (prompt, expected) => {
+    expect(pbeAskType(prompt)).toBe(expected);
+});
+it('offers the turn-it-around and what-comes-next study templates after feedback, covered until uncovered (card 52)', async () => {
+    mount('/student/study?sessionId=pbe-session');
+    await screen.findByLabelText('Answer 1');
+    fireEvent.change(screen.getByLabelText('Answer 1'), { target: { value: 'Alpha' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    await screen.findByText('1 / 2 points');
+    const templates = await screen.findByTestId('pbe-study-templates');
+    // Turn it around: the reference stays covered until uncovered.
+    expect(screen.queryByTestId('pbe-template-reference')).not.toBeInTheDocument();
+    fireEvent.click(within(templates).getByRole('button', { name: 'Uncover the reference' }));
+    expect(screen.getByTestId('pbe-template-reference')).toHaveTextContent('GEN 1:1');
+    // What comes next: the List lead shows Alpha; Beta stays covered.
+    expect(templates).toHaveTextContent('Alpha …');
+    expect(screen.queryByTestId('pbe-template-next')).not.toBeInTheDocument();
+    fireEvent.click(within(templates).getByRole('button', { name: 'Uncover what comes next' }));
+    expect(screen.getByTestId('pbe-template-next')).toHaveTextContent('Beta');
+    // Templates are unscored: the graded line is untouched.
+    expect(screen.getByText('1 / 2 points')).toBeInTheDocument();
+});
+it('continues the verse for Exact words cards and offers no continuation for True or false (card 52)', async () => {
+    const exactResult = { ...result, earnedPoints: 2, expectedParts: ['Alpha and Beta went up'] };
+    vi.mocked(api.resumeSession).mockResolvedValue({ ...saved, card: { ...saved.card!, question: { ...saved.card!.question, kind: 'ExactWords', partPoints: [2] } } } as never);
+    vi.mocked(api.submitPbeAttempt).mockResolvedValue(exactResult);
+    mount('/student/study?sessionId=pbe-session');
+    await screen.findByLabelText('Answer 1');
+    fireEvent.change(screen.getByLabelText('Answer 1'), { target: { value: 'Alpha and Beta went up' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    const templates = await screen.findByTestId('pbe-study-templates');
+    expect(templates).toHaveTextContent('Alpha and Beta …');
+    fireEvent.click(within(templates).getByRole('button', { name: 'Uncover what comes next' }));
+    expect(screen.getByTestId('pbe-template-next')).toHaveTextContent('went up');
+});
 it('uses saved Memory despite enabled PBE and a contradictory URL without running PBE effects', async () => {
     vi.mocked(api.resumeSession).mockResolvedValue({ session: { id: 'memory', seasonId: 'season', mode: 'Practice', status: 'Active', targetCardCount: 8 }, card: { id: 'm-card', sessionId: 'memory', activityType: 'MissingWords', citation: 'GEN 1:1', prompt: 'Memory ____', tokens: [{ index: 0, display: 'Memory', hidden: false }, { index: 2, display: '____', hidden: true }], sequence: 1, total: 8 }, attempt: null, summary: null });
     mount('/student/study?sessionId=memory&format=Pbe');
@@ -64,6 +123,57 @@ it('starts PBE Simulation as shortened timed practice', async () => {
     vi.mocked(api.startSession).mockResolvedValue({ ...saved.session, mode: 'Simulation' });
     mount('/student/study?seasonId=season&format=Pbe&mode=Simulation');
     await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'Simulation', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
+});
+it('starts PBE Checkpoint as a timed run on the official clock', async () => {
+    vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);
+    vi.mocked(api.startSession).mockResolvedValue({ ...saved.session, mode: 'Checkpoint' });
+    mount('/student/study?seasonId=season&format=Pbe&mode=Checkpoint');
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'Checkpoint', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
+});
+it('starts PBE MockHalf as a timed 45-question run', async () => {
+    vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);
+    vi.mocked(api.startSession).mockResolvedValue({ ...saved.session, mode: 'MockHalf', targetCardCount: 45 });
+    mount('/student/study?seasonId=season&format=Pbe&mode=MockHalf');
+    await waitFor(() => expect(api.startSession).toHaveBeenCalledWith('season', 'MockHalf', expect.objectContaining({ clientStartId: expect.any(String) }), 'Pbe'));
+});
+it('holds a saved MockFull at its halftime break until the learner continues', async () => {
+    const card46 = { ...saved.card!, id: 'card-46', sequence: 46, total: 90 };
+    vi.spyOn(api, 'resumePbeBreak').mockResolvedValue(card46);
+    vi.mocked(api.resumeSession).mockResolvedValue({ ...saved, session: { ...saved.session, mode: 'MockFull', targetCardCount: 90, break: { afterAttempts: 45, startedAtMs: 1760000000000, resumedAtMs: null } }, card: { ...saved.card!, sequence: 45, total: 90 } } as never);
+    mount('/student/study?sessionId=pbe-session&format=Pbe');
+    const panel = await screen.findByTestId('pbe-break');
+    expect(panel).toHaveTextContent('You’ve answered 45 of 90 questions');
+    expect(screen.queryByTestId('challenge-card')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('resume-after-break'));
+    await waitFor(() => expect(api.resumePbeBreak).toHaveBeenCalledWith('pbe-session'));
+    expect(await screen.findByRole('button', { name: /ready to hear/i })).toBeVisible();
+    expect(screen.queryByTestId('pbe-break')).not.toBeInTheDocument();
+});
+it('runs a saved Checkpoint through the timed authority with checkpoint framing', async () => {
+    vi.mocked(api.resumeSession).mockResolvedValue({ ...saved, session: { ...saved.session, mode: 'Checkpoint' } } as never);
+    vi.mocked(api.pbeTimedStatus).mockResolvedValue({ status: 'NotPresented', questionId: 'card', revision: 0, serverNow: new Date().toISOString(), feedbackDeferred: true } as never);
+    const presented: PbePresentationState = { questionId: 'card', revision: 1, delivery: 'TextFallback', requiredScribeIds: ['student'], readyScribeIds: [], responseStartsAtMs: null, responseEndsAtMs: null, status: 'Presenting', serverNow: new Date().toISOString(), feedbackDeferred: true };
+    const armed: PbePresentationState = { ...presented, readyScribeIds: ['student'], responseStartsAtMs: Date.now() + 3000, responseEndsAtMs: Date.now() + 33000, status: 'Armed' };
+    vi.mocked(api.pbeTimed).mockResolvedValueOnce(presented).mockResolvedValueOnce(armed);
+    mount('/student/study?sessionId=pbe-session&format=Pbe');
+    fireEvent.click(await screen.findByRole('button', { name: /ready to hear/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /finished first reading/i }));
+    fireEvent.click(screen.getByRole('button', { name: /finished second reading/i }));
+    expect(await screen.findByTestId('challenge-card')).toBeVisible();
+    expect(screen.getByRole('heading', { name: 'PBE checkpoint' })).toBeVisible();
+    expect(screen.getByTestId('exam-mode-banner')).toHaveTextContent('Timed run on the official clock');
+    expect(api.submitPbeAttempt).not.toHaveBeenCalled();
+});
+it('runs a saved Rescue session untimed with immediate feedback', async () => {
+    vi.mocked(api.resumeSession).mockResolvedValue({ ...saved, session: { ...saved.session, mode: 'Rescue' } } as never);
+    mount('/student/study?sessionId=pbe-session&format=Pbe');
+    await screen.findByLabelText('Answer 1');
+    expect(screen.getByText('Untimed rescue')).toBeVisible();
+    fireEvent.change(screen.getByLabelText('Answer 1'), { target: { value: 'Alpha' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check answer' }));
+    await screen.findByText('1 / 2 points');
+    expect(api.submitPbeAttempt).toHaveBeenCalledWith('pbe-session', expect.objectContaining({ answers: ['Alpha', ''] }));
+    expect(api.pbeTimed).not.toHaveBeenCalled();
 });
 it('retries a guarded chapter action with the same selector and client start identity', async () => {
     vi.spyOn(trainingApi, 'today').mockResolvedValue({ format: 'Pbe', seasonId: 'season', seasonName: 'Season', mission: { status: 'Suggested' } } as never);

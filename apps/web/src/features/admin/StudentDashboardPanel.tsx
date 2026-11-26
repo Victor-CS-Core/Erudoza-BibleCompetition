@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../api/client";
-import type { SessionHistoryEntry, Student } from "../../api/types";
+import type { SessionHistoryEntry, Student, TrainingDifficulty } from "../../api/types";
 import { useAuth } from "../../auth/AuthContext";
-import { Badge, Button, LoadingState, Notice, Panel, ProgressMeter, WeeklyProgressStrip } from "../../components/ui";
+import { Badge, Button, LoadingState, Notice, Panel, ProgressMeter, Select, WeeklyProgressStrip } from "../../components/ui";
 import { useScrollLock } from "../../components/ui/scrollLock";
 import { ProfileAvatar } from "../profile/ProfileAvatar";
 import { formatPassageCitation } from "./passageRanges";
@@ -89,6 +89,30 @@ function SessionHistory({ orgId, studentId, onViewRecap }: { orgId: string; stud
     </ul> : !loading && !failed && <p>No completed sessions yet.</p>}
     {nextBefore && <Button variant="secondary" size="compact" disabled={loading} onClick={() => void loadMore()}>{loading ? "Loading…" : "Load more sessions"}</Button>}
   </Panel>;
+}
+
+/** The student's per-season Training difficulty, edited where the student
+ *  lives (this dashboard) rather than inside the assignment editor: one
+ *  membership setting for the whole season, saved explicitly through the
+ *  coach difficulty endpoint. Chapter saves never move it. */
+function DifficultySetting({ orgId, studentId, seasonId, seasonName, current }: { orgId: string; studentId: string; seasonId: string; seasonName: string; current: TrainingDifficulty }) {
+  const cache = useQueryClient();
+  const [choice, setChoice] = useState<TrainingDifficulty>(current);
+  useEffect(() => { setChoice(current); }, [current]);
+  const mutation = useMutation({
+    mutationFn: () => api.setDifficulty(orgId, seasonId, studentId, choice),
+    onSuccess: () => {
+      void cache.invalidateQueries({ queryKey: ["student-dashboard", orgId, studentId] });
+      void cache.invalidateQueries({ queryKey: ["assignments"] });
+    },
+  });
+  return <div className="ds-student-dashboard-difficulty">
+    <label>Training difficulty<Select value={choice} onChange={event => setChoice(event.target.value as TrainingDifficulty)}>{["Foundation", "Standard", "Advanced"].map(value => <option key={value}>{value}</option>)}</Select></label>
+    <Button size="compact" disabled={choice === current || mutation.isPending} onClick={() => mutation.mutate()}>{mutation.isPending ? "Saving…" : "Save difficulty"}</Button>
+    {mutation.isSuccess && choice === current && <span role="status">Saved</span>}
+    <p><small>One setting for the whole season ({seasonName}). It shapes future sessions only — a session already started keeps the difficulty it began with.</small></p>
+    {mutation.isError && <Notice tone="danger">Difficulty could not be saved. Try again.</Notice>}
+  </div>;
 }
 
 /** Coach slide-over with one student's effort, progress, mastery, assignments and recent activity. */
@@ -181,6 +205,7 @@ export function StudentDashboardPanel({ student, onClose }: { student: Student; 
           {data.assignments.length ? <ul className="ds-student-dashboard-list">{data.assignments.map(assignment =>
             <li key={assignment.id}><div><strong>{formatPassageCitation(assignment)}</strong><small>{assignmentTypeLabels[assignment.type] ?? "Assigned study"} · {assignment.difficulty ?? "Standard"} difficulty</small></div></li>)}
           </ul> : <p>No assignments yet.</p>}
+          {data.season && data.assignments.length > 0 && me?.organizationId && <DifficultySetting orgId={me.organizationId} studentId={student.userId} seasonId={data.season.id} seasonName={data.season.name} current={data.assignments[0].difficulty ?? "Standard"} />}
         </Panel>
         <Panel data-testid="student-dashboard-mastery">
           <h2>Mastery</h2>

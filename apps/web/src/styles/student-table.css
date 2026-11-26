@@ -1,6 +1,12 @@
 .student-directory{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--er-space-5);min-width:0}
+/* Students page header at section density (card 41, mirroring card 40's
+   planner-scoped rule): the shared PageHeader keeps its description, the
+   title drops from the 32px page size to the 22px section size. Scoped to
+   .students-page so every other admin page keeps the app-wide header. */
+.students-page>.ds-page-header h1{font-size:var(--er-text-title);line-height:1.25}
 .student-table-tools{display:flex;align-items:end;justify-content:space-between;gap:var(--er-space-4);flex-wrap:wrap}
-.student-table-tools label:first-child{flex:1;max-width:360px;min-width:180px}
+.student-tool-search{flex:1;max-width:360px;min-width:180px}
+.student-tool-filters{display:flex;gap:var(--er-space-4)}
 .student-table-scroll{position:relative;overflow-x:auto;max-width:100%}
 .student-table{min-width:540px}
 .student-table tbody th{background:transparent;color:var(--er-ink-navy);font-size:var(--er-text-sm);border-bottom:1px solid var(--er-border);padding:var(--er-space-4);font-weight:normal;text-align:left;text-transform:none;letter-spacing:normal}
@@ -16,9 +22,18 @@
 
 .student-table-tools label{display:grid;gap:var(--er-space-2)}
 .student-pagination{font-size:var(--er-text-sm);color:var(--er-muted-ink)}
+/* Rows per page lives with the pager it affects (card 41): a small inline
+   control beside the count, not a full-width toolbar field. */
+.student-pagination-size{display:flex;align-items:center;gap:var(--er-space-2)}
+.student-pagination-size .ds-select{width:auto}
+/* The row's quiet account actions (Reset password / Deactivate /
+   Reactivate) join the single desktop action row via display:contents;
+   on phones the group becomes its own full-width line under the two main
+   actions, quiet action left, destructive action right. */
+.student-row-actions-quiet{display:contents}
 
 .season-list-item .training-season-card{padding:0}
-@media(max-width:600px){.student-table-tools label:first-child{flex-basis:100%;max-width:none}.student-table-tools label{flex:1;min-width:130px}}
+@media(max-width:600px){.student-table-tools{display:grid;gap:var(--er-space-3)}.student-tool-search{max-width:none;min-width:0}.student-tool-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--er-space-3)}}
 
 /* Preserve table semantics while keeping every row action reachable on phones. */
 @media(max-width:600px){
@@ -31,9 +46,10 @@
 .student-status-cell{grid-column:2;grid-row:1}
 .student-plan-cell,.student-actions-cell{grid-column:1/-1}
 .student-row-actions{flex-wrap:wrap;gap:var(--er-space-2);margin-top:var(--er-space-2)}
-.student-row-actions .ds-button{min-height:44px;flex:1 1 auto}
+.student-row-actions .ds-button{min-height:44px}
+.student-row-actions>.ds-button{flex:1 1 auto}
+.student-row-actions-quiet{display:flex;flex:1 1 100%;align-items:center;justify-content:space-between;gap:var(--er-space-2)}
 .student-pagination>div{width:100%;justify-content:space-between;gap:var(--er-space-2)}
-.student-table-tools label{min-width:0;flex:1 1 40%}
 }
 
 .assignment-overview{grid-template-columns:minmax(0,1fr);min-width:0;max-width:100%}

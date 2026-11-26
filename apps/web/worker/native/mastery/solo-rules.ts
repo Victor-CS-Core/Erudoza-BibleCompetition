@@ -29,7 +29,7 @@ export function updatePassageProof(proof: PassageProof, session: Session, attemp
   }
   return next;
 }
-export function soloQualifiers(sources: Source[], states: Mastery[], proofs: PassageProof[]): { key: HonorKey; passageIds: string[] }[] {
+export function soloQualifiers(sources: Source[], states: Mastery[], proofs: PassageProof[], fullCoverageSources?: Source[]): { key: HonorKey; passageIds: string[] }[] {
   const units = [...new Map(sources.map(s => [passageId(s), s])).values()], byId = new Map(states.map(m => [m.knowledgeUnitId, m]));
   const exact = units.filter(s => { const m = byId.get(passageId(s)); return !!m && isScoredMasteryVersion(m.algorithmVersion) && m.exactWording >= 90; });
   const reference = units.filter(s => { const m = byId.get(passageId(s)); return !!m && isScoredMasteryVersion(m.algorithmVersion) && m.reference >= 90; });
@@ -40,7 +40,11 @@ export function soloQualifiers(sources: Source[], states: Mastery[], proofs: Pas
   if (reference.length >= 20) add('solo:reference-ready', reference);
   const chapters = [...new Set(units.map(s => `${s.bookKey}:${s.chapter}`))].sort();
   for (const chapter of chapters) { const group = units.filter(s => `${s.bookKey}:${s.chapter}` === chapter); if (group.length >= 10 && group.every(s => masteryStandard(byId.get(passageId(s))))) { add('solo:chapter-strong', group); break; } }
-  if (units.length >= 30 && mastered.length === units.length) add('solo:full-coverage', units);
+  // Card 46: full coverage is judged on the required set when the caller
+  // supplies one — passages covered only by Optional review assignments
+  // neither inflate the denominator nor block the honor.
+  const fullUnits = fullCoverageSources ? [...new Map(fullCoverageSources.map(s => [passageId(s), s])).values()] : units;
+  if (fullUnits.length >= 30 && fullUnits.every(s => masteryStandard(byId.get(passageId(s))))) add('solo:full-coverage', fullUnits);
   const retained = mastered.filter(s => proofs.some(p => p.knowledgeUnitId === passageId(s) && p.retainedAtUtc && p.retestAttemptId && p.firstMasteredAtUtc && Date.parse(p.retainedAtUtc) >= Date.parse(p.firstMasteredAtUtc) + 48 * 3600000));
   if (retained.length >= 20) add('solo:steady-study', retained);
   const reviewed = units.filter(s => proofs.some(p => p.knowledgeUnitId === passageId(s) && p.reviewCertifiedAtUtc && p.reviewAttemptId));

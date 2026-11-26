@@ -250,6 +250,8 @@ export type Session = {
   status: string;
   mode: string;
   targetCardCount: number;
+  /** MockFull halftime state when the session carries one (card 51). */
+  break?: import("./pbeTypes").PbeBreakState | null;
 };
 
 export type SessionSummary = {
@@ -280,8 +282,18 @@ export type CoverageStudent = {
    *  is the deduplicated verse total across all of them. */
   rangeCount: number;
   otherRanges: PassageRange[];
+  /** The coverage denominator: the required set — every assigned verse
+   *  except passages covered only by an Optional review assignment. */
   eligibleUnitCount: number;
+  /** Same required-set count, named for the split view (card 43). */
+  requiredUnitCount?: number;
+  /** Verses covered only by Optional review assignments: shown as their
+   *  own line, never counted toward coverage (card 46). */
+  optionalUnitCount?: number;
+  /** Deduplicated union of every assignment, required and optional. */
+  allAssignedUnitCount?: number;
   masteredCount: number;
+  optionalMasteredCount?: number;
   reviewDueCount: number;
   attemptCount: number;
 };

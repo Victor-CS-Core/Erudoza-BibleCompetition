@@ -303,3 +303,43 @@
 .coach-question-bank .practice-actions { gap:var(--er-space-3); }
 .pbe-bank-editor > .ds-button { justify-self:start; }
 .pbe-bank-editor fieldset { display:grid; gap:var(--er-space-4); }
+
+/* Live room overhaul (card 37): the playing room speaks the Practice HQ
+   language — a phase banner with an unmissable timer on the question
+   stage, a "Your team" marker and phase chip on the scoreboard strip, and
+   visually distinct scribe / teammate answer surfaces. Presentation only;
+   every color and type value comes from the shared tokens. */
+.practice-phase-banner { display: flex; align-items: center; flex-wrap: wrap; gap: var(--er-space-2) var(--er-space-3); padding: var(--er-space-3) var(--er-space-4); margin-bottom: var(--er-space-5); background: var(--er-surface-soft); border: 1px solid var(--er-border); border-left: 4px solid var(--er-border-strong); border-radius: var(--er-radius-control); }
+.practice-phase-banner[data-phase="Presentation"] { border-left-color: var(--er-action-blue); }
+.practice-phase-banner[data-phase="Response"] { border-left-color: var(--er-teal); }
+.practice-phase-banner[data-phase="AnswerLocked"] { border-left-color: var(--er-gold-fill); }
+.practice-phase-banner[data-phase="Review"] { border-left-color: var(--er-navy-surface); }
+.practice-phase-chip { font-size: var(--er-text-base); font-weight: 700; letter-spacing: -.01em; color: var(--er-ink-navy); }
+.practice-phase-points { color: var(--er-muted-ink); font-size: var(--er-text-sm); font-variant-numeric: tabular-nums; }
+.practice-phase-banner .practice-timer, .practice-phase-banner .ds-badge { margin-left: auto; }
+.practice-timer { font-size: var(--er-text-lg); font-weight: 700; padding: var(--er-space-2) var(--er-space-4); }
+.practice-timer.is-urgent { color: var(--er-coral); border-color: var(--er-coral); background: var(--er-danger-surface); }
+@media (prefers-reduced-motion: no-preference) {
+  .practice-timer.is-urgent { animation: practice-timer-pulse 1s ease-in-out infinite; }
+  @keyframes practice-timer-pulse { 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--er-coral) 22%, transparent); } }
+}
+.practice-score-yours { display: inline-block; margin-top: var(--er-space-1); padding: 0 var(--er-space-2); border-radius: 999px; background: var(--er-gold-fill); color: var(--er-navy-surface); font-size: var(--er-text-xs); font-weight: 700; line-height: 1.7; }
+.practice-match-center .practice-match-phase { display: inline-block; padding: var(--er-space-1) var(--er-space-3); border: 1px solid var(--er-on-navy-muted); border-radius: 999px; color: var(--er-on-navy); font-weight: 600; }
+.practice-scribe-console { margin-top: var(--er-space-4); padding: var(--er-space-4); background: var(--er-surface-soft); border: 1px solid var(--er-border); border-radius: var(--er-radius-card); }
+.practice-scribe-console .practice-scribe-note { margin: 0; padding: var(--er-space-2) var(--er-space-3); background: var(--er-card); border-left: 4px solid var(--er-teal); border-radius: var(--er-radius-control); color: var(--er-ink-navy); font-size: var(--er-text-sm); font-weight: 600; }
+.practice-scribe-console .practice-answer { margin-block: var(--er-space-3) 0; }
+.practice-team-draft { margin-top: var(--er-space-4); padding: var(--er-space-4); border: 1px solid var(--er-border); border-radius: var(--er-radius-card); }
+.practice-team-draft-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--er-space-2); }
+.practice-team-draft-label { color: var(--er-ink-navy); font-size: var(--er-text-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.practice-team-draft-scribe { display: inline-flex; align-items: center; gap: var(--er-space-2); color: var(--er-muted-ink); font-size: var(--er-text-sm); }
+.practice-team-draft .practice-answer { margin-block: var(--er-space-3) 0; }
+.practice-team-draft textarea[readonly] { background: var(--er-surface-soft); }
+.practice-locked-answer { padding: var(--er-space-4); background: var(--er-success-surface); border: 1px solid var(--er-border); border-radius: var(--er-radius-card); }
+@media (max-width: 760px) {
+  .practice-phase-banner { margin-bottom: var(--er-space-4); padding: var(--er-space-3); }
+  .practice-timer { font-size: var(--er-text-base); }
+}
+@media (forced-colors: active) {
+  .practice-phase-banner, .practice-scribe-console, .practice-team-draft, .practice-locked-answer { border: 1px solid CanvasText; }
+  .practice-phase-chip, .practice-team-draft-label { color: CanvasText; }
+}

@@ -9,7 +9,6 @@
 .planner-detail-fields label,.planner-pair label{display:grid;gap:var(--er-space-2);min-width:0}
 .planner-divider{border-top:1px solid var(--er-border);margin-block:var(--er-space-7)}
 .planner-section-heading{display:flex;justify-content:space-between;align-items:start;gap:var(--er-space-4);margin-bottom:var(--er-space-5);flex-wrap:wrap}
-.planner-section-heading h2 span{margin-left:var(--er-space-3)}
 .planner-book-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--er-space-3)}
 .planner-book-list{display:grid;gap:var(--er-space-3)}
 .planner-book-choice{display:flex;align-items:center;gap:var(--er-space-3);min-width:0}
@@ -17,7 +16,18 @@
 .planner-summary{display:grid;gap:var(--er-space-4);position:sticky;top:var(--er-space-6)}
 .planner-summary .planner-divider{margin-block:var(--er-space-2)}
 .planner-summary ul{padding-left:var(--er-space-5);margin:0}
-.planner-steps,.planner-actions{display:flex;gap:var(--er-space-3);flex-wrap:wrap}
+.planner-actions{display:flex;gap:var(--er-space-3);flex-wrap:wrap}
+/* Step control: one segmented track for both steps (the book-tabs pill
+   pattern). Both steps are ghost buttons; the track owns the state styling —
+   the current step is a raised card pill, the other sits quiet on the track. */
+.planner-steps{display:flex;gap:2px;background:var(--er-surface-soft);border:1px solid var(--er-border);border-radius:999px;padding:4px}
+.planner-steps>.ds-button{flex:1;border-radius:999px;border-color:transparent;background:transparent;color:var(--er-muted-ink)}
+.planner-steps>.ds-button:disabled{background:transparent;border-color:transparent}
+.planner-steps>.ds-button:hover:not(:disabled){background:var(--er-selected);color:var(--er-ink-navy)}
+.planner-steps>.ds-button[aria-current="step"]{background:var(--er-card);color:var(--er-ink-navy);box-shadow:0 1px 3px #102e4733}
+.planner-steps>.ds-button[aria-current="step"]:hover:not(:disabled){background:var(--er-card)}
+.planner-steps>.ds-button:focus-visible{outline:none;box-shadow:var(--er-focus)}
+.planner-steps>.ds-button[aria-current="step"]:focus-visible{box-shadow:0 1px 3px #102e4733,var(--er-focus)}
 .planner-season-strip,.planner-saved-row{display:flex;justify-content:space-between;align-items:center;gap:var(--er-space-4)}
 .planner-roster-layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:var(--er-space-6)}
 .planner-roster{display:flex;flex-direction:column;gap:var(--er-space-2);min-width:0}
@@ -29,6 +39,8 @@
 .book-assignment-editor h2:focus{outline:none}
 .planner-settings{margin-block:var(--er-space-5)}
 .planner-settings summary{cursor:pointer;min-height:44px;align-content:center}
+.planner-difficulty-actions{display:flex;align-items:center;gap:var(--er-space-3);flex-wrap:wrap;margin-top:var(--er-space-3)}
+.planner-difficulty-actions .planner-caption{margin-top:0}
 .planner-pair{display:grid;grid-template-columns:1fr 1fr;gap:var(--er-space-4);margin-block:var(--er-space-3)}
 .planner-saved{display:grid;gap:var(--er-space-3)}
 .planner-saved-row{padding-block:var(--er-space-2)}
@@ -64,8 +76,13 @@
 
 /* Chapter strip: compact glanceable chapter selection. Tap toggles, drag paints a range. */
 .planner-strip-wrap{display:grid;gap:var(--er-space-2);margin-top:var(--er-space-3);min-width:0}
-.planner-strip-legend{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--er-space-1) var(--er-space-3);font-size:var(--er-text-sm);color:var(--er-muted-ink)}
-.planner-strip-legend li{display:inline-flex;align-items:center;gap:var(--er-space-1)}
+.planner-strip-head{display:flex;align-items:center;justify-content:space-between;gap:var(--er-space-3)}
+.planner-strip-head .ds-help-tip-trigger{margin-inline-start:0}
+.planner-strip-head .planner-strip-count{text-align:end}
+.planner-strip-legend{display:grid;gap:var(--er-space-2)}
+.planner-strip-legend-item{display:inline-flex;align-items:center;gap:var(--er-space-2)}
+.planner-strip-legend .planner-strip-swatch{width:18px;height:18px;flex-shrink:0}
+.planner-strip-tip{display:block;margin-top:var(--er-space-3)}
 .planner-strip-swatch{position:relative;width:22px;height:22px;border:1px solid var(--er-border-strong);border-radius:var(--er-radius-control);background:var(--er-card)}
 .planner-strip-swatch.is-selected{background:var(--er-teal);border-color:var(--er-teal)}
 .planner-strip-swatch.is-saved{background:repeating-linear-gradient(45deg,var(--er-surface-soft),var(--er-surface-soft) 2px,#d8d3c4 2px,#d8d3c4 4px)}
@@ -74,7 +91,8 @@
 .planner-strip-swatch.is-refined::after{content:"";position:absolute;left:4px;right:4px;bottom:3px;height:3px;border-radius:2px;background:var(--er-thread-gold)}
 .planner-strip{display:grid;grid-template-columns:repeat(18,1fr);gap:var(--er-space-1);touch-action:none;user-select:none;-webkit-user-select:none}
 @media(max-width:900px){.planner-strip{grid-template-columns:repeat(12,1fr)}}
-@media(max-width:480px){.planner-strip{grid-template-columns:repeat(9,1fr)}}
+@media(max-width:480px){.planner-strip{grid-template-columns:repeat(6,1fr)}}
+@media(max-width:360px){.planner-strip{grid-template-columns:repeat(5,1fr)}}
 .planner-strip-cell{position:relative;min-height:44px;padding:0;border:1px solid var(--er-border-strong);border-radius:var(--er-radius-control);background:var(--er-card);color:var(--er-ink-navy);font:inherit;font-size:var(--er-text-sm);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .planner-strip-cell:hover{border-color:var(--er-teal)}
 .planner-strip-cell:focus-visible{outline:none;box-shadow:var(--er-focus)}
@@ -89,7 +107,7 @@
 .planner-strip-count strong{font-size:var(--er-text-base)}
 .planner-strip-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:var(--er-space-2)}
 .planner-strip-chip{display:inline-flex;align-items:center;gap:var(--er-space-1);background:var(--er-selected);border:1px solid var(--er-teal);border-radius:999px;padding:var(--er-space-1) var(--er-space-1) var(--er-space-1) var(--er-space-3);font-size:var(--er-text-sm);font-weight:600}
-.planner-strip-actions{display:flex;gap:var(--er-space-2);flex-wrap:wrap}
+.planner-strip-actions{display:flex;gap:var(--er-space-2);flex-wrap:wrap;border-top:1px solid var(--er-border);padding-top:var(--er-space-3)}
 
 /* Verse refinement: per-chapter From/To/Add rows shown only for checked chapters. */
 .planner-verse-refine{margin-top:var(--er-space-4);border-top:1px solid var(--er-border);padding-top:var(--er-space-3);display:grid;gap:var(--er-space-2)}
@@ -108,6 +126,8 @@
 @media(max-width:430px){.planner-range-fields .ds-button{flex-basis:100%}}
 .planner-person-heading{display:flex;align-items:center;gap:var(--er-space-3)}
 .planner-person-heading h2{margin:0;min-width:0;overflow-wrap:anywhere}
+.planner-identity-heading{align-items:center;border-bottom:1px solid var(--er-border);padding-bottom:var(--er-space-3)}
+.planner-identity-heading .planner-person-heading h2{font-size:var(--er-text-lg)}
 
 .planner-finish{display:grid;gap:var(--er-space-4)}
 .planner-finish-help{display:grid;gap:var(--er-space-2)}
@@ -124,3 +144,23 @@
   .command-app:has(.season-planner) .coffee-fallback { max-width:112px; white-space:normal; }
 }
 .planner-hint { font-size: var(--er-text-sm); color: var(--er-muted-ink); margin-top: var(--er-space-2); }
+
+/* Card 40: season page density pass — compact header, tightened details
+   card, hairline book rows. Scoped to the planner so the shared PageHeader,
+   Notice and BookBrowser keep their app-wide presentation elsewhere. */
+.season-planner>.ds-page-header h1{font-size:var(--er-text-title);line-height:1.25}
+.planner-fields>.planner-section-heading{margin-bottom:var(--er-space-4)}
+.planner-fields .planner-divider{margin-block:var(--er-space-5)}
+/* Competition format: a read-only field/value pair matching the sibling
+   fields — same label type, same box geometry as an input at rest. */
+.planner-format-field{display:grid;gap:var(--er-space-2);min-width:0}
+.planner-format-field>span{font-size:var(--er-text-sm);font-weight:600;color:var(--er-ink-navy)}
+.planner-format-field>p{margin:0;display:flex;align-items:center;min-height:var(--er-control-height);padding:10px var(--er-space-3);border:1px solid var(--er-border);border-radius:var(--er-radius-control);background:var(--er-surface-soft);font-size:var(--er-text-base)}
+/* Locked-books notice: one compact line, not a full tinted panel. */
+.planner-locked-note{padding:var(--er-space-2) var(--er-space-3)}
+/* Book choices: hairline rows instead of bordered cards. The whole row is
+   the checkbox target (>=44px); selection keeps the shared teal tint. */
+.season-planner .bible-book-groups{display:grid;gap:var(--er-space-5)}
+.season-planner .bible-book-options{grid-template-columns:minmax(0,1fr);gap:0}
+.season-planner .planner-book-choice{border:0;border-bottom:1px solid var(--er-border);border-radius:0;background:transparent;padding:var(--er-space-2);min-height:44px}
+.season-planner .bible-book-options>div:last-child .planner-book-choice{border-bottom:0}

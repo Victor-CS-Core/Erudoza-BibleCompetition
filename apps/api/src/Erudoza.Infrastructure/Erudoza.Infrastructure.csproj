@@ -19,6 +19,12 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.11" />
+    <!-- Card 27: pin the transitive System.Security.Cryptography.Pkcs to the
+         patched 9.0.21 line. EF Core SqlServer 10.0.11 pulls SqlClient 6.1.6,
+         whose Pkcs range [9.0.11, ) resolves to the NU1903/NU1902-flagged
+         9.0.11; this direct reference wins graph-wide (nearest wins) and
+         satisfies every SqlClient dependency group ([9.0.11, ) / [8.0.1, )). -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
   </ItemGroup>
 
   <PropertyGroup>

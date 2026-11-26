@@ -2,11 +2,12 @@
 // Fixture generator for src/features/admin/control-center-real.test.tsx:
 // captures REAL control-center endpoint payloads from this native app so the
 // client render test runs on server-emitted shapes, not hand-written ones
-// (the Nov 24 drift lesson). Re-run when the CC contract changes:
-//   npx vitest run worker/native/capture-control-center.test.ts
+// (the Nov 24 drift lesson). A routine run COMPARES the fresh payloads'
+// shape against the checked-in fixture and fails on contract drift without
+// writing anything (card 28). Regenerate when the CC contract changes:
+//   UPDATE_FIXTURES=1 npx vitest run worker/native/capture-control-center.test.ts
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { writeFileSync } from "node:fs";
-import { createNativeTestApp, TEST_ORG, TEST_USER } from "./test-runtime";
+import { createNativeTestApp, persistCaptureFixture, TEST_ORG, TEST_USER } from "./test-runtime";
 import { LIBRARY_ORG } from "./application/library-access";
 
 const ORG2 = "22222222-2222-4222-8222-222222222222";
@@ -86,5 +87,5 @@ it("captures real control-center payloads", async () => {
   const support = (out.support as { body: { tickets: unknown[]; inbox: unknown[] } }).body;
   expect(support.tickets.length).toBeGreaterThan(0);
   expect(support.inbox.length).toBe(1);
-  writeFileSync(new URL("../../src/features/admin/__fixtures__/control-center-payloads.json", import.meta.url), JSON.stringify(out, null, 2));
+  persistCaptureFixture(new URL("../../src/features/admin/__fixtures__/control-center-payloads.json", import.meta.url), JSON.stringify(out, null, 2));
 });

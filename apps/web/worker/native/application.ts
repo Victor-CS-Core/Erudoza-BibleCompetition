@@ -78,7 +78,7 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         return libraryResult;
     // Learner-scoped personal assignment routes authorize themselves with requireLearner;
     // they must run before the blanket admin gate so students are not rejected outright.
-    const personalSeason = !!seasonMatch && (seasonMatch[2] === '/my-assignments' || /^\/my-assignments\/[^/]+$/.test(seasonMatch[2]));
+    const personalSeason = !!seasonMatch && (seasonMatch[2] === '/my-assignments' || seasonMatch[2] === '/my-difficulty' || /^\/my-assignments\/[^/]+$/.test(seasonMatch[2]));
     if (!personalSeason) admin(ctx.actor);
     if(seasonMatch&&/^\/pbe-cooperation(?:\/(?:continue|students))?$/.test(seasonMatch[2])){
         const seasonId=seasonMatch[1],suffix=seasonMatch[2];
@@ -259,7 +259,6 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
             contentPackId: string;
             range: unknown;
             type: string;
-            difficulty?: string;
         }>(request, 8192);
         if(personal && input.studentUserId !== undefined) return fail('Personal assignments derive the learner from your account.');
         const user = personal ? await learner(ctx,ctx.actor.userId) : await student(ctx,input.studentUserId);
@@ -271,7 +270,12 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
         await validatePackRanges(ctx, [{contentPackId:p.value.id,includes:[r],excludes:[]}]);
         if (!(await effectiveSources(ctx, seasonId)).some(u => u.contentPackId === p.value.id && contains(r, u)))
             return fail('This assignment has no available passages inside the season scope.');
-        const mid = memberId(seasonId, user.userId), old = await store.get<Membership>('membership', mid, orgId), d = input.difficulty === undefined ? old?.value.difficulty ?? 'Standard' : difficulty(input.difficulty);
+        // Difficulty is a per-student season setting, changed only through the
+        // dedicated difficulty endpoints — an assignment save must never move
+        // it as a side effect. The membership row is still created here (with
+        // the Standard default) because assigning is what joins a student to
+        // the season; an existing difficulty is preserved verbatim.
+        const mid = memberId(seasonId, user.userId), old = await store.get<Membership>('membership', mid, orgId), d = old?.value.difficulty ?? 'Standard';
         const membership: Membership = { id: mid, seasonId, userId: user.userId, studentUserId: user.userId, difficulty: d };
         const a: Assignment = { id: id(), seasonId, studentUserId: user.userId, contentPackId: p.value.id, type: input.type, ...r, createdAtUtc: new Date().toISOString() };
         if (!personal && ['Draft', 'ContentReady'].includes(s.status))
@@ -291,6 +295,23 @@ export async function handleApplication(ctx: RequestContext): Promise<Response |
             return fail('Assign this student to the season before setting difficulty.');
         const mid = memberId(seasonId, diff[1]), old = await store.get<Membership>('membership', mid, orgId), m: Membership = { id: mid, seasonId, userId: diff[1], studentUserId: diff[1], difficulty: d };
         await atomic(ctx, 'season.student-difficulty', [old ? store.update('membership', mid, orgId, m, old.revision) : store.insertion('membership', mid, orgId, m, { seasonId, ownerId: diff[1] }), updateSeason()], [guard]);
+        return json({ difficulty: d });
+    }
+    if (suffix === '/my-difficulty' && method === 'PUT') {
+        // The learner's own difficulty control: the explicit counterpart to
+        // the coach endpoint above, scoped to the caller's own membership.
+        // Like the coach rule, an assignment must exist first (assigning is
+        // what creates the membership this setting lives on).
+        editable(s);
+        await requireLearner(ctx);
+        const me = await learner(ctx, ctx.actor.userId);
+        const input = await body<{
+            difficulty: string;
+        }>(request, 4096), d = difficulty(input.difficulty);
+        if (!(await store.list<Assignment>('assignment', orgId, { seasonId, ownerId: me.userId })).length)
+            return fail('Assign yourself to the season before setting difficulty.');
+        const mid = memberId(seasonId, me.userId), old = await store.get<Membership>('membership', mid, orgId), m: Membership = { id: mid, seasonId, userId: me.userId, studentUserId: me.userId, difficulty: d };
+        await atomic(ctx, 'season.my-difficulty', [old ? store.update('membership', mid, orgId, m, old.revision) : store.insertion('membership', mid, orgId, m, { seasonId, ownerId: me.userId })], [guard, { kind: '@active-learner', id: me.userId, revision: 0 }]);
         return json({ difficulty: d });
     }
     const assignmentMatch = suffix.match(/^\/assignments\/([^/]+)(\/passage)?$/);

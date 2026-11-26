@@ -6,6 +6,7 @@ import {gradePbe} from './grading';
 import {prepareResultOverlay} from './result-overlays';
 import {prepareEvidenceDispute,replayDisputeEvidence,disputeEvidencePage} from './evidence-replay';
 import {pbeAttemptXp} from './effort';
+import {awardPbeHonors} from './honors';
 import {identity,preference,resolvePreference,write,type Writes} from '../training/store';
 import {resolveTrainingCalendar} from '../training/calendar';
 import type {XpRecord} from '../training/xp';
@@ -92,7 +93,14 @@ export async function resolvePbeDispute(ctx:RequestContext,disputeId:string,expe
  const adjustment={id:`${d.id}:${resolved.revision}`,disputeId:d.id,activity:d.activity,sessionId:d.sessionId,attemptId:d.attemptId,questionId:d.questionId,questionVersion:d.questionVersion,team:d.team,pointsByPart,...resolved.resolution,originalAcceptedAtUtc:d.acceptedAtUtc,...(d.activity==='Solo'?{xpDelta}:{})};
  const overlay=await prepareResultOverlay(ctx,resolved),evidence=await prepareEvidenceDispute(ctx,resolved);
  await atomic(ctx,'pbe-dispute.resolve',[...evidence.statements,...overlay.statements,...xpWrites.statements,ctx.store.update('pbe-dispute',d.id,ctx.orgId,resolved,stored.revision),uniqueInsertion(ctx,'pbe-grade-adjustment',adjustment.id,adjustment,d.seasonId,d.participantIds[0]),deletion(ctx,'pbe-dispute-pending',d.id),...(d.activity==='Solo'?[uniqueInsertion(ctx,'pbe-dispute-correction',d.id,resolved,d.seasonId,'Solo')]:[])],[...evidence.guards,...overlay.guards,...xpWrites.guards,...gates,{kind:'@active-admin',id:ctx.actor.userId,revision:0},{kind:'pbe-dispute',id:d.id,revision:stored.revision}]);
- await reconcileTeamAwards(ctx,resolved);return resolved;
+ await reconcileTeamAwards(ctx,resolved);
+ // Card 54: a solo ruling can earn the flag-related PBE patches (and
+ // re-price Steady Under Time with the correction folded in). Coverage
+ // is skipped here: a ruling cannot change practiced targets, and
+ // Coverage Starter is evaluated at every session completion — the
+ // scope re-resolution would break this request's statement budget.
+ if(resolved.activity==='Solo')await awardPbeHonors(ctx,resolved.participantIds[0],resolved.seasonId,{coverage:false});
+ return resolved;
 }
 export async function disputeRoutes(ctx:RequestContext):Promise<Response|null>{
  const base='/api/v1/pbe/disputes';if(ctx.path!==base&&!ctx.path.startsWith(base+'/'))return null;

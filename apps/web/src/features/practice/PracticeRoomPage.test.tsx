@@ -79,6 +79,32 @@ describe("Team Practice room presentation", () => {
     client.setQueryData(["practice-room", "org", "room"], { ...snapshot, phase: "Review", phaseEndsAt: undefined, results: [result(1), result(2)] });
     await waitFor(() => expect(screen.getByRole("button", { name: "Next question" })).toBeEnabled());
   });
+  it("names the phase the same way on the scoreboard and the question stage, and marks the viewer's team", async () => {
+    mount(room({ status: "Playing", phase: "Response", phaseEndsAt: new Date(Date.now() + 30000).toISOString(), question: { id: "q", prompt: "Who answered?", reference: "Daniel 1:8", kind: "ShortAnswer", partCount: 1, points: 1, durationSeconds: 30 } }));
+    expect(await screen.findByRole("timer")).toBeInTheDocument();
+    // Scoreboard phase chip + stage phase banner share the phase language.
+    expect(screen.getAllByText("Respond")).toHaveLength(2);
+    expect(screen.getByText("Your team")).toBeInTheDocument();
+    expect(screen.getByText("1 point")).toBeInTheDocument();
+  });
+  it("makes the response timer urgent inside ten seconds and keeps the scribe console distinct", async () => {
+    mount(room({ status: "Playing", phase: "Response", phaseEndsAt: new Date(Date.now() + 8000).toISOString(), question: { id: "q", prompt: "Who answered?", reference: "Daniel 1:8", kind: "ShortAnswer", partCount: 1, points: 1, durationSeconds: 30 } }));
+    const timer = await screen.findByRole("timer");
+    expect(timer).toHaveClass("is-urgent");
+    expect(screen.getByText("Ten seconds or less remaining.")).toBeInTheDocument();
+    expect(screen.getByText("You are Team 1’s scribe.").closest("form")).toHaveClass("practice-scribe-console");
+  });
+  it("shows a teammate the team draft surface headed by the scribe, not the scribe console", async () => {
+    mount(room({ status: "Playing", phase: "Response", phaseEndsAt: new Date(Date.now() + 30000).toISOString(), members: [{ ...member("player", 1), scribe: false }, member("scribe", 1)], draft: ["Saved answer"], question: { id: "q", prompt: "Who?", reference: "Mark 1", points: 1, durationSeconds: 25, kind: "ShortAnswer", partCount: 1 } }));
+    expect(await screen.findByText("Team draft")).toBeInTheDocument();
+    expect(screen.getByText("scribe · Scribe")).toBeInTheDocument();
+    expect(screen.queryByText(/You are Team 1’s scribe/)).not.toBeInTheDocument();
+  });
+  it("labels a pending PBE dispute with the recap's Review pending language", async () => {
+    mount(room({ format: "Pbe", status: "Playing", phase: "Review", question: { id: "q", prompt: "Who answered?", reference: "Daniel 1:8", kind: "ShortAnswer", partCount: 1, points: 1, durationSeconds: 30 }, results: [{ ...result(1), dispute: { status: "Pending" } } as PracticeRoom["results"][number]] }));
+    expect(await screen.findByText("Review pending")).toBeInTheDocument();
+    expect(screen.queryByText("Provisional score")).not.toBeInTheDocument();
+  });
   it("preserves multipart final submissions with question identity and no client timing", async () => {
     mount(room({ status: "Playing", phase: "Response", phaseEndsAt: new Date(Date.now() + 30000).toISOString(), question: { id: "q", prompt: "Name both people.", reference: "Daniel 1:8", kind: "ShortAnswer", partCount: 2, points: 2, durationSeconds: 30 } }));
     fireEvent.change(await screen.findByLabelText("Answer 1"), { target: { value: "Daniel" } });

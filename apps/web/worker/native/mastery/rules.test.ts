@@ -36,6 +36,17 @@ describe('solo mastery boundaries', () => {
     expect(keys(30, states(30).map(m => ({ ...m, algorithmVersion: 'v3-partial-credit' })))).toContain('solo:full-coverage');
     expect(soloQualifiers(Array(30).fill(sources(1)[0]), states(1), [])).toEqual([]);
   });
+  it('counts only the required set toward full coverage when optional-only passages are excluded (card 46)', () => {
+    // 31 passages in scope; the 31st is covered only by an Optional review
+    // assignment and is unmastered. Full coverage is judged on the required
+    // set (the first 30, all mastered), so the honor still qualifies.
+    const withOptional = soloQualifiers(sources(31), states(30), [], sources(30)).map(x => x.key);
+    expect(withOptional).toContain('solo:full-coverage');
+    // And when the required set itself is short of the 30-passage floor, an
+    // optional-only tail cannot inflate it into qualifying.
+    const shortRequired = soloQualifiers(sources(31), states(31), [], sources(29)).map(x => x.key);
+    expect(shortRequired).not.toContain('solo:full-coverage');
+  });
   it('certifies exact48h advanced unaided retest and first due review only', () => {
     const { attempt, session } = trial();
     expect(updatePassageProof({ ...proof(), firstMasteredAtUtc: null }, session, { ...attempt, isLegacyDuplicate: true }, states(1)[0]).firstMasteredAtUtc).toBeNull();

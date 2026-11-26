@@ -175,7 +175,7 @@ export function PassagePicker({ seasonId, mastery, difficulty }: { seasonId: str
 
   const header = <div className="training-panel-title"><div><h2>Choose a passage to practice</h2><p>Pick a verse — practice starts right away.</p></div>
     <HelpTip label="About passage scoring">
-      Coach-set difficulty: {difficulty ?? "Not available"}. Foundation wording evidence stops at 40, Standard at 70. Memory warmups stop at 70 within those ceilings; Verse Builder records sequence practice. Advanced mastery challenges require coach-set Advanced difficulty. Your difficulty does not change automatically. Honors also require their listed passage, skill and delayed-recall evidence. PBE questions use their authored answer requirements at every Memory difficulty.
+      Training difficulty: {difficulty ?? "Not available"}. At Foundation, wording mastery tops out at 70 — enough for Strong, but Mastered takes 80. At Standard and Advanced, wording mastery can climb to 100. Memory warmups stop at 70 at every difficulty; Verse Builder records sequence practice. Advanced mastery challenges require Advanced difficulty. Your difficulty does not change automatically. Honors also require their listed passage, skill and delayed-recall evidence. PBE questions use their authored answer requirements at every Memory difficulty.
     </HelpTip></div>;
 
   if (journey.isPending) return <Panel className="passage-picker" data-testid="passage-picker">{header}<LoadingState label="Loading passages…" /></Panel>;

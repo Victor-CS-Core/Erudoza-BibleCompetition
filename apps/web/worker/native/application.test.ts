@@ -130,6 +130,27 @@ it('replays coach setup with exclusion-aware scope, assignments, difficulty, cov
     expect((await call(`${prefix}/archive`, 'POST')).status).toBe(204);
     expect((await call(`${prefix}/close`, 'POST')).status).toBe(400);
 }, 30000);
+it('keeps difficulty out of assignment saves; only the difficulty endpoint moves it', async () => {
+    const { pack, season, student } = await setup('difficulty-ownership');
+    const prefix = `/seasons/${season.id}`;
+    // A difficulty value carried by an assignment save is ignored: the new
+    // membership keeps its Standard default instead of the smuggled value.
+    const assign = await call(`${prefix}/assignments`, 'POST', { studentUserId: student.userId, contentPackId: pack.id, type: 'PrimarySpecialist', range: passage, difficulty: 'Advanced' });
+    expect(assign.status).toBe(200);
+    expect((await assign.json() as { difficulty: string }).difficulty).toBe('Standard');
+    const listed = await (await call(`${prefix}/assignments`)).json() as { difficulty: string }[];
+    expect(listed.map(a => a.difficulty)).toEqual(['Standard']);
+    // The explicit coach endpoint is what moves it…
+    expect((await call(`${prefix}/students/${student.userId}/difficulty`, 'PUT', { difficulty: 'Foundation' })).status).toBe(200);
+    // …and a later assignment save — even one naming another difficulty —
+    // leaves the set value exactly where it was.
+    const again = await call(`${prefix}/assignments`, 'POST', { studentUserId: student.userId, contentPackId: pack.id, type: 'RequiredCoverage', range: passage, difficulty: 'Advanced' });
+    expect(again.status).toBe(200);
+    expect((await again.json() as { difficulty: string }).difficulty).toBe('Foundation');
+    const relisted = await (await call(`${prefix}/assignments`)).json() as { difficulty: string }[];
+    expect(relisted.length).toBe(2);
+    expect(relisted.every(a => a.difficulty === 'Foundation')).toBe(true);
+}, 30000);
 it('rolls back every season deletion statement when scoped cleanup fails', async () => {
     const { pack, season, student } = await setup('delete-season-rollback');
     const prefix = `/seasons/${season.id}`;

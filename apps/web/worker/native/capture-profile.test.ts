@@ -5,15 +5,17 @@
 // character + two bell notifications through the real record shapes, then
 // (a) pins every payload to the CLIENT contract (src/features/profile/
 // profile.ts MyProfile/ProfileIdentity + src/api/types.ts NotificationList)
-// and (b) saves the exact server-emitted payloads as fixtures for
-// src/features/profile/profile-real.test.tsx. Re-run when the profile
-// contract changes:
-//   npx vitest run worker/native/capture-profile.test.ts
+// and (b) captures the exact server-emitted payloads as fixtures for
+// src/features/profile/profile-real.test.tsx. A routine run COMPARES
+// against the checked-in fixture and fails on drift (card 28); regenerate
+// only after an intentional contract change:
+//   UPDATE_FIXTURES=1 npx vitest run worker/native/capture-profile.test.ts
 // A hand-edited fixture is no evidence at all — regenerate, never patch.
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { writeFileSync } from "node:fs";
-import { createNativeTestApp, TEST_ORG, TEST_USER } from "./test-runtime";
+import { createNativeTestApp, persistCaptureFixture, TEST_ORG, TEST_USER } from "./test-runtime";
 import { honorId } from "./mastery/catalog";
+import type { MyProfile, ProfileIdentity } from "../../src/features/profile/profile";
+import type { NotificationList } from "../../src/api/types";
 
 const OTHER = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb9";
 const HONOR_KEY = "solo:exact-recall";
@@ -25,9 +27,9 @@ let cookie = "";
 async function record(kind: string, id: string, value: unknown, owner: string | null = null) {
   await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) VALUES(?,?,?,?,?,?)").bind(kind, id, TEST_ORG, null, owner, JSON.stringify(value)).run();
 }
-async function request(path: string) {
+async function request<T>(path: string): Promise<{ status: number; body: T }> {
   const res = await app.fetch(path, { headers: { Cookie: cookie, Origin: "https://erudoza.test" } });
-  return { status: res.status, body: await res.json() as Record<string, any> };
+  return { status: res.status, body: await res.json() as T };
 }
 function expectKeys(obj: Record<string, unknown>, required: string[], context: string) {
   for (const key of required) expect(obj, `${context} missing ${key}`).toHaveProperty(key);
@@ -48,7 +50,7 @@ beforeAll(async () => {
 afterAll(async () => { await app?.runtime.dispose(); });
 
 it("captures real profile payloads and pins them to the client contract", async () => {
-  const me = await request("/api/v1/profile/me");
+  const me = await request<MyProfile>("/api/v1/profile/me");
   expect(me.status).toBe(200);
   // MyProfile + CharacterProfileFields (client profile.ts / shared types).
   expectKeys(me.body, ["userId", "displayName", "avatarHonorKey", "honors", "unlockedCosmetics", "cosmeticLocks", "character", "avatarKind", "characterVersion", "shareOptions", "sharePatches", "canUseMasterGuide"], "profile/me");
@@ -56,15 +58,15 @@ it("captures real profile payloads and pins them to the client contract", async 
   expect(me.body.avatarHonorKey).toBe(HONOR_KEY);
   expect(me.body.avatarKind).toBe("character");
   for (const honor of me.body.honors) expectKeys(honor, ["key", "title", "requirement", "category", "ruleVersion", "earnedAtUtc"], "profile honors[]");
-  const earned = (me.body.honors as Record<string, unknown>[]).find(h => h.key === HONOR_KEY);
+  const earned = me.body.honors.find(h => h.key === HONOR_KEY);
   expect(earned?.earnedAtUtc).toBe("2026-11-20T00:00:00Z");
   expect(earned?.title).toBe("Exact Recall");
-  expectKeys(me.body.character, ["bodyType", "style", "hairColor", "skin", "eyes", "attire", "background", "slots"], "profile character");
-  expect(me.body.character.slots[0]).toBe(HONOR_KEY);
-  expectKeys(me.body.shareOptions, ["showName", "showBrand", "showQR"], "profile shareOptions");
-  for (const lock of me.body.cosmeticLocks) expectKeys(lock, ["id", "requirement"], "profile cosmeticLocks[]");
+  expectKeys(me.body.character!, ["bodyType", "style", "hairColor", "skin", "eyes", "attire", "background", "slots"], "profile character");
+  expect(me.body.character!.slots[0]).toBe(HONOR_KEY);
+  expectKeys(me.body.shareOptions!, ["showName", "showBrand", "showQR"], "profile shareOptions");
+  for (const lock of me.body.cosmeticLocks!) expectKeys(lock, ["id", "requirement"], "profile cosmeticLocks[]");
 
-  const notifications = await request("/api/v1/profile/me/notifications");
+  const notifications = await request<NotificationList>("/api/v1/profile/me/notifications");
   expect(notifications.status).toBe(200);
   // NotificationList / UserNotification (client types.ts). `summary` is
   // computed by the server at read time, never stored.
@@ -72,19 +74,19 @@ it("captures real profile payloads and pins them to the client contract", async 
   expect(notifications.body.unreadCount).toBe(1);
   expect(notifications.body.notifications).toHaveLength(2);
   for (const n of notifications.body.notifications) expectKeys(n, ["id", "seasonId", "seasonName", "studentUserId", "actorUserId", "actorDisplayName", "action", "citation", "summary", "readAtUtc", "createdAtUtc"], "notifications[]");
-  const unread = (notifications.body.notifications as Record<string, unknown>[]).find(n => n.id === "notif-unread");
+  const unread = notifications.body.notifications.find(n => n.id === "notif-unread");
   expect(unread?.summary).toBe("Coach Pat added Genesis 1:1");
 
-  const identities = await request(`/api/v1/profile/identities?userId=${TEST_USER}&userId=${OTHER}`);
+  const identities = await request<ProfileIdentity[]>(`/api/v1/profile/identities?userId=${TEST_USER}&userId=${OTHER}`);
   expect(identities.status).toBe(200);
   // ProfileIdentity[] (client profile.ts).
   expect(Array.isArray(identities.body)).toBe(true);
-  expect((identities.body as unknown[])).toHaveLength(2);
-  for (const identity of identities.body as Record<string, unknown>[]) expectKeys(identity, ["userId", "avatarHonorKey", "avatarKind", "character"], "identities[]");
-  const mine = (identities.body as Record<string, any>[]).find(i => i.userId === TEST_USER)!;
+  expect(identities.body).toHaveLength(2);
+  for (const identity of identities.body) expectKeys(identity, ["userId", "avatarHonorKey", "avatarKind", "character"], "identities[]");
+  const mine = identities.body.find(i => i.userId === TEST_USER)!;
   expect(mine.avatarKind).toBe("character");
-  expectKeys(mine.character, ["bodyType", "style", "hairColor", "skin", "eyes"], "identities[].character");
-  const other = (identities.body as Record<string, any>[]).find(i => i.userId === OTHER)!;
+  expectKeys(mine.character!, ["bodyType", "style", "hairColor", "skin", "eyes"], "identities[].character");
+  const other = identities.body.find(i => i.userId === OTHER)!;
   expect(other.avatarHonorKey).toBeNull();
   expect(other.character).toBeNull();
 
@@ -93,5 +95,5 @@ it("captures real profile payloads and pins them to the client contract", async 
     notifications: { status: notifications.status, body: notifications.body },
     identities: { status: identities.status, body: identities.body },
   };
-  writeFileSync(new URL("../../src/features/profile/__fixtures__/profile-payloads.json", import.meta.url), JSON.stringify(out, null, 2));
+  persistCaptureFixture(new URL("../../src/features/profile/__fixtures__/profile-payloads.json", import.meta.url), JSON.stringify(out, null, 2));
 }, 60000);

@@ -115,6 +115,14 @@ test("populated coach and student route audit", async ({ page }, info) => {
     displayName: `Audit directory ${String(index).padStart(2, "0")}`,
     password: process.env.ERUDOZA_E2E_PASSWORD!,
   });
+  // The Create event form's roster is the season's membership, and an
+  // assignment is what creates a membership: put three directory students
+  // on the audit season's roster so the coach can fill a 2v2 event below
+  // (Daniel Student takes the fourth seat).
+  const rosterNames = [1, 2, 3].map(index => `audit.${directoryRun}.${index}`);
+  const rosterStudents = (await json(page.request, `${org}/students`)).filter((s: { userName: string }) => rosterNames.includes(s.userName));
+  expect(rosterStudents).toHaveLength(3);
+  for (const rosterStudent of rosterStudents) await json(page.request, `${org}/seasons/${season.id}/assignments`, { studentUserId: rosterStudent.userId, contentPackId: pack.id, type: "RequiredCoverage", range });
   await json(page.request, `${org}/practice/enabled`, { enabled: true });
   await json(page.request, `${org}/practice/questions/import`, { seasonId: season.id, questions: Array.from({ length: 12 }, (_, i) => ({ contentPackId: pack.id, sourceUnitId: units[0].id, prompt: `Audit practice question ${i + 1}: name the student.`, kind: "ShortAnswer", parts: [{ acceptedAnswers: ["Daniel"], points: 1 }], ordered: false, evidence: units[0].canonicalText, reference: units[0].citation, version: 1 })) });
   const bank = await json(page.request, `${org}/practice/bootstrap`);
@@ -135,7 +143,7 @@ test("populated coach and student route audit", async ({ page }, info) => {
       } else {
         await expect(p.getByRole("heading", { name: "Student assignments", exact: true })).toBeVisible();
         await expect(p.getByRole("heading", { name: student.displayName, exact: true })).toBeVisible();
-        await expect(p.getByRole("checkbox", { name: /^Chapter / })).toHaveCount(1);
+        await expect(p.getByRole("button", { name: /^Chapter / })).toHaveCount(1);
         await expect(p.locator(".planner-saved")).toContainText("Chapters 1 · saved assignments");
       }
     });
@@ -153,8 +161,8 @@ test("populated coach and student route audit", async ({ page }, info) => {
   await capture("coach-season-draft-assignments", "", "Chapter choices stay inside the saved partial scope after saving the draft", async p => {
     const allowedChapters = [...new Set(units.filter(unit => unit.bookKey === range.bookKey && unit.chapter === range.startChapter && unit.verse >= range.startVerse && unit.verse <= range.endVerse).map(unit => unit.chapter))];
     expect(allowedChapters).toEqual([1]);
-    await expect(p.getByRole("checkbox", { name: /^Chapter / })).toHaveCount(allowedChapters.length);
-    await expect(p.getByRole("checkbox", { name: "Chapter 1", exact: true })).toBeEnabled();
+    await expect(p.getByRole("button", { name: /^Chapter / })).toHaveCount(allowedChapters.length);
+    await expect(p.getByRole("button", { name: /^Chapter 1\b/ })).toBeEnabled();
     await expect(p.getByText("Only the saved season selection is available.", { exact: true })).toBeVisible();
     const scope = await json(p.request, `${org}/seasons/${draft.id}/scope`);
     expect(scope.packs).toEqual([{ contentPackId: pack.id, includes: [range], excludes: [] }]);
@@ -176,8 +184,9 @@ test("populated coach and student route audit", async ({ page }, info) => {
     await expect(p.getByRole("heading", { name: student.displayName, exact: true })).toBeVisible();
     await p.getByText("Plan settings · Standard", { exact: true }).click();
     await p.getByRole("combobox", { name: "Assignment role", exact: true }).selectOption("RequiredCoverage");
-    await expect(p.getByRole("checkbox", { name: "Chapter 1", exact: true })).toBeChecked();
-    await expect(p.getByRole("checkbox", { name: "Chapter 1", exact: true })).toBeDisabled();
+    // Chapter 1 is in the student's saved plan: its strip button renders
+    // disabled with the "(already saved)" state in its name (card 26).
+    await expect(p.getByRole("button", { name: /^Chapter 1 \(already saved\)$/ })).toBeDisabled();
     await expect(p.getByRole("button", { name: "Remove DAN", exact: true })).toBeVisible();
   });
   await capture("coach-library", "/admin/content", "Built-in NKJV library", p => expect(p.getByTestId("library-book")).toHaveCount(66));
@@ -191,10 +200,23 @@ test("populated coach and student route audit", async ({ page }, info) => {
   });
   await capture("coach-student-progress", `/admin/seasons/${season.id}/students/${student.userId}/progress`, "Assigned student; no attempts yet", p => expect(p.getByTestId("progress-attempts")).toHaveText("0"));
   await capture("coach-design-reference", "/admin/design-system", "Shared primitives");
-  await capture("coach-practice", "/admin/practice", "Enabled practice and published question bank", p => expect(p.getByRole("button", { name: "Set up PVP", exact: true })).toBeVisible());
-  await page.getByRole("button", { name: "Set up PVP", exact: true }).click();
-  await capture("coach-practice-setup", "", "PVP room setup dialog", p => expect(p.getByRole("dialog", { name: "PVP setup", exact: true }).getByRole("heading", { name: "Create a room", exact: true })).toBeVisible());
-  await page.getByRole("button", { name: "Close dialog", exact: true }).click();
+  await capture("coach-practice", "/admin/practice", "Enabled practice and published question bank", p => expect(p.getByRole("button", { name: "Create event", exact: true })).toBeVisible());
+  await page.getByRole("button", { name: "Create event", exact: true }).click();
+  const eventForm = page.getByRole("form", { name: "Create event" });
+  await expect(eventForm).toBeVisible();
+  await eventForm.getByRole("combobox", { name: "Season" }).selectOption(season.id);
+  await eventForm.getByLabel("Team for Daniel Student", { exact: true }).selectOption("1");
+  await eventForm.getByLabel("Team for Audit directory 01", { exact: true }).selectOption("1");
+  await eventForm.getByLabel("Team for Audit directory 02", { exact: true }).selectOption("2");
+  await eventForm.getByLabel("Team for Audit directory 03", { exact: true }).selectOption("2");
+  await capture("coach-practice-setup", "", "Create event form with every seat filled", p => expect(p.getByText("Team 1: 2 of 2 seats filled · Team 2: 2 of 2 seats filled", { exact: true })).toBeVisible());
+  await page.getByRole("button", { name: "Create and open event", exact: true }).click();
+  const openRoom = page.getByRole("link", { name: "Open room", exact: true });
+  await expect(openRoom).toBeVisible();
+  await openRoom.click();
+  await expect(page).toHaveURL(url => /^\/admin\/practice\/[a-f0-9-]+$/.test(url.pathname));
+  const coachRoomUrl = page.url();
+  await capture("coach-practice-lobby", coachRoomUrl, "Opened event room lobby; no match started", p => expect(p.getByText("Live connection", { exact: true })).toBeVisible());
   await logout(page);
   await login(page, "daniel.student");
   const session = await json(page.request, "/api/v1/study/sessions", { seasonId: season.id, mode: "Practice" });
@@ -215,18 +237,11 @@ test("populated coach and student route audit", async ({ page }, info) => {
   });
   await capture("student-progress", `/student/progress?seasonId=${season.id}`, "Real recorded attempt", p => expect(p.getByTestId("progress-attempts")).not.toHaveText("0"));
   for (const mode of ["Practice", "Review", "Simulation"]) await capture(`student-study-${mode.toLowerCase()}`, `/student/study?seasonId=${season.id}&mode=${mode}`, mode === "Review" ? "Review route after incorrect attempt; readiness depends on due schedule" : "Real generated activity", p => expect(p.getByTestId("challenge-card").or(p.getByTestId("academy-track-unavailable"))).toBeVisible());
-  await capture("student-practice", `/student/practice?seasonId=${season.id}`, "Enabled practice with active season", p => expect(p.getByRole("button", { name: "Set up PVP", exact: true })).toBeVisible());
-  await page.getByRole("button", { name: "Set up PVP", exact: true }).click();
-  await capture("student-practice-setup", "", "PVP room setup dialog with assigned season", async p => {
-    const setup = p.getByRole("dialog", { name: "PVP setup", exact: true });
-    await expect(setup).toBeVisible();
-    await setup.getByRole("combobox", { name: "Season", exact: true }).selectOption(season.id);
-    await expect(setup.getByRole("button", { name: "Create room", exact: true })).toBeEnabled();
-  });
-  await page.getByRole("dialog", { name: "PVP setup", exact: true }).getByRole("button", { name: "Create room", exact: true }).click();
+  await capture("student-practice", `/student/practice?seasonId=${season.id}`, "Assigned event waiting in Team Practice", p => expect(p.getByRole("link", { name: "Join your team", exact: true })).toBeVisible());
+  await page.getByRole("link", { name: "Join your team", exact: true }).click();
   await expect(page).toHaveURL(url => /^\/student\/practice\/[a-f0-9-]+$/.test(url.pathname) && url.searchParams.get("seasonId") === season.id);
   const roomUrl = page.url();
-  await capture("student-practice-lobby", roomUrl, "Real created room, one player; no match started", p => expect(p.getByText("Live connection", { exact: true })).toBeVisible());
+  await capture("student-practice-lobby", roomUrl, "Assigned room lobby joined from Team Practice; no match started", p => expect(p.getByText("Live connection", { exact: true })).toBeVisible());
   await info.attach("route-coverage", { body: JSON.stringify(coverage, null, 2), contentType: "application/json" });
   await info.attach("overflow-findings", { body: JSON.stringify(overflowIssues, null, 2), contentType: "application/json" });
   await info.attach("runtime-errors", { body: JSON.stringify(runtimeErrors, null, 2), contentType: "application/json" });

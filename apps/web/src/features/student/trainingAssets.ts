@@ -5,7 +5,7 @@ export const honorAsset = (key: BadgeKey) => key.startsWith("streak-")
   ? { src: `/assets/training/${key}.svg` }
   : asset(key, 160, 320);
 export const honorCriteria: Record<BadgeKey, string> = {
-  "exact-recall": "Get a wording score of 80 or more on 5 different passages. You'll need Advanced practice for this — Foundation caps wording scores at 40 and Standard at 70.",
+  "exact-recall": "Get a wording score of 80 or more on 5 different passages. You'll need Standard or Advanced practice for this — Foundation tops wording mastery at 70, while Standard and Advanced can climb to 100.",
   "reference-ready": "Get a reference score of 70 or more on 10 different passages by typing the reference yourself. Picking from choices doesn't count for this one.",
   "chapter-strong": "Get every verse your coach assigned in one chapter up to Strong or Mastered. That's your assigned verses — not always the whole chapter.",
   "review-complete": "Answer every passage in one day's review set. Wrong answers still count — they'll just come back for more review.",

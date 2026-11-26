@@ -1,6 +1,6 @@
 import type { Env } from "../types";
 import { HttpError, requiredString } from "../types";
-import { clientIp, unavailable } from "./shared";
+import { unavailable } from "./shared";
 export function configured(env:Env):boolean {
   try {
     const origin=new URL(env.PUBLIC_ORIGIN??"");

@@ -95,6 +95,54 @@
           "earnedAtUtc": null
         },
         {
+          "key": "pbe:coverage-starter",
+          "title": "Coverage Starter",
+          "category": "PBE Practice",
+          "requirement": "Practice 10 different targets in your assigned PBE passages.",
+          "ruleVersion": "pbe-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "pbe:first-45",
+          "title": "First 45",
+          "category": "PBE Practice",
+          "requirement": "Complete a 45-question half mock.",
+          "ruleVersion": "pbe-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "pbe:zero-extra",
+          "title": "Zero Extra Answers",
+          "category": "PBE Practice",
+          "requirement": "Finish a timed run of at least 10 questions without writing any answer the question did not ask for.",
+          "ruleVersion": "pbe-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "pbe:steady-under-time",
+          "title": "Steady Under Time",
+          "category": "PBE Practice",
+          "requirement": "Finish a timed run earning at least 90% of the available points.",
+          "ruleVersion": "pbe-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "pbe:captains-call",
+          "title": "Captain's Call",
+          "category": "PBE Practice",
+          "requirement": "Flag one of your answers for review and have a coach rule on it.",
+          "ruleVersion": "pbe-v1",
+          "earnedAtUtc": null
+        },
+        {
+          "key": "pbe:fair-challenge",
+          "title": "Fair Challenge",
+          "category": "PBE Practice",
+          "requirement": "Have a flagged answer ruled in your favor, with the coach’s correction raising its points.",
+          "ruleVersion": "pbe-v1",
+          "earnedAtUtc": null
+        },
+        {
           "key": "simulation:first-rehearsal",
           "title": "First Rehearsal",
           "category": "Simulation",

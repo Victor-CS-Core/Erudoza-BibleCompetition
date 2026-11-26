@@ -1,3 +1,17 @@
+/** Solo PBE run types (mirrors worker/native/pbe/types.ts PbeMode). */
+export type PbeMode = "Practice" | "Review" | "Simulation" | "Rescue" | "Checkpoint" | "MockHalf" | "MockFull";
+
+/** Modes that run under the authoritative timed window (frozen answers,
+ * deferred feedback, official timing: 20 seconds + 5 per point). */
+export const TIMED_PBE_MODES: readonly PbeMode[] = ["Simulation", "Checkpoint", "MockHalf", "MockFull"];
+
+/** MockFull halftime state (card 51): the run pauses after attempt 45;
+ * resumedAtMs stays null until the learner continues into question 46. */
+export interface PbeBreakState { afterAttempts: number; startedAtMs: number; resumedAtMs: number | null }
+/** What `next` returns instead of a card while a MockFull sits at its break. */
+export interface PbeNextBreak { sessionId: string; total: number; break: PbeBreakState }
+export const isTimedPbeMode = (mode: string): boolean => (TIMED_PBE_MODES as readonly string[]).includes(mode);
+
 export interface PbeQuestionView {
   id: string;
   version: number;
@@ -137,3 +151,10 @@ export type PbeSessionSelection =
   | { progressScope: PbeProgressScope; chapter?: never; targetIds?: never }
   | { chapter: { contentPackId: string; chapter: number }; progressScope?: never; targetIds?: string[] }
   | { targetIds: string[]; progressScope?: never; chapter?: never };
+
+/** Card 49: readiness dimensions, composed server-side at read time from
+ * stored evidence (pbe-readiness-v1). percent is null when a dimension
+ * has no stored evidence yet — an honest pending state, not a zero. */
+export type PbeReadinessKey = 'Coverage' | 'Recall' | 'Precision' | 'Reference' | 'Composure' | 'Team';
+export interface PbeReadinessDimension { key: PbeReadinessKey; percent: number | null; basis: string }
+export interface PbeReadiness { version: 'pbe-readiness-v1'; seasonId: string; dimensions: PbeReadinessDimension[] }

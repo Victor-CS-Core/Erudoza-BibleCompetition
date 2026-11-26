@@ -14,6 +14,13 @@ vi.mock("../../api/client", async importOriginal => {
 const chart = Array.from({ length: 14 }, (_, i) => ({ day: `2026-11-${String(11 + i).padStart(2, "0")}`, sessions: i === 13 ? 5 : i === 12 ? 4 : 1 }));
 const overview = { totalUsers: 7, newThisMonth: 1, xpThisWeek: 100, xpLastWeek: 85, activeThisWeek: 2, activeLastWeek: 2, sessionsToday: 5, sessionsDailyAverage: 1.5, chart, todayByClub: [{ orgId: "o1", name: "Practice Club", sessions: 3, students: 2 }, { orgId: "o2", name: "Northgate Club", sessions: 2, students: 1 }] };
 const users = { clubs: 2, newest: [{ id: "u1", displayName: "Ana Ruiz", userName: "ana", email: "ana@example.com", kind: "Student", role: "Student", orgName: "Practice Club", active: true, joinedAtUtc: "2026-11-05T00:00:00Z" }, { id: "u2", displayName: "Coach Pat", userName: "pat", email: null, kind: "Adult", role: "Owner", orgName: "Northgate Club", active: true, joinedAtUtc: null }] };
+// Card 24 product rule: join dates render in the VIEWER'S LOCAL time
+// (ControlCenterPage's fmtDate passes no timeZone). The fixture instant is
+// midnight UTC, so the rendered day is Nov 5 under TZ=UTC and Nov 4 under
+// TZ=America/New_York. The expectation is derived from the instant with the
+// component's own format options, so this suite pins the local-time rule
+// and passes under both timezones.
+const anaJoinedLabel = new Date(users.newest[0]!.joinedAtUtc!).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 const clubs = { clubs: [{ orgId: "o1", name: "Practice Club", learners: 2, activeLearners: 1, sessionsThisWeek: 7, quietLearners: 1 }, { orgId: "o2", name: "Northgate Club", learners: 1, activeLearners: 1, sessionsThisWeek: 2, quietLearners: 0 }] };
 const funnel = { steps: [{ key: "invitations", label: "Invitations sent", count: 3, source: "Coach invitations" }, { key: "accounts", label: "Accounts created", count: 7, source: "User accounts" }, { key: "first-practice", label: "First practice attempt", count: 2, source: "Recorded attempts (Memory + PBE)" }, { key: "active-week", label: "Active this week", count: 2, source: "XP activity this week" }] };
 const content = { watcher: { checkedAtUtc: "2026-11-23T10:00:00Z", mediaChecked: 12, notes: null }, proposalsPending: 2, proposalsOldestAtUtc: "2026-11-20T00:00:00Z", releasesLive: 1, newsSuggestions: 1, newsDrafts: 0, newsPublished: 1, newsOldestSuggestionAtUtc: "2026-11-21T00:00:00Z", libraryPacks: 1, libraryVerses: 3 };
@@ -134,7 +141,7 @@ it("switches tabs from the sidebar and shows the Users & clubs panels", async ()
   expect(screen.getByText("Coach invitations")).toBeInTheDocument();
   expect(screen.queryByText("Source: Coach invitations")).not.toBeInTheDocument();
   expect(screen.getByText("Ana Ruiz")).toBeInTheDocument();
-  expect(screen.getByText(/Joined Nov 5, 2026/)).toBeInTheDocument();
+  expect(screen.getByText(text => text.includes(`Joined ${anaJoinedLabel}`))).toBeInTheDocument();
   expect(screen.getByText(/Join date unavailable/)).toBeInTheDocument();
 });
 

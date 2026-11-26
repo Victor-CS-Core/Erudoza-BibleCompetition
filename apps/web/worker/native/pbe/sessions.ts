@@ -11,9 +11,10 @@ import { gradePbe, questionView } from './grading';
 import { groupRecallEvidence } from './review';
 import { loadPbeProjections, preparePbeService, prepareRecallEvidence } from './progress';
 import { selectPbeQuestions } from './selection';
-import { PBE_RULE_VERSION, PBE_SCORING_VERSION } from './rules';
+import { isTimedPbeMode, PBE_RULE_VERSION, PBE_SCORING_VERSION } from './rules';
+import { awardPbeHonors } from './honors';
 import { rehearsalPoints } from './presentation';
-import type { PbeQuestion, PbeTarget } from './types';
+import type { PbeMode, PbeQuestion, PbeTarget } from './types';
 import { pbeMissionSteps, awardPbeSimulationAttemptXp, creditPbePracticeDay, pbeStartCalendar, preparePbeEffort, preparePbeStartEffort, recordPbePersonalBests } from './effort';
 import { awardXp, levelNameFor, xpSummary, type XpEvent } from '../training/xp';
 import { sessionCompleteQuests, QUEST_DEFS } from '../training/quests';
@@ -57,7 +58,7 @@ export interface PbeSession {
     format: 'Pbe';
     studentUserId: string;
     seasonId: string;
-    mode: 'Practice' | 'Review' | 'Simulation';
+    mode: PbeMode;
     status: 'Created' | 'Active' | 'Completed';
     scopeVersion: string;
     ruleVersion: string;
@@ -85,6 +86,10 @@ export interface PbeSession {
     leveledUp?: { from: number; to: number } | null;
     /** Quests completed when this session was completed (keys + titles), for the recap. */
     questsCompleted?: { key: string; title: string }[];
+    /** MockFull halftime (card 51): set when the run pauses after attempt
+     * 45; resumedAtMs is stamped by the break action when play continues
+     * into question 46. MockHalf never carries this — 45 is its finish. */
+    break?: { afterAttempts: number; startedAtMs: number; resumedAtMs: number | null };
 }
 interface Start {
     seasonId: string;
@@ -107,24 +112,28 @@ interface Submission {
 const timedAuthority = Symbol('pbe-timed-authority');
 interface TimedDecision { token: symbol; elapsedMs: number; lockedAtMs:number }
 const conflict = (message = 'The assignment changed. Start a new PBE session.') => new HttpError(409, message);
-export const pbeSessionDto = (s: PbeSession) => ({ id: s.id, format: s.format, seasonId: s.seasonId, mode: s.mode, status: s.status, targetCardCount: s.cards.length, ruleVersion: s.ruleVersion, scoringVersion: s.scoringVersion, selectionVersion: s.selectionVersion, ...(s.mode === 'Simulation' ? { rehearsalScope: 'ShortenedTimedPractice', eligibleCount: s.cards.length } : {}) });
+export const pbeSessionDto = (s: PbeSession) => ({ id: s.id, format: s.format, seasonId: s.seasonId, mode: s.mode, status: s.status, targetCardCount: s.cards.length, ruleVersion: s.ruleVersion, scoringVersion: s.scoringVersion, selectionVersion: s.selectionVersion, ...(s.mode === 'Simulation' ? { rehearsalScope: 'ShortenedTimedPractice', eligibleCount: s.cards.length } : {}), ...(s.break ? { break: { afterAttempts: s.break.afterAttempts, startedAtMs: s.break.startedAtMs, resumedAtMs: s.break.resumedAtMs } } : {}) });
 const dto = (s: PbeSession, c: PbeCard) => ({ id: c.id, sessionId: s.id, format: 'Pbe', sequence: s.cards.indexOf(c) + 1, total: s.cards.length, question: questionView(c.question), assisted: c.assistedAtMs !== null });
 const receipt = (result:PbeResult, alreadyProcessed:boolean) => ({ attemptId:result.attemptId,acceptedAtUtc:result.acceptedAtUtc,acceptedSequence:result.acceptedSequence,alreadyProcessed,feedbackDeferred:true });
 export const pbeSummary=(s:PbeSession,interrupted=false,overlay?:PbeResultOverlay,xp?:{earned:number;total:number;level:number;levelName:string},levelUp?:{from:number;to:number;fromName:string;toName:string}|null)=>{
  const results=s.attempts.map(a=>{const card=s.cards.find(c=>c.id===a.cardId)!,candidate=overlay?.entries[a.result.attemptId],dispute=candidate?.questionId===card.question.id&&candidate.questionVersion===card.question.version?candidate:null;return {attemptId:a.result.attemptId,questionId:card.question.id,earnedPoints:dispute?.pointsByPart?.reduce((n,p)=>n+p,0)??a.result.earnedPoints,originalEarnedPoints:a.result.earnedPoints,availablePoints:a.result.availablePoints,acceptedAtUtc:a.result.acceptedAtUtc,dispute};});
  const correct=results.filter(r=>r.earnedPoints===r.availablePoints).length,partial=results.filter(r=>r.earnedPoints>0&&r.earnedPoints<r.availablePoints).length,pendingCount=results.filter(r=>r.dispute?.status==='Pending').length,finalized=results.filter(r=>r.dispute?.status!=='Pending');
  const metrics={earnedPoints:results.reduce((n,r)=>n+r.earnedPoints,0),availablePoints:results.reduce((n,r)=>n+r.availablePoints,0),pendingCount,provisional:pendingCount>0,finalizedEarnedPoints:finalized.reduce((n,r)=>n+r.earnedPoints,0),finalizedAvailablePoints:finalized.reduce((n,r)=>n+r.availablePoints,0)};
- return {sessionId:s.id,format:s.format,mode:s.mode,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,status:interrupted?'Interrupted':s.status,...metrics,results:s.mode==='Simulation'&&s.status==='Completed'?s.attempts.map((a,i)=>({...a.result,...results[i]})):results,recap:{version:'pbe-daily-v2',sessionId:s.id,seasonId:s.seasonId,mode:s.mode,completedAtUtc:s.completedAtUtc??null,attempted:s.attempts.length,correct,partial,targetCardCount:s.cards.length,fullTargetReached:s.attempts.length===s.cards.length,newlyCreditedDay:s.newlyCreditedDay,missionLocalDate:s.missionLocalDate,creditedLocalDate:s.creditedLocalDate,weeklyGoalComplete:s.weeklyGoalComplete??false,personalBest:s.personalBest??null,xp:xp??{earned:s.xpEarned??0,total:0,level:1,levelName:'Seedling'},levelUp:levelUp??null,missionSteps:pbeMissionSteps(s),earnedBadges:s.earnedBadges??[],questsCompleted:s.questsCompleted??[],passageChanges:[],interrupted,results,...metrics}};
+ return {sessionId:s.id,format:s.format,mode:s.mode,attempted:s.attempts.length,correct,targetCardCount:s.cards.length,status:interrupted?'Interrupted':s.status,...metrics,results:isTimedPbeMode(s.mode)&&s.status==='Completed'?s.attempts.map((a,i)=>({...a.result,...results[i]})):results,recap:{version:'pbe-daily-v2',sessionId:s.id,seasonId:s.seasonId,mode:s.mode,completedAtUtc:s.completedAtUtc??null,attempted:s.attempts.length,correct,partial,targetCardCount:s.cards.length,fullTargetReached:s.attempts.length===s.cards.length,newlyCreditedDay:s.newlyCreditedDay,missionLocalDate:s.missionLocalDate,creditedLocalDate:s.creditedLocalDate,weeklyGoalComplete:s.weeklyGoalComplete??false,personalBest:s.personalBest??null,xp:xp??{earned:s.xpEarned??0,total:0,level:1,levelName:'Seedling'},levelUp:levelUp??null,missionSteps:pbeMissionSteps(s),earnedBadges:s.earnedBadges??[],questsCompleted:s.questsCompleted??[],passageChanges:[],interrupted,results,...metrics}};
 };
 export async function reviewedPbeSummary(ctx:Pick<RequestContext,'store'|'orgId'>,s:PbeSession,interrupted=false){const overlay=await ctx.store.get<PbeResultOverlay>('pbe-result-overlay',`Solo:${s.id}`,ctx.orgId);const xp=await xpSummary({...ctx,actor:{userId:s.studentUserId}} as RequestContext);return pbeSummary(s,interrupted,overlay?.value,{earned:s.xpEarned??0,total:xp.total,level:xp.level,levelName:xp.levelName},s.leveledUp?{from:s.leveledUp.from,to:s.leveledUp.to,fromName:levelNameFor(s.leveledUp.from),toName:levelNameFor(s.leveledUp.to)}:null);}
 
 async function eligible(ctx: RequestContext, s: PbeSession) { const scope = await resolvePbeSessionSources(ctx, s.id); if (!scope.guards.some(g => g.kind === 'membership') || scope.eligibility !== s.scopeVersion || !scope.sources.length)
     throw conflict(); return scope; }
+/** Card counts per run type. Practice/Review/Simulation are unchanged;
+ * Rescue is a short repair run; Checkpoint is a full 10-question timed
+ * run; MockHalf/MockFull are the 45/90-question mocks (card 51). */
+export const PBE_MODE_COUNTS: Record<PbeMode, number> = { Practice: 8, Review: 8, Simulation: 10, Rescue: 3, Checkpoint: 10, MockHalf: 45, MockFull: 90 };
 export async function startPbeSession(ctx: RequestContext, input: Start) {
-    if (input.mode !== undefined && !['Practice', 'Review', 'Simulation'].includes(input.mode))
+    if (input.mode !== undefined && !['Practice', 'Review', 'Simulation', 'Rescue', 'Checkpoint', 'MockHalf', 'MockFull'].includes(input.mode))
         throw new HttpError(400, 'Choose Practice or Review.');
-    const seasonId = guid(input.seasonId), mode = input.mode ?? 'Practice';
-    if (mode !== 'Practice' && mode !== 'Review' && mode !== 'Simulation')
+    const seasonId = guid(input.seasonId), mode = (input.mode ?? 'Practice') as PbeMode;
+    if (mode !== 'Practice' && mode !== 'Review' && mode !== 'Simulation' && mode !== 'Rescue' && mode !== 'Checkpoint' && mode !== 'MockHalf' && mode !== 'MockFull')
         throw new HttpError(400, 'Choose Practice, Review, or Simulation.');
     if (input.training)
         requiredString(input.training.clientStartId, 'Training start ID', 200);
@@ -183,15 +192,29 @@ export async function startPbeSession(ctx: RequestContext, input: Start) {
         set.add(entry.targetId);
         groups.set(entry.acceptedSequence, set);
     }
-    const selected = selectPbeQuestions({ sessionId, count: mode === 'Simulation' ? 10 : 8, mode, trueFalseMaxRatio: 0.1, usedQuestionIds: [], usedTargetIds: [], acceptedTargetGroups: [...groups].sort(([a], [b]) => a - b).map(([, ids]) => [...ids]), candidates: bank.questions.map(q => {
+    const candidates = bank.questions.map(q => {
             const targetIds = [...new Set(q.parts.map(part => part.targetId))], rs = targetIds.flatMap(id => reviews.has(id) ? [reviews.get(id)!] : []), failed = rs.filter(r => r.review.unresolved), served = services.get(q.id);
             return { questionId: q.id, targetIds, sourceUnitIds: q.sourceUnitIds, sourceKind: q.sourceKind, kind: q.kind, servedCount: served?.servedCount ?? 0, lastServedAtMs: served?.lastServedAtMs ?? null, targetServedCount: Math.min(...targetIds.map(id => targets.get(id)?.servedCount ?? 0)), due: rs.some(r => r.review.unresolved || r.review.intervalIndex >= 0 && r.review.dueAtMs <= atMs), repairEligible: failed.length > 0, repairTargetIds: failed.length ? failed.map(r => r.targetId) : undefined, spacedRepair: failed.length > 0 && failed.every(r => p.recentTargets.filter(t => t.targetId !== r.targetId && t.acceptedSequence > (r.failedSequence ?? Number.MAX_SAFE_INTEGER)).length >= 2), lastQuestionId: rs.some(r => r.lastAnsweredQuestionId === q.id) ? q.id : null, alternateForm: rs.some(r => r.lastAnsweredQuestionKind !== null && r.lastAnsweredQuestionKind !== q.kind) };
-        }) });
+        });
+    // Timed runs select with the official Simulation mix; Rescue draws
+    // only from questions carrying a failed (repair-eligible) target.
+    const selectionMode: 'Practice' | 'Review' | 'Simulation' = mode === 'Rescue' ? 'Practice' : mode === 'Practice' || mode === 'Review' ? mode : 'Simulation';
+    const pool = mode === 'Rescue' ? candidates.filter(c => c.repairEligible) : candidates;
+    const count = PBE_MODE_COUNTS[mode];
+    const selected = selectPbeQuestions({ sessionId, count, mode: selectionMode, trueFalseMaxRatio: 0.1, usedQuestionIds: [], usedTargetIds: [], acceptedTargetGroups: [...groups].sort(([a], [b]) => a - b).map(([, ids]) => [...ids]), candidates: pool });
     if (!selected.length)
-        return json({ code: bank.questions.length && mode === 'Review' ? 'PBE_NOTHING_DUE' : 'PBE_COVERAGE_UNAVAILABLE', message: bank.questions.length && mode === 'Review' ? 'No targets are due. Choose Practice.' : 'No published questions are available for your assignment. Ask your coach to add questions, or choose Memory.', format: 'Pbe' }, 409);
+        return json(mode === 'Rescue' ? { code: 'PBE_NOTHING_TO_REPAIR', message: 'Nothing needs repair right now — your recent answers are holding. Try a Checkpoint or keep practicing.', format: 'Pbe' } : { code: bank.questions.length && mode === 'Review' ? 'PBE_NOTHING_DUE' : 'PBE_COVERAGE_UNAVAILABLE', message: bank.questions.length && mode === 'Review' ? 'No targets are due. Choose Practice.' : 'No published questions are available for your assignment. Ask your coach to add questions, or choose Memory.', format: 'Pbe' }, 409);
+    // The exact-length runs (Checkpoint 10, MockHalf 45, MockFull 90) are
+    // exactly that long on the official clock: a short bank must say so
+    // honestly instead of silently dealing a shorter run.
+    if ((mode === 'Checkpoint' || mode === 'MockHalf' || mode === 'MockFull') && selected.length !== count)
+        return json({ code: 'PBE_COVERAGE_UNAVAILABLE', message: `${mode === 'Checkpoint' ? 'A Checkpoint' : mode === 'MockHalf' ? 'A half mock' : 'A full mock'} needs ${count} published questions, and your assignment has ${selected.length} ready. Ask your coach to add questions, or choose Practice.`, format: 'Pbe' }, 409);
     const cards = selected.map(qid => { const question = bank.questions.find(q => q.id === qid)!; return { id: id(), question, targets: bank.targets.filter(t => question.parts.some(p => p.targetId === t.id)), servedAtMs: null, assistedAtMs: null }; });
     const s: PbeSession = { id: sessionId, format: 'Pbe', studentUserId: ctx.actor.userId, seasonId, mode, status: 'Created', scopeVersion: scope.eligibility, ruleVersion: PBE_RULE_VERSION, scoringVersion: PBE_SCORING_VERSION, selectionVersion: 'pbe-selection-v1', questionIds: selected, cards, attempts: [], createdAtUtc: now, clientStartId: input.training?.clientStartId, startPayload: payload, missionLocalDate: null, creditedLocalDate: null, newlyCreditedDay: false };
-    const effort = mode === 'Simulation' ? { statements: [], guards: [] } : await preparePbeStartEffort(ctx, s, input.training?.timeZone);
+    // Only the mission modes (Practice/Review) prepare a daily mission.
+    // Timed runs and Rescue pay attempt XP per attempt instead, so a long
+    // run can never hijack the Training HQ mission head.
+    const effort = mode === 'Practice' || mode === 'Review' ? await preparePbeStartEffort(ctx, s, input.training?.timeZone) : { statements: [], guards: [] };
     if (s.clientStartId)
         effort.statements.push(ctx.env.DB.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) VALUES('pbe-session-start',?,?,?,?,?) ON CONFLICT(kind,id,org_id) DO UPDATE SET data='invalid-json'").bind(startKey!, ctx.orgId, seasonId, ctx.actor.userId, JSON.stringify({ sessionId: s.id, format:s.format, ruleVersion:s.ruleVersion, scoringVersion:s.scoringVersion, selectionVersion:s.selectionVersion })));
     try { await atomic(ctx, 'pbe.session.start', [...(prepared?[prepared.inputGuard]:[]), pbeAssignmentSetGuard(ctx, scope), ...effort.statements, ctx.store.insertion('pbe-session', s.id, ctx.orgId, s, { seasonId, ownerId: ctx.actor.userId })], [...scope.guards, ...effort.guards,...(prepared?[prepared.pointerGuard]:[])]); } catch(error) { if(prepared&&error instanceof HttpError&&error.status===409)throw new HttpError(409,'PBE_CHAPTER_SCOPE_STALE');throw error; }
@@ -207,10 +230,10 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
     const s = stored.value;
     if (s.studentUserId !== ctx.actor.userId)
         throw new HttpError(404, 'Study session was not found.');
-    const interruption = s.mode === 'Simulation' ? await ctx.store.get<{status:string;restartAllowed:boolean}>('pbe-solo-interruption',s.id,ctx.orgId) : null;
+    const interruption = isTimedPbeMode(s.mode) ? await ctx.store.get<{status:string;restartAllowed:boolean}>('pbe-solo-interruption',s.id,ctx.orgId) : null;
     if (interruption) {
         if (!action) return json({session:{...pbeSessionDto(s),status:'Interrupted'},card:null,attempt:null,summary:await reviewedPbeSummary(ctx,s,true),interruption:interruption.value});
-        throw conflict('This rehearsal was interrupted. Start another shortened timed practice.');
+        throw conflict(s.mode === 'Simulation' ? 'This rehearsal was interrupted. Start another shortened timed practice.' : 'This timed run was interrupted. Start another timed run.');
     }
     const persist = async (scope: Awaited<ReturnType<typeof eligible>>, w: {
         statements: Parameters<typeof atomic>[2];
@@ -224,13 +247,13 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
         if (!submission || typeof submission.hintsUsed !== 'boolean' || !Array.isArray(submission.answers) || submission.answers.some(a => typeof a !== 'string' || a.length > 10000))
             throw new HttpError(400, 'Provide text answers and a hints indicator.');
         requiredString(submission.clientSubmissionId, 'Submission ID', 200);
-        if (s.mode === 'Simulation' && (timed?.token !== timedAuthority || !Number.isFinite(timed.elapsedMs) || timed.elapsedMs < 0 || !Number.isSafeInteger(timed.lockedAtMs) || timed.lockedAtMs < 0))
+        if (isTimedPbeMode(s.mode) && (timed?.token !== timedAuthority || !Number.isFinite(timed.elapsedMs) || timed.elapsedMs < 0 || !Number.isSafeInteger(timed.lockedAtMs) || timed.lockedAtMs < 0))
             throw conflict('Timed rehearsal answers must use the authoritative response window.');
         const previous = s.attempts.find(a => a.clientSubmissionId === submission.clientSubmissionId);
         if (previous) {
             if (previous.cardId !== submission.challengeCardId || previous.hintsUsed !== submission.hintsUsed || JSON.stringify(previous.answers) !== JSON.stringify(submission.answers))
                 throw conflict('This submission ID was already used with a different answer payload.');
-            return json(s.mode === 'Simulation' ? receipt(previous.result, true) : { ...previous.result, alreadyProcessed: true });
+            return json(isTimedPbeMode(s.mode) ? receipt(previous.result, true) : { ...previous.result, alreadyProcessed: true });
         }
         const card = s.cards[s.attempts.length];
         if (s.status === 'Completed' || !card || card.id !== submission.challengeCardId || card.servedAtMs === null)
@@ -239,20 +262,20 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
             throw new HttpError(400, 'Provide one answer per requested part.');
         const atMs = Date.parse(trainingNow()), attemptId = id(), unaided = card.assistedAtMs === null && !submission.hintsUsed;
         const grade = gradePbe(card.question, submission.answers);
-        if (s.mode === 'Simulation') grade.earnedPoints = rehearsalPoints(grade.earnedPoints, timed!.elapsedMs, grade.availablePoints);
-        const evidence = groupRecallEvidence(card.question, card.targets, submission.answers, attemptId, atMs, unaided), progress = await prepareRecallEvidence(ctx, s.seasonId, s.scopeVersion, evidence, card.question.kind, {questionVersion:card.question.version,responseLockedAtMs:s.mode==='Simulation'?timed!.lockedAtMs:atMs});
+        if (isTimedPbeMode(s.mode)) grade.earnedPoints = rehearsalPoints(grade.earnedPoints, timed!.elapsedMs, grade.availablePoints);
+        const evidence = groupRecallEvidence(card.question, card.targets, submission.answers, attemptId, atMs, unaided), progress = await prepareRecallEvidence(ctx, s.seasonId, s.scopeVersion, evidence, card.question.kind, {questionVersion:card.question.version,responseLockedAtMs:isTimedPbeMode(s.mode)?timed!.lockedAtMs:atMs});
         const result: PbeResult = { attemptId, earnedPoints: grade.earnedPoints, availablePoints: grade.availablePoints, expectedParts: card.question.parts.map(p => p.acceptedAnswers[0]), sourceEvidence: card.question.evidence, citation: card.question.reference, unaided, acceptedAtUtc: new Date(atMs).toISOString(), acceptedSequence: progress.acceptedSequence!, alreadyProcessed: false };
-        const attempt: PbeAttempt = { id: attemptId, cardId: card.id, clientSubmissionId: submission.clientSubmissionId, answers: [...submission.answers], hintsUsed: submission.hintsUsed, atMs, ...(s.mode === 'Simulation' ? { responseLockedAtMs: timed!.lockedAtMs } : {}), result };
+        const attempt: PbeAttempt = { id: attemptId, cardId: card.id, clientSubmissionId: submission.clientSubmissionId, answers: [...submission.answers], hintsUsed: submission.hintsUsed, atMs, ...(isTimedPbeMode(s.mode) ? { responseLockedAtMs: timed!.lockedAtMs } : {}), result };
         s.attempts.push(attempt);
         s.status = 'Active';
-        const effort = s.mode === 'Simulation' ? await awardPbeSimulationAttemptXp(ctx, s, attempt, result.acceptedAtUtc) : await preparePbeEffort(ctx, s, result.acceptedAtUtc);
+        const effort = s.mode === 'Practice' || s.mode === 'Review' ? await preparePbeEffort(ctx, s, result.acceptedAtUtc) : await awardPbeSimulationAttemptXp(ctx, s, attempt, result.acceptedAtUtc);
         await persist(scope, { statements: [...progress.statements, ...effort.statements, ctx.store.insertion('pbe-attempt', attempt.id, ctx.orgId, { ...attempt, sessionId: s.id, format: 'Pbe', ruleVersion: s.ruleVersion, scoringVersion: s.scoringVersion, selectionVersion: s.selectionVersion }, { seasonId: s.seasonId, ownerId: s.studentUserId })], guards: [...progress.guards, ...effort.guards] });
-        return json(s.mode === 'Simulation' ? receipt(result, false) : result);
+        return json(isTimedPbeMode(s.mode) ? receipt(result, false) : result);
     }
     if (action === 'complete') {
         if (!s.attempts.length)
             throw new HttpError(400, 'A session cannot be completed without an accepted answer.');
-        if (s.mode === 'Simulation' && s.attempts.length !== s.cards.length)
+        if (isTimedPbeMode(s.mode) && s.attempts.length !== s.cards.length)
             throw conflict('Finish every frozen rehearsal question before completing.');
         if (s.status !== 'Completed') {
             s.status = 'Completed';
@@ -269,7 +292,7 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
             // attempt already credited it and s.creditedLocalDate is set, so
             // this is a no-op; the guard also makes repeat completions safe.
             const simDayEvents: XpEvent[] = [];
-            if (s.mode === 'Simulation' && await creditPbePracticeDay(ctx, qw, s, pResolved, s.completedAtUtc, simDayEvents, pbeStartCalendar(s, pResolved)))
+            if (isTimedPbeMode(s.mode) && await creditPbePracticeDay(ctx, qw, s, pResolved, s.completedAtUtc, simDayEvents, pbeStartCalendar(s, pResolved)))
                 write(ctx, qw, 'training-preferences', pResolved.id, pResolved, pref);
             const qLocalDate = s.creditedLocalDate ?? pcal.localDate;
             const earned = s.attempts.reduce((n, a) => n + a.result.earnedPoints, 0), available = s.attempts.reduce((n, a) => n + a.result.availablePoints, 0);
@@ -291,6 +314,9 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
             }
             await persist(scope, { statements: [...bests.writes.statements, ...qw.statements, dailyActivityIncrement(ctx.env.DB, qLocalDate, ctx.orgId)], guards: [...bests.writes.guards, ...qw.guards] });
         }
+        // Card 54: solo PBE patches evaluate at completion from stored
+        // evidence (idempotent; repeat completions re-evaluate safely).
+        await awardPbeHonors(ctx, ctx.actor.userId, s.seasonId);
         return json(await reviewedPbeSummary(ctx,s));
     }
     if (action === 'source') {
@@ -307,21 +333,40 @@ export async function pbeSessionAction(ctx: RequestContext, sessionId: string, a
         }
         return json({ challengeCardId: card.id, assisted: true, sources: card.question.sourceUnitIds.map(id => scope.sources.find(s => s.id === id)) });
     }
-    if (action === 'next') {
+    if (action === 'break' && !(s.mode === 'MockFull' && s.attempts.length === 45 && s.break))
+        throw new HttpError(400, 'No halftime break is waiting in this run.');
+    if (action === 'next' || action === 'break') {
         const card = s.cards[s.attempts.length];
         if (s.status === 'Completed' || !card)
             throw new HttpError(400, 'The session target has been reached.');
+        // MockFull halftime (card 51): once attempt 45 is accepted the run
+        // pauses — 'next' reports the break instead of serving question 46
+        // (idempotent while unresumed), and only the 'break' action stamps
+        // the resume and serves it. MockHalf never pauses: 45 is its end.
+        let breakStamped = false;
+        if (s.mode === 'MockFull' && s.attempts.length === 45 && !s.break?.resumedAtMs) {
+            if (action === 'next') {
+                if (!s.break) {
+                    s.break = { afterAttempts: 45, startedAtMs: Date.parse(trainingNow()), resumedAtMs: null };
+                    await persist(scope);
+                }
+                return json({ sessionId: s.id, total: s.cards.length, break: { afterAttempts: s.break.afterAttempts, startedAtMs: s.break.startedAtMs, resumedAtMs: null } });
+            }
+            s.break = { afterAttempts: 45, startedAtMs: s.break?.startedAtMs ?? Date.parse(trainingNow()), resumedAtMs: Date.parse(trainingNow()) };
+            breakStamped = true;
+        }
         if (card.servedAtMs === null) {
             card.servedAtMs = Date.parse(trainingNow());
             s.status = 'Active';
             const service = await preparePbeService(ctx, s.seasonId, { serviceId: card.id, questionId: card.question.id, targetIds: card.targets.map(t => t.id), questionKind: card.question.kind, atMs: card.servedAtMs });
             await persist(scope, service);
-        }
+        } else if (breakStamped)
+            await persist(scope);
         return json(dto(s, card));
     }
     if (!action) {
         const card = s.cards.filter(c => c.servedAtMs !== null).at(-1), attempt = card ? s.attempts.find(a => a.cardId === card.id) : undefined;
-        return json({ session: pbeSessionDto(s), card: card ? dto(s, card) : null, attempt: attempt ? s.mode === 'Simulation' ? { attemptId: attempt.result.attemptId, acceptedAtUtc: attempt.result.acceptedAtUtc, acceptedSequence: attempt.result.acceptedSequence, alreadyProcessed: true, feedbackDeferred: true, questionId:attempt.cardId } : { ...attempt.result, alreadyProcessed: true } : null, summary: null });
+        return json({ session: pbeSessionDto(s), card: card ? dto(s, card) : null, attempt: attempt ? isTimedPbeMode(s.mode) ? { attemptId: attempt.result.attemptId, acceptedAtUtc: attempt.result.acceptedAtUtc, acceptedSequence: attempt.result.acceptedSequence, alreadyProcessed: true, feedbackDeferred: true, questionId:attempt.cardId } : { ...attempt.result, alreadyProcessed: true } : null, summary: null });
     }
     return null;
 }

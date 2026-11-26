@@ -5,15 +5,18 @@
 // against the real native app — start → next → attempt → resume → complete →
 // recap, plus the progress reads — then (a) pins every payload to the CLIENT
 // contract (src/api/types.ts + src/api/trainingTypes.ts): every field the
-// client reads must exist with the right name/type, and (b) saves the exact
-// server-emitted payloads as fixtures for
+// client reads must exist with the right name/type, and (b) captures the
+// exact server-emitted payloads as fixtures for
 // src/features/student/study-real.test.tsx, which renders the real pages
-// from them. Re-run when the study contract changes:
-//   npx vitest run worker/native/capture-study.test.ts
+// from them. A routine run COMPARES against the checked-in fixture and
+// fails on drift (card 28); regenerate only after an intentional contract
+// change:
+//   UPDATE_FIXTURES=1 npx vitest run worker/native/capture-study.test.ts
 // A hand-edited fixture is no evidence at all — regenerate, never patch.
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { writeFileSync } from "node:fs";
-import { createNativeTestApp, TEST_ORG, TEST_USER } from "./test-runtime";
+import { createNativeTestApp, persistCaptureFixture, TEST_ORG, TEST_USER } from "./test-runtime";
+import type { AttemptResult, ChallengeCard, Progress, ResumedSession, Session, SessionSummary } from "../../src/api/types";
+import type { SessionRecap } from "../../src/api/trainingTypes";
 
 const season = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const pack = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
@@ -25,14 +28,14 @@ let cookie = "";
 async function record(kind: string, id: string, value: unknown, seasonId: string | null = null, owner: string | null = null) {
   await app.db.prepare("INSERT INTO Records(kind,id,org_id,season_id,owner_id,data) VALUES(?,?,?,?,?,?)").bind(kind, id, TEST_ORG, seasonId, owner, JSON.stringify(value)).run();
 }
-async function request(path: string, method = "GET", value?: unknown) {
+async function request<T>(path: string, method = "GET", value?: unknown): Promise<{ status: number; body: T }> {
   const res = await app.fetch(path, { method, headers: { Cookie: cookie, Origin: "https://erudoza.test", "Content-Type": "application/json" }, ...(value === undefined ? {} : { body: JSON.stringify(value) }) });
-  return { status: res.status, body: await res.json() as Record<string, any> };
+  return { status: res.status, body: await res.json() as T };
 }
 function expectKeys(obj: Record<string, unknown>, required: string[], context: string) {
   for (const key of required) expect(obj, `${context} missing ${key}`).toHaveProperty(key);
 }
-function expectTypes(obj: Record<string, any>, spec: Record<string, string>, context: string) {
+function expectTypes(obj: Record<string, unknown>, spec: Record<string, string>, context: string) {
   for (const [key, type] of Object.entries(spec)) {
     const value = obj[key];
     const ok = type === "array" ? Array.isArray(value) : type === "object" ? value !== null && typeof value === "object" && !Array.isArray(value) : type === "null-or-string" ? value === null || typeof value === "string" : typeof value === type;
@@ -55,38 +58,38 @@ beforeAll(async () => {
 afterAll(async () => { await app?.runtime.dispose(); });
 
 it("captures real study/session payloads and pins them to the client contract", async () => {
-  const seasons = await request("/api/v1/progress/me/seasons");
+  const seasons = await request<Array<{ id: string; name: string }>>("/api/v1/progress/me/seasons");
   expect(seasons.status).toBe(200);
   expect(seasons.body).toEqual([{ id: season, name: "Synthetic study" }]);
 
-  const start = await request("/api/v1/study/sessions", "POST", { seasonId: season, mode: "Practice" });
+  const start = await request<Session>("/api/v1/study/sessions", "POST", { seasonId: season, mode: "Practice" });
   expect(start.status).toBe(200);
   // Session (client Session type): every field the client reads.
   expectKeys(start.body, ["id", "seasonId", "status", "mode", "targetCardCount"], "session start");
   expectTypes(start.body, { id: "string", seasonId: "string", status: "string", mode: "string", targetCardCount: "number", difficulty: "string" }, "session start");
-  const sessionId = start.body.id as string;
+  const sessionId = start.body.id;
   const base = `/api/v1/study/sessions/${sessionId}`;
 
-  const next = await request(`${base}/next`);
+  const next = await request<ChallengeCard>(`${base}/next`);
   expect(next.status).toBe(200);
   // ChallengeCard: id/sessionId/activityType/citation/prompt/tokens/sequence/total.
   expectKeys(next.body, ["id", "sessionId", "activityType", "citation", "prompt", "tokens", "sequence", "total"], "card");
   expectTypes(next.body, { id: "string", sessionId: "string", activityType: "string", citation: "string", prompt: "string", tokens: "array", sequence: "number", total: "number" }, "card");
   for (const token of next.body.tokens) expectKeys(token, ["display", "hidden", "index"], "card.tokens[]");
-  expect(next.body.debugAnswer ?? null).toBeNull();
+  expect((next.body as Record<string, unknown>).debugAnswer ?? null).toBeNull();
 
   // Answer with the card's own stored key (the routes.test.ts pattern) so the
   // attempt result is a genuine correct-answer payload.
   const row = await app.db.prepare("SELECT data FROM Records WHERE kind='session' AND id=?").bind(sessionId).first<{ data: string }>();
   const savedCard = (JSON.parse(row!.data).cards as { id: string; answerKey: { canonicalAnswer: string } }[]).find(c => c.id === next.body.id)!;
-  const attempt = await request(`${base}/attempts`, "POST", { clientSubmissionId: "capture-1", challengeCardId: next.body.id, submittedAnswer: savedCard.answerKey.canonicalAnswer, responseTimeMs: 30, hintsUsed: false });
+  const attempt = await request<AttemptResult>(`${base}/attempts`, "POST", { clientSubmissionId: "capture-1", challengeCardId: next.body.id, submittedAnswer: savedCard.answerKey.canonicalAnswer, responseTimeMs: 30, hintsUsed: false });
   expect(attempt.status).toBe(200);
   // AttemptResult: the full feedback contract the client renders.
   expectKeys(attempt.body, ["attemptId", "isCorrect", "evaluationResult", "canonicalAnswer", "citation", "sourceText", "masteryLevel", "exactWordingScore", "skillKey", "skillLabel", "skillScore", "reviewDueAtUtc", "alreadyProcessed"], "attempt result");
   expectTypes(attempt.body, { attemptId: "string", isCorrect: "boolean", evaluationResult: "string", canonicalAnswer: "string", citation: "string", sourceText: "string", masteryLevel: "string", exactWordingScore: "number", skillKey: "string", skillLabel: "string", skillScore: "number", alreadyProcessed: "boolean" }, "attempt result");
   expect(attempt.body.isCorrect).toBe(true);
 
-  const resume = await request(base);
+  const resume = await request<ResumedSession>(base);
   expect(resume.status).toBe(200);
   // ResumedSession: { session, card, attempt, summary }.
   expectKeys(resume.body, ["session", "card", "attempt", "summary"], "resume");
@@ -94,14 +97,14 @@ it("captures real study/session payloads and pins them to the client contract", 
   expect(resume.body.attempt?.attemptId).toBe(attempt.body.attemptId);
   expect(resume.body.summary).toBeNull();
 
-  const complete = await request(`${base}/complete`, "POST");
+  const complete = await request<SessionSummary>(`${base}/complete`, "POST");
   expect(complete.status).toBe(200);
   // SessionSummary.
   expectKeys(complete.body, ["sessionId", "mode", "attempted", "correct", "targetCardCount", "status"], "complete summary");
   expectTypes(complete.body, { attempted: "number", correct: "number", targetCardCount: "number", status: "string" }, "complete summary");
   expect(complete.body).toMatchObject({ attempted: 1, correct: 1, status: "Completed" });
 
-  const recap = await request(`${base}/recap`);
+  const recap = await request<SessionRecap>(`${base}/recap`);
   expect(recap.status).toBe(200);
   // SessionRecap (trainingTypes): the recap page's whole contract.
   expectKeys(recap.body, ["version", "sessionId", "seasonId", "mode", "completedAtUtc", "attempted", "correct", "targetCardCount", "fullTargetReached", "newlyCreditedDay", "missionLocalDate", "creditedLocalDate", "weeklyGoalComplete", "personalBest", "xp", "levelUp", "missionSteps", "earnedBadges", "questsCompleted", "passageChanges"], "recap");
@@ -123,14 +126,14 @@ it("captures real study/session payloads and pins them to the client contract", 
   }
 
   // Progress AFTER the flow: mastery + recentAttempts now carry real rows.
-  const progress = await request(`/api/v1/progress/me?seasonId=${season}`);
+  const progress = await request<Progress>(`/api/v1/progress/me?seasonId=${season}`);
   expect(progress.status).toBe(200);
   expectKeys(progress.body, ["seasonId", "seasonName", "seasonStatus", "assignments", "masteredCount", "reviewDueCount", "attemptCount", "mastery", "recentAttempts", "studentUserId", "studentDisplayName"], "progress");
   expectTypes(progress.body, { seasonId: "string", seasonName: "string", seasonStatus: "string", assignments: "array", masteredCount: "number", reviewDueCount: "number", attemptCount: "number", mastery: "array", recentAttempts: "array" }, "progress");
   expect(progress.body.attemptCount).toBe(1);
-  expectKeys(progress.body.assignments[0], ["id", "seasonId", "studentUserId", "contentPackId", "type", "difficulty"], "progress.assignments[]");
-  expectKeys(progress.body.mastery[0], ["knowledgeUnitId", "title", "level", "exactWordingScore", "recognitionScore", "reviewDueAtUtc"], "progress.mastery[]");
-  expectKeys(progress.body.recentAttempts[0], ["id", "title", "activityType", "isCorrect", "submittedAnswer", "evaluationResult", "createdAtUtc"], "progress.recentAttempts[]");
+  expectKeys(progress.body.assignments[0]!, ["id", "seasonId", "studentUserId", "contentPackId", "type", "difficulty"], "progress.assignments[]");
+  expectKeys(progress.body.mastery[0]!, ["knowledgeUnitId", "title", "level", "exactWordingScore", "recognitionScore", "reviewDueAtUtc"], "progress.mastery[]");
+  expectKeys(progress.body.recentAttempts![0]!, ["id", "title", "activityType", "isCorrect", "submittedAnswer", "evaluationResult", "createdAtUtc"], "progress.recentAttempts[]");
 
   const out = {
     seasons: { status: seasons.status, body: seasons.body },
@@ -142,5 +145,5 @@ it("captures real study/session payloads and pins them to the client contract", 
     complete: { status: complete.status, body: complete.body },
     recap: { status: recap.status, body: recap.body },
   };
-  writeFileSync(new URL("../../src/features/student/__fixtures__/study-payloads.json", import.meta.url), JSON.stringify(out, null, 2));
+  persistCaptureFixture(new URL("../../src/features/student/__fixtures__/study-payloads.json", import.meta.url), JSON.stringify(out, null, 2));
 }, 60000);

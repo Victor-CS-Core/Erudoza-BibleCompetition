@@ -122,7 +122,6 @@ export const api = {
     seasonId: string,
     body: {
       studentUserId: string;
-      difficulty?: TrainingDifficulty;
       type: string;
       contentPackId: string;
       range: { bookKey: string; startChapter: number; startVerse: number; endChapter: number; endVerse: number };
@@ -132,13 +131,14 @@ export const api = {
   myAssignments: (orgId: string, seasonId: string, signal?: AbortSignal) => request<import("./types").Assignment[]>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { signal }),
   notifications: () => request<import("./types").NotificationList>("/api/v1/profile/me/notifications"),
   markNotificationsRead: () => request<{ unreadCount: number }>("/api/v1/profile/me/notifications/read", { method: "POST" }),
-  markNotificationRead: (id: string) => request<{ unreadCount: number }>("/api/v1/profile/me/notifications/read", { method: "POST", body: JSON.stringify({ id }) }),  assignMyself: (orgId: string, seasonId: string, body: { difficulty?: TrainingDifficulty; type: string; contentPackId: string; range: import("./types").PassageRange }, signal?: AbortSignal) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { method: "POST", body: JSON.stringify(body), signal }),
+  markNotificationRead: (id: string) => request<{ unreadCount: number }>("/api/v1/profile/me/notifications/read", { method: "POST", body: JSON.stringify({ id }) }),  assignMyself: (orgId: string, seasonId: string, body: { type: string; contentPackId: string; range: import("./types").PassageRange }, signal?: AbortSignal) => request<import("./types").Assignment>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments`, { method: "POST", body: JSON.stringify(body), signal }),
   removeMyAssignment: (orgId: string, seasonId: string, assignmentId: string) => request<void>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-assignments/${assignmentId}`, { method: "DELETE" }),
   activate: (orgId: string, seasonId: string) =>
     request<{ activated: boolean; blockingProblems: string[] }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/activate`, { method: "POST" }),
-  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" = "Practice", training?: StartTrainingContext, format: "Memory" | "Pbe" = "Memory", memoryChallenge?: "Warmup" | "Advanced", selection?: import("./pbeTypes").PbeSessionSelection, passageScope?: { assignmentId: string } | { knowledgeUnitId: string }) =>
+  startSession: (seasonId: string, mode: "Practice" | "Simulation" | "Review" | "Rescue" | "Checkpoint" | "MockHalf" | "MockFull" = "Practice", training?: StartTrainingContext, format: "Memory" | "Pbe" = "Memory", memoryChallenge?: "Warmup" | "Advanced", selection?: import("./pbeTypes").PbeSessionSelection, passageScope?: { assignmentId: string } | { knowledgeUnitId: string }) =>
     request<Session>("/api/v1/study/sessions", { method: "POST", body: JSON.stringify({ seasonId, mode, format, ...(memoryChallenge ? {memoryChallenge} : {}), ...(training ? { training } : {}), ...selection, ...(passageScope ? { passageScope } : {}) }) }),
-  nextPbeCard: (sessionId:string) => request<import('./pbeTypes').PbeSessionCard>(`/api/v1/study/sessions/${sessionId}/next`),
+  nextPbeCard: (sessionId:string) => request<import('./pbeTypes').PbeSessionCard|import('./pbeTypes').PbeNextBreak>(`/api/v1/study/sessions/${sessionId}/next`),
+  resumePbeBreak: (sessionId:string) => request<import('./pbeTypes').PbeSessionCard>(`/api/v1/study/sessions/${sessionId}/break`,{method:'POST',body:JSON.stringify({})}),
   submitPbeAttempt: (sessionId:string, body:import('./pbeTypes').PbeSubmission) => request<import('./pbeTypes').PbeAttemptResult>(`/api/v1/study/sessions/${sessionId}/attempts`,{method:'POST',body:JSON.stringify(body)}),
   pbeTimed: (sessionId:string, body:unknown) => request<import('./pbeTypes').PbePresentationState|import('./pbeTypes').PbeTimedReceipt>(`/api/v1/study/sessions/${sessionId}/timed`,{method:'POST',body:JSON.stringify(body)}),
   pbeTimedStatus: (sessionId:string, questionId?:string) => request<import('./pbeTypes').PbePresentationState|import('./pbeTypes').PbeTimedReceipt|import('./pbeTypes').PbeInterruptionStatus>(`/api/v1/study/sessions/${sessionId}/timed${questionId?`?questionId=${encodeURIComponent(questionId)}`:''}`),
@@ -159,6 +159,8 @@ export const api = {
     request<import('./types').SpellingFixResponse>(`/api/v1/study/sessions/${sessionId}/spelling-fix`, { method: "POST", body: JSON.stringify(body) }),
   setDifficulty: (orgId: string, seasonId: string, studentId: string, difficulty: TrainingDifficulty, signal?: AbortSignal) =>
     request<{ difficulty: TrainingDifficulty }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/students/${studentId}/difficulty`, { method: "PUT", body: JSON.stringify({ difficulty }), signal }),
+  setMyDifficulty: (orgId: string, seasonId: string, difficulty: TrainingDifficulty, signal?: AbortSignal) =>
+    request<{ difficulty: TrainingDifficulty }>(`/api/v1/organizations/${orgId}/seasons/${seasonId}/my-difficulty`, { method: "PUT", body: JSON.stringify({ difficulty }), signal }),
   assignedSeasons: () => request<{ id: string; name: string }[]>("/api/v1/progress/me/seasons"),
   progress: (seasonId?: string) => request<Progress>(`/api/v1/progress/me${seasonId ? `?seasonId=${encodeURIComponent(seasonId)}` : ""}`),
   teamActivity: () => request<import("./types").TeamActivity>("/api/v1/progress/me/team-activity"),

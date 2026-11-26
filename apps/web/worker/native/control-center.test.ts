@@ -6,6 +6,7 @@ import { APP_VERSION } from "./version";
 import { routeArea, recordErrorEvent } from "./error-events";
 import { composeWeeklyDigest, runMasterDigest } from "./control-center";
 import { LIBRARY_ORG } from "./application/library-access";
+import type { ClubsData, ContentData, DigestData, FunnelData, OverviewData, SeasonsData, SupportData, SupportTicket, SystemData, UsersData } from "../../src/api/controlCenter";
 
 /** Control Center: master gate, cross-org aggregation, tickets, backfills,
  *  the completion rollup, error windows, and the Monday digest. One app,
@@ -35,6 +36,16 @@ async function loginAs(userName: string): Promise<string> {
 }
 async function request(path: string, userName = "coach", method = "GET", value?: unknown) {
   return app.fetch(path, { method, headers: { Cookie: cookies.get(userName)!, Origin: "https://erudoza.test", "Content-Type": "application/json" }, ...(value === undefined ? {} : { body: JSON.stringify(value) }) });
+}
+// Responses are pinned to the CLIENT contract types (src/api/controlCenter.ts)
+// — the same DTOs the page renders — so a server dialect drift fails here.
+// Ticket create/convert responses additionally carry the server-only label
+// and sourceMessageId on the wire.
+type TicketWire = SupportTicket & { label: string; sourceMessageId: string | null };
+type TicketResponse = { ticket: TicketWire; alreadyProcessed?: boolean };
+type IngestResponse = { entry: { id: string }; alreadyProcessed?: boolean };
+async function requestJson<T>(path: string, userName = "coach", method = "GET", value?: unknown): Promise<T> {
+  return await (await request(path, userName, method, value)).json() as T;
 }
 async function addUser(id: string, org: string, userName: string, kind: string, role: string, createdAt: number | null, email?: string) {
   await app.db.prepare(`INSERT INTO Users(id, org_id, user_name, email, display_name, kind, role, password_hash, credential_version, created_at)
@@ -106,7 +117,7 @@ it("gates every control-center endpoint to the master account", async () => {
 });
 
 it("aggregates the overview across both clubs", async () => {
-  const body = await (await request(`/api/v1/admin/control-center/overview${Q}`)).json() as Record<string, any>;
+  const body = await requestJson<OverviewData>(`/api/v1/admin/control-center/overview${Q}`);
   expect(body.totalUsers).toBe(7);
   expect(body.newThisMonth).toBe(1); // only studentb carries a November created_at
   expect(body.xpThisWeek).toBe(100); // 80 org1 + 20 org2
@@ -124,57 +135,57 @@ it("aggregates the overview across both clubs", async () => {
 });
 
 it("lists newest users across clubs with join dates where known", async () => {
-  const body = await (await request("/api/v1/admin/control-center/users")).json() as Record<string, any>;
+  const body = await requestJson<UsersData>("/api/v1/admin/control-center/users");
   expect(body.clubs).toBe(2);
-  expect(body.newest[0].displayName).toBe("studentb");
-  expect(body.newest[0].joinedAtUtc).toBe("2026-11-05T00:00:00.000Z");
+  expect(body.newest[0]!.displayName).toBe("studentb");
+  expect(body.newest[0]!.joinedAtUtc).toBe("2026-11-05T00:00:00.000Z");
   expect(body.newest[0]).toMatchObject({ userName: "studentb", email: null, orgName: "Practice Club" });
-  const seed = body.newest.find((u: any) => u.id === STUDENT_C);
-  expect(seed.orgName).toBe("Northgate Club");
-  const owner2 = body.newest.find((u: any) => u.id === OWNER2);
+  const seed = body.newest.find(u => u.id === STUDENT_C);
+  expect(seed!.orgName).toBe("Northgate Club");
+  const owner2 = body.newest.find(u => u.id === OWNER2);
   expect(owner2).toMatchObject({ userName: "owner2", email: "owner2@example.com", orgName: "Northgate Club" });
-  expect(body.newest.at(-1).joinedAtUtc).toBeNull(); // unknown dates sort last, shown as a dash client-side
+  expect(body.newest.at(-1)!.joinedAtUtc).toBeNull(); // unknown dates sort last, shown as a dash client-side
 });
 
 it("reports club health: active learners, sessions, and quiet learners per club", async () => {
-  const body = await (await request(`/api/v1/admin/control-center/clubs${Q}`)).json() as Record<string, any>;
-  const byId = new Map(body.clubs.map((c: any) => [c.orgId, c]));
+  const body = await requestJson<ClubsData>(`/api/v1/admin/control-center/clubs${Q}`);
+  const byId = new Map(body.clubs.map(c => [c.orgId, c]));
   expect(byId.get(TEST_ORG)).toMatchObject({ learners: 2, activeLearners: 1, sessionsThisWeek: 7, quietLearners: 1 });
   expect(byId.get(ORG2)).toMatchObject({ learners: 1, activeLearners: 1, sessionsThisWeek: 2, quietLearners: 0 });
 });
 
 it("builds the onboarding funnel with labeled sources", async () => {
-  const body = await (await request(`/api/v1/admin/control-center/funnel${Q}`)).json() as Record<string, any>;
-  expect(body.steps.map((s: any) => [s.key, s.count])).toEqual([
+  const body = await requestJson<FunnelData>(`/api/v1/admin/control-center/funnel${Q}`);
+  expect(body.steps.map(s => [s.key, s.count])).toEqual([
     ["invitations", 3], ["accounts", 7], ["first-practice", 2], ["active-week", 2],
   ]);
   for (const step of body.steps) expect(step.source.length).toBeGreaterThan(5);
 });
 
 it("summarizes content, watcher, seasons, and open disputes", async () => {
-  const content = await (await request("/api/v1/admin/control-center/content")).json() as Record<string, any>;
+  const content = await requestJson<ContentData>("/api/v1/admin/control-center/content");
   // The endpoint speaks the client's contract dialect (apps/web/src/api/
   // controlCenter.ts) — the Nov 24 production crash was this handler
   // answering in its own dialect (materialDrafts/liveReleases/checkedAt/…)
   // while the client rendered proposalsPending/releasesLive/checkedAtUtc.
   expect(content.watcher).toEqual({ checkedAtUtc: "2026-11-23T10:00:00Z", mediaChecked: 12, notes: null });
   expect(content).toMatchObject({ proposalsPending: 2, proposalsOldestAtUtc: "2026-11-20T00:00:00Z", releasesLive: 1, newsSuggestions: 1, newsDrafts: 1, newsPublished: 1, newsOldestSuggestionAtUtc: "2026-11-19T00:00:00Z", libraryPacks: 1, libraryVerses: 3 });
-  const seasons = await (await request("/api/v1/admin/control-center/seasons")).json() as Record<string, any>;
+  const seasons = await requestJson<SeasonsData>("/api/v1/admin/control-center/seasons");
   expect(seasons.seasons).toHaveLength(2);
-  expect(seasons.seasons.find((s: any) => s.id.endsWith("c1"))).toMatchObject({ members: 2, status: "Active", orgName: "Practice Club" });
+  expect(seasons.seasons.find(s => s.id.endsWith("c1"))).toMatchObject({ members: 2, status: "Active", orgName: "Practice Club" });
   expect(seasons.openDisputes).toBe(1);
   expect(seasons.oldestDisputeAtUtc).toBe("2026-11-22T09:00:00Z");
 });
 
 it("reports system state: version, cron, secret names only, ingest flag", async () => {
-  const body = await (await request("/api/v1/admin/control-center/system")).json() as Record<string, any>;
+  const body = await requestJson<SystemData>("/api/v1/admin/control-center/system");
   expect(body.version).toBe(APP_VERSION);
   expect(body.database).toBe("ok"); // the client compares against the string "ok"
   expect(body.cron.expression).toBe("0 10 * * 1");
-  expect(body.secrets.map((s: any) => s.name)).toEqual(["RESEND_API_KEY", "TURNSTILE_SECRET_KEY", "AUTH_CODE_SECRET"]);
+  expect(body.secrets.map(s => s.name)).toEqual(["RESEND_API_KEY", "TURNSTILE_SECRET_KEY", "AUTH_CODE_SECRET"]);
   expect(body.supportIngestConfigured).toBe(true);
   expect(JSON.stringify(body)).not.toContain("test-ingest-token");
-  const health = await (await app.fetch("/api/v1/health")).json() as Record<string, any>;
+  const health = await (await app.fetch("/api/v1/health")).json() as { version: string };
   expect(health.version).toBe(APP_VERSION);
 });
 
@@ -185,7 +196,7 @@ it("counts errors in 24h and 7d windows by route area", async () => {
   await ins("err-2", now - 25 * 3_600_000, "Accounts");
   await ins("err-3", now - 3 * 86_400_000, "Study");
   await ins("err-4", now - 8 * 86_400_000, "PBE");
-  const body = await (await request("/api/v1/admin/control-center/system")).json() as Record<string, any>;
+  const body = await requestJson<SystemData>("/api/v1/admin/control-center/system");
   expect(body.errors.last24h).toBe(1);
   expect(body.errors.last7d).toBe(3);
   expect(body.errors.byArea).toEqual([
@@ -195,7 +206,7 @@ it("counts errors in 24h and 7d windows by route area", async () => {
   expect(routeArea("/api/v1/auth/coach-options")).toBe("Accounts"); // the onboarding 503 class lands here
   expect(routeArea("/api/v1/study/sessions")).toBe("Study");
   await recordErrorEvent({ DB: app.db } as never, "/api/v1/pbe/disputes", 503, "HttpError");
-  const after = await (await request("/api/v1/admin/control-center/system")).json() as Record<string, any>;
+  const after = await requestJson<SystemData>("/api/v1/admin/control-center/system");
   expect(after.errors.last24h).toBe(2);
 });
 
@@ -204,28 +215,28 @@ it("runs the ticket lifecycle: ingest, convert once, manual create, transitions,
   expect((await ingest("msg-1", "wrong-token")).status).toBe(403);
   const first = await ingest("msg-1");
   expect(first.status).toBe(201);
-  const entry = (await first.json() as Record<string, any>).entry;
+  const entry = (await first.json() as IngestResponse).entry;
   const dupe = await ingest("msg-1");
   expect(dupe.status).toBe(200);
-  expect((await dupe.json() as Record<string, any>).alreadyProcessed).toBe(true);
+  expect((await dupe.json() as IngestResponse).alreadyProcessed).toBe(true);
 
   const created = await request("/api/v1/admin/control-center/support/tickets", "coach", "POST", { inboxId: entry.id });
   expect(created.status).toBe(201);
-  const ticket = (await created.json() as Record<string, any>).ticket;
+  const ticket = (await created.json() as TicketResponse).ticket;
   expect(ticket).toMatchObject({ number: 101, label: "#S-101", source: "email", sourceMessageId: "msg-1", status: "New", requesterName: "Maria L." });
   const again = await request("/api/v1/admin/control-center/support/tickets", "coach", "POST", { inboxId: entry.id });
   expect(again.status).toBe(200);
-  expect((await again.json() as Record<string, any>)).toMatchObject({ alreadyProcessed: true, ticket: { id: ticket.id } });
+  expect((await again.json() as TicketResponse)).toMatchObject({ alreadyProcessed: true, ticket: { id: ticket.id } });
 
   const manual = await request("/api/v1/admin/control-center/support/tickets", "coach", "POST", { requesterName: "Coach Daniel", subject: "Printer question", body: "How do I print the leaderboard?" });
   expect(manual.status).toBe(201);
-  const manualTicket = (await manual.json() as Record<string, any>).ticket;
+  const manualTicket = (await manual.json() as TicketResponse).ticket;
   expect(manualTicket.number).toBe(102);
 
   for (const status of ["Open", "Waiting", "Resolved"]) {
     const res = await request(`/api/v1/admin/control-center/support/tickets/${ticket.id}/status`, "coach", "POST", { status });
     expect(res.status).toBe(200);
-    expect((await res.json() as Record<string, any>).ticket.status).toBe(status);
+    expect((await res.json() as TicketResponse).ticket.status).toBe(status);
   }
   expect((await request(`/api/v1/admin/control-center/support/tickets/${ticket.id}/status`, "coach", "POST", { status: "Bogus" })).status).toBe(400);
   expect((await request(`/api/v1/admin/control-center/support/tickets/nope/status`, "coach", "POST", { status: "Open" })).status).toBe(404);
@@ -236,18 +247,18 @@ it("runs the ticket lifecycle: ingest, convert once, manual create, transitions,
   const old = (id: string, number: number, at: number) => app.db.prepare("INSERT INTO SupportTickets(id, number, source, requester_name, subject, status, created_at, updated_at) VALUES(?,?,'manual','Old',?,'Open',?,?)").bind(id, number, id, at, at).run();
   await old("ticket-aging", 150, now - 3 * 86_400_000);
   await old("ticket-stale", 151, now - 8 * 86_400_000);
-  const support = await (await request("/api/v1/admin/control-center/support")).json() as Record<string, any>;
+  const support = await requestJson<SupportData>("/api/v1/admin/control-center/support");
   expect(support.counts).toEqual({ newEmails: 0, openTickets: 3, aging48h: 2, stale7d: 1 });
   expect(support.supportAddress).toBe("ktr0nn@muse.ai");
   expect(support.inbox).toHaveLength(1);
-  expect(support.inbox[0].ticketId).toBe(ticket.id);
-  expect(support.inbox[0].ticketNumber).toBe(101); // the client renders "Ticket #S-101" from this field
-  const stale = support.tickets.find((t: any) => t.id === "ticket-stale");
-  expect(stale.ageHours).toBeGreaterThanOrEqual(192);
+  expect(support.inbox[0]!.ticketId).toBe(ticket.id);
+  expect(support.inbox[0]!.ticketNumber).toBe(101); // the client renders "Ticket #S-101" from this field
+  const stale = support.tickets.find(t => t.id === "ticket-stale");
+  expect(stale!.ageHours).toBeGreaterThanOrEqual(192);
 });
 
 it("pages and filters the support queue so every ticket and email stays reachable", async () => {
-  const get = async (qs: string) => (await (await request(`/api/v1/admin/control-center/support${qs}`)).json()) as Record<string, any>;
+  const get = async (qs: string) => requestJson<SupportData>(`/api/v1/admin/control-center/support${qs}`);
   const before = await get("");
   expect(before.supportIngestConfigured).toBe(true); // this app configures the ingest token
   const now = Date.now();
@@ -261,21 +272,21 @@ it("pages and filters the support queue so every ticket and email stays reachabl
   expect(firstPage.ticketStatus).toBe("all");
   expect(firstPage.ticketsTotal).toBe(before.ticketsTotal + 31);
   expect(firstPage.tickets).toHaveLength(30);
-  expect(firstPage.tickets.some((t: any) => t.id === "ticket-oldest-open")).toBe(false);
+  expect(firstPage.tickets.some(t => t.id === "ticket-oldest-open")).toBe(false);
   const secondPage = await get("?ticketOffset=30");
-  expect(secondPage.tickets.some((t: any) => t.id === "ticket-oldest-open")).toBe(true);
+  expect(secondPage.tickets.some(t => t.id === "ticket-oldest-open")).toBe(true);
   const openOnly = await get("?ticketStatus=open");
   expect(openOnly.ticketStatus).toBe("open");
   expect(openOnly.ticketsTotal).toBe(before.counts.openTickets + 1);
-  expect(openOnly.tickets.some((t: any) => t.id === "ticket-oldest-open")).toBe(true);
+  expect(openOnly.tickets.some(t => t.id === "ticket-oldest-open")).toBe(true);
   const resolvedOnly = await get("?ticketStatus=Resolved");
   expect(resolvedOnly.ticketsTotal).toBe(30 + (before.ticketsTotal - before.counts.openTickets));
-  expect(resolvedOnly.tickets.every((t: any) => t.status === "Resolved")).toBe(true);
+  expect(resolvedOnly.tickets.every(t => t.status === "Resolved")).toBe(true);
   expect((await get("?ticketStatus=Bogus")).ticketStatus).toBe("all"); // unknown filters fall back to the full queue
   // The oldest open ticket is updatable from the filtered view.
   const updated = await request("/api/v1/admin/control-center/support/tickets/ticket-oldest-open/status", "coach", "POST", { status: "Waiting" });
   expect(updated.status).toBe(200);
-  expect((await updated.json() as Record<string, any>).ticket.status).toBe("Waiting");
+  expect((await updated.json() as TicketResponse).ticket.status).toBe("Waiting");
 
   // Inbox paging: 21 more messages push the oldest past the old LIMIT 20.
   const insMail = (id: string, at: number) => app.db.prepare("INSERT INTO SupportInbox(id, source_message_id, requester_name, subject, received_at) VALUES(?,?, 'Mail', ?, ?)").bind(id, `src-${id}`, id, at).run();
@@ -283,9 +294,9 @@ it("pages and filters the support queue so every ticket and email stays reachabl
   const inboxFirst = await get("");
   expect(inboxFirst.inboxTotal).toBe(before.inboxTotal + 21);
   expect(inboxFirst.inbox).toHaveLength(20);
-  expect(inboxFirst.inbox.some((e: any) => e.id === "mail-20")).toBe(false);
+  expect(inboxFirst.inbox.some(e => e.id === "mail-20")).toBe(false);
   const inboxSecond = await get("?inboxOffset=20");
-  expect(inboxSecond.inbox.some((e: any) => e.id === "mail-20")).toBe(true);
+  expect(inboxSecond.inbox.some(e => e.id === "mail-20")).toBe(true);
 });
 
 it("404s the ingest endpoint when its token is not configured", async () => {
@@ -365,7 +376,7 @@ it("composes and stores the Monday digest once per week", async () => {
   await runMasterDigest({ DB: app.db } as never);
   const storedAgain = await app.db.prepare("SELECT count(*) AS n FROM Records WHERE kind = 'master-digest'").first<{ n: number }>();
   expect(storedAgain?.n).toBe(1);
-  const endpoint = await (await request("/api/v1/admin/control-center/digest")).json() as Record<string, any>;
-  expect(endpoint.digest.weekStart).toBe(run.weekStart);
-  expect(endpoint.digest.composedAtUtc).toBe(run.generatedAtUtc); // client contract name for the stored generatedAtUtc
+  const endpoint = await requestJson<DigestData>("/api/v1/admin/control-center/digest");
+  expect(endpoint.digest!.weekStart).toBe(run.weekStart);
+  expect(endpoint.digest!.composedAtUtc).toBe(run.generatedAtUtc); // client contract name for the stored generatedAtUtc
 }, 30000);

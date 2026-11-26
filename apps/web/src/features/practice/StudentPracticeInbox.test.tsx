@@ -69,6 +69,30 @@ describe("Student practice inbox", () => {
     expect(await screen.findByText(/You are the designated captain/)).toBeInTheDocument();
   });
 
+  it("shows seats, readiness and the start-waiting reason on a live event card", async () => {
+    vi.mocked(practiceApi.events).mockResolvedValue({ events: [event({ room: { id: "room-1", status: "Lobby", memberCount: 4, members: [
+      { userId: "player", displayName: "Player One", team: 1, ready: true, captain: true, scribe: true },
+      { userId: "ana", displayName: "Ana", team: 1, ready: true, captain: false, scribe: false },
+      { userId: "ben", displayName: "Ben", team: 2, ready: true, captain: true, scribe: false },
+      { userId: "dee", displayName: "Dee", team: 2, ready: false, captain: false, scribe: true },
+    ] } })] });
+    mount();
+    await screen.findByRole("heading", { name: "Happening now" });
+    const card = document.getElementById("event-event-1")!;
+    expect(within(card).getByText("4 of 4 seats filled · 3 of 4 players ready")).toBeInTheDocument();
+    expect(within(card).getByText("Start is waiting on Dee to mark ready.")).toBeInTheDocument();
+  });
+
+  it("names the invitation destination room and season from the bootstrap payload", async () => {
+    mount({ ...data,
+      rooms: [{ id: "room-7", seasonId: "daniel", status: "Lobby", teamSize: 2, teamCount: 2, questionCount: 10, coached: false, ownerId: "coach", memberCount: 3 }],
+      invitations: [{ id: "invite", roomId: "room-7", team: 2, inviterName: "Ana", expiresAt: "2026-12-01T12:00:00Z" }],
+    });
+    const invitations = within(document.getElementById("invitations")!);
+    expect(await invitations.findByText("Daniel 2026 · 2v2 room · 3 of 4 seats filled")).toBeInTheDocument();
+    expect(invitations.getByText(/Expires/)).toBeInTheDocument();
+  });
+
   it("accepts a team-specific invitation only for its destination team", async () => {
     vi.mocked(practiceApi.accept).mockResolvedValue({ id: "invited-room", seasonId: "daniel" } as Awaited<ReturnType<typeof practiceApi.accept>>);
     mount({ ...data, invitations: [{ id: "invite", roomId: "invited-room", team: 2, inviterName: "Ana", expiresAt: "2026-12-01T12:00:00Z" }] });

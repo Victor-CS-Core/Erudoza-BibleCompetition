@@ -1,4 +1,4 @@
-import type {ChapterPage,ContinueChaptersRequest,ContinueChaptersResponse,CooperationSnapshot,ContinueCooperationRequest,ContinueCooperationResponse,CooperationStudentPage} from './pbeTypes';
+import type {ChapterPage,ContinueChaptersRequest,ContinueChaptersResponse,CooperationSnapshot,ContinueCooperationRequest,ContinueCooperationResponse,CooperationStudentPage,PbeReadiness} from './pbeTypes';
 import { request } from './client';
 import type { TrainingToday, TrainingPreferences, WeeklyTarget, SessionRecap, BadgeProgress, PassageJourneyPage } from './trainingTypes';
 const cooperationPath = (organizationId:string, seasonId:string) => `/api/v1/organizations/${encodeURIComponent(organizationId)}/seasons/${encodeURIComponent(seasonId)}/pbe-cooperation`;
@@ -34,5 +34,6 @@ export const trainingApi = {
     }) => request<TrainingPreferences>('/api/v1/progress/me/preferences', { method: 'PUT', body: JSON.stringify(input) }),
     recap: (sessionId: string) => request<SessionRecap>(`/api/v1/study/sessions/${encodeURIComponent(sessionId)}/recap`),
     honors: (seasonId: string) => request<BadgeProgress[]>(`/api/v1/progress/me/honors?seasonId=${encodeURIComponent(seasonId)}`),
+    pbeReadiness: (seasonId: string) => request<PbeReadiness>(`/api/v1/progress/me/pbe-readiness?seasonId=${encodeURIComponent(seasonId)}`),
     journey: (seasonId: string, after?: string) => request<PassageJourneyPage>(`/api/v1/progress/me/journey?seasonId=${encodeURIComponent(seasonId)}${after ? `&after=${encodeURIComponent(after)}` : ''}`),
 };

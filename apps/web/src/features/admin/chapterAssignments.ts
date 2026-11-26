@@ -26,7 +26,12 @@ export type SaveChapterAssignmentsResult = {
 
 const coordinateKey = (unit: Coordinate) => JSON.stringify([unit.bookKey, unit.chapter, unit.verse]);
 const uniqueCoordinates = (units: Coordinate[]) => orderCoordinates([...new Map(units.map(unit => [coordinateKey(unit), unit])).values()]);
-const matchesContext = (item: Assignment, context: ChapterAssignmentContext) => item.studentUserId === context.studentId && item.type === context.type && (!item.contentPackId || item.contentPackId === context.contentPackId);
+// A chapter counts as assigned if ANY role covers it (card 44): the role is
+// a property stamped on the ranges being saved, never a filter over what is
+// already saved — otherwise the same chapter could be silently assigned
+// twice under two roles. context.type is retained for callers that still
+// pass it, but matching deliberately ignores it.
+const matchesContext = (item: Assignment, context: ChapterAssignmentContext) => item.studentUserId === context.studentId && (!item.contentPackId || item.contentPackId === context.contentPackId);
 
 /** Call with the selected book's stored coordinates and saved season eligibility. */
 export function chapterOptions(eligible: Coordinate[], all: Coordinate[], existing: Assignment[], context: ChapterAssignmentContext): ChapterOption[] {

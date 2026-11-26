@@ -1,7 +1,7 @@
 import { pbeToday } from '../pbe/effort';
 import type { RequestContext } from '../types';
 import { HttpError } from '../types';
-import { effectiveSources } from '../application/model';
+import { effectiveSources, requiredSources } from '../application/model';
 import type { Season, Assignment, Source } from '../application/model';
 import type { Mastery } from '../study/routes';
 import type { TrainingToday, PassageJourneyPage } from '../../../src/api/trainingTypes';
@@ -20,14 +20,15 @@ export async function trainingScope(ctx: RequestContext, requested: string | nul
     // say "Training opens when this season is Active" instead of the
     // misleading "Not assigned". Sources below still resolve only for Active
     // seasons, so nothing becomes studyable early.
-    ?? (requested ? null : withAssignment.sort(byNewest)[0] ?? null); const sources = season && season.status === 'Active' ? await effectiveSources(ctx, season.id, ctx.actor.userId) : []; return { season, sources, fingerprint: await scopeVersion(sources) }; }
-export async function honors(ctx: RequestContext, seasonId: string | null, streak = 0, precomputed?: { season: Season | null; sources: Source[]; fingerprint: string }) {
+    ?? (requested ? null : withAssignment.sort(byNewest)[0] ?? null); const sources = season && season.status === 'Active' ? await effectiveSources(ctx, season.id, ctx.actor.userId) : []; const required = season ? requiredSources(sources, assignments.filter(a => a.seasonId === season.id)) : []; return { season, sources, requiredSources: required, fingerprint: await scopeVersion(sources) }; }
+export async function honors(ctx: RequestContext, seasonId: string | null, streak = 0, precomputed?: { season: Season | null; sources: Source[]; requiredSources: Source[]; fingerprint: string }) {
     // today() already derived the scope for the same season; reuse it instead of deriving twice.
     const scope = precomputed ?? await trainingScope(ctx, seasonId), p = await preference(ctx);
     const projection = scope.season ? await ctx.store.get<SeasonProgressRecord>('training-season-progress', identity(ctx, scope.season.id, scope.fingerprint), ctx.orgId) : null;
     const ids = Object.keys((await import('./store')).titles).map(key => identity(ctx, key, 'training-v1', key === 'steady-study' || key.startsWith('streak-') ? 'academy' : scope.season?.id ?? ''));
     const awards = (await ctx.store.getMany<AwardRecord>('solo-badge-award', ids, ctx.orgId)).map(r => r.value);
     const counters = projection?.value.counters ?? badgeCounters(scope.sources.map(s => ({ id: kid(s), bookKey: s.bookKey, chapter: s.chapter })), [], [], p?.value.qualifyingWeekStarts.length ?? 0, false);
+    if (!projection) counters['full-coverage'] = [0, scope.requiredSources.length];
     counters['steady-study'] = [Math.min(4, p?.value.qualifyingWeekStarts.length ?? 0), 4];
     // Streak counters are always recomputed fresh so stale projections never under-report.
     counters['streak-7'] = [Math.min(7, streak), 7];
@@ -45,7 +46,7 @@ export async function today(ctx: RequestContext, seasonId: string | null, now = 
     const m = head ? (await ctx.store.get<MissionRecord>('daily-mission', head.missionId, ctx.orgId))?.value : null;
     const stale = !!m && (m.invalidated || m.scopeVersion !== scope.fingerprint);
     const states = (!m || stale) && scope.season ? await ctx.store.list<Mastery>('mastery', ctx.orgId, { seasonId: scope.season.id, ownerId: ctx.actor.userId }) : [];
-    const due = Math.min(8, new Set(states.filter(m => Date.parse(m.reviewDueAt) <= Date.parse(now) && scope.sources.some(s => kid(s) === m.knowledgeUnitId)).map(m => m.knowledgeUnitId)).size);
+    const due = Math.min(8, new Set(states.filter(m => Date.parse(m.reviewDueAt) <= Date.parse(now) && scope.requiredSources.some(s => kid(s) === m.knowledgeUnitId)).map(m => m.knowledgeUnitId)).size);
     const available = !!scope.sources.length;
     const steps = m && !stale ? missionSteps(m) : [{ kind: 'Review' as const, target: due, completed: 0, status: due ? 'Pending' as const : 'NotNeeded' as const, sessionId: null }, { kind: 'Practice' as const, target: 8, completed: 0, status: 'Pending' as const, sessionId: null }];
     const linked = await ctx.store.getMany<import('../study/routes').Session>('session', steps.flatMap(s => s.sessionId ? [s.sessionId] : []), ctx.orgId);

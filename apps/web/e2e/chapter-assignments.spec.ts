@@ -5,7 +5,13 @@ import type { AssignedScripture } from "../src/api/scripture";
 import { assertNoOverflow, login, logout } from "./helpers";
 import { answerCard, json, type StoredSource } from "./study-source-helpers";
 
-const chapterCheckbox = (page: Page, number: number) => page.getByRole("checkbox", { name: `Chapter ${number}`, exact: true });
+// Chapter choices are toggle BUTTONS in the chapter strip (ChapterStrip):
+// the accessible name is "Chapter N" plus an optional state suffix
+// ("(limited availability)" / "(already saved)"); aria-pressed marks a
+// pending selection and saved chapters render disabled. (Card 26 selector
+// refresh — replaces the old chapter checkboxes.)
+const chapterButton = (page: Page, number: number) => page.getByRole("button", { name: new RegExp(`^Chapter ${number}\\b`) });
+const selectAllChaptersButton = (page: Page) => page.getByRole("button", { name: "Select all chapters", exact: true });
 const coordinates = (book: LibraryBook, chapters: number[], excluded: string[] = []) => book.chapters
   .filter(chapter => chapters.includes(chapter.number))
   .flatMap(chapter => chapter.verses.map(verse => `${chapter.number}:${verse}`))
@@ -62,22 +68,22 @@ test("whole-book season supports separate chapter selections, overlapping studen
 
   const picker = page.getByRole("group", { name: "Chapters to assign", exact: true });
   await expect(picker).toBeVisible();
-  await expect(picker.getByRole("checkbox", { name: /^Chapter \d+$/ })).toHaveCount(6);
+  await expect(picker.getByRole("button", { name: /^Chapter \d+/ })).toHaveCount(6);
   await expect(page.getByRole("button", { name: "Save assignments", exact: true })).toBeDisabled();
-  await chapterCheckbox(page, 1).focus();
+  await chapterButton(page, 1).focus();
   await page.keyboard.press("Space");
-  await expect(chapterCheckbox(page, 1)).toBeChecked();
-  await chapterCheckbox(page, 3).focus();
+  await expect(chapterButton(page, 1)).toHaveAttribute("aria-pressed", "true");
+  await chapterButton(page, 3).focus();
   await page.keyboard.press("Space");
-  await expect(chapterCheckbox(page, 3)).toBeChecked();
-  await expect(chapterCheckbox(page, 2)).not.toBeChecked();
+  await expect(chapterButton(page, 3)).toHaveAttribute("aria-pressed", "true");
+  await expect(chapterButton(page, 2)).toHaveAttribute("aria-pressed", "false");
   for (const width of widths) {
     await page.setViewportSize({ width, height: 1000 });
     await assertNoOverflow(page);
     if (mobile) {
-      for (const target of [chapterCheckbox(page, 1).locator(".."), chapterCheckbox(page, 3).locator(".."), page.getByRole("checkbox", { name: "Select all chapters in Ephesians", exact: true }).locator(".."), page.getByRole("button", { name: "Save assignments", exact: true })]) await assertTouchTarget(target);
-      await chapterCheckbox(page, 1).locator("..").evaluate(label => label.scrollIntoView({ block: "center" }));
-      const chapter = await chapterCheckbox(page, 1).locator("..").boundingBox();
+      for (const target of [chapterButton(page, 1), chapterButton(page, 3), selectAllChaptersButton(page), page.getByRole("button", { name: "Save assignments", exact: true })]) await assertTouchTarget(target);
+      await chapterButton(page, 1).evaluate(button => button.scrollIntoView({ block: "center" }));
+      const chapter = await chapterButton(page, 1).boundingBox();
       const masthead = await page.locator(".command-masthead").boundingBox();
       const dock = await page.getByRole("navigation", { name: "Mobile navigation", exact: true }).boundingBox();
       expect.soft(chapter!.y).toBeGreaterThanOrEqual(Math.max(0, masthead!.y + masthead!.height));
@@ -85,7 +91,7 @@ test("whole-book season supports separate chapter selections, overlapping studen
       // The current editor saves in normal page flow below the chapter choices.
       await page.getByRole("button", { name: "Save assignments", exact: true }).evaluate(button => button.scrollIntoView({ block: "center" }));
       const save = await page.getByRole("button", { name: "Save assignments", exact: true }).boundingBox();
-      const chapterAfterScroll = await chapterCheckbox(page, 1).locator("..").boundingBox();
+      const chapterAfterScroll = await chapterButton(page, 1).boundingBox();
       if (process.env.ERUDOZA_CHAPTER_BLOCK_COFFEE) await expect(page.locator(".coffee-fallback")).toBeVisible();
       const supportControls = await page.locator("#bmc-wbtn, .coffee-fallback, .coffee-minimize").evaluateAll(elements => elements.flatMap(element => {
         const style = getComputedStyle(element), rect = element.getBoundingClientRect();
@@ -109,22 +115,24 @@ test("whole-book season supports separate chapter selections, overlapping studen
         await page.screenshot({ path: info.outputPath(`chapter-support-minimized-${width}.png`) });
         await page.getByRole("button", { name: "Show support button" }).click();
         await expect(minimize).toBeFocused();
-        await expect(chapterCheckbox(page, 1)).toBeChecked();
+        await expect(chapterButton(page, 1)).toHaveAttribute("aria-pressed", "true");
       }
     }
     await page.screenshot({ path: info.outputPath(`chapter-picker-${width}.png`), fullPage: true });
   }
   await page.getByRole("button", { name: "Save assignments", exact: true }).click();
   await expect(page.locator(".planner-saved-row")).toHaveCount(1);
-  await expect(page.locator(".planner-saved-row")).toContainText("Chapters 1, 3 · saved assignments");
+  // Saved rows read "<Book> 1, 3 · saved assignments" in the current UI
+  // (the book name replaced the old "Chapters" prefix — card 26).
+  await expect(page.locator(".planner-saved-row")).toContainText("1, 3 · saved assignments");
   const original = (await json<Assignment[]>(page.request, `${org}/seasons/${seasonId}/assignments`)).filter(item => item.studentUserId === student.userId);
   expect(ranges(original)).toEqual([{ startChapter: 1, startVerse: 1, endChapter: 1, endVerse: 23 }, { startChapter: 3, startVerse: 1, endChapter: 3, endVerse: 21 }]);
   expect(await page.locator(".planner-saved").evaluate((saved, fields) => !!(fields!.compareDocumentPosition(saved) & Node.DOCUMENT_POSITION_FOLLOWING), await picker.elementHandle())).toBe(true);
   await page.reload();
   await expect(page.locator(".planner-saved-row")).toHaveCount(1);
-  await expect(page.locator(".planner-saved-row")).toContainText("Chapters 1, 3 · saved assignments");
-  await expect(chapterCheckbox(page, 1)).toBeDisabled();
-  await expect(chapterCheckbox(page, 3)).toBeDisabled();
+  await expect(page.locator(".planner-saved-row")).toContainText("1, 3 · saved assignments");
+  await expect(chapterButton(page, 1)).toBeDisabled();
+  await expect(chapterButton(page, 3)).toBeDisabled();
   for (const width of widths) {
     await page.setViewportSize({ width, height: 1000 });
     await assertNoOverflow(page);
@@ -132,14 +140,14 @@ test("whole-book season supports separate chapter selections, overlapping studen
   }
   await expect(page.getByRole("button", { name: "Specific verses", exact: true })).toHaveCount(0);
   await expect(page.getByTestId("assignment-start-chapter")).toHaveCount(0);
-  await expect(picker.getByRole("checkbox", { name: /^Chapter \d+$/ })).toHaveCount(6);
+  await expect(picker.getByRole("button", { name: /^Chapter \d+/ })).toHaveCount(6);
 
   await page.goto(`/admin/assignments?seasonId=${seasonId}&studentId=${second.userId}`);
-  await chapterCheckbox(page, 1).click();
-  await chapterCheckbox(page, 3).click();
+  await chapterButton(page, 1).click();
+  await chapterButton(page, 3).click();
   await page.getByRole("button", { name: "Save assignments", exact: true }).click();
   await expect(page.locator(".planner-saved-row")).toHaveCount(1);
-  await expect(page.locator(".planner-saved-row")).toContainText("Chapters 1, 3 · saved assignments");
+  await expect(page.locator(".planner-saved-row")).toContainText("1, 3 · saved assignments");
   const allAssignments = await json<Assignment[]>(page.request, `${org}/seasons/${seasonId}/assignments`);
   expect(ranges(allAssignments.filter(item => item.studentUserId === second.userId))).toEqual(ranges(original));
   expect(allAssignments.filter(item => item.studentUserId === student.userId)).toEqual(original);
@@ -163,7 +171,10 @@ test("whole-book season supports separate chapter selections, overlapping studen
   const assigned = await json<AssignedScripture>(page.request, `/api/v1/study/seasons/${seasonId}/scripture`);
   expect(assigned.verses.map(verse => `${verse.chapter}:${verse.verse}`)).toEqual(coordinates(book, [1, 3]));
   const cardResponse = page.waitForResponse(response => /\/api\/v1\/study\/sessions\/[^/]+\/next$/.test(response.url()));
-  await page.goto(`/student/study?seasonId=${seasonId}`);
+  // /student/study without a mode now lands on the "Choose your training"
+  // picker; the Practice deep link (the picker's own "Start today's drill"
+  // target) starts the session directly. (Card 26 flow refresh.)
+  await page.goto(`/student/study?seasonId=${seasonId}&mode=Practice`);
   const card = await (await cardResponse).json() as ChallengeCard;
   await expect(page.getByTestId("challenge-card")).toBeVisible();
   expect(card.debugAnswer).toBeFalsy();
@@ -172,6 +183,11 @@ test("whole-book season supports separate chapter selections, overlapping studen
   const readPassage = page.getByRole("button", { name: "Read passage", exact: true });
   await readPassage.evaluate(button => button.scrollIntoView({ block: "center" }));
   await readPassage.click();
+  // The reader aid opens focused on the card's own passage (focused-content
+  // rule); the chapter browser — whose Chapter options are exactly the
+  // assigned chapters — is one click further, via its escape button.
+  // (Card 26 flow refresh.)
+  await page.getByRole("button", { name: "Browse the full chapter instead", exact: true }).click();
   const readerChapter = page.getByRole("combobox", { name: "Chapter", exact: true });
   await expect(readerChapter.locator("option")).toHaveText(["1", "3"]);
   for (const width of widths) {
@@ -192,10 +208,10 @@ test("whole-book season supports separate chapter selections, overlapping studen
   await logout(page);
   await login(page);
   await page.goto(`/admin/assignments?seasonId=${seasonId}&studentId=${student.userId}`);
-  await chapterCheckbox(page, 5).click();
+  await chapterButton(page, 5).click();
   await page.getByRole("button", { name: "Save assignments", exact: true }).click();
   await expect(page.locator(".planner-saved-row")).toHaveCount(1);
-  await expect(page.locator(".planner-saved-row")).toContainText("Chapters 1, 3, 5 · saved assignments");
+  await expect(page.locator(".planner-saved-row")).toContainText("1, 3, 5 · saved assignments");
   const after = await json<Progress>(page.request, `${org}/seasons/${seasonId}/students/${student.userId}/progress`);
   expect(after.attemptCount).toBe(before.attemptCount);
   expect(after.mastery).toEqual(before.mastery);
@@ -221,16 +237,16 @@ test("chapter selection respects excluded verses and chapters without widening t
   await expect(page.getByRole("heading", { name: "Student assignments", exact: true })).toBeVisible();
   expect((await json<SeasonScope>(page.request, `${org}/seasons/${season.id}/scope`)).packs).toEqual([customScope]);
   await page.goto(`/admin/assignments?seasonId=${season.id}&studentId=${student.userId}`);
-  await expect(chapterCheckbox(page, 1)).toBeVisible();
-  await expect(chapterCheckbox(page, 2)).toHaveCount(0);
-  await expect(chapterCheckbox(page, 4)).toHaveCount(0);
-  await page.getByRole("checkbox", { name: "Select all chapters in Ephesians", exact: true }).check();
-  await expect(chapterCheckbox(page, 1)).toBeChecked();
-  await expect(chapterCheckbox(page, 3)).toBeChecked();
-  await page.getByRole("checkbox", { name: "Select all chapters in Ephesians", exact: true }).uncheck();
-  await expect(chapterCheckbox(page, 1)).not.toBeChecked();
+  await expect(chapterButton(page, 1)).toBeVisible();
+  await expect(chapterButton(page, 2)).toHaveCount(0);
+  await expect(chapterButton(page, 4)).toHaveCount(0);
+  await selectAllChaptersButton(page).click();
+  await expect(chapterButton(page, 1)).toHaveAttribute("aria-pressed", "true");
+  await expect(chapterButton(page, 3)).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Clear", exact: true }).click();
+  await expect(chapterButton(page, 1)).toHaveAttribute("aria-pressed", "false");
   await expect(page.getByRole("button", { name: "Save assignments", exact: true })).toBeDisabled();
-  await page.getByRole("checkbox", { name: "Select all chapters in Ephesians", exact: true }).check();
+  await selectAllChaptersButton(page).click();
   await page.getByRole("button", { name: "Save assignments", exact: true }).click();
   await expect(page.locator(".planner-saved-row")).toHaveCount(1);
   await expect(page.locator(".planner-saved-row")).toContainText("Assigned");

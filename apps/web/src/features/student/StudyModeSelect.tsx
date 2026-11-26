@@ -15,6 +15,7 @@ import {
   type StudyFormat,
   type StudyModeCard,
 } from "./academyTracks";
+import { PbeReadinessSection } from "./PbeReadinessSection";
 import "./student.css";
 
 function modeHref(seasonId: string | undefined, format: StudyFormat, card: StudyModeCard) {
@@ -213,6 +214,10 @@ export function StudyModeSelect() {
           );
         })}
       </div>
+
+      {format === "Pbe" && today.data?.format === "Pbe" && (
+        <PbeReadinessSection seasonId={seasonId} today={today.data} />
+      )}
 
       <p className="study-library-link">
         <Link to={libraryHref}>Browse the Scripture library</Link>
